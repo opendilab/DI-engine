@@ -3,13 +3,14 @@ FLOAT_MIN = -float('inf')
 
 
 class MinMaxStats:
+
     def __init__(self, ):
         self.minimum = float('inf')
-        self.maximum = - float('inf')
+        self.maximum = -float('inf')
 
     def update(self, value: float):
-        self.maximum = max(self.maximum,value)
-        self.minimum = min(self.minimum,value)
+        self.maximum = max(self.maximum, value)
+        self.minimum = min(self.minimum, value)
 
     def normalize(self, value: float):
         norm_value = value
@@ -19,6 +20,7 @@ class MinMaxStats:
 
 
 class MinMaxStatsList:
+
     def __init__(self, num):
         self.num = num
         self.stats_lst = [MinMaxStats() for _ in range(self.num)]

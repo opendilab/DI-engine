@@ -11,10 +11,11 @@ import torch.nn as nn
 from ding.model.template.model_based.efficientzero_base_model import BaseNet, renormalize
 from ding.utils import MODEL_REGISTRY
 
-
 # from dizoo.board_games.atari.config.atari_config import game_config
 
+
 class DiscreteSupport(object):
+
     def __init__(self, min: int, max: int, delta=1.):
         assert min < max
         self.min = min
@@ -62,13 +63,13 @@ def inverse_scalar_transform(logits, scalar_support):
 
 
 def mlp(
-        input_size,
-        layer_sizes,
-        output_size,
-        output_activation=nn.Identity,
-        activation=nn.ReLU,
-        momentum=0.1,
-        init_zero=False,
+    input_size,
+    layer_sizes,
+    output_size,
+    output_activation=nn.Identity,
+    activation=nn.ReLU,
+    momentum=0.1,
+    init_zero=False,
 ):
     """MLP layers
     Parameters
@@ -88,13 +89,10 @@ def mlp(
     for i in range(len(sizes) - 1):
         if i < len(sizes) - 2:
             act = activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]),
-                       nn.BatchNorm1d(sizes[i + 1], momentum=momentum),
-                       act()]
+            layers += [nn.Linear(sizes[i], sizes[i + 1]), nn.BatchNorm1d(sizes[i + 1], momentum=momentum), act()]
         else:
             act = output_activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]),
-                       act()]
+            layers += [nn.Linear(sizes[i], sizes[i + 1]), act()]
 
     if init_zero:
         layers[-2].weight.data.fill_(0)
@@ -104,13 +102,12 @@ def mlp(
 
 
 def conv3x3(in_channels, out_channels, stride=1):
-    return nn.Conv2d(
-        in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False
-    )
+    return nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
 
 
 # Residual block
 class ResidualBlock(nn.Module):
+
     def __init__(self, in_channels, out_channels, downsample=None, stride=1, momentum=0.1):
         super().__init__()
         self.conv1 = conv3x3(in_channels, out_channels, stride)
@@ -139,6 +136,7 @@ class ResidualBlock(nn.Module):
 
 # Downsample observations before representation network (See paper appendix Network Architecture)
 class DownSample(nn.Module):
+
     def __init__(self, in_channels, out_channels, momentum=0.1):
         super().__init__()
         self.conv1 = nn.Conv2d(
@@ -161,8 +159,9 @@ class DownSample(nn.Module):
             padding=1,
             bias=False,
         )
-        self.downsample_block = ResidualBlock(out_channels // 2, out_channels, momentum=momentum, stride=2,
-                                              downsample=self.conv2)
+        self.downsample_block = ResidualBlock(
+            out_channels // 2, out_channels, momentum=momentum, stride=2, downsample=self.conv2
+        )
         self.resblocks2 = nn.ModuleList(
             [ResidualBlock(out_channels, out_channels, momentum=momentum) for _ in range(1)]
         )
@@ -190,13 +189,14 @@ class DownSample(nn.Module):
 
 # Encode the observations into hidden states
 class RepresentationNetwork(nn.Module):
+
     def __init__(
-            self,
-            observation_shape,
-            num_blocks,
-            num_channels,
-            downsample,
-            momentum=0.1,
+        self,
+        observation_shape,
+        num_blocks,
+        num_channels,
+        downsample,
+        momentum=0.1,
     ):
         """Representation network
         Parameters
@@ -248,17 +248,18 @@ class RepresentationNetwork(nn.Module):
 
 # Predict next hidden states given current states and actions
 class DynamicsNetwork(nn.Module):
+
     def __init__(
-            self,
-            num_blocks,
-            num_channels,
-            reduced_channels_reward,
-            fc_reward_layers,
-            full_support_size,
-            block_output_size_reward,
-            lstm_hidden_size=64,
-            momentum=0.1,
-            init_zero=False,
+        self,
+        num_blocks,
+        num_channels,
+        reduced_channels_reward,
+        fc_reward_layers,
+        full_support_size,
+        block_output_size_reward,
+        lstm_hidden_size=64,
+        momentum=0.1,
+        init_zero=False,
     ):
         """Dynamics network
         Parameters
@@ -297,8 +298,9 @@ class DynamicsNetwork(nn.Module):
         self.block_output_size_reward = block_output_size_reward
         self.lstm = nn.LSTM(input_size=self.block_output_size_reward, hidden_size=self.lstm_hidden_size)
         self.bn_value_prefix = nn.BatchNorm1d(self.lstm_hidden_size, momentum=momentum)
-        self.fc = mlp(self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero,
-                      momentum=momentum)
+        self.fc = mlp(
+            self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum
+        )
 
     def forward(self, x, reward_hidden):
         state = x[:, :-1, :, :]
@@ -346,20 +348,21 @@ class DynamicsNetwork(nn.Module):
 
 # predict the value and policy given hidden states
 class PredictionNetwork(nn.Module):
+
     def __init__(
-            self,
-            action_space_size,
-            num_blocks,
-            num_channels,
-            reduced_channels_value,
-            reduced_channels_policy,
-            fc_value_layers,
-            fc_policy_layers,
-            full_support_size,
-            block_output_size_value,
-            block_output_size_policy,
-            momentum=0.1,
-            init_zero=False,
+        self,
+        action_space_size,
+        num_blocks,
+        num_channels,
+        reduced_channels_value,
+        reduced_channels_policy,
+        fc_value_layers,
+        fc_policy_layers,
+        full_support_size,
+        block_output_size_value,
+        block_output_size_policy,
+        momentum=0.1,
+        init_zero=False,
     ):
         """Prediction network
         Parameters
@@ -398,10 +401,12 @@ class PredictionNetwork(nn.Module):
         self.bn_policy = nn.BatchNorm2d(reduced_channels_policy, momentum=momentum)
         self.block_output_size_value = block_output_size_value
         self.block_output_size_policy = block_output_size_policy
-        self.fc_value = mlp(self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero,
-                            momentum=momentum)
-        self.fc_policy = mlp(self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero,
-                             momentum=momentum)
+        self.fc_value = mlp(
+            self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
+        )
+        self.fc_policy = mlp(
+            self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
+        )
 
     def forward(self, x):
         for block in self.resblocks:
@@ -423,33 +428,34 @@ class PredictionNetwork(nn.Module):
 
 @MODEL_REGISTRY.register('EfficientZeroNet-atari')
 class EfficientZeroNet(BaseNet):
+
     def __init__(
-            self,
-            observation_shape,
-            action_space_size,
-            num_blocks,
-            num_channels,
-            reduced_channels_reward,
-            reduced_channels_value,
-            reduced_channels_policy,
-            fc_reward_layers,
-            fc_value_layers,
-            fc_policy_layers,
-            reward_support_size,
-            value_support_size,
-            downsample,
-            inverse_value_transform=inverse_value_transform,
-            inverse_reward_transform=inverse_reward_transform,
-            # inverse_value_transform,
-            # inverse_reward_transform,
-            lstm_hidden_size=512,
-            bn_mt=0.1,
-            proj_hid=256,
-            proj_out=256,
-            pred_hid=64,
-            pred_out=256,
-            init_zero=False,
-            state_norm=False
+        self,
+        observation_shape,
+        action_space_size,
+        num_blocks,
+        num_channels,
+        reduced_channels_reward,
+        reduced_channels_value,
+        reduced_channels_policy,
+        fc_reward_layers,
+        fc_value_layers,
+        fc_policy_layers,
+        reward_support_size,
+        value_support_size,
+        downsample,
+        inverse_value_transform=inverse_value_transform,
+        inverse_reward_transform=inverse_reward_transform,
+        # inverse_value_transform,
+        # inverse_reward_transform,
+        lstm_hidden_size=512,
+        bn_mt=0.1,
+        proj_hid=256,
+        proj_out=256,
+        pred_hid=64,
+        pred_out=256,
+        init_zero=False,
+        state_norm=False
     ):
         """EfficientZero network
         Parameters
@@ -511,33 +517,21 @@ class EfficientZeroNet(BaseNet):
 
         self.action_space_size = action_space_size
         block_output_size_reward = (
-            (
-                    reduced_channels_reward
-                    * math.ceil(observation_shape[1] / 16)
-                    * math.ceil(observation_shape[2] / 16)
-            )
-            if downsample
-            else (reduced_channels_reward * observation_shape[1] * observation_shape[2])
+            (reduced_channels_reward * math.ceil(observation_shape[1] / 16) *
+             math.ceil(observation_shape[2] / 16)) if downsample else
+            (reduced_channels_reward * observation_shape[1] * observation_shape[2])
         )
 
         block_output_size_value = (
-            (
-                    reduced_channels_value
-                    * math.ceil(observation_shape[1] / 16)
-                    * math.ceil(observation_shape[2] / 16)
-            )
-            if downsample
-            else (reduced_channels_value * observation_shape[1] * observation_shape[2])
+            (reduced_channels_value * math.ceil(observation_shape[1] / 16) *
+             math.ceil(observation_shape[2] / 16)) if downsample else
+            (reduced_channels_value * observation_shape[1] * observation_shape[2])
         )
 
         block_output_size_policy = (
-            (
-                    reduced_channels_policy
-                    * math.ceil(observation_shape[1] / 16)
-                    * math.ceil(observation_shape[2] / 16)
-            )
-            if downsample
-            else (reduced_channels_policy * observation_shape[1] * observation_shape[2])
+            (reduced_channels_policy * math.ceil(observation_shape[1] / 16) *
+             math.ceil(observation_shape[2] / 16)) if downsample else
+            (reduced_channels_policy * observation_shape[1] * observation_shape[2])
         )
 
         self.representation_network = RepresentationNetwork(
@@ -579,14 +573,9 @@ class EfficientZeroNet(BaseNet):
         in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
         self.porjection_in_dim = in_dim
         self.projection = nn.Sequential(
-            nn.Linear(self.porjection_in_dim, self.proj_hid),
-            nn.BatchNorm1d(self.proj_hid),
-            nn.ReLU(),
-            nn.Linear(self.proj_hid, self.proj_hid),
-            nn.BatchNorm1d(self.proj_hid),
-            nn.ReLU(),
-            nn.Linear(self.proj_hid, self.proj_out),
-            nn.BatchNorm1d(self.proj_out)
+            nn.Linear(self.porjection_in_dim, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(),
+            nn.Linear(self.proj_hid, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(),
+            nn.Linear(self.proj_hid, self.proj_out), nn.BatchNorm1d(self.proj_out)
         )
         self.projection_head = nn.Sequential(
             nn.Linear(self.proj_out, self.pred_hid),
@@ -610,20 +599,14 @@ class EfficientZeroNet(BaseNet):
     def dynamics(self, encoded_state, reward_hidden, action):
         # Stack encoded_state with a game specific one hot encoded action
         action_one_hot = (
-            torch.ones(
-                (
-                    encoded_state.shape[0],
-                    1,
-                    encoded_state.shape[2],
-                    encoded_state.shape[3],
-                )
-            )
-                .to(action.device)
-                .float()
+            torch.ones((
+                encoded_state.shape[0],
+                1,
+                encoded_state.shape[2],
+                encoded_state.shape[3],
+            )).to(action.device).float()
         )
-        action_one_hot = (
-                action[:, :, None, None] * action_one_hot / self.action_space_size
-        )
+        action_one_hot = (action[:, :, None, None] * action_one_hot / self.action_space_size)
         x = torch.cat((encoded_state, action_one_hot), dim=1)
         next_encoded_state, reward_hidden, value_prefix = self.dynamics_network(x, reward_hidden)
 

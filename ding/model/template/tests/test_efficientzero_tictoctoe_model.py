@@ -14,12 +14,16 @@ fc_reward_layers = [[16, 8]]
 full_support_size = [2]
 block_output_size_reward = [180]
 # dyn_args = [num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size, block_output_size_reward]
-dyn_args = list(product(num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,
-                        block_output_size_reward))
+dyn_args = list(
+    product(
+        num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size, block_output_size_reward
+    )
+)
 
 
 @pytest.mark.unittest
 class TestEfficientZero:
+
     def output_check(self, model, outputs):
         if isinstance(outputs, torch.Tensor):
             loss = outputs.sum()
@@ -39,21 +43,22 @@ class TestEfficientZero:
 
     @pytest.mark.parametrize(
         'num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,block_output_size_reward',
-        dyn_args)
+        dyn_args
+    )
     def test_DynamicsNetwork(
-            self,
-            num_blocks,
-            num_channels,
-            reduced_channels_reward,
-            fc_reward_layers,
-            full_support_size,
-            block_output_size_reward
+        self, num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,
+        block_output_size_reward
     ):
         batch = 100  # this is (torch.randn(1, 10, 64), torch.randn(1, 10, 64)) => 100 / 10 = 10
         state = torch.rand(batch, 3, 3, 3)
-        dynnet = DynamicsNetwork(num_blocks=num_blocks, num_channels=num_channels,
-                                 reduced_channels_reward=reduced_channels_reward, fc_reward_layers=fc_reward_layers,
-                                 full_support_size=full_support_size, block_output_size_reward=block_output_size_reward)
+        dynnet = DynamicsNetwork(
+            num_blocks=num_blocks,
+            num_channels=num_channels,
+            reduced_channels_reward=reduced_channels_reward,
+            fc_reward_layers=fc_reward_layers,
+            full_support_size=full_support_size,
+            block_output_size_reward=block_output_size_reward
+        )
         state_, reward_hidden, value_prefix = dynnet(state, (torch.randn(1, 10, 64), torch.randn(1, 10, 64)))
         assert state_.size() == torch.Size([100, 2, 3, 3])
         # assert state_.size() == state.size()

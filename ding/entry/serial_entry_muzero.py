@@ -14,7 +14,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from .utils import random_collect
-from ding.worker.buffer.game_buffer import GameBuffer
+from ding.data.buffer.game_buffer import GameBuffer
 from easydict import EasyDict
 
 
@@ -25,6 +25,7 @@ def serial_pipeline_muzero(
         model: Optional[torch.nn.Module] = None,
         max_train_iter: Optional[int] = int(1e10),
         max_env_step: Optional[int] = int(1e10),
+        game_config: Optional[dict] = None,
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -64,24 +65,29 @@ def serial_pipeline_muzero(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+
+    # replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
+    gamebuffer_config = EasyDict(
+        dict(
+            batch_size=10,
+            transition_num=20,
+            priority_prob_alpha=0.5,
+            total_transitions=10000,
+        )
+    )
+    replay_buffer = GameBuffer(gamebuffer_config)
+
     collector = create_serial_collector(
         cfg.policy.collect.collector,
         env=collector_env,
         policy=policy.collect_mode,
         tb_logger=tb_logger,
-        exp_name=cfg.exp_name
+        exp_name=cfg.exp_name,
+        replay_buffer=replay_buffer,
     )
     evaluator = BaseSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
-    # replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
-    gamebuffer_config = EasyDict(dict(
-        batch_size=10,
-        transition_num=20,
-        priority_prob_alpha=0.5,
-        total_transitions=10000,
-    ))
-    replay_buffer = GameBuffer(gamebuffer_config)
 
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
@@ -99,7 +105,9 @@ def serial_pipeline_muzero(
         collect_kwargs = commander.step()
         # Evaluate policy performance
         # if evaluator.should_eval(learner.train_iter):
-        stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+        stop, reward = evaluator.eval(
+            learner.save_checkpoint, learner.train_iter, collector.envstep, config=game_config
+        )
         if stop:
             break
 
@@ -108,7 +116,7 @@ def serial_pipeline_muzero(
 
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        # replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.

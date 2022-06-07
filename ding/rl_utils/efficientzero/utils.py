@@ -16,6 +16,7 @@ from scipy.stats import entropy
 
 
 class LinearSchedule(object):
+
     def __init__(self, schedule_timesteps, final_p, initial_p=1.0):
         """Linear interpolation between initial_p and final_p over
         schedule_timesteps. After this many timesteps pass final_p is
@@ -41,6 +42,7 @@ class LinearSchedule(object):
 
 
 class TimeLimit(gym.Wrapper):
+
     def __init__(self, env, max_episode_steps=None):
         super(TimeLimit, self).__init__(env)
         self._max_episode_steps = max_episode_steps
@@ -60,6 +62,7 @@ class TimeLimit(gym.Wrapper):
 
 
 class NoopResetEnv(gym.Wrapper):
+
     def __init__(self, env, noop_max=30):
         """Sample initial states by taking random number of no-ops on reset.
         No-op is assumed to be action 0.
@@ -76,7 +79,7 @@ class NoopResetEnv(gym.Wrapper):
         if self.override_num_noops is not None:
             noops = self.override_num_noops
         else:
-            noops = self.unwrapped.np_random.randint(1, self.noop_max + 1) #pylint: disable=E1101
+            noops = self.unwrapped.np_random.randint(1, self.noop_max + 1)  #pylint: disable=E1101
         assert noops > 0
         obs = None
         for _ in range(noops):
@@ -90,13 +93,14 @@ class NoopResetEnv(gym.Wrapper):
 
 
 class EpisodicLifeEnv(gym.Wrapper):
+
     def __init__(self, env):
         """Make end-of-life == end-of-episode, but only reset on true game over.
         Done by DeepMind for the DQN and co. since it helps value estimation.
         """
         gym.Wrapper.__init__(self, env)
         self.lives = 0
-        self.was_real_done  = True
+        self.was_real_done = True
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
@@ -127,12 +131,13 @@ class EpisodicLifeEnv(gym.Wrapper):
 
 
 class MaxAndSkipEnv(gym.Wrapper):
+
     def __init__(self, env, skip=4):
         """Return only every `skip`-th frame"""
         gym.Wrapper.__init__(self, env)
         # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = np.zeros((2,)+env.observation_space.shape, dtype=np.uint8)
-        self._skip       = skip
+        self._obs_buffer = np.zeros((2, ) + env.observation_space.shape, dtype=np.uint8)
+        self._skip = skip
         self.max_frame = np.zeros(env.observation_space.shape, dtype=np.uint8)
 
     def step(self, action):
@@ -141,8 +146,10 @@ class MaxAndSkipEnv(gym.Wrapper):
         done = None
         for i in range(self._skip):
             obs, reward, done, info = self.env.step(action)
-            if i == self._skip - 2: self._obs_buffer[0] = obs
-            if i == self._skip - 1: self._obs_buffer[1] = obs
+            if i == self._skip - 2:
+                self._obs_buffer[0] = obs
+            if i == self._skip - 1:
+                self._obs_buffer[1] = obs
             total_reward += reward
             if done:
                 break
@@ -169,6 +176,7 @@ class MaxAndSkipEnv(gym.Wrapper):
 
 
 class WarpFrame(gym.ObservationWrapper):
+
     def __init__(self, env, width=84, height=84, grayscale=True, dict_space_key=None):
         """
         Warp frames to 84x84 as done in the Nature paper and later work.
@@ -207,9 +215,7 @@ class WarpFrame(gym.ObservationWrapper):
 
         if self._grayscale:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        frame = cv2.resize(
-            frame, (self._width, self._height), interpolation=cv2.INTER_AREA
-        )
+        frame = cv2.resize(frame, (self._width, self._height), interpolation=cv2.INTER_AREA)
         if self._grayscale:
             frame = np.expand_dims(frame, -1)
 

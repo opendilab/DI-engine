@@ -13,6 +13,7 @@ class Transforms(object):
     """ Reference : Data-Efficient Reinforcement Learning with Self-Predictive Representations
     Thanks to Repo: https://github.com/mila-iqia/spr.git
     """
+
     def __init__(self, augmentation, shift_delta=4, image_shape=(96, 96)):
         self.augmentation = augmentation
 
@@ -47,12 +48,12 @@ class Transforms(object):
         flat_images = images.reshape(-1, *images.shape[-3:])
         processed_images = self.apply_transforms(self.transforms, flat_images)
 
-        processed_images = processed_images.view(*images.shape[:-3],
-                                                 *processed_images.shape[1:])
+        processed_images = processed_images.view(*images.shape[:-3], *processed_images.shape[1:])
         return processed_images
 
 
 class Intensity(nn.Module):
+
     def __init__(self, scale):
         super().__init__()
         self.scale = scale

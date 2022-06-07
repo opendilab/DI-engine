@@ -3,11 +3,18 @@ import torch
 
 import ding.rl_utils.muzero.ptree as tree
 
+
 class MCTS(object):
+
     def __init__(self, config):
         self.config = config
 
-    def search(self, roots, model, hidden_state_roots, ):
+    def search(
+        self,
+        roots,
+        model,
+        hidden_state_roots,
+    ):
         """Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference
         Parameters
         ----------
@@ -44,21 +51,17 @@ class MCTS(object):
                 # hidden_state_index_x_lst: the first index of leaf node states in hidden_state_pool
                 # hidden_state_index_y_lst: the second index of leaf node states in hidden_state_pool
                 # the hidden state of the leaf node is hidden_state_pool[x, y]; value prefix states are the same
-                hidden_state_index_x_lst, hidden_state_index_y_lst, last_actions = tree.batch_traverse(roots, pb_c_base,
-                                                                                                       pb_c_init,
-                                                                                                       discount,
-                                                                                                       min_max_stats_lst,
-                                                                                                       results)
+                hidden_state_index_x_lst, hidden_state_index_y_lst, last_actions = tree.batch_traverse(
+                    roots, pb_c_base, pb_c_init, discount, min_max_stats_lst, results
+                )
 
                 # obtain the states for leaf nodes
                 for ix, iy in zip(hidden_state_index_x_lst, hidden_state_index_y_lst):
                     hidden_states_list.append(hidden_state_pool[ix][iy])
 
-                hidden_states = torch.stack(hidden_states_list,dim=0).float()
+                hidden_states = torch.stack(hidden_states_list, dim=0).float()
 
                 last_actions = torch.from_numpy(np.array(last_actions))
-
-
 
                 # evaluation for leaf nodes
                 network_output = model.recurrent_inference(hidden_states, last_actions)
@@ -76,10 +79,15 @@ class MCTS(object):
                 hidden_state_index_x += 1
 
                 # backpropagation along the search path to update the attributes
-                tree.batch_back_propagate(hidden_state_index_x, discount,
-                                          reward_pool, value_pool, policy_logits_pool,
-                                          min_max_stats_lst, results,
-                                          )  # TODO may need to add_exploration_noise(
+                tree.batch_back_propagate(
+                    hidden_state_index_x,
+                    discount,
+                    reward_pool,
+                    value_pool,
+                    policy_logits_pool,
+                    min_max_stats_lst,
+                    results,
+                )  # TODO may need to add_exploration_noise(
 
 
 if __name__ == '__main__':
@@ -96,7 +104,12 @@ if __name__ == '__main__':
     batch_size = env_nums = mcts_cfg.batch_size
 
     model = torch.nn.Linear(in_features=100, out_features=100)
-    stack_obs = torch.zeros(size=(batch_size, 100,), dtype=torch.float)
+    stack_obs = torch.zeros(
+        size=(
+            batch_size,
+            100,
+        ), dtype=torch.float
+    )
     network_output = model.initial_inference(stack_obs.float())
 
     hidden_state_roots = network_output.hidden_state
@@ -105,8 +118,10 @@ if __name__ == '__main__':
     policy_logits_pool = network_output.policy_logits.tolist()
 
     roots = tree.Roots(env_nums, mcts_cfg.action_space_size, mcts_cfg.num_simulation)
-    noises = [np.random.dirichlet([mcts_cfg.root_dirichlet_alpha] * mcts_cfg.action_space_size).astype(
-        np.float32).tolist() for _ in range(env_nums)]
+    noises = [
+        np.random.dirichlet([mcts_cfg.root_dirichlet_alpha] * mcts_cfg.action_space_size).astype(np.float32).tolist()
+        for _ in range(env_nums)
+    ]
     roots.prepare(mcts_cfg.root_exploration_fraction, noises, reward_pool, policy_logits_pool)
 
     MCTS(mcts_cfg).search(roots, model, hidden_state_roots, reward_pool)

@@ -18,50 +18,53 @@ from dizoo.board_games.tictactoe.config.tictactoe_config import game_config as c
 from ding.model.template.model_based.efficientzero_tictactoe_model import EfficientZeroNet
 # from ding.model.template.model_based.efficientzero_atari_model import EfficientZeroNet   # TODO
 
-
-GameBuffer_config = EasyDict(dict(
-    batch_size=10,
-    transition_num=20,
-    priority_prob_alpha=0.5,
-    total_transitions=10000,
-))
+GameBuffer_config = EasyDict(
+    dict(
+        batch_size=10,
+        transition_num=20,
+        priority_prob_alpha=0.5,
+        total_transitions=10000,
+    )
+)
 
 
 @pytest.mark.unittest
 def test_game_history():
-    args = EasyDict(dict(
-        env='PongNoFrameskip-v4',
-        seed=0,
-        render=False,
-        use_priority=False,
-        debug=False,
-        case='atari',
-        opr='train',
-        amp_type='none',
-        # amp_type='torch_amp',
-        num_gpus=0,
-        num_cpus=16,
-        cpu_actor=2,
-        gpu_actor=0,
-        object_store_memory=1 * 1024 * 1024 * 1024,
-        no_cuda=True,
-        device='cpu',
-        p_mcts_num=8,
-        use_root_value=False,
-        use_augmentation=True,
-        augmentation=['shift', 'intensity'],
-        # result_dir=os.path.join(os.getcwd(), 'results'),
-        result_dir='/Users/puyuan/code/DI-engine/results',
-        revisit_policy_search_rate=0.99,
-        info='',
-        load_model=False,
-        model_path='./results/test_model.p',
-        num_simulations=2,  # TODO
-        # UCB formula
-        pb_c_base=19652,
-        pb_c_init=1.25,
-        discount=0.997,
-    ))
+    args = EasyDict(
+        dict(
+            env='PongNoFrameskip-v4',
+            seed=0,
+            render=False,
+            use_priority=False,
+            debug=False,
+            case='atari',
+            opr='train',
+            amp_type='none',
+            # amp_type='torch_amp',
+            num_gpus=0,
+            num_cpus=16,
+            cpu_actor=2,
+            gpu_actor=0,
+            object_store_memory=1 * 1024 * 1024 * 1024,
+            no_cuda=True,
+            device='cpu',
+            p_mcts_num=8,
+            use_root_value=False,
+            use_augmentation=True,
+            augmentation=['shift', 'intensity'],
+            # result_dir=os.path.join(os.getcwd(), 'results'),
+            result_dir='/Users/puyuan/code/DI-engine/results',
+            revisit_policy_search_rate=0.99,
+            info='',
+            load_model=False,
+            model_path='./results/test_model.p',
+            num_simulations=2,  # TODO
+            # UCB formula
+            pb_c_base=19652,
+            pb_c_init=1.25,
+            discount=0.997,
+        )
+    )
 
     # set config as per arguments
     exp_path = config.set_config(args)  # TODO
@@ -91,7 +94,8 @@ def test_game_history():
         fc_policy_layers=[32],
         reward_support_size=32,
         value_support_size=32,
-        downsample=False, )
+        downsample=False,
+    )
     # model = config.get_uniform_network()
 
     model.to(device)
@@ -112,9 +116,8 @@ def test_game_history():
         init_obses = [env.reset() for env in envs]
         dones = np.array([False for _ in range(test_episodes)])
         game_histories = [
-            GameHistory(envs[_].action_space, max_length=config.max_moves, config=config) for
-            _ in
-            range(test_episodes)]
+            GameHistory(envs[_].action_space, max_length=config.max_moves, config=config) for _ in range(test_episodes)
+        ]
         # for i in range(test_episodes):
         #     game_histories[i].init([init_obses[i] for _ in range(config.stacked_observations)])
         for i in range(test_episodes):
@@ -178,9 +181,12 @@ def test_game_history():
 
             step += 1
             if use_pb:
-                pb.set_description('{} In step {}, scores: {}(max: {}, min: {}) currently.'
-                                   ''.format(config.env_name, counter,
-                                             ep_ori_rewards.mean(), ep_ori_rewards.max(), ep_ori_rewards.min()))
+                pb.set_description(
+                    '{} In step {}, scores: {}(max: {}, min: {}) currently.'
+                    ''.format(
+                        config.env_name, counter, ep_ori_rewards.mean(), ep_ori_rewards.max(), ep_ori_rewards.min()
+                    )
+                )
                 pb.update(1)
 
         for env in envs:

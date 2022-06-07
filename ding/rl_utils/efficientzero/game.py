@@ -8,6 +8,7 @@ from ding.rl_utils.efficientzero.utils import str_to_arr
 
 
 class Game:
+
     def __init__(self, env, action_space_size: int, discount: float, config=None):
         self.env = env
         self.action_space_size = action_space_size
@@ -35,6 +36,7 @@ class GameHistory:
     A block of game history from a full trajectories.
     The horizons of Atari games are quite large. Split the whole trajectory into several history blocks.
     """
+
     def __init__(self, action_space, max_length=200, config=None):
         """
         Parameters
@@ -147,7 +149,7 @@ class GameHistory:
             if pad_len > 0:
                 pad_frames = [frames[-1] for _ in range(pad_len)]
                 frames = np.concatenate((frames, pad_frames))
-        if self.config.cvt_string:   # TODO
+        if self.config.cvt_string:  # TODO
             frames = [str_to_arr(obs, self.config.gray_scale) for obs in frames]
         return frames
 
@@ -189,4 +191,3 @@ class GameHistory:
 
     def __len__(self):
         return len(self.actions)
-

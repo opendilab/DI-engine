@@ -154,12 +154,15 @@ class AtariDIEnv(BaseGameEnv):
     def legal_moves(self):
         return np.arange(self._action_space.n)
 
-    def observation_space(self):
+    @property
+    def observation_space(self) -> gym.spaces.Space:
         return self._observation_space
 
-    def action_space(self):
+    @property
+    def action_space(self) -> gym.spaces.Space:
         return self._action_space
 
+    @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
 

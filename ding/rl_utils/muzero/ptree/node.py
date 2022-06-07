@@ -7,7 +7,12 @@ from scipy.special import softmax
 
 
 class Node:
-    def __init__(self, prior: float, action_num: int,):
+
+    def __init__(
+        self,
+        prior: float,
+        action_num: int,
+    ):
         self.prior = prior
         self.action_num = action_num
 
@@ -21,8 +26,14 @@ class Node:
         self.hidden_state_index_y = -1
         self.reward = 0
 
-    def expand(self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, reward: float,
-               policy_logits: List[float], ):
+    def expand(
+        self,
+        to_play: int,
+        hidden_state_index_x: int,
+        hidden_state_index_y: int,
+        reward: float,
+        policy_logits: List[float],
+    ):
         self.to_play = to_play
         self.hidden_state_index_x = hidden_state_index_x
         self.hidden_state_index_y = hidden_state_index_y
@@ -30,7 +41,10 @@ class Node:
 
         priors = softmax(np.array(policy_logits))
         for a in range(self.action_num):
-            self.children[a] = Node(prior=priors[a], action_num=self.action_num, )
+            self.children[a] = Node(
+                prior=priors[a],
+                action_num=self.action_num,
+            )
 
     def add_exploration_noise(self, exploration_fraction: float, noises: List[float]):
         for a in range(self.action_num):
@@ -76,6 +90,7 @@ class Node:
 
 
 class Roots:
+
     def __init__(self, root_num: int, action_num: int, pool_size: int):
         self.root_num = root_num
         self.action_num = action_num
@@ -83,7 +98,10 @@ class Roots:
 
         self.roots = []
         for i in range(self.root_num):
-            self.roots.append(Node(0, action_num,))
+            self.roots.append(Node(
+                0,
+                action_num,
+            ))
 
     def prepare(self, root_exploration_fraction, noises, rewards, policies):
         for i in range(self.root_num):
@@ -121,7 +139,9 @@ class Roots:
     def num(self):
         return self.root_num
 
+
 class SearchResults:
+
     def __init__(self, num):
         self.num = num
         self.nodes = []
@@ -142,23 +162,33 @@ def back_propagate(search_path, min_max_stats, to_play: int, value: float, disco
         bootstrap_value = node.reward + discount * bootstrap_value
 
 
-def batch_back_propagate(hidden_state_index_x: int, discount: float,
-                         rewards: List, values: List[float],
-                         policies: List[float], min_max_stats_lst: List,
-                         results: List,) -> None:
+def batch_back_propagate(
+        hidden_state_index_x: int,
+        discount: float,
+        rewards: List,
+        values: List[float],
+        policies: List[float],
+        min_max_stats_lst: List,
+        results: List,
+) -> None:
     for i in range(results.num):
         results.nodes[i].expand(0, hidden_state_index_x, i, rewards[i], policies[i])
         back_propagate(results.search_paths[i], min_max_stats_lst.stats_lst[i], 0, values[i], discount)
 
 
-def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, ) -> int:
+def select_child(
+        root: Node,
+        min_max_stats,
+        pb_c_base: int,
+        pb_c_int: float,
+        discount: float,
+) -> int:
     max_score = -float('inf')
     epsilon = 0.000001
     max_index_lst = []
     for a in range(root.action_num):
         child = root.get_child(a)
-        temp_score = ucb_score(child, min_max_stats, root.visit_count - 1,
-                               pb_c_base, pb_c_int, discount)
+        temp_score = ucb_score(child, min_max_stats, root.visit_count - 1, pb_c_base, pb_c_int, discount)
         if max_score < temp_score:
             max_score = temp_score
             max_index_lst.clear()
@@ -171,15 +201,17 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
     return action
 
 
-def ucb_score(child: Node, min_max_stats, total_children_visit_counts: float, pb_c_base: float, pb_c_init: float,
-              discount: float):
+def ucb_score(
+    child: Node, min_max_stats, total_children_visit_counts: float, pb_c_base: float, pb_c_init: float, discount: float
+):
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))
 
     prior_score = pb_c * child.prior
     if child.visit_count == 0:
         value_score = min_max_stats.normalize(
-            child.reward + discount * child.value())  # TODO(not consider case when we have 2 players)
+            child.reward + discount * child.value()
+        )  # TODO(not consider case when we have 2 players)
     else:
         value_score = 0
     ucb_score = prior_score + value_score
@@ -200,7 +232,13 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
         results.search_paths[i].append(node)
 
         while node.expanded():
-            action = select_child(node, min_max_stats_lst.stats_lst[i], pb_c_base, pb_c_init, discount, )
+            action = select_child(
+                node,
+                min_max_stats_lst.stats_lst[i],
+                pb_c_base,
+                pb_c_init,
+                discount,
+            )
             node.best_action = action
             ##  next
             node = node.get_child(action)

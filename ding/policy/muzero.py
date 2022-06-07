@@ -10,12 +10,16 @@ import torch
 import numpy as np
 from tqdm.auto import tqdm
 from torch.cuda.amp import autocast as autocast
-
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
+    get_train_sample
 import ding.rl_utils.efficientzero.ctree.cytree as cytree
 from ding.rl_utils.efficientzero.game import GameHistory
-from dizoo.board_games.atari.config.atari_config import game_config
 from ding.rl_utils.efficientzero.mcts import MCTS
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
+# TODO(pu): atari or tictactoe
+# from dizoo.board_games.atari.game_config.atari_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+
 
 class ModifiedCrossEntropyLoss(torch.nn.Module):
 
@@ -72,7 +76,6 @@ class MuZeroPolicy(Policy):
             target_update_freq=100,
             # grad_clip_type='clip_norm',
             # grad_clip_value=0.5,
-
         ),
         # collect_mode config
         collect=dict(
@@ -166,9 +169,9 @@ class MuZeroPolicy(Policy):
                 output.hidden_state_reward.zero_()
 
         total_loss = (
-                self._cfg.policy_weight * losses.policy_loss + self._cfg.value_weight * losses.value_loss +
-                self._cfg.value_prefix_weight * losses.value_prefix_loss +
-                self._cfg.consistent_weight * losses.consistent_loss
+            self._cfg.policy_weight * losses.policy_loss + self._cfg.value_weight * losses.value_loss +
+            self._cfg.value_prefix_weight * losses.value_prefix_loss +
+            self._cfg.consistent_weight * losses.consistent_loss
         )
         total_loss = total_loss.mean()
         total_loss.register_hook(lambda grad: grad / N)
@@ -185,7 +188,7 @@ class MuZeroPolicy(Policy):
 
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
-        self._action_shape = (6,)
+        self._action_shape = (6, )
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         # self._nstep = self._cfg.nstep  # necessary for parallel
         self._collect_model = model_wrap(self._model, 'base')
@@ -195,51 +198,61 @@ class MuZeroPolicy(Policy):
         #     horizons=self._cfg.lstm_horizon_len,
         #     simulation_num=self._cfg.simulation_num
         # )
-        self.config = self._cfg
-        self._mcts_handler = MCTS(self.config)
+        # self.config = self._cfg
+        # self._mcts_handler = MCTS(self.config)
         # self._reset_collect()
+        game_config.device = 'cpu'
+        self._mcts_eval = MCTS(game_config)
 
     @staticmethod
     def _get_max_entropy(action_shape: int) -> None:
         p = 1.0 / action_shape
         return -action_shape * p * np.log2(p)
 
-    def _forward_collect(self, data: ttorch.Tensor, temperature: torch.Tensor):
+    def _forward_collect(self, data: ttorch.Tensor, temperature: torch.Tensor = torch.tensor(1)):
         """
         Shapes:
             obs: (B, S, C, H, W), where S is the stack num
             temperature: (N1, ), where N1 is the number of collect_env.
         """
-        assert len(data.obs.shape) == 5
-        env_id = data.env_id
-        self._collect_model.eval()
+        # assert len(data.obs.shape) == 5
+        # env_id = data.env_id
+        # self._collect_model.collect()
         # TODO priority
-
+        # game_config.test_episodes = 2
+        stack_obs = data
+        game_config.test_episodes = len(stack_obs)
         with torch.no_grad():
-            obs = data.obs / 255.  # TODO move it into env
-            obs = obs.view(obs.shape[0], -1, *obs.shape[2:])
-            output = self._collect_model.forward(obs, mode='init')
+            # stack_obs {Tensor:(2,12,96,96)}
+            network_output = self._collect_model.initial_inference(stack_obs.float())
+            hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
+            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
+            value_prefix_pool = network_output.value_prefix  # {list: 2}
+            policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
 
-            # root = Root(root_num=len(env_id), action_num=self._cfg.action_shape, tree_nodes=self._cfg.simulation_num)
-            root = cytree.Roots(root_num=len(env_id), action_num=self._cfg.action_shape,
-                                tree_nodes=self._cfg.simulation_num)
-            noise = np.random.dirichlet(self._cfg.root_dirichlet_alpha, size=(len(env_id), self._cfg.action_shape))
-            root.prepare(
-                self._cfg.root_exploration_fraction, noise,
-                output.value_prefix.cpu().numpy(),
-                output.logit.cpu().numpy()
-            )
-            self._mcts_handler.search(
-                root, self._collect_model,
-                output.hidden_state.cpu().numpy(),
-                output.hidden_state_reward.cpu().numpy()
-            )
+            roots = cytree.Roots(game_config.test_episodes, game_config.action_space_size, game_config.num_simulations)
+            # difference between collect and eval
+            noises = [
+                np.random.dirichlet([game_config.root_dirichlet_alpha] * game_config.action_space_size
+                                    ).astype(np.float32).tolist() for _ in range(game_config.test_episodes)
+            ]
+            # noise = np.random.dirichlet(self._cfg.root_dirichlet_alpha, size=(len(env_id), self._cfg.action_shape))
+            roots.prepare(game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
+            # do MCTS for a policy (argmax in testing)
+            self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots)
 
-            output.distribution = ttorch.as_tensor(root.get_distributions())  # TODO whether to device
-            output.value = ttorch.as_tensor(root.get_values())
-            distribution = output.distribution ** (1 / temperature)
-            action_prob = distribution / distribution.sum(dim=-1)
-            output.action = torch.multinomial(action_prob, dim=-1).squeeze(-1)
+            roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
+            roots_values = roots.get_values()  # {list: 1}
+            data_id = [i for i in range(game_config.test_episodes)]
+            output = {i: None for i in data_id}
+            for i in range(game_config.test_episodes):
+                distributions, value = roots_distributions[i], roots_values[i]
+                # select the argmax, not sampling
+                action, _ = select_action(distributions, temperature=1, deterministic=True)
+
+                # actions.append(action)
+                output[i] = {'action': action, 'distributions': distributions, 'value': value}
+
         return output
 
     def _process_transition(
@@ -258,7 +271,8 @@ class MuZeroPolicy(Policy):
         )
 
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        pass
+        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
         r"""
@@ -268,9 +282,10 @@ class MuZeroPolicy(Policy):
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.eval()
         self._eval_model.reset()
-        # self.config.device='cpu'
-        self.config = self._cfg
-        self._mcts_eval = MCTS(self.config)
+        # self.config = self._cfg
+        # self._mcts_eval = MCTS(self.config)
+        game_config.device = 'cpu'
+        self._mcts_eval = MCTS(game_config)
 
     def _forward_eval(self, data: ttorch.Tensor, temperature: torch.Tensor = torch.tensor(1)):
         """
@@ -288,34 +303,32 @@ class MuZeroPolicy(Policy):
             - necessary: ``action``
         """
         self._eval_model.training = False  # TODO
-        config = game_config
-        test_episodes = 2
-
+        game_config.test_episodes = 2
         stack_obs = data
-        with autocast():
+        with torch.no_grad():
             # stack_obs {Tensor:(2,12,96,96)}
             network_output = self._eval_model.initial_inference(stack_obs.float())
-        hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
-        reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
-        value_prefix_pool = network_output.value_prefix  # {list: 2}
-        policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
+            hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
+            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
+            value_prefix_pool = network_output.value_prefix  # {list: 2}
+            policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
 
-        roots = cytree.Roots(test_episodes, config.action_space_size, config.num_simulations)
-        roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
-        # do MCTS for a policy (argmax in testing)
-        self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
+            roots = cytree.Roots(game_config.test_episodes, game_config.action_space_size, game_config.num_simulations)
+            roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
+            # do MCTS for a policy (argmax in testing)
+            self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
 
-        roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
-        roots_values = roots.get_values()  # {list: 1}
-        data_id = [i for i in range(test_episodes)]
-        output = {i: None for i in data_id}
-        for i in range(test_episodes):
-            distributions, value = roots_distributions[i], roots_values[i]
-            # select the argmax, not sampling
-            action, _ = select_action(distributions, temperature=1, deterministic=True)
+            roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
+            roots_values = roots.get_values()  # {list: 1}
+            data_id = [i for i in range(game_config.test_episodes)]
+            output = {i: None for i in data_id}
+            for i in range(game_config.test_episodes):
+                distributions, value = roots_distributions[i], roots_values[i]
+                # select the argmax, not sampling
+                action, _ = select_action(distributions, temperature=1, deterministic=True)
 
-            # actions.append(action)
-            output[i] = {'action': action, 'distributions': distributions,'value':value}
+                # actions.append(action)
+                output[i] = {'action': action, 'distributions': distributions, 'value': value}
 
         return output
 
@@ -324,8 +337,6 @@ class MuZeroPolicy(Policy):
         Overview:
             self-consistent eval method for EfficientZero
         """
-        config = game_config
-
         exp_path = './'  # TODO
         render = False
         # render = True
@@ -334,50 +345,59 @@ class MuZeroPolicy(Policy):
         final_test = False
         use_pb = True
         counter = 0
-        config.device = 'cpu'
-        device = config.device
-        test_episodes = 3
-        config.max_moves = 20
-        config.env_name = 'PongNoFrameskip-v4'
-        config.obs_shape = (12, 96, 96)
-        config.gray_scale = False
-        config.action_space_size = 6
-        config.amp_type = 'none'
+        game_config.device = 'cpu'
+        device = game_config.device
+        game_config.test_episodes = 2
+        game_config.max_moves = 20
+        game_config.env_name = 'PongNoFrameskip-v4'
+        game_config.obs_shape = (12, 96, 96)
+        game_config.gray_scale = False
+        game_config.action_space_size = 6
+        game_config.amp_type = 'none'
         # to obtain model = EfficientZeroNet()
-        # model = config.get_uniform_network()
+        # model = game_config.get_uniform_network()
         model = self._eval_model
         model.to(device)
         model.eval()
-        # save_path = os.path.join(config.exp_path, 'recordings', 'step_{}'.format(counter))
+        # save_path = os.path.join(game_config.exp_path, 'recordings', 'step_{}'.format(counter))
 
         if use_pb:
-            pb = tqdm(np.arange(config.max_moves), leave=True)
+            pb = tqdm(np.arange(game_config.max_moves), leave=True)
 
         with torch.no_grad():
             # new games
-            envs = [config.new_game(seed=i, save_video=save_video, save_path=None, test=True, final_test=final_test,
-                                    video_callable=lambda episode_id: True, uid=i) for i in range(test_episodes)]
+            envs = [
+                game_config.new_game(
+                    seed=i,
+                    save_video=save_video,
+                    save_path=None,
+                    test=True,
+                    final_test=final_test,
+                    video_callable=lambda episode_id: True,
+                    uid=i
+                ) for i in range(game_config.test_episodes)
+            ]
 
             # initializations
             init_obses = [env.reset() for env in envs]
-            dones = np.array([False for _ in range(test_episodes)])
+            dones = np.array([False for _ in range(game_config.test_episodes)])
             game_histories = [
-                GameHistory(envs[_].env.action_space, max_length=config.max_moves, config=config) for
-                _ in
-                range(test_episodes)]
-            for i in range(test_episodes):
-                game_histories[i].init([init_obses[i] for _ in range(config.stacked_observations)])
+                GameHistory(envs[_].env.action_space, max_length=game_config.max_moves, config=config)
+                for _ in range(game_config.test_episodes)
+            ]
+            for i in range(game_config.test_episodes):
+                game_histories[i].init([init_obses[i] for _ in range(game_config.stacked_observations)])
 
             step = 0
-            ep_ori_rewards = np.zeros(test_episodes)
-            ep_clip_rewards = np.zeros(test_episodes)
+            ep_ori_rewards = np.zeros(game_config.test_episodes)
+            ep_clip_rewards = np.zeros(game_config.test_episodes)
             # loop
             while not dones.all():
                 if render:
-                    for i in range(test_episodes):
+                    for i in range(game_config.test_episodes):
                         envs[i].render()
 
-                if config.image_based:
+                if game_config.image_based:
                     stack_obs = []
                     for game_history in game_histories:
                         stack_obs.append(game_history.step_obs())
@@ -394,14 +414,16 @@ class MuZeroPolicy(Policy):
                 value_prefix_pool = network_output.value_prefix  # {list: 1}
                 policy_logits_pool = network_output.policy_logits.tolist()  # {list: 1} {list:6}
 
-                roots = cytree.Roots(test_episodes, config.action_space_size, config.num_simulations)
+                roots = cytree.Roots(
+                    game_config.test_episodes, game_config.action_space_size, game_config.num_simulations
+                )
                 roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
                 # do MCTS for a policy (argmax in testing)
-                MCTS(config).search(roots, model, hidden_state_roots, reward_hidden_roots)
+                MCTS(game_config).search(roots, model, hidden_state_roots, reward_hidden_roots)
 
                 roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
                 roots_values = roots.get_values()  # {list: 1}
-                for i in range(test_episodes):
+                for i in range(game_config.test_episodes):
                     if dones[i]:
                         continue
 
@@ -410,7 +432,7 @@ class MuZeroPolicy(Policy):
                     action, _ = select_action(distributions, temperature=1, deterministic=True)
 
                     obs, ori_reward, done, info = env.step(action)
-                    if config.clip_reward:
+                    if game_config.clip_reward:
                         clip_reward = np.sign(ori_reward)
                     else:
                         clip_reward = ori_reward
@@ -424,9 +446,13 @@ class MuZeroPolicy(Policy):
 
                 step += 1
                 if use_pb:
-                    pb.set_description('{} In step {}, scores: {}(max: {}, min: {}) currently.'
-                                       ''.format(config.env_name, counter,
-                                                 ep_ori_rewards.mean(), ep_ori_rewards.max(), ep_ori_rewards.min()))
+                    pb.set_description(
+                        '{} In step {}, scores: {}(max: {}, min: {}) currently.'
+                        ''.format(
+                            game_config.env_name, counter, ep_ori_rewards.mean(), ep_ori_rewards.max(),
+                            ep_ori_rewards.min()
+                        )
+                    )
                     pb.update(1)
 
             for env in envs:
@@ -475,4 +501,6 @@ class MuZeroPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
         """
-        return 'EfficientZeroNet-atari', ['ding.model.template.model_based.efficientzero_atari_model']
+        # TODO(pu): atari or tictactoe
+        # return 'EfficientZeroNet-atari', ['ding.model.template.model_based.efficientzero_atari_model']
+        return 'EfficientZeroNet-tictactoe', ['ding.model.template.model_based.efficientzero_tictactoe_model']

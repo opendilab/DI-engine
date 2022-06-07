@@ -9,6 +9,7 @@ import ding.rl_utils.efficientzero.ctree.cytree as tree
 
 
 class MCTS(object):
+
     def __init__(self, config):
         self.config = config
 
@@ -54,7 +55,9 @@ class MCTS(object):
                 # hidden_state_index_x_lst: the first index of leaf node states in hidden_state_pool
                 # hidden_state_index_y_lst: the second index of leaf node states in hidden_state_pool
                 # the hidden state of the leaf node is hidden_state_pool[x, y]; value prefix states are the same
-                hidden_state_index_x_lst, hidden_state_index_y_lst, last_actions = tree.batch_traverse(roots, pb_c_base, pb_c_init, discount, min_max_stats_lst, results)
+                hidden_state_index_x_lst, hidden_state_index_y_lst, last_actions = tree.batch_traverse(
+                    roots, pb_c_base, pb_c_init, discount, min_max_stats_lst, results
+                )
                 # obtain the search horizon for leaf nodes
                 search_lens = results.get_search_len()
 
@@ -73,9 +76,13 @@ class MCTS(object):
                 # evaluation for leaf nodes
                 if self.config.amp_type == 'torch_amp':
                     with autocast():
-                        network_output = model.recurrent_inference(hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions)
+                        network_output = model.recurrent_inference(
+                            hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
+                        )
                 else:
-                    network_output = model.recurrent_inference(hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions)
+                    network_output = model.recurrent_inference(
+                        hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
+                    )
 
                 hidden_state_nodes = network_output.hidden_state
                 value_prefix_pool = network_output.value_prefix.reshape(-1).tolist()
@@ -99,6 +106,7 @@ class MCTS(object):
                 hidden_state_index_x += 1
 
                 # backpropagation along the search path to update the attributes
-                tree.batch_back_propagate(hidden_state_index_x, discount,
-                                          value_prefix_pool, value_pool, policy_logits_pool,
-                                          min_max_stats_lst, results, is_reset_lst)
+                tree.batch_back_propagate(
+                    hidden_state_index_x, discount, value_prefix_pool, value_pool, policy_logits_pool,
+                    min_max_stats_lst, results, is_reset_lst
+                )

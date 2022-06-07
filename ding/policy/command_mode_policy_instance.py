@@ -306,4 +306,3 @@ class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
 @POLICY_REGISTRY.register('muzero_command')
 class MuZeroCommandModePolicy(MuZeroPolicy, DummyCommandModePolicy):
     pass
-

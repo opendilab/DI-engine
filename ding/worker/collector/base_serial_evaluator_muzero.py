@@ -8,12 +8,12 @@ import torch
 from ding.utils import build_logger, EasyTimer, lists_to_dicts
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-from dizoo.board_games.atari.config.atari_config import game_config
 from ding.rl_utils.efficientzero.mcts import MCTS
 from ding.rl_utils.efficientzero.game import GameHistory
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
-
+from dizoo.board_games.atari.config.atari_config import game_config
 config = game_config
+
 
 class BaseSerialEvaluatorMuZero(object):
     """
@@ -173,7 +173,8 @@ class BaseSerialEvaluatorMuZero(object):
             save_ckpt_fn: Callable = None,
             train_iter: int = -1,
             envstep: int = -1,
-            n_episode: Optional[int] = None
+            n_episode: Optional[int] = None,
+            config: Optional[dict] = None,
     ) -> Tuple[bool, float]:
         '''
         Overview:
@@ -191,37 +192,36 @@ class BaseSerialEvaluatorMuZero(object):
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
-        info = {}
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         self._policy.reset()
 
         # initializations
-        test_episodes = 2  # TODO
-        config.max_moves = 20
-        config.env_name = 'PongNoFrameskip-v4'
-        config.obs_shape = (12, 96, 96)
-        config.gray_scale = False
-        config.action_space_size = 6
-        config.amp_type = 'none'
-        config.cvt_string=False  # TODO
         # init_obses = [env.reset() for env in self._env]
-
         obs = self._env.ready_obs
         obs = to_tensor(obs, dtype=torch.float32)
         init_obses = obs
+        last_game_histories = [None for _ in range(config.test_episodes)]
+        last_game_priorities = [None for _ in range(config.test_episodes)]
 
-        dones = np.array([False for _ in range(test_episodes)])
+        dones = np.array([False for _ in range(config.test_episodes)])
         game_histories = [
-            GameHistory(self._env.action_space(), max_length=config.max_moves, config=config) for
-            _ in
-            range(test_episodes)]
-        for i in range(test_episodes):
-            game_histories[i].init([to_ndarray(init_obses[i].obs['observation']) for _ in range(config.stacked_observations)])
+            GameHistory(self._env.action_space, max_length=config.max_moves, config=config)
+            for _ in range(config.test_episodes)
+        ]
+        for i in range(config.test_episodes):
+            if config.env_name == 'tictactoe':
+                game_histories[i].init(
+                    [to_ndarray(init_obses[i].obs['observation']) for _ in range(config.stacked_observations)]
+                )
+            elif config.env_name == 'PongNoFrameskip-v4':
+                game_histories[i].init(
+                    [to_ndarray(init_obses[i].obs['observation']) for _ in range(config.stacked_observations)]
+                )
 
-        ep_ori_rewards = np.zeros(test_episodes)
-        ep_clip_rewards = np.zeros(test_episodes)
-        device='cpu'
+        ep_ori_rewards = np.zeros(config.test_episodes)
+        ep_clip_rewards = np.zeros(config.test_episodes)
+        device = 'cpu'
 
         with self._timer:
             while not eval_monitor.is_finished():
@@ -240,6 +240,7 @@ class BaseSerialEvaluatorMuZero(object):
                     stack_obs = torch.from_numpy(stack_obs).to(device).float() / 255.0
                 else:
                     stack_obs = [game_history.step_obs() for game_history in game_histories]
+                    stack_obs = prepare_observation_lst(stack_obs)
                     stack_obs = torch.from_numpy(np.array(stack_obs)).to(device)
                 # stack_obs {Tensor:(2,12,96,96)}
                 # TODO
@@ -263,7 +264,10 @@ class BaseSerialEvaluatorMuZero(object):
                     else:
                         clip_reward = ori_reward
                     game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                    game_histories[i].append(action,  to_ndarray(obs['observation']), clip_reward)
+                    if config.env_name == 'tictactoe':
+                        game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
+                    elif config.env_name == 'PongNoFrameskip-v4':
+                        game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
 
                     dones[i] = done
                     ep_ori_rewards[i] += ori_reward

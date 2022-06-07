@@ -1,5 +1,5 @@
 import pytest
-from dizoo.board_games.atari import AtariDIEnv
+from dizoo.board_games.atari.envs.atari_env_di import AtariDIEnv
 from easydict import EasyDict
 
 cfg = EasyDict(env_id='PongNoFrameskip-v4',
@@ -7,7 +7,7 @@ cfg = EasyDict(env_id='PongNoFrameskip-v4',
                is_train=True)
 
 @pytest.mark.envtest
-class TestChessDIEnv:
+class TestAtariDIEnv:
 
     def test_naive(self):
 

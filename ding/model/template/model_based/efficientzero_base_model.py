@@ -34,7 +34,7 @@ def concat_output_value(output_lst):
 def concat_output(output_lst):
     # concat the model output
     value_lst, reward_lst, policy_logits_lst, hidden_state_lst = [], [], [], []
-    reward_hidden_c_lst, reward_hidden_h_lst =[], []
+    reward_hidden_c_lst, reward_hidden_h_lst = [], []
     for output in output_lst:
         value_lst.append(output.value)
         reward_lst.append(output.value_prefix)
@@ -55,6 +55,7 @@ def concat_output(output_lst):
 
 
 class BaseNet(nn.Module):
+
     def __init__(self, inverse_value_transform, inverse_reward_transform, lstm_hidden_size):
         """Base Network
         schedule_timesteps. After this many timesteps pass final_p is
@@ -96,8 +97,10 @@ class BaseNet(nn.Module):
             state = state.detach().cpu().numpy()
             actor_logit = actor_logit.detach().cpu().numpy()
             # zero initialization for reward (value prefix) hidden states
-            reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size).detach().cpu().numpy(),
-                             torch.zeros(1, num, self.lstm_hidden_size).detach().cpu().numpy())
+            reward_hidden = (
+                torch.zeros(1, num, self.lstm_hidden_size).detach().cpu().numpy(),
+                torch.zeros(1, num, self.lstm_hidden_size).detach().cpu().numpy()
+            )
         else:
             # zero initialization for reward (value prefix) hidden states
             # reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size).to('cuda'), torch.zeros(1, num, self.lstm_hidden_size).to('cuda'))

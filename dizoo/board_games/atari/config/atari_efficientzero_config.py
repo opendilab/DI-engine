@@ -1,5 +1,5 @@
 from easydict import EasyDict
-# from atari_config import game_config
+from dizoo.board_games.atari.config.atari_config import game_config
 
 nstep = 3
 atari_efficientzero_config = dict(
@@ -57,8 +57,7 @@ atari_efficientzero_config = dict(
         auto_td_steps_ratio=0.3,
         # replay window
         start_transitions=8,
-        total_transitions=100 * 1000,  # TODO Debug
-        transition_num=1,
+        total_transitions=int(1e6),  # TODO Debug
         # frame skip & stack observation
         frame_skip=4,
         stacked_observations=4,
@@ -189,4 +188,4 @@ create_config = atari_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
-    serial_pipeline_muzero([main_config, create_config], seed=0)
+    serial_pipeline_muzero([main_config, create_config], game_config=game_config, seed=0)

@@ -18,48 +18,72 @@ from ding.rl_utils.efficientzero.mcts import MCTS
 
 config = game_config
 
-GameBuffer_config = EasyDict(dict(
-    batch_size=10,
-    transition_num=20,
-    priority_prob_alpha=0.5,
-    total_transitions=10000,
-))
+GameBuffer_config = EasyDict(
+    dict(
+        batch_size=10,
+        transition_num=20,
+        priority_prob_alpha=0.5,
+        total_transitions=10000,
+    )
+)
 import argparse
-
 
 if __name__ == '__main__':
     # Lets gather arguments
     parser = argparse.ArgumentParser(description='EfficientZero')
-    parser.add_argument('--result_dir', default=os.path.join(os.getcwd(), 'results'),
-                        help="Directory Path to store results (default: %(default)s)")
+    parser.add_argument(
+        '--result_dir',
+        default=os.path.join(os.getcwd(), 'results'),
+        help="Directory Path to store results (default: %(default)s)"
+    )
     parser.add_argument('--no_cuda', action='store_true', default=False, help='no cuda usage (default: %(default)s)')
-    parser.add_argument('--debug', action='store_true', default=False,
-                        help='If enabled, logs additional values  '
-                             '(gradients, target value, reward distribution, etc.) (default: %(default)s)')
-    parser.add_argument('--render', action='store_true', default=False,
-                        help='Renders the environment (default: %(default)s)')
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        default=False,
+        help='If enabled, logs additional values  '
+        '(gradients, target value, reward distribution, etc.) (default: %(default)s)'
+    )
+    parser.add_argument(
+        '--render', action='store_true', default=False, help='Renders the environment (default: %(default)s)'
+    )
     parser.add_argument('--save_video', action='store_true', default=False, help='save video in test.')
-    parser.add_argument('--force', action='store_true', default=False,
-                        help='Overrides past results (default: %(default)s)')
+    parser.add_argument(
+        '--force', action='store_true', default=False, help='Overrides past results (default: %(default)s)'
+    )
     parser.add_argument('--cpu_actor', type=int, default=14, help='batch cpu actor')
     parser.add_argument('--gpu_actor', type=int, default=20, help='batch bpu actor')
     parser.add_argument('--p_mcts_num', type=int, default=8, help='number of parallel mcts')
     parser.add_argument('--seed', type=int, default=0, help='seed (default: %(default)s)')
     parser.add_argument('--num_gpus', type=int, default=4, help='gpus available')
     parser.add_argument('--num_cpus', type=int, default=80, help='cpus available')
-    parser.add_argument('--revisit_policy_search_rate', type=float, default=0.99,
-                        help='Rate at which target policy is re-estimated (default: %(default)s)')
-    parser.add_argument('--use_root_value', action='store_true', default=False,
-                        help='choose to use root value in reanalyzing')
-    parser.add_argument('--use_priority', action='store_true', default=False,
-                        help='Uses priority for data sampling in replay buffer. '
-                             'Also, priority for new data is calculated based on loss (default: False)')
+    parser.add_argument(
+        '--revisit_policy_search_rate',
+        type=float,
+        default=0.99,
+        help='Rate at which target policy is re-estimated (default: %(default)s)'
+    )
+    parser.add_argument(
+        '--use_root_value', action='store_true', default=False, help='choose to use root value in reanalyzing'
+    )
+    parser.add_argument(
+        '--use_priority',
+        action='store_true',
+        default=False,
+        help='Uses priority for data sampling in replay buffer. '
+        'Also, priority for new data is calculated based on loss (default: False)'
+    )
     parser.add_argument('--use_max_priority', action='store_true', default=False, help='max priority')
     parser.add_argument('--test_episodes', type=int, default=10, help='Evaluation episode count (default: %(default)s)')
     parser.add_argument('--use_augmentation', action='store_true', default=True, help='use augmentation')
-    parser.add_argument('--augmentation', type=str, default=['shift', 'intensity'], nargs='+',
-                        choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
-                        help='Style of augmentation')
+    parser.add_argument(
+        '--augmentation',
+        type=str,
+        default=['shift', 'intensity'],
+        nargs='+',
+        choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
+        help='Style of augmentation'
+    )
     parser.add_argument('--info', type=str, default='none', help='debug string')
     parser.add_argument('--load_model', action='store_true', default=False, help='choose to load model')
     parser.add_argument('--model_path', type=str, default='./results/test_model.p', help='load model path')
@@ -101,16 +125,25 @@ if __name__ == '__main__':
 
     with torch.no_grad():
         # new games
-        envs = [config.new_game(seed=i, save_video=save_video, save_path=save_path, test=True, final_test=final_test,
-                                video_callable=lambda episode_id: True, uid=i) for i in range(test_episodes)]
+        envs = [
+            config.new_game(
+                seed=i,
+                save_video=save_video,
+                save_path=save_path,
+                test=True,
+                final_test=final_test,
+                video_callable=lambda episode_id: True,
+                uid=i
+            ) for i in range(test_episodes)
+        ]
 
         # initializations
         init_obses = [env.reset() for env in envs]
         dones = np.array([False for _ in range(test_episodes)])
         game_histories = [
-            GameHistory(envs[_].env.action_space, max_length=config.max_moves, config=config) for
-            _ in
-            range(test_episodes)]
+            GameHistory(envs[_].env.action_space, max_length=config.max_moves, config=config)
+            for _ in range(test_episodes)
+        ]
         for i in range(test_episodes):
             game_histories[i].init([init_obses[i] for _ in range(config.stacked_observations)])
 
@@ -139,16 +172,16 @@ if __name__ == '__main__':
                 network_output = model.initial_inference(stack_obs.float())
             hidden_state_roots = network_output.hidden_state  # {ndarray:（2, 64, 6, 6）}
             reward_hidden_roots = network_output.reward_hidden  # {tuple:2}->{ndarray:(1,2,512)}
-            value_prefix_pool = network_output.value_prefix   # {list: 2}->{float}
-            policy_logits_pool = network_output.policy_logits.tolist() # {list: 2}->{list:6}->{float}
+            value_prefix_pool = network_output.value_prefix  # {list: 2}->{float}
+            policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2}->{list:6}->{float}
 
             roots = cytree.Roots(test_episodes, config.action_space_size, config.num_simulations)
             roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
             # do MCTS for a policy (argmax in testing)
             MCTS(config).search(roots, model, hidden_state_roots, reward_hidden_roots)
 
-            roots_distributions = roots.get_distributions()# {list: 1}->{list:6}
-            roots_values = roots.get_values() # {list: 1}
+            roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
+            roots_values = roots.get_values()  # {list: 1}
             for i in range(test_episodes):
                 if dones[i]:
                     continue
@@ -172,9 +205,12 @@ if __name__ == '__main__':
 
             step += 1
             if use_pb:
-                pb.set_description('{} In step {}, scores: {}(max: {}, min: {}) currently.'
-                                   ''.format(config.env_name, counter,
-                                             ep_ori_rewards.mean(), ep_ori_rewards.max(), ep_ori_rewards.min()))
+                pb.set_description(
+                    '{} In step {}, scores: {}(max: {}, min: {}) currently.'
+                    ''.format(
+                        config.env_name, counter, ep_ori_rewards.mean(), ep_ori_rewards.max(), ep_ori_rewards.min()
+                    )
+                )
                 pb.update(1)
 
         for env in envs:

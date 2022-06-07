@@ -8,6 +8,7 @@ from ding.rl_utils.efficientzero.utils import arr_to_str
 
 
 class AtariWrapper(Game):
+
     def __init__(self, env, discount: float, cvt_string=True):
         """Atari Wrapper
         Parameters

@@ -3,6 +3,7 @@ FLOAT_MIN = -float('inf')
 
 
 class MinMaxStats:
+
     def __init__(self, ):
         self.clear()
         self.value_delta_max = 0
@@ -23,7 +24,7 @@ class MinMaxStats:
     # todo(zsh): check sign of delta < self.value_delta_max
     def normalize(self, value: float):
         norm_value = value
-        delta = self.maximum - self.minimum;
+        delta = self.maximum - self.minimum
         if delta > 0:
             if delta < self.value_delta_max:
                 norm_value = (norm_value - self.minimum) / self.value_delta_max
@@ -33,6 +34,7 @@ class MinMaxStats:
 
 
 class MinMaxStatsList:
+
     def __init__(self, num):
         self.num = num
         self.state_list = [MinMaxStats() for _ in range(self.num)]

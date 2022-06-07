@@ -20,11 +20,12 @@ class BufferedData:
 
 @BUFFER_REGISTRY.register('game')
 class GameBuffer(Buffer):
+
     def __init__(self, config=None):
         """Reference : DISTRIBUTED PRIORITIZED EXPERIENCE REPLAY
         Algo. 1 and Algo. 2 in Page-3 of (https://arxiv.org/pdf/1803.00933.pdf
         """
-        super().__init__()
+        super().__init__(config.total_transitions)
         self.config = config
         self.batch_size = config.batch_size
         self.keep_ratio = 1
@@ -39,7 +40,8 @@ class GameBuffer(Buffer):
         self._eps_collected = 0
         self.base_idx = 0
         self._alpha = config.priority_prob_alpha
-        self.transition_top = int(config.transition_num * 10 ** 6)
+        # self.transition_top = int(config.transition_num * 10 ** 6)
+        self.transition_top = config.total_transitions
         self.clear_time = 0
 
     def push_games(self, data: Any, meta):
@@ -87,7 +89,8 @@ class GameBuffer(Buffer):
             max_prio = self.priorities.max() if self.buffer else 1
             # if no 'priorities' provided, set the valid part of the new-added game history the max_prio
             self.priorities = np.concatenate(
-                (self.priorities, [max_prio for _ in range(valid_len)] + [0. for _ in range(valid_len, len(data))]))
+                (self.priorities, [max_prio for _ in range(valid_len)] + [0. for _ in range(valid_len, len(data))])
+            )
         else:
             assert len(data) == len(meta['priorities']), " priorities should be of same length as the game steps"
             priorities = meta['priorities'].copy().reshape(-1)
@@ -107,7 +110,6 @@ class GameBuffer(Buffer):
             groupby: str = None,
             rolling_window: int = None
     ) -> Union[List[BufferedData], List[List[BufferedData]]]:
-
         """
         Overview:
             Sample data with length ``size``.

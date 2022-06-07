@@ -11,7 +11,7 @@ tictactoe_efficientzero_config = dict(
         evaluator_env_num=2,
         n_evaluator_episode=2,
 
-        env_name='LunarLander-v2',
+        # env_name='LunarLander-v2',
         stop_value=200,
         obs_shape=(3, 3, 3),
         gray_scale=False,
@@ -48,7 +48,7 @@ tictactoe_efficientzero_config = dict(
         # storage efficient
         # cvt_string=True,
         cvt_string=False,  # TODO
-        image_based=True,
+        image_based=False,
         # lr scheduler
         lr_warm_up=0.01,
         lr_init=0.2,
@@ -108,14 +108,16 @@ tictactoe_efficientzero_config = dict(
         pb_c_base=19652,
         pb_c_init=1.25,
         discount=0.997,
-        # num_simulations=50,
-        num_simulations=2,  # TODO Debug
+        total_transitions=int(1e6),  # TODO Debug
         amp_type='torch_amp',
         model=dict(
-            obs_shape=(3,3,3),
+            # obs_shape=(3,3,3),
             action_space_size=9,
-            blocks=1,
-            channels=64,
+            # blocks=1,
+            # channels=64,
+            num_blocks=1,
+            observation_shape=(3, 3, 3),
+            num_channels=12,
             reduced_channels_reward=16,
             reduced_channels_value=16,
             reduced_channels_policy=16,
@@ -139,7 +141,8 @@ tictactoe_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             update_per_collect=10,
-            batch_size=64,
+            # batch_size=64,
+            batch_size=2,
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,
@@ -148,9 +151,10 @@ tictactoe_efficientzero_config = dict(
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            n_sample=64,
+            # n_sample=64,
+            n_episode=8,
             # Cut trajectories into pieces with length "unroll_len".
-            unroll_len=1,
+            # unroll_len=20,
         ),
         # command_mode config
         other=dict(
@@ -177,11 +181,11 @@ tictactoe_efficientzero_create_config = dict(
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='muzero'),
-    # collector=dict(type='sample_muzero', )
+    collector=dict(type='episode_muzero', get_train_sample=True)
 )
 tictactoe_efficientzero_create_config = EasyDict(tictactoe_efficientzero_create_config)
 create_config = tictactoe_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
-    serial_pipeline_muzero([main_config, create_config], seed=0)
+    serial_pipeline_muzero([main_config, create_config], game_config=game_config, seed=0)

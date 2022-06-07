@@ -6,7 +6,7 @@ from ding.utils.registry_factory import ENV_REGISTRY
 from dizoo.board_games.base_game_env import BaseGameEnv
 
 
-# @ENV_REGISTRY.register('tictactoe')
+@ENV_REGISTRY.register('tictactoe')
 class TicTacToeEnv(BaseGameEnv):
     def __init__(self, cfg=None):
         self.board_size = 3
@@ -42,7 +42,14 @@ class TicTacToeEnv(BaseGameEnv):
 
         self._current_player = self.players[start_player]
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
-        return self.current_state()
+        self._final_eval_reward = 0.
+        # return self.current_state()
+
+        action_mask = np.zeros(self.num_actions, 'int8')
+        action_mask[self.legal_actions] = 1
+        obs={'observation': self.current_state(), 'action_mask': action_mask}
+        return BaseEnvTimestep(obs, None, None, None)
+
 
     def do_action(self, action):
         row, col = self.action_to_coord(action)
@@ -52,13 +59,26 @@ class TicTacToeEnv(BaseGameEnv):
     def step(self, action):
         curr_player = self.current_player
         next_player = self.current_opponent_player
-        self.do_action(action)
+        if action in self.legal_actions:
+            self.do_action(action)
+        else:
+            print("Error: illegal action")
+            self.do_action(action)
+            # sys.exit(-1)
 
         done, winner = self.game_end()
         reward = int((winner == curr_player))
-
         info = {'next_player': next_player}
-        return BaseEnvTimestep(self.current_state(), reward, done, info)
+
+        if done:
+            self._final_eval_reward =  reward
+            info['final_eval_reward'] = self._final_eval_reward
+            print('done: ', info)
+        # return BaseEnvTimestep(self.current_state(), reward, done, info)
+        action_mask = np.zeros(self.num_actions, 'int8')
+        action_mask[self.legal_actions] = 1
+        obs={'observation': self.current_state(), 'action_mask': action_mask}
+        return BaseEnvTimestep(obs, reward, done, info)
 
     def current_state(self):
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
@@ -102,8 +122,10 @@ class TicTacToeEnv(BaseGameEnv):
         else:
             return False, -1
 
-    def seed(self, seed: int) -> None:
-        pass
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
+        self._seed = seed
+        self._dynamic_seed = dynamic_seed
+        np.random.seed(self._seed)
 
     def expert_action(self):
         board = self.board

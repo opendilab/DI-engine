@@ -41,7 +41,7 @@ class TictactoeConfig(BaseConfig):
             clip_reward=True,
             # storage efficient
             cvt_string=True,
-            image_based=True,
+            image_based=False,
             # lr scheduler
             lr_warm_up=0.01,
             lr_init=0.2,
@@ -78,9 +78,7 @@ class TictactoeConfig(BaseConfig):
 
         self.bn_mt = 0.1
         self.blocks = 1  # Number of blocks in the ResNet
-        self.channels = 64  # Number of channels in the ResNet
-        if self.gray_scale:
-            self.channels = 32
+        self.channels = 12  # Number of channels in the ResNet
         self.reduced_channels_reward = 16  # x36 Number of channels in reward head
         self.reduced_channels_value = 16  # x36 Number of channels in value head
         self.reduced_channels_policy = 16  # x36 Number of channels in policy head
@@ -88,6 +86,22 @@ class TictactoeConfig(BaseConfig):
         self.resnet_fc_value_layers = [32]  # Define the hidden layers in the value head of the prediction network
         self.resnet_fc_policy_layers = [32]  # Define the hidden layers in the policy head of the prediction network
         self.downsample = True  # Downsample observations before representation network (See paper appendix Network Architecture)
+
+        # TODO(pu):
+        self.env_name='tictactoe'
+        self.action_space_size = int(3*3)
+        self.amp_type = 'none'
+        self.obs_shape =(3,3,3)
+        self.gray_scale=False
+        self.test_episodes =2
+        self.cvt_string=False
+        self.use_max_priority = True
+        self.use_priority = True
+        self.root_dirichlet_alpha=0.3
+        self.root_exploration_fraction=0.25
+        self.game_history_length = 9
+
+
 
     def visit_softmax_temperature_fn(self, num_moves, trained_steps):
         if self.change_temperature:

@@ -7,7 +7,11 @@ class GameHistory:
     Store only usefull information of a self-play game.
     """
 
-    def __init__(self,config,max_length=200,):
+    def __init__(
+        self,
+        config,
+        max_length=200,
+    ):
         self.config = config
 
         self.to_play_history = []
@@ -38,9 +42,7 @@ class GameHistory:
             self.child_visits[idx] = [visit_count / sum_visits for visit_count in visit_counts]
             self.root_values[idx] = root_value
 
-    def get_stacked_observations(
-        self, index, num_stacked_observations, action_space_size
-    ):
+    def get_stacked_observations(self, index, num_stacked_observations, action_space_size):
         """
         Generate a new observation with the observation at the index position
         and num_stacked_observations past observations and actions stacked.
@@ -49,17 +51,14 @@ class GameHistory:
         index = index % len(self.observation_history)
 
         stacked_observations = self.observation_history[index].copy()
-        for past_observation_index in reversed(
-            range(index - num_stacked_observations, index)
-        ):
+        for past_observation_index in reversed(range(index - num_stacked_observations, index)):
             if 0 <= past_observation_index:
                 previous_observation = np.concatenate(
                     (
                         self.observation_history[past_observation_index],
                         [
-                            np.ones_like(stacked_observations[0])
-                            * self.action_history[past_observation_index + 1]
-                            / action_space_size
+                            np.ones_like(stacked_observations[0]) * self.action_history[past_observation_index + 1] /
+                            action_space_size
                         ],
                     )
                 )
@@ -71,9 +70,7 @@ class GameHistory:
                     )
                 )
 
-            stacked_observations = np.concatenate(
-                (stacked_observations, previous_observation)
-            )
+            stacked_observations = np.concatenate((stacked_observations, previous_observation))
 
         return stacked_observations
 
