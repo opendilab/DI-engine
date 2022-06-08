@@ -169,7 +169,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
     return _battle_inferencer
 
 
-def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transition_list: List):
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
@@ -183,7 +183,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transition_list: List):
                 )
                 transition = ttorch.as_tensor(transition)
                 transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
-                transition_list[policy_id].append(env_id, transition)
+                transitions_list[policy_id].append(env_id, transition)
                 if timestep.done:
                     ctx.current_policies[policy_id].reset([env_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])

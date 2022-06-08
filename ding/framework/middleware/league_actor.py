@@ -9,7 +9,7 @@ from ding.framework import BattleContext
 from ding.league.v2.base_league import Job
 from ding.policy import Policy
 from ding.framework.middleware.league_learner import LearnerModel
-from ding.framework.middleware import BattleCollector
+from ding.framework.middleware import BattleEpisodeCollector
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from threading import Lock
@@ -23,7 +23,7 @@ class LeagueActor:
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
         self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
-        self._collectors: Dict[str, BattleCollector] = {}
+        self._collectors: Dict[str, BattleEpisodeCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
@@ -49,7 +49,7 @@ class LeagueActor:
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
-        collector = task.wrap(BattleCollector(cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num))
+        collector = task.wrap(BattleEpisodeCollector(cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num))
         self._collectors[player_id] = collector
         return collector
 
@@ -116,13 +116,11 @@ class LeagueActor:
 
         ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(ctx.agent_num)]
-
         ctx.remain_episode = ctx.n_episode
         while True:
-
             collector(ctx)
 
-            if not ctx.job.is_eval:
+            if not ctx.job.is_eval and len(ctx.episodes) > 0:
                 actor_data = ActorData(env_step=ctx.env_step, train_data=ctx.episodes)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
                 ctx.episodes = []

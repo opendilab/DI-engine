@@ -10,7 +10,7 @@ from typing import Dict
 from ding.framework import OnlineRLContext, BattleContext
 
 
-class BattleCollector:
+class BattleEpisodeCollector:
 
     def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int):
         self.cfg = cfg
@@ -20,17 +20,14 @@ class BattleCollector:
         self.env_num = self.env.env_num
 
         self.total_envstep_count = 0
-        self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
         self.model_dict = model_dict
         self.all_policies = all_policies
         self.agent_num = agent_num
 
-        self._battle_inferencer = task.wrap(
-            battle_inferencer(self.cfg, self.env)
-        )
-        self._transition_list = [TransitionList(self.env.env_num) for _ in range(self.agent_num)]
-        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self._transition_list))
+        self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
+        self._transitions_list = [TransitionList(self.env.env_num) for _ in range(self.agent_num)]
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self._transitions_list))
 
     def __del__(self) -> None:
         """
@@ -78,14 +75,12 @@ class BattleCollector:
             self.total_envstep_count = ctx.env_step
 
             if (self.n_rollout_samples > 0 and ctx.env_episode - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
-                ctx.episodes = self._transition_list[0].to_episodes()
-                for transitions in self._transition_list:
+                ctx.episodes = self._transitions_list[0].to_episodes()
+                for transitions in self._transitions_list:
                     transitions.clear()
                 if ctx.env_episode >= ctx.n_episode:
                     ctx.job_finish = True
                 break
-                
-
 
 
 
