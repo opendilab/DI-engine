@@ -94,3 +94,12 @@ class BattleContext(Context):
         self.current_policies = []
         self.env_step = 0
         self.total_envstep_count = 0
+        self.trajectories_list = []
+        self.trajectory_end_idx_list = []
+        self.trajectories = []
+        self.trajectory_end_idx = None
+
+        self.remain_episode = 0
+        self.n_sample = 1
+        self.unroll_len = 1
+        self.train_data = None
