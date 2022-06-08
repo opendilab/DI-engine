@@ -8,11 +8,10 @@ from ding.policy import Policy
 import torch
 from ding.utils import dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
-from ding.worker.collector.base_serial_collector import CachePool, TrajBuffer, to_tensor_transitions
-from threading import Lock
-from ding.league.player import PlayerMeta
+from ding.worker.collector.base_serial_collector import TrajBuffer, to_tensor_transitions
 from ding.framework import task, EventEnum
 from .actor_data import ActorData
+from typing import Dict
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
@@ -150,13 +149,6 @@ def policy_resetter(env_num: int):
             ctx._default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
             ctx.agent_num = len(ctx.current_policies)
             ctx.traj_len = float("inf")
-            # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
-            ctx.traj_buffer = {
-                env_id: {policy_id: TrajBuffer(maxlen=ctx.traj_len)
-                         for policy_id in range(ctx.agent_num)}
-                for env_id in range(env_num)
-            }
-
             for p in ctx.current_policies:
                 p.reset()
         else:
@@ -187,6 +179,10 @@ import time
 def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
 
     def _battle_inferencer(ctx: "BattleContext"):
+
+        if env.closed:
+            env.launch()
+        
         # Get current env obs.
         obs = env.ready_obs
         # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
@@ -213,36 +209,74 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
     return _battle_inferencer
 
 
-def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager):
+class BattleTransitionList:
+
+    def __init__(self, env_num: int, agent_num: int) -> None:
+        self.env_num = env_num
+        self.agent_num = agent_num
+        self._transitions = [[[] for _ in range(agent_num)] for _ in range(env_num)]
+        self._done_idx = [[] for _ in range(env_num)]
+
+    def append(self, env_id: int, policy_id: int, transition: Any) -> None:
+        self._transitions[env_id].append(transition)
+        if transition.done:
+            self._done_idx[env_id].append(len(self._transitions[env_id]))
+
+    def to_trajectories(self) -> Tuple[List[Any], List[int]]:
+        trajectories = sum(self._transitions, [])
+        lengths = [len(t) for t in self._transitions]
+        trajectory_end_idx = [reduce(lambda x, y: x + y, lengths[:i + 1]) for i in range(len(lengths))]
+        trajectory_end_idx = [t - 1 for t in trajectory_end_idx]
+        return trajectories, trajectory_end_idx
+
+    def to_episodes(self) -> List[List[Any]]:
+        episodes = []
+        for env_id in range(self.env_num):
+            last_idx = 0
+            for done_idx in self._done_idx[env_id]:
+                episodes.append(self._transitions[env_id][last_idx:done_idx])
+                last_idx = done_idx
+        return episodes
+
+    def clear(self):
+        for item in self._transitions:
+            item.clear()
+        for item in self._done_idx:
+            item.clear()
+
+
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, traj_buffer: Dict):
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
+        ctx.env_step += len(timesteps)
         for env_id, timestep in timesteps.items():
-            ctx.env_step += 1
             for policy_id, _ in enumerate(ctx.current_policies):
                 policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                 policy_timestep = type(timestep)(*policy_timestep_data)
                 transition = ctx.current_policies[policy_id].process_transition(
                     ctx.obs[policy_id][env_id], ctx.inference_output[policy_id][env_id], policy_timestep
                 )
+                # transition = ttorch.as_tensor(transition)
+                # transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
                 transition['collect_iter'] = ctx.train_iter
-                ctx.traj_buffer[env_id][policy_id].append(transition)
+                traj_buffer[env_id][policy_id].append(transition)
                 # If env is done, prepare data
                 if timestep.done:
-                    transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
+                    transitions = to_tensor_transitions(traj_buffer[env_id][policy_id])
                     if cfg.get_train_sample:
                         train_sample = ctx.current_policies[policy_id].get_train_sample(transitions)
                         ctx.train_data[policy_id].extend(train_sample)
                     else:
                         ctx.train_data[policy_id].append(transitions)
-                    ctx.traj_buffer[env_id][policy_id].clear()
+                    traj_buffer[env_id][policy_id].clear()
 
             if timestep.done:
                 ctx.collected_episode += 1
                 for i, p in enumerate(ctx.current_policies):
                     p.reset([env_id])
                 for i in range(ctx.agent_num):
-                    ctx.traj_buffer[env_id][i].clear()
+                    traj_buffer[env_id][i].clear()
                 ctx.ready_env_id.remove(env_id)
                 for policy_id in range(ctx.agent_num):
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])

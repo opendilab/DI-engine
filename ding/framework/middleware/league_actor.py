@@ -26,8 +26,7 @@ class LeagueActor:
         self.env_fn = env_fn
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
-        # self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
-        self.n_rollout_samples = 64
+        self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
         self._collectors: Dict[str, BattleCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)

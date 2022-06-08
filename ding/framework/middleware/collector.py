@@ -5,6 +5,7 @@ from ding.envs import BaseEnvManager
 from ding.framework import task, EventEnum
 from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor, job_data_sender
 from typing import Dict
+from ding.worker.collector.base_serial_collector import TrajBuffer
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
@@ -30,7 +31,6 @@ class BattleCollector:
         self._battle_inferencer = task.wrap(
             battle_inferencer(self.cfg, self.env)
         )
-        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env))
         self._job_data_sender = task.wrap(job_data_sender(self.streaming_sampling_flag, self.n_rollout_samples))
 
 
@@ -83,8 +83,13 @@ class BattleCollector:
         if ctx.collect_kwargs is None:
             ctx.collect_kwargs = {}
 
-        if self.env.closed:
-            self.env.launch()
+        # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
+        self.traj_buffer = {
+            env_id: {policy_id: TrajBuffer(maxlen=ctx.traj_len)
+                        for policy_id in range(ctx.agent_num)}
+            for env_id in range(self.env_num)
+        }
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.traj_buffer))
 
         ctx.collected_episode = 0
         ctx.train_data = [[] for _ in range(ctx.agent_num)]
