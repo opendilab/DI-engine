@@ -9,19 +9,21 @@ from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
     gae_estimator, ddp_termination_checker, online_logger
-from ding.utils import set_pkg_seed, DistContext, get_rank
+from ding.utils import set_pkg_seed, DistContext, get_rank, get_world_size
 from dizoo.atari.envs.atari_env import AtariEnv
 from dizoo.atari.config.serial.pong.pong_onppo_config import main_config, create_config
 
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    main_config.example = 'pong_ppo_seed0_ddp'
-    main_config.policy.learn.multi_gpu = True
-    cfg = compile_config(main_config, create_cfg=create_config, auto=True)
-    ding_init(cfg)
     with DistContext():
-        rank = get_rank()
+        rank, world_size = get_rank(), get_world_size()
+        main_config.example = 'pong_ppo_seed0_ddp_avgsplit'
+        main_config.policy.learn.multi_gpu = True
+        main_config.policy.learn.batch_size = main_config.policy.learn.batch_size // world_size
+        main_config.policy.collect.n_sample = main_config.policy.collect.n_sample // world_size
+        cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+        ding_init(cfg)
         with task.start(async_mode=False, ctx=OnlineRLContext()):
             collector_cfg = deepcopy(cfg.env)
             collector_cfg.is_train = True
