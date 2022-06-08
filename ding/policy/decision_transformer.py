@@ -386,8 +386,8 @@ class DTPolicy(DQNPolicy):
 
     def get_d4rl_normalized_score(self, score, env_name):
         env_key = env_name.split('-')[0].lower()
-        assert env_key in D4RLTrajectoryDataset.get_d4rl_max_score(), f'no reference score for {env_key} env to calculate d4rl score'
-        d4rl_max_score, d4rl_min_score = D4RLTrajectoryDataset.get_d4rl_max_score(), D4RLTrajectoryDataset.get_d4rl_min_score()
+        assert env_key in D4RLTrajectoryDataset.REF_MAX_SCORE, f'no reference score for {env_key} env to calculate d4rl score'
+        d4rl_max_score, d4rl_min_score = D4RLTrajectoryDataset.REF_MAX_SCORE, D4RLTrajectoryDataset.REF_MIN_SCORE
         return (score - d4rl_min_score[env_key]) / (d4rl_max_score[env_key] - d4rl_min_score[env_key])
 
     def _state_dict_learn(self) -> Dict[str, Any]:

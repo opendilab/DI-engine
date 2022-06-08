@@ -15,7 +15,6 @@ class Block(nn.Module):
 
     def __init__(self, h_dim, max_T, n_heads, drop_p):
         super().__init__()
-        self.max_T = max_T
         self.attention = Attention(h_dim, h_dim, h_dim, n_heads, nn.Dropout(drop_p))
         self.mlp = nn.Sequential(
             nn.Linear(h_dim, 4 * h_dim),
@@ -26,11 +25,14 @@ class Block(nn.Module):
         self.ln1 = nn.LayerNorm(h_dim)
         self.ln2 = nn.LayerNorm(h_dim)
 
+        mask = torch.tril(torch.ones((max_T, max_T), dtype=torch.bool)).view(1, 1, max_T, max_T)
+        # register buffer makes sure mask does not get updated
+        # during backpropagation
+        self.register_buffer('mask', mask)
+
     def forward(self, x):
         # Attention -> LayerNorm -> MLP -> LayerNorm
-        max_T = self.max_T
-        mask = torch.tril(torch.ones((max_T, max_T), dtype=torch.bool)).view(1, 1, max_T, max_T)
-        x = x + self.attention(x, mask)  # residual
+        x = x + self.attention(x, self.mask)  # residual
         x = self.ln1(x)
         x = x + self.mlp(x)  # residual
         x = self.ln2(x)

@@ -16,7 +16,7 @@ walker2d_dt_config = dict(
     ),
     policy=dict(
         stop_value=6000,
-        device='cuda',
+        cuda=True,
         env_name='Walker2d-v3',
         rtg_target=6000, # max target return to go
         max_eval_ep_len=1000, # max lenght of one episode

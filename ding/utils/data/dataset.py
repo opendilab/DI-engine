@@ -305,15 +305,7 @@ class D4RLTrajectoryDataset(Dataset):
         return deepcopy(self.state_mean), deepcopy(self.state_std)
     
     def get_d4rl_dataset_stats(self, env_d4rl_name: str) -> Dict[str, list]:
-        return D4RL_DATASET_STATS[env_d4rl_name]
-
-    @staticmethod
-    def get_d4rl_min_score() -> dict:
-        return REF_MIN_SCORE  
-    
-    @staticmethod
-    def get_d4rl_min_score() -> dict:
-        return REF_MAX_SCORE  
+        return D4RL_DATASET_STATS[env_d4rl_name] 
 
     def __len__(self) -> int:
         return len(self.trajectories)
