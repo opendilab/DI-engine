@@ -173,6 +173,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List)
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
+        ctx.total_envstep_count += len(timesteps)
         ctx.env_step += len(timesteps)
         for env_id, timestep in timesteps.items():
             for policy_id, _ in enumerate(ctx.current_policies):

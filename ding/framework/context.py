@@ -92,3 +92,5 @@ class BattleContext(Context):
         self.job_finish = False
         self.traj_len = float("inf")
         self.current_policies = []
+        self.env_step = 0
+        self.total_envstep_count = 0

@@ -65,14 +65,14 @@ class BattleEpisodeCollector:
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
-        ctx.env_step = self.total_envstep_count
+        ctx.total_envstep_count = self.total_envstep_count
         old = ctx.env_episode
         while True:
             self._update_policies(ctx.job)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
 
-            self.total_envstep_count = ctx.env_step
+            self.total_envstep_count = ctx.total_envstep_count
 
             if (self.n_rollout_samples > 0 and ctx.env_episode - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
                 for transitions in self._transitions_list:
