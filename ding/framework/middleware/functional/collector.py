@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
 from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
+from ding import policy
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 import torch
@@ -167,7 +168,7 @@ def job_data_sender(streaming_sampling_flag: bool, n_rollout_samples: int):
    
     def _job_data_sender(ctx: "BattleContext"):
         if not ctx.job.is_eval and streaming_sampling_flag is True and len(ctx.train_data[0]) >= n_rollout_samples:
-            actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+            actor_data = ActorData(env_step=ctx.env_step, train_data=ctx.train_data[0])
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
             ctx.train_data = [[] for _ in range(ctx.agent_num)]
 
@@ -175,54 +176,54 @@ def job_data_sender(streaming_sampling_flag: bool, n_rollout_samples: int):
             ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
             task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
             if not ctx.job.is_eval and len(ctx.train_data[0]) > 0:
-                actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+                actor_data = ActorData(env_step=ctx.env_step, train_data=ctx.train_data[0])
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
                 ctx.train_data = [[] for _ in range(ctx.agent_num)]
     
     return _job_data_sender
 
 
-
-def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):
+import time
+def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
 
     def _battle_inferencer(ctx: "BattleContext"):
         # Get current env obs.
         obs = env.ready_obs
+        # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
         new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
         ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
         ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
         obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
 
         # Policy forward.
-        obs_pool.update(obs)
         if cfg.transform_obs:
             obs = to_tensor(obs, dtype=torch.float32)
         obs = dicts_to_lists(obs)
-        policy_output = [p.forward(obs[i], **ctx.collect_kwargs) for i, p in enumerate(ctx.current_policies)]
-        policy_output_pool.update(policy_output)
-
+        inference_output = [p.forward(obs[i], **ctx.collect_kwargs) for i, p in enumerate(ctx.current_policies)]
+        ctx.obs = obs
+        ctx.inference_output = inference_output
         # Interact with env.
         actions = {}
         for env_id in ctx.ready_env_id:
             actions[env_id] = []
-            for output in policy_output:
+            for output in inference_output:
                 actions[env_id].append(output[env_id]['action'])
         ctx.actions = to_ndarray(actions)
 
     return _battle_inferencer
 
 
-def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager):
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
         for env_id, timestep in timesteps.items():
-            ctx.envstep += 1
+            ctx.env_step += 1
             for policy_id, _ in enumerate(ctx.current_policies):
                 policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                 policy_timestep = type(timestep)(*policy_timestep_data)
                 transition = ctx.current_policies[policy_id].process_transition(
-                    obs_pool[env_id][policy_id], policy_output_pool[env_id][policy_id], policy_timestep
+                    ctx.obs[policy_id][env_id], ctx.inference_output[policy_id][env_id], policy_timestep
                 )
                 transition['collect_iter'] = ctx.train_iter
                 ctx.traj_buffer[env_id][policy_id].append(transition)
@@ -242,8 +243,6 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, po
                     p.reset([env_id])
                 for i in range(ctx.agent_num):
                     ctx.traj_buffer[env_id][i].clear()
-                obs_pool.reset(env_id)
-                policy_output_pool.reset(env_id)
                 ctx.ready_env_id.remove(env_id)
                 for policy_id in range(ctx.agent_num):
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])

@@ -62,6 +62,7 @@ def _main():
             def on_actor_greeting(actor_id):
                 assert actor_id == ACTOR_ID
                 testcases["on_actor_greeting"] = True
+                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=ACTOR_ID), job)
 
             def on_actor_job(job_: Job):
                 assert job_.launch_player == job.launch_player
@@ -77,8 +78,6 @@ def _main():
 
             def _test_actor(ctx):
                 sleep(0.3)
-                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=ACTOR_ID), job)
-                sleep(0.3)
 
                 task.emit(
                     EventEnum.LEARNER_SEND_MODEL,
@@ -86,7 +85,7 @@ def _main():
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
-                sleep(5)
+                sleep(10)
                 try:
                     print(testcases)
                     assert all(testcases.values())

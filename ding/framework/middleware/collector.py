@@ -20,9 +20,6 @@ class BattleCollector:
         self.env = env
         self.env_num = self.env.env_num
 
-        self.obs_pool = CachePool('obs', self.env_num, deepcopy=self.cfg.deepcopy_obs)
-        self.policy_output_pool = CachePool('policy_output', self.env_num)
-
         self.total_envstep_count = 0
         self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
@@ -31,9 +28,9 @@ class BattleCollector:
         self.all_policies = all_policies
 
         self._battle_inferencer = task.wrap(
-            battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool)
+            battle_inferencer(self.cfg, self.env)
         )
-        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env))
         self._job_data_sender = task.wrap(job_data_sender(self.streaming_sampling_flag, self.n_rollout_samples))
 
 
@@ -75,7 +72,7 @@ class BattleCollector:
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
-        ctx.envstep = self.total_envstep_count
+        ctx.env_step = self.total_envstep_count
         if ctx.n_episode is None:
             if ctx._default_n_episode is None:
                 raise RuntimeError("Please specify collect n_episode")
@@ -99,7 +96,7 @@ class BattleCollector:
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
 
-            self.total_envstep_count = ctx.envstep
+            self.total_envstep_count = ctx.env_step
 
             self._job_data_sender(ctx)
 
