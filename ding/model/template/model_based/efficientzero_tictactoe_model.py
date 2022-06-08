@@ -204,6 +204,8 @@ class RepresentationNetwork(nn.Module):
         equivalence transformation
         """
         super().__init__()
+        # be compatiable with method get_param_mean
+        self._dummy_param = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, x):
         return x  # TODO
@@ -535,7 +537,11 @@ class EfficientZeroNet(BaseNet):
         )
 
         # projection
-        in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
+        # in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
+        # TODO(pu)
+        stacked_observations = 4
+        in_dim = stacked_observations * observation_shape[0] * observation_shape[1] * observation_shape[2]
+
         self.porjection_in_dim = in_dim
         self.projection = nn.Sequential(
             nn.Linear(self.porjection_in_dim, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(),
@@ -590,7 +596,9 @@ class EfficientZeroNet(BaseNet):
 
     def project(self, hidden_state, with_grad=True):
         # only the branch of proj + pred can share the gradients
-        hidden_state = hidden_state.view(-1, self.porjection_in_dim)
+        # hidden_state = hidden_state.view(-1, self.porjection_in_dim)
+        hidden_state = hidden_state.reshape(-1, self.porjection_in_dim)
+
         proj = self.projection(hidden_state)
 
         # with grad, use proj_head

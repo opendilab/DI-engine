@@ -4,7 +4,7 @@ import torch
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
-
+import numpy as np
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
@@ -67,15 +67,24 @@ def serial_pipeline_muzero(
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
 
     # replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
-    gamebuffer_config = EasyDict(
-        dict(
-            batch_size=10,
-            transition_num=20,
-            priority_prob_alpha=0.5,
-            total_transitions=10000,
-        )
-    )
-    replay_buffer = GameBuffer(gamebuffer_config)
+    # gamebuffer_config = EasyDict(
+    #     dict(
+    #         batch_size=10,
+    #         transition_num=20,
+    #         priority_prob_alpha=0.5,
+    #         total_transitions=10000,
+    #         num_unroll_steps=5,
+    #         td_steps=5,
+    #         auto_td_steps=int(0.3*2e5),
+    #         stacked_observations=4,
+    #         device='cpu',
+    #         use_root_value=True,
+    #         mini_infer_size = 2,
+    #
+    #     )
+    # )
+    # gamebuffer_config=game_config
+    replay_buffer = GameBuffer(game_config)
 
     collector = create_serial_collector(
         cfg.policy.collect.collector,
@@ -111,16 +120,41 @@ def serial_pipeline_muzero(
         if stop:
             break
 
-        # policy.eval()
-        # break
-
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         # replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            # beta_schedule = LinearSchedule(config.training_steps + config.last_steps,
+            #                                     initial_p=config.priority_prob_beta, final_p=1.0)
+            # beta = beta_schedule.value(trained_steps)
+            beta = 0.1
+            revisit_policy_search_rate = 1
+            target_weights = policy._target_model.state_dict()
+            batch_context = replay_buffer.prepare_batch_context(learner.policy.get_attribute('batch_size'), beta)
+            input_countext = replay_buffer.make_batch(batch_context, revisit_policy_search_rate, weights=target_weights)
+            reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, target_weights = input_countext
+            # if target_weights is not None:
+            #     self.model.load_state_dict(target_weights)
+            #     self.model.to(self.config.device)
+            #     self.model.eval()
+
+            # target reward, value
+            batch_value_prefixs, batch_values = replay_buffer._prepare_reward_value(
+                reward_value_context, policy._learn_model
+            )
+            # target policy
+            batch_policies_re = replay_buffer._prepare_policy_re(policy_re_context, policy._learn_model)
+            batch_policies_non_re = replay_buffer._prepare_policy_non_re(policy_non_re_context)
+            # batch_policies = np.concatenate([batch_policies_re, batch_policies_non_re])
+            batch_policies = batch_policies_re
+            targets_batch = [batch_value_prefixs, batch_values, batch_policies]
+            # a batch contains the inputs and the targets; inputs is prepared in CPU workers
+            # train_data = [inputs_batch, targets_batch]
+            # TODO(pu):
+            train_data = [inputs_batch, targets_batch, replay_buffer]
+
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
@@ -129,8 +163,8 @@ def serial_pipeline_muzero(
                 )
                 break
             learner.train(train_data, collector.envstep)
-            if learner.policy.get_attribute('priority'):
-                replay_buffer.update(learner.priority_info)
+            # if learner.policy.get_attribute('priority'):
+            #     replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 

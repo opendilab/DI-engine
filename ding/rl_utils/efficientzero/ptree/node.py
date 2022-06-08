@@ -1,6 +1,6 @@
 import math
 import random
-from typing import List
+from typing import List, Any
 
 import numpy as np
 from scipy.special import softmax
@@ -107,7 +107,7 @@ class Node:
 
 class Roots:
 
-    def __init__(self, root_num: int, action_num: int, pool_size: int):
+    def __init__(self, root_num: int, action_num: Any, pool_size: int):
         self.root_num = root_num
         self.action_num = action_num
         self.pool_size = pool_size
@@ -116,7 +116,10 @@ class Roots:
         self.node_pools = []
         for i in range(self.root_num):
             self.node_pools.append([])
-            self.roots.append(Node(0, action_num, self.node_pools[i]))
+            if isinstance(action_num, list):
+                self.roots.append(Node(0, action_num[i], self.node_pools[i]))
+            else:
+                self.roots.append(Node(0, action_num, self.node_pools[i]))
 
     def prepare(self, root_exploration_fraction, noises, value_prefixs, policies):
         for i in range(self.root_num):

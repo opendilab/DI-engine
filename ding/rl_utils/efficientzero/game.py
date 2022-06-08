@@ -5,6 +5,7 @@ The following code is adapted from https://github.com/YeWR/EfficientZero/blob/ma
 import copy
 import numpy as np
 from ding.rl_utils.efficientzero.utils import str_to_arr
+from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 
 
 class Game:
@@ -143,11 +144,12 @@ class GameHistory:
             True -> padding frames if (t + stack frames) are out of trajectory
         """
         # frames = self.obs_history[index:index + self.stacked_observations]
+
         frames = self.obs_history[i:i + self.stacked_observations + extra_len]
         if padding:
             pad_len = self.stacked_observations + extra_len - len(frames)
             if pad_len > 0:
-                pad_frames = [frames[-1] for _ in range(pad_len)]
+                pad_frames = np.array([frames[-1] for _ in range(pad_len)])
                 frames = np.concatenate((frames, pad_frames))
         if self.config.cvt_string:  # TODO
             frames = [str_to_arr(obs, self.config.gray_scale) for obs in frames]

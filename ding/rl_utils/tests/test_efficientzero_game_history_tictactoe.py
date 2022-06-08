@@ -16,7 +16,6 @@ from ding.rl_utils.efficientzero.mcts import MCTS
 from dizoo.board_games.tictactoe.envs import TicTacToeEnv
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config as config
 from ding.model.template.model_based.efficientzero_tictactoe_model import EfficientZeroNet
-# from ding.model.template.model_based.efficientzero_atari_model import EfficientZeroNet   # TODO
 
 GameBuffer_config = EasyDict(
     dict(
@@ -40,7 +39,6 @@ def test_game_history():
             case='atari',
             opr='train',
             amp_type='none',
-            # amp_type='torch_amp',
             num_gpus=0,
             num_cpus=16,
             cpu_actor=2,
@@ -67,9 +65,6 @@ def test_game_history():
     )
 
     # set config as per arguments
-    exp_path = config.set_config(args)  # TODO
-
-    done = False
     render = False
     save_video = False
     final_test = False
@@ -84,7 +79,6 @@ def test_game_history():
         observation_shape=(3, 3, 3),
         action_space_size=9,
         num_blocks=1,
-        # num_channels=64,
         num_channels=12,
         reduced_channels_reward=16,
         reduced_channels_value=16,
@@ -97,7 +91,6 @@ def test_game_history():
         downsample=False,
     )
     # model = config.get_uniform_network()
-
     model.to(device)
     model.eval()
     save_path = os.path.join(config.exp_path, 'recordings', 'step_{}'.format(counter))
@@ -118,10 +111,8 @@ def test_game_history():
         game_histories = [
             GameHistory(envs[_].action_space, max_length=config.max_moves, config=config) for _ in range(test_episodes)
         ]
-        # for i in range(test_episodes):
-        #     game_histories[i].init([init_obses[i] for _ in range(config.stacked_observations)])
         for i in range(test_episodes):
-            game_histories[i].init([init_obses[i] for _ in range(config.stacked_observations)])
+            game_histories[i].init([init_obses[i].obs['observation'] for _ in range(config.stacked_observations)])
         step = 0
         ep_ori_rewards = np.zeros(test_episodes)
         ep_clip_rewards = np.zeros(test_episodes)
@@ -132,15 +123,13 @@ def test_game_history():
                     envs[i].render()
 
             if config.image_based:
-                stack_obs = []
-                for game_history in game_histories:
-                    stack_obs.append(game_history.step_obs())
+                stack_obs = [game_history.step_obs() for game_history in game_histories]
                 stack_obs = prepare_observation_lst(stack_obs)
-                stack_obs = to_ndarray(stack_obs)  # TODO
-
+                stack_obs = to_ndarray(stack_obs)
                 stack_obs = torch.from_numpy(stack_obs).to(device).float() / 255.0
             else:
                 stack_obs = [game_history.step_obs() for game_history in game_histories]
+                stack_obs = prepare_observation_lst(stack_obs)
                 stack_obs = torch.from_numpy(np.array(stack_obs)).to(device)
 
             with autocast():
@@ -173,7 +162,7 @@ def test_game_history():
                     clip_reward = ori_reward
 
                 game_histories[i].store_search_stats(distributions, value)
-                game_histories[i].append(action, obs, clip_reward)
+                game_histories[i].append(action, obs['observation'], clip_reward)
 
                 dones[i] = done
                 ep_ori_rewards[i] += ori_reward

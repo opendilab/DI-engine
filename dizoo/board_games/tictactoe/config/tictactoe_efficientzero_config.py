@@ -7,114 +7,16 @@ tictactoe_efficientzero_config = dict(
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
-        collector_env_num=2,
-        evaluator_env_num=2,
-        n_evaluator_episode=2,
-
-        # env_name='LunarLander-v2',
+        collector_env_num=1,
+        evaluator_env_num=1,
+        n_evaluator_episode=1,
         stop_value=200,
-        obs_shape=(3, 3, 3),
-        gray_scale=False,
-
-        training_steps=100000,
-        last_steps=20000,
-        test_interval=10000,
-        log_interval=1000,
-        vis_interval=1000,
-        # test_episodes=32,
-        test_episodes=2,  # TODO Debug
-        checkpoint_interval=100,
-        target_model_interval=200,
-        save_ckpt_interval=10000,
-        # max_moves=108000,
-        # test_max_moves=12000,
-        max_moves=100,  # TODO Debug
-        test_max_moves=100,
-        # history_length=400,
-        history_length=10,  # TODO Debug
-        discount=0.997,
-        dirichlet_alpha=0.3,
-        value_delta_max=0.01,
-        # num_simulations=50,
-        num_simulations=2,  # TODO Debug
-        # batch_size=256,
-        batch_size=2,  # TODO Debug
-        td_steps=5,
-        num_actors=1,
-        # network initialization/ & normalization
-        episode_life=True,
-        init_zero=True,
-        clip_reward=True,
-        # storage efficient
-        # cvt_string=True,
-        cvt_string=False,  # TODO
-        image_based=False,
-        # lr scheduler
-        lr_warm_up=0.01,
-        lr_init=0.2,
-        lr_decay_rate=0.1,
-        lr_decay_steps=100000,
-        auto_td_steps_ratio=0.3,
-        # replay window
-        start_transitions=8,
-        total_transitions=100 * 1000,  # TODO Debug
-        transition_num=1,
-        # frame skip & stack observation
-        frame_skip=4,
-        stacked_observations=4,
-        # coefficient
-        reward_loss_coeff=1,
-        value_loss_coeff=0.25,
-        policy_loss_coeff=1,
-        consistency_coeff=2,
-        # reward sum
-        lstm_hidden_size=512,
-        lstm_horizon_len=5,
-        # siamese
-        proj_hid=1024,
-        proj_out=1024,
-        pred_hid=512,
-        pred_out=1024,
     ),
     policy=dict(
         # Whether to use cuda for network.
         cuda=False,
-        device='cpu',
-        on_policy=False,
-        priority=True,
-        priority_IS_weight=True,
-        batch_size=256,
-        discount_factor=0.997,
-        learning_rate=1e-3,
-        momentum=0.9,
-        weight_decay=1e-4,
-        grad_clip_type='clip_norm',
-        grad_clip_value=5,
-        policy_weight=1.0,
-        value_weight=0.25,
-        consistent_weight=1.0,
-        value_prefix_weight=2.0,
-        image_unroll_len=5,
-        lstm_horizon_len=5,
-        # collect
-        # collect_env_num=8,
-        # action_shape=6,
-        simulation_num=50,
-        root_dirichlet_alpha=0.3,
-        root_exploration_fraction=0.25,
-        value_delta_max=0.01,
-
-        # UCB formula
-        pb_c_base=19652,
-        pb_c_init=1.25,
-        discount=0.997,
-        total_transitions=int(1e6),  # TODO Debug
-        amp_type='torch_amp',
         model=dict(
-            # obs_shape=(3,3,3),
             action_space_size=9,
-            # blocks=1,
-            # channels=64,
             num_blocks=1,
             observation_shape=(3, 3, 3),
             num_channels=12,
@@ -126,9 +28,7 @@ tictactoe_efficientzero_config = dict(
             fc_policy_layers=[32],
             reward_support_size=601,
             value_support_size=601,
-            downsample=False,  # TODO
-            # inverse_value_transform=game_config.inverse_value_transform,
-            # inverse_reward_transform=game_config.inverse_reward_transform,
+            downsample=False,
             lstm_hidden_size=512,
             bn_mt=0.1,
             proj_hid=1024,
@@ -141,8 +41,7 @@ tictactoe_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             update_per_collect=10,
-            # batch_size=64,
-            batch_size=2,
+            batch_size=2,  # TODO(pu)
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,
@@ -151,10 +50,8 @@ tictactoe_efficientzero_config = dict(
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            # n_sample=64,
             n_episode=8,
             # Cut trajectories into pieces with length "unroll_len".
-            # unroll_len=20,
         ),
         # command_mode config
         other=dict(

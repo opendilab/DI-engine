@@ -8,11 +8,10 @@ import torch
 from ding.utils import build_logger, EasyTimer, lists_to_dicts
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-from ding.rl_utils.efficientzero.mcts import MCTS
 from ding.rl_utils.efficientzero.game import GameHistory
-from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
-from dizoo.board_games.atari.config.atari_config import game_config
-config = game_config
+from ding.rl_utils.efficientzero.utils import prepare_observation_lst
+# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 
 class BaseSerialEvaluatorMuZero(object):
@@ -76,6 +75,9 @@ class BaseSerialEvaluatorMuZero(object):
         self._timer = EasyTimer()
         self._default_n_episode = cfg.n_episode
         self._stop_value = cfg.stop_value
+
+        # MuZero
+        self.game_config = game_config
 
     def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
         """
@@ -192,91 +194,67 @@ class BaseSerialEvaluatorMuZero(object):
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
+        env_nums = 1
+        n_episode = env_nums
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         self._policy.reset()
 
         # initializations
-        # init_obses = [env.reset() for env in self._env]
-        obs = self._env.ready_obs
-        obs = to_tensor(obs, dtype=torch.float32)
-        init_obses = obs
-        last_game_histories = [None for _ in range(config.test_episodes)]
-        last_game_priorities = [None for _ in range(config.test_episodes)]
+        init_obses = self._env.ready_obs
+        init_obses = to_tensor(init_obses, dtype=torch.float32)
+        action_mask = [to_ndarray(init_obses[i].obs['action_mask']) for i in range(env_nums)]
 
-        dones = np.array([False for _ in range(config.test_episodes)])
+        dones = np.array([False for _ in range(env_nums)])
         game_histories = [
-            GameHistory(self._env.action_space, max_length=config.max_moves, config=config)
-            for _ in range(config.test_episodes)
+            GameHistory(self._env.action_space, max_length=self.game_config.max_moves, config=self.game_config)
+            for _ in range(env_nums)
         ]
-        for i in range(config.test_episodes):
-            if config.env_name == 'tictactoe':
-                game_histories[i].init(
-                    [to_ndarray(init_obses[i].obs['observation']) for _ in range(config.stacked_observations)]
-                )
-            elif config.env_name == 'PongNoFrameskip-v4':
-                game_histories[i].init(
-                    [to_ndarray(init_obses[i].obs['observation']) for _ in range(config.stacked_observations)]
-                )
+        for i in range(env_nums):
+            game_histories[i].init(
+                [to_ndarray(init_obses[i].obs['observation']) for _ in range(self.game_config.stacked_observations)]
+            )
 
-        ep_ori_rewards = np.zeros(config.test_episodes)
-        ep_clip_rewards = np.zeros(config.test_episodes)
-        device = 'cpu'
+        ep_ori_rewards = np.zeros(env_nums)
+        ep_clip_rewards = np.zeros(env_nums)
 
         with self._timer:
             while not eval_monitor.is_finished():
-                # obs = self._env.ready_obs
-                # obs = to_tensor(obs, dtype=torch.float32)
-                # policy_output = self._policy.forward(obs)
-
-                if config.image_based:
-                    stack_obs = []
-                    for game_history in game_histories:
-                        stack_obs.append(game_history.step_obs())
-                    # {list:2}->{list:4}->{Tensor:(96,96,3)}
-                    # actions = to_ndarray(actions)
-
+                if self.game_config.image_based:
+                    stack_obs = [game_history.step_obs() for game_history in game_histories]
                     stack_obs = prepare_observation_lst(stack_obs)
-                    stack_obs = torch.from_numpy(stack_obs).to(device).float() / 255.0
+                    stack_obs = prepare_observation_lst(stack_obs)
+                    stack_obs = torch.from_numpy(stack_obs).to(self.game_config.device).float() / 255.0
                 else:
                     stack_obs = [game_history.step_obs() for game_history in game_histories]
                     stack_obs = prepare_observation_lst(stack_obs)
-                    stack_obs = torch.from_numpy(np.array(stack_obs)).to(device)
-                # stack_obs {Tensor:(2,12,96,96)}
-                # TODO
-                policy_output = self._policy.forward(stack_obs)
+                    stack_obs = torch.from_numpy(np.array(stack_obs)).to(self.game_config.device)
+                policy_output = self._policy.forward(stack_obs, action_mask)
 
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 distributions_dict = {i: a['distributions'] for i, a in policy_output.items()}
                 value_dict = {i: a['value'] for i, a in policy_output.items()}
 
-                # actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
+                action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
 
                 for env_id, t in timesteps.items():
                     # obs, ori_reward, done, info = env.step(action)
                     i = env_id
                     action = actions[i]
                     obs, ori_reward, done, info = t.obs, t.reward, t.done, t.info
-                    if config.clip_reward:
+                    if self.game_config.clip_reward:
                         clip_reward = np.sign(ori_reward)
                     else:
                         clip_reward = ori_reward
                     game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                    if config.env_name == 'tictactoe':
-                        game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
-                    elif config.env_name == 'PongNoFrameskip-v4':
-                        game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
+                    game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
 
                     dones[i] = done
                     ep_ori_rewards[i] += ori_reward
                     ep_clip_rewards[i] += clip_reward
 
-                    # if t.info.get('abnormal', False):
-                    #     # If there is an abnormal timestep, reset all the related variables(including this env).
-                    #     self._policy.reset([env_id])
-                    #     continue
                     if t.done:
                         # Env reset is done by env_manager automatically.
                         self._policy.reset([env_id])
@@ -289,6 +267,18 @@ class BaseSerialEvaluatorMuZero(object):
                                 env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
                             )
                         )
+
+                        # reset the finished env
+                        init_obses = self._env.ready_obs
+                        init_obs = init_obses[i].obs['observation']
+                        action_mask[i] = to_ndarray(init_obses[i].obs['action_mask'])
+                        game_histories[i] = GameHistory(
+                            self._env.action_space,
+                            max_length=self.game_config.game_history_length,
+                            config=self.game_config
+                        )
+                        game_histories[i].init([init_obs for _ in range(self.game_config.stacked_observations)])
+
                     envstep_count += 1
         duration = self._timer.value
         episode_reward = eval_monitor.get_episode_reward()

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import time
+import torch
 import numpy as np
 from ding.utils import BUFFER_REGISTRY
 import itertools
@@ -9,6 +10,9 @@ from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import defaultdict, deque, OrderedDict
 from ding.data.buffer import Buffer, apply_middleware, BufferedData
 from ding.utils import fastcopy
+from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst, concat_output, concat_output_value
+import ding.rl_utils.efficientzero.ctree.cytree as cytree
+from ding.rl_utils.efficientzero.mcts import MCTS
 
 
 @dataclass
@@ -237,51 +241,6 @@ class GameBuffer(Buffer):
         transition = self.buffer[game_id][game_pos]
         return transition
 
-    def prepare_batch_context(self, batch_size, beta):
-        """Prepare a batch context that contains:
-        game_lst:               a list of game histories
-        game_pos_lst:           transition index in game (relative index)
-        indices_lst:            transition index in replay buffer
-        weights_lst:            the weight concerning the priority
-        make_time:              the time the batch is made (for correctly updating replay buffer when data is deleted)
-        Parameters
-        ----------
-        batch_size: int
-            batch size
-        beta: float
-            the parameter in PER for calculating the priority
-        """
-        assert beta > 0
-
-        # total number of transitions
-        total = self.get_total_num_transitions()
-
-        probs = self.priorities ** self._alpha
-
-        probs /= probs.sum()
-        # TODO sample data in PER way
-        # sample according to transition index
-        indices_lst = np.random.choice(total, batch_size, p=probs, replace=False)
-
-        weights_lst = (total * probs[indices_lst]) ** (-beta)
-        weights_lst /= weights_lst.max()
-
-        game_lst = []
-        game_pos_lst = []
-
-        for idx in indices_lst:
-            game_id, game_pos = self.game_look_up[idx]
-            game_id -= self.base_idx
-            game = self.buffer[game_id]
-
-            game_lst.append(game)
-            game_pos_lst.append(game_pos)
-
-        make_time = [time.time() for _ in range(len(indices_lst))]
-
-        context = (game_lst, game_pos_lst, indices_lst, weights_lst, make_time)
-        return context
-
     def update(self, index, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
         """
         Overview:
@@ -328,8 +287,8 @@ class GameBuffer(Buffer):
         # def update_priorities(self, batch_indices, batch_priorities, make_time):
         # only update the priorities for data still in replay buffer
         for i in range(len(indices)):
-            if metas[i]['make_time'] > self.clear_time:
-                idx, prio = indices[i], metas[i]['batch_priorities']
+            if metas['make_time'][i] > self.clear_time:
+                idx, prio = indices[i], metas['batch_priorities'][i]
                 self.priorities[idx] = prio
 
     def remove_to_fit(self):
@@ -412,3 +371,446 @@ class GameBuffer(Buffer):
         buffer = type(self)(config=self.config)
         buffer.storage = self.buffer
         return buffer
+
+    def prepare_batch_context(self, batch_size, beta):
+        """Prepare a batch context that contains:
+        game_lst:               a list of game histories
+        game_pos_lst:           transition index in game (relative index)
+        indices_lst:            transition index in replay buffer
+        weights_lst:            the weight concerning the priority
+        make_time:              the time the batch is made (for correctly updating replay buffer when data is deleted)
+        Parameters
+        ----------
+        batch_size: int
+            batch size
+        beta: float
+            the parameter in PER for calculating the priority
+        """
+        assert beta > 0
+
+        # total number of transitions
+        total = self.get_total_num_transitions()
+
+        probs = self.priorities ** self._alpha
+
+        probs /= probs.sum()
+        # TODO sample data in PER way
+        # sample according to transition index
+        indices_lst = np.random.choice(total, batch_size, p=probs, replace=False)
+
+        weights_lst = (total * probs[indices_lst]) ** (-beta)
+        weights_lst /= weights_lst.max()
+
+        game_lst = []
+        game_pos_lst = []
+
+        for idx in indices_lst:
+            game_id, game_pos = self.game_look_up[idx]
+            game_id -= self.base_idx
+            game = self.buffer[game_id]
+
+            game_lst.append(game)
+            game_pos_lst.append(game_pos)
+
+        make_time = [time.time() for _ in range(len(indices_lst))]
+
+        context = (game_lst, game_pos_lst, indices_lst, weights_lst, make_time)
+        return context
+
+    def _prepare_reward_value_context(self, indices, games, state_index_lst, total_transitions):
+        """prepare the context of rewards and values for reanalyzing part
+        Parameters
+        ----------
+        indices: list
+            transition index in replay buffer
+        games: list
+            list of game histories
+        state_index_lst: list
+            transition index in game
+        total_transitions: int
+            number of collected transitions
+        """
+        zero_obs = games[0].zero_obs()
+        config = self.config
+        value_obs_lst = []
+        # the value is valid or not (out of trajectory)
+        value_mask = []
+        rewards_lst = []
+        traj_lens = []
+
+        td_steps_lst = []
+        for game, state_index, idx in zip(games, state_index_lst, indices):
+            traj_len = len(game)
+            traj_lens.append(traj_len)
+
+            # off-policy correction: shorter horizon of td steps
+            # delta_td = (total_transitions - idx) // config.auto_td_steps
+            delta_td = (total_transitions - idx) // config.auto_td_steps
+
+            td_steps = config.td_steps - delta_td
+            td_steps = np.clip(td_steps, 1, 5).astype(np.int)
+
+            # prepare the corresponding observations for bootstrapped values o_{t+k}
+            game_obs = game.obs(state_index + td_steps, config.num_unroll_steps)
+            rewards_lst.append(game.rewards)
+            for current_index in range(state_index, state_index + config.num_unroll_steps + 1):
+                td_steps_lst.append(td_steps)
+                bootstrap_index = current_index + td_steps
+
+                if bootstrap_index < traj_len:
+                    value_mask.append(1)
+                    beg_index = bootstrap_index - (state_index + td_steps)
+                    end_index = beg_index + config.stacked_observations
+                    obs = game_obs[beg_index:end_index]
+                else:
+                    value_mask.append(0)
+                    obs = zero_obs
+
+                value_obs_lst.append(obs)
+
+        # value_obs_lst = ray.put(value_obs_lst)
+        reward_value_context = [value_obs_lst, value_mask, state_index_lst, rewards_lst, traj_lens, td_steps_lst]
+        return reward_value_context
+
+    def _prepare_policy_non_re_context(self, indices, games, state_index_lst):
+        """prepare the context of policies for non-reanalyzing part, just return the policy in self-play
+        Parameters
+        ----------
+        indices: list
+            transition index in replay buffer
+        games: list
+            list of game histories
+        state_index_lst: list
+            transition index in game
+        """
+        child_visits = []
+        traj_lens = []
+
+        for game, state_index, idx in zip(games, state_index_lst, indices):
+            traj_len = len(game)
+            traj_lens.append(traj_len)
+
+            child_visits.append(game.child_visits)
+
+        policy_non_re_context = [state_index_lst, child_visits, traj_lens]
+        return policy_non_re_context
+
+    def _prepare_policy_re_context(self, indices, games, state_index_lst):
+        """prepare the context of policies for reanalyzing part
+        Parameters
+        ----------
+        indices: list
+            transition index in replay buffer
+        games: list
+            list of game histories
+        state_index_lst: list
+            transition index in game
+        """
+        zero_obs = games[0].zero_obs()
+        config = self.config
+
+        with torch.no_grad():
+            # for policy
+            policy_obs_lst = []
+            policy_mask = []  # 0 -> out of traj, 1 -> new policy
+            rewards, child_visits, traj_lens = [], [], []
+            for game, state_index in zip(games, state_index_lst):
+                traj_len = len(game)
+                traj_lens.append(traj_len)
+                rewards.append(game.rewards)
+                child_visits.append(game.child_visits)
+                # prepare the corresponding observations
+                game_obs = game.obs(state_index, config.num_unroll_steps)
+                for current_index in range(state_index, state_index + config.num_unroll_steps + 1):
+
+                    if current_index < traj_len:
+                        policy_mask.append(1)
+                        beg_index = current_index - state_index
+                        end_index = beg_index + config.stacked_observations
+                        obs = game_obs[beg_index:end_index]
+                    else:
+                        policy_mask.append(0)
+                        obs = zero_obs
+                    policy_obs_lst.append(obs)
+
+        # policy_obs_lst = ray.put(policy_obs_lst)
+        policy_re_context = [policy_obs_lst, policy_mask, state_index_lst, indices, child_visits, traj_lens]
+        return policy_re_context
+
+    def make_batch(self, batch_context, ratio, weights=None):
+        """prepare the context of a batch
+        reward_value_context:        the context of reanalyzed value targets
+        policy_re_context:           the context of reanalyzed policy targets
+        policy_non_re_context:       the context of non-reanalyzed policy targets
+        inputs_batch:                the inputs of batch
+        weights:                     the target model weights
+        Parameters
+        ----------
+        batch_context: Any
+            batch context from replay buffer
+        ratio: float
+            ratio of reanalyzed policy (value is 100% reanalyzed)
+        weights: Any
+            the target model weights
+        """
+        # obtain the batch context from replay buffer
+        game_lst, game_pos_lst, indices_lst, weights_lst, make_time_lst = batch_context
+        batch_size = len(indices_lst)
+        obs_lst, action_lst, mask_lst = [], [], []
+        # prepare the inputs of a batch
+        for i in range(batch_size):
+            game = game_lst[i]
+            game_pos = game_pos_lst[i]
+
+            _actions = game.actions[game_pos:game_pos + self.config.num_unroll_steps].tolist()
+            # add mask for invalid actions (out of trajectory)
+            _mask = [1. for i in range(len(_actions))]
+            _mask += [0. for _ in range(self.config.num_unroll_steps - len(_mask))]
+
+            _actions += [
+                np.random.randint(0, game.action_space_size)
+                for _ in range(self.config.num_unroll_steps - len(_actions))
+            ]
+
+            # obtain the input observations
+            obs_lst.append(game_lst[i].obs(game_pos_lst[i], extra_len=self.config.num_unroll_steps, padding=True))
+            action_lst.append(_actions)
+            mask_lst.append(_mask)
+
+        re_num = int(batch_size * ratio)
+        # formalize the input observations
+        # pad
+        obs_lst = prepare_observation_lst(obs_lst)
+
+        # formalize the inputs of a batch
+        inputs_batch = [obs_lst, action_lst, mask_lst, indices_lst, weights_lst, make_time_lst]
+        for i in range(len(inputs_batch)):
+            inputs_batch[i] = np.asarray(inputs_batch[i])
+
+        # total_transitions = ray.get(self.replay_buffer.get_total_len.remote())
+        total_transitions = self.get_total_num_transitions()
+
+        # obtain the context of value targets
+        reward_value_context = self._prepare_reward_value_context(
+            indices_lst, game_lst, game_pos_lst, total_transitions
+        )
+
+        # 0:re_num -> reanalyzed policy, re_num:end -> non reanalyzed policy
+        # reanalyzed policy
+        if re_num > 0:
+            # obtain the context of reanalyzed policy targets
+            policy_re_context = self._prepare_policy_re_context(
+                indices_lst[:re_num], game_lst[:re_num], game_pos_lst[:re_num]
+            )
+        else:
+            policy_re_context = None
+
+        # non reanalyzed policy
+        if re_num < batch_size:
+            # obtain the context of non-reanalyzed policy targets
+            policy_non_re_context = self._prepare_policy_non_re_context(
+                indices_lst[re_num:], game_lst[re_num:], game_pos_lst[re_num:]
+            )
+        else:
+            policy_non_re_context = None
+
+        countext = reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, weights
+        # self.mcts_storage.push(countext)
+        return countext
+
+    """
+    GPU Batch Worker for reanalyzing targets, see Appendix.
+        receive the context from CPU maker and deal with GPU overheads
+    """
+
+    def _prepare_reward_value(self, reward_value_context, model):
+        """prepare reward and value targets from the context of rewards and values
+        """
+        self.model = model
+        value_obs_lst, value_mask, state_index_lst, rewards_lst, traj_lens, td_steps_lst = reward_value_context
+        # value_obs_lst = ray.get(value_obs_lst)
+        device = self.config.device
+        batch_size = len(value_obs_lst)
+
+        batch_values, batch_value_prefixs = [], []
+        with torch.no_grad():
+            value_obs_lst = prepare_observation_lst(value_obs_lst)
+            # split a full batch into slices of mini_infer_size: to save the GPU memory for more GPU actors
+            m_batch = self.config.mini_infer_size
+            slices = np.ceil(batch_size / m_batch).astype(np.int_)
+            network_output = []
+            for i in range(slices):
+                beg_index = m_batch * i
+                end_index = m_batch * (i + 1)
+                m_obs = torch.from_numpy(value_obs_lst[beg_index:end_index]).to(device).float() / 255.0
+                # if self.config.amp_type == 'torch_amp':
+                #     with autocast():
+                #         m_output = self.model.initial_inference(m_obs)
+                # else:
+                m_output = self.model.initial_inference(m_obs)
+                network_output.append(m_output)
+
+            # concat the output slices after model inference
+            if self.config.use_root_value:
+                # use the root values from MCTS
+                # the root values have limited improvement but require much more GPU actors;
+                _, value_prefix_pool, policy_logits_pool, hidden_state_roots, reward_hidden_roots = concat_output(
+                    network_output
+                )
+                value_prefix_pool = value_prefix_pool.squeeze().tolist()
+                policy_logits_pool = policy_logits_pool.tolist()
+                roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
+                noises = [
+                    np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
+                                        ).astype(np.float32).tolist() for _ in range(batch_size)
+                ]
+                roots.prepare(self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
+                MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots)
+
+                roots_values = roots.get_values()
+                value_lst = np.array(roots_values)
+            else:
+                # use the predicted values
+                value_lst = concat_output_value(network_output)
+
+            # get last state value
+            value_lst = value_lst.reshape(-1) * (
+                np.array([self.config.discount for _ in range(batch_size)]) ** td_steps_lst
+            )
+            value_lst = value_lst * np.array(value_mask)
+            value_lst = value_lst.tolist()
+
+            horizon_id, value_index = 0, 0
+            for traj_len_non_re, reward_lst, state_index in zip(traj_lens, rewards_lst, state_index_lst):
+                # traj_len = len(game)
+                target_values = []
+                target_value_prefixs = []
+
+                value_prefix = 0.0
+                base_index = state_index
+                for current_index in range(state_index, state_index + self.config.num_unroll_steps + 1):
+                    bootstrap_index = current_index + td_steps_lst[value_index]
+                    # for i, reward in enumerate(game.rewards[current_index:bootstrap_index]):
+                    for i, reward in enumerate(reward_lst[current_index:bootstrap_index]):
+                        value_lst[value_index] += reward * self.config.discount ** i
+
+                    # reset every lstm_horizon_len
+                    if horizon_id % self.config.lstm_horizon_len == 0:
+                        value_prefix = 0.0
+                        base_index = current_index
+                    horizon_id += 1
+
+                    if current_index < traj_len_non_re:
+                        target_values.append(value_lst[value_index])
+                        # Since the horizon is small and the discount is close to 1.
+                        # Compute the reward sum to approximate the value prefix for simplification
+                        value_prefix += reward_lst[current_index]  # * config.discount ** (current_index - base_index)
+                        target_value_prefixs.append(value_prefix)
+                    else:
+                        target_values.append(0)
+                        target_value_prefixs.append(value_prefix)
+                    value_index += 1
+
+                batch_value_prefixs.append(target_value_prefixs)
+                batch_values.append(target_values)
+
+        batch_value_prefixs = np.asarray(batch_value_prefixs)
+        batch_values = np.asarray(batch_values)
+        return batch_value_prefixs, batch_values
+
+    def _prepare_policy_re(self, policy_re_context, model):
+        """prepare policy targets from the reanalyzed context of policies
+        """
+        self.model = model
+        batch_policies_re = []
+        if policy_re_context is None:
+            return batch_policies_re
+
+        policy_obs_lst, policy_mask, state_index_lst, indices, child_visits, traj_lens = policy_re_context
+        # policy_obs_lst = ray.get(policy_obs_lst)
+        batch_size = len(policy_obs_lst)
+        device = self.config.device
+
+        with torch.no_grad():
+            policy_obs_lst = prepare_observation_lst(policy_obs_lst)
+            # split a full batch into slices of mini_infer_size: to save the GPU memory for more GPU actors
+            m_batch = self.config.mini_infer_size
+            slices = np.ceil(batch_size / m_batch).astype(np.int_)
+            network_output = []
+            for i in range(slices):
+                beg_index = m_batch * i
+                end_index = m_batch * (i + 1)
+
+                m_obs = torch.from_numpy(policy_obs_lst[beg_index:end_index]).to(device).float() / 255.0
+                # if self.config.amp_type == 'torch_amp':
+                #     with autocast():
+                #         m_output = self.model.initial_inference(m_obs)
+                # else:
+                m_output = self.model.initial_inference(m_obs)
+                network_output.append(m_output)
+
+            _, value_prefix_pool, policy_logits_pool, hidden_state_roots, reward_hidden_roots = concat_output(
+                network_output
+            )
+            value_prefix_pool = value_prefix_pool.squeeze().tolist()
+            policy_logits_pool = policy_logits_pool.tolist()
+
+            roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
+            noises = [
+                np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
+                                    ).astype(np.float32).tolist() for _ in range(batch_size)
+            ]
+            roots.prepare(self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
+            # do MCTS for a new policy with the recent target model
+            MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots)
+
+            roots_distributions = roots.get_distributions()
+            policy_index = 0
+            for state_index, game_idx in zip(state_index_lst, indices):
+                target_policies = []
+
+                for current_index in range(state_index, state_index + self.config.num_unroll_steps + 1):
+                    distributions = roots_distributions[policy_index]
+
+                    if policy_mask[policy_index] == 0:
+                        target_policies.append([0 for _ in range(self.config.action_space_size)])
+                    else:
+                        # game.store_search_stats(distributions, value, current_index)
+                        sum_visits = sum(distributions)
+                        policy = [visit_count / sum_visits for visit_count in distributions]
+                        target_policies.append(policy)
+
+                    policy_index += 1
+
+                batch_policies_re.append(target_policies)
+
+        batch_policies_re = np.asarray(batch_policies_re)
+        return batch_policies_re
+
+    def _prepare_policy_non_re(self, policy_non_re_context):
+        """prepare policy targets from the non-reanalyzed context of policies
+        """
+        batch_policies_non_re = []
+        if policy_non_re_context is None:
+            return batch_policies_non_re
+
+        state_index_lst, child_visits, traj_lens = policy_non_re_context
+        with torch.no_grad():
+            # for policy
+            policy_mask = []  # 0 -> out of traj, 1 -> old policy
+            # for game, state_index in zip(games, state_index_lst):
+            for traj_len, child_visit, state_index in zip(traj_lens, child_visits, state_index_lst):
+                # traj_len = len(game)
+                target_policies = []
+
+                for current_index in range(state_index, state_index + self.config.num_unroll_steps + 1):
+                    if current_index < traj_len:
+                        target_policies.append(child_visit[current_index])
+                        policy_mask.append(1)
+                    else:
+                        target_policies.append([0 for _ in range(self.config.action_space_size)])
+                        policy_mask.append(0)
+
+                batch_policies_non_re.append(target_policies)
+        batch_policies_non_re = np.asarray(batch_policies_non_re)
+        return batch_policies_non_re

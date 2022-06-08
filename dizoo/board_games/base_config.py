@@ -9,7 +9,7 @@ import torch
 import numpy as np
 
 from ding.rl_utils.efficientzero.game import Game
-
+from ding.torch_utils import to_tensor, to_ndarray
 
 
 class DiscreteSupport(object):

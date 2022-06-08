@@ -63,6 +63,7 @@ class TicTacToeEnv(BaseGameEnv):
             self.do_action(action)
         else:
             print("Error: illegal action")
+            action = np.random.choice(self.legal_actions)
             self.do_action(action)
             # sys.exit(-1)
 
@@ -71,9 +72,9 @@ class TicTacToeEnv(BaseGameEnv):
         info = {'next_player': next_player}
 
         if done:
-            self._final_eval_reward =  reward
+            self._final_eval_reward = reward
             info['final_eval_reward'] = self._final_eval_reward
-            print('done: ', info)
+            print('tictactoe episode done: ', info)
         # return BaseEnvTimestep(self.current_state(), reward, done, info)
         action_mask = np.zeros(self.num_actions, 'int8')
         action_mask[self.legal_actions] = 1

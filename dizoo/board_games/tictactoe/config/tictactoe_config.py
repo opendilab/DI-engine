@@ -15,8 +15,7 @@ class TictactoeConfig(BaseConfig):
             test_interval=10000,
             log_interval=1000,
             vis_interval=1000,
-            # test_episodes=32,
-            test_episodes=2,  # TODO Debug
+            test_episodes=1,  # TODO Debug
             checkpoint_interval=100,
             target_model_interval=200,
             save_ckpt_interval=10000,
@@ -67,14 +66,14 @@ class TictactoeConfig(BaseConfig):
             proj_hid=1024,
             proj_out=1024,
             pred_hid=512,
-            pred_out=1024,)
+            pred_out=1024, )
         self.discount **= self.frame_skip
         self.max_moves //= self.frame_skip
         self.test_max_moves //= self.frame_skip
 
         # self.start_transitions = self.start_transitions * 1000 // self.frame_skip
         # self.start_transitions = max(1, self.start_transitions)
-        self.start_transitions = 2  # TODO Debug
+        self.start_transitions = 2  # TODO(pu)
 
         self.bn_mt = 0.1
         self.blocks = 1  # Number of blocks in the ResNet
@@ -85,23 +84,27 @@ class TictactoeConfig(BaseConfig):
         self.resnet_fc_reward_layers = [32]  # Define the hidden layers in the reward head of the dynamic network
         self.resnet_fc_value_layers = [32]  # Define the hidden layers in the value head of the prediction network
         self.resnet_fc_policy_layers = [32]  # Define the hidden layers in the policy head of the prediction network
-        self.downsample = True  # Downsample observations before representation network (See paper appendix Network Architecture)
+        self.downsample = False  # Downsample observations before representation network (See paper appendix Network Architecture)
 
         # TODO(pu):
-        self.env_name='tictactoe'
-        self.action_space_size = int(3*3)
+        self.env_name = 'tictactoe'
+        self.action_space_size = int(3 * 3)
         self.amp_type = 'none'
-        self.obs_shape =(3,3,3)
-        self.gray_scale=False
-        self.test_episodes =2
-        self.cvt_string=False
+        self.obs_shape = (3, 3, 3)
+        self.gray_scale = False
+        self.test_episodes = 2
+        self.cvt_string = False
         self.use_max_priority = True
         self.use_priority = True
-        self.root_dirichlet_alpha=0.3
-        self.root_exploration_fraction=0.25
+        self.root_dirichlet_alpha = 0.3
+        self.root_exploration_fraction = 0.25
         self.game_history_length = 9
-
-
+        self.auto_td_steps = int(0.3 * 2e5)
+        self.device = 'cpu'
+        self.use_root_value = True,
+        self.mini_infer_size = 2
+        self.use_augmentation = False
+        self.vis_result = True
 
     def visit_softmax_temperature_fn(self, num_moves, trained_steps):
         if self.change_temperature:
@@ -151,7 +154,8 @@ class TictactoeConfig(BaseConfig):
             init_zero=self.init_zero,
             state_norm=self.state_norm)
 
-    def new_game(self, seed=None, save_video=False, save_path=None, video_callable=None, uid=None, test=False, final_test=False):
+    def new_game(self, seed=None, save_video=False, save_path=None, video_callable=None, uid=None, test=False,
+                 final_test=False):
         if test:
             if final_test:
                 max_moves = 108000 // self.frame_skip
@@ -185,5 +189,6 @@ class TictactoeConfig(BaseConfig):
 
     def transform(self, images):
         return self.transforms.transform(images)
+
 
 game_config = TictactoeConfig()
