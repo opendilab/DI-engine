@@ -2,6 +2,7 @@ from time import sleep
 import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
+from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
 from ding.framework.middleware import LeagueActor
@@ -42,7 +43,7 @@ def prepare_test():
 def test_league_actor():
     cfg, env_fn, policy_fn = prepare_test()
     policy = policy_fn()
-    with task.start(async_mode=True):
+    with task.start(async_mode=True, ctx = BattleContext()):
         league_actor = LeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
 
         def test_actor():

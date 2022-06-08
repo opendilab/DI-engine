@@ -80,3 +80,15 @@ class BattleContext(Context):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.__dict__ = self
+        self.n_episode = None
+        self.train_iter = 0
+        self.job = None
+        self.collect_kwargs = {}
+        self.env_episode = 0
+        self.episodes = []
+        self.episode_info = []
+        self.ready_env_id = set()
+        self.agent_num = 2
+        self.job_finish = False
+        self.traj_len = float("inf")
+        self.current_policies = []

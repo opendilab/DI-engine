@@ -2,16 +2,11 @@ from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
 from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
-from ding import policy
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 import torch
 from ding.utils import dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
-from ding.worker.collector.base_serial_collector import TrajBuffer, to_tensor_transitions
-from ding.framework import task, EventEnum
-from .actor_data import ActorData
-from typing import Dict
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
@@ -141,41 +136,6 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
     return _rollout
 
 
-def policy_resetter(env_num: int):
-
-    def _policy_resetter(ctx: "BattleContext"):
-        if ctx.current_policies is not None:
-            assert len(ctx.current_policies) > 1, "battle collector needs more than 1 policies"
-            ctx._default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
-            ctx.agent_num = len(ctx.current_policies)
-            ctx.traj_len = float("inf")
-            for p in ctx.current_policies:
-                p.reset()
-        else:
-            raise RuntimeError('ctx.current_policies should not be None')
-
-    return _policy_resetter
-
-def job_data_sender(streaming_sampling_flag: bool, n_rollout_samples: int):
-   
-    def _job_data_sender(ctx: "BattleContext"):
-        if not ctx.job.is_eval and streaming_sampling_flag is True and len(ctx.train_data[0]) >= n_rollout_samples:
-            actor_data = ActorData(env_step=ctx.env_step, train_data=ctx.train_data[0])
-            task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
-            ctx.train_data = [[] for _ in range(ctx.agent_num)]
-
-        if ctx.collected_episode >= ctx.n_episode:
-            ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
-            task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
-            if not ctx.job.is_eval and len(ctx.train_data[0]) > 0:
-                actor_data = ActorData(env_step=ctx.env_step, train_data=ctx.train_data[0])
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
-                ctx.train_data = [[] for _ in range(ctx.agent_num)]
-    
-    return _job_data_sender
-
-
-import time
 def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
 
     def _battle_inferencer(ctx: "BattleContext"):
@@ -209,43 +169,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
     return _battle_inferencer
 
 
-class BattleTransitionList:
-
-    def __init__(self, env_num: int, agent_num: int) -> None:
-        self.env_num = env_num
-        self.agent_num = agent_num
-        self._transitions = [[[] for _ in range(agent_num)] for _ in range(env_num)]
-        self._done_idx = [[] for _ in range(env_num)]
-
-    def append(self, env_id: int, policy_id: int, transition: Any) -> None:
-        self._transitions[env_id][policy_id].append(transition)
-        if transition.done and policy_id == 0:
-            self._done_idx[env_id].append(len(self._transitions[env_id][policy_id]))
-
-    def to_trajectories(self) -> Tuple[List[Any], List[int]]:
-        trajectories = sum(self._transitions, [])
-        lengths = [len(t) for t in self._transitions]
-        trajectory_end_idx = [reduce(lambda x, y: x + y, lengths[:i + 1]) for i in range(len(lengths))]
-        trajectory_end_idx = [t - 1 for t in trajectory_end_idx]
-        return trajectories, trajectory_end_idx
-
-    def to_episodes(self) -> List[List[Any]]:
-        episodes = []
-        for env_id in range(self.env_num):
-            last_idx = 0
-            for done_idx in self._done_idx[env_id]:
-                episodes.append(self._transitions[env_id][last_idx:done_idx])
-                last_idx = done_idx
-        return episodes
-
-    def clear(self):
-        for item in self._transitions:
-            item.clear()
-        for item in self._done_idx:
-            item.clear()
-
-
-def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, traj_buffer: Dict):
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transition_list: List):
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
@@ -257,24 +181,15 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, traj_buffer: Dict):
                 transition = ctx.current_policies[policy_id].process_transition(
                     ctx.obs[policy_id][env_id], ctx.inference_output[policy_id][env_id], policy_timestep
                 )
-                # transition = ttorch.as_tensor(transition)
-                # transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
-                transition['collect_iter'] = ctx.train_iter
-                traj_buffer[env_id][policy_id].append(transition)
-                # If env is done, prepare data
+                transition = ttorch.as_tensor(transition)
+                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+                transition_list[policy_id].append(env_id, transition)
                 if timestep.done:
-                    transitions = to_tensor_transitions(traj_buffer[env_id][policy_id])
-                    if cfg.get_train_sample:
-                        train_sample = ctx.current_policies[policy_id].get_train_sample(transitions)
-                        ctx.train_data[policy_id].extend(train_sample)
-                    else:
-                        ctx.train_data[policy_id].append(transitions)
-                    traj_buffer[env_id][policy_id].clear()
                     ctx.current_policies[policy_id].reset([env_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
             if timestep.done:
-                ctx.collected_episode += 1
                 ctx.ready_env_id.remove(env_id)
+                ctx.env_episode += 1
 
     return _battle_rolloutor

@@ -2,19 +2,17 @@ from distutils.log import info
 from easydict import EasyDict
 from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
-from ding.framework import task, EventEnum
-from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor, job_data_sender
+from ding.framework import task
+from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor
 from typing import Dict
-from ding.worker.collector.base_serial_collector import TrajBuffer
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
 
-from ding.worker.collector.base_serial_collector import CachePool
 
 class BattleCollector:
 
-    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict):
+    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int):
         self.cfg = cfg
         self.end_flag = False
         # self._reset(env)
@@ -24,15 +22,15 @@ class BattleCollector:
         self.total_envstep_count = 0
         self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
-        self.streaming_sampling_flag = n_rollout_samples > 0
         self.model_dict = model_dict
         self.all_policies = all_policies
+        self.agent_num = agent_num
 
         self._battle_inferencer = task.wrap(
             battle_inferencer(self.cfg, self.env)
         )
-        self._job_data_sender = task.wrap(job_data_sender(self.streaming_sampling_flag, self.n_rollout_samples))
-
+        self._transition_list = [TransitionList(self.env.env_num) for _ in range(self.agent_num)]
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self._transition_list))
 
     def __del__(self) -> None:
         """
@@ -59,8 +57,6 @@ class BattleCollector:
                 policy.load_state_dict(learner_model.state_dict)
                 self.model_dict[player_id] = None
 
-
-
     def __call__(self, ctx: "BattleContext") -> None:
         """
         Input of ctx:
@@ -73,29 +69,7 @@ class BattleCollector:
                 otherwise, return train_samples split by unroll_len.
         """
         ctx.env_step = self.total_envstep_count
-        if ctx.n_episode is None:
-            if ctx._default_n_episode is None:
-                raise RuntimeError("Please specify collect n_episode")
-            else:
-                ctx.n_episode = ctx._default_n_episode
-        assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
-
-        if ctx.collect_kwargs is None:
-            ctx.collect_kwargs = {}
-
-        # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
-        self.traj_buffer = {
-            env_id: {policy_id: TrajBuffer(maxlen=ctx.traj_len)
-                        for policy_id in range(ctx.agent_num)}
-            for env_id in range(self.env_num)
-        }
-        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.traj_buffer))
-
-        ctx.collected_episode = 0
-        ctx.train_data = [[] for _ in range(ctx.agent_num)]
-        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
-        ctx.ready_env_id = set()
-        ctx.remain_episode = ctx.n_episode
+        old = ctx.env_episode
         while True:
             self._update_policies(ctx.job)
             self._battle_inferencer(ctx)
@@ -103,10 +77,14 @@ class BattleCollector:
 
             self.total_envstep_count = ctx.env_step
 
-            self._job_data_sender(ctx)
-
-            if ctx.collected_episode >= ctx.n_episode:
+            if (self.n_rollout_samples > 0 and ctx.env_episode - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
+                ctx.episodes = self._transition_list[0].to_episodes()
+                for transitions in self._transition_list:
+                    transitions.clear()
+                if ctx.env_episode >= ctx.n_episode:
+                    ctx.job_finish = True
                 break
+                
 
 
 

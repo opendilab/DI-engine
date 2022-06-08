@@ -2,6 +2,7 @@ from time import sleep
 import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
+from ding.framework.context import BattleContext
 from ding.framework.middleware.tests.league_config import cfg
 from ding.framework.middleware import LeagueActor, LeagueCoordinator
 from ding.league.player import PlayerMeta
@@ -69,7 +70,7 @@ N_ACTORS = 5
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
 
-    with task.start(async_mode=True):
+    with task.start(async_mode=True, ctx=BattleContext()):
         if task.router.node_id == 0:
             league = MockLeague()
             coordinator = LeagueCoordinator(league)

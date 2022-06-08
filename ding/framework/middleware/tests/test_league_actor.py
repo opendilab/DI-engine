@@ -2,6 +2,7 @@ from time import sleep
 import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
+from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
 from ding.framework.middleware import LeagueActor
@@ -49,7 +50,7 @@ def _main():
     )
     ACTOR_ID = 0
 
-    with task.start(async_mode=True):
+    with task.start(async_mode=True, ctx=BattleContext()):
         league_actor = LeagueActor(cfg, env_fn, policy_fn)
 
         def test_actor():
@@ -99,7 +100,7 @@ def _main():
         elif task.router.node_id == 1:
             task.use(test_actor())
 
-        task.run()
+        task.run(max_step=5)
 
 
 @pytest.mark.unittest
