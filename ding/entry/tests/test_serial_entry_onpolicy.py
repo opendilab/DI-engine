@@ -11,6 +11,7 @@ from dizoo.classic_control.pendulum.config.pendulum_ppo_config import pendulum_p
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_a2c():
     config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
     try:
@@ -20,6 +21,7 @@ def test_a2c():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_onpolicy_ppo():
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     config[0].policy.learn.epoch_per_collect = 2
@@ -31,6 +33,7 @@ def test_onpolicy_ppo():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_mappo():
     config = [deepcopy(ptz_simple_spread_mappo_config), deepcopy(ptz_simple_spread_mappo_create_config)]
     config[0].policy.learn.epoch_per_collect = 1
@@ -41,6 +44,7 @@ def test_mappo():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_onpolicy_ppo_continuous():
     config = [deepcopy(pendulum_ppo_config), deepcopy(pendulum_ppo_create_config)]
     config[0].policy.learn.epoch_per_collect = 1

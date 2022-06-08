@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import multiprocessing as mp
 import threading
 import queue
@@ -14,6 +15,7 @@ from enum import Enum
 @dataclass
 class SendPayload:
     proc_id: int
+    # Use uuid1 here to include the timestamp
     req_id: str = field(default_factory=lambda: uuid.uuid1().hex)
     method: str = None
     args: List = field(default_factory=list)
@@ -45,18 +47,23 @@ class SharedObject:
     callback: Callable
 
 
-class Child:
+class Child(ABC):
     """
     Abstract class of child process/thread.
     """
 
-    def __init__(self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
+    def __init__(
+            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
+    ) -> None:
         self._proc_id = proc_id
         self._init = init
         self._args = args
+        self._kwargs = kwargs
         self._recv_queue = None
+        self._send_queue = None
         self._shared_object = shared_object
 
+    @abstractmethod
     def start(self, recv_queue: Union[mp.Queue, queue.Queue]):
         raise NotImplementedError
 
@@ -64,9 +71,11 @@ class Child:
         self.shutdown()
         self.start(self._recv_queue)
 
+    @abstractmethod
     def shutdown(self, timeout: Optional[float] = None):
         raise NotImplementedError
 
+    @abstractmethod
     def send(self, payload: SendPayload):
         raise NotImplementedError
 
@@ -75,12 +84,13 @@ class Child:
         proc_id: int,
         init: Callable,
         args: List,
+        kwargs: Dict[str, Any],
         send_queue: Union[mp.Queue, queue.Queue],
         recv_queue: Union[mp.Queue, queue.Queue],
         shared_object: Optional[SharedObject] = None
     ):
         send_payload = SendPayload(proc_id=proc_id)
-        child_ins = init(*args)
+        child_ins = init(*args, **kwargs)
         while True:
             try:
                 send_payload: SendPayload = send_queue.get()
@@ -110,18 +120,23 @@ class Child:
 
 class ChildProcess(Child):
 
-    def __init__(self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
-        super().__init__(proc_id, init, *args, shared_object=shared_object)
+    def __init__(
+            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
+    ) -> None:
+        super().__init__(proc_id, init, *args, shared_object=shared_object, **kwargs)
         self._proc = None
 
     def start(self, recv_queue: mp.Queue):
         self._recv_queue = recv_queue
-        self._send_queue = mp.Queue()
         context = 'spawn' if platform.system().lower() == 'windows' else 'fork'
         ctx = mp.get_context(context)
+        self._send_queue = ctx.Queue()
         proc = ctx.Process(
             target=self._target,
-            args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue, self._shared_object),
+            args=(
+                self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue,
+                self._shared_object
+            ),
             name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
             daemon=True
         )
@@ -146,8 +161,10 @@ class ChildProcess(Child):
 
 class ChildThread(Child):
 
-    def __init__(self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
-        super().__init__(proc_id, init, *args, shared_object=shared_object)
+    def __init__(
+            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
+    ) -> None:
+        super().__init__(proc_id, init, *args, shared_object=shared_object, **kwargs)
         self._thread = None
 
     def start(self, recv_queue: queue.Queue):
@@ -155,7 +172,7 @@ class ChildThread(Child):
         self._send_queue = queue.Queue()
         thread = threading.Thread(
             target=self._target,
-            args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue),
+            args=(self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue),
             name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
             daemon=True
         )
@@ -177,7 +194,10 @@ class Supervisor:
 
     TYPE_MAPPING = {ChildType.PROCESS: ChildProcess, ChildType.THREAD: ChildThread}
 
-    QUEUE_MAPPING = {ChildType.PROCESS: mp.Queue, ChildType.THREAD: queue.Queue}
+    QUEUE_MAPPING = {
+        ChildType.PROCESS: mp.get_context('spawn' if platform.system().lower() == 'windows' else 'fork').Queue,
+        ChildType.THREAD: queue.Queue
+    }
 
     def __init__(self, type_: ChildType) -> None:
         self._children: List[Child] = []
@@ -186,9 +206,9 @@ class Supervisor:
         self._running = False
         self.__queue = None
 
-    def register(self, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
+    def register(self, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs) -> None:
         proc_id = len(self._children)
-        self._children.append(self._child_class(proc_id, init, *args, shared_object=shared_object))
+        self._children.append(self._child_class(proc_id, init, *args, shared_object=shared_object, **kwargs))
 
     @property
     def _recv_queue(self) -> Union[queue.Queue, mp.Queue]:
@@ -197,8 +217,8 @@ class Supervisor:
         return self.__queue
 
     @_recv_queue.setter
-    def _recv_queue(self, value):
-        self.__queue = value
+    def _recv_queue(self, queue: Union[queue.Queue, mp.Queue]):
+        self.__queue = queue
 
     def start_link(self) -> None:
         if not self._running:

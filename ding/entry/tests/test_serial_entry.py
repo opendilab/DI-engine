@@ -51,6 +51,7 @@ from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_con
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -64,6 +65,7 @@ def test_dqn():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_ddpg():
     config = [deepcopy(pendulum_ddpg_config), deepcopy(pendulum_ddpg_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -74,6 +76,7 @@ def test_ddpg():
 
 
 # @pytest.mark.platformtest
+# @pytest.mark.unittest
 def test_hybrid_ddpg():
     config = [deepcopy(gym_hybrid_ddpg_config), deepcopy(gym_hybrid_ddpg_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -84,6 +87,7 @@ def test_hybrid_ddpg():
 
 
 # @pytest.mark.platformtest
+# @pytest.mark.unittest
 def test_hybrid_pdqn():
     config = [deepcopy(gym_hybrid_pdqn_config), deepcopy(gym_hybrid_pdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -94,6 +98,7 @@ def test_hybrid_pdqn():
 
 
 # @pytest.mark.platformtest
+# @pytest.mark.unittest
 def test_hybrid_mpdqn():
     config = [deepcopy(gym_hybrid_mpdqn_config), deepcopy(gym_hybrid_mpdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -104,6 +109,7 @@ def test_hybrid_mpdqn():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_dqn_stdim():
     config = [deepcopy(cartpole_dqn_stdim_config), deepcopy(cartpole_dqn_stdim_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -117,6 +123,7 @@ def test_dqn_stdim():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_td3():
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -127,6 +134,7 @@ def test_td3():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_rainbow():
     config = [deepcopy(cartpole_rainbow_config), deepcopy(cartpole_rainbow_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -137,6 +145,7 @@ def test_rainbow():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_iqn():
     config = [deepcopy(cartpole_iqn_config), deepcopy(cartpole_iqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -147,6 +156,7 @@ def test_iqn():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_c51():
     config = [deepcopy(cartpole_c51_config), deepcopy(cartpole_c51_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -157,6 +167,7 @@ def test_c51():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_qrdqn():
     config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -167,6 +178,7 @@ def test_qrdqn():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_ppo():
     config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -178,6 +190,7 @@ def test_ppo():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_ppo_nstep_return():
     config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -189,6 +202,7 @@ def test_ppo_nstep_return():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_sac():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -200,6 +214,7 @@ def test_sac():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_sac_auto_alpha():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -212,6 +227,7 @@ def test_sac_auto_alpha():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_sac_log_space():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -229,6 +245,7 @@ args = [item for item in product(*[auto_alpha, log_space])]
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 @pytest.mark.parametrize('auto_alpha, log_space', args)
 def test_discrete_sac(auto_alpha, log_space):
     config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
@@ -242,6 +259,7 @@ def test_discrete_sac(auto_alpha, log_space):
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_discrete_sac_twin_critic():
     config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
     config[0].cuda = True
@@ -256,6 +274,7 @@ def test_discrete_sac_twin_critic():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -266,6 +285,7 @@ def test_r2d2():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_impala():
     config = [deepcopy(cartpole_impala_config), deepcopy(cartpole_impala_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -276,6 +296,7 @@ def test_impala():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_her_dqn():
     bitflip_her_dqn_config.policy.cuda = False
     try:
@@ -285,6 +306,7 @@ def test_her_dqn():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_collaq():
     config = [deepcopy(ptz_simple_spread_collaq_config), deepcopy(ptz_simple_spread_collaq_create_config)]
     config[0].policy.cuda = False
@@ -299,6 +321,7 @@ def test_collaq():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_coma():
     config = [deepcopy(ptz_simple_spread_coma_config), deepcopy(ptz_simple_spread_coma_create_config)]
     config[0].policy.cuda = False
@@ -313,6 +336,7 @@ def test_coma():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_qmix():
     config = [deepcopy(ptz_simple_spread_qmix_config), deepcopy(ptz_simple_spread_qmix_create_config)]
     config[0].policy.cuda = False
@@ -327,6 +351,7 @@ def test_qmix():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_wqmix():
     config = [deepcopy(ptz_simple_spread_wqmix_config), deepcopy(ptz_simple_spread_wqmix_create_config)]
     config[0].policy.cuda = False
@@ -341,6 +366,7 @@ def test_wqmix():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_qtran():
     config = [deepcopy(ptz_simple_spread_qtran_config), deepcopy(ptz_simple_spread_qtran_create_config)]
     config[0].policy.cuda = False
@@ -355,6 +381,7 @@ def test_qtran():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_atoc():
     config = [deepcopy(ptz_simple_spread_atoc_config), deepcopy(ptz_simple_spread_atoc_create_config)]
     config[0].policy.cuda = False
@@ -368,6 +395,7 @@ def test_atoc():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_ppg():
     cartpole_ppg_config.policy.use_cuda = False
     try:
@@ -377,6 +405,7 @@ def test_ppg():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_sqn():
     config = [deepcopy(cartpole_sqn_config), deepcopy(cartpole_sqn_create_config)]
     config[0].policy.learn.update_per_collect = 8
@@ -390,6 +419,7 @@ def test_sqn():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_selfplay():
     try:
         selfplay_main(deepcopy(league_demo_ppo_config), seed=0, max_train_iter=1)
@@ -398,6 +428,7 @@ def test_selfplay():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_league():
     try:
         league_main(deepcopy(league_demo_ppo_config), seed=0, max_train_iter=1)
@@ -406,6 +437,7 @@ def test_league():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_acer():
     config = [deepcopy(cartpole_acer_config), deepcopy(cartpole_acer_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -416,6 +448,7 @@ def test_acer():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_cql():
     # train expert
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
@@ -450,6 +483,7 @@ def test_cql():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_d4pg():
     config = [deepcopy(pendulum_d4pg_config), deepcopy(pendulum_d4pg_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -461,6 +495,7 @@ def test_d4pg():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_discrete_cql():
     # train expert
     config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
@@ -493,6 +528,7 @@ def test_discrete_cql():
 
 
 @pytest.mark.platformtest
+@pytest.mark.unittest
 def test_td3_bc():
     # train expert
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]

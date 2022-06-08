@@ -1,4 +1,5 @@
 from collections import defaultdict
+import math
 import queue
 from time import sleep, time
 import gym
@@ -81,6 +82,8 @@ class EnvSupervisor(Supervisor):
         if kwargs:
             logging.warning("Unknown parameters on env supervisor: {}".format(kwargs))
         super().__init__(type_=type_)
+        if type_ is not ChildType.PROCESS and (shared_memory or copy_on_get):
+            logging.warning("shared_memory and copy_on_get only works in process mode.")
         self._shared_memory = type_ is ChildType.PROCESS and shared_memory
         self._copy_on_get = type_ is ChildType.PROCESS and copy_on_get
         self._env_fn = env_fn
@@ -130,7 +133,7 @@ class EnvSupervisor(Supervisor):
         self._ready_obs = {}
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._retry_times = defaultdict(lambda: 0)
-        self._last_called = defaultdict(lambda: {"step": 9e9, "reset": 9e9})
+        self._last_called = defaultdict(lambda: {"step": math.inf, "reset": math.inf})
 
     def _shm_callback(self, payload: RecvPayload, obs_buffers: Any):
         if payload.method == "reset" and payload.data is not None:
@@ -460,7 +463,7 @@ class EnvSupervisor(Supervisor):
         self.recv_all(send_payloads, ignore_err=True, callback=self._recv_callback, timeout=self._reset_timeout)
 
     def change_state(self, payload: RecvPayload):
-        self._last_called[payload.proc_id][payload.method] = 9e9  # Have recevied
+        self._last_called[payload.proc_id][payload.method] = math.inf  # Have recevied
         if payload.err:
             self._env_states[payload.proc_id] = EnvState.ERROR
         elif payload.method == "reset":
