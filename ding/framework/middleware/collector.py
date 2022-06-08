@@ -75,8 +75,8 @@ class BattleEpisodeCollector:
             self.total_envstep_count = ctx.env_step
 
             if (self.n_rollout_samples > 0 and ctx.env_episode - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
-                ctx.episodes = self._transitions_list[0].to_episodes()
                 for transitions in self._transitions_list:
+                    ctx.episodes.append(transitions.to_episodes())
                     transitions.clear()
                 if ctx.env_episode >= ctx.n_episode:
                     ctx.job_finish = True

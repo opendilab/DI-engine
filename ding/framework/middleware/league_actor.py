@@ -120,8 +120,8 @@ class LeagueActor:
         while True:
             collector(ctx)
 
-            if not ctx.job.is_eval and len(ctx.episodes) > 0:
-                actor_data = ActorData(env_step=ctx.env_step, train_data=ctx.episodes)
+            if not ctx.job.is_eval and len(ctx.episodes[0]) > 0:
+                actor_data = ActorData(env_step=ctx.env_step, train_data=ctx.episodes[0])
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
                 ctx.episodes = []
             if ctx.job_finish is True:
