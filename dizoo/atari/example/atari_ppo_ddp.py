@@ -1,23 +1,22 @@
 from copy import deepcopy
 from ditk import logging
-from ding.model import DQN
-from ding.policy import DQNPolicy
+from ding.model import VAC
+from ding.policy import PPOPolicy
 from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
-from ding.utils import DistContext, get_rank
 from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver, nstep_reward_enhancer, online_logger, ddp_termination_checker
-from ding.utils import set_pkg_seed
+from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
+    gae_estimator, ddp_termination_checker, online_logger
+from ding.utils import set_pkg_seed, DistContext, get_rank
 from dizoo.atari.envs.atari_env import AtariEnv
-from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_onppo_config import main_config, create_config
 
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    main_config.exp_name = 'pong_dqn_seed0_ddp'
+    main_config.example = 'pong_ppo_seed0_ddp'
     main_config.policy.learn.multi_gpu = True
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     ding_init(cfg)
@@ -37,20 +36,16 @@ def main():
 
             set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-            model = DQN(**cfg.policy.model)
-            buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
-            policy = DQNPolicy(cfg.policy, model=model)
+            model = VAC(**cfg.policy.model)
+            policy = PPOPolicy(cfg.policy, model=model)
 
             if rank == 0:
                 task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
-            task.use(eps_greedy_handler(cfg))
             task.use(StepCollector(cfg, policy.collect_mode, collector_env))
-            task.use(nstep_reward_enhancer(cfg))
-            task.use(data_pusher(cfg, buffer_))
-            task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
+            task.use(gae_estimator(cfg, policy.collect_mode))
+            task.use(multistep_trainer(cfg, policy.learn_mode))
             if rank == 0:
                 task.use(CkptSaver(cfg, policy, train_freq=1000))
-                task.use(online_logger(record_train_iter=True))
             task.use(ddp_termination_checker(max_env_step=int(1e7), rank=rank))
             task.run()
 
