@@ -218,9 +218,9 @@ class BattleTransitionList:
         self._done_idx = [[] for _ in range(env_num)]
 
     def append(self, env_id: int, policy_id: int, transition: Any) -> None:
-        self._transitions[env_id].append(transition)
-        if transition.done:
-            self._done_idx[env_id].append(len(self._transitions[env_id]))
+        self._transitions[env_id][policy_id].append(transition)
+        if transition.done and policy_id == 0:
+            self._done_idx[env_id].append(len(self._transitions[env_id][policy_id]))
 
     def to_trajectories(self) -> Tuple[List[Any], List[int]]:
         trajectories = sum(self._transitions, [])
@@ -270,15 +270,11 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, traj_buffer: Dict):
                     else:
                         ctx.train_data[policy_id].append(transitions)
                     traj_buffer[env_id][policy_id].clear()
+                    ctx.current_policies[policy_id].reset([env_id])
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
             if timestep.done:
                 ctx.collected_episode += 1
-                for i, p in enumerate(ctx.current_policies):
-                    p.reset([env_id])
-                for i in range(ctx.agent_num):
-                    traj_buffer[env_id][i].clear()
                 ctx.ready_env_id.remove(env_id)
-                for policy_id in range(ctx.agent_num):
-                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
     return _battle_rolloutor
