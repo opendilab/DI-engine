@@ -1,9 +1,7 @@
 from collections import defaultdict
 import pytest
 import time
-import os
 from ding.framework import Parallel
-from ding.utils.design_helper import SingletonMetaclass
 
 
 def parallel_main():
