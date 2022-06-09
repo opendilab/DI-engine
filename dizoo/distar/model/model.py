@@ -7,11 +7,10 @@ import torch
 import torch.nn as nn
 
 from ding.utils import read_yaml_config, deep_merge_dicts, default_collate
-from ding.torch_utils import detach_grad
+from ding.torch_utils import detach_grad, script_lstm
 from dizoo.distar.envs import MAX_SELECTED_UNITS_NUM
 from .encoder import Encoder
 from .obs_encoder.value_encoder import ValueEncoder
-from .lstm import script_lnlstm
 from .policy import Policy
 from .value import ValueBaseline
 
@@ -28,7 +27,7 @@ class Model(nn.Module):
         self.cfg = self.whole_cfg.model
         self.encoder = Encoder(self.whole_cfg)
         self.policy = Policy(self.whole_cfg)
-        self._use_value_feature = self.whole_cfg.learner.get('use_value_feature', False)
+        self._use_value_feature = self.whole_cfg.learner.use_value_feature
         if use_value_network:
             if self._use_value_feature:
                 self.value_encoder = ValueEncoder(self.whole_cfg)
@@ -38,10 +37,12 @@ class Model(nn.Module):
                     # creating a ValueBaseline network for each baseline, to be used in _critic_forward
                     self.value_networks[v.name] = ValueBaseline(v.param, self._use_value_feature)
                     # name of needed cumulative stat items
-        self.only_update_baseline = self.cfg.get('only_update_baseline', False)
-        self.core_lstm = script_lnlstm(
-            self.cfg.encoder.core_lstm.input_size, self.cfg.encoder.core_lstm.hidden_size,
-            self.cfg.encoder.core_lstm.num_layers
+        self.only_update_baseline = self.cfg.only_update_baseline
+        self.core_lstm = script_lstm(
+            self.cfg.encoder.core_lstm.input_size,
+            self.cfg.encoder.core_lstm.hidden_size,
+            self.cfg.encoder.core_lstm.num_layers,
+            LN=True
         )
 
     def forward(

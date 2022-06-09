@@ -22,12 +22,8 @@ class ActionTypeHead(nn.Module):
         self.cfg = self.whole_cfg.model.policy.head.action_type_head
         self.act = build_activation(self.cfg.activation)  # use relu as default
         self.project = fc_block(self.cfg.input_dim, self.cfg.res_dim, activation=self.act, norm_type=None)
-        # self.project = fc_block(self.cfg.input_dim, self.cfg.res_dim)
         blocks = [ResFCBlock(self.cfg.res_dim, self.act, self.cfg.norm_type) for _ in range(self.cfg.res_num)]
         self.res = nn.Sequential(*blocks)
-        self.weight_norm = self.cfg.get('weight_norm', False)
-        self.drop_Z = torch.nn.Dropout(p=self.cfg.get('drop_ratio', 0.0))
-        self.drop_ratio = self.cfg.get('drop_ratio', 0.0)
         self.action_fc = build_activation('glu')(self.cfg.res_dim, self.cfg.action_num, self.cfg.context_dim)
 
         self.action_map_fc1 = fc_block(
@@ -39,11 +35,8 @@ class ActionTypeHead(nn.Module):
         self.glu1 = build_activation('glu')(self.cfg.action_map_dim, self.cfg.gate_dim, self.cfg.context_dim)
         self.glu2 = build_activation('glu')(self.cfg.input_dim, self.cfg.gate_dim, self.cfg.context_dim)
         self.action_num = self.cfg.action_num
-        if self.whole_cfg.common.type == 'play':
-            self.use_mask = True
-        else:
-            self.use_mask = False
-        self.race = 'zerg'
+        self.use_mask = self.cfg.use_mask
+        self.race = self.cfg.race
 
     def forward(self,
                 lstm_output,

@@ -21,6 +21,7 @@ model:
     freeze_targets: []
     state_dict_mask: []
     use_value_network: False
+    only_update_baseline: False
     enable_baselines: ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
     entity_reduce_type: 'selected_units_num'  # ['constant', 'entity_num', 'selected_units_num']
     # ===== Value =====
@@ -403,6 +404,7 @@ model:
                 norm_type: 'LN'
                 ln_type: 'normal'
                 use_mask: False
+                race: 'zerg'
             delay_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 decode_dim: 256
@@ -428,6 +430,7 @@ model:
                 num_layers: 1
                 max_entity_num: 64
                 activation: 'relu'
+                extra_units: True  # select extra units if selected units exceed max_entity_num=64
             target_unit_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 entity_embedding_dim: 256  # entity_encoder.output_dim
@@ -443,11 +446,7 @@ model:
                 upsample_dims: [64, 32, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
                 res_dim: 128
                 res_num: 4
-                film: False
                 gate: True
-                unet: False
-                reshape_size: [16, 16]
                 reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
-            #             loc_type: 'alphastar'
