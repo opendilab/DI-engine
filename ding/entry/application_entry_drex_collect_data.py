@@ -102,7 +102,9 @@ def eval_bc(validation_set, policy, use_cuda):
 
 
 def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
-    bc_policy = bc.DiscreteBehaviourCloningPolicy(copy.deepcopy(cfg).policy)
+    cfg = copy.deepcopy(cfg).policy
+    cfg.continuous = False
+    bc_policy = bc.BehaviourCloningPolicy(cfg)
 
     if pre_expert_data is None:
         with open(cfg.reward_model.offline_data_path + '/suboptimal_data.pkl', 'rb') as f:
