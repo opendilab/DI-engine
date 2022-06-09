@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 from torch.distributions import Normal, Independent
 from ding.torch_utils import Adam, to_device
+from ditk import logging
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
     qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data
 from ding.model import model_wrap
@@ -57,15 +58,10 @@ class DTPolicy(DQNPolicy):
         context_len=20,
         n_blocks=3,
         embed_dim=128,
-        n_heads=1,
         dropout_p=0.1,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
-            # How many updates(iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            # collect data -> update policy-> collect data -> ...
-            update_per_collect=1,
             # batch_size=64,
             learning_rate=1e-4,
             # ==============================================================
@@ -108,7 +104,6 @@ class DTPolicy(DQNPolicy):
         self.context_len = self._cfg.context_len  # K in decision transformer
         n_blocks = self._cfg.n_blocks  # num of transformer blocks
         embed_dim = self._cfg.embed_dim  # embedding (hidden) dim of transformer
-        n_heads = self._cfg.n_heads  # num of transformer heads
         dropout_p = self._cfg.dropout_p  # dropout probability
 
         # # load data from this file
@@ -121,7 +116,6 @@ class DTPolicy(DQNPolicy):
 
         # training and evaluation device
         self.device = torch.device(self._device)
-        device = torch.device(self._device)
 
         self.start_time = datetime.now().replace(microsecond=0)
         self.start_time_str = self.start_time.strftime("%y-%m-%d-%H-%M-%S")
@@ -143,14 +137,14 @@ class DTPolicy(DQNPolicy):
         self.csv_writer.writerow(csv_header)
 
         dataset_path = self._cfg.learn.dataset_path
-        print("=" * 60)
-        print("start time: " + self.start_time_str)
-        print("=" * 60)
+        logging.info("=" * 60)
+        logging.info("start time: " + self.start_time_str)
+        logging.info("=" * 60)
 
-        print("device set to: " + str(device))
-        print("dataset path: " + dataset_path)
-        print("model save path: " + self.save_model_path)
-        print("log csv save path: " + log_csv_path)
+        logging.info("device set to: " + str(self.device))
+        logging.info("dataset path: " + dataset_path)
+        logging.info("model save path: " + self.save_model_path)
+        logging.info("log csv save path: " + log_csv_path)
 
         self._env = gym.make(self.env_name)
 
@@ -164,9 +158,7 @@ class DTPolicy(DQNPolicy):
             self._optimizer, lambda steps: min((steps + 1) / warmup_steps, 1)
         )
 
-        self.max_d4rl_score = -1.0
         self.max_env_score = -1.0
-
         self.total_updates = 0
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -352,7 +344,7 @@ class DTPolicy(DQNPolicy):
             "eval d4rl score: " + format(eval_d4rl_score, ".5f")
         )
 
-        print(log_str)
+        logging.info(log_str)
 
         log_data = [time_elapsed, self.total_updates, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
         log_csv_name = self.prefix + "_log_" + self.start_time_str + ".csv"
@@ -361,28 +353,17 @@ class DTPolicy(DQNPolicy):
         self.csv_writer.writerow(log_data)
 
         # save model
-        # print("max d4rl score: " + format(max_d4rl_score, ".5f"))
-        # if eval_d4rl_score >= max_d4rl_score:
-        #     print("saving max d4rl score model at: " + self.save_best_model_path)
-        #     torch.save(self._learn_model.state_dict(), self.save_best_model_path)
-        #     max_d4rl_score = eval_d4rl_score
-
-        # save model
-        print("eval_avg_reward: " + format(eval_avg_reward, ".5f"))
+        logging.info("eval_avg_reward: " + format(eval_avg_reward, ".5f"))
         eval_env_score = eval_avg_reward
         if eval_env_score >= self.max_env_score:
-            print("saving max env score model at: " + self.save_best_model_path)
+            logging.info("saving max env score model at: " + self.save_best_model_path)
             torch.save(self._learn_model.state_dict(), self.save_best_model_path)
             self.max_env_score = eval_env_score
 
-        print("saving current model at: " + self.save_model_path)
+        logging.info("saving current model at: " + self.save_model_path)
         torch.save(self._learn_model.state_dict(), self.save_model_path)
 
-        stop = False
-        if self.max_env_score >= self.stop_value:
-            stop = True
-        # return stop
-        return False    # Training stop till max_train_iters
+        return self.max_env_score >= self.stop_value:
 
     def get_d4rl_normalized_score(self, score, env_name):
         env_key = env_name.split('-')[0].lower()
