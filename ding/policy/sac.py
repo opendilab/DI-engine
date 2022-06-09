@@ -35,18 +35,10 @@ class SACDiscretePolicy(Policy):
               | ``embedding_size``                             | network.                        |
            5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |
               | ``embedding_size``                             | network.                        |
-           6  | ``model.value_``    int         256            | Linear layer size for value     | Defalut to None when
-              | ``embedding_size``                             | network.                        | model.value_network
-              |                                                |                                 | is False.
-           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
-              | ``_rate_q``                                    | network.                        | model.value_network
-              |                                                |                                 | is True.
-           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when
-              | ``_rate_policy``                               | network.                        | model.value_network
-              |                                                |                                 | is True.
-           9  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to None when
-              | ``_rate_value``                                | network.                        | model.value_network
-              |                                                |                                 | is False.
+           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3
+              | ``_rate_q``                                    | network.                        |
+           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3
+              | ``_rate_policy``                               | network.                        |
            10 | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
               |                                                | coefficient.                    | zation for auto
               |                                                |                                 | `\alpha`, when
@@ -93,13 +85,6 @@ class SACDiscretePolicy(Policy):
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
             # Default to True.
             twin_critic=True,
-
-            # (bool type) value_network: Determine whether to use value network as the
-            # original SAC paper (arXiv 1801.01290).
-            # using value_network needs to set learning_rate_value, learning_rate_q,
-            # and learning_rate_policy in `cfg.policy.learn`.
-            # Default to False.
-            # value_network=False,
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -113,17 +98,10 @@ class SACDiscretePolicy(Policy):
 
             # (float type) learning_rate_q: Learning rate for soft q network.
             # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
             learning_rate_q=3e-4,
             # (float type) learning_rate_policy: Learning rate for policy network.
             # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
             learning_rate_policy=3e-4,
-            # (float type) learning_rate_value: Learning rate for value network.
-            # `learning_rate_value` should be initialized, when model.value_network is True.
-            # Please set to 3e-4, when model.value_network is True.
-            learning_rate_value=3e-4,
-
             # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
             # Default to 3e-4.
             learning_rate_alpha=3e-4,
@@ -156,8 +134,6 @@ class SACDiscretePolicy(Policy):
             # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
             # when the episode step is greater than max episode step.
             ignore_done=False,
-            # (float) Weight uniform initialization range in the last output layer
-            init_w=3e-3,
         ),
         collect=dict(
             # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -188,12 +164,12 @@ class SACDiscretePolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target models.
+            Init q and policy's optimizers, algorithm config, main and target models.
         """
         # Init
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        # self._value_network = False  # TODO self._cfg.model.value_network
+        self._value_network = False  # TODO self._cfg.model.value_network
         self._twin_critic = self._cfg.model.twin_critic
 
         self._optimizer_q = Adam(
@@ -279,7 +255,7 @@ class SACDiscretePolicy(Policy):
         dist_entropy = dist.entropy()
         entropy = dist_entropy.mean()
 
-        # 2. predict target value depend self._value_network.
+        # 2. predict target value
 
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
@@ -395,8 +371,6 @@ class SACDiscretePolicy(Policy):
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
-        # if self._value_network:
-        #    self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         if self._auto_alpha:
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
@@ -540,18 +514,10 @@ class SACPolicy(Policy):
               | ``embedding_size``                             | network.                        |
            5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |
               | ``embedding_size``                             | network.                        |
-           6  | ``model.value_``    int         256            | Linear layer size for value     | Defalut to None when
-              | ``embedding_size``                             | network.                        | model.value_network
-              |                                                |                                 | is False.
-           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
-              | ``_rate_q``                                    | network.                        | model.value_network
-              |                                                |                                 | is True.
-           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when
-              | ``_rate_policy``                               | network.                        | model.value_network
-              |                                                |                                 | is True.
-           9  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to None when
-              | ``_rate_value``                                | network.                        | model.value_network
-              |                                                |                                 | is False.
+           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3
+              | ``_rate_q``                                    | network.                        |
+           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3
+              | ``_rate_policy``                               | network.                        |
            10 | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
               |                                                | coefficient.                    | zation for auto
               |                                                |                                 | `\alpha`, when
@@ -598,14 +564,6 @@ class SACPolicy(Policy):
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
             # Default to True.
             twin_critic=True,
-
-            # (bool type) value_network: Determine whether to use value network as the
-            # original SAC paper (arXiv 1801.01290).
-            # using value_network needs to set learning_rate_value, learning_rate_q,
-            # and learning_rate_policy in `cfg.policy.learn`.
-            # Default to False.
-            # value_network=False,
-
             # (str type) action_space: Use reparameterization trick for continous action
             action_space='reparameterization',
         ),
@@ -621,17 +579,10 @@ class SACPolicy(Policy):
 
             # (float type) learning_rate_q: Learning rate for soft q network.
             # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
             learning_rate_q=3e-4,
             # (float type) learning_rate_policy: Learning rate for policy network.
             # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
             learning_rate_policy=3e-4,
-            # (float type) learning_rate_value: Learning rate for value network.
-            # `learning_rate_value` should be initialized, when model.value_network is True.
-            # Please set to 3e-4, when model.value_network is True.
-            learning_rate_value=3e-4,
-
             # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
             # Default to 3e-4.
             learning_rate_alpha=3e-4,
@@ -664,8 +615,6 @@ class SACPolicy(Policy):
             # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
             # when the episode step is greater than max episode step.
             ignore_done=False,
-            # (float) Weight uniform initialization range in the last output layer
-            init_w=3e-3,
         ),
         collect=dict(
             # If you need the data collected by the collector to contain logit key which reflect the probability of
@@ -702,7 +651,7 @@ class SACPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target models.
+            Init q and policy's optimizers, algorithm config, main and target models.
         """
         # Init
         self._priority = self._cfg.priority
@@ -710,19 +659,7 @@ class SACPolicy(Policy):
         self._value_network = False  # TODO self._cfg.model.value_network
         self._twin_critic = self._cfg.model.twin_critic
 
-        # Weight Init for the last output layer
-        init_w = self._cfg.learn.init_w
-        self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
-
         # Optimizers
-        if self._value_network:
-            self._optimizer_value = Adam(
-                self._model.value_critic.parameters(),
-                lr=self._cfg.learn.learning_rate_value,
-            )
         self._optimizer_q = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_q,
@@ -801,34 +738,27 @@ class SACPolicy(Policy):
         # 1. predict q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
 
-        # 2. predict target value depend self._value_network.
-        if self._value_network:
-            v_value = self._learn_model.forward(obs, mode='compute_value_critic')['v_value']
-            with torch.no_grad():
-                next_v_value = self._target_model.forward(next_obs, mode='compute_value_critic')['v_value']
-            target_q_value = next_v_value
-        else:
-            # target q value.
-            with torch.no_grad():
-                (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
+        # target q value.
+        with torch.no_grad():
+            (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
 
-                dist = Independent(Normal(mu, sigma), 1)
-                pred = dist.rsample()
-                next_action = torch.tanh(pred)
-                y = 1 - next_action.pow(2) + 1e-6
-                # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
-                next_log_prob = dist.log_prob(pred).unsqueeze(-1)
-                next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
+            dist = Independent(Normal(mu, sigma), 1)
+            pred = dist.rsample()
+            next_action = torch.tanh(pred)
+            y = 1 - next_action.pow(2) + 1e-6
+            # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
+            next_log_prob = dist.log_prob(pred).unsqueeze(-1)
+            next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
 
-                next_data = {'obs': next_obs, 'action': next_action}
-                target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
-                # the value of a policy according to the maximum entropy objective
-                if self._twin_critic:
-                    # find min one as target q value
-                    target_q_value = torch.min(target_q_value[0],
-                                               target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
-                else:
-                    target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
+            next_data = {'obs': next_obs, 'action': next_action}
+            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
+            # the value of a policy according to the maximum entropy objective
+            if self._twin_critic:
+                # find min one as target q value
+                target_q_value = torch.min(target_q_value[0],
+                                           target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
+            else:
+                target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
 
         # 3. compute q loss
         if self._twin_critic:
@@ -862,17 +792,6 @@ class SACPolicy(Policy):
         new_q_value = self._learn_model.forward(eval_data, mode='compute_critic')['q_value']
         if self._twin_critic:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
-
-        # 6. (optional) compute value loss and update value network
-        if self._value_network:
-            # new_q_value: (bs, ), log_prob: (bs, act_shape) -> target_v_value: (bs, )
-            target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
-            loss_dict['value_loss'] = F.mse_loss(v_value, target_v_value.detach())
-
-            # update value network
-            self._optimizer_value.zero_grad()
-            loss_dict['value_loss'].backward()
-            self._optimizer_value.step()
 
         # 7. compute policy loss
         policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
@@ -928,8 +847,6 @@ class SACPolicy(Policy):
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
         }
-        if self._value_network:
-            ret.update({'optimizer_value': self._optimizer_value.state_dict()})
         if self._auto_alpha:
             ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
         return ret
@@ -938,8 +855,6 @@ class SACPolicy(Policy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
-        if self._value_network:
-            self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         if self._auto_alpha:
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
@@ -956,7 +871,7 @@ class SACPolicy(Policy):
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
-        r"""
+        """
         Overview:
             Forward function of collect mode.
         Arguments:
@@ -1068,7 +983,6 @@ class SACPolicy(Policy):
         """
         twin_critic = ['twin_critic_loss'] if self._twin_critic else []
         alpha_loss = ['alpha_loss'] if self._auto_alpha else []
-        value_loss = ['value_loss'] if self._value_network else []
         return [
             'alpha_loss',
             'policy_loss',
@@ -1078,4 +992,4 @@ class SACPolicy(Policy):
             'target_q_value',
             'alpha',
             'td_error',
-        ] + twin_critic + alpha_loss + value_loss
+        ] + twin_critic + alpha_loss

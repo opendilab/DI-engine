@@ -1,17 +1,18 @@
-from typing import List, Any
+from typing import List, Any, Union
 import torch
 from ding.utils.data import default_collate
 
 
 def default_preprocess_learn(
-        data: List[Any],
+        data: Union[Any, List[Any]],
         use_priority_IS_weight: bool = False,
         use_priority: bool = False,
         use_nstep: bool = False,
         ignore_done: bool = False,
 ) -> dict:
     # data preprocess
-    data = default_collate(data)
+    if isinstance(data, list):
+        data = default_collate(data)
     if ignore_done:
         data['done'] = torch.zeros_like(data['done']).float()
     else:

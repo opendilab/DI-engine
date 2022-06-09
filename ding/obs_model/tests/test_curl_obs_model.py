@@ -7,6 +7,7 @@ from ding.obs_model import CurlObsModel
 # encoder = nn.Linear(32, 50)
 # encoder_target = nn.Linear(32, 50)
 
+
 def test_curl_compute_logits():
     curl = CurlObsModel(CurlObsModel.default_config(), None)
     z_anc = torch.randn(4, 50)
@@ -32,7 +33,7 @@ def test_curl_train():
     assert curl.W.grad is None
     for p in curl.encoder.parameters():
         assert p.grad is None
-    curl.train(data)
+    curl.forward(data)
     assert curl.W.grad is not None and torch.ne(curl.W, torch.zeros(curl.W.shape)).all()
     for p in curl.encoder.parameters():
         assert p.grad is not None
