@@ -24,7 +24,7 @@ class BehaviourCloningPolicy(Policy):
         if self._cfg.continuous:
             return 'continuous_bc', ['ding.model.template.bc']
         else:
-            return 'bc', ['ding.model.template.bc']
+            return 'discrete_bc', ['ding.model.template.bc']
 
     config = dict(
         type='bc',
@@ -55,6 +55,8 @@ class BehaviourCloningPolicy(Policy):
                 self._loss = nn.L1Loss()
             elif self._cfg.loss_type == 'mse_loss':
                 self._loss = nn.MSELoss()
+            else:
+                raise KeyError
         else:
             self._loss = nn.CrossEntropyLoss()
 
@@ -134,7 +136,7 @@ class BehaviourCloningPolicy(Policy):
         """
         self._unroll_len = self._cfg.collect.unroll_len
         if self._cfg.continuous:
-            self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+            self._collect_model = model_wrap(self._model, wrapper_name='base')
         else:
             self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()

@@ -9,9 +9,8 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
         MultiHead, RegressionHead, ReparameterizationHead
 
 
-@MODEL_REGISTRY.register('bc')
-class BC(nn.Module):
-
+@MODEL_REGISTRY.register('discrete_bc')
+class DiscreteBC(nn.Module):
     def __init__(
             self,
             obs_shape: Union[int, SequenceType],
@@ -25,7 +24,7 @@ class BC(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the BC (encoder + head) Model according to input arguments.
+            Init the DiscreteBC (encoder + head) Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
@@ -39,7 +38,7 @@ class BC(nn.Module):
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details.
         """
-        super(BC, self).__init__()
+        super(DiscreteBC, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
         if head_hidden_size is None:
@@ -77,18 +76,18 @@ class BC(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
-            BC forward computation graph, input observation tensor to predict q_value.
+            DiscreteBC forward computation graph, input observation tensor to predict q_value.
         Arguments:
             - x (:obj:`torch.Tensor`): Observation inputs
         Returns:
-            - outputs (:obj:`Dict`): BC forward outputs, such as q_value.
+            - outputs (:obj:`Dict`): DiscreteBC forward outputs, such as q_value.
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Discrete Q-value output of each action dimension.
         Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
         Examples:
-            >>> model = BC(32, 6)  # arguments: 'obs_shape' and 'action_shape'
+            >>> model = DiscreteBC(32, 6)  # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 32)
             >>> outputs = model(inputs)
             >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 6])

@@ -33,16 +33,6 @@ def load_policy(
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
-    # Create main components: env, policy
-    if env_setting is None:
-        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
-    else:
-        env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
-    collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
-    evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    collector_env.seed(cfg.seed)
-    evaluator_env.seed(cfg.seed, dynamic_seed=False)
-    set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     sd = torch.load(load_path, map_location='cpu')
     policy.collect_mode.load_state_dict(sd)
