@@ -147,7 +147,9 @@ def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
 
 
 def load_bc(load_path, cfg):
-    bc_policy = bc.BehaviourCloningPolicy(copy.deepcopy(cfg).policy)
+    cfg = copy.deepcopy(cfg).policy
+    cfg.continuous = False
+    bc_policy = bc.BehaviourCloningPolicy(cfg)
     state_dict = torch.load(load_path, map_location='cpu')
     bc_policy.collect_mode.load_state_dict(state_dict)
     print('Load bc from {}'.format(load_path))
