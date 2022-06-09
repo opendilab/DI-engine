@@ -8,6 +8,7 @@ from queue import Queue
 
 import numpy as np
 import torch
+import treetensor.torch as ttorch
 
 
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
@@ -397,3 +398,12 @@ def get_null_data(template: Any, num: int) -> List[Any]:
         data['reward'].zero_()
         ret.append(data)
     return ret
+
+
+def get_shape0(data):
+    if isinstance(data, torch.Tensor):
+        return data.shape[0]
+    elif isinstance(data, ttorch.Tensor):
+        return list(data.shape.values())[0][0]
+    else:
+        raise TypeError("not support type: {}".format(data))

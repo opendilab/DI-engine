@@ -414,6 +414,8 @@ class BaseEnvManagerV2(BaseEnvManager):
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
         obs = [self._ready_obs[i] for i in active_env]
+        if isinstance(obs[0], dict):
+            obs = [tnp.array(o) for o in obs]
         return tnp.stack(obs)
 
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:

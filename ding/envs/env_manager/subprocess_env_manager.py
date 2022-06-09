@@ -914,6 +914,8 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             time.sleep(0.001)
             sleep_count += 1
         obs = [self._ready_obs[i] for i in self.ready_env]
+        if isinstance(obs[0], dict):
+            obs = [tnp.array(o) for o in obs]
         return tnp.stack(obs)
 
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:

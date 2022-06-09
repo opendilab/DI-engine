@@ -56,11 +56,12 @@ def default_collate(batch: Sequence,
         - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data field.\
             the return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
     """
-    elem = batch[0]
 
-    elem_type = type(elem)
     if isinstance(batch, ttorch.Tensor):
         return batch.json()
+
+    elem = batch[0]
+    elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
         out = None
         if torch_gt_131() and torch.utils.data.get_worker_info() is not None:
@@ -78,7 +79,7 @@ def default_collate(batch: Sequence,
     elif isinstance(elem, ttorch.Tensor):
         ret = ttorch.stack(batch).json()
         for k in ret:
-            if len(ret[k].shape) == 2 and ret[k].shape[1] == 1:  # reshape (B, 1) -> (B)
+            if hasattr(ret[k], 'shape') and len(ret[k].shape) >= 2 and ret[k].shape[1] == 1:  # reshape (B, 1) -> (B)
                 ret[k] = ret[k].squeeze(1)
         return ret
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
