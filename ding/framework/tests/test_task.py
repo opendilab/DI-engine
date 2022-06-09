@@ -1,6 +1,7 @@
+import multiprocessing as mp
 import pytest
-from threading import Lock
-from time import sleep
+from threading import Lock, Thread
+from time import sleep, time
 import random
 from ding.framework import task, Context, Parallel
 
@@ -331,3 +332,48 @@ def test_use_lock():
         task.use(fast, lock=lock)
         task.run(1)
         assert task.ctx.result == "slowest"
+
+
+def broadcast_finish_main():
+    with task.start():
+
+        def tick(ctx: Context):
+            if task.router.node_id == 1 and ctx.total_step == 1:
+                task.finish = True
+            sleep(1)
+
+        task.use(tick)
+        task.run(20)
+
+
+def broadcast_main_target():
+    Parallel.runner(
+        n_parallel_workers=1, protocol="tcp", address="127.0.0.1", topology="mesh", ports=50555
+    )(broadcast_finish_main)
+
+
+def broadcast_secondary_target():
+    "Start two standalone processes and connect to the main process."
+    Parallel.runner(
+        n_parallel_workers=2,
+        protocol="tcp",
+        address="127.0.0.1",
+        topology="alone",
+        ports=50556,
+        attach_to=["tcp://127.0.0.1:50555"],
+        node_ids=[1, 2]
+    )(broadcast_finish_main)
+
+
+@pytest.mark.unittest
+@pytest.mark.timeout(10)
+def test_broadcast_finish():
+    start = time()
+    ctx = mp.get_context("spawn")
+    main_process = ctx.Process(target=broadcast_main_target)
+    secondary_process = ctx.Process(target=broadcast_secondary_target)
+    main_process.start()
+    secondary_process.start()
+    main_process.join()
+    secondary_process.join()
+    assert (time() - start) < 10
