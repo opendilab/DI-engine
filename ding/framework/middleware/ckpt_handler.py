@@ -57,7 +57,7 @@ class CkptSaver:
 
         # best eval reward so far
         if ctx.eval_value is not None and ctx.eval_value > self.max_eval_value:
-            save_file("{}/eval.pth.tar".format(self.prefix), self.policy.learn_mode.state_dict())
+            save_file("{}/eval.pth.tar".format(self.prefix), self.policy.eval_mode.state_dict())
             self.max_eval_value = ctx.eval_value
 
         # finish
