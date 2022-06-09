@@ -18,7 +18,7 @@ def serial_pipeline_bc(
         seed: int,
         data_path: str,
         model: Optional[torch.nn.Module] = None,
-        max_iter=1e6,
+        max_iter=int(1e6),
 ) -> Union['Policy', bool]:  # noqa
     r"""
     Overview:
@@ -53,7 +53,6 @@ def serial_pipeline_bc(
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     dataset = NaiveRLDataset(data_path)
-    print('Dataset length' + str(len(dataset)))
     dataloader = DataLoader(dataset[:-len(dataset) // 10], cfg.policy.learn.batch_size, collate_fn=lambda x: x)
     eval_loader = DataLoader(
         dataset[-len(dataset) // 10:],

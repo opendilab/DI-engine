@@ -26,7 +26,6 @@ class BehaviourCloningPolicy(Policy):
         else:
             return 'continuous_bc', ['ding.model.template.bc']
 
-
     config = dict(
         type='bc',
         cuda=False,
@@ -63,7 +62,10 @@ class BehaviourCloningPolicy(Policy):
         if not self._cfg.continuous:
             self._loss = nn.CrossEntropyLoss()
         else:
-            self._loss = nn.L1Loss()
+            if self._cfg.loss_type == 'l1_loss':
+                self._loss = nn.L1Loss()
+            elif self._cfg.loss_type == 'mse_loss':
+                self._loss = nn.MSELoss()
 
     def _forward_learn(self, data):
         if not isinstance(data, dict):
@@ -80,7 +82,7 @@ class BehaviourCloningPolicy(Policy):
                 a_logit = self._learn_model.forward(obs)
                 loss = self._loss(a_logit['logit'], action)
             else:
-                mu = self._eval_model.forward(data['obs'], mode='compute_actor')['action']
+                mu = self._eval_model.forward(data['obs'])['action']
                 loss = self._loss(mu, action)
         forward_time = self._timer.value
         with self._timer:
@@ -122,7 +124,7 @@ class BehaviourCloningPolicy(Policy):
                 if not self._cfg.continuous:
                     output = self._eval_model.forward(data)
                 else:
-                    output = self._eval_model.forward(data, mode='compute_actor')
+                    output = self._eval_model.forward(data)
             if self._cuda:
                 output = to_device(output, 'cpu')
             return output
@@ -136,7 +138,7 @@ class BehaviourCloningPolicy(Policy):
                 if not self._cfg.continuous:
                     output = self._eval_model.forward(data)
                 else:
-                    output = self._eval_model.forward(data, mode='compute_actor')
+                    output = self._eval_model.forward(data)
             if self._cuda:
                 output = to_device(output, 'cpu')
             output = default_decollate(output)
@@ -176,198 +178,7 @@ class BehaviourCloningPolicy(Policy):
             if not self._cfg.continuous:
                 output = self._collect_model.forward(data, eps=eps)
             else:
-                output = self._collect_model.forward(data, mode='compute_actor')
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
-        Overview:
-            Generate dict type transition data from inputs.
-        Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
-        Returns:
-            - transition (:obj:`dict`): Dict type transition data.
-        """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
-        return EasyDict(transition)
-
-    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Overview:
-            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
-            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \
-            or some continuous transitions(DRQN).
-        Arguments:
-            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
-                format as the return value of ``self._process_transition`` method.
-        Returns:
-            - samples (:obj:`dict`): The list of training samples.
-
-        .. note::
-            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
-            And the user can customize the this data processing procecure by overriding this two methods and collector \
-            itself.
-        """
-        data = get_nstep_return_data(data, 1, 1)
-        return get_train_sample(data, self._unroll_len)
-
-
-@POLICY_REGISTRY.register('continuous_bc')
-class ContinuousBehaviourCloningPolicy(Policy):
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'continuous_bC', ['ding.model.template.bc']
-
-    config = dict(
-        type='continuous_bc',
-        cuda=False,
-        on_policy=False,
-        learn=dict(
-            multi_gpu=False,
-            update_per_collect=1,
-            batch_size=32,
-            learning_rate=1e-4,
-        ),
-        collect=dict(unroll_len=1, ),
-        eval=dict(),
-        other=dict(replay_buffer=dict(replay_buffer_size=10000, )),
-    )
-
-    def _init_learn(self):
-        self._optimizer = Adam(
-            self._model.parameters(),
-            lr=1e-4,
-            weight_decay=1e-5,
-        )
-        self._timer = EasyTimer(cuda=True)
-
-        #def lr_scheduler_fn(epoch):
-        #    if epoch <= self._cfg.learn.warmup_epoch:
-        #        return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
-        #    else:
-        #        ratio = epoch // self._cfg.learn.decay_epoch
-        #        return math.pow(self._cfg.learn.decay_rate, ratio)
-        #self._lr_scheduler = LambdaLR(self._optimizer, lr_scheduler_fn)
-        #self._lr_scheduler.step()
-        self._learn_model = model_wrap(self._model, 'base')
-        self._learn_model.reset()
-        # self._mse_loss = nn.SmoothL1Loss()
-        self._mse_loss = nn.L1Loss()
-        # self._mse_loss = nn.MSELoss()
-
-    def _forward_learn(self, data):
-        if not isinstance(data, dict):
-            data = default_collate(data)
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._learn_model.train()
-        with self._timer:
-            if self.cfg.eval.evaluator.cfg_type == 'MetricSerialEvaluatorDict':
-                obs, action = data
-            else:
-                obs, action = data['obs'], data['action'].squeeze()
-            # mu, sigma = self._learn_model.forward(obs, mode='compute_actor')['logit']
-            mu = self._eval_model.forward(data['obs'], mode='compute_actor')['action']
-            loss = self._mse_loss(mu, action)
-            # loss += self._mse_loss(sigma, torch.zeros_like(sigma))
-        forward_time = self._timer.value
-        with self._timer:
-            self._optimizer.zero_grad()
-            loss.backward()
-        backward_time = self._timer.value
-        with self._timer:
-            if self._cfg.learn.multi_gpu:
-                self.sync_gradients(self._learn_model)
-        sync_time = self._timer.value
-        self._optimizer.step()
-        cur_lr = [param_group['lr'] for param_group in self._optimizer.param_groups]
-        cur_lr = sum(cur_lr) / len(cur_lr)
-        return {
-            'cur_lr': cur_lr,
-            'total_loss': loss.item(),
-            'forward_time': forward_time,
-            'backward_time': backward_time,
-            'sync_time': sync_time,
-        }
-
-    def _monitor_vars_learn(self):
-        return ['cur_lr', 'total_loss', 'forward_time', 'backward_time', 'sync_time']
-
-    def _init_eval(self):
-        self._eval_model = model_wrap(self._model, wrapper_name='base')
-        self._eval_model.reset()
-
-    def _forward_eval(self, data):
-        if self.cfg.eval.evaluator.cfg_type == 'MetricSerialEvaluatorDict' or isinstance(data, torch.Tensor):
-            data = default_collate(list(data))
-            if self._cuda:
-                data = to_device(data, self._device)
-            self._eval_model.eval()
-            with torch.no_grad():
-                # print(self._eval_model.forward(data, mode='compute_actor'))
-                # mu, sigma = self._eval_model.forward(data, mode='compute_actor')['logit']
-                output = self._eval_model.forward(data, mode='compute_actor')['action']
-            if self._cuda:
-                output = to_device(output, 'cpu')
-            output = {'action': output}
-            return output
-        else:
-            data_id = list(data.keys())
-            data = default_collate(list(data.values()))
-            if self._cuda:
-                data = to_device(data, self._device)
-            self._eval_model.eval()
-            with torch.no_grad():
-                # mu, sigma = self._eval_model.forward(data, mode='compute_actor')['logit']
-                # output = mu
-                output = self._eval_model.forward(data, mode='compute_actor')['action']
-            if self._cuda:
-                output = to_device(output, 'cpu')
-            output = {'action': output}
-            output = default_decollate(output)
-            return {i: d for i, d in zip(data_id, output)}
-
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        #self._gamma = self._cfg.discount_factor  # necessary for parallel
-        #self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
-        self._collect_model.reset()
-
-    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
-        r"""
-        Overview:
-            Forward function for collect mode with eps_greedy
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - data (:obj:`dict`): The collected data
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._collect_model.eval()
-        with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
+                output = self._collect_model.forward(data)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
