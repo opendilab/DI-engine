@@ -64,7 +64,7 @@ def serial_pipeline_dt(
 
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'eval'])
 
-    tb_logger = SummaryWriter(os.path.join('{}/log/'.format(cfg.exp_name), 'serial'))
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
 
     # ==========

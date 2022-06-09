@@ -30,7 +30,7 @@ def train(args):
 
         exp_name = '_'.join([env, sub_env, 'seed', str(args.seed)])
 
-        main_config.exp_name = os.path.join(main_config.policy.log_dir, exp_name)
+        main_config.exp_name = exp_name
         config = deepcopy([main_config, create_config])
         serial_pipeline_dt(config, seed=args.seed, max_train_iter=3000)
 
