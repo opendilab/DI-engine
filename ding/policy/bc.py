@@ -19,6 +19,7 @@ from ding.utils import POLICY_REGISTRY
 
 @POLICY_REGISTRY.register('bc')
 class BehaviourCloningPolicy(Policy):
+
     def default_model(self) -> Tuple[str, List[str]]:
         if self._cfg.continuous:
             return 'continuous_bc', ['ding.model.template.bc']
@@ -99,9 +100,9 @@ class BehaviourCloningPolicy(Policy):
 
     def _init_eval(self):
         if self._cfg.continuous:
-            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        else:
             self._eval_model = model_wrap(self._model, wrapper_name='base')
+        else:
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data):
