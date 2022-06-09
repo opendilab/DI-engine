@@ -10,7 +10,7 @@ from ding.envs import BaseEnvManager
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
-from ding.torch_utils import tensor_to_list
+from ding.torch_utils import tensor_to_list, get_shape0
 from ding.utils import lists_to_dicts
 
 from ding.framework import Context, OnlineRLContext, OfflineRLContext
@@ -182,7 +182,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
-            obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
+            obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
             inference_output = policy.forward(obs)
             action = [v['action'].numpy() for v in inference_output.values()]  # TBD
             timesteps = env.step(action)
