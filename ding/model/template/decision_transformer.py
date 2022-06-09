@@ -10,7 +10,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 # class Block(nn.Module):
 
 #     def __init__(self, h_dim, max_T, n_heads, drop_p):
@@ -120,16 +119,16 @@ class Block(nn.Module):
 class DecisionTransformer(nn.Module):
 
     def __init__(
-        self,
-        state_dim: int,
-        act_dim: int,
-        n_blocks: int,
-        h_dim: int,
-        context_len: int,
-        n_heads: int,
-        drop_p: float,
-        max_timestep: int = 4096,
-        continuous: bool = True
+            self,
+            state_dim: int,
+            act_dim: int,
+            n_blocks: int,
+            h_dim: int,
+            context_len: int,
+            n_heads: int,
+            drop_p: float,
+            max_timestep: int = 4096,
+            continuous: bool = True
     ) -> None:
         super().__init__()
         self.continuous = continuous
@@ -137,13 +136,13 @@ class DecisionTransformer(nn.Module):
         self.act_dim = act_dim
         self.h_dim = h_dim
 
-        ### transformer blocks
+        # transformer blocks
         # we will serially arrange `return`, `state` and `action`, so here the input_seq_len is 3 * context_len
         input_seq_len = 3 * context_len
         blocks = [Block(h_dim, input_seq_len, n_heads, drop_p) for _ in range(n_blocks)]
         self.transformer = nn.Sequential(*blocks)
 
-        ### projection heads (project to embedding)
+        # projection heads (project to embedding)
         self.embed_ln = nn.LayerNorm(h_dim)
         self.embed_timestep = nn.Embedding(max_timestep, h_dim)
         self.embed_rtg = torch.nn.Linear(1, h_dim)
@@ -157,19 +156,15 @@ class DecisionTransformer(nn.Module):
             action_tanh = False  # False for discrete actions
             self.embed_action = torch.nn.Linear(act_dim, h_dim)
 
-        ### prediction heads
+        # prediction heads
         self.predict_rtg = torch.nn.Linear(h_dim, 1)
         self.predict_state = torch.nn.Linear(h_dim, state_dim)
         self.predict_action = nn.Sequential(*([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if action_tanh else [])))
 
     def forward(
-        self,
-        timesteps: torch.Tensor,
-        states: torch.Tensor,
-        actions: torch.Tensor,
-        returns_to_go: torch.Tensor
-        ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        
+            self, timesteps: torch.Tensor, states: torch.Tensor, actions: torch.Tensor, returns_to_go: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+
         B, T, _ = states.shape
 
         time_embeddings = self.embed_timestep(timesteps)  # shape: (B,context_len/T,h_dim)

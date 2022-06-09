@@ -14,7 +14,7 @@ from ding.torch_utils import to_tensor
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 
 
-def discount_cumsum(x, gamma: float=1.0) -> np.ndarray:
+def discount_cumsum(x, gamma: float = 1.0) -> np.ndarray:
     assert abs(gamma - 1.) < 1e-5, "gamma equals to 1.0 in original decision transformer paper"
     disc_cumsum = np.zeros_like(x)
     disc_cumsum[-1] = x[-1]

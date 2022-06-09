@@ -2,9 +2,6 @@
 The code is adapted from https://github.com/nikhilbarhate99/min-decision-transformer
 """
 from typing import Union, Optional, List, Any, Tuple
-import os
-import torch
-import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
@@ -15,6 +12,8 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.utils.data import create_dataset
+import os
+import logging
 import random
 import time
 import pickle

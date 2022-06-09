@@ -9,7 +9,7 @@ from ditk import logging
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
     qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data
 from ding.model import model_wrap
-from ding.utils.data.dataset import D4RLTrajectoryDataset 
+from ding.utils.data.dataset import D4RLTrajectoryDataset
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from datetime import datetime
@@ -86,7 +86,8 @@ class DTPolicy(DQNPolicy):
         dataset = self._cfg.dataset  # medium / medium-replay / medium-expert
         # rtg_scale: scale of `return to go`
         # rtg_target: max target of `return to go`
-        # Our goal is normalize `return to go` to (0, 1), which will favour the covergence. As a result, we usually set rtg_scale == rtg_target.
+        # Our goal is normalize `return to go` to (0, 1), which will favour the covergence.
+        # As a result, we usually set rtg_scale == rtg_target.
         self.rtg_scale = self._cfg.rtg_target  # normalize returns to go
         self.rtg_target = self._cfg.rtg_target  # max target reward_to_go
         self.max_eval_ep_len = self._cfg.max_eval_ep_len  # max len of one episode
@@ -128,8 +129,7 @@ class DTPolicy(DQNPolicy):
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
 
         self.csv_writer = csv.writer(open(log_csv_path, 'a', 1))
-        csv_header = (["duration", "num_updates",
-                    "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"])
+        csv_header = (["duration", "num_updates", "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"])
 
         self.csv_writer.writerow(csv_header)
 
@@ -178,7 +178,8 @@ class DTPolicy(DQNPolicy):
         traj_mask = traj_mask.to(self.device)  # B x T
         action_target = torch.clone(actions).detach().to(self.device)
 
-        # The shape of `returns_to_go` may differ with different dataset (B x T or B x T x 1), and we need a 3-dim tensor
+        # The shape of `returns_to_go` may differ with different dataset (B x T or B x T x 1),
+        # and we need a 3-dim tensor
         if len(returns_to_go.shape) == 2:
             returns_to_go = returns_to_go.unsqueeze(-1)
 
@@ -190,7 +191,7 @@ class DTPolicy(DQNPolicy):
             timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
         )
 
-        traj_mask = traj_mask.view(-1,)
+        traj_mask = traj_mask.view(-1, )
 
         # only consider non padded elements
         action_preds = action_preds.view(-1, self.act_dim)[traj_mask > 0]
@@ -255,7 +256,8 @@ class DTPolicy(DQNPolicy):
                 )
 
                 # discrete action # TODO
-                # actions = torch.randint(0,self.act_dim,[eval_batch_size, self.max_eval_ep_len, 1], dtype=torch.long, device=self.device)
+                # actions = torch.randint(0,self.act_dim,[eval_batch_size, self.max_eval_ep_len, 1],
+                # dtype=torch.long, device=self.device)
 
                 states = torch.zeros(
                     (eval_batch_size, self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self.device
@@ -326,9 +328,8 @@ class DTPolicy(DQNPolicy):
 
         log_str = (
             "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(total_update_times) +
-            '\n' + '\n' + "eval avg reward: " +
-            format(eval_avg_reward, ".5f") + '\n' + "eval avg ep len: " + format(eval_avg_ep_len, ".5f")  + '\n' +
-            "eval d4rl score: " + format(eval_d4rl_score, ".5f")
+            '\n' + '\n' + "eval avg reward: " + format(eval_avg_reward, ".5f") + '\n' + "eval avg ep len: " +
+            format(eval_avg_ep_len, ".5f") + '\n' + "eval d4rl score: " + format(eval_d4rl_score, ".5f")
         )
 
         logging.info(log_str)
@@ -354,7 +355,8 @@ class DTPolicy(DQNPolicy):
 
     def get_d4rl_normalized_score(self, score, env_name):
         env_key = env_name.split('-')[0].lower()
-        assert env_key in D4RLTrajectoryDataset.REF_MAX_SCORE, f'no reference score for {env_key} env to calculate d4rl score'
+        assert env_key in D4RLTrajectoryDataset.REF_MAX_SCORE, \
+            f'no reference score for {env_key} env to calculate d4rl score'
         d4rl_max_score, d4rl_min_score = D4RLTrajectoryDataset.REF_MAX_SCORE, D4RLTrajectoryDataset.REF_MIN_SCORE
         return (score - d4rl_min_score[env_key]) / (d4rl_max_score[env_key] - d4rl_min_score[env_key])
 
