@@ -19,6 +19,7 @@ args = list(product(*[action_shape_args, ['regression', 'reparameterization']]))
 @pytest.mark.unittest
 @pytest.mark.parametrize('action_shape, action_space', args)
 class TestContinuousBC:
+
     def test_continuous_bc(self, action_shape, action_space):
         N = 32
         inputs = {'obs': torch.randn(B, N), 'action': torch.randn(B, squeeze(action_shape))}
@@ -45,14 +46,17 @@ class TestContinuousBC:
             assert sigma.shape == (B, *action_shape)
             is_differentiable(mu.sum() + sigma.sum(), model.actor)
 
+
 T, B = 3, 4
 obs_shape = [4, (8, ), (4, 64, 64)]
 act_shape = [3, (6, ), [2, 3, 6]]
 args = list(product(*[obs_shape, act_shape]))
 
+
 @pytest.mark.unittest
 @pytest.mark.parametrize('obs_shape, act_shape', args)
 class TestDiscreteBC:
+
     def output_check(self, model, outputs):
         if isinstance(outputs, torch.Tensor):
             loss = outputs.sum()

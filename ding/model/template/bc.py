@@ -11,6 +11,7 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
 
 @MODEL_REGISTRY.register('discrete_bc')
 class DiscreteBC(nn.Module):
+
     def __init__(
             self,
             obs_shape: Union[int, SequenceType],
