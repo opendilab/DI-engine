@@ -2,6 +2,7 @@ from copy import deepcopy
 from time import sleep
 import torch
 import pytest
+import logging
 
 from ding.envs import BaseEnvManager
 from ding.model import VAC
@@ -13,6 +14,7 @@ from ding.framework.middleware.functional.actor_data import ActorData
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
 from dizoo.league_demo.game_env import GameEnv
 
+logging.getLogger().setLevel(logging.INFO)
 
 def prepare_test():
     global cfg
@@ -73,7 +75,7 @@ def _main():
             learner = LeagueLearner(cfg, policy_fn, player)
             learner._learner._tb_logger = MockLogger()
             task.use(learner)
-        task.run(max_step=5)
+        task.run(max_step=3)
 
 
 @pytest.mark.unittest

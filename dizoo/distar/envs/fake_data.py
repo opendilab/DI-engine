@@ -1,9 +1,8 @@
 from typing import Sequence
 import torch
 
-from .meta import MAX_DELAY, MAX_ENTITY_NUM, NUM_ACTIONS, ENTITY_TYPE_NUM, NUM_UPGRADES, NUM_CUMULATIVE_STAT_ACTIONS, \
-    NUM_BEGINNING_ORDER_ACTIONS, NUM_UNIT_MIX_ABILITIES, NUM_QUEUE_ACTION, NUM_BUFFS, NUM_ADDON
-#from distar.ctools.data.collate_fn import default_collate_with_dim
+from .meta import *
+# from distar.ctools.data.collate_fn import default_collate_with_dim
 
 currTrainCount_MAX = 5
 H, W = 152, 160

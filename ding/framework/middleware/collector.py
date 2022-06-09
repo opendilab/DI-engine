@@ -1,5 +1,6 @@
 from distutils.log import info
 from easydict import EasyDict
+from ding import policy
 from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task, EventEnum

@@ -126,7 +126,6 @@ class MockHerRewardModel(Mock):
 class MockLeague(BaseLeague):
     def __init__(self, cfg) -> None:
         super().__init__(cfg)
-        print(self.active_players)
         self.update_payoff_cnt = 0
         self.update_active_player_cnt = 0
         self.create_historical_player_cnt = 0

@@ -59,6 +59,7 @@ def _main():
     league = MockLeague(cfg.policy.other.league)
 
     with task.start(async_mode=True):
+        print("node id:", task.router.node_id)
         if task.router.node_id == 0:
             task.use(LeagueCoordinator(league))
         elif task.router.node_id <= N_ACTORS:
@@ -70,13 +71,13 @@ def _main():
             learner._learner._tb_logger = MockLogger()
             task.use(learner)
 
-        task.run(max_step=10)
+        task.run(max_step=120)
 
 
 @pytest.mark.unittest
 def test_league_actor():
-    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS+N_LEARNERS+1, protocol="tcp", topology="mesh")(_main)
 
 
 if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS+N_LEARNERS+1, protocol="tcp", topology="mesh")(_main)

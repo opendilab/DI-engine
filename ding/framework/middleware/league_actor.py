@@ -37,11 +37,13 @@ class LeagueActor:
         self.job_queue = queue.Queue()
         self.model_dict = {}
         self.model_dict_lock = Lock()
+        self._step = 0
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
         If get newest learner model, put it inside model_queue.
         """
+        print("receive model from learner")
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -114,3 +116,5 @@ class LeagueActor:
         ctx.policy_kwargs = None
 
         collector(ctx)
+        logging.info("{} Step: {}".format(self.__class__, self._step))
+        self._step += 1
