@@ -48,15 +48,6 @@ class BehaviourCloningPolicy(Policy):
             lr=self._cfg.learn.learning_rate,
         )
         self._timer = EasyTimer(cuda=True)
-
-        #def lr_scheduler_fn(epoch):
-        #    if epoch <= self._cfg.learn.warmup_epoch:
-        #        return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
-        #    else:
-        #        ratio = epoch // self._cfg.learn.decay_epoch
-        #        return math.pow(self._cfg.learn.decay_rate, ratio)
-        #self._lr_scheduler = LambdaLR(self._optimizer, lr_scheduler_fn)
-        #self._lr_scheduler.step()
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
         if not self._cfg.continuous:
