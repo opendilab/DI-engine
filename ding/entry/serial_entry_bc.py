@@ -34,7 +34,7 @@ def serial_pipeline_bc(
         - policy (:obj:`Policy`): Converged policy.
         - convergence (:obj:`bool`): whether il training is converged
     """
-    cont = input_cfg[0].policy.type == 'continuous_bc'
+    cont = input_cfg[0].policy.continuous
 
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
@@ -75,10 +75,15 @@ def serial_pipeline_bc(
         for _, bat in enumerate(eval_loader):
             res = policy._forward_eval(bat['obs'])
             if cont:
-                loss_list.append(torch.nn.L1Loss()(res['action'], bat['action']).item())
+                loss_list.append(torch.nn.L1Loss()(res['action'], bat['action'].squeeze(-1)).item())
+            else:
+                res = torch.argmax(res['logit'], dim=1)
+                loss_list.append(torch.sum(res['action'] == bat['action'].squeeze(-1)).item() / bat['action'].shape[0])
         if cont:
             label = 'validation_loss'
-            tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
+        else:
+            label = 'validation_acc'
+        tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
         for i, train_data in enumerate(dataloader):
             if evaluator.should_eval(learner.train_iter):
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
