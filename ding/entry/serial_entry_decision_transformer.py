@@ -73,11 +73,16 @@ def serial_pipeline_dt(
     # Learner's before_run hook.
     learner.call_hook('before_run')
     stop = False
+    total_update_times = 0
     for i in range(max_train_iter):
-        data_iter = iter(traj_data_loader)
-        for j in range(cfg.policy.num_updates_per_iter):
-            learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
-        if i % 10 == 0:
-            policy.evaluate(state_mean, state_std)
+        for j, train_data in enumerate(traj_data_loader):
+            learner.train(train_data)
+            total_update_times += 1
+            if total_update_times != 0 and total_update_times % 1000 == 0:
+                stop = policy.evaluate(total_update_times, state_mean, state_std)
+                if stop:
+                    break
+        if stop:
+            break
     learner.call_hook('after_run')
     return policy, stop

@@ -54,7 +54,6 @@ class DTPolicy(DQNPolicy):
         wt_decay=1e-4,
         warmup_steps=10000,
         max_train_iters=200,
-        num_updates_per_iter=100,
         context_len=20,
         n_blocks=3,
         embed_dim=128,
@@ -97,9 +96,7 @@ class DTPolicy(DQNPolicy):
         wt_decay = self._cfg.wt_decay  # weight decay
         warmup_steps = self._cfg.warmup_steps  # warmup steps for lr scheduler
 
-        # total updates = max_train_iters x num_updates_per_iter
         max_train_iters = self._cfg.max_train_iters
-        self.num_updates_per_iter = self._cfg.num_updates_per_iter
 
         self.context_len = self._cfg.context_len  # K in decision transformer
         n_blocks = self._cfg.n_blocks  # num of transformer blocks
@@ -159,9 +156,8 @@ class DTPolicy(DQNPolicy):
         )
 
         self.max_env_score = -1.0
-        self.total_updates = 0
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: list) -> Dict[str, Any]:
         r"""
             Overview:
                 Forward and backward function of learn mode.
@@ -173,14 +169,7 @@ class DTPolicy(DQNPolicy):
 
         self._learn_model.train()
 
-        data_iter = data['data_iter']
-        traj_data_loader = data['traj_data_loader']
-
-        try:
-            timesteps, states, actions, returns_to_go, traj_mask = next(data_iter)
-        except StopIteration:
-            data_iter = iter(traj_data_loader)
-            timesteps, states, actions, returns_to_go, traj_mask = next(data_iter)
+        timesteps, states, actions, returns_to_go, traj_mask = data
 
         timesteps = timesteps.to(self.device)  # B x T
         states = states.to(self.device)  # B x T x state_dim
@@ -326,7 +315,7 @@ class DTPolicy(DQNPolicy):
 
         return results
 
-    def evaluate(self, state_mean=None, state_std=None, render=False):
+    def evaluate(self, total_update_times, state_mean=None, state_std=None, render=False):
         results = self.evaluate_on_env(state_mean, state_std, render)
 
         eval_avg_reward = results['eval/avg_reward']
@@ -335,10 +324,8 @@ class DTPolicy(DQNPolicy):
 
         time_elapsed = str(datetime.now().replace(microsecond=0) - self.start_time)
 
-        self.total_updates += self.num_updates_per_iter * 10
-
         log_str = (
-            "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(self.total_updates) +
+            "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(total_update_times) +
             '\n' + '\n' + "eval avg reward: " +
             format(eval_avg_reward, ".5f") + '\n' + "eval avg ep len: " + format(eval_avg_ep_len, ".5f")  + '\n' +
             "eval d4rl score: " + format(eval_d4rl_score, ".5f")
@@ -346,7 +333,7 @@ class DTPolicy(DQNPolicy):
 
         logging.info(log_str)
 
-        log_data = [time_elapsed, self.total_updates, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
+        log_data = [time_elapsed, total_update_times, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
         log_csv_name = self.prefix + "_log_" + self.start_time_str + ".csv"
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
 
@@ -363,7 +350,7 @@ class DTPolicy(DQNPolicy):
         logging.info("saving current model at: " + self.save_model_path)
         torch.save(self._learn_model.state_dict(), self.save_model_path)
 
-        return self.max_env_score >= self.stop_value:
+        return self.max_env_score >= self.stop_value
 
     def get_d4rl_normalized_score(self, score, env_name):
         env_key = env_name.split('-')[0].lower()
