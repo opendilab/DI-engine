@@ -102,9 +102,9 @@ def eval_bc(validation_set, policy, use_cuda):
 
 
 def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
-    cfg = copy.deepcopy(cfg).policy
-    cfg.continuous = False
-    bc_policy = bc.BehaviourCloningPolicy(cfg)
+    cfg_new = copy.deepcopy(cfg).policy
+    cfg_new.continuous = False
+    bc_policy = bc.BehaviourCloningPolicy(cfg_new)
 
     if pre_expert_data is None:
         with open(cfg.reward_model.offline_data_path + '/suboptimal_data.pkl', 'rb') as f:
@@ -147,9 +147,9 @@ def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
 
 
 def load_bc(load_path, cfg):
-    cfg = copy.deepcopy(cfg).policy
-    cfg.continuous = False
-    bc_policy = bc.BehaviourCloningPolicy(cfg)
+    cfg_new = copy.deepcopy(cfg).policy
+    cfg_new.continuous = False
+    bc_policy = bc.BehaviourCloningPolicy(cfg_new)
     state_dict = torch.load(load_path, map_location='cpu')
     bc_policy.collect_mode.load_state_dict(state_dict)
     print('Load bc from {}'.format(load_path))

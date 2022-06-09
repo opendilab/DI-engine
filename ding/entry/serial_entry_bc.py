@@ -77,7 +77,7 @@ def serial_pipeline_bc(
                 loss_list.append(torch.nn.L1Loss()(res['action'], bat['action'].squeeze(-1)).item())
             else:
                 res = torch.argmax(res['logit'], dim=1)
-                loss_list.append(torch.sum(res['action'] == bat['action'].squeeze(-1)).item() / bat['action'].shape[0])
+                loss_list.append(torch.sum(res == bat['action'].squeeze(-1)).item() / bat['action'].shape[0])
         if cont:
             label = 'validation_loss'
         else:

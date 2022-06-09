@@ -1,6 +1,5 @@
 from ding.entry import serial_pipeline_bc, serial_pipeline, collect_demo_data
-# from dizoo.box2d.bipedalwalker.config.bipedalwalker_sac_config import main_config, create_config
-from dizoo.classic_control.pendulum.config.pendulum_td3_config import main_config, create_config
+from dizoo.mujoco.config.halfcheetah_td3_config import main_config, create_config
 from copy import deepcopy
 from typing import Union, Optional, List, Any, Tuple
 import os
@@ -18,6 +17,8 @@ from ding.utils import set_pkg_seed
 from ding.entry.utils import random_collect
 from ding.entry import collect_demo_data, collect_episodic_demo_data, episode_to_transitions
 import pickle
+
+
 def load_policy(
         input_cfg: Union[str, Tuple[dict, dict]],
         load_path: str,
@@ -25,22 +26,6 @@ def load_policy(
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
 ) -> 'Policy':  # noqa
-    """
-    Overview:
-        Serial pipeline entry for off-policy RL.
-    Arguments:
-        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
-            ``str`` type means config file path. \
-            ``Tuple[dict, dict]`` type means [user_config, create_cfg].
-        - seed (:obj:`int`): Random seed.
-        - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
-            ``BaseEnv`` subclass, collector env config, and evaluator env config.
-        - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
-        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
-    Returns:
-        - policy (:obj:`Policy`): Converged policy.
-    """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
@@ -64,25 +49,20 @@ def load_policy(
     return policy
 
 
-def run_go():
-    bipe_sac_config, bipe_sac_create_config = main_config, create_config
-    train_config = [deepcopy(bipe_sac_config), deepcopy(bipe_sac_create_config)]
-    exp_path = '/mnt/nfs/wanghaolin/cont_bc/DI-engine/pendulum_td3_seed0/ckpt/ckpt_best.pth.tar'
+def main():
+    half_td3_config, half_td3_create_config = main_config, create_config
+    train_config = [deepcopy(half_td3_config), deepcopy(half_td3_create_config)]
+    exp_path = 'DI-engine/halfcheetah_td3_seed0/ckpt/ckpt_best.pth.tar'
     expert_policy = load_policy(train_config, load_path=exp_path, seed=0)
 
     # collect expert demo data
-    collect_count = 400
-    expert_data_path = 'expert_data_dqn.pkl'
+    collect_count = 100
+    expert_data_path = 'expert_data.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
-    collect_config = [deepcopy(bipe_sac_config), deepcopy(bipe_sac_create_config)]
-    # collect_demo_data(
-    #     collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
-    # )
+    collect_config = [deepcopy(half_td3_config), deepcopy(half_td3_create_config)]
+
     collect_episodic_demo_data(
         deepcopy(collect_config), seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
-    )
-    collect_episodic_demo_data(
-        collect_config, seed=0, state_dict=state_dict, expert_data_path='eval_data.pkl', collect_count=10,
     )
 
     episode_to_transitions(
@@ -90,24 +70,16 @@ def run_go():
     )
 
     # il training 2
-    il_config = [deepcopy(bipe_sac_config), deepcopy(bipe_sac_create_config)]
-    il_config[0].policy.learn.train_epoch = 100
-    il_config[0].policy.type = 'continuous_bc'
+    il_config = [deepcopy(half_td3_config), deepcopy(half_td3_create_config)]
+    il_config[0].policy.learn.train_epoch = 1000000
+    il_config[0].policy.type = 'bc'
+    il_config[0].policy.continuous = True
     il_config[0].exp_name = "continuous_bc_seed0"
-    il_config[0].env.stop_value = 50
+    il_config[0].env.stop_value = 50000
     il_config[0].multi_agent = False
-    bc_policy , converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
+    bc_policy, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path, max_iter=4e6)
     return bc_policy
 
 
-policy = run_go()
-with open('eval_data.pkl', 'rb') as f:
-    eval_data = pickle.load(f)
-
-for epi in eval_data:
-    loss_tot = []
-    for ite in epi:
-        pred = policy._model(ite['obs'].cuda(), mode='compute_actor')['action']
-        real = ite['action']
-        loss_tot.append(nn.L1Loss()(pred, real).item())
-    print(loss_tot)
+if __name__ =='__main__':
+    policy = main()

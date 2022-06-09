@@ -116,6 +116,7 @@ class ContinuousBC(nn.Module):
             actor_head_layer_num: int = 1,
             critic_head_hidden_size: int = 64,
             critic_head_layer_num: int = 1,
+            twin_critic: bool = False,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
@@ -145,7 +146,7 @@ class ContinuousBC(nn.Module):
         self.action_shape = action_shape
         self.action_space = action_space
         assert self.action_space in ['regression', 'reparameterization']
-        if self.action_space == 'regression':  # DDPG, TD3
+        if self.action_space == 'regression':
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 RegressionHead(
@@ -157,7 +158,7 @@ class ContinuousBC(nn.Module):
                     norm_type=norm_type
                 )
             )
-        elif self.action_space == 'reparameterization':  # SAC
+        elif self.action_space == 'reparameterization':
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 ReparameterizationHead(
