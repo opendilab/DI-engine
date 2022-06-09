@@ -72,11 +72,18 @@ def main(cfg, seed=0):
 
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     league = MyLeague(cfg.policy.other.league)
-    policies, learners, collectors = {}, {}, {}
+    policies, learners, collectors, evaluators = {}, {}, {}, {}
+
+    #state_dict = torch.load('/home/pi/DI-engine/slime_volley_ppo_seed0/ckpt_learner1/iteration_3000000.pth.tar')
 
     for player_id in league.active_players_ids:
         model = VAC(**cfg.policy.model)
         policy = PPOPolicy(cfg.policy, model=model)
+        
+        # pretrain = True
+        #policy.collect_mode.load_state_dict(state_dict)
+        #policy.learn_mode.load_state_dict(state_dict)
+        
         policies[player_id] = policy
         collector_env = SyncSubprocessEnvManager(
             env_fn=[partial(SlimeVolleyEnv, collector_env_cfg) for _ in range(collector_env_num)], cfg=cfg.env.manager
@@ -97,6 +104,19 @@ def main(cfg, seed=0):
             exp_name=cfg.exp_name,
             instance_name=player_id + '_collector'
         )
+
+        # eval vs bot
+        evaluator_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
+        evaluator_cfg.stop_value = cfg.env.stop_value
+        evaluators[player_id] = InteractionSerialEvaluator(
+            evaluator_cfg,
+            evaluator_env,
+            policy.eval_mode,
+            tb_logger,
+            exp_name=cfg.exp_name,
+            instance_name='builtin_ai_evaluator'
+        )
+
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     policies['historical'] = policy
@@ -105,23 +125,26 @@ def main(cfg, seed=0):
     main_learner = learners[main_key]
     main_collector = collectors[main_key]
 
+    main_evaluator = evaluators[main_key]
+
     # eval vs bot
-    evaluator_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
-    evaluator_cfg.stop_value = cfg.env.stop_value
-    evaluator = InteractionSerialEvaluator(
-        evaluator_cfg,
-        evaluator_env,
-        policy.eval_mode,
-        tb_logger,
-        exp_name=cfg.exp_name,
-        instance_name='builtin_ai_evaluator'
-    )
+    #evaluator_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
+    #evaluator_cfg.stop_value = cfg.env.stop_value
+    #evaluator = InteractionSerialEvaluator(
+    #    evaluator_cfg,
+    #    evaluator_env,
+    #    policy.eval_mode,
+    #    tb_logger,
+    #    exp_name=cfg.exp_name,
+    #    instance_name='builtin_ai_evaluator'
+    #) 
 
     def load_checkpoint_fn(player_id: str, ckpt_path: str):
         state_dict = torch.load(ckpt_path)
         policies[player_id].learn_mode.load_state_dict(state_dict)
 
     league.load_checkpoint = load_checkpoint_fn
+
     # snapshot the initial player as the first historial player
     for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
@@ -131,8 +154,8 @@ def main(cfg, seed=0):
 
     count = 0
     while True:
-        if evaluator.should_eval(main_learner.train_iter):
-            stop_flag, eval_episode_info = evaluator.eval(
+        if main_evaluator.should_eval(main_learner.train_iter):
+            stop_flag, eval_episode_info = main_evaluator.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in eval_episode_info]
@@ -185,6 +208,8 @@ def main(cfg, seed=0):
             tb_logger.add_text('payoff_step', payoff_string, main_collector.envstep)
             tb_logger.add_text('rank_step', rank_string, main_collector.envstep)
         count += 1
+        if collector.envstep >= 10000000:
+            break
 
 
 if __name__ == "__main__":
