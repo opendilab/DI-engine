@@ -104,7 +104,6 @@ class LeagueActor:
         collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
-        ctx.agent_num = len(ctx.current_policies)
 
         _default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
         if ctx.n_episode is None:
@@ -114,6 +113,7 @@ class LeagueActor:
                 ctx.n_episode = _default_n_episode
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
+        ctx.agent_num = len(ctx.current_policies)
         ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(ctx.agent_num)]
         ctx.remain_episode = ctx.n_episode

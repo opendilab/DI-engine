@@ -80,26 +80,32 @@ class BattleContext(Context):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.__dict__ = self
+        # collect target paras
         self.n_episode = None
-        self.train_iter = 0
-        self.job = None
-        self.collect_kwargs = {}
+        self.n_sample = 1
+        self.unroll_len = 1
+        
+        #collect process paras
         self.env_episode = 0
-        self.episodes = []
-        self.episode_info = []
-        self.ready_env_id = set()
-        self.agent_num = 2
-        self.job_finish = False
-        self.traj_len = float("inf")
-        self.current_policies = []
         self.env_step = 0
         self.total_envstep_count = 0
+        self.train_iter = 0
+        self.collect_kwargs = {}
+        self.agent_num = 2
+        self.traj_len = float("inf")
+        self.current_policies = []
+        self.ready_env_id = set()
+        self.remain_episode = 0
+
+        #job paras
+        self.job = None
+        self.job_finish = False
+
+        #Return data paras
+        self.episodes = []
+        self.episode_info = []
         self.trajectories_list = []
         self.trajectory_end_idx_list = []
         self.trajectories = []
         self.trajectory_end_idx = None
-
-        self.remain_episode = 0
-        self.n_sample = 1
-        self.unroll_len = 1
         self.train_data = None
