@@ -1,5 +1,5 @@
 from types import MethodType
-from typing import Union, Any, List, Callable, Dict, Optional
+from typing import Union, Any, List, Callable, Dict, Optional, Tuple
 from functools import partial, wraps
 from easydict import EasyDict
 import copy
@@ -125,6 +125,10 @@ class BaseEnvManager(object):
         return self._env_num
 
     @property
+    def env_ref(self) -> int:
+        return self._env_ref
+
+    @property
     def observation_space(self) -> 'gym.spaces.Space':  # noqa
         return self._observation_space
 
@@ -159,12 +163,24 @@ class BaseEnvManager(object):
         return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
     @property
+    def ready_imgs(self, render_mode: Optional[str] = 'rgb_array') -> Dict[int, Any]:
+        """
+        Overview:
+            Get the next ready renderd frame and corresponding env id.
+        Return:
+            - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.
+        """
+        from ding.utils import render
+        assert render_mode in ['rgb_array', 'depth_array']
+        return {i: render(self._envs[i], render_mode) for i in self.ready_obs.keys()}
+
+    @property
     def done(self) -> bool:
         return all([s == EnvState.DONE for s in self._env_states.values()])
 
     @property
     def method_name_list(self) -> list:
-        return ['reset', 'step', 'seed', 'close', 'enable_save_replay']
+        return ['reset', 'step', 'seed', 'close', 'enable_save_replay', 'render']
 
     def env_state_done(self, env_id: int) -> bool:
         return self._env_states[env_id] == EnvState.DONE

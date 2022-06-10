@@ -123,19 +123,36 @@ def dist_1step_td_error(
 ) -> torch.Tensor:
     dist, next_dist, act, next_act, reward, done, weight = data
     device = reward.device
-    assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
-    reward = reward.unsqueeze(-1)
-    done = done.unsqueeze(-1)
     support = torch.linspace(v_min, v_max, n_atom).to(device)
     delta_z = (v_max - v_min) / (n_atom - 1)
-    batch_size = act.shape[0]
-    batch_range = torch.arange(batch_size)
-    if weight is None:
-        weight = torch.ones_like(reward)
 
-    next_dist = next_dist[batch_range, next_act].detach()
+    if len(act.shape) == 1:
+        reward = reward.unsqueeze(-1)
+        done = done.unsqueeze(-1)
+        batch_size = act.shape[0]
+        batch_range = torch.arange(batch_size)
+        if weight is None:
+            weight = torch.ones_like(reward)
+        next_dist = next_dist[batch_range, next_act].detach()
+    else:
+        reward = reward.unsqueeze(-1).repeat(1, act.shape[1])
+        done = done.unsqueeze(-1).repeat(1, act.shape[1])
 
+        batch_size = act.shape[0] * act.shape[1]
+        batch_range = torch.arange(act.shape[0] * act.shape[1])
+        action_dim = dist.shape[2]
+        dist = dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+        reward = reward.reshape(act.shape[0] * act.shape[1], -1)
+        done = done.reshape(act.shape[0] * act.shape[1], -1)
+        next_dist = next_dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+
+        next_act = next_act.reshape(act.shape[0] * act.shape[1])
+        next_dist = next_dist[batch_range, next_act].detach()
+        next_dist = next_dist.reshape(act.shape[0] * act.shape[1], -1)
+        act = act.reshape(act.shape[0] * act.shape[1])
+        if weight is None:
+            weight = torch.ones_like(reward)
     target_z = reward + (1 - done) * gamma * support
     target_z = target_z.clamp(min=v_min, max=v_max)
     b = (target_z - v_min) / delta_z
@@ -196,7 +213,8 @@ def dist_nstep_td_error(
 ) -> torch.Tensor:
     r"""
     Overview:
-        Multistep (1 step or n step) td_error for distributed q-learning based algorithm
+        Multistep (1 step or n step) td_error for distributed q-learning based algorithm, support single\
+            agent case and multi agent case.
     Arguments:
         - data (:obj:`dist_nstep_td_data`): the input data, dist_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
@@ -215,24 +233,49 @@ def dist_nstep_td_error(
     """
     dist, next_n_dist, act, next_n_act, reward, done, weight = data
     device = reward.device
-    assert len(act.shape) == 1, act.shape
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
     reward = torch.matmul(reward_factor, reward)
-    reward = reward.unsqueeze(-1)
-    done = done.unsqueeze(-1)
     support = torch.linspace(v_min, v_max, n_atom).to(device)
     delta_z = (v_max - v_min) / (n_atom - 1)
-    batch_size = act.shape[0]
-    batch_range = torch.arange(batch_size)
-    if weight is None:
-        weight = torch.ones_like(reward)
+    if len(act.shape) == 1:
+        reward = reward.unsqueeze(-1)
+        done = done.unsqueeze(-1)
+        batch_size = act.shape[0]
+        batch_range = torch.arange(batch_size)
+        if weight is None:
+            weight = torch.ones_like(reward)
+        elif isinstance(weight, float):
+            weight = torch.tensor(weight)
 
-    next_n_dist = next_n_dist[batch_range, next_n_act].detach()
+        next_n_dist = next_n_dist[batch_range, next_n_act].detach()
+    else:
+        reward = reward.unsqueeze(-1).repeat(1, act.shape[1])
+        done = done.unsqueeze(-1).repeat(1, act.shape[1])
+
+        batch_size = act.shape[0] * act.shape[1]
+        batch_range = torch.arange(act.shape[0] * act.shape[1])
+        action_dim = dist.shape[2]
+        dist = dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+        reward = reward.reshape(act.shape[0] * act.shape[1], -1)
+        done = done.reshape(act.shape[0] * act.shape[1], -1)
+        next_n_dist = next_n_dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+
+        next_n_act = next_n_act.reshape(act.shape[0] * act.shape[1])
+        next_n_dist = next_n_dist[batch_range, next_n_act].detach()
+        next_n_dist = next_n_dist.reshape(act.shape[0] * act.shape[1], -1)
+        act = act.reshape(act.shape[0] * act.shape[1])
+        if weight is None:
+            weight = torch.ones_like(reward)
+        elif isinstance(weight, float):
+            weight = torch.tensor(weight)
 
     if value_gamma is None:
         target_z = reward + (1 - done) * (gamma ** nstep) * support
+    elif isinstance(value_gamma, float):
+        value_gamma = torch.tensor(value_gamma).unsqueeze(-1)
+        target_z = reward + (1 - done) * value_gamma * support
     else:
         value_gamma = value_gamma.unsqueeze(-1)
         target_z = reward + (1 - done) * value_gamma * support
@@ -966,7 +1009,11 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
 
 
 def generalized_lambda_returns(
-        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float
+        bootstrap_values: torch.Tensor,
+        rewards: torch.Tensor,
+        gammas: float,
+        lambda_: float,
+        done: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     r"""
     Overview:
@@ -981,6 +1028,8 @@ def generalized_lambda_returns(
           discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
         - lambda (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping
           vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]
+        - done (:obj:`torch.Tensor` or :obj:`float`):
+          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
     Returns:
         - return (:obj:`torch.Tensor`): Computed lambda return value
           for each state from 0 to T-1, of size [T_traj, batchsize]
@@ -990,11 +1039,15 @@ def generalized_lambda_returns(
     if not isinstance(lambda_, torch.Tensor):
         lambda_ = lambda_ * torch.ones_like(rewards)
     bootstrap_values_tp1 = bootstrap_values[1:, :]
-    return multistep_forward_view(bootstrap_values_tp1, rewards, gammas, lambda_)
+    return multistep_forward_view(bootstrap_values_tp1, rewards, gammas, lambda_, done)
 
 
 def multistep_forward_view(
-        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float
+        bootstrap_values: torch.Tensor,
+        rewards: torch.Tensor,
+        gammas: float,
+        lambda_: float,
+        done: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     r"""
     Overview:
@@ -1008,9 +1061,6 @@ def multistep_forward_view(
         ```
 
         Assuming the first dim of input tensors correspond to the index in batch
-        There is no special handling for terminal state value,
-        if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
-        (including the terminal state, which is, bootstrap_values[terminal] should also be 0)
     Arguments:
         - bootstrap_values (:obj:`torch.Tensor`): estimation of the value at *step 1 to T*, of size [T_traj, batchsize]
         - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
@@ -1018,17 +1068,23 @@ def multistep_forward_view(
         - lambda (:obj:`torch.Tensor`): determining the mix of bootstrapping vs further accumulation of \
             multistep returns at each timestep of size [T_traj, batchsize], the element for T-1 is ignored \
             and effectively set to 0, as there is no information about future rewards.
+        - done (:obj:`torch.Tensor` or :obj:`float`):
+          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
     Returns:
         - ret (:obj:`torch.Tensor`): Computed lambda return value \
             for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     result = torch.empty_like(rewards)
+    if done is None:
+        done = torch.zeros_like(rewards)
     # Forced cutoff at the last one
-    result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
+    result[-1, :] = rewards[-1, :] + (1 - done[-1, :]) * gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
-        result[t, :] = rewards[t, :] \
-                       + discounts[t, :] * result[t + 1, :] \
-                       + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+        result[t, :] = rewards[t, :] + (1 - done[t, :]) * \
+             (
+                discounts[t, :] * result[t + 1, :] +
+                (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+             )
 
     return result

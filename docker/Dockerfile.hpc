@@ -1,0 +1,77 @@
+FROM opendilab/di-hpc:develop as ding-hpc-develop
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /ding
+
+RUN apt update \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make locales -y \
+    && apt clean \
+    && rm -rf /var/cache/apt/* \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
+
+ENV LANG        en_US.UTF-8
+ENV LANGUAGE    en_US:UTF-8
+ENV LC_ALL      en_US.UTF-8
+ENV ENABLE_DI_HPC true
+
+ADD setup.py setup.py
+ADD dizoo dizoo
+ADD ding ding
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install --no-cache-dir 'PyYAML<6.0' \
+    && python3 -m pip install --no-cache-dir .[fast]
+
+FROM opendilab/di-hpc:runtime as ding-hpc-runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /ding
+
+RUN apt update \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make locales -y \
+    && apt clean \
+    && rm -rf /var/cache/apt/* \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
+
+ENV LANG        en_US.UTF-8
+ENV LANGUAGE    en_US:UTF-8
+ENV LC_ALL      en_US.UTF-8
+ENV ENABLE_DI_HPC true
+
+ADD setup.py setup.py
+ADD dizoo dizoo
+ADD ding ding
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install --no-cache-dir 'PyYAML<6.0' \
+    && python3 -m pip install --no-cache-dir .[fast]
+
+FROM opendilab/di-hpc:nightly as ding-hpc
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /ding
+
+RUN apt update \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make locales -y \
+    && apt clean \
+    && rm -rf /var/cache/apt/* \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
+
+ENV LANG        en_US.UTF-8
+ENV LANGUAGE    en_US:UTF-8
+ENV LC_ALL      en_US.UTF-8
+ENV ENABLE_DI_HPC true
+
+ADD setup.py setup.py
+ADD dizoo dizoo
+ADD ding ding
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install --no-cache-dir 'PyYAML<6.0' \
+    && python3 -m pip install --no-cache-dir .[fast]
