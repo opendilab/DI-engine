@@ -404,6 +404,14 @@ def get_shape0(data):
     if isinstance(data, torch.Tensor):
         return data.shape[0]
     elif isinstance(data, ttorch.Tensor):
-        return list(data.shape.values())[0][0]
+
+        def fn(t):
+            item = list(t.values())[0]
+            if np.isscalar(item[0]):
+                return item[0]
+            else:
+                return fn(item)
+
+        return fn(data.shape)
     else:
         raise TypeError("not support type: {}".format(data))
