@@ -34,7 +34,7 @@ env_cfg = EasyDict(
 class TestDIstarEnv:
     def __init__(self):
 
-        cfg = read_config('C:/Users/hjs/DI-engine/dizoo/distar/envs/test_distar_config.yaml')
+        cfg = read_config('./test_distar_config.yaml')
         self._whole_cfg = cfg
         self._whole_cfg.env.map_name = 'KingsCove'
         self._agent_env = DIStarEnv(self._whole_cfg)
@@ -61,7 +61,6 @@ class TestDIstarEnv:
                         actions = {}
                         for env_id in range(1):
                             observations = obs[env_id]
-                            print(type(observations))
                             actions[env_id] = self._agent_env.random_action(observations)
                             # print(actions)
                         timesteps = self._env.step(actions)
