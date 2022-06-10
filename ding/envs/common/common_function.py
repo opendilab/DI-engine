@@ -211,7 +211,7 @@ def compute_denominator(x: torch.Tensor) -> torch.Tensor:
     Returns:
         - ret (:obj:`torch.Tensor`):
     """
-    x = x // 2 * 2
+    x = torch.div(x, 2, rounding_mode='trunc') * 2
     x = torch.div(x, 64.)
     x = torch.pow(10000., x)
     x = torch.div(1., x)

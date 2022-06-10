@@ -199,25 +199,25 @@ class R2D2Policy(Policy):
         burnin_step = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step]
+        # the q_nstep_td_error, should be length of [self._sequence_len-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - burnin_step)]
+            data['done'] = [None for _ in range(self._sequence_len - burnin_step)]
         else:
             data['done'] = data['done'][burnin_step:].float()  # for computation of online model self._learn_model
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
             # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step],
+        # with length of [self._sequence_len-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - burnin_step)]
+            data['value_gamma'] = [None for _ in range(self._sequence_len - burnin_step)]
         else:
             data['value_gamma'] = data['value_gamma'][burnin_step:]
 
         if 'weight' not in data or data['weight'] is None:
-            data['weight'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - burnin_step)]
+            data['weight'] = [None for _ in range(self._sequence_len - burnin_step)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
@@ -233,7 +233,7 @@ class R2D2Policy(Policy):
         # these slicing are all done in the outermost layer, which is the seq_len dim
         data['burnin_nstep_obs'] = data['obs'][:burnin_step + self._nstep]
         # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
-        # [bs] timestep to [self._learn_unroll_len_plus_burnin_step-self._nstep] timestep
+        # [bs] timestep to [self._sequence_len-self._nstep] timestep
         data['main_obs'] = data['obs'][burnin_step:-self._nstep]
         # the target_obs is used to calculate the target_q_value
         data['target_obs'] = data['obs'][burnin_step + self._nstep:]
@@ -266,18 +266,18 @@ class R2D2Policy(Policy):
             with torch.no_grad():
                 inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
                 burnin_output = self._learn_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
-                )  # keys include 'logit', 'hidden_state' 'saved_hidden_state', \
+                    inputs, saved_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                )  # keys include 'logit', 'hidden_state' 'saved_state', \
                 # 'action', for their specific dim, please refer to DRQN model
                 burnin_output_target = self._target_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                    inputs, saved_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
 
-        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][0])
+        self._learn_model.reset(data_id=None, state=burnin_output['saved_state'][0])
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
         q_value = self._learn_model.forward(inputs)['logit']
-        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][1])
-        self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][1])
+        self._learn_model.reset(data_id=None, state=burnin_output['saved_state'][1])
+        self._target_model.reset(data_id=None, state=burnin_output_target['saved_state'][1])
 
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         with torch.no_grad():
@@ -291,7 +291,7 @@ class R2D2Policy(Policy):
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        for t in range(self._learn_unroll_len_plus_burnin_step - self._burnin_step - self._nstep):
+        for t in range(self._sequence_len - self._burnin_step - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
@@ -305,7 +305,7 @@ class R2D2Policy(Policy):
                 l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 # td will be a list of the length
-                # <self._learn_unroll_len_plus_burnin_step - self._burnin_step - self._nstep>
+                # <self._sequence_len - self._burnin_step - self._nstep>
                 # and each value is a tensor of the size batch_size
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
@@ -315,7 +315,7 @@ class R2D2Policy(Policy):
             torch.stack(td_error), dim=0
         )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
         # torch.max(torch.stack(td_error), dim=0) will return tuple like thing, please refer to torch.max
-        # td_error shape list(<self._learn_unroll_len_plus_burnin_step-self._burnin_step-self._nstep>, B),
+        # td_error shape list(<self._sequence_len-self._burnin_step-self._nstep>, B),
         # for example, (75,64)
         # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
 
@@ -363,8 +363,8 @@ class R2D2Policy(Policy):
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
-        self._learn_unroll_len_plus_burnin_step = self._cfg.learn_unroll_len + self._cfg.burnin_step
-        self._unroll_len = self._learn_unroll_len_plus_burnin_step
+        self._sequence_len = self._cfg.learn_unroll_len + self._cfg.burnin_step
+        self._unroll_len = self._sequence_len
 
         # for r2d2, this hidden_state wrapper is to add the 'prev hidden state' for each transition.
         # Note that collect env forms a batch and the key is added for the batch simultaneously.

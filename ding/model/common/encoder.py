@@ -1,9 +1,12 @@
 from typing import Optional
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
 
 from ding.torch_utils import ResFCBlock, ResBlock, Flatten
 from ding.utils import SequenceType
+
+import math
 
 
 class ConvEncoder(nn.Module):
@@ -159,3 +162,134 @@ class FCEncoder(nn.Module):
 class StructEncoder(nn.Module):
     # TODO(nyz)
     pass
+
+
+def intprod(xs):
+    """
+    Product of a sequence of integers
+    """
+    out = 1
+    for x in xs:
+        out *= x
+    return out
+
+
+def NormedLinear(*args, scale=1.0, dtype=torch.float32, **kwargs):
+    """
+    nn.Linear but with normalized fan-in init
+    """
+
+    out = nn.Linear(*args, **kwargs)
+
+    out.weight.data *= scale / out.weight.norm(dim=1, p=2, keepdim=True)
+    if kwargs.get("bias", True):
+        out.bias.data.zero_()
+    return out
+
+
+def NormedConv2d(*args, scale=1, **kwargs):
+    """
+    nn.Conv2d but with normalized fan-in init
+    """
+    out = nn.Conv2d(*args, **kwargs)
+    out.weight.data *= scale / out.weight.norm(dim=(1, 2, 3), p=2, keepdim=True)
+    if kwargs.get("bias", True):
+        out.bias.data.zero_()
+    return out
+
+
+class CnnBasicBlock(nn.Module):
+    """
+    Residual basic block (without batchnorm), as in ImpalaCNN
+    Preserves channel number and shape
+    """
+
+    def __init__(self, in_channnel, scale=1, batch_norm=False):
+        super().__init__()
+        self.in_channnel = in_channnel
+        self.batch_norm = batch_norm
+        s = math.sqrt(scale)
+        self.conv0 = NormedConv2d(self.in_channnel, self.in_channnel, 3, padding=1, scale=s)
+        self.conv1 = NormedConv2d(self.in_channnel, self.in_channnel, 3, padding=1, scale=s)
+        if self.batch_norm:
+            self.bn0 = nn.BatchNorm2d(self.in_channnel)
+            self.bn1 = nn.BatchNorm2d(self.in_channnel)
+
+    def residual(self, x):
+        # inplace should be False for the first relu, so that it does not change the input,
+        # which will be used for skip connection.
+        # getattr is for backwards compatibility with loaded models
+        if self.batch_norm:
+            x = self.bn0(x)
+        x = F.relu(x, inplace=False)
+        x = self.conv0(x)
+        if self.batch_norm:
+            x = self.bn1(x)
+        x = F.relu(x, inplace=True)
+        x = self.conv1(x)
+        return x
+
+    def forward(self, x):
+        return x + self.residual(x)
+
+
+class CnnDownStack(nn.Module):
+    """
+    Downsampling stack from Impala CNN
+    """
+
+    def __init__(self, in_channnel, nblock, out_channel, scale=1, pool=True, **kwargs):
+        super().__init__()
+        self.in_channnel = in_channnel
+        self.out_channel = out_channel
+        self.pool = pool
+        self.firstconv = NormedConv2d(in_channnel, out_channel, 3, padding=1)
+        s = scale / math.sqrt(nblock)
+        self.blocks = nn.ModuleList([CnnBasicBlock(out_channel, scale=s, **kwargs) for _ in range(nblock)])
+
+    def forward(self, x):
+        x = self.firstconv(x)
+        if self.pool:
+            x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        for block in self.blocks:
+            x = block(x)
+        return x
+
+    def output_shape(self, inshape):
+        c, h, w = inshape
+        assert c == self.in_channnel
+        if self.pool:
+            return (self.out_channel, (h + 1) // 2, (w + 1) // 2)
+        else:
+            return (self.out_channel, h, w)
+
+
+class ImpalaConvEncoder(nn.Module):
+    name = "ImpalaConvEncoder"  # put it here to preserve pickle compat
+
+    def __init__(self, inshape, chans=(16, 32, 32), outsize=256, scale_ob=255.0, nblock=2, final_relu=True, **kwargs):
+        super().__init__()
+        self.scale_ob = scale_ob
+        c, h, w = inshape
+        curshape = (c, h, w)
+        s = 1 / math.sqrt(len(chans))  # per stack scale
+        self.stacks = nn.ModuleList()
+        for out_channel in chans:
+            stack = CnnDownStack(curshape[0], nblock=nblock, out_channel=out_channel, scale=s, **kwargs)
+            self.stacks.append(stack)
+            curshape = stack.output_shape(curshape)
+        self.dense = NormedLinear(intprod(curshape), outsize, scale=1.4)
+        self.outsize = outsize
+        self.final_relu = final_relu
+
+    def forward(self, x):
+        x = x / self.scale_ob
+        for (i, layer) in enumerate(self.stacks):
+            x = layer(x)
+        *batch_shape, h, w, c = x.shape
+        x = x.reshape((*batch_shape, h * w * c))
+        x = F.relu(x)
+        x = self.dense(x)
+        if self.final_relu:
+            x = torch.relu(x)
+        return x

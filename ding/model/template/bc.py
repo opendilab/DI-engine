@@ -1,14 +1,16 @@
 from typing import Union, Optional, Dict, Callable, List
 import torch
 import torch.nn as nn
+from easydict import EasyDict
 
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
-from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead
+from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
+        MultiHead, RegressionHead, ReparameterizationHead
 
 
-@MODEL_REGISTRY.register('bc')
-class BC(nn.Module):
+@MODEL_REGISTRY.register('discrete_bc')
+class DiscreteBC(nn.Module):
 
     def __init__(
             self,
@@ -23,7 +25,7 @@ class BC(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the BC (encoder + head) Model according to input arguments.
+            Init the DiscreteBC (encoder + head) Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
@@ -37,7 +39,7 @@ class BC(nn.Module):
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details.
         """
-        super(BC, self).__init__()
+        super(DiscreteBC, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
         if head_hidden_size is None:
@@ -75,18 +77,18 @@ class BC(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
-            BC forward computation graph, input observation tensor to predict q_value.
+            DiscreteBC forward computation graph, input observation tensor to predict q_value.
         Arguments:
             - x (:obj:`torch.Tensor`): Observation inputs
         Returns:
-            - outputs (:obj:`Dict`): BC forward outputs, such as q_value.
+            - outputs (:obj:`Dict`): DiscreteBC forward outputs, such as q_value.
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Discrete Q-value output of each action dimension.
         Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
         Examples:
-            >>> model = BC(32, 6)  # arguments: 'obs_shape' and 'action_shape'
+            >>> model = DiscreteBC(32, 6)  # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 32)
             >>> outputs = model(inputs)
             >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 6])
@@ -94,3 +96,106 @@ class BC(nn.Module):
         x = self.encoder(x)
         x = self.head(x)
         return x
+
+
+@MODEL_REGISTRY.register('continuous_bc')
+class ContinuousBC(nn.Module):
+    r"""
+    Overview:
+        The ContinuousBC network.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
+
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType, EasyDict],
+            action_space: str,
+            actor_head_hidden_size: int = 64,
+            actor_head_layer_num: int = 1,
+            critic_head_hidden_size: int = 64,
+            critic_head_layer_num: int = 1,
+            twin_critic: bool = False,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
+    ) -> None:
+        """
+        Overview:
+            Initailize the ContinuousBC Model according to input arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's shape, such as 128, (156, ).
+            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's shape, such as 4, (3, ), \
+                EasyDict({'action_type_shape': 3, 'action_args_shape': 4}).
+            - action_space (:obj:`str`): The type of action space, \
+                including [``regression``, ``reparameterization``].
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.
+            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for actor head.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for critic head.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \
+                after each FC layer, if ``None`` then default set to ``nn.ReLU()``.
+            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
+                see ``ding.torch_utils.network`` for more details.
+        """
+        super(ContinuousBC, self).__init__()
+        obs_shape: int = squeeze(obs_shape)
+        action_shape = squeeze(action_shape)
+        self.action_shape = action_shape
+        self.action_space = action_space
+        assert self.action_space in ['regression', 'reparameterization']
+        if self.action_space == 'regression':
+            self.actor = nn.Sequential(
+                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                RegressionHead(
+                    actor_head_hidden_size,
+                    action_shape,
+                    actor_head_layer_num,
+                    final_tanh=True,
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
+        elif self.action_space == 'reparameterization':
+            self.actor = nn.Sequential(
+                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                ReparameterizationHead(
+                    actor_head_hidden_size,
+                    action_shape,
+                    actor_head_layer_num,
+                    sigma_type='conditioned',
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
+
+        critic_input_size = obs_shape + action_shape
+        self.critic = nn.Sequential(
+            nn.Linear(critic_input_size, critic_head_hidden_size), activation,
+            RegressionHead(
+                critic_head_hidden_size,
+                1,
+                critic_head_layer_num,
+                final_tanh=False,
+                activation=activation,
+                norm_type=norm_type
+            )
+        )
+
+    def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            The unique execution (forward) method of ContinuousBC method.
+            Arguments:
+                - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
+            Returns:
+                - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.
+        """
+        if self.action_space == 'regression':
+            x = self.actor(inputs)
+            return {'action': x['pred']}
+        elif self.action_space == 'reparameterization':
+            x = self.actor(inputs)
+            return {'logit': [x['mu'], x['sigma']]}

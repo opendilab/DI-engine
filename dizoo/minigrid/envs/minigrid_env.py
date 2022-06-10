@@ -58,7 +58,10 @@ class MiniGridEnv(BaseEnv):
             self._init_flag = True
         self._observation_space = self._env.observation_space
         # to be compatiable with subprocess env manager
-        self._observation_space['obs'].dtype = np.dtype('float32')
+        if isinstance(self._observation_space, gym.spaces.Dict):
+            self._observation_space['obs'].dtype = np.dtype('float32')
+        else:
+            self._observation_space.dtype = np.dtype('float32')
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
             low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32

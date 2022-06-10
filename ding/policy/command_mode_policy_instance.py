@@ -2,7 +2,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
-from .dqn import DQNPolicy
+from .dqn import DQNPolicy, DQNSTDIMPolicy
 from .c51 import C51Policy
 from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
@@ -13,7 +13,7 @@ from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
 from .offppo_collect_traj import OffPPOCollectTrajPolicy
-from .ppg import PPGPolicy
+from .ppg import PPGPolicy, PPGOffPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
@@ -22,6 +22,7 @@ from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy, SACDiscretePolicy
+from .mbpolicy.mbsac import MBSACPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
@@ -89,6 +90,11 @@ class DummyCommandModePolicy(CommandModePolicy):
 
 @POLICY_REGISTRY.register('dqn_command')
 class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('dqn_stdim_command')
+class DQNSTDIMCommandModePolicy(DQNSTDIMPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -172,6 +178,11 @@ class IMPALACommandModePolicy(IMPALAPolicy, DummyCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('ppg_offpolicy_command')
+class PPGOffCommandModePolicy(PPGOffPolicy, DummyCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('ppg_command')
 class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
     pass
@@ -233,6 +244,11 @@ class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('sac_command')
 class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('mbsac_command')
+class MBSACCommandModePolicy(MBSACPolicy, DummyCommandModePolicy):
     pass
 
 

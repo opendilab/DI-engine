@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import Any, List, Optional, Union, Callable
 import copy
 from dataclasses import dataclass
@@ -53,7 +53,7 @@ def _copy_buffereddata(d: BufferedData) -> BufferedData:
 fastcopy.dispatch[BufferedData] = _copy_buffereddata
 
 
-class Buffer:
+class Buffer(ABC):
     """
     Buffer is an abstraction of device storage, third-party services or data structures,
     For example, memory queue, sum-tree, redis, or di-store.
@@ -116,23 +116,6 @@ class Buffer:
             - meta (:obj:`dict`): Meta information.
         Returns:
             - success (:obj:`bool`): Success or not, if data with the index not exist in buffer, return false.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def batch_update(
-            self,
-            indices: List[str],
-            datas: Optional[List[Optional[Any]]] = None,
-            metas: Optional[List[Optional[dict]]] = None
-    ) -> None:
-        """
-        Overview:
-            Batch update data and meta by indices, maybe useful in some data architectures.
-        Arguments:
-            - indices (:obj:`List[str]`): Index of data.
-            - datas (:obj:`Optional[List[Optional[Any]]]`): Pure data.
-            - metas (:obj:`Optional[List[Optional[dict]]]`): Meta information.
         """
         raise NotImplementedError
 
