@@ -7,17 +7,22 @@ from distar.actor import Actor
 import torch
 import random
 import time
+import sys
+
+from dizoo.distar.envs import DIStarEnv
+import traceback
 
 class TestDIstarEnv:
     def __init__(self):
 
-        cfg = read_config('C:/Users/hjs/DI-engine/dizoo/distar/envs/test_distar_config.yaml')
+        cfg = read_config('./test_distar_config.yaml')
         self._whole_cfg = cfg
         self._whole_cfg.env.map_name = 'KingsCove'
+        self._total_iters = 0
+        self._total_time = 0
+        self._total_space = 0
 
     def _inference_loop(self, job={}):
-        from dizoo.distar.envs import DIStarEnv
-        import traceback
 
         torch.set_num_threads(1)
 
@@ -26,15 +31,32 @@ class TestDIstarEnv:
         with torch.no_grad():
             for _ in range(5):
                 try:
-                    observations, game_info, map_name = self._env.reset()
+                    observations = self._env.reset()
 
                     for iter in range(1000):  # one episode loop
                         # agent step
                         actions = self._env.random_action(observations)
                         # env step
-                        next_observations, reward, done = self._env.step(actions)
-                        if not done:
-                            observations = next_observations
+                        before_step_time = time.time()
+                        timestep = self._env.step(actions)
+                        after_step_time = time.time()
+                        
+                        self._total_time += after_step_time - before_step_time
+                        self._total_iters += 1
+                        self._total_space += sys.getsizeof((actions,observations,timestep.obs,timestep.reward,timestep.done))
+                        print('observations: ', sys.getsizeof(observations), ' Byte')
+                        print('actions: ', sys.getsizeof(actions), ' Byte')
+                        print('reward: ', sys.getsizeof(timestep.reward), ' Byte')
+                        print('done: ', sys.getsizeof(timestep.done), ' Byte')
+                        print('total: ', sys.getsizeof((actions,observations,timestep.obs,timestep.reward,timestep.done)),' Byte')
+                        print(type(observations)) # dict
+                        print(type(timestep.reward)) # list
+                        print(type(timestep.done)) # bool 
+                        print(type(actions)) # dict
+
+
+                        if not timestep.done:
+                            observations = timestep.obs
                         else:
                             break
                         
@@ -43,6 +65,10 @@ class TestDIstarEnv:
                     print(''.join(traceback.format_tb(e.__traceback__)), flush=True)
                     self._env.close()
             self._env.close()
+
+            print('total iters:', self._total_iters)
+            print('average step time:', self._total_time/self._total_iters)
+            print('average step data space:', self._total_space/self._total_iters)
 
 if __name__ == '__main__':
 
