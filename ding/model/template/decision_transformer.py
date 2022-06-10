@@ -13,13 +13,7 @@ import torch.nn.functional as F
 
 class Block(nn.Module):
 
-    def __init__(
-        self,
-        h_dim: int,
-        max_T: int,
-        n_heads: int,
-        drop_p: float
-    ) -> torch.Tensor:
+    def __init__(self, h_dim: int, max_T: int, n_heads: int, drop_p: float) -> torch.Tensor:
         super().__init__()
         self.attention = Attention(h_dim, h_dim, h_dim, n_heads, nn.Dropout(drop_p))
         self.att_drop = nn.Dropout(drop_p)
