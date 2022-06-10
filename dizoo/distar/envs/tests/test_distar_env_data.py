@@ -8,6 +8,9 @@ import torch
 import random
 import time
 
+from dizoo.distar.envs import DIStarEnv
+import traceback
+
 class TestDIstarEnv:
     def __init__(self):
 
@@ -16,8 +19,6 @@ class TestDIstarEnv:
         self._whole_cfg.env.map_name = 'KingsCove'
 
     def _inference_loop(self, job={}):
-        from dizoo.distar.envs import DIStarEnv
-        import traceback
 
         torch.set_num_threads(1)
 
@@ -26,15 +27,15 @@ class TestDIstarEnv:
         with torch.no_grad():
             for _ in range(5):
                 try:
-                    observations, game_info, map_name = self._env.reset()
+                    observations = self._env.reset()
 
                     for iter in range(1000):  # one episode loop
                         # agent step
                         actions = self._env.random_action(observations)
                         # env step
-                        next_observations, reward, done = self._env.step(actions)
-                        if not done:
-                            observations = next_observations
+                        timestep = self._env.step(actions)
+                        if not timestep.done:
+                            observations = timestep.obs
                         else:
                             break
                         
