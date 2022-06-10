@@ -827,9 +827,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
-env/
 venv/
-ENV/
 env.bak/
 venv.bak/
 
@@ -1409,7 +1407,7 @@ formatted_*
 **/benchmark
 **/model_zoo
 *ckpt*
-*log*
+log*
 *.puml.png
 *.puml.eps
 *.puml.svg
