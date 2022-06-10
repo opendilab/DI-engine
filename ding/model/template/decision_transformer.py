@@ -10,11 +10,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class Block(nn.Module):
 
     def __init__(self, h_dim, max_T, n_heads, drop_p):
         super().__init__()
-        self.attention = Attention(h_dim*n_heads, h_dim, h_dim*n_heads, n_heads, nn.Dropout(drop_p))
+        self.attention = Attention(h_dim * n_heads, h_dim, h_dim * n_heads, n_heads, nn.Dropout(drop_p))
         self.att_drop = nn.Dropout(drop_p)
         self.mlp = nn.Sequential(
             nn.Linear(h_dim, 4 * h_dim),
