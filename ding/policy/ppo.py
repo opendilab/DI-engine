@@ -849,6 +849,8 @@ class PPOSTDIMPolicy(PPOPolicy):
             "obs": torch.randn(1, *obs),
             "next_obs": torch.randn(1, *obs),
         }
+        if self._cuda:
+            test_data = to_device(test_data, self._device)
         with torch.no_grad():
             x, y = self._aux_encode(test_data)
         return x.size()[1:], y.size()[1:]
