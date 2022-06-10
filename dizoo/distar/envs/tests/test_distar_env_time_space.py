@@ -9,6 +9,9 @@ import random
 import time
 import sys
 
+from dizoo.distar.envs import DIStarEnv
+import traceback
+
 class TestDIstarEnv:
     def __init__(self):
 
@@ -20,8 +23,6 @@ class TestDIstarEnv:
         self._total_space = 0
 
     def _inference_loop(self, job={}):
-        from distar_env import DIStarEnv
-        import traceback
 
         torch.set_num_threads(1)
 
@@ -30,32 +31,32 @@ class TestDIstarEnv:
         with torch.no_grad():
             for _ in range(5):
                 try:
-                    observations, game_info, map_name = self._env.reset()
+                    observations = self._env.reset()
 
                     for iter in range(1000):  # one episode loop
                         # agent step
                         actions = self._env.random_action(observations)
                         # env step
                         before_step_time = time.time()
-                        next_observations, reward, done = self._env.step(actions)
+                        timestep = self._env.step(actions)
                         after_step_time = time.time()
                         
                         self._total_time += after_step_time - before_step_time
                         self._total_iters += 1
-                        self._total_space += sys.getsizeof((actions,observations,next_observations,reward,done))
+                        self._total_space += sys.getsizeof((actions,observations,timestep.obs,timestep.reward,timestep.done))
                         print('observations: ', sys.getsizeof(observations), ' Byte')
                         print('actions: ', sys.getsizeof(actions), ' Byte')
-                        print('reward: ', sys.getsizeof(reward), ' Byte')
-                        print('done: ', sys.getsizeof(done), ' Byte')
-                        print('total: ', sys.getsizeof((actions,observations,next_observations,reward,done)),' Byte')
+                        print('reward: ', sys.getsizeof(timestep.reward), ' Byte')
+                        print('done: ', sys.getsizeof(timestep.done), ' Byte')
+                        print('total: ', sys.getsizeof((actions,observations,timestep.obs,timestep.reward,timestep.done)),' Byte')
                         print(type(observations)) # dict
-                        print(type(reward)) # list
-                        print(type(done)) # bool 
+                        print(type(timestep.reward)) # list
+                        print(type(timestep.done)) # bool 
                         print(type(actions)) # dict
 
 
-                        if not done:
-                            observations = next_observations
+                        if not timestep.done:
+                            observations = timestep.obs
                         else:
                             break
                         
