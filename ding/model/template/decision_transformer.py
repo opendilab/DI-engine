@@ -13,9 +13,15 @@ import torch.nn.functional as F
 
 class Block(nn.Module):
 
-    def __init__(self, h_dim, max_T, n_heads, drop_p):
+    def __init__(
+        self,
+        h_dim: int,
+        max_T: int,
+        n_heads: int,
+        drop_p: float
+    ) -> torch.Tensor:
         super().__init__()
-        self.attention = Attention(h_dim * n_heads, h_dim, h_dim * n_heads, n_heads, nn.Dropout(drop_p))
+        self.attention = Attention(h_dim, h_dim, h_dim, n_heads, nn.Dropout(drop_p))
         self.att_drop = nn.Dropout(drop_p)
         self.mlp = nn.Sequential(
             nn.Linear(h_dim, 4 * h_dim),
@@ -31,8 +37,9 @@ class Block(nn.Module):
         # during backpropagation
         self.register_buffer('mask', mask)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         # Attention -> LayerNorm -> MLP -> LayerNorm
+
         x = x + self.att_drop(self.attention(x, self.mask))  # residual
         x = self.ln1(x)
         x = x + self.mlp(x)  # residual
