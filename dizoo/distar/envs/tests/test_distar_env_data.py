@@ -11,7 +11,7 @@ import time
 class TestDIstarEnv:
     def __init__(self):
 
-        cfg = read_config('C:/Users/hjs/DI-engine/dizoo/distar/envs/test_distar_config.yaml')
+        cfg = read_config('./test_distar_config.yaml')
         self._whole_cfg = cfg
         self._whole_cfg.env.map_name = 'KingsCove'
 
