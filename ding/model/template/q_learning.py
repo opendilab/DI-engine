@@ -496,17 +496,17 @@ class FQF(nn.Module):
             - x (:obj:`torch.Tensor`):
                 The encoded embedding tensor with ``(B, N=hidden_size)``.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run with encoder and head. Return the result prediction dictionary.
-
-        ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-            - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, N, B)``
-            - quantiles (:obj:`torch.Tensor`): quantiles tensor of size ``(quantile_embedding_size, 1)``
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
+                    ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), ``quantiles_hats`` (:obj:`torch.Tensor`), \
+                    ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).
         Shapes:
-            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape
-            - quantiles (:obj:`torch.Tensor`):  :math:`(B*num_quantiles, 1)`.
+            - x: :math:`(B, N)`, where B is batch size and N is head_hidden_size.
+            - logit: :math:`(B, M)`, where M is action_shape.
+            - q: :math:`(B, num_quantiles, M)`.
+            - quantiles: :math:`(B, num_quantiles + 1)`.
+            - quantiles_hats: :math:`(B, num_quantiles)`.
+            - q_tau_i: :math:`(B, num_quantiles - 1, M)`.
+            - entropies: :math:`(B, 1)`.
         Examples:
             >>> model = FQF(64, 64) # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 64)
@@ -514,10 +514,11 @@ class FQF(nn.Module):
             >>> assert isinstance(outputs, dict)
             >>> assert outputs['logit'].shape == torch.Size([4, 64])
             >>> # default num_quantiles: int = 32
-            >>> assert outputs['q'].shape == torch.Size([4, 32, 64]
-            >>> # default quantile_embedding_size: int = 128
+            >>> assert outputs['q'].shape == torch.Size([4, 32, 64])
             >>> assert outputs['quantiles'].shape == torch.Size([4, 33])
-            >>> assert outputs['quantiles_heads'].shape == torch.Size([4, 32])
+            >>> assert outputs['quantiles_hats'].shape == torch.Size([4, 32])
+            >>> assert outputs['q_tau_i'].shape == torch.Size([4, 31, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 1])
         """
         x = self.encoder(x)
         x = self.head(x)

@@ -473,19 +473,21 @@ class FQFHead(nn.Module):
         norm_type: Optional[str] = None,
         noise: Optional[bool] = False,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the Head according to arguments.
+            Init the ``FQFHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
-            - output_size (:obj:`int`): The num of output
-            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`str`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``FQFHead``.
+            - output_size (:obj:`int`): The number of outputs.
+            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
+            - num_quantiles (:obj:`int`): The number of quantiles.
+            - quantile_embedding_size (:obj:`int`): The embedding size of a quantile.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
         """
         super(FQFHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
@@ -516,22 +518,21 @@ class FQFHead(nn.Module):
         self.quantiles_proposal = nn.Sequential(quantiles_proposal_fc, nn.LogSoftmax(dim=1))
 
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
-           Deterministic parametric function trained to reparameterize samples from a base distribution.
+           Deterministic parametric function trained to reparameterize samples from the quantiles_proposal network. \
            By repeated Bellman update iterations of Q-learning, the optimal action-value function is estimated.
         Arguments:
-            - x (:obj:`torch.Tensor`): The encoded embedding tensor of parametric sample
+            - x (:obj:`torch.Tensor`): The encoded embedding tensor of parametric sample.
         Returns:
-            - (:obj:`torch.Tensor`):
-                QN output tensor after reparameterization of shape ``(quantile_embedding_size, output_size)``
+            - quantile_net (:obj:`torch.Tensor`): Quantile network output tensor after reparameterization.
         Examples:
             >>> head = FQFHead(64, 64)
             >>> quantiles = torch.randn(4,32)
             >>> qn_output = head.quantile_net(quantiles)
             >>> assert isinstance(qn_output, torch.Tensor)
             >>> # default quantile_embedding_size: int = 128,
-            >>> assert qn_output.shape == torch.Size([128, 64])
+            >>> assert qn_output.shape == torch.Size([4, 32, 64])
         """
         batch_size, num_quantiles = quantiles.shape[:2]
         quantile_net = torch.cos(self.sigma_pi.to(quantiles) * quantiles.view(batch_size, num_quantiles, 1))
@@ -539,21 +540,23 @@ class FQFHead(nn.Module):
         return quantile_net
 
     def forward(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict Quantile output.
-            Parameter updates with FQFHead's MLPs forward setup.
+            Use encoded embedding tensor to run MLP with ``FQFHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``FQFHead`` setups and return the result prediction dictionary.
-
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-                    - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, B, N)``
-                    - quantiles (:obj:`torch.Tensor`): quantiles tensor of size ``(B*num_quantiles, 1)``
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
+                ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), ``quantiles_hats`` (:obj:`torch.Tensor`), \
+                ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+            - q: :math:`(B, num_quantiles, M)`.
+            - quantiles: :math:`(B, num_quantiles + 1)`.
+            - quantiles_hats: :math:`(B, num_quantiles)`.
+            - q_tau_i: :math:`(B, num_quantiles - 1, M)`.
+            - entropies: :math:`(B, 1)`.
         Examples:
             >>> head = FQFHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -561,8 +564,11 @@ class FQFHead(nn.Module):
             >>> assert isinstance(outputs, dict)
             >>> assert outputs['logit'].shape == torch.Size([4, 64])
             >>> # default num_quantiles is 32
-            >>> assert outputs['q'].shape == torch.Size([32, 4, 64])
-            >>> assert outputs['quantiles'].shape == torch.Size([128, 1])
+            >>> assert outputs['q'].shape == torch.Size([4, 32, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 33])
+            >>> assert outputs['quantiles_hats'].shape == torch.Size([4, 32])
+            >>> assert outputs['q_tau_i'].shape == torch.Size([4, 31, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 1])
         """
 
         if num_quantiles is None:
@@ -599,7 +605,7 @@ class FQFHead(nn.Module):
                 batch_size * (num_quantiles - 1), -1
             )  # [batch_size*(num_quantiles-1), hidden_size(64)]
 
-            q_tau_i = self.Q(q_tau_i_x).reshape(
+            q_tau_i = self.Q(q_tau_i_x).view(
                 batch_size, num_quantiles - 1, -1
             )  # [batch_size, num_quantiles-1, action_dim(64)]
 
