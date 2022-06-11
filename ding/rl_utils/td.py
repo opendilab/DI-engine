@@ -1066,12 +1066,11 @@ def fqf_nstep_td_error(
 
     # shape: batch_size x tau x 1
     q_s_a = evaluate_quantile_at_action(q, action)
-    # shape: batch_size x tau_prim x 1
+    # shape: batch_size x tau_prime x 1
     target_q_s_a = evaluate_quantile_at_action(next_n_q, next_n_action)
 
     assert reward.shape[0] == nstep
-    device = torch.device("cuda" if reward.is_cuda else "cpu")
-    reward_factor = torch.ones(nstep).to(device)
+    reward_factor = torch.ones(nstep).to(reward.device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
     reward = torch.matmul(reward_factor, reward)  # [batch_size]
@@ -1083,17 +1082,14 @@ def fqf_nstep_td_error(
     target_q_s_a = target_q_s_a.unsqueeze(-1)
 
     # shape: batch_size x tau' x tau x 1.
-    bellman_errors = (target_q_s_a[:, :, None, :] - q_s_a[:, None, :, :])
+    bellman_errors = (target_q_s_a.unsqueeze(2) - q_s_a.unsqueeze(1))
 
-    # The huber loss (see Section 2.3 of the paper) is defined via two cases:
-    huber_loss = torch.where(
-        bellman_errors.abs() <= kappa, 0.5 * bellman_errors ** 2, kappa * (bellman_errors.abs() - 0.5 * kappa)
-    )
+    # shape: batch_size x tau' x tau x 1
+    huber_loss = F.smooth_l1_loss(target_q_s_a.unsqueeze(2), q_s_a.unsqueeze(1), reduction="none")
 
     # shape: batch_size x num_tau_prime_samples x num_tau_samples x 1.
     quantiles_hats = quantiles_hats[:, None, :, None].repeat([1, tau_prime, 1, 1])
 
-    abcd = torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach())
     # shape: batch_size x tau_prime x tau x 1.
     quantile_huber_loss = (torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach()) * huber_loss) / kappa
 
@@ -1106,11 +1102,10 @@ def fqf_nstep_td_error(
 def evaluate_quantile_at_action(q_s, actions):
     assert q_s.shape[0] == actions.shape[0]
 
-    batch_size = q_s.shape[0]
-    N = q_s.shape[1]
+    batch_size, num_quantiles = q_s.shape[:2]
 
-    # Expand actions into (batch_size, N, 1).
-    action_index = actions[:, None, None].expand(batch_size, N, 1)
+    # Expand actions into (batch_size, num_quantiles, 1).
+    action_index = actions[:, None, None].expand(batch_size, num_quantiles, 1)
 
     # Calculate quantile values at specified actions.
     q_s_a = q_s.gather(dim=2, index=action_index)
@@ -1119,6 +1114,13 @@ def evaluate_quantile_at_action(q_s, actions):
 
 
 def fqf_calculate_fraction_loss(q_tau_i, q_s_a_hats, quantiles, actions):
+    """
+    Shapes:
+       - q_tau_i (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles-1, action_dim)`
+       - q_s_a_hats (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles, action_dim)`
+       - quantiles (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles+1)`
+       - actions (:obj:`torch.LongTensor`) :math:`(batch_size, )`
+    """
     assert not q_s_a_hats.requires_grad
 
     batch_size = q_s_a_hats.shape[0]

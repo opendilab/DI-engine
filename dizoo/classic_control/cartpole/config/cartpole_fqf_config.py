@@ -27,9 +27,7 @@ cartpole_fqf_config = dict(
             learning_rate_fraction=0.0001,
             learning_rate_quantile=0.0001,
             target_update_freq=100,
-            kappa=1.0,
             ent_coef=0,
-            #grad_norm=0.5,
         ),
         collect=dict(
             n_sample=80,

@@ -30,7 +30,6 @@ spaceinvaders_fqf_config = dict(
             learning_rate_fraction=2.5e-9,
             learning_rate_quantile=0.00005,
             target_update_freq=500,
-            kappa=1.0,
             ent_coef=0,
         ),
         collect=dict(n_sample=100, ),

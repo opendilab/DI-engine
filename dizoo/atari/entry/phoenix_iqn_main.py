@@ -65,7 +65,7 @@ def main(cfg, create_cfg, seed=0):
                 break
             learner.train(train_data, collector.envstep)
         
-        if collector.envstep >= 80000000:
+        if collector.envstep >= int(1e7):
             break
 
 if __name__ == "__main__":

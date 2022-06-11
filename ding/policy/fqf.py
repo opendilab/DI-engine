@@ -74,6 +74,7 @@ class FQFPolicy(DQNPolicy):
             target_update_freq=100,
             # (float) Threshold of Huber loss. In the FQF paper, this is denoted by kappa. Default to 1.0.
             kappa=1.0,
+            # (float) Coefficient of entropy_loss.
             ent_coef=0,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
@@ -126,9 +127,8 @@ class FQFPolicy(DQNPolicy):
         self._nstep = self._cfg.nstep
         self._kappa = self._cfg.learn.kappa
         self._ent_coef = self._cfg.learn.ent_coef
-        #self._grad_norm = self._cfg.learn.grad_norm
 
-        # use wrapper instead of plugin
+        # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -161,16 +161,15 @@ class FQFPolicy(DQNPolicy):
         self._target_model.train()
         # Current q value (main model)
         ret = self._learn_model.forward(data['obs'])
-        logit = ret['logit']  # [batch, 64(action_dim)]
-        q_value = ret['q']  # [batch, num_quantiles, 64(action_dim)]
+        logit = ret['logit']  # [batch, action_dim(64)]
+        q_value = ret['q']  # [batch, num_quantiles, action_dim(64)]
         quantiles = ret['quantiles']  # [batch, num_quantiles+1]
-        quantiles_hats = ret['quantiles_hats']  # [batch, num_quantiles]
-        q_tau_i = ret['q_tau_i']  # [batch_size, num_quantiles-1, action_size(64)]
+        quantiles_hats = ret['quantiles_hats']  # [batch, num_quantiles], requires_grad = False
+        q_tau_i = ret['q_tau_i']  # [batch_size, num_quantiles-1, action_dim(64)]
         entropies = ret['entropies']  # [batch, 1]
 
         # Target q value
         with torch.no_grad():
-            # quantiles_hats = (quantiles[:, :-1] + quantiles[:, 1:]) / 2.     # [batch_size, num_quantiles]
             target_q_value = self._target_model.forward(data['next_obs'])['q']
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
@@ -184,12 +183,18 @@ class FQFPolicy(DQNPolicy):
         value_gamma = data.get('value_gamma')
 
         entropy_loss = -self._ent_coef * entropies.mean()
-        
-        fraction_loss = fqf_calculate_fraction_loss(q_tau_i.detach(), q_s_a_hats.detach(), quantiles, data['action']) + entropy_loss
+
+        fraction_loss = fqf_calculate_fraction_loss(
+            q_tau_i.detach(), q_s_a_hats.detach(), quantiles, data['action']
+        ) + entropy_loss
 
         quantile_loss, td_error_per_sample = fqf_nstep_td_error(
             data_n, self._gamma, nstep=self._nstep, kappa=self._kappa, value_gamma=value_gamma
         )
+
+        # compute grad norm of a network's parameters
+        def compute_grad_norm(model):
+            return torch.norm(torch.stack([torch.norm(p.grad.detach(), 2.0) for p in model.parameters()]), 2.0)
 
         # ====================
         # fraction_proposal network update
@@ -198,11 +203,8 @@ class FQFPolicy(DQNPolicy):
         fraction_loss.backward(retain_graph=True)
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
-        total_norm_quantiles_proposal = torch.norm(
-            torch.stack(
-                [torch.norm(p.grad.detach(), 2.0) for p in self._model.head.quantiles_proposal.parameters()]
-            ), 2.0
-        )
+        with torch.no_grad():
+            total_norm_quantiles_proposal = compute_grad_norm(self._model.head.quantiles_proposal)
         self._fraction_loss_optimizer.step()
 
         # ====================
@@ -212,16 +214,10 @@ class FQFPolicy(DQNPolicy):
         quantile_loss.backward()
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
-        total_norm_Q = torch.norm(
-            torch.stack([torch.norm(p.grad.detach(), 2.0) for p in self._model.head.Q.parameters()]), 2.0
-        )
-        total_norm_fqf_fc = torch.norm(
-            torch.stack([torch.norm(p.grad.detach(), 2.0) for p in self._model.head.fqf_fc.parameters()]),
-            2.0
-        )
-        total_norm_encoder = torch.norm(
-            torch.stack([torch.norm(p.grad.detach(), 2.0) for p in self._model.encoder.parameters()]), 2.0
-        )
+        with torch.no_grad():
+            total_norm_Q = compute_grad_norm(self._model.head.Q)
+            total_norm_fqf_fc = compute_grad_norm(self._model.head.fqf_fc)
+            total_norm_encoder = compute_grad_norm(self._model.encoder)
         self._quantile_loss_optimizer.step()
 
         # =============
@@ -241,7 +237,7 @@ class FQFPolicy(DQNPolicy):
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             '[histogram]action_distribution': data['action'],
-            '[histogram]quantiles_hats': quantiles_hats[0],
+            '[histogram]quantiles_hats': quantiles_hats[0],  # quantiles_hats.requires_grad = False
         }
 
     def _monitor_vars_learn(self) -> List[str]:
@@ -261,34 +257,8 @@ class FQFPolicy(DQNPolicy):
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
-        #self._optimizer.load_state_dict(state_dict['optimizer'])
         self._fraction_loss_optimizer.load_state_dict(state_dict['optimizer_fraction_loss'])
         self._quantile_loss_optimizer.load_state_dict(state_dict['optimizer_quantile_loss'])
-
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._gamma = self._cfg.discount_factor  # necessary for parallel
-        self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
-        self._collect_model.reset()
-
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and the n step return data, then sample from the n_step return data
-        Arguments:
-            - data (:obj:`list`): The trajectory's cache
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
-        """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fqf', ['ding.model.template.q_learning']

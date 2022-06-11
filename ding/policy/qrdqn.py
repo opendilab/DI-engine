@@ -110,7 +110,7 @@ class QRDQNPolicy(DQNPolicy):
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
 
-        # use wrapper instead of plugin
+        # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -190,31 +190,6 @@ class QRDQNPolicy(DQNPolicy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
-
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._gamma = self._cfg.discount_factor  # necessary for parallel
-        self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
-        self._collect_model.reset()
-
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and the n step return data, then sample from the n_step return data
-        Arguments:
-            - data (:obj:`list`): The trajectory's cache
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
-        """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qrdqn', ['ding.model.template.q_learning']

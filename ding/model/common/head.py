@@ -452,14 +452,15 @@ class QuantileHead(nn.Module):
         return {'logit': logit, 'q': q, 'quantiles': q_quantiles}
 
 
-def initialize_weights_xavier(m, gain=1.0):
-    if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-        torch.nn.init.xavier_uniform_(m.weight, gain=gain)
-        if m.bias is not None:
-            torch.nn.init.constant_(m.bias, 0)
-
-
 class FQFHead(nn.Module):
+    """
+        Overview:
+            The ``FQFHead`` used to output action quantiles. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``, ``q``, ``quantiles``, ``quantiles_hats``, ``q_tau_i`` and ``entropies``.
+        Interfaces:
+            ``__init__``, ``forward``, ``quantile_net``.
+    """
 
     def __init__(
         self,
@@ -504,11 +505,15 @@ class FQFHead(nn.Module):
         self.quantile_embedding_size = quantile_embedding_size
         self.output_size = output_size
         self.fqf_fc = nn.Sequential(nn.Linear(self.quantile_embedding_size, hidden_size), nn.ReLU())
-        self.sigma_pi = torch.arange(1, self.quantile_embedding_size + 1,
-                                     1).view(1, 1, self.quantile_embedding_size) * math.pi
-        self.quantiles_proposal = nn.Sequential(nn.Linear(hidden_size, num_quantiles), nn.LogSoftmax(
-            dim=1
-        )).apply(lambda x: initialize_weights_xavier(x, gain=0.01))
+        self.register_buffer(
+            'sigma_pi',
+            torch.arange(1, self.quantile_embedding_size + 1, 1).view(1, 1, self.quantile_embedding_size) * math.pi
+        )
+        # initialize weights_xavier of quantiles_proposal network
+        quantiles_proposal_fc = nn.Linear(hidden_size, num_quantiles)
+        torch.nn.init.xavier_uniform_(quantiles_proposal_fc.weight, gain=0.01)
+        torch.nn.init.constant_(quantiles_proposal_fc.bias, 0)
+        self.quantiles_proposal = nn.Sequential(quantiles_proposal_fc, nn.LogSoftmax(dim=1))
 
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         r"""
@@ -521,7 +526,7 @@ class FQFHead(nn.Module):
             - (:obj:`torch.Tensor`):
                 QN output tensor after reparameterization of shape ``(quantile_embedding_size, output_size)``
         Examples:
-            >>> head = QuantileHead(64, 64)
+            >>> head = FQFHead(64, 64)
             >>> quantiles = torch.randn(4,32)
             >>> qn_output = head.quantile_net(quantiles)
             >>> assert isinstance(qn_output, torch.Tensor)
@@ -537,20 +542,20 @@ class FQFHead(nn.Module):
         r"""
         Overview:
             Use encoded embedding tensor to predict Quantile output.
-            Parameter updates with QuantileHead's MLPs forward setup.
+            Parameter updates with FQFHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
                 The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``QuantileHead`` setups and return the result prediction dictionary.
+                Run ``MLP`` with ``FQFHead`` setups and return the result prediction dictionary.
 
                 Necessary Keys:
                     - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
                     - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, B, N)``
                     - quantiles (:obj:`torch.Tensor`): quantiles tensor of size ``(B*num_quantiles, 1)``
         Examples:
-            >>> head = QuantileHead(64, 64)
+            >>> head = FQFHead(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> outputs = head(inputs)
             >>> assert isinstance(outputs, dict)
@@ -564,7 +569,9 @@ class FQFHead(nn.Module):
             num_quantiles = self.num_quantiles
         batch_size = x.shape[0]
 
-        log_q_quantiles = self.quantiles_proposal(x.detach())  # (batch, num_quantiles)
+        log_q_quantiles = self.quantiles_proposal(
+            x.detach()
+        )  # (batch, num_quantiles), not to update encoder when learning w1_loss(fraction loss)
         q_quantiles = log_q_quantiles.exp()
 
         # Calculate entropies of value distributions.
@@ -584,7 +591,7 @@ class FQFHead(nn.Module):
         # x.view[batch_size, 1, hidden_size(64)]
         q_x = (x.view(batch_size, 1, -1) *
                q_quantile_net).view(batch_size * num_quantiles, -1)  # [batch_size*num_quantiles, hidden_size(64)]
-        q = self.Q(q_x).reshape(batch_size, num_quantiles, -1)  # [batch_size, num_quantiles, action_size(64)]
+        q = self.Q(q_x).view(batch_size, num_quantiles, -1)  # [batch_size, num_quantiles, action_dim(64)]
         logit = q.mean(1)
         with torch.no_grad():
             q_tau_i_net = self.quantile_net(q_quantiles[:, 1:-1].detach())  # [batch, num_quantiles-1, hidden_size(64)]
@@ -594,7 +601,7 @@ class FQFHead(nn.Module):
 
             q_tau_i = self.Q(q_tau_i_x).reshape(
                 batch_size, num_quantiles - 1, -1
-            )  # [batch_size, num_quantiles-1, action_size(64)]
+            )  # [batch_size, num_quantiles-1, action_dim(64)]
 
         return {
             'logit': logit,
