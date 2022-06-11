@@ -1,7 +1,7 @@
 import random
 import numpy as np
 # from pettingzoo.classic import tictactoe_v3
-from dizoo.board_games.go.go_env import raw_env  # pettingzoo go env
+from dizoo.board_games.go.envs.go_env import raw_env  # pettingzoo go env
 
 # env = tictactoe_v3.env()
 env = raw_env()

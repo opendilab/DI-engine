@@ -215,13 +215,13 @@ class GoEnv(BaseGameEnv):
         # Load and scale all of the necessary images
         tile_size = (screen_width) / size
 
-        black_stone = get_image(os.path.join('img', 'GoBlackPiece.png'))
+        black_stone = get_image(os.path.join('../img', 'GoBlackPiece.png'))
         black_stone = pygame.transform.scale(black_stone, (int(tile_size * (5 / 6)), int(tile_size * (5 / 6))))
 
-        white_stone = get_image(os.path.join('img', 'GoWhitePiece.png'))
+        white_stone = get_image(os.path.join('../img', 'GoWhitePiece.png'))
         white_stone = pygame.transform.scale(white_stone, (int(tile_size * (5 / 6)), int(tile_size * (5 / 6))))
 
-        tile_img = get_image(os.path.join('img', 'GO_Tile0.png'))
+        tile_img = get_image(os.path.join('../img', 'GO_Tile0.png'))
         tile_img = pygame.transform.scale(tile_img, ((int(tile_size * (7 / 6))), int(tile_size * (7 / 6))))
 
         # blit board tiles
@@ -230,7 +230,7 @@ class GoEnv(BaseGameEnv):
                 self.screen.blit(tile_img, ((i * (tile_size)), int(j) * (tile_size)))
 
         for i in range(1, 9):
-            tile_img = get_image(os.path.join('img', 'GO_Tile' + str(i) + '.png'))
+            tile_img = get_image(os.path.join('../img', 'GO_Tile' + str(i) + '.png'))
             tile_img = pygame.transform.scale(tile_img, ((int(tile_size * (7 / 6))), int(tile_size * (7 / 6))))
             for j in range(1, size - 1):
                 if i == 1:

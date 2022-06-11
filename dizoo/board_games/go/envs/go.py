@@ -30,7 +30,7 @@ from collections import namedtuple
 import numpy as np
 
 # from . import coords
-from dizoo.board_games.go import coords
+from dizoo.board_games.go.envs import coords
 
 N = int(os.environ.get('BOARD_SIZE', 19))
 
