@@ -39,6 +39,8 @@ from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 from .pdqn import PDQNPolicy
 
+from .efficientzero import EfficientZeroPolicy
+
 
 class EpsCommandModePolicy(CommandModePolicy):
 
@@ -314,4 +316,9 @@ class PDQNCommandModePolicy(PDQNPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('sac_discrete_command')
 class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('efficientzero_command')
+class EfficientZeroCommandModePolicy(EfficientZeroPolicy, DummyCommandModePolicy):
     pass

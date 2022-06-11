@@ -1,0 +1,12 @@
+MCTS:
+  action_space_size: 100
+  num_simulations: 100
+  batch_size: 10
+  pb_c_base: 1
+  pb_c_init: 1
+  discount: 0.9
+  root_dirichlet_alpha: 0.3
+  root_exploration_fraction: 0.2
+  dirichlet_alpha: 0.3
+  exploration_fraction: 1
+  device: 'cpu'

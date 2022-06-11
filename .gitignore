@@ -11,6 +11,8 @@
 *.log.*
 *.sig
 *.mov
+*.pkl
+
 
 pkg/
 src/

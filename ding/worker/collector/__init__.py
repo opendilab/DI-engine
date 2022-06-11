@@ -4,6 +4,7 @@ from .base_serial_collector import ISerialCollector, create_serial_collector, ge
 
 from .sample_serial_collector import SampleSerialCollector
 from .episode_serial_collector import EpisodeSerialCollector
+from .episode_serial_collector_muzero import EpisodeSerialCollectorMuZero
 from .battle_episode_serial_collector import BattleEpisodeSerialCollector
 from .battle_sample_serial_collector import BattleSampleSerialCollector
 

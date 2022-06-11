@@ -1,0 +1,71 @@
+seed: 0
+exp_name: 'gomoku'
+env:
+  type: 'gomoku'
+  import_names: [ 'dizoo.board_games.gomoku.envs.gomoku_env' ]
+  board_size: 9
+model:
+  type: 'gomoku_model'
+  import_names: [ 'dizoo.board_games.gomoku.model.gomoku_model' ]
+  model_cfg:
+    input_channels: 3
+    board_size: 9
+policy:
+  # (string) RL policy register name (refer to function "register_policy").
+  type: 'alphazero'
+  # (bool) Whether to use cuda for network.
+  cuda: False
+  # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
+  on_policy: True  # for a2c strictly on policy algorithm this line should not be seen by users
+  priority: False
+  learn:
+    # (bool) Whether to use multi gpu
+    multi_gpu: False
+    batch_size: 64
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    # (List[float])
+    betas: (0.9 0.999)
+    # (float)
+    eps: 1e-8
+    # (float)
+    grad_norm: 0.5
+    # : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : :
+    # The following configs is algorithm-specific
+    # : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : :
+    # (float) loss weight of the value network the weight of policy network is set to 1
+    value_weight: 1.0
+#    # (float) loss weight of the entropy regularization the weight of policy network is set to 1
+#    entropy_weight: 0.01
+    learner:
+      # TODO(pu)
+      log_policy: True
+      train_iterations: 10000
+      hook:
+        load_ckpt_before_run: ''
+        log_show_after_iter: 100
+        save_ckpt_after_iter: 10000
+        save_ckpt_after_run: True
+  collect:
+    collector:
+      collect_n_episode: 1
+      max_moves: 1000
+      print_freq: 10
+      augmentation: True
+    mcts:
+      num_simulations: 50
+  eval:
+    evaluator:
+      n_episode: 10
+      eval_freq: 10
+      stop_value: 1
+    mcts:
+      num_simulations: 50
+  other:
+    replay_buffer:
+      type: naive
+      replay_buffer_size: 1000
+      deepcopy: False
+      enable_track_used_data: False
+      # TODO(pu)
+      periodic_thruput_seconds: 10000
