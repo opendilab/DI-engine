@@ -42,16 +42,16 @@ league_demo_ppo_config = dict(
                 path_policy="policy_path_placeholer",
                 active_players=dict(main_player=1, ),
                 main_player=dict(
-                    one_phase_step=2048,
-                    branch_probs=dict(pfsp=1.0),
-                    strong_win_rate=0.55,
+                    one_phase_step=20000,
+                    branch_probs=dict(pfsp=0.2, sp=0.8),
+                    strong_win_rate=0.7,
                 ),
                 use_pretrain=False,
                 use_pretrain_init_historical=False,
                 payoff=dict(
                     type='battle',
-                    decay=1,
-                    min_win_rate_games=256,
+                    decay=0.99,
+                    min_win_rate_games=16,
                 ),
                 metric=dict(
                     mu=0,

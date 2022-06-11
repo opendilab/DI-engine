@@ -162,10 +162,10 @@ class ActivePlayer(Player):
         step_passed = self._total_agent_step - self._last_enough_step
         if step_passed < self._one_phase_step:
             return False
-        #elif step_passed >= 2 * self._one_phase_step:
-        #    # ``step_passed`` is 2 times of ``self._one_phase_step``, regarded as trained enough
-        #    self._last_enough_step = self._total_agent_step
-        #    return True
+        elif step_passed >= 2 * self._one_phase_step:
+            # ``step_passed`` is 2 times of ``self._one_phase_step``, regarded as trained enough
+            self._last_enough_step = self._total_agent_step
+            return True
         else:
             # Get payoff against specific opponents (Different players have different type of opponent players)
             # If min win rate is larger than ``self._strong_win_rate``, then is judged trained enough
