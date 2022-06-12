@@ -89,7 +89,9 @@ class GomokuEnv(BaseGameEnv):
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
         board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
         board_to_play = np.full((self.board_size, self.board_size), self.current_player)
-        return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
+        # return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
+        # to be compatible with muzero, obs shape should be[ W, H, C]  width, height, channel
+        return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32).reshape(15, 15, 3)
 
     def coord_to_action(self, i, j):
         ''' convert coordinate i, j to action a in [0, board_size**2)

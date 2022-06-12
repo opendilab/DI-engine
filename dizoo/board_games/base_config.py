@@ -76,7 +76,7 @@ class BaseConfig(object):
                  pred_out: int = 256,
                  value_support: DiscreteSupport = DiscreteSupport(-300, 300, delta=1),
                  reward_support: DiscreteSupport = DiscreteSupport(-300, 300, delta=1)):
-        """Base Config for EfficietnZero
+        """Base Config for EfficietZero
         Parameters
         ----------
         training_steps: int
@@ -322,7 +322,7 @@ class BaseConfig(object):
         return self.inverse_scalar_transform(value_logits, self.value_support)
 
     def inverse_scalar_transform(self, logits, scalar_support):
-        """ Reference from MuZerp: Appendix F => Network Architecture
+        """ Reference from MuZero: Appendix F => Network Architecture
         & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
         """
         delta = self.value_support.delta

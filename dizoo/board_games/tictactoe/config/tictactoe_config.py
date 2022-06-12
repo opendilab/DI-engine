@@ -15,23 +15,18 @@ class TictactoeConfig(BaseConfig):
             test_interval=10000,
             log_interval=1000,
             vis_interval=1000,
-            test_episodes=1,  # TODO Debug
+            test_episodes=1,  # TODO
             checkpoint_interval=100,
             target_model_interval=200,
             save_ckpt_interval=10000,
-            # max_moves=108000,
-            # test_max_moves=12000,
-            max_moves=100,  # TODO Debug
+            max_moves=100,  # TODO
             test_max_moves=100,
-            # history_length=400,
-            history_length=10,  # TODO Debug
+            history_length=10,  # TODO
             discount=0.997,
             dirichlet_alpha=0.3,
             value_delta_max=0.01,
-            # num_simulations=50,
-            num_simulations=2,  # TODO Debug
-            # batch_size=256,
-            batch_size=2,  # TODO Debug
+            num_simulations=2,  # TODO
+            batch_size=2,  # TODO
             td_steps=5,
             num_actors=1,
             # network initialization/ & normalization
@@ -90,9 +85,10 @@ class TictactoeConfig(BaseConfig):
         self.env_name = 'tictactoe'
         self.action_space_size = int(3 * 3)
         self.amp_type = 'none'
-        self.obs_shape = (3, 3, 3)
+        # self.obs_shape = (3, 3, 3)
+        self.obs_shape = (12, 3, 3),  # if stacked_observations=4
         self.gray_scale = False
-        self.test_episodes = 2
+        self.test_episodes = 1
         self.cvt_string = False
         self.use_max_priority = True
         self.use_priority = True
@@ -101,10 +97,12 @@ class TictactoeConfig(BaseConfig):
         self.game_history_length = 9
         self.auto_td_steps = int(0.3 * 2e5)
         self.device = 'cpu'
-        self.use_root_value = True,
+        self.use_root_value = True
         self.mini_infer_size = 2
         self.use_augmentation = False
         self.vis_result = True
+        self.env_num = 1  # TODO
+
 
     def visit_softmax_temperature_fn(self, num_moves, trained_steps):
         if self.change_temperature:

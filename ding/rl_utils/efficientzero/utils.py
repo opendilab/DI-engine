@@ -310,7 +310,7 @@ def select_action(visit_counts, temperature=1, deterministic=True):
 
 
 def prepare_observation_lst(observation_lst):
-    """Prepare the observations to satisfy the input fomat of torch
+    """Prepare the observations to satisfy the input format of torch
     [B, S, W, H, C] -> [B, S x C, W, H]
     batch, stack num, width, height, channel
     """

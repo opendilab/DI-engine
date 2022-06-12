@@ -93,9 +93,15 @@ def serial_pipeline_muzero(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name,
         replay_buffer=replay_buffer,
+        game_config=game_config
     )
     evaluator = BaseSerialEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+        cfg.policy.eval.evaluator,
+        evaluator_env,
+        policy.eval_mode,
+        tb_logger,
+        exp_name=cfg.exp_name,
+        game_config=game_config
     )
 
     commander = BaseSerialCommander(

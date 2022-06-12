@@ -10,8 +10,6 @@ from ding.torch_utils import to_tensor, to_ndarray
 from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
 from ding.rl_utils.efficientzero.game import GameHistory
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
-# from dizoo.board_games.atari.config.atari_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 from torch.nn import L1Loss
 
 
@@ -37,6 +35,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             exp_name: Optional[str] = 'default_experiment',
             instance_name: Optional[str] = 'collector',
             replay_buffer: 'replay_buffer' = None,  # noqa
+            game_config: 'game_config' = None,  # noqa
     ) -> None:
         """
         Overview:
@@ -311,7 +310,8 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         return_data = []
         ready_env_id = set()
         remain_episode = n_episode
-        env_nums = 1
+        # env_nums = 1
+        env_nums = self._env_num
         # initializations
         init_obses = self._env.ready_obs
         init_obses = to_tensor(init_obses, dtype=torch.float32)
@@ -415,10 +415,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 else:
                     clip_reward = ori_reward
                 game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                if self.game_config.env_name == 'tictactoe':
-                    game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
-                elif self.game_config.env_name == 'PongNoFrameskip-v4':
-                    game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
+                game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
 
                 eps_reward_lst[i] += clip_reward
                 eps_ori_reward_lst[i] += ori_reward
@@ -494,7 +491,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
                     # ready_env_id.remove(env_id)
-
+                    """TODO"""
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
                         self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories)
@@ -506,6 +503,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # save the game histories and clear the pool
                     self.put((game_histories[i], priorities))
                     self.free()
+                    """TODO"""
 
                     # reset the finished env and new a env
                     init_obses = self._env.ready_obs

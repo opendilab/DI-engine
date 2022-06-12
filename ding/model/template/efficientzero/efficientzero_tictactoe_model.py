@@ -399,7 +399,7 @@ class PredictionNetwork(nn.Module):
         return policy, value
 
 
-@MODEL_REGISTRY.register('EfficientZeroNet-tictactoe')
+@MODEL_REGISTRY.register('EfficientZeroNet_tictactoe')
 class EfficientZeroNet(BaseNet):
 
     def __init__(
@@ -539,8 +539,7 @@ class EfficientZeroNet(BaseNet):
         # projection
         # in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
         # TODO(pu)
-        stacked_observations = 4
-        in_dim = stacked_observations * observation_shape[0] * observation_shape[1] * observation_shape[2]
+        in_dim = observation_shape[0] * observation_shape[1] * observation_shape[2]
 
         self.porjection_in_dim = in_dim
         self.projection = nn.Sequential(

@@ -426,7 +426,7 @@ class PredictionNetwork(nn.Module):
         return policy, value
 
 
-@MODEL_REGISTRY.register('EfficientZeroNet-atari')
+@MODEL_REGISTRY.register('EfficientZeroNet_atari')
 class EfficientZeroNet(BaseNet):
 
     def __init__(
@@ -446,8 +446,6 @@ class EfficientZeroNet(BaseNet):
         downsample,
         inverse_value_transform=inverse_value_transform,
         inverse_reward_transform=inverse_reward_transform,
-        # inverse_value_transform,
-        # inverse_reward_transform,
         lstm_hidden_size=512,
         bn_mt=0.1,
         proj_hid=256,

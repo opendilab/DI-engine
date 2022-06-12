@@ -10,8 +10,6 @@ from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 from ding.rl_utils.efficientzero.game import GameHistory
 from ding.rl_utils.efficientzero.utils import prepare_observation_lst
-# from dizoo.board_games.atari.config.atari_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 
 class BaseSerialEvaluatorMuZero(object):
@@ -50,6 +48,7 @@ class BaseSerialEvaluatorMuZero(object):
             tb_logger: 'SummaryWriter' = None,  # noqa
             exp_name: Optional[str] = 'default_experiment',
             instance_name: Optional[str] = 'evaluator',
+            game_config: 'game_config' = None,  # noqa
     ) -> None:
         """
         Overview:
@@ -194,9 +193,9 @@ class BaseSerialEvaluatorMuZero(object):
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
-        env_nums = 1
-        n_episode = env_nums
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
+        env_nums = self._env.env_num
+
         self._env.reset()
         self._policy.reset()
 
@@ -204,8 +203,8 @@ class BaseSerialEvaluatorMuZero(object):
         init_obses = self._env.ready_obs
         init_obses = to_tensor(init_obses, dtype=torch.float32)
         action_mask = [to_ndarray(init_obses[i].obs['action_mask']) for i in range(env_nums)]
-
         dones = np.array([False for _ in range(env_nums)])
+
         game_histories = [
             GameHistory(self._env.action_space, max_length=self.game_config.max_moves, config=self.game_config)
             for _ in range(env_nums)

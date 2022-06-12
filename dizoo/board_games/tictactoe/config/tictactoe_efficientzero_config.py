@@ -1,5 +1,6 @@
 from easydict import EasyDict
-from tictactoe_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config_dict import game_config
+# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 nstep = 3
 tictactoe_efficientzero_config = dict(
@@ -13,12 +14,16 @@ tictactoe_efficientzero_config = dict(
         stop_value=200,
     ),
     policy=dict(
+        env_name='tictactoe',
+        # TODO(pu): how to pass into game_config, which is class, not only a dict
+        # game_config=game_config,
         # Whether to use cuda for network.
         cuda=False,
         model=dict(
+            # observation_shape=(3, 3, 3),
+            observation_shape=(12, 3, 3),  # if stacked_observations=4
             action_space_size=9,
             num_blocks=1,
-            observation_shape=(3, 3, 3),
             num_channels=12,
             reduced_channels_reward=16,
             reduced_channels_value=16,
@@ -51,7 +56,6 @@ tictactoe_efficientzero_config = dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
             n_episode=8,
-            # Cut trajectories into pieces with length "unroll_len".
         ),
         # command_mode config
         other=dict(
@@ -85,4 +89,4 @@ create_config = tictactoe_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
-    serial_pipeline_muzero([main_config, create_config], game_config=game_config, seed=0)
+    serial_pipeline_muzero([main_config, create_config], game_config=game_config, seed=0, max_env_step=int(1e6))

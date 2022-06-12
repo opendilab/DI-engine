@@ -9,15 +9,16 @@ import copy
 import numpy as np
 from torch.nn import L1Loss
 import torch.nn.functional as F
+from ding.torch_utils import Adam, to_device, ContrastiveLoss
 from ding.rl_utils import get_nstep_return_data, get_train_sample
 import ding.rl_utils.efficientzero.ctree.cytree as cytree
 from ding.rl_utils.efficientzero.mcts import MCTS
 from ding.rl_utils.efficientzero.utils import select_action
-
-from ding.torch_utils import to_tensor, to_ndarray
-# TODO(pu): atari or tictactoe
-# from dizoo.board_games.atari.game_config.atari_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+from ding.torch_utils import to_tensor, to_ndarray, to_dtype
+# TODO(pu): choice game config
+# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
+# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 
 class ModifiedCrossEntropyLoss(torch.nn.Module):
@@ -30,7 +31,7 @@ class ModifiedCrossEntropyLoss(torch.nn.Module):
         return -(torch.log_softmax(inputs, dim=-1) * target).sum(dim=-1)
 
 
-@POLICY_REGISTRY.register('muzero')
+@POLICY_REGISTRY.register('efficientzero')
 class EfficientZeroPolicy(Policy):
     """
     Overview:
@@ -38,48 +39,69 @@ class EfficientZeroPolicy(Policy):
         EfficientZero
     """
     config = dict(
-        type='muzero',
+        type='efficientzero',
+        # (bool) Whether use cuda in policy
         cuda=False,
-        device='cpu',
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
         on_policy=False,
-        priority=True,
-        priority_IS_weight=True,
-        batch_size=256,
-        discount_factor=0.997,
-        learning_rate=1e-3,
-        momentum=0.9,
-        weight_decay=1e-4,
-        grad_clip_type='clip_norm',
-        grad_clip_value=5,
-        policy_weight=1.0,
-        value_weight=0.25,
-        consistent_weight=1.0,
-        value_prefix_weight=2.0,
-        image_unroll_len=5,
-        lstm_horizon_len=5,
-        # collect
-        simulation_num=50,
-        root_dirichlet_alpha=0.3,
-        root_exploration_fraction=0.25,
-        value_delta_max=0.01,
-
+        # (bool) Whether enable priority experience sample
+        priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
+        # (float) Discount factor(gamma) for returns
+        discount_factor=0.97,
+        # (int) The number of step for calculating target q_value
+        nstep=1,
+        model=dict(
+            observation_shape=(12, 96, 96),
+            action_space_size=6,
+            num_blocks=1,
+            num_channels=64,
+            reduced_channels_reward=16,
+            reduced_channels_value=16,
+            reduced_channels_policy=16,
+            fc_reward_layers=[32],
+            fc_value_layers=[32],
+            fc_policy_layers=[32],
+            reward_support_size=601,
+            value_support_size=601,
+            downsample=True,
+            lstm_hidden_size=512,
+            bn_mt=0.1,
+            proj_hid=1024,
+            proj_out=1024,
+            pred_hid=512,
+            pred_out=1024,
+            init_zero=True,
+            state_norm=False,
+        ),
         # learn_mode config
         learn=dict(
+            # (bool) Whether to use multi gpu
             multi_gpu=False,
-            update_per_collect=10,
+            # How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
+            update_per_collect=3,
+            # (int) How many samples in a training batch
             batch_size=64,
+            # (float) The step size of gradient descent
             learning_rate=0.001,
-            # Frequency of target network update.
+            # ==============================================================
+            # The following configs are algorithm-specific
+            # ==============================================================
+            # (int) Frequence of target network update.
             target_update_freq=100,
-            # grad_clip_type='clip_norm',
-            # grad_clip_value=0.5,
+            # (bool) Whether ignore done(usually for max step termination env)
+            ignore_done=False,
+            weight_decay=1e-4,
+            momentum=0.9,
         ),
         # collect_mode config
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            n_sample=64,
-            # Cut trajectories into pieces with length "unroll_len".
+            n_episode=8,
             unroll_len=1,
         ),
         # command_mode config
@@ -95,6 +117,25 @@ class EfficientZeroPolicy(Policy):
             replay_buffer=dict(replay_buffer_size=100000, type='game')
         ),
     )
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
+        """
+        # TODO(pu): atari or tictactoe
+        if self._cfg.env_name == 'PongNoFrameskip-v4':
+            return 'EfficientZeroNet_atari', ['ding.model.template.efficientzero.efficientzero_atari_model']
+        elif self._cfg.env_name == 'tictactoe':
+            return 'EfficientZeroNet_tictactoe', ['ding.model.template.efficientzero.efficientzero_tictactoe_model']
+        elif self._cfg.env_name == 'gomoku':
+            return 'EfficientZeroNet_gomoku', ['ding.model.template.efficientzero.efficientzero_gomoku_model']
 
     def _data_preprocess_learn(self, data: ttorch.Tensor):
         # TODO data augmentation before learning
@@ -117,17 +158,19 @@ class EfficientZeroPolicy(Policy):
         return -action_shape * p * np.log2(p)
 
     def _init_learn(self) -> None:
-        self._metric_loss = torch.nn.L1Loss()
-        self._cos = torch.nn.CosineSimilarity(dim=1, eps=1e-05)
-        self._ce = ModifiedCrossEntropyLoss(reduction='none')
+        # self._metric_loss = torch.nn.L1Loss()
+        # self._cos = torch.nn.CosineSimilarity(dim=1, eps=1e-05)
+        # self._ce = ModifiedCrossEntropyLoss(reduction='none')
         self._optimizer = optim.SGD(
             self._model.parameters(),
-            lr=self._cfg.learning_rate,
-            momentum=self._cfg.momentum,
-            weight_decay=self._cfg.weight_decay,
-            # grad_clip_type=self._cfg.grad_clip_type,
-            # clip_value=self._cfg.grad_clip_value,
+            lr=self._cfg.learn.learning_rate,
+            momentum=self._cfg.learn.momentum,
+            weight_decay=self._cfg.learn.weight_decay,
+            # grad_clip_type=self._cfg.learn.grad_clip_type,
+            # clip_value=self._cfg.learn.grad_clip_value,
         )
+        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
@@ -139,10 +182,12 @@ class EfficientZeroPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
         self._target_model.reset()
+        # TODO(pu): how to pass into game_config, which is class, not a dict
+        # self.game_config = self._cfg.game_config
         self.game_config = game_config
 
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
-        # inputs_batch, targets_batch = data
+        self._learn_model.train()
         # TODO(pu): priority
         inputs_batch, targets_batch, replay_buffer = data
 
@@ -156,25 +201,26 @@ class EfficientZeroPolicy(Policy):
         # to save GPU memory usage, obs_batch_ori contains (stack + unroll steps) frames
 
         # TODO(pu): / 255.0
-        obs_batch_ori = torch.from_numpy(obs_batch_ori).to(game_config.device).float()
-        obs_batch = obs_batch_ori[:, 0:game_config.stacked_observations * game_config.image_channel, :, :]
-        obs_target_batch = obs_batch_ori[:, game_config.image_channel:, :, :]
+        obs_batch_ori = torch.from_numpy(obs_batch_ori).to(self.game_config.device).float()
+        obs_batch = obs_batch_ori[:, 0:self.game_config.stacked_observations * self.game_config.image_channel, :, :]
+        obs_target_batch = obs_batch_ori[:, self.game_config.image_channel:, :, :]
 
         # do augmentations
-        if game_config.use_augmentation:
-            obs_batch = game_config.transform(obs_batch)
-            obs_target_batch = game_config.transform(obs_target_batch)
+        if self.game_config.use_augmentation:
+            obs_batch = self.game_config.transform(obs_batch)
+            obs_target_batch = self.game_config.transform(obs_target_batch)
 
         # use GPU tensor
-        action_batch = torch.from_numpy(action_batch).to(game_config.device).unsqueeze(-1).long()
-        mask_batch = torch.from_numpy(mask_batch).to(game_config.device).float()
-        target_value_prefix = torch.from_numpy(target_value_prefix).to(game_config.device).float()
-        target_value = torch.from_numpy(target_value).to(game_config.device).float()
-        target_policy = torch.from_numpy(target_policy).to(game_config.device).float()
-        weights = torch.from_numpy(weights_lst).to(game_config.device).float()
+        action_batch = torch.from_numpy(action_batch).to(self.game_config.device).unsqueeze(-1).long()
+        mask_batch = torch.from_numpy(mask_batch).to(self.game_config.device).float()
+        target_value_prefix = torch.from_numpy(target_value_prefix.astype('float64')).to(self.game_config.device
+                                                                                         ).float()
+        target_value = torch.from_numpy(target_value.astype('float64')).to(self.game_config.device).float()
+        target_policy = torch.from_numpy(target_policy).to(self.game_config.device).float()
+        weights = torch.from_numpy(weights_lst).to(self.game_config.device).float()
 
         batch_size = obs_batch.size(0)
-        assert batch_size == game_config.batch_size == target_value_prefix.size(0)
+        assert batch_size == self.game_config.batch_size == target_value_prefix.size(0)
         metric_loss = torch.nn.L1Loss()
 
         # some logs preparation
@@ -187,7 +233,7 @@ class EfficientZeroPolicy(Policy):
             'l1_-1': -1,
             'l1_0': -1,
         }
-        for i in range(game_config.num_unroll_steps):
+        for i in range(self.game_config.num_unroll_steps):
             key = 'unroll_' + str(i + 1) + '_l1'
             other_loss[key] = -1
             other_loss[key + '_1'] = -1
@@ -195,11 +241,11 @@ class EfficientZeroPolicy(Policy):
             other_loss[key + '_0'] = -1
 
         # transform targets to categorical representation
-        transformed_target_value_prefix = game_config.scalar_transform(target_value_prefix)
-        target_value_prefix_phi = game_config.reward_phi(transformed_target_value_prefix)
+        transformed_target_value_prefix = self.game_config.scalar_transform(target_value_prefix)
+        target_value_prefix_phi = self.game_config.reward_phi(transformed_target_value_prefix)
 
-        transformed_target_value = game_config.scalar_transform(target_value)
-        target_value_phi = game_config.value_phi(transformed_target_value)
+        transformed_target_value = self.game_config.scalar_transform(target_value)
+        target_value_phi = self.game_config.value_phi(transformed_target_value)
         value, _, policy_logits, hidden_state, reward_hidden = self._learn_model.initial_inference(obs_batch)
         # TODO(pu)
         value = to_tensor(value)
@@ -207,33 +253,33 @@ class EfficientZeroPolicy(Policy):
         hidden_state = to_tensor(hidden_state)
         reward_hidden = to_tensor(reward_hidden)
 
-        scaled_value = game_config.inverse_value_transform(value)
+        scaled_value = self.game_config.inverse_value_transform(value)
 
-        if game_config.vis_result:
+        if self.game_config.vis_result:
             state_lst = hidden_state.detach().cpu().numpy()
             # state_lst = hidden_state
 
         predicted_value_prefixs = []
         # Note: Following line is just for logging.
-        if game_config.vis_result:
+        if self.game_config.vis_result:
             predicted_values, predicted_policies = scaled_value.detach().cpu(), torch.softmax(
                 policy_logits, dim=1
             ).detach().cpu()
 
         # calculate the new priorities for each transition
         value_priority = L1Loss(reduction='none')(scaled_value.squeeze(-1), target_value[:, 0])
-        value_priority = value_priority.data.cpu().numpy() + game_config.prioritized_replay_eps
+        value_priority = value_priority.data.cpu().numpy() + self.game_config.prioritized_replay_eps
 
         # loss of the first step
-        value_loss = game_config.scalar_value_loss(value, target_value_phi[:, 0])
+        value_loss = self.game_config.scalar_value_loss(value, target_value_phi[:, 0])
         policy_loss = -(torch.log_softmax(policy_logits, dim=1) * target_policy[:, 0]).sum(1)
-        value_prefix_loss = torch.zeros(batch_size, device=game_config.device)
-        consistency_loss = torch.zeros(batch_size, device=game_config.device)
+        value_prefix_loss = torch.zeros(batch_size, device=self.game_config.device)
+        consistency_loss = torch.zeros(batch_size, device=self.game_config.device)
 
         target_value_prefix_cpu = target_value_prefix.detach().cpu()
-        gradient_scale = 1 / game_config.num_unroll_steps
+        gradient_scale = 1 / self.game_config.num_unroll_steps
         # loss of the unrolled steps
-        for step_i in range(game_config.num_unroll_steps):
+        for step_i in range(self.game_config.num_unroll_steps):
             # unroll with the dynamics function
             value, value_prefix, policy_logits, hidden_state, reward_hidden = self._learn_model.recurrent_inference(
                 hidden_state, reward_hidden, action_batch[:, step_i]
@@ -246,11 +292,11 @@ class EfficientZeroPolicy(Policy):
             hidden_state = to_tensor(hidden_state)
             reward_hidden = to_tensor(reward_hidden)
 
-            beg_index = game_config.image_channel * step_i
-            end_index = game_config.image_channel * (step_i + game_config.stacked_observations)
+            beg_index = self.game_config.image_channel * step_i
+            end_index = self.game_config.image_channel * (step_i + self.game_config.stacked_observations)
 
             # consistency loss
-            if game_config.consistency_coeff > 0:
+            if self.game_config.consistency_coeff > 0:
                 # obtain the oracle hidden states from representation function
                 _, _, _, presentation_state, _ = self._learn_model.initial_inference(
                     obs_target_batch[:, beg_index:end_index, :, :]
@@ -268,25 +314,27 @@ class EfficientZeroPolicy(Policy):
                 consistency_loss += temp_loss
 
             policy_loss += -(torch.log_softmax(policy_logits, dim=1) * target_policy[:, step_i + 1]).sum(1)
-            value_loss += game_config.scalar_value_loss(value, target_value_phi[:, step_i + 1])
-            value_prefix_loss += game_config.scalar_reward_loss(value_prefix, target_value_prefix_phi[:, step_i])
+            value_loss += self.game_config.scalar_value_loss(value, target_value_phi[:, step_i + 1])
+            value_prefix_loss += self.game_config.scalar_reward_loss(value_prefix, target_value_prefix_phi[:, step_i])
 
             # Follow MuZero, set half gradient
             # hidden_state.register_hook(lambda grad: grad * 0.5)
 
             # reset hidden states
-            if (step_i + 1) % game_config.lstm_horizon_len == 0:
+            if (step_i + 1) % self.game_config.lstm_horizon_len == 0:
                 reward_hidden = (
-                    torch.zeros(1, game_config.batch_size, game_config.lstm_hidden_size).to(game_config.device),
-                    torch.zeros(1, game_config.batch_size, game_config.lstm_hidden_size).to(game_config.device)
+                    torch.zeros(1, self.game_config.batch_size,
+                                self.game_config.lstm_hidden_size).to(self.game_config.device),
+                    torch.zeros(1, self.game_config.batch_size,
+                                self.game_config.lstm_hidden_size).to(self.game_config.device)
                 )
 
-            if game_config.vis_result:
-                scaled_value_prefixs = game_config.inverse_reward_transform(value_prefix.detach())
+            if self.game_config.vis_result:
+                scaled_value_prefixs = self.game_config.inverse_reward_transform(value_prefix.detach())
                 scaled_value_prefixs_cpu = scaled_value_prefixs.detach().cpu()
 
                 predicted_values = torch.cat(
-                    (predicted_values, game_config.inverse_value_transform(value).detach().cpu())
+                    (predicted_values, self.game_config.inverse_value_transform(value).detach().cpu())
                 )
                 predicted_value_prefixs.append(scaled_value_prefixs_cpu)
                 predicted_policies = torch.cat((predicted_policies, torch.softmax(policy_logits, dim=1).detach().cpu()))
@@ -319,8 +367,8 @@ class EfficientZeroPolicy(Policy):
         # ----------------------------------------------------------------------------------
         # weighted loss with masks (some invalid states which are out of trajectory.)
         loss = (
-            game_config.consistency_coeff * consistency_loss + game_config.policy_loss_coeff * policy_loss +
-            game_config.value_loss_coeff * value_loss + game_config.reward_loss_coeff * value_prefix_loss
+            self.game_config.consistency_coeff * consistency_loss + self.game_config.policy_loss_coeff * policy_loss +
+            self.game_config.value_loss_coeff * value_loss + self.game_config.reward_loss_coeff * value_prefix_loss
         )
         weighted_loss = (weights * loss).mean()
 
@@ -332,7 +380,7 @@ class EfficientZeroPolicy(Policy):
         self._optimizer.zero_grad()
 
         total_loss.backward()
-        torch.nn.utils.clip_grad_norm_(parameters, game_config.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(parameters, self.game_config.max_grad_norm)
         self._optimizer.step()
 
         # ----------------------------------------------------------------------------------
@@ -346,7 +394,7 @@ class EfficientZeroPolicy(Policy):
             total_loss.item(), weighted_loss.item(), loss.mean().item(), 0, policy_loss.mean().item(),
             value_prefix_loss.mean().item(), value_loss.mean().item(), consistency_loss.mean()
         )
-        if game_config.vis_result:
+        if self.game_config.vis_result:
             reward_w_dist, representation_mean, dynamic_mean, reward_mean = self._learn_model.get_params_mean()
             other_dist['reward_weights_dist'] = reward_w_dist
             other_log['representation_weight'] = representation_mean
@@ -355,16 +403,16 @@ class EfficientZeroPolicy(Policy):
 
             # reward l1 loss
             value_prefix_indices_0 = (
-                target_value_prefix_cpu[:, :game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 0
+                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 0
             )
             value_prefix_indices_n1 = (
-                target_value_prefix_cpu[:, :game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == -1
+                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == -1
             )
             value_prefix_indices_1 = (
-                target_value_prefix_cpu[:, :game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 1
+                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 1
             )
 
-            target_value_prefix_base = target_value_prefix_cpu[:, :game_config.
+            target_value_prefix_base = target_value_prefix_cpu[:, :self.game_config.
                                                                num_unroll_steps].reshape(-1).unsqueeze(-1)
 
             predicted_value_prefixs = torch.stack(predicted_value_prefixs).transpose(1, 0).squeeze(-1)
@@ -411,7 +459,8 @@ class EfficientZeroPolicy(Policy):
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, 'base')
-        self._mcts_eval = MCTS(game_config)
+        self._collect_model.eval()
+        self._mcts_eval = MCTS(self.game_config)
 
     def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None):
         """
@@ -421,7 +470,7 @@ class EfficientZeroPolicy(Policy):
         """
         # TODO priority
         stack_obs = data
-        game_config.env_num = len(stack_obs)
+        self.game_config.env_num = len(stack_obs)
         with torch.no_grad():
             network_output = self._collect_model.initial_inference(stack_obs.float())
             hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
@@ -430,31 +479,31 @@ class EfficientZeroPolicy(Policy):
             policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
 
             # for atari:
-            # roots = cytree.Roots(game_config.env_num, self.game_config.action_space_size, game_config.num_simulations)
+            # roots = cytree.Roots(self.game_config.env_num, self.game_config.action_space_size, self.game_config.num_simulations)
             # noises = [
-            #     np.random.dirichlet([game_config.root_dirichlet_alpha] *self.game_config.action_space_size
-            #                         ).astype(np.float32).tolist() for _ in range(game_config.env_num)
+            #     np.random.dirichlet([self.game_config.root_dirichlet_alpha] *self.game_config.action_space_size
+            #                         ).astype(np.float32).tolist() for _ in range(self.game_config.env_num)
             # ]
 
             # for board games:
             # TODO: when action_num is a list
             # action_num = [int(i.sum()) for i in action_mask]
             action_num = int(action_mask[0].sum())
-            roots = cytree.Roots(game_config.env_num, action_num, game_config.num_simulations)
+            roots = cytree.Roots(self.game_config.env_num, action_num, self.game_config.num_simulations)
             # difference between collect and eval
             noises = [
-                np.random.dirichlet([game_config.root_dirichlet_alpha] * action_num).astype(np.float32).tolist()
-                for _ in range(game_config.env_num)
+                np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(np.float32).tolist()
+                for _ in range(self.game_config.env_num)
             ]
-            roots.prepare(game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
+            roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
             # do MCTS for a policy (argmax in testing)
             self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots)
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
-            data_id = [i for i in range(game_config.env_num)]
+            data_id = [i for i in range(self.game_config.env_num)]
             output = {i: None for i in data_id}
-            for i in range(game_config.env_num):
+            for i in range(self.game_config.env_num):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
@@ -490,9 +539,8 @@ class EfficientZeroPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
-        self._eval_model.eval()
         self._eval_model.reset()
-        self._mcts_eval = MCTS(game_config)
+        self._mcts_eval = MCTS(self.game_config)
 
     def _forward_eval(self, data: ttorch.Tensor, action_mask: list):
         """
@@ -509,8 +557,7 @@ class EfficientZeroPolicy(Policy):
         ReturnsKeys
             - necessary: ``action``
         """
-        self._eval_model.training = False
-        game_config.env_num = 1
+        self._eval_model.eval()
         stack_obs = data
         with torch.no_grad():
             # stack_obs {Tensor:(2,12,96,96)}
@@ -521,21 +568,21 @@ class EfficientZeroPolicy(Policy):
             policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
 
             # for atari:
-            # roots = cytree.Roots(game_config.env_num, game_config.action_space_size, game_config.num_simulations)
+            # roots = cytree.Roots(self.game_config.env_num, self.game_config.action_space_size, self.game_config.num_simulations)
             # for board games:
             # TODO: when action_num is a list
             # action_num = [int(i.sum()) for i in action_mask]
             action_num = int(action_mask[0].sum())
-            roots = cytree.Roots(game_config.env_num, action_num, game_config.num_simulations)
+            roots = cytree.Roots(self.game_config.env_num, action_num, self.game_config.num_simulations)
             roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
             # do MCTS for a policy (argmax in testing)
             self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
-            data_id = [i for i in range(game_config.env_num)]
+            data_id = [i for i in range(self.game_config.env_num)]
             output = {i: None for i in data_id}
-            for i in range(game_config.env_num):
+            for i in range(self.game_config.env_num):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
@@ -588,18 +635,3 @@ class EfficientZeroPolicy(Policy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
-        """
-        # TODO(pu): atari or tictactoe
-        # return 'EfficientZeroNet-atari', ['ding.model.template.efficientzero.efficientzero_atari_model']
-        return 'EfficientZeroNet-tictactoe', ['ding.model.template.efficientzero.efficientzero_tictactoe_model']
