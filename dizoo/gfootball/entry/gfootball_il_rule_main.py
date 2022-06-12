@@ -117,4 +117,14 @@ il_config[0].policy.type = 'iql_bc'
 il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
 il_config[0].policy.eval.evaluator.multi_gpu = False
 football_iql_model = FootballIQL()
+
+"""
+load trained model, calculate accuracy
+"""
+il_config[0].policy.learn.batch_size = int(20*3000) # the total dataset
+il_config[0].policy.learn.train_epoch = 1
+il_config[0].policy.learn.show_accuracy = True
+state_dict = torch.load('/home/puyuan/DI-engine/data_gfootball/gfootball_il_rule_seed0_100eps_lt0_epc1000_bs512/ckpt/ckpt_best.pth.tar', map_location='cpu')
+football_iql_model.load_state_dict(state_dict['model'])
+
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=expert_data_path, model=football_iql_model)

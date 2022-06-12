@@ -7,6 +7,9 @@ from ding.utils.data import create_dataset
 import numpy as np
 import matplotlib.pyplot as plt
 import gym
+import os
+path = os.path.abspath(__file__)
+dir_path = os.path.dirname(path)
 
 if __name__ == "__main__":
     config = [main_config, create_config]
@@ -20,7 +23,7 @@ if __name__ == "__main__":
     cfg.policy.collect.data_type = 'naive'
 
     """episode data"""
-    cfg.policy.collect.data_path = './gfootball_rule_100eps.pkl'
+    cfg.policy.collect.data_path = dir_path + '/gfootball_rule_100eps.pkl'
     dataset = create_dataset(cfg)
 
     print('num_episodes', dataset.__len__())
@@ -32,8 +35,9 @@ if __name__ == "__main__":
     print(return_of_episode.mean(), return_of_episode.max(), return_of_episode.min())
 
     """transition data"""
-    cfg.policy.collect.data_path = './gfootball_rule_100eps_transitions_lt0.pkl'
+    cfg.policy.collect.data_path = dir_path + '/gfootball_rule_100eps_transitions_lt0.pkl'
     dataset = create_dataset(cfg)
+
     print('num_transitions', dataset.__len__())
     print('transition 0: ', dataset.__getitem__(0))
 

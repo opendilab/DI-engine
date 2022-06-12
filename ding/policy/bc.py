@@ -9,7 +9,7 @@ from collections import namedtuple, deque
 from easydict import EasyDict
 from ding.policy import Policy
 from ding.model import model_wrap
-from ding.torch_utils import to_device
+from ding.torch_utils import to_device, to_list
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from ding.rl_utils import q_nstep_td_data, q_nstep_sql_td_error, get_nstep_return_data, get_train_sample
@@ -70,6 +70,16 @@ class DiscreteBehaviourCloningPolicy(Policy):
                 obs, action = data['obs'], data['action'].squeeze()
             a_logit = self._learn_model.forward(obs)
             loss = self._ce_loss(a_logit['logit'], action)
+
+            if self._cfg.learn.show_accuracy:
+                # Calculate the overall accuracy and the accuracy of each class
+                total_accuracy = ([a_logit['action'] == action.view(-1)]).float().mean()
+                print('current total_accuracy: ', total_accuracy)
+                for action_int in to_list(torch.unique(action)):
+                    action_index = (action == action_int).nonzero(as_tuple=True)[0]
+                    action_accuracy = ([a_logit['action']['action_index'] == action.view(-1)['action_index']]).float().mean()
+                    print(f'current action {action} accuracy: ', action_accuracy)
+
         forward_time = self._timer.value
         with self._timer:
             self._optimizer.zero_grad()
