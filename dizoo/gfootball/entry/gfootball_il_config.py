@@ -1,10 +1,10 @@
 from easydict import EasyDict
 
 # collector_env_num = 8
-# evaluator_env_num = 10
+# evaluator_env_num = 5
 # debug
-collector_env_num = 1
-evaluator_env_num = 1  
+collector_env_num = 2
+evaluator_env_num = 5
 gfootball_il_main_config = dict(
     exp_name='data_gfootball/gfootball_il_seed0',
     env=dict(
@@ -20,7 +20,8 @@ gfootball_il_main_config = dict(
         model=dict(),
         learn=dict(
             update_per_collect=20,
-            batch_size=512,
+            # batch_size=512,
+            batch_size=5,  # debug
             learning_rate=0.0001,
             target_update_freq=500,
             learner=dict(load_path=None),

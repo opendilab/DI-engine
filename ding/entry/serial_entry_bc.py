@@ -71,6 +71,11 @@ def serial_pipeline_bc(
             learner.train(train_data)
         if stop:
             break
+        
+    if cfg.policy.learn.show_accuracy:
+        # for gfootball debug
+        print('total accuracy:', torch.tensor(policy.total_accuracy_dataset).mean())
+        print('accuracy of each action', [torch.tensor(policy.action_accuracy_dataset[k]).mean() for k in range(19)])
 
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))

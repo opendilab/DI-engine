@@ -1,8 +1,9 @@
 import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import copy
-from torch.optim import Adam
+from torch.optim import Adam, AdamW
 from torch.optim.lr_scheduler import LambdaLR
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
@@ -15,6 +16,8 @@ from ding.utils.data import default_collate, default_decollate
 from ding.rl_utils import q_nstep_td_data, q_nstep_sql_td_error, get_nstep_return_data, get_train_sample
 from ding.worker.collector.interaction_serial_evaluator import InteractionSerialEvaluator
 from ding.utils import POLICY_REGISTRY
+from ding.torch_utils.loss.cross_entropy_loss import LabelSmoothCELoss
+
 
 
 @POLICY_REGISTRY.register('bc')
@@ -43,6 +46,8 @@ class DiscreteBehaviourCloningPolicy(Policy):
             self._model.parameters(),
             lr=self._cfg.learn.learning_rate,
         )
+        # self._optimizer = AdamW(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay)
+
         self._timer = EasyTimer(cuda=True)
 
         #def lr_scheduler_fn(epoch):
@@ -56,6 +61,10 @@ class DiscreteBehaviourCloningPolicy(Policy):
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
         self._ce_loss = nn.CrossEntropyLoss()
+        # self._lsce_loss = LabelSmoothCELoss(0.1)
+        # for gfootball debug
+        self.total_accuracy_dataset = []
+        self.action_accuracy_dataset = {k:[] for k in range(19)}
 
     def _forward_learn(self, data):
         if not isinstance(data, dict):
@@ -69,16 +78,31 @@ class DiscreteBehaviourCloningPolicy(Policy):
             else:
                 obs, action = data['obs'], data['action'].squeeze()
             a_logit = self._learn_model.forward(obs)
-            loss = self._ce_loss(a_logit['logit'], action)
+            if self._cfg.learn.ce_class_weight:
+                # to tackle with unbalanced training set.
+                self.action_num = [1 for k in range(19)]  # to tackle with the case that the num of some actions is zero
+                for action_int in to_list(torch.unique(action)):
+                    action_index = (action == action_int).nonzero(as_tuple=True)[0]
+                    self.action_num[action_int] = action_index.shape[0]
+                self.action_num = torch.tensor(self.action_num)
+                weight = self.action_num.sum()/self.action_num  # the larger the action_num , the smaller the weight
+                weight = weight/weight.sum()  # normalization
+                if self._cuda:
+                    weight = to_device(weight, self._device)
+                loss = F.cross_entropy(a_logit['logit'], action, weight=weight)
+            else:
+                loss = self._ce_loss(a_logit['logit'], action)
 
             if self._cfg.learn.show_accuracy:
                 # Calculate the overall accuracy and the accuracy of each class
-                total_accuracy = ([a_logit['action'] == action.view(-1)]).float().mean()
+                total_accuracy = (a_logit['action'] == action.view(-1)).float().mean()
+                self.total_accuracy_dataset.append(total_accuracy)
                 print('current total_accuracy: ', total_accuracy)
                 for action_int in to_list(torch.unique(action)):
                     action_index = (action == action_int).nonzero(as_tuple=True)[0]
-                    action_accuracy = ([a_logit['action']['action_index'] == action.view(-1)['action_index']]).float().mean()
-                    print(f'current action {action} accuracy: ', action_accuracy)
+                    action_accuracy = (a_logit['action'][action_index] == action.view(-1)[action_index]).float().mean()
+                    self.action_accuracy_dataset[action_int].append(action_accuracy)
+                    print(f'current action {action_int} accuracy: ', action_accuracy)
 
         forward_time = self._timer.value
         with self._timer:

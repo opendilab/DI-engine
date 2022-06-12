@@ -68,12 +68,12 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'football_iql', ['dizoo.gfootball.model.iql']
-
-
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_lt0_seed0'
+gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_debug'
+# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_200eps_lt0_epc1000_bs512_e5_lsce'
+# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_lt0_epc1000_bs512_accuracy'
 seed=0
-# demo_episodes = 2  # debug
-demo_episodes = 100  # key hyper-parameter
+demo_episodes = 2  # debug
+# demo_episodes = 100  # key hyper-parameter
 data_path_episode = dir_path + f'/gfootball_rule_{demo_episodes}eps.pkl'
 data_path_transitions_lt0 = dir_path + f'/gfootball_rule_{demo_episodes}eps_transitions_lt0.pkl'
 
@@ -98,9 +98,10 @@ state_dict = expert_policy.collect_mode.state_dict()
 collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 
 eval_config = deepcopy(collect_config)
+"""if eval demo model"""
 # eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
 # eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
-
+"""if collect demo data"""
 # collect_episodic_demo_data(
 #     collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,
 #     model=football_rule_base_model, state_dict=state_dict
@@ -115,19 +116,47 @@ il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_co
 # il_config[0].policy.learn.train_epoch = 2  # debug
 il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 
-
 il_config[0].policy.type = 'iql_bc'
 il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
 il_config[0].policy.eval.evaluator.multi_gpu = False
 football_iql_model = FootballIQL()
 
-"""
-load trained model, calculate accuracy
-"""
-il_config[0].policy.learn.batch_size = int(100*3000) # the total dataset
-il_config[0].policy.learn.train_epoch = 1
-il_config[0].policy.learn.show_accuracy = True
-state_dict = torch.load('/home/puyuan/DI-engine/data_gfootball/gfootball_il_rule_seed0_100eps_epc1000_bs512/ckpt/ckpt_best.pth.tar', map_location='cpu')
-football_iql_model.load_state_dict(state_dict['model'])
+il_config[0].policy.learn.show_accuracy = False
+il_config[0].policy.learn.ce_class_weight = True
 
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0, model=football_iql_model)
+
+"""
+phase 3: test accuracy in train dataset and validation dataset
+"""
+# """
+# load trained model, calculate accuracy in train dataset
+# """
+# # il_config[0].policy.learn.batch_size = int(20*3000) # the total dataset
+# il_config[0].policy.learn.batch_size = int(3000) # the total dataset
+# il_config[0].policy.learn.train_epoch = 1
+# il_config[0].policy.learn.show_accuracy = True
+# state_dict = torch.load('/mnt/lustre/puyuan/DI-engine/data_gfootball/gfootball_il_rule_seed0_100eps_lt0_epc1000_bs512/ckpt/ckpt_best.pth.tar', map_location='cpu')
+# # if in dev /home/puyuan
+# football_iql_model.load_state_dict(state_dict['model'])
+# data_path_transitions_lt0 = dir_path + f'/gfootball_rule_100eps_transitions_lt0.pkl'
+# print('=='*10)
+# print('calculate accuracy in train dataset'*10)
+# print('=='*10)
+# _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0, model=football_iql_model)
+
+# """
+# load trained model, calculate accuracy in validation dataset
+# """
+# # il_config[0].policy.learn.batch_size = int(10*3000) # the total dataset
+# il_config[0].policy.learn.batch_size = int(3000) # the total dataset
+# il_config[0].policy.learn.train_epoch = 1
+# il_config[0].policy.learn.show_accuracy = True
+# state_dict = torch.load('/mnt/lustre/puyuan/DI-engine/data_gfootball/gfootball_il_rule_seed0_100eps_epc1000_bs512/ckpt/ckpt_best.pth.tar', map_location='cpu')
+# # if in dev /home/puyuan
+# football_iql_model.load_state_dict(state_dict['model'])
+# data_path_transitions_lt0_test = dir_path + f'/gfootball_rule_50eps_transitions_lt0.pkl'
+# print('=='*10)
+# print('calculate accuracy in validation dataset'*10)
+# print('=='*10)
+# _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0_test, model=football_iql_model)
