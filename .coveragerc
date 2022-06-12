@@ -17,5 +17,9 @@ omit =
   ding/hpc_rl/*
   ding/worker/collector/tests/speed_test/*
   ding/envs/env_wrappers/env_wrappers.py
+  ding/envs/env_manager/tests/test_env_supervisor.py
   ding/rl_utils/tests/test_ppg.py
   ding/scripts/tests/test_parallel_socket.py
+  ding/data/buffer/tests/test_benchmark.py
+  ding/example/*
+  ding/torch_utils/loss/tests/*

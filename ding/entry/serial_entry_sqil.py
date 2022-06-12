@@ -1,7 +1,7 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
@@ -119,6 +119,10 @@ def serial_pipeline_sqil(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+    if cfg.policy.get('expert_random_collect_size', 0) > 0:
+        random_collect(
+            expert_cfg.policy, expert_policy, expert_collector, expert_collector_env, expert_commander, expert_buffer
+        )
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance

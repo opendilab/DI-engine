@@ -1,17 +1,16 @@
 from typing import Any, Union, Callable, List, Dict, Optional, Tuple
-import time
-import copy
-import logging
+from ditk import logging
+from collections import namedtuple
 from functools import partial
 from easydict import EasyDict
-from collections import namedtuple
+
+import copy
 
 from ding.torch_utils import CountVar, auto_checkpoint, build_log_buffer
 from ding.utils import build_logger, EasyTimer, import_module, LEARNER_REGISTRY, get_rank, get_world_size
 from ding.utils.autolog import LoggedValue, LoggedModel, TickTime
 from ding.utils.data import AsyncDataLoader
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
-logging.info('')  # necessary
 
 
 @LEARNER_REGISTRY.register('base')
@@ -178,7 +177,7 @@ class BaseLearner(object):
         """
         add_learner_hook(self._hooks, hook)
 
-    def train(self, data: dict, envstep: int = -1) -> None:
+    def train(self, data: dict, envstep: int = -1, policy_kwargs: Optional[dict] = None) -> None:
         """
         Overview:
             Given training data, implement network update for one iteration and update related variables.
@@ -199,8 +198,11 @@ class BaseLearner(object):
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
 
+        if policy_kwargs is None:
+            policy_kwargs = {}
+
         # Forward
-        log_vars = self._policy.forward(data)
+        log_vars = self._policy.forward(data, **policy_kwargs)
 
         # Update replay buffer's priority info
         if isinstance(log_vars, dict):

@@ -17,6 +17,7 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
     AdvancedReplayBuffer, get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, \
     get_serial_collector_cls, MetricSerialEvaluator, BattleInteractionSerialEvaluator
 from ding.reward_model import get_reward_model_cls
+from ding.world_model import get_world_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s, save_config_formatted
 
 
@@ -263,9 +264,12 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 
                 continue
             policy_buffer_cfg = policy_cfg.other.replay_buffer[buffer_name]
             user_buffer_cfg = user_cfg.policy.get('other', {}).get('replay_buffer', {}).get('buffer_name', {})
-            return_cfg[buffer_name] = _compile_buffer_config(
-                policy_buffer_cfg, user_buffer_cfg, buffer_cls[buffer_name]
-            )
+            if buffer_cls is None:
+                return_cfg[buffer_name] = _compile_buffer_config(policy_buffer_cfg, user_buffer_cfg, None)
+            else:
+                return_cfg[buffer_name] = _compile_buffer_config(
+                    policy_buffer_cfg, user_buffer_cfg, buffer_cls[buffer_name]
+                )
             return_cfg[buffer_name].name = buffer_name
         return return_cfg
 
@@ -313,6 +317,7 @@ def compile_config(
         buffer: type = None,
         env: type = None,
         reward_model: type = None,
+        world_model: type = None,
         seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
@@ -375,6 +380,12 @@ def compile_config(
             reward_model_config = reward_model.default_config()
         else:
             reward_model_config = EasyDict()
+        if 'world_model' in create_cfg:
+            world_model = get_world_model_cls(create_cfg.world_model)
+            world_model_config = world_model.default_config()
+            world_model_config.update(create_cfg.world_model)
+        else:
+            world_model_config = EasyDict()
     else:
         if 'default_config' in dir(env):
             env_config = env.default_config()
@@ -390,28 +401,36 @@ def compile_config(
             reward_model_config = EasyDict()
         else:
             reward_model_config = reward_model.default_config()
+        if world_model is None:
+            world_model_config = EasyDict()
+        else:
+            world_model_config = world_model.default_config()
+            world_model_config.update(create_cfg.world_model)
     policy_config.learn.learner = deep_merge_dicts(
         learner.default_config(),
         policy_config.learn.learner,
     )
     if create_cfg is not None or collector is not None:
         policy_config.collect.collector = compile_collector_config(policy_config, cfg, collector)
-    policy_config.eval.evaluator = deep_merge_dicts(
-        evaluator.default_config(),
-        policy_config.eval.evaluator,
-    )
+    if evaluator:
+        policy_config.eval.evaluator = deep_merge_dicts(
+            evaluator.default_config(),
+            policy_config.eval.evaluator,
+        )
     if create_cfg is not None or buffer is not None:
         policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, buffer)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     if len(reward_model_config) > 0:
         default_config['reward_model'] = reward_model_config
+    if len(world_model_config) > 0:
+        default_config['world_model'] = world_model_config
     cfg = deep_merge_dicts(default_config, cfg)
     cfg.seed = seed
     # check important key in config
     if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation
-        assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
-        cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
-        cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+        if 'stop_value' in cfg.env:  # data generation task doesn't need these fields
+            cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+            cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:

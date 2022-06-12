@@ -43,24 +43,16 @@ def test_q_nstep_td_ngu():
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
-    gamma = torch.full((batch_size, ), 0.95)
+    gamma = [torch.tensor(0.95) for i in range(batch_size)]
+
     for nstep in range(1, 10):
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error_ngu(data, gamma, nstep=nstep)
+        loss, td_error_per_sample = q_nstep_td_error(data, gamma, nstep=nstep)
         assert td_error_per_sample.shape == (batch_size, )
         assert loss.shape == ()
         assert q.grad is None
-        loss.backward()
-        assert isinstance(q.grad, torch.Tensor)
-        data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error_ngu(data, gamma, nstep=nstep, cum_reward=True)
-        value_gamma = torch.tensor(0.9)
-        data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error_ngu(
-            data, gamma, nstep=nstep, cum_reward=True, value_gamma=value_gamma
-        )
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
 
@@ -100,7 +92,7 @@ def test_q_1step_compatible():
     onestep_data = q_1step_td_data(q, next_q, action, next_action, reward, done, None)
     nstep_loss, _ = q_nstep_td_error(nstep_data, 0.99, nstep=1)
     onestep_loss = q_1step_td_error(onestep_data, 0.99)
-    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
+    assert pytest.approx(nstep_loss.item()) == onestep_loss.item()
 
 
 @pytest.mark.unittest
@@ -133,6 +125,55 @@ def test_dist_nstep_td():
 
 
 @pytest.mark.unittest
+def test_dist_nstep_multi_agent_td():
+    batch_size = 4
+    action_dim = 3
+    agent_num = 2
+    n_atom = 51
+    v_min = -10.0
+    v_max = 10.0
+    nstep = 5
+    dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs().requires_grad_(True)
+    next_n_dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs()
+    done = torch.randint(0, 2, (batch_size, ))
+    action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
+    next_action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
+    reward = torch.randn(nstep, batch_size)
+    data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, None)
+    loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep)
+    assert loss.shape == ()
+    assert dist.grad is None
+    loss.backward()
+    assert isinstance(dist.grad, torch.Tensor)
+    weight = 0.9
+    value_gamma = 0.9
+    data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, weight)
+    loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep, value_gamma)
+    assert loss.shape == ()
+    loss.backward()
+    assert isinstance(dist.grad, torch.Tensor)
+    agent_total_loss = 0
+    for i in range(agent_num):
+        data = dist_nstep_td_data(
+            dist[:, i, ], next_n_dist[:, i, ], action[:, i, ], next_action[:, i, ], reward, done, weight
+        )
+        agent_loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep, value_gamma)
+        agent_total_loss = agent_total_loss + agent_loss
+    agent_average_loss = agent_total_loss / agent_num
+    assert abs(agent_average_loss.item() - loss.item()) < 1e-5
+
+
+@pytest.mark.unittest
 def test_q_nstep_td_with_rescale():
     batch_size = 4
     action_dim = 3
@@ -160,12 +201,12 @@ def test_q_nstep_td_with_rescale_ngu():
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
-    gamma = torch.full((batch_size, ), 0.95)
+    gamma = [torch.tensor(0.95) for i in range(batch_size)]
     for nstep in range(1, 10):
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, _ = q_nstep_td_error_with_rescale_ngu(data, gamma, nstep=nstep)
+        loss, _ = q_nstep_td_error_with_rescale(data, gamma, nstep=nstep)
         assert loss.shape == ()
         assert q.grad is None
         loss.backward()
@@ -213,7 +254,48 @@ def test_dist_1step_compatible():
     nstep_data = dist_nstep_td_data(dist, next_dist, action, next_action, reward.unsqueeze(0), done, None)
     onestep_loss = dist_1step_td_error(onestep_data, 0.95, v_min, v_max, n_atom)
     nstep_loss, _ = dist_nstep_td_error(nstep_data, 0.95, v_min, v_max, n_atom, nstep=1)
-    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
+    assert pytest.approx(nstep_loss.item()) == onestep_loss.item()
+
+
+@pytest.mark.unittest
+def test_dist_1step_multi_agent_td():
+    batch_size = 4
+    action_dim = 3
+    agent_num = 2
+    n_atom = 51
+    v_min = -10.0
+    v_max = 10.0
+    dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs().requires_grad_(True)
+    next_dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs()
+    done = torch.randint(0, 2, (batch_size, ))
+    action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
+    next_action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
+    reward = torch.randn(batch_size)
+    data = dist_1step_td_data(dist, next_dist, action, next_action, reward, done, None)
+    loss = dist_1step_td_error(data, 0.95, v_min, v_max, n_atom)
+    assert loss.shape == ()
+    assert dist.grad is None
+    loss.backward()
+    assert isinstance(dist.grad, torch.Tensor)
+    agent_total_loss = 0
+    for i in range(agent_num):
+        data = dist_1step_td_data(
+            dist[:, i, ], next_dist[:, i, ], action[:, i, ], next_action[:, i, ], reward, done, None
+        )
+        agent_loss = dist_1step_td_error(data, 0.95, v_min, v_max, n_atom)
+        agent_total_loss = agent_total_loss + agent_loss
+    agent_average_loss = agent_total_loss / agent_num
+    assert abs(agent_average_loss.item() - loss.item()) < 1e-5
 
 
 @pytest.mark.unittest

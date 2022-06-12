@@ -1,5 +1,7 @@
-from tensorboardX import SummaryWriter
 from typing import TYPE_CHECKING
+
+from tensorboardX import SummaryWriter
+
 if TYPE_CHECKING:
     # TYPE_CHECKING is always False at runtime, but mypy will evaluate the contents of this block.
     # So if you import this module within TYPE_CHECKING, you will get code hints and other benefits.
@@ -100,4 +102,5 @@ ready_to_parallel_fns = [
     'add_video',
 ]
 for fn_name in ready_to_parallel_fns:
-    setattr(DistributedWriter, fn_name, enable_parallel(fn_name, getattr(DistributedWriter, fn_name)))
+    if hasattr(DistributedWriter, fn_name):
+        setattr(DistributedWriter, fn_name, enable_parallel(fn_name, getattr(DistributedWriter, fn_name)))

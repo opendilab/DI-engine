@@ -1,27 +1,23 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_r2d3
-import os
-module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
-evaluator_env_num = 5
+evaluator_env_num = 8
 expert_replay_buffer_size = int(5e3)  # TODO(pu)
-"""agent config"""
+"""
+agent config
+"""
 pong_r2d3_config = dict(
-    exp_name='pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
+    exp_name='pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3_seed0',
     env=dict(
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
+        n_evaluator_episode=evaluator_env_num,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=True,
         priority_IS_weight=True,
         model=dict(
@@ -56,8 +52,13 @@ pong_r2d3_config = dict(
             per_train_iter_k=0,  # TODO(pu)
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
@@ -88,33 +89,31 @@ pong_r2d3_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d3'),
 )
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
-"""export config"""
+"""
+export config
+"""
 expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
+    exp_name='expert_pong_r2d3_r2d2expert_seed0',
     env=dict(
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
+        n_evaluator_episode=evaluator_env_num,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=True,
         priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            # encoder_hidden_size_list=[64, 64, 128],  # ppo expert policy
             encoder_hidden_size_list=[128, 128, 512],  # r2d2 expert policy
         ),
         discount_factor=0.997,
@@ -122,13 +121,20 @@ expert_pong_r2d3_config = dict(
         nstep=5,
         learn=dict(expert_replay_buffer_size=expert_replay_buffer_size, ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
-            # Users should add their own path here (path should lead to a well-trained model)
-            # demonstration_info_path=module_path + '/demo_path/ppo-off_ckpt_best.pth.tar',
-            demonstration_info_path=module_path + '/demo_path/r2d2_iteration_15000.pth.tar',
-            # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
-            unroll_len=42,  # TODO(pu) should equals self._unroll_len_add_burnin_step in r2d2 policy
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
+            # Users should add their own path here. path should lead to a well-trained model
+            # Absolute path is recommended.
+            model_path='./pong_r2d2_seed0/ckpt/ckpt_best.pth.tar',
+            # Cut trajectories into pieces with length "unroll_len",
+            # which should set as self._sequence_len of r2d2
+            unroll_len=42,  # NOTE: should equals self._sequence_len in r2d2 policy
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -150,11 +156,13 @@ expert_pong_r2d3_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
-    policy=dict(type='r2d2_collect_traj'),  # this policy is designed to collect r2d2 expert traj for r2d3
+    env_manager=dict(type='subprocess'),
+    # this policy is designed to collect r2d2 expert traj for r2d3
+    policy=dict(type='r2d2_collect_traj'),
 )
 expert_pong_r2d3_create_config = EasyDict(expert_pong_r2d3_create_config)
 expert_create_config = expert_pong_r2d3_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_r2d3
     serial_pipeline_r2d3([main_config, create_config], [expert_main_config, expert_create_config], seed=0)

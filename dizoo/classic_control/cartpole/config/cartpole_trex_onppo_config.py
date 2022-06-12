@@ -3,7 +3,6 @@ from easydict import EasyDict
 cartpole_trex_ppo_onpolicy_config = dict(
     exp_name='cartpole_trex_onppo_seed0',
     env=dict(
-        manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
@@ -65,3 +64,20 @@ cartpole_trex_ppo_onpolicy_create_config = dict(
 )
 cartpole_trex_ppo_onpolicy_create_config = EasyDict(cartpole_trex_ppo_onpolicy_create_config)
 create_config = cartpole_trex_ppo_onpolicy_create_config
+
+if __name__ == "__main__":
+    # Users should first run ``cartpole_onppo_config.py`` to save models (or checkpoints).
+    # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
+    # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_reward_model_trex_onpolicy
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+    # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
+    trex_collecting_data(args)
+    serial_pipeline_reward_model_trex_onpolicy((main_config, create_config))

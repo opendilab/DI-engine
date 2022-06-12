@@ -1,10 +1,9 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
-collector_env_num = 8
-evaluator_env_num = 5
+collector_env_num = 4
+evaluator_env_num = 4
 pong_r2d2_gtrxl_config = dict(
-    exp_name='pong_r2d2_gtrxl',
+    exp_name='pong_r2d2_gtrxl_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -43,8 +42,13 @@ pong_r2d2_gtrxl_config = dict(
             value_rescale=True,
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=300, )),
@@ -72,11 +76,13 @@ pong_r2d2_gtrxl_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2_gtrxl'),
 )
 pong_r2d2_gtrxl_create_config = EasyDict(pong_r2d2_gtrxl_create_config)
 create_config = pong_r2d2_gtrxl_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c pong_r2d2_gtrxl_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

@@ -10,6 +10,8 @@ from matplotlib import animation
 import matplotlib.pyplot as plt
 from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
 from gym_minigrid.window import Window
+from ding.envs import ObsPlusPrevActRewWrapper
+
 
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
@@ -51,7 +53,19 @@ class MiniGridEnv(BaseEnv):
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)
                 # self._env = ImgObsWrapper(self._env)
+            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
+        self._observation_space = self._env.observation_space
+        # to be compatiable with subprocess env manager
+        if isinstance(self._observation_space, gym.spaces.Dict):
+            self._observation_space['obs'].dtype = np.dtype('float32')
+        else:
+            self._observation_space.dtype = np.dtype('float32')
+        self._action_space = self._env.action_space
+        self._reward_space = gym.spaces.Box(
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+        )
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
@@ -59,17 +73,10 @@ class MiniGridEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         self._current_step = 0
         if self._save_replay:
             self._frames = []
-
-        self._observation_space = self._env.observation_space
-        self._observation_space.dtype = np.dtype('float32')
-        self._action_space = self._env.action_space
-        self._reward_space = gym.spaces.Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
-        )
 
         return obs
 
@@ -105,7 +112,7 @@ class MiniGridEnv(BaseEnv):
                 )
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

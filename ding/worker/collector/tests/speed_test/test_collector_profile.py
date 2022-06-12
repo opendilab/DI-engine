@@ -1,4 +1,4 @@
-import logging
+from ditk import logging
 import time
 import copy
 import pytest
@@ -124,9 +124,6 @@ else:
 
 
 def compare_test(cfg: EasyDict, seed: int, test_name: str) -> None:
-    print('=' * 100 + '\nTest Name: {}\nCfg:'.format(test_name))
-    # pretty_print(cfg)
-
     duration_list = []
     total_collected_sample = n_sample * collect_times_per_repeat
     for i in range(repeat_times_per_test):
@@ -167,8 +164,9 @@ def compare_test(cfg: EasyDict, seed: int, test_name: str) -> None:
         del replay_buffer
 
     fps = [total_collected_sample / duration for duration in duration_list]
-    print('\nTest Result:\nAvg FPS(env frame per second): {:.3f}±{:.3f} frame/s'.format(np.mean(fps), np.std(fps)))
-    print('=' * 100)
+
+    template = "Test Name: {}\t Test Result: Avg FPS(env frame per second): {:.3f}±{:.3f} frame/s"
+    print(template.format(test_name, np.mean(fps), np.std(fps)))
 
 
 @pytest.mark.benchmark
@@ -181,6 +179,7 @@ def test_collector_profile():
 
     seed = 0
     set_pkg_seed(seed, use_cuda=False)
+    print("=========== test_collector_profile ===========")
 
     for cfg_name, env_policy_cfg in test_env_policy_cfg_dict.items():
         for env_manager_type in test_env_manager_list:

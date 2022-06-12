@@ -827,9 +827,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
-env/
 venv/
-ENV/
 env.bak/
 venv.bak/
 
@@ -1389,9 +1387,6 @@ _book
 *.pth.tar
 *.pt
 *.npy
-*default_logger.txt
-*default_tb_logger
-*evaluate.txt
 __pycache__
 *.egg-info
 experiment_config.yaml
@@ -1407,18 +1402,24 @@ htmlcov
 policy_*
 /data
 .vscode
-*total_config.py
 formatted_*
 **/exp
 **/benchmark
 **/model_zoo
 *ckpt*
-*log*
+log*
 *.puml.png
 *.puml.eps
 *.puml.svg
+default*
+events.*
+
+# DI-engine special key
+*default_logger.txt
+*default_tb_logger
+*evaluate.txt
+*total_config.py
 eval_config.py
 collect_demo_data_config.py
-default*
 !ding/**/*.py
 events.*

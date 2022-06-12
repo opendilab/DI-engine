@@ -1,5 +1,5 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
-from .dqn import DQNPolicy
+from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .iqn import IQNPolicy
 from .fqf import FQFPolicy
 from .qrdqn import QRDQNPolicy
@@ -13,13 +13,13 @@ from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
-from .sac import SACPolicy, SACDiscretePolicy
+from .sac import SACPolicy, SACDiscretePolicy, SQILSACPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
 from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
-from .ppg import PPGPolicy
+from .ppg import PPGPolicy, PPGOffPolicy
 from .sqn import SQNPolicy
 
 from .qmix import QMIXPolicy
@@ -36,7 +36,7 @@ from .r2d3 import R2D3Policy
 
 from .command_mode_policy_instance import *
 
-from .policy_factory import PolicyFactory
+from .policy_factory import PolicyFactory, get_random_policy
 from .pdqn import PDQNPolicy
 
-from .bc import DiscreteBehaviourCloningPolicy
+from .bc import BehaviourCloningPolicy
