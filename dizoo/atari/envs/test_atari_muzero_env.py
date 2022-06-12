@@ -1,5 +1,5 @@
 import pytest
-from dizoo.board_games.atari.envs.atari_env_game import AtariGameEnv
+from dizoo.atari.envs.atari_muzero_env import AtariMuZeroEnv
 from easydict import EasyDict
 
 cfg = EasyDict(env_name='PongNoFrameskip-v4',
@@ -15,9 +15,9 @@ cfg = EasyDict(env_name='PongNoFrameskip-v4',
 
 
 @pytest.mark.envtest
-class TestAtariGameEnv:
+class TestAtariMuZeroEnv:
     def test_naive(self):
-        env = AtariGameEnv(cfg)
+        env = AtariMuZeroEnv(cfg)
         obs, reward, done, info = env.reset()
         # env.render()
         print('=' * 20)

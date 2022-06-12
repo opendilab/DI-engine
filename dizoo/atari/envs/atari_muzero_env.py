@@ -4,7 +4,6 @@ Adapt Atari to BaseGameEnv interface
 
 from pettingzoo.utils.agent_selector import agent_selector
 import sys
-from dizoo.board_games.base_game_env import BaseGameEnv
 from typing import Any, List, Union, Sequence
 import copy
 import numpy as np
@@ -18,7 +17,7 @@ from ding.rl_utils.efficientzero.atari_env_wrapper import AtariWrapper
 
 
 @ENV_REGISTRY.register('atari-game')
-class AtariGameEnv(BaseGameEnv):
+class AtariMuZeroEnv(BaseEnv):
     def __init__(self, cfg=None):
         self.cfg = cfg
         self._init_flag = False
@@ -26,9 +25,6 @@ class AtariGameEnv(BaseGameEnv):
         self.agents = [f"player_{i + 1}" for i in range(2)]
         self.possible_agents = self.agents[:]
         self._agent_selector = agent_selector(self.agents)
-        self.rewards = None
-        self.dones = None
-        self.infos = {name: {} for name in self.agents}
         self.agent_str = None
 
     @property
@@ -94,16 +90,8 @@ class AtariGameEnv(BaseGameEnv):
 
         self._agent_selector = agent_selector(self.agents)
         self.agent_str = self._agent_selector.reset()
-
-        self.rewards = {name: 0 for name in self.agents}
-        self._cumulative_rewards = {name: 0 for name in self.agents}
-        self.dones = {name: False for name in self.agents}
-        self.infos = {name: {} for name in self.agents}
-
-        for agent, reward in self.rewards.items():
-            self._cumulative_rewards[agent] += reward
-
         agent = self.agent_str
+
         self.current_player_index = self.agents.index(agent)
         obs = self.observe()
         return BaseEnvTimestep(obs, None, None, None)
@@ -212,48 +200,3 @@ class AtariGameEnv(BaseGameEnv):
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
-
-
-if __name__ == '__main__':
-    from easydict import EasyDict
-
-    cfg = EasyDict(env_name='PongNoFrameskip-v4',
-                   frame_skip=4,
-                   frame_stack=4,
-                   max_moves=1e6,
-                   episode_life=True,
-                   obs_shape=(12, 96, 96),
-                   gray_scale=False,
-                   discount=0.997,
-                   cvt_string=True,
-                   is_train=True)
-    env = AtariGameEnv(cfg)
-    obs, reward, done, info = env.reset()
-    env.render()
-    print('=' * 20)
-    print('In atari, player 1 = player 2')
-    print('=' * 20)
-    while True:
-        action = env.random_action()
-        # action = env.human_to_action()
-        print('player 1: ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            print(info)
-            print('=' * 20)
-            print('In atari, player 1 = player 2')
-            print('=' * 20)
-            break
-
-        action = env.random_action()
-        # action = env.human_to_action()
-        print('player 2: ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            print(info)
-            print('=' * 20)
-            print('In atari, player 1 = player 2')
-            print('=' * 20)
-            break

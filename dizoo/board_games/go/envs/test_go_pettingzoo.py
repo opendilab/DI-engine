@@ -12,7 +12,7 @@ def policy(observation, agent):
 
 
 @pytest.mark.envtest
-class TestGoEnv:
+class TestGoPettingzooEnv:
 
     def test_naive(self):
         env.reset()
