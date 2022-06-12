@@ -14,7 +14,7 @@ from ding.rl_utils.efficientzero.game import GameHistory
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
 from ding.rl_utils.efficientzero.mcts import MCTS
 from dizoo.board_games.tictactoe.envs import TicTacToeEnv
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config as config
+from dizoo.board_games.tictactoe.config.tictactoe_config_backup import game_config as config
 from ding.model.template.efficientzero.efficientzero_tictactoe_model import EfficientZeroNet
 
 GameBuffer_config = EasyDict(

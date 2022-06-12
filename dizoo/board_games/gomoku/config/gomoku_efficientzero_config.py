@@ -5,8 +5,6 @@ nstep = 3
 gomoku_efficientzero_config = dict(
     exp_name='gomoku_efficientzero_seed0',
     env=dict(
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # Env number respectively for collector and evaluator.
         collector_env_num=1,
         evaluator_env_num=1,
         n_evaluator_episode=1,
@@ -45,7 +43,7 @@ gomoku_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             update_per_collect=10,
-            batch_size=2,  # TODO(pu)
+            batch_size=4,  # TODO(pu)
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,

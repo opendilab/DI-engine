@@ -1,14 +1,10 @@
 from easydict import EasyDict
-# from dizoo.board_games.atari.config.atari_config_dict import game_config
 from dizoo.board_games.atari.config.atari_config import game_config
-
 
 nstep = 3
 atari_efficientzero_config = dict(
     exp_name='atari_efficientzero_seed0',
     env=dict(
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # Env number respectively for collector and evaluator.
         collector_env_num=2,
         evaluator_env_num=2,
         n_evaluator_episode=2,
@@ -54,7 +50,7 @@ atari_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             update_per_collect=10,
-            batch_size=64,  # TODO(pu)
+            batch_size=4,  # TODO(pu)
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,

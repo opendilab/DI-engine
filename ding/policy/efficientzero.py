@@ -15,9 +15,9 @@ import ding.rl_utils.efficientzero.ctree.cytree as cytree
 from ding.rl_utils.efficientzero.mcts import MCTS
 from ding.rl_utils.efficientzero.utils import select_action
 from ding.torch_utils import to_tensor, to_ndarray, to_dtype
-# TODO(pu): choice game config
-# from dizoo.board_games.atari.config.atari_config import game_config
-from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
+# TODO(pu): choose game config
+from dizoo.board_games.atari.config.atari_config import game_config
+# from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
 # from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 
@@ -137,26 +137,6 @@ class EfficientZeroPolicy(Policy):
         elif self._cfg.env_name == 'gomoku':
             return 'EfficientZeroNet_gomoku', ['ding.model.template.efficientzero.efficientzero_gomoku_model']
 
-    def _data_preprocess_learn(self, data: ttorch.Tensor):
-        # TODO data augmentation before learning
-        data = data.cuda(self.game_config.device)
-        data = ttorch.stack(data)
-        return data
-
-    @staticmethod
-    def _consist_loss_func(f1, f2):
-        """Consistency loss function: similarity loss
-        Parameters
-        """
-        f1 = F.normalize(f1, p=2., dim=-1, eps=1e-5)
-        f2 = F.normalize(f2, p=2., dim=-1, eps=1e-5)
-        return -(f1 * f2).sum(dim=1)
-
-    @staticmethod
-    def _get_max_entropy(action_shape: int) -> None:
-        p = 1.0 / action_shape
-        return -action_shape * p * np.log2(p)
-
     def _init_learn(self) -> None:
         # self._metric_loss = torch.nn.L1Loss()
         # self._cos = torch.nn.CosineSimilarity(dim=1, eps=1e-05)
@@ -218,6 +198,10 @@ class EfficientZeroPolicy(Policy):
         target_value = torch.from_numpy(target_value.astype('float64')).to(self.game_config.device).float()
         target_policy = torch.from_numpy(target_policy).to(self.game_config.device).float()
         weights = torch.from_numpy(weights_lst).to(self.game_config.device).float()
+
+        # TODO
+        target_value_prefix = target_value_prefix.view(self.game_config.batch_size,-1)
+        target_value = target_value.view(self.game_config.batch_size, -1)
 
         batch_size = obs_batch.size(0)
         assert batch_size == self.game_config.batch_size == target_value_prefix.size(0)
@@ -635,3 +619,23 @@ class EfficientZeroPolicy(Policy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
+
+    def _data_preprocess_learn(self, data: ttorch.Tensor):
+        # TODO data augmentation before learning
+        data = data.cuda(self.game_config.device)
+        data = ttorch.stack(data)
+        return data
+
+    @staticmethod
+    def _consist_loss_func(f1, f2):
+        """Consistency loss function: similarity loss
+        Parameters
+        """
+        f1 = F.normalize(f1, p=2., dim=-1, eps=1e-5)
+        f2 = F.normalize(f2, p=2., dim=-1, eps=1e-5)
+        return -(f1 * f2).sum(dim=1)
+
+    @staticmethod
+    def _get_max_entropy(action_shape: int) -> None:
+        p = 1.0 / action_shape
+        return -action_shape * p * np.log2(p)

@@ -6,10 +6,20 @@ import numpy as np
 from ding.rl_utils.efficientzero.dataset import Transforms
 
 
-class UtilsConfig(object):
+class DiscreteSupport(object):
+    def __init__(self, min: int, max: int, delta=1.):
+        assert min < max
+        self.min = min
+        self.max = max
+        self.range = np.arange(min, max + 1, delta)
+        self.size = len(self.range)
+        self.delta = delta
+
+
+class GameBaseConfig(object):
 
     def __init__(self, game_config=None):
-        super(UtilsConfig, self).__init__()
+        super(GameBaseConfig, self).__init__()
         self.game_config = game_config
         for k, v in game_config.items():
             self.__dict__[k] = v

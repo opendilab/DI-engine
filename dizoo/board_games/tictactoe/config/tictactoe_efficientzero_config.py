@@ -1,13 +1,10 @@
 from easydict import EasyDict
-from dizoo.board_games.tictactoe.config.tictactoe_config_dict import game_config
-# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 nstep = 3
 tictactoe_efficientzero_config = dict(
     exp_name='tictactoe_efficientzero_seed0',
     env=dict(
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # Env number respectively for collector and evaluator.
         collector_env_num=1,
         evaluator_env_num=1,
         n_evaluator_episode=1,
@@ -15,7 +12,7 @@ tictactoe_efficientzero_config = dict(
     ),
     policy=dict(
         env_name='tictactoe',
-        # TODO(pu): how to pass into game_config, which is class, not only a dict
+        # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
         # Whether to use cuda for network.
         cuda=False,
@@ -46,7 +43,7 @@ tictactoe_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             update_per_collect=10,
-            batch_size=2,  # TODO(pu)
+            batch_size=4,  # TODO(pu)
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,
