@@ -69,13 +69,13 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
     def default_model(self) -> Tuple[str, List[str]]:
         return 'football_iql', ['dizoo.gfootball.model.iql']
 
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_lt0_seed0'
 
-# demo_episodes = 1  # debug
+gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_lt0_seed0'
+seed=0
+# demo_episodes = 2  # debug
 demo_episodes = 100  # key hyper-parameter
 data_path_episode = dir_path + f'/gfootball_rule_{demo_episodes}eps.pkl'
 data_path_transitions_lt0 = dir_path + f'/gfootball_rule_{demo_episodes}eps_transitions_lt0.pkl'
-seed=0
 
 """
 phase 1: train/obtain expert policy
@@ -101,20 +101,19 @@ eval_config = deepcopy(collect_config)
 # eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
 # eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
 
-collect_episodic_demo_data(
-    collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,
-    model=football_rule_base_model, state_dict=state_dict
-)
+# collect_episodic_demo_data(
+#     collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,
+#     model=football_rule_base_model, state_dict=state_dict
+# )
 # only use the episode whose return is larger than 0 as demo data
-episode_to_transitions_filter(data_path=data_path_episode, expert_data_path=data_path_transitions_lt0, nstep=1, min_episode_return=1)
-
+# episode_to_transitions_filter(data_path=data_path_episode, expert_data_path=data_path_transitions_lt0, nstep=1, min_episode_return=1)
 
 """
 phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 # il_config[0].policy.learn.train_epoch = 2  # debug
-il_config[0].policy.learn.train_epoch = 50  # key hyper-parameter
+il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 
 
 il_config[0].policy.type = 'iql_bc'

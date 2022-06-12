@@ -14,7 +14,8 @@ dir_path = os.path.dirname(path)
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import get_train_sample, get_nstep_return_data
-from ding.entry import serial_pipeline_bc, collect_demo_data, serial_pipeline
+from ding.entry import serial_pipeline_bc, collect_demo_data, collect_episodic_demo_data, episode_to_transitions, episode_to_transitions_filter, eval
+
 from ding.policy import PPOOffPolicy, DiscreteBehaviourCloningPolicy
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -69,11 +70,11 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
         return 'football_iql', ['dizoo.gfootball.model.iql']
 
 
+seed=0
 # demo_transitions = 2  # debug
 demo_transitions = int(3e5)  # key hyper-parameter
 expert_data_path = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0'
-seed=0
+gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_epc1000_bs512'
 
 """
 phase 1: train/obtain expert policy
@@ -94,17 +95,22 @@ expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
 # collect expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
 collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
-collect_demo_data(
-    collect_config, seed=seed, expert_data_path=expert_data_path, collect_count=demo_transitions,
-    model=football_rule_base_model, state_dict=state_dict,
-)
+
+eval_config = deepcopy(collect_config)
+# eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
+# eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
+
+# collect_demo_data(
+#     collect_config, seed=seed, expert_data_path=expert_data_path, collect_count=demo_transitions,
+#     model=football_rule_base_model, state_dict=state_dict,
+# )
 
 """
 phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 # il_config[0].policy.learn.train_epoch = 2  # debug
-il_config[0].policy.learn.train_epoch = 50  # key hyper-parameter
+il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 
 
 il_config[0].policy.type = 'iql_bc'

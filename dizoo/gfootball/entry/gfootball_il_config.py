@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 collector_env_num = 8
-evaluator_env_num = 3
+evaluator_env_num = 10
 # debug
 # collector_env_num = 1
 # evaluator_env_num = 1  
@@ -25,7 +25,9 @@ gfootball_il_main_config = dict(
             target_update_freq=500,
             learner=dict(load_path=None),
         ),
-        collect=dict(n_sample=4096),
+        collect=dict(n_sample=4096, 
+        
+        ),
         eval=dict(evaluator=dict(eval_freq=1000, n_episode=evaluator_env_num)),
         other=dict(
             eps=dict(
