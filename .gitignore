@@ -1422,17 +1422,3 @@ collect_demo_data_config.py
 default*
 !ding/**/*.py
 events.*
-
-
-cartpole_dqn_seed0/
-cartpole_fqf_seed0/
-default_experiment/
-bipedalwalker_ppo_seed0/
-gym_hybrid_ddpg_seed0/
-lunarlander_dqn_seed0/
-pendulum_ddpg_seed0/
-pendulum_ppo_seed0/
-dizoo/box2d/bipedalwalker/entry/
-dizoo/box2d/lunarlander/entry/lunarlander_dqn_main.py
-dizoo/gym_hybrid/entry/
-slime_volley_league_ppo_seed0/

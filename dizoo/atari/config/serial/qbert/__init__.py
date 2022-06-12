@@ -1,2 +1,1 @@
 from .qbert_dqn_config import qbert_dqn_config, qbert_dqn_create_config
-from .qbert_fqf_config import qbert_fqf_config, qbert_fqf_create_config

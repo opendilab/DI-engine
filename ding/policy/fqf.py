@@ -3,7 +3,7 @@ import copy
 import torch
 
 from ding.torch_utils import Adam, RMSprop, to_device
-from ding.rl_utils import fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss, evaluate_quantile_at_action, get_train_sample, get_nstep_return_data
+from ding.rl_utils import fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss, get_train_sample, get_nstep_return_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -174,8 +174,6 @@ class FQFPolicy(DQNPolicy):
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
-            q_s_a_hats = evaluate_quantile_at_action(q_value, data['action'])  # [batch_size, num_quantiles, 1]
-
         data_n = fqf_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], quantiles_hats,
             data['weight']
@@ -184,9 +182,7 @@ class FQFPolicy(DQNPolicy):
 
         entropy_loss = -self._ent_coef * entropies.mean()
 
-        fraction_loss = fqf_calculate_fraction_loss(
-            q_tau_i.detach(), q_s_a_hats.detach(), quantiles, data['action']
-        ) + entropy_loss
+        fraction_loss = fqf_calculate_fraction_loss(q_tau_i.detach(), q_value, quantiles, data['action']) + entropy_loss
 
         quantile_loss, td_error_per_sample = fqf_nstep_td_error(
             data_n, self._gamma, nstep=self._nstep, kappa=self._kappa, value_gamma=value_gamma

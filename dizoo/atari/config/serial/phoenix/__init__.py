@@ -1,2 +1,0 @@
-from .phoenix_fqf_config import phoenix_fqf_config, phoenix_fqf_create_config
-from .phoenix_iqn_config import phoenix_iqn_config, phoenix_iqn_create_config

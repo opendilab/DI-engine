@@ -1113,22 +1113,25 @@ def evaluate_quantile_at_action(q_s, actions):
     return q_s_a
 
 
-def fqf_calculate_fraction_loss(q_tau_i, q_s_a_hats, quantiles, actions):
+def fqf_calculate_fraction_loss(q_tau_i, q_value, quantiles, actions):
     """
     Shapes:
        - q_tau_i (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles-1, action_dim)`
-       - q_s_a_hats (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles, action_dim)`
+       - q_value (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles, action_dim)`
        - quantiles (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles+1)`
        - actions (:obj:`torch.LongTensor`) :math:`(batch_size, )`
     """
-    assert not q_s_a_hats.requires_grad
+    assert q_value.requires_grad
 
-    batch_size = q_s_a_hats.shape[0]
-    num_quantiles = q_s_a_hats.shape[1]
+    batch_size = q_value.shape[0]
+    num_quantiles = q_value.shape[1]
 
     with torch.no_grad():
         sa_quantiles = evaluate_quantile_at_action(q_tau_i, actions)
         assert sa_quantiles.shape == (batch_size, num_quantiles - 1, 1)
+        q_s_a_hats = evaluate_quantile_at_action(q_value, actions)  # [batch_size, num_quantiles, 1]
+        assert q_s_a_hats.shape == (batch_size, num_quantiles, 1)
+        assert not q_s_a_hats.requires_grad
 
     # NOTE: Proposition 1 in the paper requires F^{-1} is non-decreasing.
     # I relax this requirements and calculate gradients of quantiles even when
