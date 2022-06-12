@@ -35,7 +35,7 @@ class TicTacToeEnv(BaseGameEnv):
 
     def reset(self, start_player=0):
         self._observation_space = gym.spaces.Box(
-            low=0, high=2, shape=(self.board_size, self.board_size, 3), dtype=np.int32
+            low=0, high=2, shape=(self.board_size, self.board_size, 3), dtype=np.uint8
         )
         self._action_space = gym.spaces.Discrete(self.board_size ** 2)
         self._reward_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
@@ -49,23 +49,30 @@ class TicTacToeEnv(BaseGameEnv):
         obs = {'observation': self.current_state(), 'action_mask': action_mask}
         return BaseEnvTimestep(obs, None, None, None)
 
-    def do_action(self, action):
-        row, col = self.action_to_coord(action)
-        self.board[row, col] = self.current_player
-        self._current_player = self.current_opponent_player
-
     def step(self, action):
         curr_player = self.current_player
         next_player = self.current_opponent_player
         if action in self.legal_actions:
-            self.do_action(action)
+            row, col = self.action_to_coord(action)
+            self.board[row, col] = self.current_player
+            self._current_player = self.current_opponent_player
         else:
             print("Error: input illegal action, we randomly choice a action from self.legal_actions!")
             action = np.random.choice(self.legal_actions)
-            self.do_action(action)
+            row, col = self.action_to_coord(action)
+            self.board[row, col] = self.current_player
+            self._current_player = self.current_opponent_player
             # sys.exit(-1)
 
-        done, winner = self.game_end()
+        # Check whether the game is ended or not
+        win, winner = self.have_winner()
+        if win:
+            done, winner = True, winner
+        elif len(self.legal_actions) == 0:
+            done, winner = True, -1
+        else:
+            done, winner = False, -1
+
         reward = int((winner == curr_player))
         info = {'next player to play': next_player}
 
@@ -86,9 +93,10 @@ class TicTacToeEnv(BaseGameEnv):
         return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
 
     def coord_to_action(self, i, j):
-        ''' convert coordinate i, j to action a in [0, board_size**2)
-        '''
-        a = i * self.board_size + j  # action index
+        """
+        convert coordinate i, j to action a in [0, board_size**2)
+        """
+        a = i * self.board_size + j  # a is action index
         return a
 
     def action_to_coord(self, a):
@@ -111,16 +119,6 @@ class TicTacToeEnv(BaseGameEnv):
 
         return False, -1
 
-    def game_end(self):
-        """Check whether the game is ended or not"""
-        win, winner = self.have_winner()
-        if win:
-            return True, winner
-        elif len(self.legal_actions) == 0:
-            return True, -1
-        else:
-            return False, -1
-
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
@@ -131,6 +129,12 @@ class TicTacToeEnv(BaseGameEnv):
         return np.random.choice(action_list)
 
     def expert_action(self):
+        """
+         Hard coded agent that MuZero faces to assess his progress in multiplayer games.
+         It doesn't influence training
+         Returns:
+             Action as an integer to take in the current game state
+         """
         board = self.board
         action = np.random.choice(self.legal_actions)
         # Horizontal and vertical checks
@@ -228,8 +232,9 @@ class TicTacToeEnv(BaseGameEnv):
         col = action_number % self.board_size + 1
         return f"Play row {row}, column {col}"
 
-    def get_equi_data(self, play_data):
-        """augment the data set by rotation and flipping
+    def get_augmented_data(self, play_data):
+        """
+        augment the data set by rotation and flipping
         play_data: [(state, mcts_prob, winner_z), ..., ...]
         """
         extend_data = []
@@ -269,37 +274,4 @@ class TicTacToeEnv(BaseGameEnv):
         pass
 
     def __repr__(self) -> str:
-        return 'TicTacToe'
-
-
-if __name__ == '__main__':
-    env = TicTacToeEnv()
-    env.reset()
-    print('init board state: ')
-    env.render()
-    done = False
-    while True:
-        """player 1"""
-        # action = env.human_to_action()
-        action = env.random_action()
-        print('player 1: ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            if reward > 0:
-                print('player 1 (human player) win')
-            else:
-                print('draw')
-            break
-
-        """player 2"""
-        action = env.expert_action()
-        print('player 2 (computer player): ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            if reward > 0:
-                print('player 2 (computer player) win')
-            else:
-                print('draw')
-            break
+        return "DI-engine TicTacToe Env"

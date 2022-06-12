@@ -1,3 +1,7 @@
+"""
+Adapt Go to BaseGameEnv interface from pettingzoo: https://github.com/Farama-Foundation/PettingZoo
+"""
+
 import sys
 from dizoo.board_games.base_game_env import BaseGameEnv
 from ding.envs import BaseEnvTimestep
@@ -21,18 +25,11 @@ def get_image(path):
     return sfc
 
 
-"""
-Adapt Go to BaseGameEnv interface from pettingzoo: https://github.com/Farama-Foundation/PettingZoo
-"""
-
-
 @ENV_REGISTRY.register('Go')
 class GoEnv(BaseGameEnv):
     def __init__(self, board_size: int = 19, komi: float = 7.5):
         # board_size: a int, representing the board size (board has a board_size x board_size shape)
         # komi: a float, representing points given to the second player.
-        # super().__init__()
-
         self._overwrite_go_global_variables(board_size=board_size)
         self._komi = komi
 
@@ -132,8 +129,8 @@ class GoEnv(BaseGameEnv):
         agent = self.agent_selection
         current_index = self.agents.index(agent)
         self.current_player_index = current_index
-        observation = self.observe(agent)
-        return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
+        obs = self.observe(agent)
+        return BaseEnvTimestep(obs, None, None, None)
 
     def observe(self, agent):
         # current_agent_plane, opponent_agent_plane = self._encode_board_planes(agent)
@@ -266,22 +263,11 @@ class GoEnv(BaseGameEnv):
 
         return np.transpose(observation, axes=(1, 0, 2)) if mode == "rgb_array" else None
 
-    def do_action(self, action):
-        pass
-
-    def game_end(self):
-        """Check whether the game is ended or not"""
-        pass
-
     def observation_space(self):
         return self.observation_spaces
 
     def action_space(self):
         return self.action_spaces
-
-    def game_end(self):
-        """Check whether the game is ended or not"""
-        pass
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -329,34 +315,4 @@ class GoEnv(BaseGameEnv):
         pass
 
     def __repr__(self) -> str:
-        return 'go'
-
-
-if __name__ == '__main__':
-    env = GoEnv(board_size=9, komi=7.5)
-    obs, reward, done, info = env.reset()
-    env.render()
-    print('NOTE：actions are counted by column, such as action 9, which is the second column and the first row')
-    while True:
-        # action = env.human_to_action()
-        action = env.random_action()
-        obs, reward, done, info = env.step(action)
-        print('player 1 (black_0): ' + env.action_to_string(action))
-        env.render()
-        if done:
-            if reward > 0:
-                print('player 1 (human player) win')
-            else:
-                print('draw')
-            break
-
-        action = env.random_action()
-        print('player 2 (white_0): ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            if reward > 0:
-                print('player 2 (computer player) win')
-            else:
-                print('draw')
-            break
+        return "DI-engine Go Env"

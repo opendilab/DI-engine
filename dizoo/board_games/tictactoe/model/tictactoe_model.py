@@ -10,11 +10,10 @@ from ding.utils.registry_factory import MODEL_REGISTRY
 class TicTacToeModel(nn.Module):
     """policy-value network module"""
 
-    def __init__(self, model_cfg={}):
+    def __init__(self, model_cfg=None, board_size=3):
         super(TicTacToeModel, self).__init__()
         self.cfg = model_cfg
-        self.input_channels = self.cfg.get('input_channels',3)
-        self.board_size = self.cfg.get('board_size',3)
+        self.board_size = board_size
 
         # encoder part
         self.encoder = nn.Sequential(
@@ -30,7 +29,7 @@ class TicTacToeModel(nn.Module):
             nn.Linear(4 * self.board_size * self.board_size, self.board_size * self.board_size)
         )
 
-        # state value layers
+        # state value head
         self.value_head = nn.Sequential(
             conv2d_block(in_channels=16, out_channels=2, kernel_size=3, stride=1, padding=1, activation=nn.ReLU()),
             nn.Flatten(),
@@ -68,7 +67,6 @@ if __name__ == '__main__':
     input_channels = 3
     batch_size = 4
 
-
     inputs = torch.randn(batch_size, input_channels, board_size, board_size)
-    model = TicTacToeModel({})
+    model = TicTacToeModel()
     print(model(inputs))

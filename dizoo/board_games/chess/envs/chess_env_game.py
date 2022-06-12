@@ -1,3 +1,7 @@
+"""
+Adapt Chess to BaseGameEnv interface from pettingzoo: https://github.com/Farama-Foundation/PettingZoo
+"""
+
 import chess
 from gym import spaces
 from pettingzoo.utils.agent_selector import agent_selector
@@ -7,10 +11,6 @@ import sys
 from dizoo.board_games.base_game_env import BaseGameEnv
 from ding.envs import  BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
-
-"""
-Adapt Chess to BaseGameEnv interface from pettingzoo: https://github.com/Farama-Foundation/PettingZoo
-"""
 
 
 @ENV_REGISTRY.register('Chess')
@@ -71,17 +71,13 @@ class ChessEnv(BaseGameEnv):
         agent = self.agent_selection
         current_index = self.agents.index(agent)
         self.current_player_index = current_index
-        observation = self.observe(agent)
-        return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
+        obs = self.observe(agent)
+        return BaseEnvTimestep(obs, None, None, None)
 
     def observe(self, agent):
         observation = chess_utils.get_observation(self.board, self.possible_agents.index(agent))
         observation = np.dstack((observation[:, :, :7], self.board_history))
-        legal_moves = chess_utils.legal_moves(self.board) if agent == self.agent_selection else []
-
-        action_mask = np.zeros(4672, 'int8')
-        for i in legal_moves:
-            action_mask[i] = 1
+        action_mask = self.legal_actions()
 
         return {'observation': observation, 'action_mask': action_mask}
 
@@ -134,9 +130,8 @@ class ChessEnv(BaseGameEnv):
         return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
 
     def legal_actions(self):
-        action_mask = np.zeros(4672, 'int8')
-        for i in chess_utils.legal_moves(self.board):
-            action_mask[i] = 1
+        action_mask = np.zeros(4672, 'uint8')
+        action_mask[chess_utils.legal_moves(self.board)] = 1
         return action_mask  # 4672 dim {0,1}
 
     def legal_moves(self):
@@ -193,54 +188,10 @@ class ChessEnv(BaseGameEnv):
     def close(self) -> None:
         pass
 
-    def game_end(self):
-        """Check whether the game is ended or not"""
-        pass
-
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def do_action(self, action):
-        pass
-
-    def game_end(self):
-        """Check whether the game is ended or not"""
-        pass
-
     def __repr__(self) -> str:
-        return 'chess'
-
-
-if __name__ == '__main__':
-    env = ChessEnv()
-    obs, reward, done, info = env.reset()
-    print('init board state: ')
-    env.render()
-    while True:
-        """player 1"""
-        action = env.human_to_action()
-        # action = env.random_action()
-        print('player 1: ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            if done:
-                if reward > 0:
-                    print('player 1 (human player) win')
-                else:
-                    print('draw')
-                break
-
-        """player 2"""
-        action = env.random_action()
-        print('player 2 (computer player): ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            if reward > 0:
-                print('player 2 (computer player) win')
-            else:
-                print('draw')
-            break
+        return "DI-engine Chess Env"

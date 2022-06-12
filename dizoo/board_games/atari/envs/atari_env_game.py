@@ -1,3 +1,7 @@
+"""
+Adapt Atari to BaseGameEnv interface
+"""
+
 from pettingzoo.utils.agent_selector import agent_selector
 import sys
 from dizoo.board_games.base_game_env import BaseGameEnv
@@ -12,10 +16,6 @@ from dizoo.atari.envs.atari_wrappers import wrap_deepmind, wrap_deepmind_mr
 from ding.rl_utils.efficientzero.utils import make_atari, WarpFrame, EpisodicLifeEnv
 from ding.rl_utils.efficientzero.atari_env_wrapper import AtariWrapper
 
-"""
-Adapt Atari to BaseGameEnv interface
-"""
-
 
 @ENV_REGISTRY.register('atari-game')
 class AtariGameEnv(BaseGameEnv):
@@ -23,7 +23,7 @@ class AtariGameEnv(BaseGameEnv):
         self.cfg = cfg
         self._init_flag = False
         self.current_player_index = 0
-        self.agents = [f"player_{i+1}" for i in range(2)]
+        self.agents = [f"player_{i + 1}" for i in range(2)]
         self.possible_agents = self.agents[:]
         self._agent_selector = agent_selector(self.agents)
         self.rewards = None
@@ -38,7 +38,8 @@ class AtariGameEnv(BaseGameEnv):
     def to_play(self):
         return self.agents.index(self._agent_selector.next())
 
-    def _make_env(self):
+    def _make_env(self, seed=None, save_video=False, save_path=None, video_callable=None, uid=None, test=False,
+                  final_test=False):
         """DI-engine wrapper"""
         # return wrap_deepmind(
         #     self.cfg.env_id,
@@ -47,14 +48,6 @@ class AtariGameEnv(BaseGameEnv):
         #     clip_rewards=self.cfg.is_train
         # )
         """EfficientZero wrapper"""
-        # def new_game(self, seed=None, save_video=False, save_path=None, video_callable=None, uid=None, test=False, final_test=False):
-        seed = None
-        save_video = False
-        save_path = None
-        video_callable = None
-        uid = None
-        test = False
-        final_test = False
         if test:
             if final_test:
                 max_moves = 108000 // self.frame_skip
@@ -112,8 +105,8 @@ class AtariGameEnv(BaseGameEnv):
 
         agent = self.agent_str
         self.current_player_index = self.agents.index(agent)
-        observation = self.observe()
-        return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
+        obs = self.observe()
+        return BaseEnvTimestep(obs, None, None, None)
 
     def observe(self):
         observation = self.obs
@@ -136,12 +129,9 @@ class AtariGameEnv(BaseGameEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
 
-        return BaseEnvTimestep(observation,  self.reward, done, info)
+        return BaseEnvTimestep(observation, self.reward, done, info)
 
     def legal_actions(self):
-        return np.arange(self._action_space.n)
-
-    def legal_moves(self):
         return np.arange(self._action_space.n)
 
     @property
@@ -157,7 +147,7 @@ class AtariGameEnv(BaseGameEnv):
         return self._reward_space
 
     def random_action(self):
-        action_list = self.legal_moves()
+        action_list = self.legal_actions()
         return np.random.choice(action_list)
 
     def render(self, mode='human'):
@@ -172,13 +162,13 @@ class AtariGameEnv(BaseGameEnv):
         """
         while True:
             try:
-                print(f"Current available actions for the player {self.to_play()} are:{self.legal_moves()}")
+                print(f"Current available actions for the player {self.to_play()} are:{self.legal_actions()}")
                 choice = int(
                     input(
                         f"Enter the index of next move for the player {self.to_play()}: "
                     )
                 )
-                if choice in self.legal_moves():
+                if choice in self.legal_actions():
                     break
             except KeyboardInterrupt:
                 sys.exit(0)
@@ -206,13 +196,6 @@ class AtariGameEnv(BaseGameEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def game_end(self):
-        """Check whether the game is ended or not"""
-        pass
-
-    def do_action(self, action):
-        pass
-
     def __repr__(self) -> str:
         return "DI-engine Atari Env({})".format(self.cfg.env_name)
 
@@ -233,6 +216,7 @@ class AtariGameEnv(BaseGameEnv):
 
 if __name__ == '__main__':
     from easydict import EasyDict
+
     cfg = EasyDict(env_name='PongNoFrameskip-v4',
                    frame_skip=4,
                    frame_stack=4,
@@ -246,9 +230,9 @@ if __name__ == '__main__':
     env = AtariGameEnv(cfg)
     obs, reward, done, info = env.reset()
     env.render()
-    print('='*20)
+    print('=' * 20)
     print('In atari, player 1 = player 2')
-    print('='*20)
+    print('=' * 20)
     while True:
         action = env.random_action()
         # action = env.human_to_action()

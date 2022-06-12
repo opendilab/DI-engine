@@ -1,4 +1,7 @@
-import warnings
+"""
+The following code is adapted from pettingzoo:
+https://github.com/Farama-Foundation/PettingZoo/tree/master/pettingzoo/classic/chess
+"""
 
 import chess
 import numpy as np

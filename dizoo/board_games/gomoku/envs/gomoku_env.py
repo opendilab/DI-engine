@@ -3,8 +3,7 @@ import numpy as np
 import sys
 
 from dizoo.board_games.base_game_env import BaseGameEnv
-from ding.envs import BaseEnv, BaseEnvTimestep
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 
 
@@ -14,9 +13,6 @@ class GomokuEnv(BaseGameEnv):
         self.cfg = cfg
         self.board_size = self.cfg.get('board_size', 15)
         self.players = [1, 2]
-        # self.board_markers = [
-        #     chr(x) for x in range(ord("A"), ord("A") + self.board_size)
-        # ]
         self.board_markers = [
             str(i + 1) for i in range(self.board_size)
         ]
@@ -55,23 +51,23 @@ class GomokuEnv(BaseGameEnv):
         obs = {'observation': self.current_state(), 'action_mask': action_mask}
         return BaseEnvTimestep(obs, None, None, None)
 
-    def do_action(self, action):
-        row, col = self.action_to_coord(action)
-        self.board[row, col] = self.current_player
-        self._current_player = self.current_opponent_player
-
     def step(self, action):
         curr_player = self.current_player
         next_player = self.current_opponent_player
         if action in self.legal_actions:
-            self.do_action(action)
+            row, col = self.action_to_coord(action)
+            self.board[row, col] = self.current_player
+            self._current_player = self.current_opponent_player
         else:
             print("Error: input illegal action, we randomly choice a action from self.legal_actions!")
             action = np.random.choice(self.legal_actions)
-            self.do_action(action)
+            row, col = self.action_to_coord(action)
+            self.board[row, col] = self.current_player
+            self._current_player = self.current_opponent_player
             # sys.exit(-1)
 
-        done, winner = self.game_end()
+        done, winner = self.have_winner()
+
         reward = int((winner == curr_player))
         info = {'next player to play': next_player}
 
@@ -131,10 +127,6 @@ class GomokuEnv(BaseGameEnv):
                             return True, player
         return not has_legal_actions, -1
 
-    def game_end(self):
-        end, winner = self.have_winner()
-        return end, winner
-
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
@@ -153,7 +145,6 @@ class GomokuEnv(BaseGameEnv):
                 marker = marker + self.board_markers[i] + " "
         print(marker)
         for row in range(self.board_size):
-            # print(chr(ord("A") + row), end=" ")
             if row <= 8:
                 print(str(1 + row) + ' ', end=" ")
             else:
@@ -259,35 +250,4 @@ class GomokuEnv(BaseGameEnv):
         pass
 
     def __repr__(self) -> str:
-        return 'gomoku'
-
-
-if __name__ == '__main__':
-    env = GomokuEnv()
-    obs = env.reset()
-    print('init board state: ')
-    env.render()
-    done = False
-    while True:
-        action = env.random_action()
-        # action = env.human_to_action()
-        print('player 1: ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            if reward > 0:
-                print('player 1 (human player) win')
-            else:
-                print('draw')
-            break
-
-        action = env.random_action()
-        print('player 2 (computer player): ' + env.action_to_string(action))
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            if reward > 0:
-                print('player 2 (computer player) win')
-            else:
-                print('draw')
-            break
+        return "DI-engine Gomoku Env"

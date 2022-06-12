@@ -31,19 +31,6 @@ class BaseGameEnv(BaseEnv):
         pass
 
     @abstractmethod
-    def do_action(self, action_id):
-        raise NotImplementedError
-
-    @abstractmethod
-    def game_end(self):
-        """
-        Should return whether this game is done or not, and if done, which player is the  winner
-        Returns:
-            A tuple of env_done, winner
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def render(self):
         """
         Display the game observation.
@@ -61,15 +48,6 @@ class BaseGameEnv(BaseEnv):
         while int(choice) not in self.legal_actions():
             choice = input("Ilegal action. Enter another action : ")
         return int(choice)
-
-    def expert_agent(self):
-        """
-        Hard coded agent that MuZero faces to assess his progress in multiplayer games.
-        It doesn't influence training
-        Returns:
-            Action as an integer to take in the current game state
-        """
-        raise NotImplementedError
 
     def action_to_string(self, action_number):
         """

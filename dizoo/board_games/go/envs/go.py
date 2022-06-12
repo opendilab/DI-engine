@@ -1,545 +1,229 @@
-# Copyright 2018 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# Code from: https://github.com/tensorflow/minigo
-
-"""
-A board is a NxN numpy array.
-A Coordinate is a tuple index into the board.
-A Move is a (Coordinate c | None).
-A PlayerMove is a (Color, Move) tuple
-
-(0, 0) is considered to be the upper left corner of the board, and (18, 0) is the lower left.
-"""
-import copy
-import itertools
 import os
-from collections import namedtuple
-
 import numpy as np
+import pygame
+from gym import spaces
 
-# from . import coords
-from dizoo.board_games.go.envs import coords
-
-N = int(os.environ.get('BOARD_SIZE', 19))
-
-# Represent a board as a numpy array, with 0 empty, 1 is black, -1 is white.
-# This means that swapping colors is as simple as multiplying array by -1.
-WHITE, EMPTY, BLACK, FILL, KO, UNKNOWN = range(-1, 5)
-
-# Represents "group not found" in the LibertyTracker object
-MISSING_GROUP_ID = -1
-
-ALL_COORDS = [(i, j) for i in range(N) for j in range(N)]
-EMPTY_BOARD = np.zeros([N, N], dtype=np.int8)
+from pettingzoo import AECEnv
+from pettingzoo.utils import wrappers
+from pettingzoo.utils.agent_selector import agent_selector
+from dizoo.board_games.go.envs import go_base, coords
 
 
-def _check_bounds(c):
-    return 0 <= c[0] < N and 0 <= c[1] < N
+def get_image(path):
+    from os import path as os_path
+
+    import pygame
+    cwd = os_path.dirname(__file__)
+    image = pygame.image.load(cwd + '/' + path)
+    sfc = pygame.Surface(image.get_size(), flags=pygame.SRCALPHA)
+    sfc.blit(image, (0, 0))
+    return sfc
 
 
-NEIGHBORS = {(x, y): list(filter(_check_bounds, [
-    (x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])) for x, y in ALL_COORDS}
-DIAGONALS = {(x, y): list(filter(_check_bounds, [
-    (x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)])) for x, y in ALL_COORDS}
+def env(**kwargs):
+    env = raw_env(**kwargs)
+    env = wrappers.TerminateIllegalWrapper(env, illegal_reward=-1)
+    env = wrappers.AssertOutOfBoundsWrapper(env)
+    env = wrappers.OrderEnforcingWrapper(env)
+    return env
 
 
-class IllegalMove(Exception):
-    pass
+class raw_env(AECEnv):
 
+    metadata = {
+        "render.modes": ["human", "rgb_array"],
+        "name": "go_v5",
+        "is_parallelizable": False,
+        "video.frames_per_second": 2,
+    }
 
-class PlayerMove(namedtuple('PlayerMove', ['color', 'move'])):
-    pass
+    def __init__(self, board_size: int = 19, komi: float = 7.5):
+        # board_size: a int, representing the board size (board has a board_size x board_size shape)
+        # komi: a float, representing points given to the second player.
+        super().__init__()
 
+        self._overwrite_go_global_variables(board_size=board_size)
+        self._komi = komi
 
-class PositionWithContext(namedtuple('SgfPosition', ['position', 'next_move', 'result'])):
-    pass
+        self.agents = ['black_0', 'white_0']
+        self.possible_agents = self.agents[:]
+        self.has_reset = False
 
+        self.screen = None
 
-def place_stones(board, color, stones):
-    for s in stones:
-        board[s] = color
+        self.observation_spaces = self._convert_to_dict(
+            [spaces.Dict({'observation': spaces.Box(low=0, high=1, shape=(self._N, self._N, 17), dtype=bool),
+                          'action_mask': spaces.Box(low=0, high=1, shape=((self._N * self._N) + 1,), dtype=np.int8)})
+             for _ in range(self.num_agents)])
 
+        self.action_spaces = self._convert_to_dict([spaces.Discrete(self._N * self._N + 1) for _ in range(self.num_agents)])
 
-def replay_position(position, result):
-    """
-    Wrapper for a go.Position which replays its history.
-    Assumes an empty start position! (i.e. no handicap, and history must be exhaustive.)
+        self._agent_selector = agent_selector(self.agents)
 
-    Result must be passed in, since a resign cannot be inferred from position
-    history alone.
+        self.board_history = np.zeros((self._N, self._N, 16), dtype=bool)
 
-    for position_w_context in replay_position(position):
-        print(position_w_context.position)
-    """
-    assert position.n == len(position.recent), "Position history is incomplete"
-    pos = Position(komi=position.komi)
-    for player_move in position.recent:
-        color, next_move = player_move
-        yield PositionWithContext(pos, next_move, result)
-        pos = pos.play_move(next_move, color=color)
+    def observation_space(self, agent):
+        return self.observation_spaces[agent]
 
+    def action_space(self, agent):
+        return self.action_spaces[agent]
 
-def find_reached(board, c):
-    color = board[c]
-    chain = {c}
-    reached = set()
-    frontier = [c]
-    while frontier:
-        current = frontier.pop()
-        chain.add(current)
-        for n in NEIGHBORS[current]:
-            if board[n] == color and n not in chain:
-                frontier.append(n)
-            elif board[n] != color:
-                reached.add(n)
-    return chain, reached
-
-
-def is_koish(board, c):
-    'Check if c is surrounded on all sides by 1 color, and return that color'
-    if board[c] != EMPTY:
-        return None
-    neighbors = {board[n] for n in NEIGHBORS[c]}
-    if len(neighbors) == 1 and EMPTY not in neighbors:
-        return list(neighbors)[0]
-    else:
-        return None
-
-
-def is_eyeish(board, c):
-    'Check if c is an eye, for the purpose of restricting MC rollouts.'
-    # pass is fine.
-    if c is None:
+    def _overwrite_go_global_variables(self, board_size: int):
+        self._N = board_size
+        go_base.N = self._N
+        go_base.ALL_COORDS = [(i, j) for i in range(self._N) for j in range(self._N)]
+        go_base.EMPTY_BOARD = np.zeros([self._N, self._N], dtype=np.int8)
+        go_base.NEIGHBORS = {(x, y): list(filter(self._check_bounds, [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])) for x, y in go_base.ALL_COORDS}
+        go_base.DIAgo_baseNALS = {(x, y): list(filter(self._check_bounds, [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)])) for x, y in go_base.ALL_COORDS}
         return
-    color = is_koish(board, c)
-    if color is None:
-        return None
-    diagonal_faults = 0
-    diagonals = DIAGONALS[c]
-    if len(diagonals) < 4:
-        diagonal_faults += 1
-    for d in diagonals:
-        if not board[d] in (color, EMPTY):
-            diagonal_faults += 1
-    if diagonal_faults > 1:
-        return None
-    else:
-        return color
 
+    def _check_bounds(self, c):
+        return 0 <= c[0] < self._N and 0 <= c[1] < self._N
 
-class Group(namedtuple('Group', ['id', 'stones', 'liberties', 'color'])):
-    """
-    stones: a frozenset of Coordinates belonging to this group
-    liberties: a frozenset of Coordinates that are empty and adjacent to this group.
-    color: color of this group
-    """
+    def _encode_player_plane(self, agent):
+        if agent == self.possible_agents[0]:
+            return np.zeros([self._N, self._N], dtype=bool)
+        else:
+            return np.ones([self._N, self._N], dtype=bool)
 
-    def __eq__(self, other):
-        return self.stones == other.stones and self.liberties == other.liberties and self.color == other.color
+    def _encode_board_planes(self, agent):
+        agent_factor = go_base.BLACK if agent == self.possible_agents[0] else go_base.WHITE
+        current_agent_plane_idx = np.where(self._go.board == agent_factor)
+        opponent_agent_plane_idx = np.where(self._go.board == -agent_factor)
+        current_agent_plane = np.zeros([self._N, self._N], dtype=bool)
+        opponent_agent_plane = np.zeros([self._N, self._N], dtype=bool)
+        current_agent_plane[current_agent_plane_idx] = 1
+        opponent_agent_plane[opponent_agent_plane_idx] = 1
+        return current_agent_plane, opponent_agent_plane
 
+    def _int_to_name(self, ind):
+        return self.possible_agents[ind]
 
-class LibertyTracker():
-    @staticmethod
-    def from_board(board):
-        board = np.copy(board)
-        curr_group_id = 0
-        lib_tracker = LibertyTracker()
-        for color in (WHITE, BLACK):
-            while color in board:
-                curr_group_id += 1
-                found_color = np.where(board == color)
-                coord = found_color[0][0], found_color[1][0]
-                chain, reached = find_reached(board, coord)
-                liberties = frozenset(r for r in reached if board[r] == EMPTY)
-                new_group = Group(curr_group_id, frozenset(
-                    chain), liberties, color)
-                lib_tracker.groups[curr_group_id] = new_group
-                for s in chain:
-                    lib_tracker.group_index[s] = curr_group_id
-                place_stones(board, FILL, chain)
+    def _name_to_int(self, name):
+        return self.possible_agents.index(name)
 
-        lib_tracker.max_group_id = curr_group_id
+    def _convert_to_dict(self, list_of_list):
+        return dict(zip(self.possible_agents, list_of_list))
 
-        liberty_counts = np.zeros([N, N], dtype=np.uint8)
-        for group in lib_tracker.groups.values():
-            num_libs = len(group.liberties)
-            for s in group.stones:
-                liberty_counts[s] = num_libs
-        lib_tracker.liberty_cache = liberty_counts
+    def _encode_legal_actions(self, actions):
+        return np.where(actions == 1)[0]
 
-        return lib_tracker
+    def _encode_rewards(self, result):
+        return [1, -1] if result == 1 else [-1, 1]
 
-    def __init__(self, group_index=None, groups=None, liberty_cache=None, max_group_id=1):
-        # group_index: a NxN numpy array of group_ids. -1 means no group
-        # groups: a dict of group_id to groups
-        # liberty_cache: a NxN numpy array of liberty counts
-        self.group_index = group_index if group_index is not None else - \
-            np.ones([N, N], dtype=np.int32)
-        self.groups = groups or {}
-        self.liberty_cache = liberty_cache if liberty_cache is not None else np.zeros([
-                                                                                      N, N], dtype=np.uint8)
-        self.max_group_id = max_group_id
+    def observe(self, agent):
+        current_agent_plane, opponent_agent_plane = self._encode_board_planes(agent)
+        player_plane = self._encode_player_plane(agent)
 
-    def __deepcopy__(self, memodict={}):
-        new_group_index = np.copy(self.group_index)
-        new_lib_cache = np.copy(self.liberty_cache)
-        # shallow copy
-        new_groups = copy.copy(self.groups)
-        return LibertyTracker(new_group_index, new_groups, liberty_cache=new_lib_cache, max_group_id=self.max_group_id)
+        observation = np.dstack((self.board_history, player_plane))
 
-    def add_stone(self, color, c):
-        assert self.group_index[c] == MISSING_GROUP_ID
-        captured_stones = set()
-        opponent_neighboring_group_ids = set()
-        friendly_neighboring_group_ids = set()
-        empty_neighbors = set()
+        legal_moves = self.next_legal_moves if agent == self.agent_selection else []
+        action_mask = np.zeros((self._N * self._N) + 1, 'int8')
+        for i in legal_moves:
+            action_mask[i] = 1
 
-        for n in NEIGHBORS[c]:
-            neighbor_group_id = self.group_index[n]
-            if neighbor_group_id != MISSING_GROUP_ID:
-                neighbor_group = self.groups[neighbor_group_id]
-                if neighbor_group.color == color:
-                    friendly_neighboring_group_ids.add(neighbor_group_id)
-                else:
-                    opponent_neighboring_group_ids.add(neighbor_group_id)
+        return {'observation': observation, 'action_mask': action_mask}
+
+    def step(self, action):
+        if self.dones[self.agent_selection]:
+            return self._was_done_step(action)
+        self._go = self._go.play_move(coords.from_flat(action))
+        self._last_obs = self.observe(self.agent_selection)
+        current_agent_plane, opponent_agent_plane = self._encode_board_planes(self.agent_selection)
+        self.board_history = np.dstack((current_agent_plane, opponent_agent_plane, self.board_history[:, :, :-2]))
+        next_player = self._agent_selector.next()
+        if self._go.is_game_over():
+            self.dones = self._convert_to_dict([True for _ in range(self.num_agents)])
+            self.rewards = self._convert_to_dict(self._encode_rewards(self._go.result()))
+            self.next_legal_moves = [self._N * self._N]
+        else:
+            self.next_legal_moves = self._encode_legal_actions(self._go.all_legal_moves())
+        self.agent_selection = next_player if next_player else self._agent_selector.next()
+        self._accumulate_rewards()
+
+    def reset(self):
+        self.has_reset = True
+        self._go = go_base.Position(board=None, komi=self._komi)
+
+        self.agents = self.possible_agents[:]
+        self._agent_selector.reinit(self.agents)
+        self.agent_selection = self._agent_selector.reset()
+        self._cumulative_rewards = self._convert_to_dict(np.array([0.0, 0.0]))
+        self.rewards = self._convert_to_dict(np.array([0.0, 0.0]))
+        self.dones = self._convert_to_dict([False for _ in range(self.num_agents)])
+        self.infos = self._convert_to_dict([{} for _ in range(self.num_agents)])
+        self.next_legal_moves = self._encode_legal_actions(self._go.all_legal_moves())
+        self._last_obs = self.observe(self.agents[0])
+        self.board_history = np.zeros((self._N, self._N, 16), dtype=bool)
+
+    def render(self, mode='human'):
+        screen_width = 1026
+        screen_height = 1026
+
+        if self.screen is None:
+            if mode == "human":
+                pygame.init()
+                self.screen = pygame.display.set_mode((screen_width, screen_height))
             else:
-                empty_neighbors.add(n)
+                self.screen = pygame.Surface((screen_width, screen_height))
+        if mode == "human":
+            pygame.event.get()
 
-        new_group = self._merge_from_played(
-            color, c, empty_neighbors, friendly_neighboring_group_ids)
+        size = go_base.N
 
-        # new_group becomes stale as _update_liberties and
-        # _handle_captures are called; must refetch with self.groups[new_group.id]
-        for group_id in opponent_neighboring_group_ids:
-            neighbor_group = self.groups[group_id]
-            if len(neighbor_group.liberties) == 1:
-                captured = self._capture_group(group_id)
-                captured_stones.update(captured)
-            else:
-                self._update_liberties(group_id, remove={c})
+        # Load and scale all of the necessary images
+        tile_size = (screen_width) / size
 
-        self._handle_captures(captured_stones)
+        black_stone = get_image(os.path.join('../img', 'GoBlackPiece.png'))
+        black_stone = pygame.transform.scale(black_stone, (int(tile_size * (5 / 6)), int(tile_size * (5 / 6))))
 
-        # suicide is illegal
-        if len(self.groups[new_group.id].liberties) == 0:
-            raise IllegalMove(f"Move at {c} would commit suicide!\n")
+        white_stone = get_image(os.path.join('../img', 'GoWhitePiece.png'))
+        white_stone = pygame.transform.scale(white_stone, (int(tile_size * (5 / 6)), int(tile_size * (5 / 6))))
 
-        return captured_stones
+        tile_img = get_image(os.path.join('../img', 'GO_Tile0.png'))
+        tile_img = pygame.transform.scale(tile_img, ((int(tile_size * (7 / 6))), int(tile_size * (7 / 6))))
 
-    def _merge_from_played(self, color, played, libs, other_group_ids):
-        stones = {played}
-        liberties = set(libs)
-        for group_id in other_group_ids:
-            other = self.groups.pop(group_id)
-            stones.update(other.stones)
-            liberties.update(other.liberties)
+        # blit board tiles
+        for i in range(1, size - 1):
+            for j in range(1, size - 1):
+                self.screen.blit(tile_img, ((i * (tile_size)), int(j) * (tile_size)))
 
-        if other_group_ids:
-            liberties.remove(played)
-        assert stones.isdisjoint(liberties)
-        self.max_group_id += 1
-        result = Group(
-            self.max_group_id,
-            frozenset(stones),
-            frozenset(liberties),
-            color)
-        self.groups[result.id] = result
+        for i in range(1, 9):
+            tile_img = get_image(os.path.join('../img', 'GO_Tile' + str(i) + '.png'))
+            tile_img = pygame.transform.scale(tile_img, ((int(tile_size * (7 / 6))), int(tile_size * (7 / 6))))
+            for j in range(1, size - 1):
+                if i == 1:
+                    self.screen.blit(tile_img, (0, int(j) * (tile_size)))
+                elif i == 2:
+                    self.screen.blit(tile_img, ((int(j) * (tile_size)), 0))
+                elif i == 3:
+                    self.screen.blit(tile_img, ((size - 1) * (tile_size), int(j) * (tile_size)))
+                elif i == 4:
+                    self.screen.blit(tile_img, ((int(j) * (tile_size)), (size - 1) * (tile_size)))
+            if i == 5:
+                self.screen.blit(tile_img, (0, 0))
+            elif i == 6:
+                self.screen.blit(tile_img, ((size - 1) * (tile_size), 0))
+            elif i == 7:
+                self.screen.blit(tile_img, ((size - 1) * (tile_size), (size - 1) * (tile_size)))
+            elif i == 8:
+                self.screen.blit(tile_img, (0, (size - 1) * (tile_size)))
 
-        for s in result.stones:
-            self.group_index[s] = result.id
-            self.liberty_cache[s] = len(result.liberties)
+        offset = tile_size * (1 / 6)
+        # Blit the necessary chips and their positions
+        for i in range(0, size):
+            for j in range(0, size):
+                if self._go.board[i][j] == go_base.BLACK:
+                    self.screen.blit(black_stone, ((i * (tile_size) + offset), int(j) * (tile_size) + offset))
+                elif self._go.board[i][j] == go_base.WHITE:
+                    self.screen.blit(white_stone, ((i * (tile_size) + offset), int(j) * (tile_size) + offset))
 
-        return result
+        if mode == "human":
+            pygame.display.update()
 
-    def _capture_group(self, group_id):
-        dead_group = self.groups.pop(group_id)
-        for s in dead_group.stones:
-            self.group_index[s] = MISSING_GROUP_ID
-            self.liberty_cache[s] = 0
-        return dead_group.stones
+        observation = np.array(pygame.surfarray.pixels3d(self.screen))
 
-    def _update_liberties(self, group_id, add=set(), remove=set()):
-        group = self.groups[group_id]
-        new_libs = (group.liberties | add) - remove
-        self.groups[group_id] = Group(
-            group_id, group.stones, new_libs, group.color)
+        return np.transpose(observation, axes=(1, 0, 2)) if mode == "rgb_array" else None
 
-        new_lib_count = len(new_libs)
-        for s in self.groups[group_id].stones:
-            self.liberty_cache[s] = new_lib_count
-
-    def _handle_captures(self, captured_stones):
-        for s in captured_stones:
-            for n in NEIGHBORS[s]:
-                group_id = self.group_index[n]
-                if group_id != MISSING_GROUP_ID:
-                    self._update_liberties(group_id, add={s})
-
-
-class Position():
-    def __init__(self, board=None, n=0, komi=7.5, caps=(0, 0),
-                 lib_tracker=None, ko=None, recent=tuple(),
-                 board_deltas=None, to_play=BLACK):
-        """
-        board: a numpy array
-        n: an int representing moves played so far
-        komi: a float, representing points given to the second player.
-        caps: a (int, int) tuple of captures for B, W.
-        lib_tracker: a LibertyTracker object
-        ko: a Move
-        recent: a tuple of PlayerMoves, such that recent[-1] is the last move.
-        board_deltas: a np.array of shape (n, go.N, go.N) representing changes
-            made to the board at each move (played move and captures).
-            Should satisfy next_pos.board - next_pos.board_deltas[0] == pos.board
-        to_play: BLACK or WHITE
-        """
-        assert type(recent) is tuple
-        self.board = board if board is not None else np.copy(EMPTY_BOARD)
-        # With a full history, self.n == len(self.recent) == num moves played
-        self.n = n
-        self.komi = komi
-        self.caps = caps
-        self.lib_tracker = lib_tracker or LibertyTracker.from_board(self.board)
-        self.ko = ko
-        self.recent = recent
-        self.board_deltas = board_deltas if board_deltas is not None else np.zeros([
-                                                                                   0, N, N], dtype=np.int8)
-        self.to_play = to_play
-
-    def __deepcopy__(self, memodict={}):
-        new_board = np.copy(self.board)
-        new_lib_tracker = copy.deepcopy(self.lib_tracker)
-        return Position(new_board, self.n, self.komi, self.caps, new_lib_tracker, self.ko, self.recent, self.board_deltas, self.to_play)
-
-    def __str__(self, colors=True):
-        if colors:
-            pretty_print_map = {
-                WHITE: '\x1b[0;31;47mO',
-                EMPTY: '\x1b[0;31;43m.',
-                BLACK: '\x1b[0;31;40mX',
-                FILL: '#',
-                KO: '*',
-            }
-        else:
-            pretty_print_map = {
-                WHITE: 'O',
-                EMPTY: '.',
-                BLACK: 'X',
-                FILL: '#',
-                KO: '*',
-            }
-        board = np.copy(self.board)
-        captures = self.caps
-        if self.ko is not None:
-            place_stones(board, KO, [self.ko])
-        raw_board_contents = []
-        for i in range(N):
-            row = [' ']
-            for j in range(N):
-                appended = '<' if (self.recent and (i, j)
-                                   == self.recent[-1].move) else ' '
-                row.append(pretty_print_map[board[i, j]] + appended)
-                if colors:
-                    row.append('\x1b[0m')
-
-            raw_board_contents.append(''.join(row))
-
-        row_labels = ['%2d' % i for i in range(N, 0, -1)]
-        annotated_board_contents = [''.join(r) for r in zip(
-            row_labels, raw_board_contents, row_labels)]
-        header_footer_rows = [
-            '   ' + ' '.join('ABCDEFGHJKLMNOPQRST'[:N]) + '   ']
-        annotated_board = '\n'.join(itertools.chain(
-            header_footer_rows, annotated_board_contents, header_footer_rows))
-        details = "\nMove: {}. Captures X: {} O: {}\n".format(
-            self.n, *captures)
-        return annotated_board + details
-
-    def is_move_suicidal(self, move):
-        potential_libs = set()
-        for n in NEIGHBORS[move]:
-            neighbor_group_id = self.lib_tracker.group_index[n]
-            if neighbor_group_id == MISSING_GROUP_ID:
-                # at least one liberty after playing here, so not a suicide
-                return False
-            neighbor_group = self.lib_tracker.groups[neighbor_group_id]
-            if neighbor_group.color == self.to_play:
-                potential_libs |= neighbor_group.liberties
-            elif len(neighbor_group.liberties) == 1:
-                # would capture an opponent group if they only had one lib.
-                return False
-        # it's possible to suicide by connecting several friendly groups
-        # each of which had one liberty.
-        potential_libs -= {move}
-        return not potential_libs
-
-    def is_move_legal(self, move):
-        'Checks that a move is on an empty space, not on ko, and not suicide'
-        if move is None:
-            return True
-        if self.board[move] != EMPTY:
-            return False
-        if move == self.ko:
-            return False
-        if self.is_move_suicidal(move):
-            return False
-
-        return True
-
-    def all_legal_moves(self):
-        'Returns a np.array of size go.N**2 + 1, with 1 = legal, 0 = illegal'
-        # by default, every move is legal
-        legal_moves = np.ones([N, N], dtype=np.int8)
-        # ...unless there is already a stone there
-        legal_moves[self.board != EMPTY] = 0
-        # calculate which spots have 4 stones next to them
-        # padding is because the edge always counts as a lost liberty.
-        adjacent = np.ones([N + 2, N + 2], dtype=np.int8)
-        adjacent[1:-1, 1:-1] = np.abs(self.board)
-        num_adjacent_stones = (adjacent[:-2, 1:-1] + adjacent[1:-1, :-2]
-                               + adjacent[2:, 1:-1] + adjacent[1:-1, 2:])
-        # Surrounded spots are those that are empty and have 4 adjacent stones.
-        surrounded_spots = np.multiply(
-            (self.board == EMPTY),
-            (num_adjacent_stones == 4))
-        # Such spots are possibly illegal, unless they are capturing something.
-        # Iterate over and manually check each spot.
-        for coord in np.transpose(np.nonzero(surrounded_spots)):
-            if self.is_move_suicidal(tuple(coord)):
-                legal_moves[tuple(coord)] = 0
-
-        # ...and retaking ko is always illegal
-        if self.ko is not None:
-            legal_moves[self.ko] = 0
-
-        # and pass is always legal
-        return np.concatenate([legal_moves.ravel(), [1]])
-
-    def pass_move(self, mutate=False):
-        pos = self if mutate else copy.deepcopy(self)
-        pos.n += 1
-        pos.recent += (PlayerMove(pos.to_play, None),)
-        pos.board_deltas = np.concatenate((
-            np.zeros([1, N, N], dtype=np.int8),
-            pos.board_deltas[:6]))
-        pos.to_play *= -1
-        pos.ko = None
-        return pos
-
-    def flip_playerturn(self, mutate=False):
-        pos = self if mutate else copy.deepcopy(self)
-        pos.ko = None
-        pos.to_play *= -1
-        return pos
-
-    def get_liberties(self):
-        return self.lib_tracker.liberty_cache
-
-    def play_move(self, c, color=None, mutate=False):
-        # Obeys CGOS Rules of Play. In short:
-        # No suicides
-        # Chinese/area scoring
-        # Positional superko (this is very crudely approximate at the moment.)
-        if color is None:
-            color = self.to_play
-
-        pos = self if mutate else copy.deepcopy(self)
-
-        if c is None:
-            pos = pos.pass_move(mutate=mutate)
-            return pos
-
-        if not self.is_move_legal(c):
-            raise IllegalMove("{} move at {} is illegal: \n{}".format(
-                "Black" if self.to_play == BLACK else "White",
-                coords.to_gtp(c), self))
-
-        potential_ko = is_koish(self.board, c)
-
-        place_stones(pos.board, color, [c])
-        captured_stones = pos.lib_tracker.add_stone(color, c)
-        place_stones(pos.board, EMPTY, captured_stones)
-
-        opp_color = color * -1
-
-        new_board_delta = np.zeros([N, N], dtype=np.int8)
-        new_board_delta[c] = color
-        place_stones(new_board_delta, color, captured_stones)
-
-        if len(captured_stones) == 1 and potential_ko == opp_color:
-            new_ko = list(captured_stones)[0]
-        else:
-            new_ko = None
-
-        if pos.to_play == BLACK:
-            new_caps = (pos.caps[0] + len(captured_stones), pos.caps[1])
-        else:
-            new_caps = (pos.caps[0], pos.caps[1] + len(captured_stones))
-
-        pos.n += 1
-        pos.caps = new_caps
-        pos.ko = new_ko
-        pos.recent += (PlayerMove(color, c),)
-
-        # keep a rolling history of last 7 deltas - that's all we'll need to
-        # extract the last 8 board states.
-        pos.board_deltas = np.concatenate((
-            new_board_delta.reshape(1, N, N),
-            pos.board_deltas[:6]))
-        pos.to_play *= -1
-        return pos
-
-    def is_game_over(self):
-        return (len(self.recent) >= 2
-                and self.recent[-1].move is None
-                and self.recent[-2].move is None)
-
-    def score(self):
-        'Return score from B perspective. If W is winning, score is negative.'
-        working_board = np.copy(self.board)
-        while EMPTY in working_board:
-            unassigned_spaces = np.where(working_board == EMPTY)
-            c = unassigned_spaces[0][0], unassigned_spaces[1][0]
-            territory, borders = find_reached(working_board, c)
-            border_colors = {working_board[b] for b in borders}
-            X_border = BLACK in border_colors
-            O_border = WHITE in border_colors
-            if X_border and not O_border:
-                territory_color = BLACK
-            elif O_border and not X_border:
-                territory_color = WHITE
-            else:
-                territory_color = UNKNOWN  # dame, or seki
-            place_stones(working_board, territory_color, territory)
-
-        return np.count_nonzero(working_board == BLACK) - np.count_nonzero(working_board == WHITE) - self.komi
-
-    def result(self):
-        score = self.score()
-        if score > 0:
-            return 1
-        elif score < 0:
-            return -1
-        else:
-            return 0
-
-    def result_string(self):
-        score = self.score()
-        if score > 0:
-            return 'B+' + '%.1f' % score
-        elif score < 0:
-            return 'W+' + '%.1f' % abs(score)
-        else:
-            return 'DRAW'
+    def close(self):
+        pass

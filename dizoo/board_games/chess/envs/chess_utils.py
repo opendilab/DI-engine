@@ -1,3 +1,8 @@
+"""
+The following code is adapted from pettingzoo:
+https://github.com/Farama-Foundation/PettingZoo/tree/master/pettingzoo/classic/chess
+"""
+
 import chess
 import numpy as np
 
@@ -22,10 +27,6 @@ def diff(c1, c2):
     x1, y1 = c1
     x2, y2 = c2
     return (x2 - x1, y2 - y1)
-
-
-def sign(v):
-    return -1 if v < 0 else (1 if v > 0 else 0)
 
 
 def mirror_move(move):
@@ -54,7 +55,7 @@ def get_queen_dir(diff):
         for y in range(-1, 1 + 1):
             if x == 0 and y == 0:
                 continue
-            if x == sign(dx) and y == sign(dy):
+            if x == np.sign(dx) and y == np.sign(dy):
                 return magnitude, counter
             counter += 1
     assert False, "bad queen move inputted"
