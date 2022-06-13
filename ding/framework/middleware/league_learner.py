@@ -15,11 +15,13 @@ if TYPE_CHECKING:
     from ding.framework.middleware.league_actor import ActorData
     from ding.league import ActivePlayer
 
+
 @dataclass
 class LearnerModel:
     player_id: str
     state_dict: dict
     train_iter: int = 0
+
 
 class LeagueLearner:
 
@@ -70,7 +72,8 @@ class LeagueLearner:
         if not os.path.exists(self.checkpoint_prefix):
             os.makedirs(self.checkpoint_prefix)
         storage = FileStorage(
-            path=os.path.join(self.checkpoint_prefix, "{}_{}_ckpt.pth".format(self.player_id, self._learner.train_iter))
+            path=os.path.
+            join(self.checkpoint_prefix, "{}_{}_ckpt.pth".format(self.player_id, self._learner.train_iter))
         )
         storage.save(self._learner.policy.state_dict())
         return storage

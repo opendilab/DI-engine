@@ -16,10 +16,13 @@ from distar.ctools.utils import read_config
 N_ACTORS = 1
 N_LEARNERS = 1
 
+
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
-    env_cfg = read_config(os.path.join(os.path.dirname(__file__), '../../../../dizoo/distar/envs/tests/test_distar_config.yaml'))
+    env_cfg = read_config(
+        os.path.join(os.path.dirname(__file__), '../../../../dizoo/distar/envs/tests/test_distar_config.yaml')
+    )
 
     def env_fn():
         env = BaseEnvManager(
@@ -34,6 +37,7 @@ def prepare_test():
         return policy
 
     return cfg, env_fn, policy_fn
+
 
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
@@ -57,8 +61,8 @@ def _main():
 
 @pytest.mark.unittest
 def test_league_actor():
-    Parallel.runner(n_parallel_workers=N_ACTORS+N_LEARNERS+1, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)
 
 
 if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=N_ACTORS+N_LEARNERS+1, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)

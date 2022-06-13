@@ -14,7 +14,6 @@ from ding.framework.storage import FileStorage
 from ding.policy import PPOPolicy
 from dizoo.distar.envs.distar_env import DIStarEnv
 
-
 obs_dim = [2, 2]
 action_space = 1
 env_num = 2
@@ -129,6 +128,7 @@ class MockHerRewardModel(Mock):
 
 
 class MockLeague(BaseLeague):
+
     def __init__(self, cfg) -> None:
         super().__init__(cfg)
         self.update_payoff_cnt = 0
@@ -171,6 +171,7 @@ class MockLogger():
 
 
 class DIStarMockPolicy(PPOPolicy):
+
     def _mock_data(self, data):
         print("Data: ", data)
         mock_data = {}

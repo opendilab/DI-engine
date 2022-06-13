@@ -16,6 +16,7 @@ from dizoo.league_demo.game_env import GameEnv
 
 logging.getLogger().setLevel(logging.INFO)
 
+
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
@@ -34,31 +35,42 @@ def prepare_test():
 
     return cfg, env_fn, policy_fn
 
+
 def coordinator_mocker():
     task.on(EventEnum.LEARNER_SEND_META, lambda x: print("test:", x))
     task.on(EventEnum.LEARNER_SEND_MODEL, lambda x: print("test: send model success"))
+
     def _coordinator_mocker(ctx):
         sleep(1)
+
     return _coordinator_mocker
 
+
 def actor_mocker(league):
+
     def _actor_mocker(ctx):
         sleep(1)
         obs_size = cfg.policy.model.obs_shape
-        data = [{
-            'obs': torch.rand(*obs_size),
-            'next_obs': torch.rand(*obs_size),
-            'done': False,
-            'reward': torch.rand(1),
-            'logit': torch.rand(1),
-            'action': torch.randint(low=0, high=2, size=(1,)),
-        } for _ in range(32)]
+        if isinstance(obs_size, int):
+            obs_size = [obs_size]
+        data = [
+            {
+                'obs': torch.rand(*obs_size),
+                'next_obs': torch.rand(*obs_size),
+                'done': False,
+                'reward': torch.rand(1),
+                'logit': torch.rand(1),
+                'action': torch.randint(low=0, high=2, size=(1, )),
+            } for _ in range(32)
+        ]
         actor_data = ActorData(env_step=0, train_data=data)
         n_players = len(league.active_players_ids)
         player = league.active_players[(task.router.node_id + 2) % n_players]
         print("actor player:", player.player_id)
         task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
+
     return _actor_mocker
+
 
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
