@@ -5,15 +5,13 @@ The code is transplanted from https://github.com/nikhilbarhate99/min-decision-tr
 from ding.utils import MODEL_REGISTRY
 from typing import Tuple
 from ding.torch_utils.network.transformer import Attention
-import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class Block(nn.Module):
 
-    def __init__(self, h_dim: int, max_T: int, n_heads: int, drop_p: float) -> torch.Tensor:
+    def __init__(self, h_dim: int, max_T: int, n_heads: int, drop_p: float) -> None:
         super().__init__()
         self.attention = Attention(h_dim, h_dim, h_dim, n_heads, nn.Dropout(drop_p))
         self.att_drop = nn.Dropout(drop_p)
