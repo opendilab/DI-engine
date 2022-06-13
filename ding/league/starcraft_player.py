@@ -33,11 +33,18 @@ class MainPlayer(ActivePlayer):
         p = pfsp(win_rates, weighting='squared')
         return self._get_opponent(historical, p)
 
-    def _sp_branch(self):
+    def _sp_branch(self) -> ActivePlayer:
         """
         Overview:
             Select normal self-play opponent
         """
+        return self
+
+    """ def _sp_branch(self):
+        
+        Overview:
+            Select normal self-play opponent
+        
         main_players = self._get_players(lambda p: isinstance(p, MainPlayer))
         main_opponent = self._get_opponent(main_players)
 
@@ -52,7 +59,7 @@ class MainPlayer(ActivePlayer):
         )
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='variance')
-        return self._get_opponent(historical, p)
+        return self._get_opponent(historical, p) """
 
     def _verification_branch(self):
         """

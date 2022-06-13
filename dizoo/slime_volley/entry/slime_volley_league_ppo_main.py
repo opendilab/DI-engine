@@ -148,7 +148,7 @@ def main(cfg, seed=0):
     # snapshot the initial player as the first historial player
     for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
-        league.judge_snapshot(player_id, force=True)
+        #league.judge_snapshot(player_id, force=True)
 
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
@@ -192,7 +192,7 @@ def main(cfg, seed=0):
             player_info = learner.learn_info
             player_info['player_id'] = player_id
             league.update_active_player(player_info)
-            league.judge_snapshot(player_id)
+            #league.judge_snapshot(player_id)
             # set eval_flag=True to enable trueskill update
             job_finish_info = {
                 'eval_flag': True,
