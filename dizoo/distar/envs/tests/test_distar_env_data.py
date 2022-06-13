@@ -31,7 +31,7 @@ class TestDIstarEnv:
 
                     for iter in range(1000):  # one episode loop
                         # agent step
-                        actions = self._env.random_action(observations)
+                        actions = DIStarEnv.random_action(observations)
                         # env step
                         timestep = self._env.step(actions)
                         if not timestep.done:

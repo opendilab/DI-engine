@@ -31,6 +31,8 @@ env_cfg = EasyDict(
     }
 )
 
+ENV_NUMBER = 2
+
 class TestDIstarEnv:
     def __init__(self):
 
@@ -41,12 +43,11 @@ class TestDIstarEnv:
 
     def _inference_loop(self, job={}):
 
-
         torch.set_num_threads(1)
 
         # self._env = DIStarEnv(self._whole_cfg)
         self._env = BaseEnvManager(
-            env_fn=[lambda: DIStarEnv(self._whole_cfg) for _ in range(1)], cfg=env_cfg.env.manager
+            env_fn=[lambda: DIStarEnv(self._whole_cfg) for _ in range(ENV_NUMBER)], cfg=env_cfg.env.manager
         )
         self._env.seed(1)
 
@@ -54,15 +55,14 @@ class TestDIstarEnv:
             for episode in range(2):
                 self._env.launch()
                 try:
-                    for env_step in range(10):
+                    for env_step in range(1000):
                         obs = self._env.ready_obs
                         # print(obs)
-                        obs = {env_id: obs[env_id] for env_id in range(1)}
+                        obs = {env_id: obs[env_id] for env_id in range(ENV_NUMBER)}
                         actions = {}
-                        for env_id in range(1):
+                        for env_id in range(ENV_NUMBER):
                             observations = obs[env_id]
-                            actions[env_id] = self._agent_env.random_action(observations)
-                            # print(actions)
+                            actions[env_id] = DIStarEnv.random_action(observations)
                         timesteps = self._env.step(actions)
                         print(actions)
                         

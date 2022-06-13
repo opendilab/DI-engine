@@ -43,8 +43,9 @@ class DIStarEnv(SC2Env,BaseEnv):
     def action_space(self):
         #TODO
         pass
-
-    def random_action(self, obs):
+    
+    @classmethod
+    def random_action(cls, obs):
         return_action = {}
         for policy_id in obs.keys():
             raw = obs[policy_id]['raw_obs'].observation.raw_data

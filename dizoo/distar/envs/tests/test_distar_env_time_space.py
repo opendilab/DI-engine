@@ -35,7 +35,7 @@ class TestDIstarEnv:
 
                     for iter in range(1000):  # one episode loop
                         # agent step
-                        actions = self._env.random_action(observations)
+                        actions = DIStarEnv.random_action(observations)
                         # env step
                         before_step_time = time.time()
                         timestep = self._env.step(actions)
