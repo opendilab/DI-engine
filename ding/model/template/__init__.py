@@ -18,3 +18,4 @@ from .ngu import NGU
 from .qac_dist import QACDIST
 from .maqac import MAQAC, ContinuousMAQAC
 from .vae import VanillaVAE
+from .decision_transformer import DecisionTransformer

@@ -82,7 +82,7 @@ create_config = dict(
         import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
         type='petting_zoo',
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='sac_discrete'),
 )
 create_config = EasyDict(create_config)
