@@ -763,13 +763,180 @@
         <span class="n">logit_quantile_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_net</span><span class="p">(</span><span class="n">logit_quantiles</span><span class="p">)</span>
 
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">num_quantiles</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">q_x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">q_quantile_net</span>
+        <span class="n">q_x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">q_quantile_net</span>  <span class="c1"># 4*32,64</span>
         <span class="n">logit_x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">logit_quantile_net</span>
 
         <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_quantiles</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">logit_x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_quantiles</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s1">&#39;quantiles&#39;</span><span class="p">:</span> <span class="n">q_quantiles</span><span class="p">}</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">FQFHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The ``FQFHead`` used to output action quantiles. \</span>
+<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
+<span class="sd">            output ``logit``, ``q``, ``quantiles``, ``quantiles_hats``, ``q_tau_i`` and ``entropies``.</span>
+<span class="sd">        Interfaces:</span>
+<span class="sd">            ``__init__``, ``forward``, ``quantile_net``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">num_quantiles</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="n">quantile_embedding_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the ``FQFHead`` layers according to the provided arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``FQFHead``.</span>
+<span class="sd">            - output_size (:obj:`int`): The number of outputs.</span>
+<span class="sd">            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.</span>
+<span class="sd">            - num_quantiles (:obj:`int`): The number of quantiles.</span>
+<span class="sd">            - quantile_embedding_size (:obj:`int`): The embedding size of a quantile.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \</span>
+<span class="sd">                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.</span>
+<span class="sd">            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \</span>
+<span class="sd">                for more details. Default ``None``.</span>
+<span class="sd">            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks&#39; MLP. \</span>
+<span class="sd">                Default ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FQFHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">NoiseLinearLayer</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="n">noise_block</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">fc_block</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">MLP</span><span class="p">(</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">layer_num</span><span class="p">,</span>
+                <span class="n">layer_fn</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+            <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_quantiles</span> <span class="o">=</span> <span class="n">num_quantiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quantile_embedding_size</span> <span class="o">=</span> <span class="n">quantile_embedding_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_size</span> <span class="o">=</span> <span class="n">output_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fqf_fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quantile_embedding_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span>
+            <span class="s1">&#39;sigma_pi&#39;</span><span class="p">,</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_embedding_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_embedding_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+        <span class="p">)</span>
+        <span class="c1"># initialize weights_xavier of quantiles_proposal network</span>
+        <span class="n">quantiles_proposal_fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quantiles_proposal</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">LogSoftmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">quantile_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">           Deterministic parametric function trained to reparameterize samples from the quantiles_proposal network. \</span>
+<span class="sd">           By repeated Bellman update iterations of Q-learning, the optimal action-value function is estimated.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The encoded embedding tensor of parametric sample.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - quantile_net (:obj:`torch.Tensor`): Quantile network output tensor after reparameterization.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; head = FQFHead(64, 64)</span>
+<span class="sd">            &gt;&gt;&gt; quantiles = torch.randn(4,32)</span>
+<span class="sd">            &gt;&gt;&gt; qn_output = head.quantile_net(quantiles)</span>
+<span class="sd">            &gt;&gt;&gt; assert isinstance(qn_output, torch.Tensor)</span>
+<span class="sd">            &gt;&gt;&gt; # default quantile_embedding_size: int = 128,</span>
+<span class="sd">            &gt;&gt;&gt; assert qn_output.shape == torch.Size([4, 32, 64])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">batch_size</span><span class="p">,</span> <span class="n">num_quantiles</span> <span class="o">=</span> <span class="n">quantiles</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">quantile_net</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_pi</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span> <span class="o">*</span> <span class="n">quantiles</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">quantile_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fqf_fc</span><span class="p">(</span><span class="n">quantile_net</span><span class="p">)</span>  <span class="c1"># (batch_size, num_quantiles, hidden_size)</span>
+        <span class="k">return</span> <span class="n">quantile_net</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use encoded embedding tensor to run MLP with ``FQFHead`` and return the prediction dictionary.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Tensor containing input embedding.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \</span>
+<span class="sd">                ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), \</span>
+<span class="sd">                ``quantiles_hats`` (:obj:`torch.Tensor`), \</span>
+<span class="sd">                ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
+<span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
+<span class="sd">            - q: :math:`(B, num_quantiles, M)`.</span>
+<span class="sd">            - quantiles: :math:`(B, num_quantiles + 1)`.</span>
+<span class="sd">            - quantiles_hats: :math:`(B, num_quantiles)`.</span>
+<span class="sd">            - q_tau_i: :math:`(B, num_quantiles - 1, M)`.</span>
+<span class="sd">            - entropies: :math:`(B, 1)`.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; head = FQFHead(64, 64)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = head(inputs)</span>
+<span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;logit&#39;].shape == torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; # default num_quantiles is 32</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;q&#39;].shape == torch.Size([4, 32, 64])</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;quantiles&#39;].shape == torch.Size([4, 33])</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;quantiles_hats&#39;].shape == torch.Size([4, 32])</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;q_tau_i&#39;].shape == torch.Size([4, 31, 64])</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;quantiles&#39;].shape == torch.Size([4, 1])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">num_quantiles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_quantiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_quantiles</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">log_q_quantiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantiles_proposal</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="p">)</span>  <span class="c1"># (batch_size, num_quantiles), not to update encoder when learning w1_loss(fraction loss)</span>
+        <span class="n">q_quantiles</span> <span class="o">=</span> <span class="n">log_q_quantiles</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span>
+
+        <span class="c1"># Calculate entropies of value distributions.</span>
+        <span class="n">entropies</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">log_q_quantiles</span> <span class="o">*</span> <span class="n">q_quantiles</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># (batch_size, 1)</span>
+        <span class="k">assert</span> <span class="n">entropies</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># accumalative softmax</span>
+        <span class="n">q_quantiles</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">q_quantiles</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># quantile_hats: find the optimal condition for τ to minimize W1(Z, τ)</span>
+        <span class="n">tau_0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">q_quantiles</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">tau_0</span><span class="p">,</span> <span class="n">q_quantiles</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles+1]</span>
+
+        <span class="n">q_quantiles_hats</span> <span class="o">=</span> <span class="p">(</span><span class="n">q_quantiles</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">q_quantiles</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">/</span> <span class="mf">2.</span>  <span class="c1"># (batch_size, num_quantiles)</span>
+
+        <span class="n">q_quantile_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_net</span><span class="p">(</span><span class="n">q_quantiles_hats</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles, hidden_size(64)]</span>
+        <span class="c1"># x.view[batch_size, 1, hidden_size(64)]</span>
+        <span class="n">q_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">q_quantile_net</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles, hidden_size(64)]</span>
+
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles, action_dim(64)]</span>
+
+        <span class="n">logit</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">q_tau_i_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_net</span><span class="p">(</span>
+                <span class="n">q_quantiles</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles-1, hidden_size(64)]</span>
+            <span class="n">q_tau_i_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">q_tau_i_net</span><span class="p">)</span>  <span class="c1"># [batch_size, (num_quantiles-1), hidden_size(64)]</span>
+
+            <span class="n">q_tau_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">q_tau_i_x</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles-1, action_dim(64)]</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span>
+            <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span>
+            <span class="s1">&#39;quantiles&#39;</span><span class="p">:</span> <span class="n">q_quantiles</span><span class="p">,</span>
+            <span class="s1">&#39;quantiles_hats&#39;</span><span class="p">:</span> <span class="n">q_quantiles_hats</span><span class="p">,</span>
+            <span class="s1">&#39;q_tau_i&#39;</span><span class="p">:</span> <span class="n">q_tau_i</span><span class="p">,</span>
+            <span class="s1">&#39;entropies&#39;</span><span class="p">:</span> <span class="n">entropies</span>
+        <span class="p">}</span>
 
 
 <div class="viewcode-block" id="DuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead">[docs]</a><span class="k">class</span> <span class="nc">DuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>

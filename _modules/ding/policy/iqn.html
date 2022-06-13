@@ -386,7 +386,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">nstep</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kappa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">kappa</span>
 
-        <span class="c1"># use wrapper instead of plugin</span>
+        <span class="c1"># use model_wrapper for specialized demands of different modes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
@@ -468,59 +468,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;target_model&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span>
-
-    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Collect mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init traj and unroll length, collect model.</span>
-<span class="sd">            Enable the eps_greedy_sample</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">discount_factor</span>  <span class="c1"># necessary for parallel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">nstep</span>  <span class="c1"># necessary for parallel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;eps_greedy_sample&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \</span>
-<span class="sd">                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</span>
-<span class="sd">            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \</span>
-<span class="sd">                env and the constructing of transition.</span>
-<span class="sd">        ArgumentsKeys:</span>
-<span class="sd">            - necessary: ``obs``</span>
-<span class="sd">        ReturnsKeys</span>
-<span class="sd">            - necessary: ``logit``, ``action``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
-
-    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get the trajectory and the n step return data, then sample from the n_step return data</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`list`): The trajectory&#39;s cache</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - samples (:obj:`dict`): The training samples generated</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">get_nstep_return_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="s1">&#39;iqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span></div>
