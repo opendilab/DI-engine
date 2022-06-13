@@ -125,17 +125,14 @@ class TestQLearning:
             assert outputs['logit'].shape == (B, act_shape)
             assert outputs['q'].shape == (B, num_quantiles, act_shape)
             assert outputs['quantiles'].shape == (B, num_quantiles + 1)
+            assert outputs['quantiles_hats'].shape == (B, num_quantiles)
+            assert outputs['q_tau_i'].shape == (B, num_quantiles - 1, act_shape)
         elif len(act_shape) == 1:
             assert outputs['logit'].shape == (B, *act_shape)
             assert outputs['q'].shape == (B, num_quantiles, *act_shape)
             assert outputs['quantiles'].shape == (B, num_quantiles + 1)
-        else:
-            for i, s in enumerate(act_shape):
-                assert outputs['logit'][i].shape == (B, s)
-                assert outputs['q'][i].shape == (B, num_quantiles, s)
-                assert outputs['quantiles'][i].shape == (B, num_quantiles + 1)
-                assert outputs['quantiles_hats'][i].shape == (B, num_quantiles)
-                assert outputs['q_tau_i'][i].shape == (B, num_quantiles - 1, s)
+            assert outputs['quantiles_hats'].shape == (B, num_quantiles)
+            assert outputs['q_tau_i'].shape == (B, num_quantiles - 1, *act_shape)
         self.output_check(model.head.quantiles_proposal, outputs['quantiles'])
         for p in model.parameters():
             p.grad = None
