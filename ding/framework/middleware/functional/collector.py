@@ -163,8 +163,9 @@ def policy_resetter(env_num: int):
 
     return _policy_resetter
 
+
 def job_data_sender(streaming_sampling_flag: bool, n_rollout_samples: int):
-   
+
     def _job_data_sender(ctx: "BattleContext"):
         if not ctx.job.is_eval and streaming_sampling_flag is True and len(ctx.train_data[0]) >= n_rollout_samples:
             actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
@@ -178,9 +179,8 @@ def job_data_sender(streaming_sampling_flag: bool, n_rollout_samples: int):
                 actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
                 ctx.train_data = [[] for _ in range(ctx.agent_num)]
-    
-    return _job_data_sender
 
+    return _job_data_sender
 
 
 def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):

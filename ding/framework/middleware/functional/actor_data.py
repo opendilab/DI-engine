@@ -1,6 +1,7 @@
 from typing import Any
 from dataclasses import dataclass
 
+
 @dataclass
 class ActorData:
     train_data: Any

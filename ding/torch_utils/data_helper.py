@@ -1,4 +1,4 @@
-from typing import Iterable, Any, Optional, List
+from typing import Iterable, Any, Optional, List, Mapping
 from collections.abc import Sequence
 import numbers
 import time
@@ -397,3 +397,15 @@ def get_null_data(template: Any, num: int) -> List[Any]:
         data['reward'].zero_()
         ret.append(data)
     return ret
+
+
+def detach_grad(data):
+    if isinstance(data, Sequence):
+        for i in range(len(data)):
+            data[i] = detach_grad(data[i])
+    elif isinstance(data, Mapping):
+        for k in data.keys():
+            data[k] = detach_grad(data[k])
+    elif isinstance(data, torch.Tensor):
+        data = data.detach()
+    return data

@@ -19,6 +19,7 @@ from ding.league.player import PlayerMeta
 from threading import Lock
 import queue
 
+
 class LeagueActor:
 
     def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
@@ -36,11 +37,13 @@ class LeagueActor:
         self.job_queue = queue.Queue()
         self.model_dict = {}
         self.model_dict_lock = Lock()
+        self._step = 0
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
         If get newest learner model, put it inside model_queue.
         """
+        print("receive model from learner")
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -55,7 +58,11 @@ class LeagueActor:
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
-        collector = task.wrap(BattleCollector(cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies))
+        collector = task.wrap(
+            BattleCollector(
+                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies
+            )
+        )
         self._collectors[player_id] = collector
         return collector
 
@@ -79,8 +86,8 @@ class LeagueActor:
             job = self.job_queue.get(timeout=10)
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
-        
-        return job 
+
+        return job
 
     def _get_current_policies(self, job):
         current_policies = []
@@ -91,13 +98,12 @@ class LeagueActor:
                 main_player = player
         return main_player, current_policies
 
-
     def __call__(self, ctx: "BattleContext"):
 
         ctx.job = self._get_job()
         if ctx.job is None:
             return
-        
+
         collector = self._get_collector(ctx.job.launch_player)
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
@@ -110,5 +116,5 @@ class LeagueActor:
         ctx.policy_kwargs = None
 
         collector(ctx)
-
-
+        logging.info("{} Step: {}".format(self.__class__, self._step))
+        self._step += 1

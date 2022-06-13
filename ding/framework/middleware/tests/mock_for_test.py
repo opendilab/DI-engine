@@ -1,9 +1,18 @@
 from typing import Union, Any, List, Callable, Dict, Optional
 from collections import namedtuple
+import random
 import torch
 import treetensor.numpy as tnp
 from easydict import EasyDict
 from unittest.mock import Mock
+from copy import deepcopy
+
+from ding.torch_utils import to_device
+from ding.league.player import PlayerMeta
+from ding.league.v2 import BaseLeague, Job
+from ding.framework.storage import FileStorage
+from ding.policy import PPOPolicy
+from dizoo.distar.envs.distar_env import DIStarEnv
 
 obs_dim = [2, 2]
 action_space = 1
@@ -116,3 +125,81 @@ class MockHerRewardModel(Mock):
 
     def estimate(self, episode: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return [[episode[0] for _ in range(self.episode_element_size)]]
+
+
+class MockLeague(BaseLeague):
+
+    def __init__(self, cfg) -> None:
+        super().__init__(cfg)
+        self.update_payoff_cnt = 0
+        self.update_active_player_cnt = 0
+        self.create_historical_player_cnt = 0
+        self.get_job_info_cnt = 0
+
+    def update_payoff(self, job):
+        self.update_payoff_cnt += 1
+
+    def update_active_player(self, meta):
+        self.update_active_player_cnt += 1
+
+    def create_historical_player(self, meta):
+        self.create_historical_player_cnt += 1
+
+    def get_job_info(self, player_id):
+        self.get_job_info_cnt += 1
+        other_players = [i for i in self.active_players_ids if i != player_id]
+        another_palyer = random.choice(other_players)
+        return Job(
+            launch_player=player_id,
+            players=[
+                PlayerMeta(player_id=player_id, checkpoint=FileStorage(path=None), total_agent_step=0),
+                PlayerMeta(player_id=another_palyer, checkpoint=FileStorage(path=None), total_agent_step=0)
+            ]
+        )
+
+
+class MockLogger():
+
+    def add_scalar(*args):
+        pass
+
+    def close(*args):
+        pass
+
+    def flush(*args):
+        pass
+
+
+class DIStarMockPolicy(PPOPolicy):
+
+    def _mock_data(self, data):
+        print("Data: ", data)
+        mock_data = {}
+        for id, val in data.items():
+            assert isinstance(val, dict)
+            assert 'obs' in val
+            assert 'next_obs' in val
+            assert 'action' in val
+            assert 'reward' in val
+            mock_data[id] = deepcopy(val)
+            mock_data[id]['obs'] = torch.rand(16)
+            mock_data[id]['next_obs'] = torch.rand(16)
+            mock_data[id]['action'] = torch.rand(4)
+        return mock_data, data
+
+    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        print("Call forward_learn:")
+        mock_data, original_data = self._mock_data(data)
+        return super()._forward_learn(mock_data)
+
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        print("Call forward_collect:")
+        mock_data, original_data = self._mock_data(data)
+        output = super()._forward_collect(mock_data)
+        for id in output.keys():
+            output[id]['action'] = DIStarEnv.random_action(original_data[id]['obs'])
+        return output
+
+    # def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+    #     data = {i: torch.rand(self.policy.model.obs_shape) for i in range(self.cfg.env.collector_env_num)}
+    #     return super()._forward_eval(data)
