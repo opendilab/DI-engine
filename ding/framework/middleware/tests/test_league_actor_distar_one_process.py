@@ -5,7 +5,7 @@ from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware import LeagueActor
+from ding.framework.middleware import LeagueActor, StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
@@ -130,6 +130,7 @@ def test_league_actor():
                 testcases["on_actor_job"] = True
 
             def on_actor_data(actor_data):
+                print('got actor_data')
                 assert isinstance(actor_data, ActorData)
                 testcases["on_actor_data"] = True
 
@@ -159,7 +160,7 @@ def test_league_actor():
 
         with patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar):
             with patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
-                league_actor = LeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
+                league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
                 task.use(test_actor())
                 task.use(league_actor)
                 task.run()

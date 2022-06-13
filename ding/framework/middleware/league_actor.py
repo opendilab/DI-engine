@@ -246,9 +246,11 @@ class StepLeagueActor:
             if not ctx.job.is_eval and len(ctx.trajectories_list[0]) > 0:
                 ctx.trajectories = ctx.trajectories_list[0]
                 ctx.trajectory_end_idx = ctx.trajectory_end_idx_list[0]
-                self._gae_estimator(ctx)
-                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.train_data)
+                # self._gae_estimator(ctx)
+                # actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.train_data)
+                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                print('sending data')
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []

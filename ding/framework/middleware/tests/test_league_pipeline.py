@@ -5,7 +5,7 @@ from copy import deepcopy
 from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
 from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware import LeagueActor, LeagueCoordinator
+from ding.framework.middleware import LeagueActor, StepLeagueActor, LeagueCoordinator
 
 from ding.envs import BaseEnvManager
 from ding.model import VAC
@@ -13,8 +13,9 @@ from ding.framework.task import task, Parallel
 from ding.framework.middleware import LeagueCoordinator, LeagueActor, LeagueLearner
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
 from dizoo.distar.envs.distar_env import DIStarEnv
-from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
+from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, battle_inferencer_for_distar, battle_rolloutor_for_distar
 from distar.ctools.utils import read_config
+from unittest.mock import patch
 import os
 
 N_ACTORS = 1
@@ -24,9 +25,8 @@ N_LEARNERS = 1
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
-    env_cfg = read_config(
-        os.path.join(os.path.dirname(__file__), '../../../../dizoo/distar/envs/tests/test_distar_config.yaml')
-    )
+    env_cfg = read_config('./test_distar_config.yaml')
+    env_cfg.env.map_name = 'KingsCove'
 
     def env_fn():
         env = BaseEnvManager(
@@ -48,19 +48,21 @@ def _main():
     league = MockLeague(cfg.policy.other.league)
 
     with task.start(async_mode=True, ctx=BattleContext()):
-        print("node id:", task.router.node_id)
-        if task.router.node_id == 0:
-            task.use(LeagueCoordinator(league))
-        elif task.router.node_id <= N_ACTORS:
-            task.use(LeagueActor(cfg, env_fn, policy_fn))
-        else:
-            n_players = len(league.active_players_ids)
-            player = league.active_players[task.router.node_id % n_players]
-            learner = LeagueLearner(cfg, policy_fn, player)
-            learner._learner._tb_logger = MockLogger()
-            task.use(learner)
+        with patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar):
+            with patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
+                print("node id:", task.router.node_id)
+                if task.router.node_id == 0:
+                    task.use(LeagueCoordinator(league))
+                elif task.router.node_id <= N_ACTORS:
+                    task.use(StepLeagueActor(cfg, env_fn, policy_fn))
+                else:
+                    n_players = len(league.active_players_ids)
+                    player = league.active_players[task.router.node_id % n_players]
+                    learner = LeagueLearner(cfg, policy_fn, player)
+                    learner._learner._tb_logger = MockLogger()
+                    task.use(learner)
 
-        task.run(max_step=300)
+                task.run(max_step=300)
 
 
 @pytest.mark.unittest

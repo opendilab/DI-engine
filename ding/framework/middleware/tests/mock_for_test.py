@@ -239,7 +239,6 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
                 output = ctx.current_policies[policy_id].forward(policy_obs)
                 inference_output[env_id][policy_id] = output
                 actions[env_id][policy_id] = output['action']
-        print(actions)
         ctx.inference_output = inference_output
         ctx.actions = actions
 
