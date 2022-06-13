@@ -1,7 +1,7 @@
 from .trainer import trainer, multistep_trainer
 from .data_processor import offpolicy_data_fetcher, data_pusher, offline_data_fetcher, offline_data_saver, \
     sqil_data_pusher
-from .collector import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor
+from .collector import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor, battle_inferencer_for_distar, battle_rolloutor_for_distar
 from .evaluator import interaction_evaluator
 from .termination_checker import termination_checker
 from .pace_controller import pace_controller
