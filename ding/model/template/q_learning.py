@@ -497,7 +497,8 @@ class FQF(nn.Module):
                 The encoded embedding tensor with ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
-                    ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), ``quantiles_hats`` (:obj:`torch.Tensor`), \
+                    ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), \
+                    ``quantiles_hats`` (:obj:`torch.Tensor`), \
                     ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).
         Shapes:
             - x: :math:`(B, N)`, where B is batch size and N is head_hidden_size.

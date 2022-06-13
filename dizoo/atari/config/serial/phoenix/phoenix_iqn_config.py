@@ -9,7 +9,6 @@ phoenix_iqn_config = dict(
         stop_value=20,
         env_id='PhoenixNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,

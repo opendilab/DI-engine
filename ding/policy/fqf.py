@@ -3,7 +3,8 @@ import copy
 import torch
 
 from ding.torch_utils import Adam, RMSprop, to_device
-from ding.rl_utils import fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss, get_train_sample, get_nstep_return_data
+from ding.rl_utils import fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss, \
+    get_train_sample, get_nstep_return_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate

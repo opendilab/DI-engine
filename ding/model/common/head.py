@@ -594,7 +594,8 @@ class FQFHead(nn.Module):
             - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
             - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
-                ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), ``quantiles_hats`` (:obj:`torch.Tensor`), \
+                ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), \
+                ``quantiles_hats`` (:obj:`torch.Tensor`), \
                 ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).
         Shapes:
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.

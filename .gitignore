@@ -1422,4 +1422,3 @@ events.*
 eval_config.py
 collect_demo_data_config.py
 !ding/**/*.py
-events.*

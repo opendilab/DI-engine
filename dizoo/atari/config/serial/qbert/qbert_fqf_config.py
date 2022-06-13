@@ -9,7 +9,6 @@ qbert_fqf_config = dict(
         stop_value=10000000000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
