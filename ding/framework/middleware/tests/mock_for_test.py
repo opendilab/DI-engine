@@ -177,25 +177,23 @@ class MockLogger():
 
 class DIStarMockPolicy(PPOPolicy):
 
-    def _mock_data(self, data):
-        print("Data: ", data)
-        mock_data = {}
-        for id, val in data.items():
-            assert isinstance(val, dict)
-            assert 'obs' in val
-            assert 'next_obs' in val
-            assert 'action' in val
-            assert 'reward' in val
-            mock_data[id] = deepcopy(val)
-            mock_data[id]['obs'] = torch.rand(16)
-            mock_data[id]['next_obs'] = torch.rand(16)
-            mock_data[id]['action'] = torch.rand(4)
-        return mock_data, data
+    def _mock_data(self, data_list):
+        for data in data_list:
+            assert isinstance(data, dict)
+            assert 'obs' in data
+            assert 'next_obs' in data
+            assert 'action' in data
+            assert 'reward' in data
+            data['obs'] = torch.rand(16)
+            data['next_obs'] = torch.rand(16)
+            data['action'] = torch.rand(4)
+        return data_list
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         print("Call forward_learn:")
-        mock_data, original_data = self._mock_data(data)
-        return super()._forward_learn(mock_data)
+        data = self._mock_data(data)
+        # return super()._forward_learn(data)
+        return
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
         print("Call forward_collect:")

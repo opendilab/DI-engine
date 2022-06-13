@@ -14,7 +14,6 @@ class TestDIstarEnv:
 
         cfg = read_config('./test_distar_config.yaml')
         self._whole_cfg = cfg
-        self._whole_cfg.env.map_name = 'KingsCove'
         self._total_iters = 0
         self._total_time = 0
         self._total_space = 0

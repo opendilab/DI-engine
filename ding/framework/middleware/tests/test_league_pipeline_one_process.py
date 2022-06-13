@@ -18,10 +18,6 @@ from distar.ctools.utils import read_config
 from unittest.mock import patch
 import os
 
-N_ACTORS = 1
-N_LEARNERS = 1
-
-
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
@@ -45,29 +41,32 @@ def prepare_test():
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
     league = MockLeague(cfg.policy.other.league)
+    n_players = len(league.active_players_ids)
+    print(n_players)
 
     with task.start(async_mode=True, ctx=BattleContext()):
         with patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar):
             with patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
-                print("node id:", task.router.node_id)
-                if task.router.node_id == 0:
-                    task.use(LeagueCoordinator(league))
-                elif task.router.node_id <= N_ACTORS:
-                    task.use(StepLeagueActor(cfg, env_fn, policy_fn))
-                else:
-                    n_players = len(league.active_players_ids)
-                    player = league.active_players[task.router.node_id % n_players]
-                    learner = LeagueLearner(cfg, policy_fn, player)
-                    learner._learner._tb_logger = MockLogger()
-                    task.use(learner)
+                player_0 = league.active_players[0]
+                learner_0 = LeagueLearner(cfg, policy_fn, player_0)
+                learner_0._learner._tb_logger = MockLogger()
+
+                player_1 = league.active_players[1]
+                learner_1 = LeagueLearner(cfg, policy_fn, player_1)
+                learner_1._learner._tb_logger = MockLogger()
+
+                task.use(LeagueCoordinator(league))
+                task.use(StepLeagueActor(cfg, env_fn, policy_fn))
+                task.use(learner_0)
+                task.use(learner_1)
 
                 task.run(max_step=300)
 
 
 @pytest.mark.unittest
 def test_league_actor():
-    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)
+    _main()
 
 
 if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)
+    _main()

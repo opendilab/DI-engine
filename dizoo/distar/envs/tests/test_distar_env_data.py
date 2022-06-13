@@ -15,7 +15,6 @@ class TestDIstarEnv:
 
         cfg = read_config('./test_distar_config.yaml')
         self._whole_cfg = cfg
-        self._whole_cfg.env.map_name = 'KingsCove'
 
     def _inference_loop(self, job={}):
 

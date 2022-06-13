@@ -80,7 +80,6 @@ def prepare_test():
     cfg = deepcopy(cfg)
 
     env_cfg = read_config('./test_distar_config.yaml')
-    env_cfg.env.map_name = 'KingsCove'
 
     def env_fn():
         env = BaseEnvManager(
