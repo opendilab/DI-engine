@@ -24,7 +24,7 @@ class DIStarEnv(SC2Env,BaseEnv):
         # Here in DI-star, the return is ({'raw_obs': self._obs[agent_idx], 'opponent_obs': opponent_obs, 'action_result': self._action_result[agent_idx]}, reward, episode_complete)
         next_observations, reward, done = super(DIStarEnv,self).step(actions)
         info = {}
-        for policy_id in next_observations.keys():
+        for policy_id in range(self._num_agents):
             info[policy_id] = None
         timestep = BaseEnvTimestep(
             obs = next_observations,
