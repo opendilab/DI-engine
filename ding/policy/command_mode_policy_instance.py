@@ -6,6 +6,7 @@ from .dqn import DQNPolicy, DQNSTDIMPolicy
 from .c51 import C51Policy
 from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
+from .fqf import FQFPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
@@ -116,6 +117,11 @@ class QRDQNCommandModePolicy(QRDQNPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('iqn_command')
 class IQNCommandModePolicy(IQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('fqf_command')
+class FQFCommandModePolicy(FQFPolicy, EpsCommandModePolicy):
     pass
 
 
