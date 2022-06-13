@@ -78,7 +78,10 @@ cfg = EasyDict(
                 'unroll_len': 1,
                 'discount_factor': 1.0,
                 'gae_lambda': 1.0,
-                'n_episode': 128
+                'n_episode': 128,
+                'n_rollout_samples': 32,
+                'n_sample': 64,
+                'unroll_len': 2
             },
             'eval': {
                 'evaluator': {

@@ -2,9 +2,10 @@ from time import sleep
 import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
+from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware import LeagueActor
+from ding.framework.middleware import LeagueActor, StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
@@ -49,7 +50,7 @@ def _main():
     )
     ACTOR_ID = 0
 
-    with task.start(async_mode=True):
+    with task.start(async_mode=True, ctx=BattleContext()):
         league_actor = LeagueActor(cfg, env_fn, policy_fn)
 
         def test_actor():
@@ -62,6 +63,7 @@ def _main():
             def on_actor_greeting(actor_id):
                 assert actor_id == ACTOR_ID
                 testcases["on_actor_greeting"] = True
+                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=ACTOR_ID), job)
 
             def on_actor_job(job_: Job):
                 assert job_.launch_player == job.launch_player
@@ -77,8 +79,6 @@ def _main():
 
             def _test_actor(ctx):
                 sleep(0.3)
-                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=ACTOR_ID), job)
-                sleep(0.3)
 
                 task.emit(
                     EventEnum.LEARNER_SEND_MODEL,
@@ -86,7 +86,7 @@ def _main():
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
-                sleep(5)
+                sleep(10)
                 try:
                     print(testcases)
                     assert all(testcases.values())
@@ -100,7 +100,7 @@ def _main():
         elif task.router.node_id == 1:
             task.use(test_actor())
 
-        task.run()
+        task.run(max_step=5)
 
 
 @pytest.mark.unittest

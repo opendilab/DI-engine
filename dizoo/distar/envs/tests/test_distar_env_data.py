@@ -1,12 +1,11 @@
 import os
 import shutil
-import argparse
 
-from distar.ctools.utils import read_config, deep_merge_dicts
-from distar.actor import Actor
+from distar.ctools.utils import read_config
 import torch
-import random
-import time
+
+from dizoo.distar.envs import DIStarEnv
+import traceback
 
 from dizoo.distar.envs import DIStarEnv
 import traceback
@@ -16,7 +15,6 @@ class TestDIstarEnv:
 
         cfg = read_config('./test_distar_config.yaml')
         self._whole_cfg = cfg
-        self._whole_cfg.env.map_name = 'KingsCove'
 
     def _inference_loop(self, job={}):
 
@@ -31,7 +29,9 @@ class TestDIstarEnv:
 
                     for iter in range(1000):  # one episode loop
                         # agent step
-                        actions = self._env.random_action(observations)
+                        actions = {}
+                        for player_index, player_obs in observations.items():
+                                actions[player_index] = DIStarEnv.random_action(player_obs)
                         # env step
                         timestep = self._env.step(actions)
                         if not timestep.done:

@@ -9,30 +9,88 @@ from ding.framework.middleware import LeagueActor, StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
+from easydict import EasyDict
 
 from ding.framework.task import task
 from ding.league.v2.base_league import Job
-from ding.model import VAC
-from ding.policy.ppo import PPOPolicy
-from dizoo.league_demo.game_env import GameEnv
+from dizoo.distar.envs.distar_env import DIStarEnv
+from unittest.mock import Mock, patch
 
 from ding.framework import EventEnum
+from typing import Dict, Any, List, Optional
+from collections import namedtuple
+from distar.ctools.utils import read_config
+from easydict import EasyDict
+from ding.model import VAC
+
+from ding.framework.middleware.tests.mock_for_test import battle_inferencer_for_distar, battle_rolloutor_for_distar, DIStarMockPolicy
+
+class LearnMode:
+    def __init__(self) -> None:
+        pass
+
+    def state_dict(self):
+        return {}
+
+class CollectMode:
+    def __init__(self) -> None:
+        self._cfg = EasyDict(dict(
+            collect = dict(
+                n_episode = 64
+            )
+        ))
+
+    def load_state_dict(self, state_dict):
+        return
+    
+    def forward(self, data: Dict):
+        return_data = {}
+        return_data['action'] = DIStarEnv.random_action(data)
+        return_data['logit'] = [1]
+        return_data['value'] = [0]
+
+        return return_data
+    
+    def process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        transition = {
+            'obs': obs,
+            'next_obs': timestep.obs,
+            'action': model_output['action'],
+            'logit': model_output['logit'],
+            'value': model_output['value'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
+        return transition
+    
+    def reset(self, data_id: Optional[List[int]] = None) -> None:
+        pass
+    
+    def get_attribute(self, name: str) -> Any:
+        if hasattr(self, '_get_' + name):
+            return getattr(self, '_get_' + name)()
+        elif hasattr(self, '_' + name):
+            return getattr(self, '_' + name)
+        else:
+            raise NotImplementedError
 
 
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
 
+    env_cfg = read_config('./test_distar_config.yaml')
+
     def env_fn():
         env = BaseEnvManager(
-            env_fn=[lambda: GameEnv(cfg.env.env_type) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
+            env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
         env.seed(cfg.seed)
         return env
 
     def policy_fn():
         model = VAC(**cfg.policy.model)
-        policy = PPOPolicy(cfg.policy, model=model)
+        policy = DIStarMockPolicy(cfg.policy, model=model)
         return policy
 
     return cfg, env_fn, policy_fn
@@ -43,7 +101,6 @@ def test_league_actor():
     cfg, env_fn, policy_fn = prepare_test()
     policy = policy_fn()
     with task.start(async_mode=True, ctx = BattleContext()):
-        league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
 
         def test_actor():
             job = Job(
@@ -72,6 +129,7 @@ def test_league_actor():
                 testcases["on_actor_job"] = True
 
             def on_actor_data(actor_data):
+                print('got actor_data')
                 assert isinstance(actor_data, ActorData)
                 testcases["on_actor_data"] = True
 
@@ -90,7 +148,7 @@ def test_league_actor():
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
-                sleep(5)
+                sleep(150)
                 try:
                     print(testcases)
                     assert all(testcases.values())
@@ -99,10 +157,12 @@ def test_league_actor():
 
             return _test_actor
 
-        task.use(test_actor())
-        task.use(league_actor)
-        task.run()
-
+        with patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar):
+            with patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
+                league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
+                task.use(test_actor())
+                task.use(league_actor)
+                task.run()
 
 if __name__ == '__main__':
     test_league_actor()

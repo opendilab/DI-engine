@@ -3,20 +3,19 @@ from easydict import EasyDict
 from ding import policy
 from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
-from ding.framework import task, EventEnum
-from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor, job_data_sender
+from ding.framework import task
+from .functional import inferencer, rolloutor, TransitionList, battle_rolloutor
+from .functional import battle_inferencer, battle_rolloutor
 from typing import Dict
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
 
-from ding.worker.collector.base_serial_collector import CachePool
 
-
-class BattleCollector:
+class BattleEpisodeCollector:
 
     def __init__(
-        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict
+        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int
     ):
         self.cfg = cfg
         self.end_flag = False
@@ -24,21 +23,15 @@ class BattleCollector:
         self.env = env
         self.env_num = self.env.env_num
 
-        self.obs_pool = CachePool('obs', self.env_num, deepcopy=self.cfg.deepcopy_obs)
-        self.policy_output_pool = CachePool('policy_output', self.env_num)
-
         self.total_envstep_count = 0
-        self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
-        self.streaming_sampling_flag = n_rollout_samples > 0
         self.model_dict = model_dict
         self.all_policies = all_policies
+        self.agent_num = agent_num
 
-        self._battle_inferencer = task.wrap(
-            battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool)
-        )
-        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
-        self._job_data_sender = task.wrap(job_data_sender(self.streaming_sampling_flag, self.n_rollout_samples))
+        self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
+        self._transitions_list = [TransitionList(self.env.env_num) for _ in range(self.agent_num)]
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self._transitions_list))
 
     def __del__(self) -> None:
         """
@@ -70,41 +63,103 @@ class BattleCollector:
         Input of ctx:
             - n_episode (:obj:`int`): the number of collecting data episode
             - train_iter (:obj:`int`): the number of training iteration
-            - policy_kwargs (:obj:`dict`): the keyword args for policy forward
+            - collect_kwargs (:obj:`dict`): the keyword args for policy forward
         Output of ctx:
             -  ctx.train_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
-        ctx.envstep = self.total_envstep_count
-        if ctx.n_episode is None:
-            if ctx._default_n_episode is None:
-                raise RuntimeError("Please specify collect n_episode")
-            else:
-                ctx.n_episode = ctx._default_n_episode
-        assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
-
-        if ctx.policy_kwargs is None:
-            ctx.policy_kwargs = {}
-
-        if self.env.closed:
-            self.env.launch()
-
-        ctx.collected_episode = 0
-        ctx.train_data = [[] for _ in range(ctx.agent_num)]
-        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
-        ctx.ready_env_id = set()
-        ctx.remain_episode = ctx.n_episode
+        ctx.total_envstep_count = self.total_envstep_count
+        old = ctx.env_episode
         while True:
             self._update_policies(ctx.job)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
 
-            self.total_envstep_count = ctx.envstep
+            self.total_envstep_count = ctx.total_envstep_count
 
-            self._job_data_sender(ctx)
+            if (self.n_rollout_samples > 0 and ctx.env_episode - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
+                for transitions in self._transitions_list:
+                    ctx.episodes.append(transitions.to_episodes())
+                    transitions.clear()
+                if ctx.env_episode >= ctx.n_episode:
+                    ctx.job_finish = True
+                break
 
-            if ctx.collected_episode >= ctx.n_episode:
+
+class BattleStepCollector:
+
+    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int):
+        self.cfg = cfg
+        self.end_flag = False
+        # self._reset(env)
+        self.env = env
+        self.env_num = self.env.env_num
+
+        self.total_envstep_count = 0
+        self.n_rollout_samples = n_rollout_samples
+        self.model_dict = model_dict
+        self.all_policies = all_policies
+        self.agent_num = agent_num
+
+        self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
+        self._transitions_list = [TransitionList(self.env.env_num) for _ in range(self.agent_num)]
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self._transitions_list))
+
+    def __del__(self) -> None:
+        """
+        Overview:
+            Execute the close command and close the collector. __del__ is automatically called to \
+                destroy the collector instance when the collector finishes its work
+        """
+        if self.end_flag:
+            return
+        self.end_flag = True
+        self.env.close()
+    
+    def _update_policies(self, job) -> None:
+        job_player_id_list = [player.player_id for player in job.players] 
+
+        for player_id in job_player_id_list:
+            if self.model_dict.get(player_id) is None:
+                continue
+            else:
+                learner_model = self.model_dict.get(player_id)
+                policy = self.all_policies.get(player_id)
+                assert policy, "for player{}, policy should have been initialized already"
+                # update policy model
+                policy.load_state_dict(learner_model.state_dict)
+                self.model_dict[player_id] = None
+
+    def __call__(self, ctx: "BattleContext") -> None:
+        """
+        Input of ctx:
+            - n_episode (:obj:`int`): the number of collecting data episode
+            - train_iter (:obj:`int`): the number of training iteration
+            - collect_kwargs (:obj:`dict`): the keyword args for policy forward
+        Output of ctx:
+            -  ctx.train_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
+                the former is a list containing collected episodes if not get_train_sample, \
+                otherwise, return train_samples split by unroll_len.
+        """
+        ctx.total_envstep_count = self.total_envstep_count
+        old = ctx.env_step
+        
+        while True:
+            self._update_policies(ctx.job)
+            self._battle_inferencer(ctx)
+            self._battle_rolloutor(ctx)
+
+            self.total_envstep_count = ctx.total_envstep_count
+
+            if (self.n_rollout_samples > 0 and ctx.env_step - old >= self.n_rollout_samples) or ctx.env_step >= ctx.n_sample * ctx.unroll_len:
+                for transitions in self._transitions_list:
+                    trajectories, trajectory_end_idx = transitions.to_trajectories()
+                    ctx.trajectories_list.append(trajectories)
+                    ctx.trajectory_end_idx_list.append(trajectory_end_idx)
+                    transitions.clear()
+                if ctx.env_step >= ctx.n_sample * ctx.unroll_len:
+                    ctx.job_finish = True
                 break
 
 
