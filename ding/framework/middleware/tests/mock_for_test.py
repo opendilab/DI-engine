@@ -5,10 +5,15 @@ import torch
 import treetensor.numpy as tnp
 from easydict import EasyDict
 from unittest.mock import Mock
+from copy import deepcopy
 
+from ding.torch_utils import to_device
 from ding.league.player import PlayerMeta
 from ding.league.v2 import BaseLeague, Job
 from ding.framework.storage import FileStorage
+from ding.policy import PPOPolicy
+from dizoo.distar.envs.distar_env import DIStarEnv
+
 
 obs_dim = [2, 2]
 action_space = 1
@@ -163,3 +168,37 @@ class MockLogger():
 
     def flush(*args):
         pass
+
+
+class DIStarMockPolicy(PPOPolicy):
+    def _mock_data(self, data):
+        print("Data: ", data)
+        mock_data = {}
+        for id, val in data.items():
+            assert isinstance(val, dict)
+            assert 'obs' in val
+            assert 'next_obs' in val
+            assert 'action' in val
+            assert 'reward' in val
+            mock_data[id] = deepcopy(val)
+            mock_data[id]['obs'] = torch.rand(16)
+            mock_data[id]['next_obs'] = torch.rand(16)
+            mock_data[id]['action'] = torch.rand(4)
+        return mock_data, data
+
+    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        print("Call forward_learn:")
+        mock_data, original_data = self._mock_data(data)
+        return super()._forward_learn(mock_data)
+
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        print("Call forward_collect:")
+        mock_data, original_data = self._mock_data(data)
+        output = super()._forward_collect(mock_data)
+        for id in output.keys():
+            output[id]['action'] = DIStarEnv.random_action(original_data[id]['obs'])
+        return output
+
+    # def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+    #     data = {i: torch.rand(self.policy.model.obs_shape) for i in range(self.cfg.env.collector_env_num)}
+    #     return super()._forward_eval(data)

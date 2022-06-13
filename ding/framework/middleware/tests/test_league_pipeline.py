@@ -1,55 +1,36 @@
-# from time import sleep
-# from boto import config
-# import pytest
-# from copy import deepcopy
-
-# from ding.framework.middleware.league_learner import LeagueLearner
-# from ding.framework.middleware.tests.league_config import cfg
-# from ding.framework.middleware import LeagueActor, LeagueCoordinator
-# from ding.league.player import PlayerMeta, create_player
-# from ding.league.v2 import BaseLeague
-# from ding.framework.storage import FileStorage
-
-# from ding.framework.task import task, Parallel
-# from ding.league.v2.base_league import Job
-# from ding.model import VAC
-# from ding.policy.ppo import PPOPolicy
-# from dizoo.league_demo.game_env import GameEnv
-
 from copy import deepcopy
 from time import sleep
-import torch
 import pytest
-import random
+import os
 
 from ding.envs import BaseEnvManager
 from ding.model import VAC
-from ding.policy import PPOPolicy
-from ding.framework import EventEnum
 from ding.framework.task import task, Parallel
 from ding.framework.middleware import LeagueCoordinator, LeagueActor, LeagueLearner
 from ding.framework.middleware.functional.actor_data import ActorData
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
-from dizoo.league_demo.game_env import GameEnv
+from dizoo.distar.envs.distar_env import DIStarEnv
+from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
+from distar.ctools.utils import read_config
 
-
-N_ACTORS = 2
-N_LEARNERS = 2
+N_ACTORS = 1
+N_LEARNERS = 1
 
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
+    env_cfg = read_config(os.path.join(os.path.dirname(__file__), '../../../../dizoo/distar/envs/tests/test_distar_config.yaml'))
 
     def env_fn():
         env = BaseEnvManager(
-            env_fn=[lambda: GameEnv(cfg.env.env_type) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
+            env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
         env.seed(cfg.seed)
         return env
 
     def policy_fn():
         model = VAC(**cfg.policy.model)
-        policy = PPOPolicy(cfg.policy, model=model)
+        policy = DIStarMockPolicy(cfg.policy, model=model)
         return policy
 
     return cfg, env_fn, policy_fn
@@ -71,7 +52,7 @@ def _main():
             learner._learner._tb_logger = MockLogger()
             task.use(learner)
 
-        task.run(max_step=120)
+        task.run(max_step=300)
 
 
 @pytest.mark.unittest

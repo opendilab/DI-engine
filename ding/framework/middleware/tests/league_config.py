@@ -13,8 +13,8 @@ cfg = EasyDict(
                 'cfg_type': 'BaseEnvManagerDict',
                 'shared_memory': False
             },
-            'collector_env_num': 2,
-            'evaluator_env_num': 10,
+            'collector_env_num': 1,
+            'evaluator_env_num': 1,
             'n_evaluator_episode': 100,
             'env_type': 'prisoner_dilemma',
             'stop_value': [-10.1, -5.05]

@@ -7,9 +7,9 @@ from distar.pysc2.lib.action_dict import ACTIONS_STAT
 import torch
 import random
 
-class DIStarEnv(SC2Env,BaseEnv):
+class DIStarEnv(SC2Env, BaseEnv):
 
-    def __init__(self,cfg):
+    def __init__(self, cfg):
         super(DIStarEnv, self).__init__(cfg)
 
     def reset(self):
@@ -22,7 +22,7 @@ class DIStarEnv(SC2Env,BaseEnv):
     def step(self, actions):
         # In DI-engine, the return of BaseEnv.step is ('obs', 'reward', 'done', 'info')
         # Here in DI-star, the return is ({'raw_obs': self._obs[agent_idx], 'opponent_obs': opponent_obs, 'action_result': self._action_result[agent_idx]}, reward, episode_complete)
-        next_observations, reward, done = super(DIStarEnv,self).step(actions)
+        next_observations, reward, done = super(DIStarEnv, self).step(actions)
         timestep = BaseEnvTimestep(
             obs = next_observations,
             reward = reward,
@@ -44,7 +44,8 @@ class DIStarEnv(SC2Env,BaseEnv):
         #TODO
         pass
 
-    def random_action(self, obs):
+    @classmethod
+    def random_action(cls, obs):
         return_action = {}
         for policy_id in obs.keys():
             raw = obs[policy_id]['raw_obs'].observation.raw_data

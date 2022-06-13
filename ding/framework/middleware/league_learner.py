@@ -31,10 +31,10 @@ class LeagueLearner:
         self.checkpoint_prefix = cfg.policy.other.league.path_policy
         self._learner = self._get_learner()
         self._lock = Lock()
-        task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._on_actor_data)
+        task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._on_actor_send_data)
         self._step = 0
 
-    def _on_actor_data(self, actor_data: "ActorData"):
+    def _on_actor_send_data(self, actor_data: "ActorData"):
         print("receive data from actor!")
         with self._lock:
             cfg = self.cfg
