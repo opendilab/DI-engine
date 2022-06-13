@@ -1,11 +1,8 @@
 import os
 import shutil
-import argparse
 
-from distar.ctools.utils import read_config, deep_merge_dicts
-from distar.actor import Actor
+from distar.ctools.utils import read_config
 import torch
-import random
 import time
 import sys
 
@@ -35,7 +32,9 @@ class TestDIstarEnv:
 
                     for iter in range(1000):  # one episode loop
                         # agent step
-                        actions = DIStarEnv.random_action(observations)
+                        actions = {}
+                        for player_index, player_obs in observations.items():
+                                actions[player_index] = DIStarEnv.random_action(player_obs)
                         # env step
                         before_step_time = time.time()
                         timestep = self._env.step(actions)
