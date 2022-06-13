@@ -1,4 +1,4 @@
-from typing import Union, Any, List, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Union, Any, List, Callable, Dict, Optional
 from collections import namedtuple
 import random
 import torch
@@ -13,6 +13,11 @@ from ding.league.v2 import BaseLeague, Job
 from ding.framework.storage import FileStorage
 from ding.policy import PPOPolicy
 from dizoo.distar.envs.distar_env import DIStarEnv
+from ding.envs import BaseEnvManager
+import treetensor.torch as ttorch
+
+if TYPE_CHECKING:
+    from ding.framework import BattleContext
 
 obs_dim = [2, 2]
 action_space = 1
@@ -194,12 +199,80 @@ class DIStarMockPolicy(PPOPolicy):
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
         print("Call forward_collect:")
-        mock_data, original_data = self._mock_data(data)
-        output = super()._forward_collect(mock_data)
-        for id in output.keys():
-            output[id]['action'] = DIStarEnv.random_action(original_data[id]['obs'])
-        return output
+        return_data = {}
+        return_data['action'] = DIStarEnv.random_action(data)
+        return_data['logit'] = [1]
+        return_data['value'] = [0]
+
+        return return_data
 
     # def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
     #     data = {i: torch.rand(self.policy.model.obs_shape) for i in range(self.cfg.env.collector_env_num)}
     #     return super()._forward_eval(data)
+
+
+def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
+
+    def _battle_inferencer(ctx: "BattleContext"):
+
+        if env.closed:
+            env.launch()
+        
+        # Get current env obs.
+        obs = env.ready_obs
+        # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
+        new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
+        ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
+        ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
+        obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
+
+        ctx.obs = obs
+
+        # Policy forward.
+        inference_output = {}
+        actions = {}
+        for env_id in ctx.ready_env_id:
+            observations = obs[env_id]
+            inference_output[env_id] = {}
+            actions[env_id] = {}
+            for policy_id, policy_obs in observations.items():
+                output = ctx.current_policies[policy_id].forward(policy_obs)
+                inference_output[env_id][policy_id] = output
+                actions[env_id][policy_id] = output['action']
+        print(actions)
+        ctx.inference_output = inference_output
+        ctx.actions = actions
+
+    return _battle_inferencer
+
+
+from ding.envs import BaseEnvTimestep
+def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
+
+    def _battle_rolloutor(ctx: "BattleContext"):
+        timesteps = env.step(ctx.actions)
+        ctx.total_envstep_count += len(timesteps)
+        ctx.env_step += len(timesteps)
+        for env_id, timestep in timesteps.items():
+            for policy_id in ctx.obs[env_id].keys():
+                policy_timestep = BaseEnvTimestep(
+                    obs = timestep.obs.get(policy_id) if timestep.obs.get(policy_id) is not None else None,
+                    reward = timestep.reward[policy_id],
+                    done = timestep.done,
+                    info = {}
+                )
+                transition = ctx.current_policies[policy_id].process_transition(
+                    ctx.obs[env_id][policy_id], ctx.inference_output[env_id][policy_id], policy_timestep
+                )
+                transition = EasyDict(transition)
+                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+                transitions_list[policy_id].append(env_id, transition)
+                if timestep.done:
+                    ctx.current_policies[policy_id].reset([env_id])
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
+
+            if timestep.done:
+                ctx.ready_env_id.remove(env_id)
+                ctx.env_episode += 1
+
+    return _battle_rolloutor

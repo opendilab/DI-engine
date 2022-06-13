@@ -20,8 +20,10 @@ from ding.framework import EventEnum
 from typing import Dict, Any, List, Optional
 from collections import namedtuple
 from distar.ctools.utils import read_config
-import treetensor.torch as ttorch
 from easydict import EasyDict
+from ding.model import VAC
+
+from ding.framework.middleware.tests.mock_for_test import battle_inferencer_for_distar, battle_rolloutor_for_distar, DIStarMockPolicy
 
 class LearnMode:
     def __init__(self) -> None:
@@ -71,14 +73,6 @@ class CollectMode:
             return getattr(self, '_' + name)
         else:
             raise NotImplementedError
-    
-
-class MockActorDIstarPolicy():
-    
-    def __init__(self):
-        
-        self.learn_mode = LearnMode()
-        self.collect_mode = CollectMode()
 
 
 def prepare_test():
@@ -96,11 +90,11 @@ def prepare_test():
         return env
 
     def policy_fn():
-        policy = MockActorDIstarPolicy()
+        model = VAC(**cfg.policy.model)
+        policy = DIStarMockPolicy(cfg.policy, model=model)
         return policy
 
     return cfg, env_fn, policy_fn
-
 
 
 @pytest.mark.unittest
@@ -108,7 +102,6 @@ def test_league_actor():
     cfg, env_fn, policy_fn = prepare_test()
     policy = policy_fn()
     with task.start(async_mode=True, ctx = BattleContext()):
-        league_actor = LeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
 
         def test_actor():
             job = Job(
@@ -156,17 +149,20 @@ def test_league_actor():
                     )
                 )
                 sleep(150)
-                # try:
-                #     print(testcases)
-                #     assert all(testcases.values())
-                # finally:
-                #     task.finish = True
+                try:
+                    print(testcases)
+                    assert all(testcases.values())
+                finally:
+                    task.finish = True
 
             return _test_actor
 
-        task.use(test_actor())
-        task.use(league_actor)
-        task.run()
+        with patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar):
+            with patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
+                league_actor = LeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
+                task.use(test_actor())
+                task.use(league_actor)
+                task.run()
 
 if __name__ == '__main__':
     test_league_actor()

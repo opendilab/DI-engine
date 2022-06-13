@@ -5,8 +5,7 @@ from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task
 from .functional import inferencer, rolloutor, TransitionList, battle_rolloutor
-from .functional import battle_inferencer_for_distar as battle_inferencer
-from .functional import battle_rolloutor_for_distar as battle_rolloutor
+from .functional import battle_inferencer, battle_rolloutor
 from typing import Dict
 
 # if TYPE_CHECKING:
