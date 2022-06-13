@@ -45,8 +45,10 @@ def _main():
         elif task.router.node_id == 1:
             # test ACTOR_GREETING
             res = []
-            task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id),
-                lambda job: res.append(job))
+            task.on(
+                EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id),
+                lambda job: res.append(job)
+            )
             for _ in range(3):
                 task.emit(EventEnum.ACTOR_GREETING, task.router.node_id)
             time.sleep(3)
@@ -63,9 +65,13 @@ def _main():
                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
             time.sleep(3)
         else:
-            raise Exception("Invalid node id {}".format(task.router.is_active)) 
+            raise Exception("Invalid node id {}".format(task.router.is_active))
 
 
 @pytest.mark.unittest
 def test_coordinator():
+    Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(_main)
+
+
+if __name__ == "__main__":
     Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(_main)

@@ -1,9 +1,9 @@
+from typing import Union, Tuple, List, Callable, Optional
 import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
-from typing import Union, Tuple, List, Callable
 from ding.compatibility import torch_gt_131
 
 from .normalization import build_normalization
@@ -214,7 +214,8 @@ def fc_block(
         activation: nn.Module = None,
         norm_type: str = None,
         use_dropout: bool = False,
-        dropout_probability: float = 0.5
+        dropout_probability: float = 0.5,
+        init_gain: Optional[float] = None,
 ) -> nn.Sequential:
     r"""
     Overview:
@@ -228,6 +229,7 @@ def fc_block(
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
         - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
+        - init_gain (:obj:`float`): FC initialization gain argument, if specified, use xavier with init_gain.
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
 
@@ -237,7 +239,10 @@ def fc_block(
     """
     block = []
     block.append(nn.Linear(in_channels, out_channels))
-    if norm_type is not None:
+    if init_gain is not None:
+        torch.nn.init.xavier_uniform_(block[-1].weight, init_gain)
+        torch.nn.init.constant_(block[-1].bias, 0.0)
+    if norm_type is not None and norm_type != 'none':
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
         block.append(activation)
@@ -585,6 +590,41 @@ def noise_block(
     if use_dropout:
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
+
+
+class AttentionPool(nn.Module):
+
+    def __init__(self, key_dim, head_num, output_dim, max_num=None):
+        super(AttentionPool, self).__init__()
+        self.queries = torch.nn.Parameter(torch.zeros(1, 1, head_num, key_dim))
+        torch.nn.init.xavier_uniform_(self.queries)
+        self.head_num = head_num
+        self.add_num = False
+        if max_num is not None:
+            self.add_num = True
+            self.num_ebed = torch.nn.Embedding(num_embeddings=max_num, embedding_dim=output_dim)
+        self.embed_fc = fc_block(key_dim * self.head_num, output_dim)
+
+    def forward(self, x, num=None, mask=None):
+        assert len(x.shape) == 3  # batch size, tokens, channels
+        x_with_head = x.unsqueeze(dim=2)  # add head dim
+        score = x_with_head * self.queries
+        score = score.sum(dim=3)  # b, t, h
+        if mask is not None:
+            assert len(mask.shape) == 3 and mask.shape[-1] == 1
+            mask = mask.repeat(1, 1, self.head_num)
+            score.masked_fill_(~mask.bool(), value=-1e9)
+        score = F.softmax(score, dim=1)
+        x = x.unsqueeze(dim=3).repeat(1, 1, 1, self.head_num)  # b, t, c, h
+        score = score.unsqueeze(dim=2)  # b, t, 1, h
+        x = x * score
+        x = x.sum(dim=1)  # b, c, h
+        x = x.view(x.shape[0], -1)  # b, c * h
+        x = self.embed_fc(x)  # b, c
+        if self.add_num:
+            x = x + F.relu(self.num_ebed(num.long()))
+        x = F.relu(x)
+        return x
 
 
 class NaiveFlatten(nn.Module):

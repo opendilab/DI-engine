@@ -7,6 +7,9 @@ import torch
 from dizoo.distar.envs import DIStarEnv
 import traceback
 
+from dizoo.distar.envs import DIStarEnv
+import traceback
+
 class TestDIstarEnv:
     def __init__(self):
 

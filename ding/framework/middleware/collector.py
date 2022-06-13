@@ -1,5 +1,6 @@
 from distutils.log import info
 from easydict import EasyDict
+from ding import policy
 from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task
@@ -14,7 +15,9 @@ from ding.framework import OnlineRLContext, BattleContext
 
 class BattleEpisodeCollector:
 
-    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int):
+    def __init__(
+        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int
+    ):
         self.cfg = cfg
         self.end_flag = False
         # self._reset(env)
@@ -41,9 +44,9 @@ class BattleEpisodeCollector:
             return
         self.end_flag = True
         self.env.close()
-    
+
     def _update_policies(self, job) -> None:
-        job_player_id_list = [player.player_id for player in job.players] 
+        job_player_id_list = [player.player_id for player in job.players]
 
         for player_id in job_player_id_list:
             if self.model_dict.get(player_id) is None:

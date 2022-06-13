@@ -14,7 +14,7 @@ cfg = EasyDict(
                 'shared_memory': False
             },
             'collector_env_num': 1,
-            'evaluator_env_num': 10,
+            'evaluator_env_num': 1,
             'n_evaluator_episode': 100,
             'env_type': 'prisoner_dilemma',
             'stop_value': [-10.1, -5.05]
@@ -46,7 +46,7 @@ cfg = EasyDict(
                 },
                 'multi_gpu': False,
                 'epoch_per_collect': 10,
-                'batch_size': 32,
+                'batch_size': 16,
                 'learning_rate': 1e-05,
                 'value_weight': 0.5,
                 'entropy_weight': 0.0,
@@ -102,7 +102,7 @@ cfg = EasyDict(
                 },
                 'league': {
                     'player_category': ['default'],
-                    'path_policy': 'league_demo/policy',
+                    'path_policy': 'league_demo/ckpt',
                     'active_players': {
                         'main_player': 2
                     },

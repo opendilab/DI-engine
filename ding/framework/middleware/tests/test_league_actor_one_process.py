@@ -103,5 +103,6 @@ def test_league_actor():
         task.use(league_actor)
         task.run()
 
+
 if __name__ == '__main__':
     test_league_actor()

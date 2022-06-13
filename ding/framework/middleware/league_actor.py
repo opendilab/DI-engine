@@ -15,6 +15,7 @@ from ding.league.player import PlayerMeta
 from threading import Lock
 import queue
 
+
 class LeagueActor:
 
     def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
@@ -35,6 +36,7 @@ class LeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
+        print("receive model from learner")
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -73,8 +75,8 @@ class LeagueActor:
             job = self.job_queue.get(timeout=10)
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
-        
-        return job 
+
+        return job
 
     def _get_current_policies(self, job):
         current_policies = []
@@ -93,7 +95,6 @@ class LeagueActor:
             raise RuntimeError('current_policies should not be None')
 
         return main_player, current_policies
-
 
     def __call__(self, ctx: "BattleContext"):
 
@@ -259,4 +260,3 @@ class StepLeagueActor:
                 task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
                 ctx.episode_info = [[] for _ in range(ctx.agent_num)]
                 break
-

@@ -1,15 +1,14 @@
 from distar.envs.env import SC2Env
 
 from ding.envs import BaseEnv, BaseEnvTimestep
-from distar.agent.default.lib.actions import ACTIONS, NUM_ACTIONS
 from distar.agent.default.lib.features import MAX_DELAY, SPATIAL_SIZE, MAX_SELECTED_UNITS_NUM
 from distar.pysc2.lib.action_dict import ACTIONS_STAT
 import torch
 import random
 
-class DIStarEnv(SC2Env,BaseEnv):
+class DIStarEnv(SC2Env, BaseEnv):
 
-    def __init__(self,cfg):
+    def __init__(self, cfg):
         super(DIStarEnv, self).__init__(cfg)
 
     def reset(self):
