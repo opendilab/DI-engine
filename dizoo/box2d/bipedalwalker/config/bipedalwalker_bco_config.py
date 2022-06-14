@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 bipedalwalker_bco_config = dict(
-    exp_name='bipedalwalker_bco_rl0.001_noeps',
+    exp_name='bipedalwalker_bco_seed0',
     env=dict(
         env_id='BipedalWalker-v3',
         collector_env_num=8,
@@ -16,13 +16,12 @@ bipedalwalker_bco_config = dict(
     ),
     policy=dict(
         # Whether to use cuda for network.
-        cuda=False,
+        cuda=True,
         continuous=True,
         loss_type='l1_loss',
         model=dict(
             obs_shape=24,
             action_shape=4,
-            # action_space='reparameterization',
             action_space='regression',
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
@@ -36,6 +35,7 @@ bipedalwalker_bco_config = dict(
         idm_learn=dict(
             idm_batch_size=256,
             idm_learning_rate=0.001,
+            idm_weight_decay=1e-4,
             idm_train_epoch=10,
             idm_encoder_hidden_size_list=[60, 80, 100, 40],
         ),
@@ -60,7 +60,7 @@ bipedalwalker_bco_create_config = dict(
         type='bipedalwalker',
         import_names=['dizoo.box2d.bipedalwalker.envs.bipedalwalker_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='bc'),
     collector=dict(type='episode'),
 )
@@ -68,7 +68,6 @@ bipedalwalker_bco_create_config = EasyDict(bipedalwalker_bco_create_config)
 create_config = bipedalwalker_bco_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c lunarlander_dqn_config.py -s 0`
     from ding.entry import serial_pipeline_bco
     from dizoo.box2d.bipedalwalker.config import bipedalwalker_sac_config, bipedalwalker_sac_create_config
     expert_main_config = bipedalwalker_sac_config

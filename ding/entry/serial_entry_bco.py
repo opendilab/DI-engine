@@ -94,7 +94,7 @@ class InverseDynamicsModel(nn.Module):
             action = torch.argmax(res(self.forward(x)['logit']), -1)
             return {'action': action}
 
-    def train(self, training_set, n_epoch, learning_rate):
+    def train(self, training_set, n_epoch, learning_rate, weight_decay):
         '''
         train transition model, given pair of states return action (s0,s1 ---> a0 if n=2)
         Input:
@@ -113,7 +113,7 @@ class InverseDynamicsModel(nn.Module):
             criterion = nn.L1Loss()
         else:
             criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=0.0001)
+        optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
         loss_list = []
         for itr in range(n_epoch):
             data = training_set['obs']
@@ -307,6 +307,7 @@ def serial_pipeline_bco(
                 train_data,
                 cfg.policy.idm_learn.idm_train_epoch,
                 cfg.policy.idm_learn.idm_learning_rate,
+                cfg.policy.idm_learn.idm_weight_decay,
             )
         tb_logger.add_scalar("idm_loss", idm_loss, learner.train_iter)
         # Generate state transitions from demonstrated state trajectories by IDM
