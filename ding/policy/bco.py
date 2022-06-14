@@ -1,19 +1,32 @@
 import math
 import torch
 import torch.nn as nn
+<<<<<<< HEAD
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 from typing import List, Dict, Any, Tuple
 from collections import namedtuple
+=======
+import copy
+from torch.optim import SGD
+from torch.optim.lr_scheduler import LambdaLR
+from typing import List, Dict, Any, Tuple, Union, Optional
+from collections import namedtuple, deque
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236
 from easydict import EasyDict
 from ding.policy import Policy
 from ding.model import model_wrap
 from ding.torch_utils import to_device
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
+<<<<<<< HEAD
 from ding.rl_utils import get_nstep_return_data, get_train_sample
 from ding.utils import POLICY_REGISTRY
 from torch.distributions import Normal, Independent
+=======
+from ding.rl_utils import q_nstep_td_data, q_nstep_sql_td_error, get_nstep_return_data, get_train_sample
+from ding.utils import POLICY_REGISTRY
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236
 
 
 @POLICY_REGISTRY.register('bco')
@@ -23,7 +36,11 @@ class BCOPolicy(Policy):
         on_policy=False,
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+<<<<<<< HEAD
             # n_sample=8,  # collect 8 samples and put them in collector
+=======
+            #n_sample=8,  # collect 8 samples and put them in collector
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -42,7 +59,11 @@ class BCOPolicy(Policy):
     )
 
     def _init_learn(self):
+<<<<<<< HEAD
         self._optimizer = Adam(
+=======
+        self._optimizer = SGD(
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236
             self._model.parameters(),
             lr=self._cfg.learn.learning_rate,
             weight_decay=self._cfg.learn.weight_decay,
@@ -54,7 +75,11 @@ class BCOPolicy(Policy):
                 return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
             else:
                 ratio = (epoch - self._cfg.learn.warmup_epoch) // self._cfg.learn.decay_epoch
+<<<<<<< HEAD
                 return max(1e-5, math.pow(self._cfg.learn.decay_rate, ratio))
+=======
+                return math.pow(self._cfg.learn.decay_rate, ratio)
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236
 
         self._lr_scheduler = LambdaLR(self._optimizer, lr_scheduler_fn)
 
@@ -95,11 +120,19 @@ class BCOPolicy(Policy):
             'forward_time': forward_time,
             'backward_time': backward_time,
             'sync_time': sync_time,
+<<<<<<< HEAD
             '[histogram]logit_distribution': a_logit['logit'],
         }
 
     def _monitor_vars_learn(self):
         return ['[histogram]logit_distribution', 'cur_lr', 'total_loss', 'forward_time', 'backward_time', 'sync_time']
+=======
+            '[histogram]logit_distribution':a_logit['logit'],
+        }
+
+    def _monitor_vars_learn(self):
+        return ['[histogram]logit_distribution','cur_lr', 'total_loss', 'forward_time', 'backward_time', 'sync_time']
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236
 
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
@@ -126,8 +159,13 @@ class BCOPolicy(Policy):
             Enable the eps_greedy_sample
         """
         self._unroll_len = self._cfg.collect.unroll_len
+<<<<<<< HEAD
         # self._gamma = self._cfg.discount_factor  # necessary for parallel
         # self._nstep = self._cfg.nstep  # necessary for parallel
+=======
+        #self._gamma = self._cfg.discount_factor  # necessary for parallel
+        #self._nstep = self._cfg.nstep  # necessary for parallel
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -194,6 +232,7 @@ class BCOPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'bc', ['ding.model.template.bc']
+<<<<<<< HEAD
 
 
 @POLICY_REGISTRY.register('continuous_bco')
@@ -380,3 +419,5 @@ class ContinuousBCOPolicy(Policy):
         """
         data = get_nstep_return_data(data, 1, 1)
         return get_train_sample(data, self._unroll_len)
+=======
+>>>>>>> 233be1dcad7447c0d3b65bed5d9ae3e1968d9236

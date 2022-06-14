@@ -18,6 +18,7 @@ from .application_entry import eval, collect_demo_data, collect_episodic_demo_da
 from .application_entry_trex_collect_data import trex_collecting_data, collect_episodic_demo_data_for_trex
 from .serial_entry_guided_cost import serial_pipeline_guided_cost
 from .serial_entry_gail import serial_pipeline_gail
+from .serial_entry_bco import serial_pipeline_bco
 from .utils import random_collect
 from .serial_entry_preference_based_irl \
       import serial_pipeline_preference_based_irl
