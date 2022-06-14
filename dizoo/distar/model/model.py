@@ -19,11 +19,9 @@ alphastar_model_default_config = read_yaml_config(osp.join(osp.dirname(__file__)
 
 class Model(nn.Module):
 
-    def __init__(self, cfg={}, use_value_network=False, temperature=None):
+    def __init__(self, cfg={}, use_value_network=False):
         super(Model, self).__init__()
         self.whole_cfg = deep_merge_dicts(alphastar_model_default_config, cfg)
-        if temperature is not None:
-            self.whole_cfg.model.temperature = temperature
         self.cfg = self.whole_cfg.model
         self.encoder = Encoder(self.whole_cfg)
         self.policy = Policy(self.whole_cfg)
@@ -104,7 +102,7 @@ class Model(nn.Module):
             'selected_units_num': selected_units_num
         }
 
-    def rl_learner_forward(
+    def rl_learn_forward(
         self, spatial_info, entity_info, scalar_info, entity_num, hidden_state, action_info, selected_units_num,
         behaviour_logp, teacher_logit, mask, reward, step, batch_size, unroll_len, **kwargs
     ):
@@ -174,7 +172,7 @@ class Model(nn.Module):
 
         return outputs
 
-    def sl_train(
+    def sl_learn_forward(
         self, spatial_info, entity_info, scalar_info, entity_num, selected_units_num, traj_lens, hidden_state,
         action_info, **kwargs
     ):

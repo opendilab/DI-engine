@@ -69,13 +69,13 @@ def shape_fn_vtrace(args, kwargs):
     include_kwargs=['data', 'gamma', 'lambda_', 'rho_clip_ratio', 'c_clip_ratio', 'rho_pg_clip_ratio']
 )
 def vtrace_error(
-    data: namedtuple,
-    gamma: float = 0.99,
-    lambda_: float = 0.95,
-    rho_clip_ratio: float = 1.0,
-    c_clip_ratio: float = 1.0,
-    rho_pg_clip_ratio: float = 1.0
-):
+        data: namedtuple,
+        gamma: float = 0.99,
+        lambda_: float = 0.95,
+        rho_clip_ratio: float = 1.0,
+        c_clip_ratio: float = 1.0,
+        rho_pg_clip_ratio: float = 1.0
+) -> namedtuple:
     """
     Overview:
         Implementation of vtrace(IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner\
@@ -124,3 +124,17 @@ def vtrace_error(
     value_loss = (F.mse_loss(value[:-1], return_, reduction='none') * weight).mean()
     entropy_loss = (dist_target.entropy() * weight).mean()
     return vtrace_loss(pg_loss, value_loss, entropy_loss)
+
+
+vtrace_data_with_rho = namedtuple('vtrace_data_with_rho', ['target_log_prob', 'rho', 'value', 'reward', 'weight'])
+
+
+def vtrace_error_with_rho(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.95) -> torch.Tensor:
+    target_log_prob, rho, value, reward, weight = data
+    with torch.no_grad():
+        return_ = vtrace_nstep_return(rho, rho, reward, value, gamma, lambda_)
+        # pg_rhos = torch.clamp(IS, max=rho_pg_clip_ratio)
+        return_t_plus_1 = torch.cat([return_[1:], value[-1:]], 0)
+        adv = vtrace_advantage(rho, reward, return_t_plus_1, value[:-1], gamma)
+    loss = -adv * target_log_prob * weight
+    return loss.mean()
