@@ -215,10 +215,12 @@ class DynaWorldModel(WorldModel, ABC):
             # terminals = self.termination_fn(next_obs)
             timesteps = {
                 id: BaseEnvTimestep(n, r, d, {})
-                for id, n, r, d in zip(data_id,
-                                       next_obs.cpu().numpy(),
-                                       rewards.unsqueeze(-1).cpu().numpy(), # ding api
-                                       terminals.cpu().numpy())
+                for id, n, r, d in zip(
+                    data_id,
+                    next_obs.cpu().numpy(),
+                    rewards.unsqueeze(-1).cpu().numpy(),  # ding api
+                    terminals.cpu().numpy()
+                )
             }
             return timesteps
 
@@ -266,8 +268,8 @@ class DreamWorldModel(WorldModel, ABC):
         rollout, should_train, should_eval, train, eval, step
     """
 
-    def rollout(self, obs: Tensor, actor_fn: Callable[[Tensor], Tuple[Tensor, Tensor]],
-                envstep: int, **kwargs) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Optional[bool]]:
+    def rollout(self, obs: Tensor, actor_fn: Callable[[Tensor], Tuple[Tensor, Tensor]], envstep: int,
+                **kwargs) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Optional[bool]]:
         """
         Overview:
             Generate batched imagination rollouts starting from the current observations.

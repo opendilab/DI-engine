@@ -129,7 +129,7 @@ class MBSACPolicy(SACPolicy):
             rewards = torch.concat([data['reward'].unsqueeze(0), rewards])
             aug_rewards = torch.concat([torch.zeros_like(data['reward']).unsqueeze(0), aug_rewards])
             dones = torch.concat([data['done'].unsqueeze(0), dones])
-        
+
         dones = torch.concat([torch.zeros_like(data['done']).unsqueeze(0), dones])
 
         # (T+1, B)
@@ -231,11 +231,12 @@ class STEVESACPolicy(SACPolicy):
                This implementation also uses value gradient w.r.t the same STEVE target.
 
        Config:
-           == ====================   ========    =============  ==================================
-           ID Symbol                 Type        Default Value  Description
-           == ====================   ========    =============  ==================================
-           1  ``learn.grad_clip`     float       100.0          | Max norm of gradients.
-           == ====================   ========    =============  ==================================
+           == ====================    ========    =============  =====================================
+           ID Symbol                  Type        Default Value  Description
+           == ====================    ========    =============  =====================================
+           1  ``learn.grad_clip`      float       100.0          | Max norm of gradients.
+           2  ``learn.ensemble_size`` int         1              | The number of ensemble world models.
+           == ====================    ========    =============  =====================================
 
         .. note::
             For other configs, please refer to ding.policy.sac.SACPolicy.
@@ -245,6 +246,8 @@ class STEVESACPolicy(SACPolicy):
         learn=dict(
             # (float) Max norm of gradients.
             grad_clip=100,
+            # (int) The number of ensemble world models.
+            ensemble_size=1,
         )
     )
 
@@ -259,6 +262,7 @@ class STEVESACPolicy(SACPolicy):
         super()._init_learn()
 
         self._grad_clip = self._cfg.learn.grad_clip
+        self._ensemble_size = self._cfg.learn.ensemble_size
 
         self._target_model.requires_grad_(False)
 
@@ -311,7 +315,6 @@ class STEVESACPolicy(SACPolicy):
         self._learn_model.train()
         self._target_model.train()
 
-
         obss, actions, rewards, aug_rewards, dones = \
             world_model.rollout(data['next_obs'], self._actor_fn, envstep, keep_ensemble=True)
         rewards = torch.concat([data['reward'].unsqueeze(0), rewards])
@@ -326,7 +329,8 @@ class STEVESACPolicy(SACPolicy):
 
         # (T+1, E, B)
         dones = torch.concat([torch.zeros_like(data['done']).unsqueeze(0), dones])
-        discounts = (1-dones).cumprod(dim=0) * (self._gamma**torch.arange(target_q_values.shape[0]+1)).unsqueeze(-1)
+        discounts = (1 - dones).cumprod(dim=0) * (self._gamma ** torch.arange(target_q_values.shape[0] + 1)
+                                                  ).unsqueeze(-1).unsqueeze(-1).to(dones.device)
         # (T, E, B)
         cum_rewards = (rewards * discounts[:-1]).cumsum(dim=0)
         discounted_q_values = target_q_values * discounts[1:]
@@ -334,11 +338,11 @@ class STEVESACPolicy(SACPolicy):
         # (T, B)
         steve_return_mean = steve_return.mean(1)
         with torch.no_grad():
-            steve_return_var = steve_return.var(1, unbiased=False)
-            steve_return_weight = (1/steve_return_var) / (1/steve_return_var).sum(dim=0)
+            steve_return_inv_var = 1 / (1e-8 + steve_return.var(1, unbiased=False))
+            steve_return_weight = steve_return_inv_var / (1e-8 + steve_return_inv_var.sum(dim=0))
         # (B)
         steve_return = (steve_return_mean * steve_return_weight).sum(0)
-        
+
         eval_data = {'obs': data['obs'], 'action': data['action']}
         q_values = self._learn_model.forward(eval_data, mode='compute_critic')['q_value']
         if self._twin_critic:
