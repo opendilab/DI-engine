@@ -39,3 +39,5 @@ from .policy_factory import PolicyFactory, get_random_policy
 from .pdqn import PDQNPolicy
 
 from .bc import DiscreteBehaviourCloningPolicy
+from .bco import BCOPolicy
+from .bco import ContinuousBCOPolicy
