@@ -23,7 +23,7 @@ from distar.ctools.utils import read_config
 from easydict import EasyDict
 from ding.model import VAC
 
-from ding.framework.middleware.tests.mock_for_test import battle_inferencer_for_distar, battle_rolloutor_for_distar, DIStarMockPolicy
+from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar, DIStarMockPolicy
 
 class LearnMode:
     def __init__(self) -> None:
@@ -92,13 +92,17 @@ def prepare_test():
         model = VAC(**cfg.policy.model)
         policy = DIStarMockPolicy(cfg.policy, model=model)
         return policy
+    
+    def collect_policy_fn():
+        policy = DIStarMockPolicyCollect()
+        return policy
 
-    return cfg, env_fn, policy_fn
+    return cfg, env_fn, policy_fn, collect_policy_fn
 
 
 @pytest.mark.unittest
 def test_league_actor():
-    cfg, env_fn, policy_fn = prepare_test()
+    cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
     policy = policy_fn()
     with task.start(async_mode=True, ctx = BattleContext()):
 
@@ -148,7 +152,7 @@ def test_league_actor():
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
-                sleep(150)
+                sleep(100)
                 try:
                     print(testcases)
                     assert all(testcases.values())
@@ -159,7 +163,7 @@ def test_league_actor():
 
         with patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar):
             with patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
-                league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
+                league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=collect_policy_fn)
                 task.use(test_actor())
                 task.use(league_actor)
                 task.run()

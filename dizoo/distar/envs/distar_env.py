@@ -10,9 +10,14 @@ class DIStarEnv(SC2Env, BaseEnv):
 
     def __init__(self, cfg):
         super(DIStarEnv, self).__init__(cfg)
+        self._game_info = None
+        self._map_name = None
 
     def reset(self):
         observations, game_info, map_name = super(DIStarEnv,self).reset()
+        # print(game_info)
+        self.game_info = game_info
+        self.map_name = map_name
         return observations
 
     def close(self):
@@ -24,7 +29,7 @@ class DIStarEnv(SC2Env, BaseEnv):
         next_observations, reward, done = super(DIStarEnv,self).step(actions)
         info = {}
         for policy_id in range(self._num_agents):
-            info[policy_id] = None
+            info[policy_id] = {'result': None}
         timestep = BaseEnvTimestep(
             obs = next_observations,
             reward = reward,
@@ -35,6 +40,22 @@ class DIStarEnv(SC2Env, BaseEnv):
 
     def seed(self, seed, dynamic_seed=False):
         self._random_seed = seed
+
+    @property
+    def game_info(self):
+        return self._game_info
+    
+    @game_info.setter
+    def game_info(self, new_game_info):
+        self._game_info = new_game_info
+    
+    @property
+    def map_name(self):
+        return self._map_name
+    
+    @map_name.setter
+    def map_name(self, new_map_name):
+        self._map_name = new_map_name
     
     @property
     def observation_space(self):

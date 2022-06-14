@@ -36,7 +36,7 @@ class LeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
-        print("receive model from learner")
+        print("Actor receive model from learner \n")
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -150,12 +150,13 @@ class StepLeagueActor:
         self.model_dict = {}
         self.model_dict_lock = Lock()
 
-        self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
+        # self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
         If get newest learner model, put it inside model_queue.
         """
+        print('Actor got model \n')
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -221,7 +222,8 @@ class StepLeagueActor:
         ctx.job = self._get_job()
         if ctx.job is None:
             return
-        
+        print('For actor, a job begin \n')
+
         collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
@@ -250,7 +252,7 @@ class StepLeagueActor:
                 # actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.train_data)
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
-                print('sending data')
+                print('Actor send data\n')
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []
@@ -261,4 +263,5 @@ class StepLeagueActor:
                 ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
                 ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+                print('Actor job finish, send job\n')
                 break

@@ -13,7 +13,7 @@ from ding.framework.task import task, Parallel
 from ding.framework.middleware import LeagueCoordinator, LeagueActor, LeagueLearner
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
 from dizoo.distar.envs.distar_env import DIStarEnv
-from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, battle_inferencer_for_distar, battle_rolloutor_for_distar
+from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar
 from distar.ctools.utils import read_config
 from unittest.mock import patch
 import os
@@ -39,11 +39,16 @@ def prepare_test():
         policy = DIStarMockPolicy(cfg.policy, model=model)
         return policy
 
-    return cfg, env_fn, policy_fn
+    def collect_policy_fn():
+        policy = DIStarMockPolicyCollect()
+        return policy
+
+    return cfg, env_fn, policy_fn, collect_policy_fn
+
 
 
 def _main():
-    cfg, env_fn, policy_fn = prepare_test()
+    cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
     league = MockLeague(cfg.policy.other.league)
 
     with task.start(async_mode=True, ctx=BattleContext()):
@@ -53,7 +58,7 @@ def _main():
                 if task.router.node_id == 0:
                     task.use(LeagueCoordinator(league))
                 elif task.router.node_id <= N_ACTORS:
-                    task.use(StepLeagueActor(cfg, env_fn, policy_fn))
+                    task.use(StepLeagueActor(cfg, env_fn, collect_policy_fn))
                 else:
                     n_players = len(league.active_players_ids)
                     player = league.active_players[task.router.node_id % n_players]

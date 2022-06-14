@@ -84,6 +84,7 @@ class BattleEpisodeCollector:
                     transitions.clear()
                 if ctx.env_episode >= ctx.n_episode:
                     ctx.job_finish = True
+                    self.env.close()
                 break
 
 
@@ -152,14 +153,15 @@ class BattleStepCollector:
 
             self.total_envstep_count = ctx.total_envstep_count
 
-            if (self.n_rollout_samples > 0 and ctx.env_step - old >= self.n_rollout_samples) or ctx.env_step >= ctx.n_sample * ctx.unroll_len:
+            if (self.n_rollout_samples > 0 and ctx.env_step - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
                 for transitions in self._transitions_list:
                     trajectories, trajectory_end_idx = transitions.to_trajectories()
                     ctx.trajectories_list.append(trajectories)
                     ctx.trajectory_end_idx_list.append(trajectory_end_idx)
                     transitions.clear()
-                if ctx.env_step >= ctx.n_sample * ctx.unroll_len:
+                if ctx.env_episode >= ctx.n_episode:
                     ctx.job_finish = True
+                    self.env.close()
                 break
 
 
