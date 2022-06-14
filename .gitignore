@@ -11,6 +11,7 @@
 *.log.*
 *.sig
 *.mov
+*.pkl
 
 pkg/
 src/
@@ -827,9 +828,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
-env/
 venv/
-ENV/
 env.bak/
 venv.bak/
 
@@ -1409,7 +1408,7 @@ formatted_*
 **/benchmark
 **/model_zoo
 *ckpt*
-*log*
+log*
 *.puml.png
 *.puml.eps
 *.puml.svg
@@ -1424,11 +1423,4 @@ events.*
 eval_config.py
 collect_demo_data_config.py
 !ding/**/*.py
-bipedalwalker_ppo_seed0/
-cartpole_dqn_seed0/
-cartpole_fqf_seed0/
-dizoo/box2d/bipedalwalker/entry/
-dizoo/box2d/lunarlander/entry/lunarlander_dqn_main.py
-dizoo/gym_hybrid/entry/__init__.py
-lunarlander_dqn_seed0/
-pendulum_ppo_seed0/
+events.*
