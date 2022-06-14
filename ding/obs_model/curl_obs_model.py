@@ -65,7 +65,7 @@ class CurlObsModel:
         return cfg
 
     config = dict(
-        # obs_shape
+        obs_shape =  (3*3 , 84, 84),
         batch_size=64,
         encoder_lr=1e-3,
         w_lr=1e-4,
