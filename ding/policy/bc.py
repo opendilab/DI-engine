@@ -44,8 +44,7 @@ class BehaviourCloningPolicy(Policy):
 
     def _init_learn(self):
         self._optimizer = Adam(
-            self._model.parameters(),
-            lr=self._cfg.learn.learning_rate,
+            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
         )
         self._timer = EasyTimer(cuda=True)
         self._learn_model = model_wrap(self._model, 'base')
@@ -73,10 +72,12 @@ class BehaviourCloningPolicy(Policy):
                 obs, action = data['obs'], data['action'].squeeze()
             if self._cfg.continuous:
                 mu = self._eval_model.forward(data['obs'])['action']
-                loss = self._loss(mu, action)
+                # when we use bco, action is predicted by idm, gradient is not expected.
+                loss = self._loss(mu, action.detach())
             else:
                 a_logit = self._learn_model.forward(obs)
-                loss = self._loss(a_logit['logit'], action)
+                # when we use bco, action is predicted by idm, gradient is not expected.
+                loss = self._loss(a_logit['logit'], action.detach())
         forward_time = self._timer.value
         with self._timer:
             self._optimizer.zero_grad()

@@ -41,6 +41,7 @@ from .cql import CQLPolicy, CQLDiscretePolicy
 from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
+from .bc import BehaviourCloningPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -333,3 +334,39 @@ class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
 @POLICY_REGISTRY.register('sqil_sac_command')
 class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
     pass
+
+
+@POLICY_REGISTRY.register('bc_command')
+class BCCommandModePolicy(BehaviourCloningPolicy, CommandModePolicy):
+
+    def _init_command(self) -> None:
+        r"""
+        Overview:
+            Command mode init method. Called by ``self.__init__``.
+            Set the eps_greedy rule according to the config for command
+        """
+        if not self._cfg.continuous:
+            eps_cfg = self._cfg.other.eps
+            self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+
+    def _get_setting_collect(self, command_info: dict) -> dict:
+        r"""
+        Overview:
+            Collect mode setting information including eps
+        Arguments:
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_train_iter', 'collector_envstep']
+        Returns:
+           - collect_setting (:obj:`dict`): Including eps in collect mode.
+        """
+        # Decay according to `learner_train_iter`
+        # step = command_info['learner_train_iter']
+        # Decay according to `envstep`
+        if not self._cfg.continuous:
+            step = command_info['envstep']
+            return {'eps': self.epsilon_greedy(step)}
+
+    def _get_setting_learn(self, command_info: dict) -> dict:
+        return {}
+
+    def _get_setting_eval(self, command_info: dict) -> dict:
+        return {}

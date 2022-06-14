@@ -2,6 +2,7 @@ import os
 import time
 import copy
 import pickle
+from xmlrpc.client import Boolean
 import torch
 import torch.nn as nn
 from functools import partial
@@ -30,7 +31,7 @@ class InverseDynamicsModel(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            action_space: str,
+            is_continuous: Boolean,
             encoder_hidden_size_list: SequenceType = [60, 80, 100, 40],
             activation: Optional[nn.Module] = nn.LeakyReLU(),
             norm_type: Optional[str] = None
@@ -63,20 +64,8 @@ class InverseDynamicsModel(nn.Module):
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own Model".format(obs_shape)
             )
-        self.action_space = action_space
-        assert self.action_space in ['discrete', 'continuous']
-        if self.action_space == 'discrete':
-            self.header = DiscreteHead(
-                encoder_hidden_size_list[-1], action_shape, activation=activation, norm_type=norm_type
-            )
-        elif self.action_space == 'continuous':
-            # self.header = ReparameterizationHead(
-            #     encoder_hidden_size_list[-1],
-            #     action_shape,
-            #     sigma_type='conditioned',
-            #     activation=activation,
-            #     norm_type=norm_type
-            # )
+        self.is_continuous = is_continuous
+        if self.is_continuous:
             self.header = RegressionHead(
                 encoder_hidden_size_list[-1],
                 action_shape,
@@ -84,23 +73,66 @@ class InverseDynamicsModel(nn.Module):
                 activation=activation,
                 norm_type=norm_type
             )
+        else:
+            self.header = DiscreteHead(
+                encoder_hidden_size_list[-1], action_shape, activation=activation, norm_type=norm_type
+            )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.action_space == 'discrete':
-            x = self.encoder(x)
-            x = self.header(x)
-            return x
-        elif self.action_space == 'continuous':
+    def forward(self, x: torch.Tensor) -> Dict:
+        if self.is_continuous:
             x = self.encoder(x)
             x = self.header(x)
             return {'logit': x['pred']}
+        else:
+            x = self.encoder(x)
+            x = self.header(x)
+            return x
+
+    def predict_action(self, x: torch.Tensor) -> Dict:
+        if not self.is_continuous:
+            res = nn.Softmax(dim=-1)
+            action = torch.argmax(res(self.forward(x)['logit']), -1)
+            return {'action': action}
+
+    def train(self, training_set, n_epoch, learning_rate):
+        '''
+        train transition model, given pair of states return action (s0,s1 ---> a0 if n=2)
+        Input:
+        training_set:
+        model: transition model want to train
+        n: window size (how many states needed to predict the next action)
+        batch_size: batch size
+        n_epoch: number of epoches
+        learning_rate: learning rate
+        action_space: whether action is discrete or continuous
+        return:
+        loss: trained transition model
+        '''
+        if self.is_continuous:
+            # criterion = nn.MSELoss()
+            criterion = nn.L1Loss()
+        else:
+            criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=0.0001)
+        loss_list = []
+        for itr in range(n_epoch):
+            data = training_set['obs']
+            y = training_set['action']
+            y_pred = self.forward(data)['logit']
+            loss = criterion(y_pred, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            loss_list.append(loss.item())
+        last_loss = loss_list[-1]
+        return last_loss
 
 
 class BCODataset(Dataset):
 
     def __init__(self, data=None):
         if data is None:
-            self._data = []
+            raise ValueError('Dataset can not be empty!')
         else:
             self._data = data
 
@@ -119,7 +151,7 @@ class BCODataset(Dataset):
         return self._data['action']
 
 
-def load_expertdata(data: Dict[str, torch.Tensor]) -> None:
+def load_expertdata(data: Dict[str, torch.Tensor]) -> BCODataset:
     """
     loading from demonstration data, which only have obs and next_obs
     action need to be inferred from Inverse Dynamics Model
@@ -139,7 +171,7 @@ def load_expertdata(data: Dict[str, torch.Tensor]) -> None:
     )
 
 
-def load_agentdata(data) -> None:
+def load_agentdata(data) -> BCODataset:
     """
     loading from policy data, which only have obs and next_obs as features and action as label
     """
@@ -156,52 +188,6 @@ def load_agentdata(data) -> None:
             'episode_id': post_data['episode_id']
         }
     )
-
-
-def train_state_trainsition_model(training_set, model, n_epoch, learning_rate, action_space):
-    '''
-    train transition model, given pair of states return action (s0,s1 ---> a0 if n=2)
-    Input:
-    training_set:
-    model: transition model want to train
-    n: window size (how many states needed to predict the next action)
-    batch_size: batch size
-    n_epoch: number of epoches
-    learning_rate: learning rate
-    action_space: whether action is discrete or continuous
-    return:
-    model: trained transition model
-    '''
-    if action_space == "continuous":
-        # criterion = nn.MSELoss()
-        criterion = nn.L1Loss()
-    else:
-        criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.001)
-    loss_list = []
-    for itr in range(n_epoch):
-        data = training_set['obs']
-        y = training_set['action']
-        y_pred = model.forward(data)['logit']
-        loss = criterion(y_pred, y)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        loss_list.append(loss.item())
-    last_loss = loss_list[-1]
-    return (model, last_loss)
-
-
-def get_loss(training_set, action_space):
-    if action_space == "continuous":
-        # criterion = nn.MSELoss()
-        criterion = nn.L1Loss()
-    else:
-        criterion = nn.CrossEntropyLoss()
-    y = training_set['expert_action']
-    y_pred = training_set['action']
-    loss = criterion(y_pred, y)
-    return loss.item()
 
 
 def serial_pipeline_bco(
@@ -238,8 +224,8 @@ def serial_pipeline_bco(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
 
     # Generate Expert Data
-    if cfg.policy.collect.demonstration_model_path is None:
-        with open(cfg.policy.collect.demonstration_offline_data_path, 'rb') as f:
+    if cfg.policy.collect.model_path is None:
+        with open(cfg.policy.collect.data_path, 'rb') as f:
             data = pickle.load(f)
             expert_learn_dataset = load_expertdata(data)
     else:
@@ -248,9 +234,7 @@ def serial_pipeline_bco(
             expert_cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg]
         )
         expert_collector_env.seed(expert_cfg.seed)
-        expert_policy.collect_mode.load_state_dict(
-            torch.load(cfg.policy.collect.demonstration_model_path, map_location='cpu')
-        )
+        expert_policy.collect_mode.load_state_dict(torch.load(cfg.policy.collect.model_path, map_location='cpu'))
 
         expert_collector = create_serial_collector(
             cfg.policy.collect.collector,  # for episode collector
@@ -259,7 +243,7 @@ def serial_pipeline_bco(
             exp_name=expert_cfg.exp_name
         )
         # if expert policy is sac, eps kwargs is unexpected
-        if cfg.policy.action_space == "continuous":
+        if cfg.policy.continuous:
             expert_data = expert_collector.collect(n_episode=100)
         else:
             policy_kwargs = {'eps': 0}
@@ -289,17 +273,15 @@ def serial_pipeline_bco(
         cfg.policy.other.commander, learner, collector, evaluator, None, policy=policy.command_mode
     )
     learned_model = InverseDynamicsModel(
-        cfg.policy.model.obs_shape, cfg.policy.model.action_shape, cfg.policy.action_space,
-        cfg.policy.idm_encoder_hidden_size_list
+        cfg.policy.model.obs_shape, cfg.policy.model.action_shape, cfg.policy.continuous,
+        cfg.policy.idm_learn.idm_encoder_hidden_size_list
     )
     # ==========
     # Main loop
     # ==========
     learner.call_hook('before_run')
-    end = time.time()
-    m = nn.Softmax(dim=-1)
-    collect_episode = copy.deepcopy(cfg.policy.collect.n_episode)
-    agent_data = list()
+    collect_episode = int(cfg.policy.collect.n_episode * cfg.policy.collect.alpha)
+    # agent_data = list()
     for epoch in range(cfg.policy.learn.train_epoch):
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -307,25 +289,34 @@ def serial_pipeline_bco(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        new_data = collector.collect(
-            n_episode=collect_episode, train_iter=learner.train_iter, policy_kwargs=collect_kwargs
-        )
+        if cfg.policy.continuous:
+            collect_kwargs = {'eps': 0}
+        if epoch == 0:
+            new_data = collector.collect(
+                n_episode=cfg.policy.collect.n_episode, train_iter=learner.train_iter, policy_kwargs=collect_kwargs
+            )
+        else:
+            new_data = collector.collect(
+                n_episode=collect_episode, train_iter=learner.train_iter, policy_kwargs=collect_kwargs
+            )
         # agent_data = agent_data + new_data
         learn_dataset = load_agentdata(new_data)
-        learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.idm_batch_size)
+        learn_dataloader = DataLoader(learn_dataset, cfg.policy.idm_learn.idm_batch_size)
         for i, train_data in enumerate(learn_dataloader):
-            (learned_model, idm_loss) = train_state_trainsition_model(
-                train_data, learned_model, cfg.policy.learn.idm_train_epoch, cfg.policy.learn.idm_learning_rate,
-                cfg.policy.action_space
+            idm_loss = learned_model.train(
+                train_data,
+                cfg.policy.idm_learn.idm_train_epoch,
+                cfg.policy.idm_learn.idm_learning_rate,
             )
         tb_logger.add_scalar("idm_loss", idm_loss, learner.train_iter)
         # Generate state transitions from demonstrated state trajectories by IDM
-        if cfg.policy.action_space == "continuous":
+        if cfg.policy.continuous:
             expert_action_data = learned_model.forward(expert_learn_dataset.obs)['logit']
         else:
-            expert_action_data = torch.argmax(m(learned_model.forward(expert_learn_dataset.obs)['logit']), -1)
+            expert_action_data = learned_model.predict_action(expert_learn_dataset.obs)['action']
         post_expert_dataset = BCODataset(
             {
+                # next_obs are deleted
                 'obs': expert_learn_dataset.obs[:, 0:int(expert_learn_dataset.obs.shape[1] / 2)],
                 'action': expert_action_data,
                 'expert_action': expert_learn_dataset.action
@@ -334,14 +325,8 @@ def serial_pipeline_bco(
         expert_learn_dataloader = DataLoader(post_expert_dataset, cfg.policy.learn.batch_size)
         # Improve policy using BC
         for i, train_data in enumerate(expert_learn_dataloader):
-            idm_expert_loss = get_loss(train_data, cfg.policy.action_space)
-            print("idm_expert_loss:", idm_expert_loss)
-            learner.data_time = time.time() - end
-            learner.epoch_info = (epoch, i, len(learn_dataloader))
             learner.train(train_data, collector.envstep)
-            end = time.time()
-        learner.policy.get_attribute('lr_scheduler').step()
-        collect_episode = int(cfg.policy.collect.n_episode * cfg.policy.collect.alpha)
+        # learner.policy.get_attribute('lr_scheduler').step()
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 
