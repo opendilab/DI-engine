@@ -9,6 +9,8 @@ import logging
 if TYPE_CHECKING:
     from ding.framework import Task, Context
     from ding.league.v2 import BaseLeague
+    from ding.league.player import PlayerMeta
+    from ding.league.v2.base_league import Job
 
 
 class LeagueCoordinator:

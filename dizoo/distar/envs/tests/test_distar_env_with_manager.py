@@ -28,7 +28,9 @@ env_cfg = EasyDict(
 
 ENV_NUMBER = 2
 
+
 class TestDIstarEnv:
+
     def __init__(self):
 
         cfg = read_config('./test_distar_config.yaml')
@@ -60,17 +62,16 @@ class TestDIstarEnv:
                                 actions[env_id][player_index] = DIStarEnv.random_action(player_obs)
                         timesteps = self._env.step(actions)
                         print(actions)
-                        
+
                 except Exception as e:
                     print('[EPISODE LOOP ERROR]', e, flush=True)
                     print(''.join(traceback.format_tb(e.__traceback__)), flush=True)
                     self._env.close()
-                
+
                 self._env.close()
 
-if __name__ == '__main__':
 
-    ## main
+if __name__ == '__main__':
     if os.path.exists(r'C:\Program Files (x86)\StarCraft II'):
         sc2path = r'C:\Program Files (x86)\StarCraft II'
     elif os.path.exists('/Applications/StarCraft II'):
@@ -80,8 +81,11 @@ if __name__ == '__main__':
         sc2path = os.environ['SC2PATH']
         assert os.path.exists(sc2path), 'SC2PATH: {} does not exist!'.format(sc2path)
     if not os.path.exists(os.path.join(sc2path, 'Maps/Ladder2019Season2')):
-        shutil.copytree(os.path.join(os.path.dirname(__file__), '../envs/maps/Ladder2019Season2'), os.path.join(sc2path, 'Maps/Ladder2019Season2'))
+        shutil.copytree(
+            os.path.join(os.path.dirname(__file__), '../envs/maps/Ladder2019Season2'),
+            os.path.join(sc2path, 'Maps/Ladder2019Season2')
+        )
 
-    ## actor_run
+    # actor_run
     actor = TestDIstarEnv()
     actor._inference_loop()

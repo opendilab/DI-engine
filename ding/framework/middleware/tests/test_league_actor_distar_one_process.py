@@ -20,29 +20,28 @@ from ding.framework import EventEnum
 from typing import Dict, Any, List, Optional
 from collections import namedtuple
 from distar.ctools.utils import read_config
-from easydict import EasyDict
 from ding.model import VAC
 
-from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar, DIStarMockPolicy
+from ding.framework.middleware.tests import DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar, DIStarMockPolicy
+
 
 class LearnMode:
+
     def __init__(self) -> None:
         pass
 
     def state_dict(self):
         return {}
 
+
 class CollectMode:
+
     def __init__(self) -> None:
-        self._cfg = EasyDict(dict(
-            collect = dict(
-                n_episode = 64
-            )
-        ))
+        self._cfg = EasyDict(dict(collect=dict(n_episode=64)))
 
     def load_state_dict(self, state_dict):
         return
-    
+
     def forward(self, data: Dict):
         return_data = {}
         return_data['action'] = DIStarEnv.random_action(data)
@@ -50,7 +49,7 @@ class CollectMode:
         return_data['value'] = [0]
 
         return return_data
-    
+
     def process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         transition = {
             'obs': obs,
@@ -62,10 +61,10 @@ class CollectMode:
             'done': timestep.done,
         }
         return transition
-    
+
     def reset(self, data_id: Optional[List[int]] = None) -> None:
         pass
-    
+
     def get_attribute(self, name: str) -> Any:
         if hasattr(self, '_get_' + name):
             return getattr(self, '_get_' + name)()
@@ -92,7 +91,7 @@ def prepare_test():
         model = VAC(**cfg.policy.model)
         policy = DIStarMockPolicy(cfg.policy, model=model)
         return policy
-    
+
     def collect_policy_fn():
         policy = DIStarMockPolicyCollect()
         return policy
@@ -104,7 +103,7 @@ def prepare_test():
 def test_league_actor():
     cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
     policy = policy_fn()
-    with task.start(async_mode=True, ctx = BattleContext()):
+    with task.start(async_mode=True, ctx=BattleContext()):
 
         def test_actor():
             job = Job(
@@ -167,6 +166,7 @@ def test_league_actor():
                 task.use(test_actor())
                 task.use(league_actor)
                 task.run()
+
 
 if __name__ == '__main__':
     test_league_actor()

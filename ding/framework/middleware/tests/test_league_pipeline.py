@@ -1,22 +1,17 @@
 from copy import deepcopy
 from time import sleep
 import pytest
-from copy import deepcopy
 from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
-from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware import LeagueActor, StepLeagueActor, LeagueCoordinator
+from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearner
 
-from ding.envs import BaseEnvManager
 from ding.model import VAC
 from ding.framework.task import task, Parallel
-from ding.framework.middleware import LeagueCoordinator, LeagueActor, LeagueLearner
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
 from dizoo.distar.envs.distar_env import DIStarEnv
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar
 from distar.ctools.utils import read_config
 from unittest.mock import patch
-import os
 
 N_ACTORS = 1
 N_LEARNERS = 1
@@ -44,7 +39,6 @@ def prepare_test():
         return policy
 
     return cfg, env_fn, policy_fn, collect_policy_fn
-
 
 
 def _main():
