@@ -44,7 +44,7 @@ bipedalwalker_bco_config = dict(
             # control the number (alpha*n_episode) of post-demonstration environment interactions at each iteration.
             # Notice: alpha * n_episode > collector_env_num
             alpha=0.1,
-            model_path='/home/DI-engine/dizoo/box2d/bipedalwalker/config/expert_sac/ckpt_best.pth.tar',
+            model_path='abs model path',
             data_path='abs data path',
         ),
         eval=dict(evaluator=dict(eval_freq=40, )),

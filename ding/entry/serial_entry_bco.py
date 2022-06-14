@@ -42,6 +42,7 @@ class InverseDynamicsModel(nn.Module):
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
+            - is_continuous(:obj:`Boolean`): whether action is continuous. eg: continuous:True, discrete: False.
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
@@ -82,29 +83,28 @@ class InverseDynamicsModel(nn.Module):
         if self.is_continuous:
             x = self.encoder(x)
             x = self.header(x)
-            return {'logit': x['pred']}
+            return {'action': x['pred']}
         else:
             x = self.encoder(x)
             x = self.header(x)
             return x
 
     def predict_action(self, x: torch.Tensor) -> Dict:
-        if not self.is_continuous:
+        if self.is_continuous:
+            return self.forward(x)
+        else:
             res = nn.Softmax(dim=-1)
             action = torch.argmax(res(self.forward(x)['logit']), -1)
             return {'action': action}
 
     def train(self, training_set, n_epoch, learning_rate, weight_decay):
         '''
-        train transition model, given pair of states return action (s0,s1 ---> a0 if n=2)
+        train transition model, given pair of states return action (s0,s1 ---> a0)
         Input:
-        training_set:
-        model: transition model want to train
-        n: window size (how many states needed to predict the next action)
-        batch_size: batch size
+        training_set: states transition 
         n_epoch: number of epoches
-        learning_rate: learning rate
-        action_space: whether action is discrete or continuous
+        learning_rate: learning rate for optimizer
+        weight_decay: weight decay for optimizer
         return:
         loss: trained transition model
         '''
@@ -118,7 +118,10 @@ class InverseDynamicsModel(nn.Module):
         for itr in range(n_epoch):
             data = training_set['obs']
             y = training_set['action']
-            y_pred = self.forward(data)['logit']
+            if self.is_continuous:
+                y_pred = self.forward(data)['action']
+            else:
+                y_pred = self.forward(data)['logit']
             loss = criterion(y_pred, y)
             optimizer.zero_grad()
             loss.backward()
@@ -311,10 +314,7 @@ def serial_pipeline_bco(
             )
         tb_logger.add_scalar("idm_loss", idm_loss, learner.train_iter)
         # Generate state transitions from demonstrated state trajectories by IDM
-        if cfg.policy.continuous:
-            expert_action_data = learned_model.forward(expert_learn_dataset.obs)['logit']
-        else:
-            expert_action_data = learned_model.predict_action(expert_learn_dataset.obs)['action']
+        expert_action_data = learned_model.predict_action(expert_learn_dataset.obs)['action']
         post_expert_dataset = BCODataset(
             {
                 # next_obs are deleted
