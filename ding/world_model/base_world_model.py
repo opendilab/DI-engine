@@ -1,4 +1,4 @@
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Optional
 from collections import namedtuple
 from abc import ABC, abstractmethod
 
@@ -217,7 +217,7 @@ class DynaWorldModel(WorldModel, ABC):
                 id: BaseEnvTimestep(n, r, d, {})
                 for id, n, r, d in zip(data_id,
                                        next_obs.cpu().numpy(),
-                                       rewards.cpu().numpy(),
+                                       rewards.unsqueeze(-1).cpu().numpy(), # ding api
                                        terminals.cpu().numpy())
             }
             return timesteps
@@ -267,7 +267,7 @@ class DreamWorldModel(WorldModel, ABC):
     """
 
     def rollout(self, obs: Tensor, actor_fn: Callable[[Tensor], Tuple[Tensor, Tensor]],
-                envstep: int) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
+                envstep: int, **kwargs) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Optional[bool]]:
         """
         Overview:
             Generate batched imagination rollouts starting from the current observations.
@@ -293,7 +293,7 @@ class DreamWorldModel(WorldModel, ABC):
             - actions:     [N+1, B, A]
             - rewards:     [N,   B]
             - aug_rewards: [N+1, B]
-            - dones:       [N+1, B]
+            - dones:       [N,  B]
 
         .. note::
             - The rollout length is determined by rollout length scheduler.
@@ -310,15 +310,11 @@ class DreamWorldModel(WorldModel, ABC):
         actions = []
         rewards = []
         aug_rewards = []  # -temperature*logprob
-        dones = [torch.zeros_like(obs.sum(-1), device=device)]
+        dones = []
         for _ in range(horizon):
             action, aug_reward = actor_fn(obs)
             # done: probability of termination
-            reward, obs, done = self.step(obs, action)
-            if len(reward.shape) == 2:
-                reward = reward.squeeze(1)
-            if len(done.shape) == 2:
-                done = done.squeeze(1)
+            reward, obs, done = self.step(obs, action, **kwargs)
             reward = reward + aug_reward
             obss.append(obs)
             actions.append(action)
@@ -336,7 +332,7 @@ class DreamWorldModel(WorldModel, ABC):
             # rewards is an empty list when horizon=0
             torch.stack(rewards) if rewards else torch.tensor(rewards, device=device),
             torch.stack(aug_rewards),
-            torch.stack(dones)
+            torch.stack(dones) if dones else torch.tensor(dones, device=device)
         )
 
 

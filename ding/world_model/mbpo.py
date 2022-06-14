@@ -8,6 +8,8 @@ from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.world_model.base_world_model import HybridWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
+# TODO: move to rl utils
+from ding.policy.mbpolicy.utils import flatten_batch, unflatten_batch
 
 
 @WORLD_MODEL_REGISTRY.register('mbpo')
@@ -62,35 +64,56 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         self.model_variances = []
         self.elite_model_idxes = []
 
-    def step(self, obs, act, batch_size=8192):
+    def step(self, obs, act, batch_size=8192, keep_ensemble=False):
         if len(act.shape) == 1:
             act = act.unsqueeze(1)
         if self._cuda:
             obs = obs.cuda()
             act = act.cuda()
-        inputs = torch.cat([obs, act], dim=1)
-        inputs = self.scaler.transform(inputs)
+        inputs = torch.cat([obs, act], dim=-1)
+        if keep_ensemble:
+            inputs, dim = flatten_batch(inputs, 1)
+            inputs = self.scaler.transform(inputs)
+            inputs = unflatten_batch(inputs, dim)
+        else:
+            inputs = self.scaler.transform(inputs)
         # predict
         ensemble_mean, ensemble_var = [], []
-        for i in range(0, inputs.shape[0], batch_size):
-            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        batch_dim = 0 if len(inputs.shape) == 2 else 1
+        for i in range(0, inputs.shape[batch_dim], batch_size):
+            if keep_ensemble:
+                # inputs: [E, B, D]
+                input = inputs[:, i:i + batch_size]
+            else:
+                # input:  [B, D]
+                input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.ensemble_size, 1, 1)
             b_mean, b_var = self.ensemble_model(input, ret_log_var=False)
             ensemble_mean.append(b_mean)
             ensemble_var.append(b_var)
         ensemble_mean = torch.cat(ensemble_mean, 1)
         ensemble_var = torch.cat(ensemble_var, 1)
-        ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
+        if keep_ensemble:
+            ensemble_mean[:, :, 1:] += obs
+        else:
+            ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
         ensemble_std = ensemble_var.sqrt()
         # sample from the predicted distribution
         if self.deterministic_rollout:
             ensemble_sample = ensemble_mean
         else:
             ensemble_sample = ensemble_mean + torch.randn_like(ensemble_mean).to(ensemble_mean) * ensemble_std
+            ensemble_sample = ensemble_mean + torch.randn_like(ensemble_mean).to(ensemble_mean) * ensemble_std
+        if keep_ensemble:
+            # [E, B, D]
+            rewards, next_obs = ensemble_sample[:, :, 0], ensemble_sample[:, :, 1:]
+            next_obs_flatten, dim = flatten_batch(next_obs)
+            done = unflatten_batch(self.env.termination_fn(next_obs_flatten), dim)
+            return rewards, next_obs, done
         # sample from ensemble
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
         sample = ensemble_sample[model_idxes, batch_idxes]
-        rewards, next_obs = sample[:, :1], sample[:, 1:]
+        rewards, next_obs = sample[:, 0], sample[:, 1:]
 
         return rewards, next_obs, self.env.termination_fn(next_obs)
 

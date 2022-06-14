@@ -43,6 +43,8 @@ class EnsembleFC(nn.Module):
         self.bias = nn.Parameter(torch.zeros(ensemble_size, 1, out_features))
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
+        if not (input.shape[0] == self.ensemble_size and len(input.shape) == 3):
+            breakpoint()
         assert input.shape[0] == self.ensemble_size and len(input.shape) == 3
         return torch.bmm(input, self.weight) + self.bias  # w times x + b
 
