@@ -3,6 +3,8 @@ from easydict import EasyDict
 import torch
 import torch.nn as nn
 
+import importlib
+
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder, ImpalaConvEncoder
@@ -35,6 +37,7 @@ class VAC(nn.Module):
         fixed_sigma_value: Optional[int] = 0.3,
         bound_type: Optional[str] = None,
         encoder: Optional[torch.nn.Module] = None,
+        encoder_setting: Optional[dict] = None,
         impala_cnn_encoder: bool = False,
     ) -> None:
         r"""
@@ -62,41 +65,47 @@ class VAC(nn.Module):
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
+        self.share_encoder = share_encoder
         self.impala_cnn_encoder = impala_cnn_encoder
         # Encoder Type
-        if encoder is None:
+
+        #To remove in the future
+        #-----------------------------
+        if encoder is None and encoder_setting is None:
             if isinstance(obs_shape, int) or len(obs_shape) == 1:
-                encoder_cls = FCEncoder
+                encoder_setting = {
+                    'type': 'FCEncoder',
+                }
             elif len(obs_shape) == 3:
-                encoder_cls = ConvEncoder
+                encoder_setting = {
+                    'type': 'ConvEncoder',
+                }
             else:
                 raise RuntimeError(
                     "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
                     format(obs_shape)
                 )
-            self.share_encoder = share_encoder
+            encoder_setting.update(
+                {
+                    'hidden_size_list': encoder_hidden_size_list,
+                    'activation': activation,
+                    'norm_type': norm_type
+                }
+            )
+        #-------------------------------
+
+        if encoder is None:
+            tmp_module = importlib.import_module("ding.model.common")
+            encoder_cls = getattr(tmp_module, encoder_setting['type'])
             if self.share_encoder:
-                if self.impala_cnn_encoder:
-                    self.encoder = ImpalaConvEncoder(obs_shape)
-                else:
-                    self.encoder = encoder_cls(
-                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                    )
+                self.encoder = encoder_cls(**encoder_setting)
             else:
-                if self.impala_cnn_encoder:
-                    self.actor_encoder = ImpalaConvEncoder(obs_shape)
-                    self.critic_encoder = ImpalaConvEncoder(obs_shape)
-                else:
-                    self.actor_encoder = encoder_cls(
-                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                    )
-                    self.critic_encoder = encoder_cls(
-                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                    )
+                self.actor_encoder = encoder_cls(**encoder_setting)
+                self.critic_encoder = encoder_cls(**encoder_setting)
         else:
-            assert share_encoder
-            self.share_encoder = share_encoder
+            assert self.share_encoder, "illegal configuration."
             self.encoder = encoder
+
         # Head Type
         self.critic_head = RegressionHead(
             critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type

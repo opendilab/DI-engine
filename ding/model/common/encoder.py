@@ -25,7 +25,8 @@ class ConvEncoder(nn.Module):
             kernel_size: SequenceType = [8, 4, 3],
             stride: SequenceType = [4, 2, 1],
             padding: Optional[SequenceType] = None,
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            **kwargs
     ) -> None:
         """
         Overview:
@@ -109,7 +110,8 @@ class FCEncoder(nn.Module):
             hidden_size_list: SequenceType,
             res_block: bool = False,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            **kwargs
     ) -> None:
         """
         Overview:
@@ -204,7 +206,7 @@ class CnnBasicBlock(nn.Module):
     Preserves channel number and shape
     """
 
-    def __init__(self, in_channnel, scale=1, batch_norm=False):
+    def __init__(self, in_channnel, scale=1, batch_norm=False, **kwargs):
         super().__init__()
         self.in_channnel = in_channnel
         self.batch_norm = batch_norm
