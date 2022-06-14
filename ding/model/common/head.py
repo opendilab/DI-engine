@@ -490,13 +490,180 @@ class QuantileHead(nn.Module):
         logit_quantile_net = self.quantile_net(logit_quantiles)
 
         x = x.repeat(num_quantiles, 1)
-        q_x = x * q_quantile_net
+        q_x = x * q_quantile_net  # 4*32,64
         logit_x = x * logit_quantile_net
 
         q = self.Q(q_x).reshape(num_quantiles, batch_size, -1)
         logit = self.Q(logit_x).reshape(num_quantiles, batch_size, -1).mean(0)
 
         return {'logit': logit, 'q': q, 'quantiles': q_quantiles}
+
+
+class FQFHead(nn.Module):
+    """
+        Overview:
+            The ``FQFHead`` used to output action quantiles. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``, ``q``, ``quantiles``, ``quantiles_hats``, ``q_tau_i`` and ``entropies``.
+        Interfaces:
+            ``__init__``, ``forward``, ``quantile_net``.
+    """
+
+    def __init__(
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        num_quantiles: int = 32,
+        quantile_embedding_size: int = 128,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
+    ) -> None:
+        """
+        Overview:
+            Init the ``FQFHead`` layers according to the provided arguments.
+        Arguments:
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``FQFHead``.
+            - output_size (:obj:`int`): The number of outputs.
+            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
+            - num_quantiles (:obj:`int`): The number of quantiles.
+            - quantile_embedding_size (:obj:`int`): The embedding size of a quantile.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
+        """
+        super(FQFHead, self).__init__()
+        layer = NoiseLinearLayer if noise else nn.Linear
+        block = noise_block if noise else fc_block
+        self.Q = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                hidden_size,
+                layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_size, output_size)
+        )
+        self.num_quantiles = num_quantiles
+        self.quantile_embedding_size = quantile_embedding_size
+        self.output_size = output_size
+        self.fqf_fc = nn.Sequential(nn.Linear(self.quantile_embedding_size, hidden_size), nn.ReLU())
+        self.register_buffer(
+            'sigma_pi',
+            torch.arange(1, self.quantile_embedding_size + 1, 1).view(1, 1, self.quantile_embedding_size) * math.pi
+        )
+        # initialize weights_xavier of quantiles_proposal network
+        quantiles_proposal_fc = nn.Linear(hidden_size, num_quantiles)
+        torch.nn.init.xavier_uniform_(quantiles_proposal_fc.weight, gain=0.01)
+        torch.nn.init.constant_(quantiles_proposal_fc.bias, 0)
+        self.quantiles_proposal = nn.Sequential(quantiles_proposal_fc, nn.LogSoftmax(dim=1))
+
+    def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+           Deterministic parametric function trained to reparameterize samples from the quantiles_proposal network. \
+           By repeated Bellman update iterations of Q-learning, the optimal action-value function is estimated.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The encoded embedding tensor of parametric sample.
+        Returns:
+            - quantile_net (:obj:`torch.Tensor`): Quantile network output tensor after reparameterization.
+        Examples:
+            >>> head = FQFHead(64, 64)
+            >>> quantiles = torch.randn(4,32)
+            >>> qn_output = head.quantile_net(quantiles)
+            >>> assert isinstance(qn_output, torch.Tensor)
+            >>> # default quantile_embedding_size: int = 128,
+            >>> assert qn_output.shape == torch.Size([4, 32, 64])
+        """
+        batch_size, num_quantiles = quantiles.shape[:2]
+        quantile_net = torch.cos(self.sigma_pi.to(quantiles) * quantiles.view(batch_size, num_quantiles, 1))
+        quantile_net = self.fqf_fc(quantile_net)  # (batch_size, num_quantiles, hidden_size)
+        return quantile_net
+
+    def forward(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> Dict:
+        """
+        Overview:
+            Use encoded embedding tensor to run MLP with ``FQFHead`` and return the prediction dictionary.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
+                ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), \
+                ``quantiles_hats`` (:obj:`torch.Tensor`), \
+                ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+            - q: :math:`(B, num_quantiles, M)`.
+            - quantiles: :math:`(B, num_quantiles + 1)`.
+            - quantiles_hats: :math:`(B, num_quantiles)`.
+            - q_tau_i: :math:`(B, num_quantiles - 1, M)`.
+            - entropies: :math:`(B, 1)`.
+        Examples:
+            >>> head = FQFHead(64, 64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default num_quantiles is 32
+            >>> assert outputs['q'].shape == torch.Size([4, 32, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 33])
+            >>> assert outputs['quantiles_hats'].shape == torch.Size([4, 32])
+            >>> assert outputs['q_tau_i'].shape == torch.Size([4, 31, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 1])
+        """
+
+        if num_quantiles is None:
+            num_quantiles = self.num_quantiles
+        batch_size = x.shape[0]
+
+        log_q_quantiles = self.quantiles_proposal(
+            x.detach()
+        )  # (batch_size, num_quantiles), not to update encoder when learning w1_loss(fraction loss)
+        q_quantiles = log_q_quantiles.exp()
+
+        # Calculate entropies of value distributions.
+        entropies = -(log_q_quantiles * q_quantiles).sum(dim=-1, keepdim=True)  # (batch_size, 1)
+        assert entropies.shape == (batch_size, 1)
+
+        # accumalative softmax
+        q_quantiles = torch.cumsum(q_quantiles, dim=1)
+
+        # quantile_hats: find the optimal condition for τ to minimize W1(Z, τ)
+        tau_0 = torch.zeros((batch_size, 1)).to(x)
+        q_quantiles = torch.cat((tau_0, q_quantiles), dim=1)  # [batch_size, num_quantiles+1]
+
+        q_quantiles_hats = (q_quantiles[:, 1:] + q_quantiles[:, :-1]).detach() / 2.  # (batch_size, num_quantiles)
+
+        q_quantile_net = self.quantile_net(q_quantiles_hats)  # [batch_size, num_quantiles, hidden_size(64)]
+        # x.view[batch_size, 1, hidden_size(64)]
+        q_x = (x.view(batch_size, 1, -1) * q_quantile_net)  # [batch_size, num_quantiles, hidden_size(64)]
+
+        q = self.Q(q_x)  # [batch_size, num_quantiles, action_dim(64)]
+
+        logit = q.mean(1)
+        with torch.no_grad():
+            q_tau_i_net = self.quantile_net(
+                q_quantiles[:, 1:-1].detach()
+            )  # [batch_size, num_quantiles-1, hidden_size(64)]
+            q_tau_i_x = (x.view(batch_size, 1, -1) * q_tau_i_net)  # [batch_size, (num_quantiles-1), hidden_size(64)]
+
+            q_tau_i = self.Q(q_tau_i_x)  # [batch_size, num_quantiles-1, action_dim(64)]
+
+        return {
+            'logit': logit,
+            'q': q,
+            'quantiles': q_quantiles,
+            'quantiles_hats': q_quantiles_hats,
+            'q_tau_i': q_tau_i,
+            'entropies': entropies
+        }
 
 
 class DuelingHead(nn.Module):
