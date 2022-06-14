@@ -5,7 +5,6 @@ import torch
 import treetensor.numpy as tnp
 from easydict import EasyDict
 from unittest.mock import Mock
-from copy import deepcopy
 
 from ding.torch_utils import to_device
 from ding.league.player import PlayerMeta
@@ -15,6 +14,8 @@ from ding.policy import PPOPolicy
 from dizoo.distar.envs.distar_env import DIStarEnv
 from ding.envs import BaseEnvManager
 import treetensor.torch as ttorch
+from ding.envs import BaseEnvTimestep
+from distar.agent.default.lib.features import Features
 
 if TYPE_CHECKING:
     from ding.framework import BattleContext
@@ -195,18 +196,86 @@ class DIStarMockPolicy(PPOPolicy):
         # return super()._forward_learn(data)
         return
 
-    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
-        print("Call forward_collect:")
+    # def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+    #     data = {i: torch.rand(self.policy.model.obs_shape) for i in range(self.cfg.env.collector_env_num)}
+    #     return super()._forward_eval(data)
+
+
+class DIstarCollectMode:
+
+    def __init__(self) -> None:
+        self._cfg = EasyDict(dict(collect=dict(n_episode=1)))
+        self._feature = None
+        self._race = 'zerg'
+
+    def load_state_dict(self, state_dict):
+        return
+
+    def get_attribute(self, name: str) -> Any:
+        if hasattr(self, '_get_' + name):
+            return getattr(self, '_get_' + name)()
+        elif hasattr(self, '_' + name):
+            return getattr(self, '_' + name)
+        else:
+            raise NotImplementedError
+
+    def reset(self, data_id: Optional[List[int]] = None) -> None:
+        pass
+
+    def _pre_process(self, obs):
+        agent_obs = self._feature.transform_obs(obs['raw_obs'], padding_spatial=True)
+        self._game_info = agent_obs.pop('game_info')
+        self._game_step = self._game_info['game_loop']
+
+        last_selected_units = torch.zeros(agent_obs['entity_num'], dtype=torch.int8)
+        last_targeted_unit = torch.zeros(agent_obs['entity_num'], dtype=torch.int8)
+
+        agent_obs['entity_info']['last_selected_units'] = last_selected_units
+        agent_obs['entity_info']['last_targeted_unit'] = last_targeted_unit
+
+        self._observation = agent_obs
+
+    def forward(self, policy_obs: Dict[int, Any]) -> Dict[int, Any]:
+        # print("Call forward_collect:")
+        self._pre_process(policy_obs)
         return_data = {}
-        return_data['action'] = DIStarEnv.random_action(data)
+        return_data['action'] = DIStarEnv.random_action(policy_obs)
         return_data['logit'] = [1]
         return_data['value'] = [0]
 
         return return_data
 
-    # def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
-    #     data = {i: torch.rand(self.policy.model.obs_shape) for i in range(self.cfg.env.collector_env_num)}
-    #     return super()._forward_eval(data)
+    def process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        next_obs = timestep.obs
+        reward = timestep.reward
+        done = timestep.done
+        agent_obs = self._observation
+        step_data = {
+            'obs': {
+                'map_name': 'KingsCove',
+                'spatial_info': agent_obs['spatial_info'],
+                # 'spatial_info_ref': spatial_info_ref,
+                'entity_info': agent_obs['entity_info'],
+                'scalar_info': agent_obs['scalar_info'],
+                'entity_num': agent_obs['entity_num'],
+                'step': torch.tensor(self._game_step, dtype=torch.float)
+            },
+            'next_obs': {},
+            'logit': model_output['logit'],
+            'action': model_output['action'],
+            'value': model_output['value'],
+            # 'successive_logit': deepcopy(teacher_output['logit']),
+            'reward': reward,
+            'done': done
+        }
+        return step_data
+
+
+class DIStarMockPolicyCollect:
+
+    def __init__(self):
+
+        self.collect_mode = DIstarCollectMode()
 
 
 def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
@@ -215,7 +284,14 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
 
         if env.closed:
             env.launch()
-        
+
+        # TODO: Just for distar
+        races = ['zerg', 'zerg']
+        for policy_index, p in enumerate(ctx.current_policies):
+            if p._feature is None:
+                p._feature = Features(env._envs[0].game_info[policy_index], env.ready_obs[0][policy_index]['raw_obs'])
+                p._race = races[policy_index]
+
         # Get current env obs.
         obs = env.ready_obs
         # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
@@ -243,7 +319,6 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
     return _battle_inferencer
 
 
-from ding.envs import BaseEnvTimestep
 def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
 
     def _battle_rolloutor(ctx: "BattleContext"):
@@ -253,10 +328,10 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
         for env_id, timestep in timesteps.items():
             for policy_id in ctx.obs[env_id].keys():
                 policy_timestep = BaseEnvTimestep(
-                    obs = timestep.obs.get(policy_id) if timestep.obs.get(policy_id) is not None else None,
-                    reward = timestep.reward[policy_id],
-                    done = timestep.done,
-                    info = {}
+                    obs=timestep.obs.get(policy_id) if timestep.obs.get(policy_id) is not None else None,
+                    reward=timestep.reward[policy_id],
+                    done=timestep.done,
+                    info={}
                 )
                 transition = ctx.current_policies[policy_id].process_transition(
                     ctx.obs[env_id][policy_id], ctx.inference_output[env_id][policy_id], policy_timestep
