@@ -33,6 +33,8 @@ class LeagueActor:
         self.model_dict = {}
         self.model_dict_lock = Lock()
 
+        self.agent_num = 2
+
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
         If get newest learner model, put it inside model_queue.
@@ -47,14 +49,15 @@ class LeagueActor:
         """
         self.job_queue.put(job)
 
-    def _get_collector(self, player_id: str, agent_num: int):
+    def _get_collector(self, player_id: str):
         if self._collectors.get(player_id):
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
         collector = task.wrap(
             BattleEpisodeCollector(
-                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num
+                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies,
+                self.agent_num
             )
         )
         self._collectors[player_id] = collector
@@ -107,7 +110,8 @@ class LeagueActor:
         if ctx.job is None:
             return
 
-        collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
+        self.agent_num = len(ctx.job.players)
+        collector = self._get_collector(ctx.job.launch_player)
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
 
@@ -119,9 +123,8 @@ class LeagueActor:
                 ctx.n_episode = _default_n_episode
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
-        ctx.agent_num = len(ctx.current_policies)
         ctx.train_iter = main_player.total_agent_step
-        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+        ctx.episode_info = [[] for _ in range(self.agent_num)]
         ctx.remain_episode = ctx.n_episode
         while True:
             collector(ctx)
@@ -133,7 +136,7 @@ class LeagueActor:
             if ctx.job_finish is True:
                 ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
-                ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+                ctx.episode_info = [[] for _ in range(self.agent_num)]
                 break
 
 
@@ -155,6 +158,8 @@ class StepLeagueActor:
         self.model_dict = {}
         self.model_dict_lock = Lock()
 
+        self.agent_num = 2
+
         # self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
@@ -171,14 +176,15 @@ class StepLeagueActor:
         """
         self.job_queue.put(job)
 
-    def _get_collector(self, player_id: str, agent_num: int):
+    def _get_collector(self, player_id: str):
         if self._collectors.get(player_id):
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
         collector = task.wrap(
             BattleStepCollector(
-                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num
+                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies,
+                self.agent_num
             )
         )
         self._collectors[player_id] = collector
@@ -231,11 +237,11 @@ class StepLeagueActor:
         if ctx.job is None:
             return
         print('For actor {}, a job begin \n'.format(task.router.node_id), flush=True)
+        self.agent_num = len(ctx.job.players)
 
-        collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
+        collector = self._get_collector(ctx.job.launch_player)
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
-        ctx.agent_num = len(ctx.current_policies)
 
         _default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
         if ctx.n_episode is None:
@@ -246,7 +252,7 @@ class StepLeagueActor:
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
         ctx.train_iter = main_player.total_agent_step
-        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+        ctx.episode_info = [[] for _ in range(self.agent_num)]
         ctx.remain_episode = ctx.n_episode
 
         while True:
@@ -266,6 +272,6 @@ class StepLeagueActor:
             if ctx.job_finish is True:
                 ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
-                ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+                ctx.episode_info = [[] for _ in range(self.agent_num)]
                 print('Actor {} job finish, send job\n'.format(task.router.node_id), flush=True)
                 break
