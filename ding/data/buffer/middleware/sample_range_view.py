@@ -5,6 +5,13 @@ if TYPE_CHECKING:
 
 
 def sample_range_view(buffer_: 'Buffer', start: Optional[int] = None, end: Optional[int] = None) -> Callable:
+    """
+    Overview:
+        The middleware that places restrictions on indices range when sampling.
+    Arguments:
+        - start (:obj:`int`): The starting index.
+        - end (:obj:`int`): One above the ending index.
+    """
     assert start is not None or end is not None
     if start and start < 0:
         start = buffer_.size + start
