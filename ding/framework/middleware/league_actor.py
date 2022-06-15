@@ -115,12 +115,7 @@ class LeagueActor:
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
 
-        _default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
-        if ctx.n_episode is None:
-            if _default_n_episode is None:
-                raise RuntimeError("Please specify collect n_episode")
-            else:
-                ctx.n_episode = _default_n_episode
+        ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
         ctx.train_iter = main_player.total_agent_step
@@ -148,8 +143,6 @@ class StepLeagueActor:
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
         self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
-        self.n_sample = self.cfg.policy.collect.get("n_sample") or 1
-        self.unroll_len = self.cfg.policy.collect.get("unroll_len") or 1
         self._collectors: Dict[str, BattleEpisodeCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
@@ -243,12 +236,7 @@ class StepLeagueActor:
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
 
-        _default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
-        if ctx.n_episode is None:
-            if _default_n_episode is None:
-                raise RuntimeError("Please specify collect n_episode")
-            else:
-                ctx.n_episode = _default_n_episode
+        ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
         ctx.train_iter = main_player.total_agent_step
