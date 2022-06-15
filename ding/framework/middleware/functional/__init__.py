@@ -6,7 +6,7 @@ from .evaluator import interaction_evaluator
 from .termination_checker import termination_checker, ddp_termination_checker
 from .pace_controller import pace_controller
 from .logger import online_logger, offline_logger
-from .exchanger import context_exchanger, model_exchanger
+from .distributer import model_exchanger
 
 # algorithm
 from .explorer import eps_greedy_handler, eps_greedy_masker

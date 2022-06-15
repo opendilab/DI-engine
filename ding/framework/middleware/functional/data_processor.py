@@ -19,6 +19,8 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         - cfg (:obj:`EasyDict`): Config.
         - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
     """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     def _push(ctx: "OnlineRLContext"):
         """

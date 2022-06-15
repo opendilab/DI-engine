@@ -7,8 +7,11 @@ import asyncio
 import concurrent.futures
 import fnmatch
 import math
+import enum
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
+import inspect
+
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from ding.framework.event_loop import EventLoop
@@ -50,11 +53,24 @@ def enable_async(func: Callable) -> Callable:
     return runtime_handler
 
 
+class Role(str, enum.Enum):
+    LEARNER = "learner"
+    COLLECTOR = "collector"
+    EVALUATOR = "evaluator"
+
+
+class VoidMiddleware:
+
+    def __call__(self, _):
+        return
+
+
 class Task:
     """
     Tash will manage the execution order of the entire pipeline, register new middleware,
     and generate new context objects.
     """
+    role = Role
 
     def start(
             self,
@@ -71,6 +87,7 @@ class Task:
         self._wrappers = []
         self.ctx = ctx or Context()
         self._backward_stack = OrderedDict()
+        self._roles = set()
         # Bind event loop functions
         self._event_loop = EventLoop("task_{}".format(id(self)))
 
@@ -99,6 +116,21 @@ class Task:
         self.init_labels()
         return self
 
+    def add_role(self, role: Role):
+        self._roles.add(role)
+
+    def has_role(self, role: Role) -> bool:
+        if len(self._roles) == 0:
+            return True
+        return role in self._roles
+
+    @property
+    def roles(self) -> Set[Role]:
+        return self._roles
+
+    def void(self):
+        return VoidMiddleware()
+
     def init_labels(self):
         if self.async_mode:
             self.labels.add("async")
@@ -120,6 +152,9 @@ class Task:
         Returns:
             - task (:obj:`Task`): The task.
         """
+        assert isinstance(fn, Callable), "Middleware function should be a callable object, current fn {}".format(fn)
+        if isinstance(fn, VoidMiddleware):  # Skip void function
+            return self
         for wrapper in self._wrappers:
             fn = wrapper(fn)
         self._middleware.append(self.wrap(fn, lock=lock))

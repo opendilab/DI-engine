@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Any, List, Union
+from typing import Callable, Any, List, Union
 from abc import ABC, abstractmethod
 from collections import deque
 from ditk import logging
@@ -153,6 +153,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
         - policy (:obj:`Policy`): The policy to be evaluated.
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
     """
+    if task.router.is_active and not task.has_role(task.role.EVALUATOR):
+        return task.void()
 
     env.seed(cfg.seed, dynamic_seed=False)
 
