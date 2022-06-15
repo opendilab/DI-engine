@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 import torch
 
+from ding.compatibility import torch_ge_180
 from ding.torch_utils import one_hot
 
 num_first_one_hot = partial(one_hot, num_first=True)
@@ -204,21 +205,21 @@ def batch_binary_encode(x: torch.Tensor, bit_num: int) -> torch.Tensor:
 def compute_denominator(x: torch.Tensor) -> torch.Tensor:
     """
     Overview:
-        Compute the denominator used in ``get_postion_vector``.
+        Compute the denominator used in ``get_postion_vector``. \
         Divide 1 at the last step, so you can use it as an multiplier.
     Arguments:
-        - x (:obj:`torch.Tensor`): torch.arange(0, d_model), ranging from 0 to d_model
+        - x (:obj:`torch.Tensor`): Input tensor, which is generated from torch.arange(0, d_model).
     Returns:
-        - ret (:obj:`torch.Tensor`):
+        - ret (:obj:`torch.Tensor`): Denominator result tensor.
     """
-    x = x // 2 * 2
+    if torch_ge_180():
+        x = torch.div(x, 2, rounding_mode='trunc') * 2
+    else:
+        x = torch.div(x, 2) * 2
     x = torch.div(x, 64.)
     x = torch.pow(10000., x)
     x = torch.div(1., x)
     return x
-
-
-POSITION_ARRAY = compute_denominator(torch.arange(0, 64, dtype=torch.float))  # d_model = 64
 
 
 def get_postion_vector(x: list) -> torch.Tensor:
@@ -230,6 +231,8 @@ def get_postion_vector(x: list) -> torch.Tensor:
     Returns:
         - v (:obj:`torch.Tensor`): position embedding tensor in 64 dims
     """
+    # TODO use lru_cache to optimize it
+    POSITION_ARRAY = compute_denominator(torch.arange(0, 64, dtype=torch.float))  # d_model = 64
     v = torch.zeros(64, dtype=torch.float)
     x = torch.FloatTensor(x)
     v[0::2] = torch.sin(x * POSITION_ARRAY[0::2])  # even

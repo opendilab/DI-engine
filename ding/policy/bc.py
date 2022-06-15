@@ -18,15 +18,19 @@ from ding.utils import POLICY_REGISTRY
 
 
 @POLICY_REGISTRY.register('bc')
-class DiscreteBehaviourCloningPolicy(Policy):
+class BehaviourCloningPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'bc', ['ding.model.template.bc']
+        if self._cfg.continuous:
+            return 'continuous_bc', ['ding.model.template.bc']
+        else:
+            return 'discrete_bc', ['ding.model.template.bc']
 
     config = dict(
         type='bc',
         cuda=False,
         on_policy=False,
+        continuous=False,
         learn=dict(
             multi_gpu=False,
             update_per_collect=1,
@@ -44,18 +48,17 @@ class DiscreteBehaviourCloningPolicy(Policy):
             lr=self._cfg.learn.learning_rate,
         )
         self._timer = EasyTimer(cuda=True)
-
-        #def lr_scheduler_fn(epoch):
-        #    if epoch <= self._cfg.learn.warmup_epoch:
-        #        return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
-        #    else:
-        #        ratio = epoch // self._cfg.learn.decay_epoch
-        #        return math.pow(self._cfg.learn.decay_rate, ratio)
-        #self._lr_scheduler = LambdaLR(self._optimizer, lr_scheduler_fn)
-        #self._lr_scheduler.step()
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
-        self._ce_loss = nn.CrossEntropyLoss()
+        if self._cfg.continuous:
+            if self._cfg.loss_type == 'l1_loss':
+                self._loss = nn.L1Loss()
+            elif self._cfg.loss_type == 'mse_loss':
+                self._loss = nn.MSELoss()
+            else:
+                raise KeyError
+        else:
+            self._loss = nn.CrossEntropyLoss()
 
     def _forward_learn(self, data):
         if not isinstance(data, dict):
@@ -68,8 +71,12 @@ class DiscreteBehaviourCloningPolicy(Policy):
                 obs, action = data
             else:
                 obs, action = data['obs'], data['action'].squeeze()
-            a_logit = self._learn_model.forward(obs)
-            loss = self._ce_loss(a_logit['logit'], action)
+            if self._cfg.continuous:
+                mu = self._eval_model.forward(data['obs'])['action']
+                loss = self._loss(mu, action)
+            else:
+                a_logit = self._learn_model.forward(obs)
+                loss = self._loss(a_logit['logit'], action)
         forward_time = self._timer.value
         with self._timer:
             self._optimizer.zero_grad()
@@ -94,30 +101,29 @@ class DiscreteBehaviourCloningPolicy(Policy):
         return ['cur_lr', 'total_loss', 'forward_time', 'backward_time', 'sync_time']
 
     def _init_eval(self):
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        if self._cfg.continuous:
+            self._eval_model = model_wrap(self._model, wrapper_name='base')
+        else:
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data):
-        if self.cfg.eval.evaluator.cfg_type == 'MetricSerialEvaluatorDict' or isinstance(data, torch.Tensor):
+        tensor_input = isinstance(data, torch.Tensor)
+        if tensor_input:
             data = default_collate(list(data))
-            if self._cuda:
-                data = to_device(data, self._device)
-            self._eval_model.eval()
-            with torch.no_grad():
-                output = self._eval_model.forward(data)
-            if self._cuda:
-                output = to_device(output, 'cpu')
-            return output
         else:
             data_id = list(data.keys())
             data = default_collate(list(data.values()))
-            if self._cuda:
-                data = to_device(data, self._device)
-            self._eval_model.eval()
-            with torch.no_grad():
-                output = self._eval_model.forward(data)
-            if self._cuda:
-                output = to_device(output, 'cpu')
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
+        with torch.no_grad():
+            output = self._eval_model.forward(data)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        if tensor_input:
+            return output
+        else:
             output = default_decollate(output)
             return {i: d for i, d in zip(data_id, output)}
 
@@ -129,9 +135,10 @@ class DiscreteBehaviourCloningPolicy(Policy):
             Enable the eps_greedy_sample
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        #self._gamma = self._cfg.discount_factor  # necessary for parallel
-        #self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        if self._cfg.continuous:
+            self._collect_model = model_wrap(self._model, wrapper_name='base')
+        else:
+            self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
@@ -149,7 +156,10 @@ class DiscreteBehaviourCloningPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, eps=eps)
+            if self._cfg.continuous:
+                output = self._collect_model.forward(data)
+            else:
+                output = self._collect_model.forward(data, eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
