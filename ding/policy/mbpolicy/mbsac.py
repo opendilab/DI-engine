@@ -223,7 +223,7 @@ class MBSACPolicy(SACPolicy):
         ] + alpha_loss
 
 
-@POLICY_REGISTRY.register('stevembsac')
+@POLICY_REGISTRY.register('stevesac')
 class STEVESACPolicy(SACPolicy):
     """
        Overview:
@@ -328,9 +328,8 @@ class STEVESACPolicy(SACPolicy):
             target_q_values = target_q_values + aug_rewards
 
         # (T+1, E, B)
-        dones = torch.concat([torch.zeros_like(data['done']).unsqueeze(0), dones])
-        discounts = (1 - dones).cumprod(dim=0) * (self._gamma ** torch.arange(target_q_values.shape[0] + 1)
-                                                  ).unsqueeze(-1).unsqueeze(-1).to(dones.device)
+        discounts = ((1 - dones) * self._gamma).cumprod(dim=0)
+        discounts = torch.concat([torch.ones_like(discounts)[:1], discounts])
         # (T, E, B)
         cum_rewards = (rewards * discounts[:-1]).cumsum(dim=0)
         discounted_q_values = target_q_values * discounts[1:]

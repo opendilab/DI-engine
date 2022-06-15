@@ -303,7 +303,6 @@ class DreamWorldModel(WorldModel, ABC):
             - actor_fn's inputs and outputs shape are similar to WorldModel.step()
         """
         horizon = self.rollout_length_scheduler(envstep)
-        device = 'cuda' if self._cuda else 'cpu'
         if isinstance(self, nn.Module):
             # Rollouts should propagate gradients only to policy,
             # so make sure that the world model is not updated by rollout.
@@ -332,9 +331,9 @@ class DreamWorldModel(WorldModel, ABC):
             torch.stack(obss),
             torch.stack(actions),
             # rewards is an empty list when horizon=0
-            torch.stack(rewards) if rewards else torch.tensor(rewards, device=device),
+            torch.stack(rewards) if rewards else torch.tensor(rewards, device=obs.device),
             torch.stack(aug_rewards),
-            torch.stack(dones) if dones else torch.tensor(dones, device=device)
+            torch.stack(dones) if dones else torch.tensor(dones, device=obs.device)
         )
 
 

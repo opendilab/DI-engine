@@ -261,7 +261,7 @@ class MBSACCommandModePolicy(MBSACPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('stevesac_command')
-class MBSACCommandModePolicy(STEVESACPolicy, DummyCommandModePolicy):
+class STEVESACCommandModePolicy(STEVESACPolicy, DummyCommandModePolicy):
     pass
 
 
