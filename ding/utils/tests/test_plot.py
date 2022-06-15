@@ -6,6 +6,7 @@ import pytest
 from ding.utils.plot_helper import plot
 from hbutils.testing import isolated_directory
 
+
 @pytest.mark.unittest
 def test_plot():
     rewards1 = np.array([0, 0.1, 0, 0.2, 0.4, 0.5, 0.6, 0.9, 0.9, 0.9])
