@@ -248,25 +248,20 @@ class StepLeagueActor:
         ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(ctx.agent_num)]
         ctx.remain_episode = ctx.n_episode
-        ctx.n_sample = self.n_sample
-        ctx.unroll_len = self.unroll_len
+
         while True:
             collector(ctx)
 
             if not ctx.job.is_eval and len(ctx.trajectories_list[0]) > 0:
-                ctx.trajectories = ctx.trajectories_list[0]
-                ctx.trajectory_end_idx = ctx.trajectory_end_idx_list[0]
-                print('actor {}, len trajectories {}'.format(task.router.node_id, len(ctx.trajectories)), flush=True)
-                # self._gae_estimator(ctx)
-                # actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.train_data)
-                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.trajectories)
+                trajectories = ctx.trajectories_list[0]
+                trajectory_end_idx = ctx.trajectory_end_idx_list[0]
+                print('actor {}, len trajectories {}'.format(task.router.node_id, len(trajectories)), flush=True)
+                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
                 print('Actor {} send data\n'.format(task.router.node_id), flush=True)
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []
-                ctx.trajectories = []
-                ctx.trajectory_end_idx = None
 
             if ctx.job_finish is True:
                 ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
