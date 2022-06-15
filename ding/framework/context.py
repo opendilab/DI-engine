@@ -103,6 +103,10 @@ class BattleContext(Context):
         self.job = None
         self.job_finish = False
 
+        #data
+        self.obs = None
+        self.actions = None
+
         #Return data paras
         self.episodes = []
         self.episode_info = []

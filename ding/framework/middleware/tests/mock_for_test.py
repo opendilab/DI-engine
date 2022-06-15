@@ -323,6 +323,17 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
+        error_env_id_list = []
+        for env_id, timestep in timesteps.items():
+            if timestep.info.get('step_error'):
+                error_env_id_list.append(env_id)
+                ctx.total_envstep_count -= transitions_list[0].length(env_id)
+                ctx.env_step -= transitions_list[0].length(env_id)
+                for transitions in transitions_list:
+                    transitions.clear(env_id)
+        for error_env_id in error_env_id_list:
+            del timesteps[error_env_id]
+
         ctx.total_envstep_count += len(timesteps)
         ctx.env_step += len(timesteps)
         for env_id, timestep in timesteps.items():
