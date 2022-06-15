@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from ding.utils.plot_helper import plot
-
+from hbutils.testing import isolated_directory
 
 @pytest.mark.unittest
 def test_plot():
@@ -31,5 +31,6 @@ def test_plot():
     data2['label'] = 'line2'
 
     data = [data1, data2]
-    plot(data, 'step', 'reward_rate', 'test_pic', './pic.jpg')
-    assert os.path.exists('./pic.jpg')
+    with isolated_directory():
+        plot(data, 'step', 'reward_rate', 'test_pic', './pic.jpg')
+        assert os.path.exists('./pic.jpg')
