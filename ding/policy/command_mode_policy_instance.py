@@ -6,6 +6,7 @@ from .dqn import DQNPolicy, DQNSTDIMPolicy
 from .c51 import C51Policy
 from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
+from .fqf import FQFPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
@@ -37,6 +38,7 @@ from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
+from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 
@@ -118,6 +120,11 @@ class QRDQNCommandModePolicy(QRDQNPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('iqn_command')
 class IQNCommandModePolicy(IQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('fqf_command')
+class FQFCommandModePolicy(FQFPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -262,6 +269,11 @@ class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('cql_discrete_command')
 class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('dt_command')
+class DTCommandModePolicy(DTPolicy, DummyCommandModePolicy):
     pass
 
 
