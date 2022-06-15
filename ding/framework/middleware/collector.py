@@ -1,21 +1,19 @@
-from distutils.log import info
 from easydict import EasyDict
-from ding import policy
-from ding.policy import Policy, get_random_policy
+from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task
-from .functional import inferencer, rolloutor, TransitionList, battle_rolloutor
-from .functional import battle_inferencer, battle_rolloutor
-from typing import Dict
+from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor
+from typing import Dict, TYPE_CHECKING
 
-# if TYPE_CHECKING:
-from ding.framework import OnlineRLContext, BattleContext
+if TYPE_CHECKING:
+    from ding.framework import OnlineRLContext, BattleContext
 
 
 class BattleEpisodeCollector:
 
     def __init__(
-        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int
+        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict,
+        agent_num: int
     ):
         self.cfg = cfg
         self.end_flag = False
@@ -78,18 +76,23 @@ class BattleEpisodeCollector:
 
             self.total_envstep_count = ctx.total_envstep_count
 
-            if (self.n_rollout_samples > 0 and ctx.env_episode - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
+            if (self.n_rollout_samples > 0
+                    and ctx.env_episode - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
                 for transitions in self._transitions_list:
                     ctx.episodes.append(transitions.to_episodes())
                     transitions.clear()
                 if ctx.env_episode >= ctx.n_episode:
                     ctx.job_finish = True
+                    self.env.close()
                 break
 
 
 class BattleStepCollector:
 
-    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict, agent_num: int):
+    def __init__(
+        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict,
+        agent_num: int
+    ):
         self.cfg = cfg
         self.end_flag = False
         # self._reset(env)
@@ -116,9 +119,9 @@ class BattleStepCollector:
             return
         self.end_flag = True
         self.env.close()
-    
+
     def _update_policies(self, job) -> None:
-        job_player_id_list = [player.player_id for player in job.players] 
+        job_player_id_list = [player.player_id for player in job.players]
 
         for player_id in job_player_id_list:
             if self.model_dict.get(player_id) is None:
@@ -144,7 +147,7 @@ class BattleStepCollector:
         """
         ctx.total_envstep_count = self.total_envstep_count
         old = ctx.env_step
-        
+
         while True:
             self._update_policies(ctx.job)
             self._battle_inferencer(ctx)
@@ -152,14 +155,16 @@ class BattleStepCollector:
 
             self.total_envstep_count = ctx.total_envstep_count
 
-            if (self.n_rollout_samples > 0 and ctx.env_step - old >= self.n_rollout_samples) or ctx.env_step >= ctx.n_sample * ctx.unroll_len:
+            if (self.n_rollout_samples > 0
+                    and ctx.env_step - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
                 for transitions in self._transitions_list:
                     trajectories, trajectory_end_idx = transitions.to_trajectories()
                     ctx.trajectories_list.append(trajectories)
                     ctx.trajectory_end_idx_list.append(trajectory_end_idx)
                     transitions.clear()
-                if ctx.env_step >= ctx.n_sample * ctx.unroll_len:
+                if ctx.env_episode >= ctx.n_episode:
                     ctx.job_finish = True
+                    self.env.close()
                 break
 
 

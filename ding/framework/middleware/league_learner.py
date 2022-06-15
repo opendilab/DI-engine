@@ -37,16 +37,20 @@ class LeagueLearner:
         self._step = 0
 
     def _on_actor_send_data(self, actor_data: "ActorData"):
-        print("receive data from actor!")
+        print("learner receive data from actor! \n")
         with self._lock:
             cfg = self.cfg
             for _ in range(cfg.policy.learn.update_per_collect):
-                print("train model")
-                self._learner.train(actor_data.train_data, actor_data.env_step)
+                pass
+                # print("train model")
+                # prinst(actor_data.train_data)
+                # self._learner.train(actor_data.train_data, actor_data.env_step)
 
         self.player.total_agent_step = self._learner.train_iter
-        print("save checkpoint")
+        # print("save checkpoint")
         checkpoint = self._save_checkpoint() if self.player.is_trained_enough() else None
+
+        print('learner send player meta\n')
         task.emit(
             EventEnum.LEARNER_SEND_META,
             PlayerMeta(player_id=self.player_id, checkpoint=checkpoint, total_agent_step=self._learner.train_iter)
@@ -56,6 +60,7 @@ class LeagueLearner:
         learner_model = LearnerModel(
             player_id=self.player_id, state_dict=self._learner.policy.state_dict(), train_iter=self._learner.train_iter
         )
+        print('learner send model\n')
         task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
 
     def _get_learner(self) -> BaseLearner:
@@ -80,5 +85,5 @@ class LeagueLearner:
 
     def __call__(self, _: "Context") -> None:
         sleep(1)
-        logging.info("{} Step: {}".format(self.__class__, self._step))
-        self._step += 1
+        # logging.info("{} Step: {}".format(self.__class__, self._step))
+        # self._step += 1

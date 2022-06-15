@@ -1,19 +1,20 @@
 from ding.framework import task, EventEnum
 import logging
 
-from typing import Dict, Callable
+from typing import TYPE_CHECKING, Dict, Callable
 
-from easydict import EasyDict
-
-from ding.framework import BattleContext
-from ding.league.v2.base_league import Job
 from ding.policy import Policy
-from ding.framework.middleware.league_learner import LearnerModel
-from ding.framework.middleware import BattleEpisodeCollector, BattleStepCollector, gae_estimator
+from ding.framework.middleware import BattleEpisodeCollector, BattleStepCollector
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from threading import Lock
 import queue
+from easydict import EasyDict
+
+if TYPE_CHECKING:
+    from ding.league.v2.base_league import Job
+    from ding.framework import BattleContext
+    from ding.framework.middleware.league_learner import LearnerModel
 
 
 class LeagueActor:
@@ -36,7 +37,7 @@ class LeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
-        print("receive model from learner")
+        print("Actor receive model from learner \n")
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -51,7 +52,11 @@ class LeagueActor:
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
-        collector = task.wrap(BattleEpisodeCollector(cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num))
+        collector = task.wrap(
+            BattleEpisodeCollector(
+                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num
+            )
+        )
         self._collectors[player_id] = collector
         return collector
 
@@ -101,7 +106,7 @@ class LeagueActor:
         ctx.job = self._get_job()
         if ctx.job is None:
             return
-        
+
         collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
@@ -150,12 +155,13 @@ class StepLeagueActor:
         self.model_dict = {}
         self.model_dict_lock = Lock()
 
-        self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
+        # self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
         If get newest learner model, put it inside model_queue.
         """
+        print('Actor got model \n')
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -170,7 +176,11 @@ class StepLeagueActor:
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
-        collector = task.wrap(BattleStepCollector(cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num))
+        collector = task.wrap(
+            BattleStepCollector(
+                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num
+            )
+        )
         self._collectors[player_id] = collector
         return collector
 
@@ -194,8 +204,8 @@ class StepLeagueActor:
             job = self.job_queue.get(timeout=10)
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
-        
-        return job 
+
+        return job
 
     def _get_current_policies(self, job):
         current_policies = []
@@ -215,13 +225,13 @@ class StepLeagueActor:
 
         return main_player, current_policies
 
-
     def __call__(self, ctx: "BattleContext"):
 
         ctx.job = self._get_job()
         if ctx.job is None:
             return
-        
+        print('For actor, a job begin \n')
+
         collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
 
         main_player, ctx.current_policies = self._get_current_policies(ctx.job)
@@ -238,7 +248,7 @@ class StepLeagueActor:
         ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(ctx.agent_num)]
         ctx.remain_episode = ctx.n_episode
-        ctx.n_sample = self.n_sample 
+        ctx.n_sample = self.n_sample
         ctx.unroll_len = self.unroll_len
         while True:
             collector(ctx)
@@ -250,7 +260,7 @@ class StepLeagueActor:
                 # actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.train_data)
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
-                print('sending data')
+                print('Actor send data\n')
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []
@@ -261,4 +271,5 @@ class StepLeagueActor:
                 ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
                 ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+                print('Actor job finish, send job\n')
                 break
