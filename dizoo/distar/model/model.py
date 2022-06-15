@@ -6,7 +6,8 @@ import os.path as osp
 import torch
 import torch.nn as nn
 
-from ding.utils import read_yaml_config, deep_merge_dicts, default_collate
+from ding.utils import read_yaml_config, deep_merge_dicts
+from ding.utils.data import default_collate
 from ding.torch_utils import detach_grad, script_lstm
 from dizoo.distar.envs import MAX_SELECTED_UNITS_NUM
 from .encoder import Encoder
@@ -19,21 +20,23 @@ alphastar_model_default_config = read_yaml_config(osp.join(osp.dirname(__file__)
 
 class Model(nn.Module):
 
-    def __init__(self, cfg={}, use_value_network=False):
+    def __init__(self, cfg, use_value_network=False):
         super(Model, self).__init__()
-        self.whole_cfg = deep_merge_dicts(alphastar_model_default_config, cfg)
-        self.cfg = self.whole_cfg.model
-        self.encoder = Encoder(self.whole_cfg)
-        self.policy = Policy(self.whole_cfg)
-        self._use_value_feature = self.whole_cfg.learner.use_value_feature
-        if use_value_network:
-            if self._use_value_feature:
-                self.value_encoder = ValueEncoder(self.whole_cfg)
+        self.cfg = deep_merge_dicts(alphastar_model_default_config, cfg).model
+        self.encoder = Encoder(self.cfg)
+        self.policy = Policy(self.cfg)
+        self.use_value_network = use_value_network
+        if self.use_value_network:
+            self.use_value_feature = self.cfg.value.use_value_feature
+            if self.use_value_feature:
+                self.value_encoder = ValueEncoder(self.cfg.value)
             self.value_networks = nn.ModuleDict()
             for k, v in self.cfg.value.items():
                 if k in self.cfg.enable_baselines:
                     # creating a ValueBaseline network for each baseline, to be used in _critic_forward
-                    self.value_networks[v.name] = ValueBaseline(v.param, self._use_value_feature)
+                    value_cfg = v.param
+                    value_cfg['use_value_feature'] = self.use_value_feature
+                    self.value_networks[v.name] = ValueBaseline(value_cfg)
                     # name of needed cumulative stat items
         self.only_update_baseline = self.cfg.only_update_baseline
         self.core_lstm = script_lstm(
@@ -106,6 +109,7 @@ class Model(nn.Module):
         self, spatial_info, entity_info, scalar_info, entity_num, hidden_state, action_info, selected_units_num,
         behaviour_logp, teacher_logit, mask, reward, step, batch_size, unroll_len, **kwargs
     ):
+        assert self.use_value_network
         flat_action_info = {}
         for k, val in action_info.items():
             flat_action_info[k] = torch.flatten(val, start_dim=0, end_dim=1)
@@ -138,7 +142,7 @@ class Model(nn.Module):
         if self.only_update_baseline:
             critic_input = detach_grad(critic_input)
             baseline_feature = detach_grad(baseline_feature)
-        if self._use_value_feature:
+        if self.use_value_feature:
             value_feature = kwargs['value_feature']
             value_feature = self.value_encoder(value_feature)
             critic_input = torch.cat([critic_input, value_feature, baseline_feature], dim=1)
