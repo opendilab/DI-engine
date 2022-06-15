@@ -35,7 +35,3 @@ def test_handle_step_exception():
     assert ctx.env_step == 15
     assert transitions_list[0].length(0) == 0
     assert transitions_list[0].length(1) == 5
-
-
-if __name__ == '__main__':
-    test_handle_step_exception()
