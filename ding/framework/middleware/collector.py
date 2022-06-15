@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Callable, List
 from easydict import EasyDict
 
-from ding.policy import Policy, get_random_policy
+from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task
 from .functional import inferencer, rolloutor, TransitionList

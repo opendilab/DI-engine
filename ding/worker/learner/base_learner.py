@@ -177,7 +177,7 @@ class BaseLearner(object):
         """
         add_learner_hook(self._hooks, hook)
 
-    def train(self, data: dict, envstep: int = -1) -> None:
+    def train(self, data: dict, envstep: int = -1, policy_kwargs: Optional[dict] = None) -> None:
         """
         Overview:
             Given training data, implement network update for one iteration and update related variables.
@@ -198,8 +198,11 @@ class BaseLearner(object):
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
 
+        if policy_kwargs is None:
+            policy_kwargs = {}
+
         # Forward
-        log_vars = self._policy.forward(data)
+        log_vars = self._policy.forward(data, **policy_kwargs)
 
         # Update replay buffer's priority info
         if isinstance(log_vars, dict):

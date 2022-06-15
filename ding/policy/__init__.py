@@ -1,6 +1,7 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
 from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .iqn import IQNPolicy
+from .fqf import FQFPolicy
 from .qrdqn import QRDQNPolicy
 from .c51 import C51Policy
 from .rainbow import RainbowDQNPolicy
@@ -38,4 +39,4 @@ from .command_mode_policy_instance import *
 from .policy_factory import PolicyFactory, get_random_policy
 from .pdqn import PDQNPolicy
 
-from .bc import DiscreteBehaviourCloningPolicy
+from .bc import BehaviourCloningPolicy
