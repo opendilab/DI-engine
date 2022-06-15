@@ -13,8 +13,8 @@ from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DISt
 from distar.ctools.utils import read_config
 from unittest.mock import patch
 
-N_ACTORS = 1
-N_LEARNERS = 1
+N_ACTORS = 2
+N_LEARNERS = 2
 
 
 def prepare_test():
@@ -60,7 +60,7 @@ def _main():
                     learner._learner._tb_logger = MockLogger()
                     task.use(learner)
 
-                task.run(max_step=300)
+                task.run()
 
 
 @pytest.mark.unittest
