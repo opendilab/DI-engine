@@ -96,7 +96,7 @@ class BattleContext(Context):
         self.remain_episode = 0
 
         #job paras
-        self.job = None
+        self.player_id_list = []
         self.job_finish = False
 
         #data

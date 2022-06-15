@@ -106,14 +106,15 @@ class LeagueActor:
 
     def __call__(self, ctx: "BattleContext"):
 
-        ctx.job = self._get_job()
-        if ctx.job is None:
+        job = self._get_job()
+        if job is None:
             return
 
-        self.agent_num = len(ctx.job.players)
-        collector = self._get_collector(ctx.job.launch_player)
+        ctx.player_id_list = [player.player_id for player in job.players]
+        self.agent_num = len(job.players)
+        collector = self._get_collector(job.launch_player)
 
-        main_player, ctx.current_policies = self._get_current_policies(ctx.job)
+        main_player, ctx.current_policies = self._get_current_policies(job)
 
         ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
@@ -124,13 +125,13 @@ class LeagueActor:
         while True:
             collector(ctx)
 
-            if not ctx.job.is_eval and len(ctx.episodes[0]) > 0:
+            if not job.is_eval and len(ctx.episodes[0]) > 0:
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.episodes[0])
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
                 ctx.episodes = []
             if ctx.job_finish is True:
-                ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
-                task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
+                job.result = [e['result'] for e in ctx.episode_info[0]]
+                task.emit(EventEnum.ACTOR_FINISH_JOB, job)
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 break
 
@@ -226,15 +227,16 @@ class StepLeagueActor:
 
     def __call__(self, ctx: "BattleContext"):
 
-        ctx.job = self._get_job()
-        if ctx.job is None:
+        job = self._get_job()
+        if job is None:
             return
         print('For actor {}, a job begin \n'.format(task.router.node_id), flush=True)
-        self.agent_num = len(ctx.job.players)
 
-        collector = self._get_collector(ctx.job.launch_player)
+        ctx.player_id_list = [player.player_id for player in job.players]
+        self.agent_num = len(job.players)
+        collector = self._get_collector(job.launch_player)
 
-        main_player, ctx.current_policies = self._get_current_policies(ctx.job)
+        main_player, ctx.current_policies = self._get_current_policies(job)
 
         ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
@@ -246,20 +248,20 @@ class StepLeagueActor:
         while True:
             collector(ctx)
 
-            if not ctx.job.is_eval and len(ctx.trajectories_list[0]) > 0:
+            if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
                 trajectories = ctx.trajectories_list[0]
                 trajectory_end_idx = ctx.trajectory_end_idx_list[0]
                 print('actor {}, len trajectories {}'.format(task.router.node_id, len(trajectories)), flush=True)
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=trajectories)
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
                 print('Actor {} send data\n'.format(task.router.node_id), flush=True)
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []
 
             if ctx.job_finish is True:
-                ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
-                task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
+                job.result = [e['result'] for e in ctx.episode_info[0]]
+                task.emit(EventEnum.ACTOR_FINISH_JOB, job)
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 print('Actor {} job finish, send job\n'.format(task.router.node_id), flush=True)
                 break
