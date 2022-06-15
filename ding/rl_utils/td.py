@@ -375,7 +375,7 @@ q_nstep_td_data = namedtuple(
 dqfd_nstep_td_data = namedtuple(
     'dqfd_nstep_td_data', [
         'q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'done_one_step', 'weight', 'new_n_q_one_step',
-        'next_n_action_one_step', 'is_expert'
+        'next_n_action_one_step', 'is_expert', 'is_continuous'
     ]
 )
 
@@ -563,16 +563,26 @@ def dqfd_nstep_td_error(
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
     """
-    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step, \
-    is_expert = data  # set is_expert flag(expert 1, agent 0)
-    assert len(action.shape) == 1, action.shape
-    if weight is None:
-        weight = torch.ones_like(action)
+    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, \
+        next_n_action_one_step, is_expert, is_continuous = data  # set is_expert flag(expert 1, agent 0)
+    if is_continuous:
+        q_s_a_agent = q[0]
+        q_s_a = q[1]
+        action_agent = action[0]
+        action_expert = action[1]
+        target_q_s_a = next_n_q
+        target_q_s_a_one_step = new_n_q_one_step
+        if weight is None:
+            weight = torch.ones_like(q_s_a)
+    else:
+        assert len(action.shape) == 1, action.shape
+        if weight is None:
+            weight = torch.ones_like(action)
 
-    batch_range = torch.arange(action.shape[0])
-    q_s_a = q[batch_range, action]
-    target_q_s_a = next_n_q[batch_range, next_n_action]
-    target_q_s_a_one_step = new_n_q_one_step[batch_range, next_n_action_one_step]
+        batch_range = torch.arange(action.shape[0])
+        q_s_a = q[batch_range, action]
+        target_q_s_a = next_n_q[batch_range, next_n_action]
+        target_q_s_a_one_step = new_n_q_one_step[batch_range, next_n_action_one_step]
 
     # calculate n-step TD-loss
     if cum_reward:
@@ -601,10 +611,13 @@ def dqfd_nstep_td_error(
     device = q_s_a.device
     device_cpu = torch.device('cpu')
     # calculate the supervised loss
-    l = margin_function * torch.ones_like(q).to(device_cpu)  # q shape (B, A), action shape (B, )
-    l.scatter_(1, torch.LongTensor(action.unsqueeze(1).to(device_cpu)), torch.zeros_like(q, device=device_cpu))
-    # along the first dimension. for the index of the action, fill the corresponding position in l with 0
-    JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
+    if is_continuous:
+        JE = is_expert * criterion(action_agent, action_expert).mean(-1)
+    else:
+        l = margin_function * torch.ones_like(q).to(device_cpu)  # q shape (B, A), action shape (B, )
+        l.scatter_(1, torch.LongTensor(action.unsqueeze(1).to(device_cpu)), torch.zeros_like(q, device=device_cpu))
+        # along the first dimension. for the index of the action, fill the corresponding position in l with 0
+        JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
 
     return (
         (
