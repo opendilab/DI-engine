@@ -82,8 +82,8 @@ class BattleEpisodeCollector:
                     ctx.episodes.append(transitions.to_episodes())
                     transitions.clear()
                 if ctx.env_episode >= ctx.n_episode:
-                    ctx.job_finish = True
                     self.env.close()
+                    ctx.job_finish = True
                 break
 
 
@@ -163,8 +163,8 @@ class BattleStepCollector:
                     ctx.trajectory_end_idx_list.append(trajectory_end_idx)
                     transitions.clear()
                 if ctx.env_episode >= ctx.n_episode:
-                    ctx.job_finish = True
                     self.env.close()
+                    ctx.job_finish = True
                 break
 
 

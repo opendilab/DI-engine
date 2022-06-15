@@ -37,7 +37,7 @@ class LeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
-        print("Actor receive model from learner \n")
+        print("Actor {} receive model from learner \n".format(task.router.node_id), flush=True)
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -161,7 +161,7 @@ class StepLeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
-        print('Actor got model \n')
+        print('Actor {} recieved model \n'.format(task.router.node_id), flush=True)
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -203,7 +203,7 @@ class StepLeagueActor:
         try:
             job = self.job_queue.get(timeout=10)
         except queue.Empty:
-            logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
+            logging.warning("For actor {}, no Job get from coordinator".format(task.router.node_id))
 
         return job
 
@@ -230,7 +230,7 @@ class StepLeagueActor:
         ctx.job = self._get_job()
         if ctx.job is None:
             return
-        print('For actor, a job begin \n')
+        print('For actor {}, a job begin \n'.format(task.router.node_id), flush=True)
 
         collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
 
@@ -256,11 +256,12 @@ class StepLeagueActor:
             if not ctx.job.is_eval and len(ctx.trajectories_list[0]) > 0:
                 ctx.trajectories = ctx.trajectories_list[0]
                 ctx.trajectory_end_idx = ctx.trajectory_end_idx_list[0]
+                print('actor {}, len trajectories {}'.format(task.router.node_id, len(ctx.trajectories)), flush=True)
                 # self._gae_estimator(ctx)
                 # actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.train_data)
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
-                print('Actor send data\n')
+                print('Actor {} send data\n'.format(task.router.node_id), flush=True)
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []
@@ -271,5 +272,5 @@ class StepLeagueActor:
                 ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
                 ctx.episode_info = [[] for _ in range(ctx.agent_num)]
-                print('Actor job finish, send job\n')
+                print('Actor {} job finish, send job\n'.format(task.router.node_id), flush=True)
                 break

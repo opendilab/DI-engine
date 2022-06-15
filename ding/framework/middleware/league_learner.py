@@ -37,30 +37,30 @@ class LeagueLearner:
         self._step = 0
 
     def _on_actor_send_data(self, actor_data: "ActorData"):
-        print("learner receive data from actor! \n")
+        print("learner receive data from actor! \n", flush=True)
         with self._lock:
             cfg = self.cfg
             for _ in range(cfg.policy.learn.update_per_collect):
                 pass
                 # print("train model")
-                # prinst(actor_data.train_data)
+                # print(actor_data.train_data)
                 # self._learner.train(actor_data.train_data, actor_data.env_step)
 
         self.player.total_agent_step = self._learner.train_iter
         # print("save checkpoint")
         checkpoint = self._save_checkpoint() if self.player.is_trained_enough() else None
 
-        print('learner send player meta\n')
+        print('learner send player meta\n', flush=True)
         task.emit(
             EventEnum.LEARNER_SEND_META,
             PlayerMeta(player_id=self.player_id, checkpoint=checkpoint, total_agent_step=self._learner.train_iter)
         )
 
-        print("pack model")
+        # print("pack model")
         learner_model = LearnerModel(
             player_id=self.player_id, state_dict=self._learner.policy.state_dict(), train_iter=self._learner.train_iter
         )
-        print('learner send model\n')
+        print('learner send model\n', flush=True)
         task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
 
     def _get_learner(self) -> BaseLearner:
@@ -82,6 +82,9 @@ class LeagueLearner:
         )
         storage.save(self._learner.policy.state_dict())
         return storage
+
+    def __del__(self):
+        print('task finished, learner closed', flush=True)
 
     def __call__(self, _: "Context") -> None:
         sleep(1)
