@@ -1,19 +1,19 @@
 import gym
 from ditk import logging
 import torch
-from ding.model import DQN
-from ding.policy import SQLPolicy
+from ding.model import QAC
+from ding.policy import SQILSACPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, \
-    eps_greedy_handler, CkptSaver, eps_greedy_masker, sqil_data_pusher
+    CkptSaver, sqil_data_pusher, termination_checker
 from ding.utils import set_pkg_seed
-from dizoo.classic_control.cartpole.config.cartpole_sql_config import main_config as ex_main_config
-from dizoo.classic_control.cartpole.config.cartpole_sql_config import create_config as ex_create_config
-from dizoo.classic_control.cartpole.config.cartpole_sqil_config import main_config, create_config
+from dizoo.mujoco.config.hopper_sac_config import main_config as ex_main_config
+from dizoo.mujoco.config.hopper_sac_config import create_config as ex_create_config
+from dizoo.mujoco.config.hopper_sqil_sac_config import main_config, create_config
 
 
 def main():
@@ -24,38 +24,36 @@ def main():
     expert_cfg.policy.collect.n_sample = cfg.policy.collect.n_sample
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("Hopper-v3")) for _ in range(cfg.env.collector_env_num)],
             cfg=cfg.env.manager
         )
         expert_collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("Hopper-v3")) for _ in range(cfg.env.collector_env_num)],
             cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.evaluator_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("Hopper-v3")) for _ in range(cfg.env.evaluator_env_num)],
             cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-        model = DQN(**cfg.policy.model)
-        expert_model = DQN(**cfg.policy.model)
+        model = QAC(**cfg.policy.model)
+        expert_model = QAC(**cfg.policy.model)
 
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         expert_buffer = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
 
-        policy = SQLPolicy(cfg.policy, model=model)
-        expert_policy = SQLPolicy(expert_cfg.policy, model=expert_model)
+        policy = SQILSACPolicy(cfg.policy, model=model)
+        expert_policy = SQILSACPolicy(expert_cfg.policy, model=expert_model)
         state_dict = torch.load(cfg.policy.collect.model_path, map_location='cpu')
         expert_policy.collect_mode.load_state_dict(state_dict)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
-        task.use(eps_greedy_handler(cfg))
         task.use(
             StepCollector(cfg, policy.collect_mode, collector_env, cfg.policy.get('random_collect_size', 0))
         )  # agent data collector
         task.use(sqil_data_pusher(cfg, buffer_, expert=False))
-        task.use(eps_greedy_masker())
         task.use(
             StepCollector(
                 cfg, expert_policy.collect_mode, expert_collector_env, cfg.policy.get('expert_random_collect_size', 0)
@@ -64,6 +62,7 @@ def main():
         task.use(sqil_data_pusher(cfg, expert_buffer, expert=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, [(buffer_, 0.5), (expert_buffer, 0.5)]))
         task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(termination_checker(max_env_step=3000000))
         task.run()
 
 
