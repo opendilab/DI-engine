@@ -192,7 +192,7 @@ def main(cfg, seed=0):
             player_info = learner.learn_info
             player_info['player_id'] = player_id
             league.update_active_player(player_info)
-            #league.judge_snapshot(player_id)
+            league.judge_snapshot(player_id)
             # set eval_flag=True to enable trueskill update
             job_finish_info = {
                 'eval_flag': True,
@@ -208,7 +208,7 @@ def main(cfg, seed=0):
             tb_logger.add_text('payoff_step', payoff_string, main_collector.envstep)
             tb_logger.add_text('rank_step', rank_string, main_collector.envstep)
         count += 1
-        if collector.envstep >= 10000000:
+        if collector.envstep >= 50000000:
             break
 
 

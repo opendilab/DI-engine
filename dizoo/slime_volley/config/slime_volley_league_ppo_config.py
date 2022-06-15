@@ -44,7 +44,7 @@ league_demo_ppo_config = dict(
                 main_player=dict(
                     one_phase_step=20000,
                     branch_probs=dict(pfsp=0.5, sp=0.5),
-                    strong_win_rate=0.7,
+                    strong_win_rate=0.55,
                 ),
                 use_pretrain=False,
                 use_pretrain_init_historical=True,
