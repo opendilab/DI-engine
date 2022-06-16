@@ -383,6 +383,8 @@
       <li><a href="05_api_doc/config/config.html#ding.config.Config.__init__">__init__() (ding.config.Config method)</a>
 
       <ul>
+        <li><a href="05_api_doc/data/buffer/middleware/priority.html#ding.data.buffer.middleware.priority.PriorityExperienceReplay.__init__">(ding.data.buffer.middleware.priority.PriorityExperienceReplay method)</a>
+</li>
         <li><a href="05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.__init__">(ding.envs.env.base_env.BaseEnv method)</a>
 </li>
         <li><a href="05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper.__init__">(ding.envs.env_wrappers.ClipRewardWrapper method)</a>
@@ -420,8 +422,6 @@
         <li><a href="05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.HERLearner.__init__">(ding.framework.middleware.learner.HERLearner method)</a>
 </li>
         <li><a href="05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner.__init__">(ding.framework.middleware.learner.OffPolicyLearner method)</a>
-</li>
-        <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.__init__">(ding.framework.task.Task method)</a>
 </li>
         <li><a href="05_api_doc/interaction/base/threading.html#ding.interaction.base.threading.DblEvent.__init__">(ding.interaction.base.threading.DblEvent method)</a>
 </li>
@@ -994,10 +994,10 @@
 </li>
       <li><a href="05_api_doc/league/league.html#ding.league.base_league.BaseLeague">BaseLeague (class in ding.league.base_league)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner">BaseLearner (class in ding.worker.learner.base_learner)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.BaseNoise">BaseNoise (class in ding.rl_utils.exploration)</a>
 </li>
       <li><a href="05_api_doc/reward_model/base_reward_estimate.html#ding.reward_model.base_reward_model.BaseRewardModel">BaseRewardModel (class in ding.reward_model.base_reward_model)</a>
@@ -1013,6 +1013,8 @@
       <li><a href="05_api_doc/league/payoff.html#ding.league.shared_payoff.BattleSharedPayoff">BattleSharedPayoff (class in ding.league.shared_payoff)</a>
 </li>
       <li><a href="05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.BilinearUpsample">BilinearUpsample (class in ding.torch_utils.network.nn_module)</a>
+</li>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer">Buffer (class in ding.data.buffer.buffer)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1071,6 +1073,8 @@
 </li>
       </ul></li>
       <li><a href="05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper">ClipRewardWrapper (class in ding.envs.env_wrappers)</a>
+</li>
+      <li><a href="05_api_doc/data/buffer/middleware/clone_object.html#ding.data.buffer.middleware.clone_object.clone_object">clone_object() (in module ding.data.buffer.middleware.clone_object)</a>
 </li>
       <li><a href="05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.close">close() (ding.envs.env.base_env.BaseEnv method)</a>
 
@@ -1308,6 +1312,14 @@
         <li><a href="05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy.default_model">(ding.policy.qmix.QMIXPolicy method)</a>
 </li>
       </ul></li>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.delete">delete() (ding.data.buffer.buffer.Buffer method)</a>
+
+      <ul>
+        <li><a href="05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.delete">(ding.data.buffer.deque_buffer.DequeBuffer method)</a>
+</li>
+      </ul></li>
+      <li><a href="05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer">DequeBuffer (class in ding.data.buffer.deque_buffer)</a>
+</li>
       <li>
     ding.league.base_league.create_league
 
@@ -2429,9 +2441,13 @@
 </li>
       <li><a href="05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.GaussianNoise">GaussianNoise (class in ding.rl_utils.exploration)</a>
 </li>
-      <li><a href="05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get">get() (ding.envs.env_manager.subprocess_env_manager.ShmBuffer method)</a>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.get">get() (ding.data.buffer.buffer.Buffer method)</a>
 
       <ul>
+        <li><a href="05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.get">(ding.data.buffer.deque_buffer.DequeBuffer method)</a>
+</li>
+        <li><a href="05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get">(ding.envs.env_manager.subprocess_env_manager.ShmBuffer method)</a>
+</li>
         <li><a href="05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.get">(ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer method)</a>
 </li>
       </ul></li>
@@ -2516,6 +2532,8 @@
       <li><a href="05_api_doc/env/env.html#ding.envs.env.base_env.get_vec_env_setting">get_vec_env_setting() (in module ding.envs.env.base_env)</a>
 </li>
       <li><a href="05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.activation.GLU">GLU (class in ding.torch_utils.network.activation)</a>
+</li>
+      <li><a href="05_api_doc/data/buffer/middleware/group_sample.html#ding.data.buffer.middleware.group_sample.group_sample">group_sample() (in module ding.data.buffer.middleware.group_sample)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2732,6 +2750,8 @@
       <li><a href="05_api_doc/interaction/exception/master.html#ding.interaction.exception.master.MasterSystemShuttingDown">MasterSystemShuttingDown (class in ding.interaction.exception.master)</a>
 </li>
       <li><a href="05_api_doc/interaction/exception/master.html#ding.interaction.exception.master.MasterTaskDataInvalid">MasterTaskDataInvalid (class in ding.interaction.exception.master)</a>
+</li>
+      <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.match_labels">match_labels() (ding.framework.task.Task method)</a>
 </li>
       <li><a href="05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipWrapper">MaxAndSkipWrapper (class in ding.envs.env_wrappers)</a>
 </li>
@@ -3140,7 +3160,11 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="05_api_doc/data/buffer/middleware/padding.html#ding.data.buffer.middleware.padding.padding">padding() (in module ding.data.buffer.middleware.padding)</a>
+</li>
       <li><a href="05_api_doc/framework/parallel.html#ding.framework.parallel.Parallel">Parallel (class in ding.framework.parallel)</a>
+</li>
+      <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.parallel">parallel() (ding.framework.task.Task method)</a>
 </li>
       <li><a href="05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd">Pd (class in ding.torch_utils.distribution)</a>
 </li>
@@ -3160,17 +3184,23 @@
 </li>
       <li><a href="12_policies/ppo.html#ding.rl_utils.ppo.ppo_policy_error">ppo_policy_error() (in module ding.rl_utils.ppo)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="12_policies/ppo.html#ding.rl_utils.ppo.ppo_value_error">ppo_value_error() (in module ding.rl_utils.ppo)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="12_policies/ppo.html#ding.policy.ppo.PPOPolicy">PPOPolicy (class in ding.policy.ppo)</a>
+</li>
+      <li><a href="05_api_doc/data/buffer/middleware/priority.html#ding.data.buffer.middleware.priority.PriorityExperienceReplay">PriorityExperienceReplay (class in ding.data.buffer.middleware.priority)</a>
 </li>
       <li><a href="05_api_doc/utils/system_helper.html#ding.utils.system_helper.PropagatingThread">PropagatingThread (class in ding.utils.system_helper)</a>
 </li>
-      <li><a href="05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.push">push() (ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer method)</a>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.push">push() (ding.data.buffer.buffer.Buffer method)</a>
 
       <ul>
+        <li><a href="05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.push">(ding.data.buffer.deque_buffer.DequeBuffer method)</a>
+</li>
+        <li><a href="05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.push">(ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer method)</a>
+</li>
         <li><a href="05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.base_buffer.IBuffer.push">(ding.worker.replay_buffer.base_buffer.IBuffer method)</a>
 </li>
         <li><a href="05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.push">(ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer method)</a>
@@ -3368,9 +3398,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="12_policies/sac.html#ding.policy.sac.SACPolicy">SACPolicy (class in ding.policy.sac)</a>
 </li>
-      <li><a href="05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.sample">sample() (ding.torch_utils.distribution.CategoricalPd method)</a>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.sample">sample() (ding.data.buffer.buffer.Buffer method)</a>
 
       <ul>
+        <li><a href="05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.sample">(ding.data.buffer.deque_buffer.DequeBuffer method)</a>
+</li>
+        <li><a href="05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.sample">(ding.torch_utils.distribution.CategoricalPd method)</a>
+</li>
         <li><a href="05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.sample">(ding.torch_utils.distribution.CategoricalPdPytorch method)</a>
 </li>
         <li><a href="05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd.sample">(ding.torch_utils.distribution.Pd method)</a>
@@ -3384,6 +3418,8 @@
         <li><a href="05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample">(ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer method)</a>
 </li>
       </ul></li>
+      <li><a href="05_api_doc/data/buffer/middleware/sample_range_view.html#ding.data.buffer.middleware.sample_range_view.sample_range_view">sample_range_view() (in module ding.data.buffer.middleware.sample_range_view)</a>
+</li>
       <li><a href="05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.SampledDataAttrMonitor">SampledDataAttrMonitor (class in ding.worker.replay_buffer.utils)</a>
 </li>
       <li><a href="05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector">SampleSerialCollector (class in ding.worker.collector.sample_serial_collector)</a>
@@ -3458,6 +3494,8 @@
         <li><a href="05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.send_stepdata">(ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector method)</a>
 </li>
       </ul></li>
+      <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.serial">serial() (ding.framework.task.Task method)</a>
+</li>
       <li><a href="05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.setup_dataloader">setup_dataloader() (ding.worker.learner.base_learner.BaseLearner method)</a>
 </li>
       <li><a href="05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer">ShmBuffer (class in ding.envs.env_manager.subprocess_env_manager)</a>
@@ -3518,10 +3556,10 @@
 </li>
       <li><a href="05_api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveSystemShuttingDown">SlaveSystemShuttingDown (class in ding.interaction.exception.slave)</a>
 </li>
-      <li><a href="05_api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveTaskAlreadyExist">SlaveTaskAlreadyExist (class in ding.interaction.exception.slave)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="05_api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveTaskAlreadyExist">SlaveTaskAlreadyExist (class in ding.interaction.exception.slave)</a>
+</li>
       <li><a href="05_api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveTaskRefused">SlaveTaskRefused (class in ding.interaction.exception.slave)</a>
 </li>
       <li><a href="05_api_doc/league/player.html#ding.league.player.NaiveSpPlayer.snapshot">snapshot() (ding.league.player.NaiveSpPlayer method)</a>
@@ -3545,6 +3583,8 @@
       <li><a href="05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.sqil_data_pusher">sqil_data_pusher() (in module ding.framework.middleware.functional.data_processor)</a>
 </li>
       <li><a href="12_policies/sql.html#ding.policy.sql.SQLPolicy">SQLPolicy (class in ding.policy.sql)</a>
+</li>
+      <li><a href="05_api_doc/data/buffer/middleware/staleness_check.html#ding.data.buffer.middleware.staleness_check.staleness_check">staleness_check() (in module ding.data.buffer.middleware.staleness_check)</a>
 </li>
       <li><a href="05_api_doc/interaction/base/common.html#ding.interaction.base.common.ControllableContext.start">start() (ding.interaction.base.common.ControllableContext method)</a>
 
@@ -3744,9 +3784,13 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.update">update() (ding.envs.env_wrappers.RunningMeanStd method)</a>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.update">update() (ding.data.buffer.buffer.Buffer method)</a>
 
       <ul>
+        <li><a href="05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.update">(ding.data.buffer.deque_buffer.DequeBuffer method)</a>
+</li>
+        <li><a href="05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.update">(ding.envs.env_wrappers.RunningMeanStd method)</a>
+</li>
         <li><a href="05_api_doc/league/payoff.html#ding.league.shared_payoff.BattleSharedPayoff.update">(ding.league.shared_payoff.BattleSharedPayoff method)</a>
 </li>
         <li><a href="05_api_doc/torch_utils/checkpoint_helper.html#ding.torch_utils.checkpoint_helper.CountVar.update">(ding.torch_utils.checkpoint_helper.CountVar method)</a>
@@ -3784,7 +3828,15 @@
 </li>
       <li><a href="05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_reward">update_reward() (ding.worker.collector.base_serial_evaluator.VectorEvalMonitor method)</a>
 </li>
-      <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.use">use() (ding.framework.task.Task method)</a>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.use">use() (ding.data.buffer.buffer.Buffer method)</a>
+
+      <ul>
+        <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.use">(ding.framework.task.Task method)</a>
+</li>
+      </ul></li>
+      <li><a href="05_api_doc/data/buffer/middleware/use_time_check.html#ding.data.buffer.middleware.use_time_check.use_time_check">use_time_check() (in module ding.data.buffer.middleware.use_time_check)</a>
+</li>
+      <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.use_wrapper">use_wrapper() (ding.framework.task.Task method)</a>
 </li>
       <li><a href="05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.UsedDataRemover">UsedDataRemover (class in ding.worker.replay_buffer.utils)</a>
 </li>
@@ -3800,12 +3852,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor">VectorEvalMonitor (class in ding.worker.collector.base_serial_evaluator)</a>
 </li>
+      <li><a href="05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.view">view() (ding.data.buffer.buffer.Buffer method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.wait_for">wait_for() (ding.framework.task.Task method)</a>
+</li>
       <li><a href="05_api_doc/interaction/base/threading.html#ding.interaction.base.threading.DblEvent.wait_for_close">wait_for_close() (ding.interaction.base.threading.DblEvent method)</a>
 </li>
       <li><a href="05_api_doc/interaction/base/threading.html#ding.interaction.base.threading.DblEvent.wait_for_open">wait_for_open() (ding.interaction.base.threading.DblEvent method)</a>
@@ -3815,6 +3871,8 @@
       <li><a href="05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrameWrapper">WarpFrameWrapper (class in ding.envs.env_wrappers)</a>
 </li>
       <li><a href="05_api_doc/utils/time_helper.html#ding.utils.time_helper.WatchDog">WatchDog (class in ding.utils.time_helper)</a>
+</li>
+      <li><a href="05_api_doc/framework/task.html#ding.framework.task.Task.wrap">wrap() (ding.framework.task.Task method)</a>
 </li>
       <li><a href="05_api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper.wrapper">wrapper() (ding.utils.time_helper.TimeWrapper class method)</a>
 </li>

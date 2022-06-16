@@ -13,35 +13,35 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>worker.buffer &mdash; DI-engine 0.1.0 documentation</title>
+  <title>data.buffer.middleware.use_time_check &mdash; DI-engine 0.1.0 documentation</title>
   
 
-  <link rel="shortcut icon" href="../../../_static/images/favicon.ico" />
-  
-  
-
-  
-
-  
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
   
   
 
   
 
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="../../../genindex.html" />
-  <link rel="search" title="Search" href="../../../search.html" />
-  <link rel="next" title="worker.buffer" href="deque_buffer.html" />
-  <link rel="prev" title="Buffer" href="index.html" />
-    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+  <link rel="next" title="Learner" href="../../../worker/learner/index.html" />
+  <link rel="prev" title="data.buffer.middleware.staleness_check" href="staleness_check.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
   
-  <script src="../../../_static/js/modernizr.min.js"></script>
+  <script src="../../../../_static/js/modernizr.min.js"></script>
   <script>
     MathJax = {
         chtml: {
@@ -57,12 +57,12 @@
 
   <!-- Preload the theme fonts -->
 
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 
 <!-- Preload the katex fonts -->
 
@@ -168,7 +168,7 @@
 
 
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search Docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -186,27 +186,27 @@
         
         <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../13_envs/index.html">RL Env Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
 </ul>
 
         
@@ -239,23 +239,27 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="../../../index.html">
+        <a href="../../../../index.html">
             Docs
         </a> &gt;
       </li>
 
         
-          <li><a href="../../index.html">API Doc</a> &gt;</li>
+          <li><a href="../../../index.html">API Doc</a> &gt;</li>
         
-          <li><a href="index.html">Buffer</a> &gt;</li>
+          <li><a href="../../index.html">Data</a> &gt;</li>
         
-      <li>worker.buffer</li>
+          <li><a href="../index.html">data.buffer</a> &gt;</li>
+        
+          <li><a href="index.html">data.buffer.middleware</a> &gt;</li>
+        
+      <li>data.buffer.middleware.use_time_check</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../../../_sources/05_api_doc/worker/buffer/buffer.rst.txt" rel="nofollow"><img src="../../../_static/images/view-page-source-icon.svg"></a>
+            <a href="../../../../_sources/05_api_doc/data/buffer/middleware/use_time_check.rst.txt" rel="nofollow"><img src="../../../../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -279,12 +283,22 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="worker-buffer">
-<h1>worker.buffer<a class="headerlink" href="#worker-buffer" title="Permalink to this headline">¶</a></h1>
-<section id="buffer">
-<h2>buffer<a class="headerlink" href="#buffer" title="Permalink to this headline">¶</a></h2>
+  <section id="data-buffer-middleware-use-time-check">
+<h1>data.buffer.middleware.use_time_check<a class="headerlink" href="#data-buffer-middleware-use-time-check" title="Permalink to this headline">¶</a></h1>
+<section id="use-time-check">
+<h2>use_time_check<a class="headerlink" href="#use-time-check" title="Permalink to this headline">¶</a></h2>
 <section id="id1">
-<h3>Buffer<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>use_time_check<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.data.buffer.middleware.use_time_check.use_time_check">
+<span class="sig-prename descclassname"><span class="pre">ding.data.buffer.middleware.use_time_check.</span></span><span class="sig-name descname"><span class="pre">use_time_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_use</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/data/buffer/middleware/use_time_check.html#use_time_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.data.buffer.middleware.use_time_check.use_time_check" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>This middleware aims to check the usage times of data in buffer. If the usage times of a data is
+greater than or equal to max_use, this data will be removed from buffer as soon as possible.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -297,13 +311,13 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="deque_buffer.html" class="btn btn-neutral float-right" title="worker.buffer" accesskey="n"
-      rel="next">Next <img src="../../../_static/images/chevron-right-blue.svg"
+    <a href="../../../worker/learner/index.html" class="btn btn-neutral float-right" title="Learner" accesskey="n"
+      rel="next">Next <img src="../../../../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="index.html" class="btn btn-neutral" title="Buffer" accesskey="p"
-      rel="prev"><img src="../../../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    <a href="staleness_check.html" class="btn btn-neutral" title="data.buffer.middleware.staleness_check" accesskey="p"
+      rel="prev"><img src="../../../../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
   
@@ -332,9 +346,9 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">worker.buffer</a><ul>
-<li><a class="reference internal" href="#buffer">buffer</a><ul>
-<li><a class="reference internal" href="#id1">Buffer</a></li>
+<li><a class="reference internal" href="#">data.buffer.middleware.use_time_check</a><ul>
+<li><a class="reference internal" href="#use-time-check">use_time_check</a><ul>
+<li><a class="reference internal" href="#id1">use_time_check</a></li>
 </ul>
 </li>
 </ul>
@@ -353,20 +367,20 @@
   
 
   
-  <script type="text/javascript" id="documentation_options" data-url_root="../../../"
-    src="../../../_static/documentation_options.js"></script>
-  <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-  <script src="../../../_static/jquery.js"></script>
-  <script src="../../../_static/underscore.js"></script>
-  <script src="../../../_static/doctools.js"></script>
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/jquery.js"></script>
+  <script src="../../../../_static/underscore.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
   
 
   
 
-  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
     jQuery(function () {
@@ -405,7 +419,7 @@
 
   <!-- End Mobile Menu -->
 
-  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
 
   <script type="text/javascript">
     $(document).ready(function () {

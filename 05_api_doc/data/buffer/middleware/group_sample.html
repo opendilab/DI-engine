@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>framework.middleware.functional.advantage_estimator &mdash; DI-engine 0.1.0 documentation</title>
+  <title>data.buffer.middleware.group_sample &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../../../../genindex.html" />
   <link rel="search" title="Search" href="../../../../search.html" />
-  <link rel="next" title="framework.middleware.functional.collector" href="collector.html" />
-  <link rel="prev" title="framework.middleware.functional" href="index.html" />
+  <link rel="next" title="data.buffer.middleware.padding" href="padding.html" />
+  <link rel="prev" title="data.buffer.middleware.clone_object" href="clone_object.html" />
     <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -247,19 +247,19 @@
         
           <li><a href="../../../index.html">API Doc</a> &gt;</li>
         
-          <li><a href="../../index.html">Framework</a> &gt;</li>
+          <li><a href="../../index.html">Data</a> &gt;</li>
         
-          <li><a href="../index.html">framework.middleware</a> &gt;</li>
+          <li><a href="../index.html">data.buffer</a> &gt;</li>
         
-          <li><a href="index.html">framework.middleware.functional</a> &gt;</li>
+          <li><a href="index.html">data.buffer.middleware</a> &gt;</li>
         
-      <li>framework.middleware.functional.advantage_estimator</li>
+      <li>data.buffer.middleware.group_sample</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../../../../_sources/05_api_doc/framework/middleware/functional/advantage_estimator.rst.txt" rel="nofollow"><img src="../../../../_static/images/view-page-source-icon.svg"></a>
+            <a href="../../../../_sources/05_api_doc/data/buffer/middleware/group_sample.rst.txt" rel="nofollow"><img src="../../../../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -283,22 +283,22 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="framework-middleware-functional-advantage-estimator">
-<h1>framework.middleware.functional.advantage_estimator<a class="headerlink" href="#framework-middleware-functional-advantage-estimator" title="Permalink to this headline">¶</a></h1>
-<section id="advantage-estimator">
-<h2>advantage_estimator<a class="headerlink" href="#advantage-estimator" title="Permalink to this headline">¶</a></h2>
-<section id="gae-estimator">
-<h3>gae_estimator<a class="headerlink" href="#gae-estimator" title="Permalink to this headline">¶</a></h3>
+  <section id="data-buffer-middleware-group-sample">
+<h1>data.buffer.middleware.group_sample<a class="headerlink" href="#data-buffer-middleware-group-sample" title="Permalink to this headline">¶</a></h1>
+<section id="group-sample">
+<h2>group_sample<a class="headerlink" href="#group-sample" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>group_sample<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.advantage_estimator.gae_estimator">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.advantage_estimator.</span></span><span class="sig-name descname"><span class="pre">gae_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.policy.base_policy.Policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/advantage_estimator.html#gae_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.advantage_estimator.gae_estimator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.data.buffer.middleware.group_sample.group_sample">
+<span class="sig-prename descclassname"><span class="pre">ding.data.buffer.middleware.group_sample.</span></span><span class="sig-name descname"><span class="pre">group_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size_in_group</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_in_group</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_use_in_group</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/data/buffer/middleware/group_sample.html#group_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.data.buffer.middleware.group_sample.group_sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Calculate value using observation of input data, then call function <cite>gae</cite> to get advantage.         The processed data will be pushed into <cite>buffer_</cite> if <cite>buffer_</cite> is not None,         otherwise it will be assigned to <cite>ctx.train_data</cite>.</p>
+<dt>Overview:</dt><dd><p>The middleware is designed to process the data in each group after sampling from the buffer.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config which should contain the following keys:             <cite>cfg.policy.collect.discount_factor</cite>, <cite>cfg.policy.collect.gae_lambda</cite>.</p></li>
-<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): Policy in <cite>policy.collect_mode</cite>, used to get model to calculate value.</p></li>
-<li><p>buffer_ (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Buffer]</span></code>): The <cite>buffer_</cite> to push the processed data in if <cite>buffer_</cite> is not None.</p></li>
+<li><p>size_in_group (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Sample size in each group.</p></li>
+<li><p>ordered_in_group (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to keep the original order of records, default is true.</p></li>
+<li><p>max_use_in_group (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use as much data in each group as possible, default is true.</p></li>
 </ul>
 </dd>
 </dl>
@@ -316,12 +316,12 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="collector.html" class="btn btn-neutral float-right" title="framework.middleware.functional.collector" accesskey="n"
+    <a href="padding.html" class="btn btn-neutral float-right" title="data.buffer.middleware.padding" accesskey="n"
       rel="next">Next <img src="../../../../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="index.html" class="btn btn-neutral" title="framework.middleware.functional" accesskey="p"
+    <a href="clone_object.html" class="btn btn-neutral" title="data.buffer.middleware.clone_object" accesskey="p"
       rel="prev"><img src="../../../../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -351,9 +351,9 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">framework.middleware.functional.advantage_estimator</a><ul>
-<li><a class="reference internal" href="#advantage-estimator">advantage_estimator</a><ul>
-<li><a class="reference internal" href="#gae-estimator">gae_estimator</a></li>
+<li><a class="reference internal" href="#">data.buffer.middleware.group_sample</a><ul>
+<li><a class="reference internal" href="#group-sample">group_sample</a><ul>
+<li><a class="reference internal" href="#id1">group_sample</a></li>
 </ul>
 </li>
 </ul>

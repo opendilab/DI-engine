@@ -291,11 +291,6 @@
 <dd><p>Tash will manage the execution order of the entire pipeline, register new middleware,
 and generate new context objects.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="ding.framework.task.Task.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ding.framework.task.Task.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="ding.framework.task.Task.backward">
 <span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backward_stack</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Generator</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.backward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -344,6 +339,19 @@ or the end of the middleware.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.match_labels">
+<span class="sig-name descname"><span class="pre">match_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patterns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.match_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.match_labels" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>A list of patterns to match labels.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>patterns (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Iterable[str],</span> <span class="pre">str]</span></code>): Glob like pattern, e.g. node.1, node.*.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ding.framework.task.Task.on">
 <span class="sig-name descname"><span class="pre">on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.on"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.on" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -366,6 +374,19 @@ or the end of the middleware.</p>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>event (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Event name.</p></li>
 <li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): The function.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.parallel">
+<span class="sig-name descname"><span class="pre">parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">fns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.parallel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wrap functions and keep them run in parallel, should not use this funciton in async mode.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): Parallelized middleware, wrap them into one middleware function.</p></li>
 </ul>
 </dd>
 </dl>
@@ -395,6 +416,20 @@ The loop will be break.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.serial">
+<span class="sig-name descname"><span class="pre">serial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">fns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.serial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.serial" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wrap functions and keep them run in serial, Usually in order to avoid the confusion
+of dependencies in async mode.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): Chain a serial of middleware, wrap them into one middleware function.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ding.framework.task.Task.stop">
 <span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.stop" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -416,6 +451,61 @@ The loop will be break.</p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>task (<a class="reference internal" href="#ding.framework.task.Task" title="ding.framework.task.Task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Task</span></code></a>): The task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.use_wrapper">
+<span class="sig-name descname"><span class="pre">use_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.framework.task.Task" title="ding.framework.task.Task"><span class="pre">ding.framework.task.Task</span></a></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.use_wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.use_wrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Register wrappers to task. A wrapper works like a decorator, but task will apply this             decorator on top of each middleware.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): A wrapper is a decorator, so the first argument is a callable function.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>task (<a class="reference internal" href="#ding.framework.task.Task" title="ding.framework.task.Task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Task</span></code></a>): The task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.wait_for">
+<span class="sig-name descname"><span class="pre">wait_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_timeout_exception</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.wait_for"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.wait_for" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wait for an event and block the thread.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>event (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Event name.</p></li>
+<li><p>timeout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Timeout in seconds.</p></li>
+<li><p>ignore_timeout_exception (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): If this is False, an exception will occur when meeting timeout.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.wrap">
+<span class="sig-name descname"><span class="pre">wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">_thread.allocate_lock</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.wrap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.wrap" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wrap the middleware, make it can be called directly in other middleware.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): The middleware.</p></li>
+<li><p>lock (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[bool,</span> <span class="pre">Lock]</span></code>): There can only be one middleware execution under lock at any one time.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>fn_back (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): It will return a backward function, which will call the rest part of</dt><dd><p>the middleware after yield. If this backward function was not called, the rest part of the middleware
+will be called in the global backward step.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>

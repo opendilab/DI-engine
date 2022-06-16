@@ -13,35 +13,35 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>worker.buffer &mdash; DI-engine 0.1.0 documentation</title>
+  <title>data.buffer.middleware.clone_object &mdash; DI-engine 0.1.0 documentation</title>
   
 
-  <link rel="shortcut icon" href="../../../_static/images/favicon.ico" />
-  
-  
-
-  
-
-  
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
   
   
 
   
 
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="../../../genindex.html" />
-  <link rel="search" title="Search" href="../../../search.html" />
-  <link rel="next" title="worker.buffer" href="deque_buffer_wrapper.html" />
-  <link rel="prev" title="worker.buffer" href="buffer.html" />
-    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+  <link rel="next" title="data.buffer.middleware.group_sample" href="group_sample.html" />
+  <link rel="prev" title="data.buffer.middleware" href="index.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
   
-  <script src="../../../_static/js/modernizr.min.js"></script>
+  <script src="../../../../_static/js/modernizr.min.js"></script>
   <script>
     MathJax = {
         chtml: {
@@ -57,12 +57,12 @@
 
   <!-- Preload the theme fonts -->
 
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 
 <!-- Preload the katex fonts -->
 
@@ -168,7 +168,7 @@
 
 
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search Docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -186,27 +186,27 @@
         
         <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../13_envs/index.html">RL Env Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
 </ul>
 
         
@@ -239,23 +239,27 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="../../../index.html">
+        <a href="../../../../index.html">
             Docs
         </a> &gt;
       </li>
 
         
-          <li><a href="../../index.html">API Doc</a> &gt;</li>
+          <li><a href="../../../index.html">API Doc</a> &gt;</li>
         
-          <li><a href="index.html">Buffer</a> &gt;</li>
+          <li><a href="../../index.html">Data</a> &gt;</li>
         
-      <li>worker.buffer</li>
+          <li><a href="../index.html">data.buffer</a> &gt;</li>
+        
+          <li><a href="index.html">data.buffer.middleware</a> &gt;</li>
+        
+      <li>data.buffer.middleware.clone_object</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../../../_sources/05_api_doc/worker/buffer/deque_buffer.rst.txt" rel="nofollow"><img src="../../../_static/images/view-page-source-icon.svg"></a>
+            <a href="../../../../_sources/05_api_doc/data/buffer/middleware/clone_object.rst.txt" rel="nofollow"><img src="../../../../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -279,12 +283,20 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="worker-buffer">
-<h1>worker.buffer<a class="headerlink" href="#worker-buffer" title="Permalink to this headline">¶</a></h1>
-<section id="deque-buffer">
-<h2>deque_buffer<a class="headerlink" href="#deque-buffer" title="Permalink to this headline">¶</a></h2>
-<section id="dequebuffer">
-<h3>DequeBuffer<a class="headerlink" href="#dequebuffer" title="Permalink to this headline">¶</a></h3>
+  <section id="data-buffer-middleware-clone-object">
+<h1>data.buffer.middleware.clone_object<a class="headerlink" href="#data-buffer-middleware-clone-object" title="Permalink to this headline">¶</a></h1>
+<section id="clone-object">
+<h2>clone_object<a class="headerlink" href="#clone-object" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>clone_object<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.data.buffer.middleware.clone_object.clone_object">
+<span class="sig-prename descclassname"><span class="pre">ding.data.buffer.middleware.clone_object.</span></span><span class="sig-name descname"><span class="pre">clone_object</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/ding/data/buffer/middleware/clone_object.html#clone_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.data.buffer.middleware.clone_object.clone_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>This middleware freezes the objects saved in memory buffer as a copy,
+try this middleware when you need to keep the object unchanged in buffer, and modify
+the object after sampling it (usually in multiple threads)</p>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -297,13 +309,13 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="deque_buffer_wrapper.html" class="btn btn-neutral float-right" title="worker.buffer" accesskey="n"
-      rel="next">Next <img src="../../../_static/images/chevron-right-blue.svg"
+    <a href="group_sample.html" class="btn btn-neutral float-right" title="data.buffer.middleware.group_sample" accesskey="n"
+      rel="next">Next <img src="../../../../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="buffer.html" class="btn btn-neutral" title="worker.buffer" accesskey="p"
-      rel="prev"><img src="../../../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    <a href="index.html" class="btn btn-neutral" title="data.buffer.middleware" accesskey="p"
+      rel="prev"><img src="../../../../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
   
@@ -332,9 +344,9 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">worker.buffer</a><ul>
-<li><a class="reference internal" href="#deque-buffer">deque_buffer</a><ul>
-<li><a class="reference internal" href="#dequebuffer">DequeBuffer</a></li>
+<li><a class="reference internal" href="#">data.buffer.middleware.clone_object</a><ul>
+<li><a class="reference internal" href="#clone-object">clone_object</a><ul>
+<li><a class="reference internal" href="#id1">clone_object</a></li>
 </ul>
 </li>
 </ul>
@@ -353,20 +365,20 @@
   
 
   
-  <script type="text/javascript" id="documentation_options" data-url_root="../../../"
-    src="../../../_static/documentation_options.js"></script>
-  <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-  <script src="../../../_static/jquery.js"></script>
-  <script src="../../../_static/underscore.js"></script>
-  <script src="../../../_static/doctools.js"></script>
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/jquery.js"></script>
+  <script src="../../../../_static/underscore.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
   
 
   
 
-  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
     jQuery(function () {
@@ -405,7 +417,7 @@
 
   <!-- End Mobile Menu -->
 
-  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
 
   <script type="text/javascript">
     $(document).ready(function () {
