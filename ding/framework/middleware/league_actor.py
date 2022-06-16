@@ -2,6 +2,7 @@ from ding.framework import task, EventEnum
 import logging
 
 from typing import TYPE_CHECKING, Dict, Callable
+from ding.league import player
 
 from ding.policy import Policy
 from ding.framework.middleware import BattleEpisodeCollector, BattleStepCollector
@@ -10,6 +11,7 @@ from ding.league.player import PlayerMeta
 from threading import Lock
 import queue
 from easydict import EasyDict
+import time
 
 if TYPE_CHECKING:
     from ding.league.v2.base_league import Job
@@ -34,6 +36,7 @@ class LeagueActor:
         self.model_dict_lock = Lock()
 
         self.agent_num = 2
+        self.collect_time = {}
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
@@ -61,6 +64,7 @@ class LeagueActor:
             )
         )
         self._collectors[player_id] = collector
+        self.collect_time[player_id] = 0
         return collector
 
     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
@@ -123,12 +127,27 @@ class LeagueActor:
         ctx.episode_info = [[] for _ in range(self.agent_num)]
         ctx.remain_episode = ctx.n_episode
         while True:
+            old_envstep = ctx.total_envstep_count
+            time_begin = time.time()
             collector(ctx)
 
             if not job.is_eval and len(ctx.episodes[0]) > 0:
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.episodes[0])
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
                 ctx.episodes = []
+            time_end = time.time()
+            self.collect_time[job.launch_player] += time_end - time_begin
+            total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[
+                job.launch_player] != 0 else 0
+            envstep_passed = ctx.total_envstep_count - old_envstep
+            real_time_speed = envstep_passed / (time_end - time_begin)
+            print(
+                'in actor {}, total_env_step:{}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
+                .format(
+                    task.router.node_id, ctx.total_envstep_count, ctx.env_step, total_collect_speed, real_time_speed
+                )
+            )
+
             if ctx.job_finish is True:
                 job.result = [e['result'] for e in ctx.episode_info[0]]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
@@ -153,6 +172,8 @@ class StepLeagueActor:
         self.model_dict_lock = Lock()
 
         self.agent_num = 2
+
+        self.collect_time = {}
 
         # self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
 
@@ -182,6 +203,7 @@ class StepLeagueActor:
             )
         )
         self._collectors[player_id] = collector
+        self.collect_time[player_id] = 0
         return collector
 
     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
@@ -246,6 +268,8 @@ class StepLeagueActor:
         ctx.remain_episode = ctx.n_episode
 
         while True:
+            time_begin = time.time()
+            old_envstep = ctx.total_envstep_count
             collector(ctx)
 
             if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
@@ -258,6 +282,18 @@ class StepLeagueActor:
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []
+            time_end = time.time()
+            self.collect_time[job.launch_player] += time_end - time_begin
+            total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[
+                job.launch_player] != 0 else 0
+            envstep_passed = ctx.total_envstep_count - old_envstep
+            real_time_speed = envstep_passed / (time_end - time_begin)
+            print(
+                'in actor {}, total_env_step: {}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
+                .format(
+                    task.router.node_id, ctx.total_envstep_count, ctx.env_step, total_collect_speed, real_time_speed
+                )
+            )
 
             if ctx.job_finish is True:
                 job.result = [e['result'] for e in ctx.episode_info[0]]

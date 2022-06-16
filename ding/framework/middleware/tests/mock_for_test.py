@@ -323,6 +323,7 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
+        # TODO: change this part to only modify the part of current episode, not influence previous episode
         error_env_id_list = []
         for env_id, timestep in timesteps.items():
             if timestep.info.get('step_error'):

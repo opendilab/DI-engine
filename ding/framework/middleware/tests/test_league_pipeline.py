@@ -23,6 +23,7 @@ def prepare_test():
     env_cfg = read_config('./test_distar_config.yaml')
 
     def env_fn():
+        # subprocess env manager
         env = BaseEnvManager(
             env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
