@@ -14,7 +14,7 @@ def prod(iterable):
     """
     Product of all elements.(To be deprecated soon.)
     This function denifition is for supporting python version that under 3.8.
-    In python3.8 and larger. 'math.prod()' is recommended.
+    In python3.8 and larger, 'math.prod()' is recommended.
     """
     return reduce(operator.mul, iterable, 1)
 

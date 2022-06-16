@@ -2,7 +2,7 @@ import torch
 import pytest
 from ding.torch_utils import build_activation, build_normalization
 from ding.torch_utils.network.nn_module import conv1d_block, conv2d_block, fc_block, deconv2d_block, ChannelShuffle, \
-    one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten, NormedLinear, NormedConv2d
+    one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten, normed_linear, normed_conv2d
 
 batch_size = 2
 in_channels = 2
