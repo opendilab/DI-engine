@@ -91,7 +91,8 @@ class VAC(nn.Module):
                     )
 
         if self.share_encoder:
-            assert actor_head_hidden_size == critic_head_hidden_size, "actor and critic network head should have same size."
+            assert actor_head_hidden_size == critic_head_hidden_size, \
+                "actor and critic network head should have same size."
             if encoder:
                 if type(encoder) is torch.nn.Module:
                     self.encoder = encoder
