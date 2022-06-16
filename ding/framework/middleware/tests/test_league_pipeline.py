@@ -13,8 +13,8 @@ from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DISt
 from distar.ctools.utils import read_config
 from unittest.mock import patch
 
-N_ACTORS = 1
-N_LEARNERS = 1
+N_ACTORS = 2
+N_LEARNERS = 2
 
 
 def prepare_test():
@@ -23,6 +23,7 @@ def prepare_test():
     env_cfg = read_config('./test_distar_config.yaml')
 
     def env_fn():
+        # subprocess env manager
         env = BaseEnvManager(
             env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
@@ -60,7 +61,7 @@ def _main():
                     learner._learner._tb_logger = MockLogger()
                     task.use(learner)
 
-                task.run(max_step=300)
+                task.run()
 
 
 @pytest.mark.unittest

@@ -46,6 +46,13 @@ class TransitionList:
         for item in self._done_idx:
             item.clear()
 
+    def clear_env_transitions(self, env_id: int) -> None:
+        self._transitions[env_id].clear()
+        self._done_idx[env_id].clear()
+
+    def length(self, env_id: int) -> int:
+        return len(self._transitions[env_id])
+
 
 def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     """
@@ -142,7 +149,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
 
         if env.closed:
             env.launch()
-        
+
         # Get current env obs.
         obs = env.ready_obs
         # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data

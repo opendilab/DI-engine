@@ -15,11 +15,16 @@ class DIStarEnv(SC2Env, BaseEnv):
         self._map_name = None
 
     def reset(self):
-        observations, game_info, map_name = super(DIStarEnv, self).reset()
-        # print(game_info)
-        self.game_info = game_info
-        self.map_name = map_name
-        return observations
+        while True:
+            try:
+                observations, game_info, map_name = super(DIStarEnv, self).reset()
+                # print(game_info)
+                self.game_info = game_info
+                self.map_name = map_name
+                return observations
+            except Exception as e:
+                print("during reset SC2 env, an error happend: ", e, flush=True)
+                self.close()
 
     def close(self):
         super(DIStarEnv, self).close()
