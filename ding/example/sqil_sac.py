@@ -1,9 +1,8 @@
-import gym
 from ditk import logging
 import torch
 from ding.model import QAC
 from ding.policy import SQILSACPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2
+from ding.envs import BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
@@ -11,9 +10,10 @@ from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, \
     CkptSaver, sqil_data_pusher, termination_checker
 from ding.utils import set_pkg_seed
-from dizoo.mujoco.config.hopper_sac_config import main_config as ex_main_config
-from dizoo.mujoco.config.hopper_sac_config import create_config as ex_create_config
-from dizoo.mujoco.config.hopper_sqil_sac_config import main_config, create_config
+from dizoo.classic_control.pendulum.envs.pendulum_env import PendulumEnv
+from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config as ex_main_config
+from dizoo.classic_control.pendulum.config.pendulum_sac_config import create_config as ex_create_config
+from dizoo.classic_control.pendulum.config.pendulum_sqil_sac_config import main_config, create_config
 
 
 def main():
@@ -24,16 +24,13 @@ def main():
     expert_cfg.policy.collect.n_sample = cfg.policy.collect.n_sample
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("Hopper-v3")) for _ in range(cfg.env.collector_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
         expert_collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("Hopper-v3")) for _ in range(cfg.env.collector_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("Hopper-v3")) for _ in range(cfg.env.evaluator_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
@@ -62,7 +59,7 @@ def main():
         task.use(sqil_data_pusher(cfg, expert_buffer, expert=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, [(buffer_, 0.5), (expert_buffer, 0.5)]))
         task.use(CkptSaver(cfg, policy, train_freq=100))
-        task.use(termination_checker(max_env_step=3000000))
+        task.use(termination_checker(max_train_iter=10000))
         task.run()
 
 
