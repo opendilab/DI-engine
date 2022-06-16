@@ -37,7 +37,7 @@ class LeagueLearner:
         self._step = 0
 
     def _on_actor_send_data(self, actor_data: "ActorData"):
-        print("learner receive data from actor! \n", flush=True)
+        print("learner {} receive data from actor! \n".format(task.router.node_id), flush=True)
         with self._lock:
             cfg = self.cfg
             for _ in range(cfg.policy.learn.update_per_collect):
@@ -50,7 +50,7 @@ class LeagueLearner:
         # print("save checkpoint")
         checkpoint = self._save_checkpoint() if self.player.is_trained_enough() else None
 
-        print('learner send player meta\n', flush=True)
+        print('learner {} send player meta {}\n'.format(task.router.node_id, self.player_id), flush=True)
         task.emit(
             EventEnum.LEARNER_SEND_META,
             PlayerMeta(player_id=self.player_id, checkpoint=checkpoint, total_agent_step=self._learner.train_iter)
@@ -60,7 +60,7 @@ class LeagueLearner:
         learner_model = LearnerModel(
             player_id=self.player_id, state_dict=self._learner.policy.state_dict(), train_iter=self._learner.train_iter
         )
-        print('learner send model\n', flush=True)
+        print('learner {} send model\n'.format(task.router.node_id), flush=True)
         task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
 
     def _get_learner(self) -> BaseLearner:
@@ -84,7 +84,7 @@ class LeagueLearner:
         return storage
 
     def __del__(self):
-        print('task finished, learner closed', flush=True)
+        print('task finished, learner {} closed\n'.format(task.router.node_id), flush=True)
 
     def __call__(self, _: "Context") -> None:
         sleep(1)

@@ -181,7 +181,7 @@ class StepLeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
-        print('Actor {} recieved model \n'.format(task.router.node_id), flush=True)
+        print('Actor {} recieved model {} \n'.format(task.router.node_id, learner_model.player_id), flush=True)
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -252,7 +252,7 @@ class StepLeagueActor:
         job = self._get_job()
         if job is None:
             return
-        print('For actor {}, a job begin \n'.format(task.router.node_id), flush=True)
+        print('For actor {}, a job {} begin \n'.format(task.router.node_id, job.launch_player), flush=True)
 
         ctx.player_id_list = [player.player_id for player in job.players]
         self.agent_num = len(job.players)
