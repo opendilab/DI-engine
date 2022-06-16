@@ -136,7 +136,7 @@ def serial_pipeline_muzero(
             #                                     initial_p=config.priority_prob_beta, final_p=1.0)
             # beta = beta_schedule.value(trained_steps)
             beta = 0.1
-            revisit_policy_search_rate = 1
+            revisit_policy_search_rate = 0.99
             target_weights = policy._target_model.state_dict()
             batch_context = replay_buffer.prepare_batch_context(learner.policy.get_attribute('batch_size'), beta)
             input_countext = replay_buffer.make_batch(batch_context, revisit_policy_search_rate, weights=target_weights)

@@ -10,7 +10,6 @@ game_config = EasyDict(dict(
     checkpoint_interval=100,
     target_model_interval=200,
     save_ckpt_interval=10000,
-    test_max_moves=100,
     discount=0.997,
     dirichlet_alpha=0.3,
     value_delta_max=0.01,
@@ -61,37 +60,43 @@ game_config = EasyDict(dict(
 
     # TODO(pu):
     env_name='PongNoFrameskip-v4',
+    device='cpu',  # TODO
     action_space_size=6,
     amp_type='none',
     obs_shape=(12, 96, 96),
     gray_scale=False,
-    test_episodes=2,
     use_max_priority=True,
     use_priority=True,
     root_dirichlet_alpha=0.3,
     root_exploration_fraction=0.25,
-    game_history_length=20,
-    history_length=20,
     auto_td_steps=int(0.3 * 2e5),
-    device='cpu',
     use_root_value=True,
     mini_infer_size=2,
     use_augmentation=False,
     vis_result=True,
-    env_num=2,
     image_channel=3,
 
-    # replay buffer, priority related
+    # env_num=8,
+    # debug
+    env_num=2,
+    game_history_length=200,
+    history_length=200,
     total_transitions=int(1e6),
     priority_prob_alpha=0.6,
     priority_prob_beta=0.4,
     prioritized_replay_eps=1e-6,
 
-    max_moves=100,  # TODO
-    num_simulations=2,  # TODO
+    # max_moves=int(1e5),
+    # test_max_moves=int(1e5),
+    # num_simulations=50,
+    # debug
+    max_moves=int(1e3),
+    test_max_moves=int(1e3),
+    num_simulations=2,
     num_unroll_steps=5,
     td_steps=5,
-    batch_size=4,  # TODO
+    # batch_size=256,  # TODO
+    batch_size=64,  # TODO
 
     # UCB formula
     pb_c_base=19652,
@@ -100,7 +105,6 @@ game_config = EasyDict(dict(
     value_support=DiscreteSupport(-300, 300, delta=1),
     reward_support=DiscreteSupport(-300, 300, delta=1),
     max_grad_norm=5,
-
 ))
 
 game_config = GameBaseConfig(game_config)

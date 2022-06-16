@@ -1,21 +1,24 @@
 from easydict import EasyDict
-from dizoo.board_games.atari.config.atari_config import game_config
 
 nstep = 3
+# collector_env_num=8
+# evaluator_env_num=8
+collector_env_num=2
+evaluator_env_num=2
 atari_efficientzero_config = dict(
     exp_name='atari_efficientzero_seed0',
     env=dict(
-        collector_env_num=2,
-        evaluator_env_num=2,
-        n_evaluator_episode=2,
+        collector_env_num=collector_env_num,
+        evaluator_env_num=evaluator_env_num,
+        n_evaluator_episode=evaluator_env_num,
         stop_value=20,
         env_name='PongNoFrameskip-v4',
         obs_shape=(12, 96, 96),
         gray_scale=False,
-        max_moves=100,  # TODO
+        max_moves=int(1e5),  # TODO(pu)
         discount=0.997,
         episode_life=True,
-        cvt_string=False,  # TODO
+        cvt_string=False,  # TODO(pu)
         frame_skip=4,
     ),
     policy=dict(
@@ -23,7 +26,7 @@ atari_efficientzero_config = dict(
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
         # Whether to use cuda for network.
-        cuda=False,
+        cuda=False,  # TODO(pu)
         model=dict(
             observation_shape=(12, 96, 96),  # 3,96,96 stack4
             action_space_size=6,
@@ -49,12 +52,12 @@ atari_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=10,
-            batch_size=4,  # TODO(pu)
+            update_per_collect=1,
+            # batch_size=256,  # TODO(pu)
+            batch_size=64,  # TODO(pu)
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,
-
         ),
         # collect_mode config
         collect=dict(
@@ -94,4 +97,5 @@ create_config = atari_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
+    from dizoo.board_games.atari.config.atari_config import game_config
     serial_pipeline_muzero([main_config, create_config],  seed=0, max_env_step=int(10e6), game_config=game_config)
