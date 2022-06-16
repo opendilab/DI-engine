@@ -261,14 +261,7 @@ class IMPALAConvEncoder(nn.Module):
     name = "IMPALAConvEncoder"  # put it here to preserve pickle compat
 
     def __init__(
-        self,
-        obs_shape,
-        hidden_size_list=(16, 32, 32),
-        outsize=256,
-        scale_ob=255.0,
-        nblock=2,
-        final_relu=True,
-        **kwargs
+        self, obs_shape, channels=(16, 32, 32), outsize=256, scale_ob=255.0, nblock=2, final_relu=True, **kwargs
     ):
         """
         Overview:
@@ -277,7 +270,7 @@ class IMPALAConvEncoder(nn.Module):
             https://arxiv.org/pdf/1802.01561.pdf,
         Arguments:
             - obs_shape (:obj:`int`): Observation shape.
-            - hidden_size_list (:obj:`SequenceType`): Channel number of each impala cnn block. \
+            - channels (:obj:`SequenceType`): Channel number of each impala cnn block. \
                 The size of it is the number of impala cnn blocks in the encoder
             - outsize (:obj:`int`): Out feature of the encoder.
             - scale_ob (:obj:`float`): Scale of each pixel.
@@ -288,9 +281,9 @@ class IMPALAConvEncoder(nn.Module):
         self.scale_ob = scale_ob
         c, h, w = obs_shape
         curshape = (c, h, w)
-        s = 1 / math.sqrt(len(hidden_size_list))  # per stack scale
+        s = 1 / math.sqrt(len(channels))  # per stack scale
         self.stacks = nn.ModuleList()
-        for out_channel in hidden_size_list:
+        for out_channel in channels:
             stack = IMPALACnnDownStack(curshape[0], nblock=nblock, out_channel=out_channel, scale=s, **kwargs)
             self.stacks.append(stack)
             curshape = stack.output_shape(curshape)

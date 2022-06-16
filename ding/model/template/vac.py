@@ -66,9 +66,9 @@ class VAC(nn.Module):
         self.share_encoder = share_encoder
 
         # Encoder Type
-        def new_encoder():
+        def new_encoder(outsize):
             if impala_cnn_encoder:
-                return IMPALAConvEncoder(obs_shape=obs_shape, hidden_size_list=encoder_hidden_size_list)
+                return IMPALAConvEncoder(obs_shape=obs_shape, channels=encoder_hidden_size_list, outsize=outsize)
             else:
                 if isinstance(obs_shape, int) or len(obs_shape) == 1:
                     return FCEncoder(
@@ -91,13 +91,14 @@ class VAC(nn.Module):
                     )
 
         if self.share_encoder:
+            assert actor_head_hidden_size == critic_head_hidden_size, "actor and critic network head should have same size."
             if encoder:
                 if type(encoder) is torch.nn.Module:
                     self.encoder = encoder
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.encoder = new_encoder()
+                self.encoder = new_encoder(actor_head_hidden_size)
         else:
             if encoder:
                 if type(encoder) is torch.nn.Module:
@@ -108,8 +109,8 @@ class VAC(nn.Module):
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.actor_encoder = new_encoder()
-                self.critic_encoder = new_encoder()
+                self.actor_encoder = new_encoder(actor_head_hidden_size)
+                self.critic_encoder = new_encoder(critic_head_hidden_size)
 
         # Head Type
         self.critic_head = RegressionHead(
