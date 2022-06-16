@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
-    FCEncoder, ConvEncoder, ImpalaConvEncoder
+    FCEncoder, ConvEncoder, IMPALAConvEncoder
 
 
 @MODEL_REGISTRY.register('vac')
@@ -63,40 +63,54 @@ class VAC(nn.Module):
         action_shape = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
         self.impala_cnn_encoder = impala_cnn_encoder
+        self.share_encoder = share_encoder
+
         # Encoder Type
-        if encoder is None:
-            if isinstance(obs_shape, int) or len(obs_shape) == 1:
-                encoder_cls = FCEncoder
-            elif len(obs_shape) == 3:
-                encoder_cls = ConvEncoder
+        def new_encoder():
+            if impala_cnn_encoder:
+                return IMPALAConvEncoder(obs_shape=obs_shape, hidden_size_list=encoder_hidden_size_list)
             else:
-                raise RuntimeError(
-                    "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                    format(obs_shape)
-                )
-            self.share_encoder = share_encoder
-            if self.share_encoder:
-                if self.impala_cnn_encoder:
-                    self.encoder = ImpalaConvEncoder(obs_shape)
-                else:
-                    self.encoder = encoder_cls(
-                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                if isinstance(obs_shape, int) or len(obs_shape) == 1:
+                    return FCEncoder(
+                        obs_shape=obs_shape,
+                        hidden_size_list=encoder_hidden_size_list,
+                        activation=activation,
+                        norm_type=norm_type
                     )
+                elif len(obs_shape) == 3:
+                    return ConvEncoder(
+                        obs_shape=obs_shape,
+                        hidden_size_list=encoder_hidden_size_list,
+                        activation=activation,
+                        norm_type=norm_type
+                    )
+                else:
+                    raise RuntimeError(
+                        "not support obs_shape for pre-defined encoder: {}, please customize your own encoder".
+                        format(obs_shape)
+                    )
+
+        if self.share_encoder:
+            if encoder:
+                if type(encoder) is torch.nn.Module:
+                    self.encoder = encoder
+                else:
+                    raise ValueError("illegal encoder instance.")
             else:
-                if self.impala_cnn_encoder:
-                    self.actor_encoder = ImpalaConvEncoder(obs_shape)
-                    self.critic_encoder = ImpalaConvEncoder(obs_shape)
-                else:
-                    self.actor_encoder = encoder_cls(
-                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                    )
-                    self.critic_encoder = encoder_cls(
-                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                    )
+                self.encoder = new_encoder()
         else:
-            assert share_encoder
-            self.share_encoder = share_encoder
-            self.encoder = encoder
+            if encoder:
+                if type(encoder) is torch.nn.Module:
+                    raise ValueError(
+                        "one encoder instance is not allowed \
+                        to be assigned to actor critic that not sharing encoders."
+                    )
+                else:
+                    raise ValueError("illegal encoder instance.")
+            else:
+                self.actor_encoder = new_encoder()
+                self.critic_encoder = new_encoder()
+
         # Head Type
         self.critic_head = RegressionHead(
             critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
