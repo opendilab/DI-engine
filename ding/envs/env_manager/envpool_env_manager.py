@@ -14,6 +14,7 @@ except ImportError:
 
 from ding.envs import BaseEnvTimestep
 from ding.utils import ENV_MANAGER_REGISTRY, deep_merge_dicts
+from ding.torch_utils import to_ndarray
 
 
 @ENV_MANAGER_REGISTRY.register('env_pool')
@@ -54,19 +55,32 @@ class PoolEnvManager:
             seed = 0
         else:
             seed = self._seed
-
         self._envs = envpool.make(
-            self._cfg.env_id, env_type="gym", num_envs=self._env_num, batch_size=self._batch_size, seed=seed
+            task_id=self._cfg.env_id,
+            env_type="gym",
+            num_envs=self._env_num,
+            batch_size=self._batch_size,
+            seed=seed,
+            episodic_life=self._cfg.episodic_life,
+            reward_clip=self._cfg.reward_clip,
+            stack_num=self._cfg.stack_num,
+            gray_scale=self._cfg.gray_scale,
+            frame_skip=self._cfg.frame_skip
         )
         self._closed = False
         self.reset()
 
     def reset(self) -> None:
+        self._ready_obs = {}
         self._envs.async_reset()
-        obs, _, _, info = self._envs.recv()
-        env_id = info['env_id']
-        obs = obs.astype(np.float32)
-        self._ready_obs = {i: o for i, o in zip(env_id, obs)}
+        while True:
+            obs, _, _, info = self._envs.recv()
+            env_id = info['env_id']
+            obs = obs.astype(np.float32)
+            self._ready_obs = deep_merge_dicts({i: o for i, o in zip(env_id, obs)}, self._ready_obs)
+            if len(self._ready_obs) == self._env_num:
+                break
+        self._final_eval_reward = [0. for _ in range(self._env_num)]
 
     def step(self, action: dict) -> Dict[int, namedtuple]:
         env_id = np.array(list(action.keys()))
@@ -83,8 +97,12 @@ class PoolEnvManager:
         self._ready_obs = {}
         for i in range(len(env_id)):
             d = bool(done[i])
-            r = rew[i:i + 1]
-            timesteps[env_id[i]] = BaseEnvTimestep(obs[i], r, d, info={'env_id': i, 'final_eval_reward': 0.})
+            r = to_ndarray([rew[i]])
+            self._final_eval_reward[env_id[i]] += r
+            timesteps[env_id[i]] = BaseEnvTimestep(obs[i], r, d, info={'env_id': i})
+            if d:
+                timesteps[env_id[i]].info['final_eval_reward'] = self._final_eval_reward[env_id[i]]
+                self._final_eval_reward[env_id[i]] = 0.
             self._ready_obs[env_id[i]] = obs[i]
         return timesteps
 
