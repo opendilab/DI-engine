@@ -246,7 +246,7 @@ class Task:
 
             return backward
 
-        if inspect.isfunction(fn):
+        if hasattr(fn, "__name__"):
             forward = wraps(fn)(forward)
         else:
             forward = wraps(fn.__class__)(forward)
