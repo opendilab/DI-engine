@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-from ding.torch_utils import ResFCBlock, ResBlock, Flatten
-from ding.utils import SequenceType, normed_linear, normed_conv2d
+from ding.torch_utils import ResFCBlock, ResBlock, Flatten, normed_linear, normed_conv2d
+from ding.utils import SequenceType
 
 
 def prod(iterable):
