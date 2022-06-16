@@ -2,7 +2,7 @@ from typing import Union, Dict, Optional
 from easydict import EasyDict
 import torch
 import torch.nn as nn
-
+from copy import deepcopy
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder, IMPALAConvEncoder
@@ -103,10 +103,8 @@ class VAC(nn.Module):
         else:
             if encoder:
                 if isinstance(encoder, torch.nn.Module):
-                    raise ValueError(
-                        "one encoder instance is not allowed \
-                        to be assigned to actor critic that not sharing encoders."
-                    )
+                    self.actor_encoder = encoder
+                    self.critic_encoder = deepcopy(encoder)
                 else:
                     raise ValueError("illegal encoder instance.")
             else:

@@ -6,6 +6,8 @@ from itertools import product
 from ding.model import VAC
 from ding.torch_utils import is_differentiable
 
+from ding.model import ConvEncoder
+
 B, C, H, W = 4, 3, 128, 128
 obs_shape = [4, (8, ), (4, 64, 64)]
 act_args = [[6, 'discrete'], [(3, ), 'continuous'], [[2, 3, 6], 'discrete']]
@@ -65,7 +67,6 @@ class TestVACGeneral:
 class TestVACEncoder:
 
     def test_vac_with_impala_encoder(self, share_encoder):
-
         inputs = torch.randn(B, 4, 64, 64)
         model = VAC(
             obs_shape=(4, 64, 64),
@@ -73,5 +74,21 @@ class TestVACEncoder:
             action_space='discrete',
             share_encoder=share_encoder,
             impala_cnn_encoder=True
+        )
+        model_check(model, inputs)
+
+    def test_encoder_assignment(self, share_encoder):
+        inputs = torch.randn(B, 4, 64, 64)
+
+        special_encoder = ConvEncoder(obs_shape=(4, 64, 64), hidden_size_list=[16, 32, 32, 64])
+
+        model = VAC(
+            obs_shape=(4, 64, 64),
+            action_shape=6,
+            action_space='discrete',
+            share_encoder=share_encoder,
+            actor_head_hidden_size=64,
+            critic_head_hidden_size=64,
+            encoder=special_encoder
         )
         model_check(model, inputs)
