@@ -42,10 +42,8 @@ class BattleEpisodeCollector:
         self.end_flag = True
         self.env.close()
 
-    def _update_policies(self, job) -> None:
-        job_player_id_list = [player.player_id for player in job.players]
-
-        for player_id in job_player_id_list:
+    def _update_policies(self, player_id_list) -> None:
+        for player_id in player_id_list:
             if self.model_dict.get(player_id) is None:
                 continue
             else:
@@ -70,7 +68,7 @@ class BattleEpisodeCollector:
         ctx.total_envstep_count = self.total_envstep_count
         old = ctx.env_episode
         while True:
-            self._update_policies(ctx.job)
+            self._update_policies(ctx.player_id_list)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
 
@@ -120,10 +118,8 @@ class BattleStepCollector:
         self.end_flag = True
         self.env.close()
 
-    def _update_policies(self, job) -> None:
-        job_player_id_list = [player.player_id for player in job.players]
-
-        for player_id in job_player_id_list:
+    def _update_policies(self, player_id_list) -> None:
+        for player_id in player_id_list:
             if self.model_dict.get(player_id) is None:
                 continue
             else:
@@ -149,7 +145,7 @@ class BattleStepCollector:
         old = ctx.env_step
 
         while True:
-            self._update_policies(ctx.job)
+            self._update_policies(ctx.player_id_list)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
 

@@ -330,7 +330,7 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                 ctx.total_envstep_count -= transitions_list[0].length(env_id)
                 ctx.env_step -= transitions_list[0].length(env_id)
                 for transitions in transitions_list:
-                    transitions.clear(env_id)
+                    transitions.clear_env_transitions(env_id)
         for error_env_id in error_env_id_list:
             del timesteps[error_env_id]
 

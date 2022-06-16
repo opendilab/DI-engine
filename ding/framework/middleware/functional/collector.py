@@ -46,7 +46,7 @@ class TransitionList:
         for item in self._done_idx:
             item.clear()
 
-    def clear(self, env_id: int) -> None:
+    def clear_env_transitions(self, env_id: int) -> None:
         self._transitions[env_id].clear()
         self._done_idx[env_id].clear()
 

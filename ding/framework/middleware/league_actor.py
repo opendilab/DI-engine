@@ -33,6 +33,8 @@ class LeagueActor:
         self.model_dict = {}
         self.model_dict_lock = Lock()
 
+        self.agent_num = 2
+
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
         If get newest learner model, put it inside model_queue.
@@ -47,14 +49,15 @@ class LeagueActor:
         """
         self.job_queue.put(job)
 
-    def _get_collector(self, player_id: str, agent_num: int):
+    def _get_collector(self, player_id: str):
         if self._collectors.get(player_id):
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
         collector = task.wrap(
             BattleEpisodeCollector(
-                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num
+                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies,
+                self.agent_num
             )
         )
         self._collectors[player_id] = collector
@@ -103,37 +106,33 @@ class LeagueActor:
 
     def __call__(self, ctx: "BattleContext"):
 
-        ctx.job = self._get_job()
-        if ctx.job is None:
+        job = self._get_job()
+        if job is None:
             return
 
-        collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
+        ctx.player_id_list = [player.player_id for player in job.players]
+        self.agent_num = len(job.players)
+        collector = self._get_collector(job.launch_player)
 
-        main_player, ctx.current_policies = self._get_current_policies(ctx.job)
+        main_player, ctx.current_policies = self._get_current_policies(job)
 
-        _default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
-        if ctx.n_episode is None:
-            if _default_n_episode is None:
-                raise RuntimeError("Please specify collect n_episode")
-            else:
-                ctx.n_episode = _default_n_episode
+        ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
-        ctx.agent_num = len(ctx.current_policies)
         ctx.train_iter = main_player.total_agent_step
-        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+        ctx.episode_info = [[] for _ in range(self.agent_num)]
         ctx.remain_episode = ctx.n_episode
         while True:
             collector(ctx)
 
-            if not ctx.job.is_eval and len(ctx.episodes[0]) > 0:
+            if not job.is_eval and len(ctx.episodes[0]) > 0:
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.episodes[0])
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
                 ctx.episodes = []
             if ctx.job_finish is True:
-                ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
-                task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
-                ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+                job.result = [e['result'] for e in ctx.episode_info[0]]
+                task.emit(EventEnum.ACTOR_FINISH_JOB, job)
+                ctx.episode_info = [[] for _ in range(self.agent_num)]
                 break
 
 
@@ -145,8 +144,6 @@ class StepLeagueActor:
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
         self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
-        self.n_sample = self.cfg.policy.collect.get("n_sample") or 1
-        self.unroll_len = self.cfg.policy.collect.get("unroll_len") or 1
         self._collectors: Dict[str, BattleEpisodeCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
@@ -154,6 +151,8 @@ class StepLeagueActor:
         self.job_queue = queue.Queue()
         self.model_dict = {}
         self.model_dict_lock = Lock()
+
+        self.agent_num = 2
 
         # self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
 
@@ -171,14 +170,15 @@ class StepLeagueActor:
         """
         self.job_queue.put(job)
 
-    def _get_collector(self, player_id: str, agent_num: int):
+    def _get_collector(self, player_id: str):
         if self._collectors.get(player_id):
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
         collector = task.wrap(
             BattleStepCollector(
-                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies, agent_num
+                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies,
+                self.agent_num
             )
         )
         self._collectors[player_id] = collector
@@ -227,50 +227,41 @@ class StepLeagueActor:
 
     def __call__(self, ctx: "BattleContext"):
 
-        ctx.job = self._get_job()
-        if ctx.job is None:
+        job = self._get_job()
+        if job is None:
             return
         print('For actor {}, a job begin \n'.format(task.router.node_id), flush=True)
 
-        collector = self._get_collector(ctx.job.launch_player, len(ctx.job.players))
+        ctx.player_id_list = [player.player_id for player in job.players]
+        self.agent_num = len(job.players)
+        collector = self._get_collector(job.launch_player)
 
-        main_player, ctx.current_policies = self._get_current_policies(ctx.job)
-        ctx.agent_num = len(ctx.current_policies)
+        main_player, ctx.current_policies = self._get_current_policies(job)
 
-        _default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
-        if ctx.n_episode is None:
-            if _default_n_episode is None:
-                raise RuntimeError("Please specify collect n_episode")
-            else:
-                ctx.n_episode = _default_n_episode
+        ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
         ctx.train_iter = main_player.total_agent_step
-        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+        ctx.episode_info = [[] for _ in range(self.agent_num)]
         ctx.remain_episode = ctx.n_episode
-        ctx.n_sample = self.n_sample
-        ctx.unroll_len = self.unroll_len
+
         while True:
             collector(ctx)
 
-            if not ctx.job.is_eval and len(ctx.trajectories_list[0]) > 0:
-                ctx.trajectories = ctx.trajectories_list[0]
-                ctx.trajectory_end_idx = ctx.trajectory_end_idx_list[0]
-                print('actor {}, len trajectories {}'.format(task.router.node_id, len(ctx.trajectories)), flush=True)
-                # self._gae_estimator(ctx)
-                # actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.train_data)
-                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.trajectories)
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+            if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
+                trajectories = ctx.trajectories_list[0]
+                trajectory_end_idx = ctx.trajectory_end_idx_list[0]
+                print('actor {}, len trajectories {}'.format(task.router.node_id, len(trajectories)), flush=True)
+                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=trajectories)
+                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
                 print('Actor {} send data\n'.format(task.router.node_id), flush=True)
 
                 ctx.trajectories_list = []
                 ctx.trajectory_end_idx_list = []
-                ctx.trajectories = []
-                ctx.trajectory_end_idx = None
 
             if ctx.job_finish is True:
-                ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
-                task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
-                ctx.episode_info = [[] for _ in range(ctx.agent_num)]
+                job.result = [e['result'] for e in ctx.episode_info[0]]
+                task.emit(EventEnum.ACTOR_FINISH_JOB, job)
+                ctx.episode_info = [[] for _ in range(self.agent_num)]
                 print('Actor {} job finish, send job\n'.format(task.router.node_id), flush=True)
                 break
