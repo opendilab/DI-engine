@@ -227,7 +227,6 @@ class Task:
         if lock is True:
             lock = self._thread_lock
 
-        @wraps(fn)
         def forward(ctx: Context):
             if lock:
                 with lock:
@@ -246,6 +245,11 @@ class Task:
                     self.backward(backward_stack, async_mode=False)
 
             return backward
+
+        if inspect.isfunction(fn):
+            forward = wraps(fn)(forward)
+        else:
+            forward = wraps(fn.__class__)(forward)
 
         return forward
 
