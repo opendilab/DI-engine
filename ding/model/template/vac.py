@@ -94,7 +94,7 @@ class VAC(nn.Module):
             assert actor_head_hidden_size == critic_head_hidden_size, \
                 "actor and critic network head should have same size."
             if encoder:
-                if type(encoder) is torch.nn.Module:
+                if isinstance(encoder, torch.nn.Module):
                     self.encoder = encoder
                 else:
                     raise ValueError("illegal encoder instance.")
@@ -102,7 +102,7 @@ class VAC(nn.Module):
                 self.encoder = new_encoder(actor_head_hidden_size)
         else:
             if encoder:
-                if type(encoder) is torch.nn.Module:
+                if isinstance(encoder, torch.nn.Module):
                     raise ValueError(
                         "one encoder instance is not allowed \
                         to be assigned to actor critic that not sharing encoders."

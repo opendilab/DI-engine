@@ -265,8 +265,8 @@ class IMPALAConvEncoder(nn.Module):
     ):
         """
         Overview:
-            Init the Encoder described in paper, 
-            IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures, 
+            Init the Encoder described in paper, \
+            IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures, \
             https://arxiv.org/pdf/1802.01561.pdf,
         Arguments:
             - obs_shape (:obj:`int`): Observation shape.
