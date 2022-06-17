@@ -102,7 +102,6 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
             ensemble_sample = ensemble_mean
         else:
             ensemble_sample = ensemble_mean + torch.randn_like(ensemble_mean).to(ensemble_mean) * ensemble_std
-            ensemble_sample = ensemble_mean + torch.randn_like(ensemble_mean).to(ensemble_mean) * ensemble_std
         if keep_ensemble:
             # [E, B, D]
             rewards, next_obs = ensemble_sample[:, :, 0], ensemble_sample[:, :, 1:]

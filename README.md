@@ -45,7 +45,7 @@ Updated on 2022.04.22 DI-engine-v0.3.1
 - Imitation learning algorithms (BC/IRL/GAIL) , such as GAIL, SQIL, Guided Cost Learning
 - Exploration algorithms like HER, RND, ICM
 - Offline RL algorithms: CQL, TD3BC
-- Model-based RL algorithms: MBPO
+- Model-based RL algorithms: SVG, VE, STEVE / MBPO, DDPPO
 
 **DI-engine** aims to **standardize different RL enviroments and applications**. Various training pipelines and customized decision AI applications are also supported.
 
