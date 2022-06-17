@@ -54,6 +54,74 @@ class TransitionList:
         return len(self._transitions[env_id])
 
 
+class BattleTransitionList:
+
+    def __init__(self, env_num: int, unroll_len: int) -> None:
+        self.env_num = env_num
+        self._transitions = [[] for _ in range(env_num)]
+        self._done_episode = [[] for _ in range(env_num)]
+        self._unroll_len = unroll_len
+
+    def get_trajectories(self, env_id: int):
+        trajectories = []
+        if len(self._transitions[env_id]) == 0:
+            return None
+        while len(self._transitions[env_id]) > 0:
+            if self._done_episode[env_id][0] is False:
+                break
+            trajectories += self._cut_trajectory_from_episode(self._transitions[env_id][0])
+            self._transitions[env_id][0].clear()
+            self._transitions[env_id] = self._transitions[env_id][1:]
+            self._done_episode[env_id] = self._done_episode[env_id][1:]
+
+        if len(self._transitions[env_id]) == 1 and self._done_episode[env_id][0] is False:
+            tail_idx = max(
+                0, ((len(self._transitions[env_id][0]) - self._unroll_len) // self._unroll_len) * self._unroll_len
+            )
+            trajectories += self._cut_trajectory_from_episode(self._transitions[env_id][0][:tail_idx])
+            self._transitions[env_id][0] = self._transitions[env_id][0][tail_idx:]
+
+        return trajectories
+
+    def _cut_trajectory_from_episode(self, episode: list):
+        return_episode = []
+        i = 0
+        num_complele_trajectory, num_tail_transitions = divmod(len(episode), self._unroll_len)
+        for i in range(num_complele_trajectory):
+            trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
+            return_episode.append(trajectory)
+
+        if num_tail_transitions > 0:
+            trajectory = episode[-self._unroll_len:]
+            if len(trajectory) < self._unroll_len:
+                initial_elements = []
+                for _ in range(self._unroll_len - len(trajectory)):
+                    initial_elements.append(trajectory[0])
+                trajectory = initial_elements + trajectory
+            return_episode.append(trajectory)
+
+        return return_episode  # list of trajectories
+
+    def clear_newest_transition(self, env_id: int) -> None:
+        self._transitions[env_id][-1].clear()
+        self._transitions[env_id] = self._transitions[env_id][:-1]
+        self._done_episode[env_id] = self._done_episode[env_id][:-1]
+
+    def append(self, env_id: int, transition: Any) -> None:
+        if len(self._done_episode[env_id]) == 0 or self._done_episode[env_id][-1] is True:
+            self._transitions[env_id].append([])
+            self._done_episode[env_id].append(False)
+        self._transitions[env_id][-1].append(transition)
+        if transition.done:
+            self._done_episode[env_id][-1] = True
+
+    def clear(self):
+        for item in self._transitions:
+            item.clear()
+        for item in self._done_idx:
+            item.clear()
+
+
 def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     """
     Overview:
