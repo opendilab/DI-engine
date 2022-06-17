@@ -6,7 +6,7 @@ from ding.league import player
 
 from ding.policy import Policy
 from ding.framework.middleware import BattleEpisodeCollector, BattleStepCollector
-from ding.framework.middleware.functional import ActorData
+from ding.framework.middleware.functional import ActorData, ActorDataMeta
 from ding.league.player import PlayerMeta
 from threading import Lock
 import queue
@@ -276,7 +276,14 @@ class StepLeagueActor:
                 trajectories = ctx.trajectories_list[0]
                 trajectory_end_idx = ctx.trajectory_end_idx_list[0]
                 print('actor {}, len trajectories {}'.format(task.router.node_id, len(trajectories)), flush=True)
-                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=trajectories)
+                meta_data = ActorDataMeta(
+                    player_total_env_step=ctx.total_envstep_count,
+                    actor_id=task.router.node_id,
+                    # TODO transfer env_id to train_data, each env has a trajectory or not
+                    env_id=0,
+                    send_wall_time=time.time()
+                )
+                actor_data = ActorData(meta=meta_data, train_data=trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
                 print('Actor {} send data\n'.format(task.router.node_id), flush=True)
 
