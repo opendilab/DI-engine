@@ -1,7 +1,8 @@
 import torch
+from torch.distributions import Categorical, Normal, Independent
 
 
-def compute_importance_weights(target_output, behaviour_output, action, requires_grad=False):
+def compute_importance_weights(target_output, behaviour_output, action, action_space='discrete', requires_grad=False):
     """
     Overview:
         Computing importance sampling weight with given output and action
@@ -22,12 +23,16 @@ def compute_importance_weights(target_output, behaviour_output, action, requires
         - action (:obj:`torch.LongTensor`): :math:`(T, B)`
         - rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`
     """
-    grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
     assert isinstance(action, torch.Tensor)
 
-    with grad_context:
-        dist_target = torch.distributions.Categorical(logits=target_output)
-        dist_behaviour = torch.distributions.Categorical(logits=behaviour_output)
+    with torch.set_grad_enabled(requires_grad):
+        if action_space == 'discrete':
+            dist_target = Categorical(logits=target_output)
+            dist_behaviour = Categorical(logits=behaviour_output)
+        else:
+            # mu, sigma = target_output
+            dist_target = Independent(Normal(*target_output), 1)
+            dist_behaviour = Independent(Normal(*behaviour_output), 1)
         rhos = dist_target.log_prob(action) - dist_behaviour.log_prob(action)
         rhos = torch.exp(rhos)
         return rhos

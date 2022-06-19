@@ -1,7 +1,10 @@
-from collections import namedtuple
+from collections import namedtuple, Union
 from typing import List, Dict, Any, Tuple
+from easydict import EasyDict
 
 import torch
+import torch.nn.functional as F
+from torch.distributions import Normal, Independent
 
 from ding.model import model_wrap
 from ding.rl_utils import vtrace_data, vtrace_error, get_train_sample
@@ -9,6 +12,10 @@ from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from ding.policy.base_policy import Policy
+from ding.policy.sac import SACPolicy
+
+from ding.rl_utils.isw import compute_importance_weights
+from ding.rl_utils.vtrace import vtrace_nstep_return
 
 
 @POLICY_REGISTRY.register('impala')
@@ -45,6 +52,8 @@ class IMPALAPolicy(Policy):
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         # here we follow ppo serial pipeline, the original is False
         on_policy=False,
+        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous']
+        action_space='discrete',
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
@@ -115,6 +124,7 @@ class IMPALAPolicy(Policy):
         self._unroll_len = self._cfg.unroll_len
 
         # Algorithm config
+        self._action_space = self._cfg.action_space
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_weight = self._cfg.learn.value_weight
@@ -162,10 +172,21 @@ class IMPALAPolicy(Policy):
         else:
             data['weight'] = data.get('weight', None)
         data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1)*B,env_obs_shape
-        data['logit'] = torch.cat(
-            data['logit'], dim=0
-        ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        if self._action_space == 'discrete':
+            data['logit'] = torch.cat(
+                data['logit'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+            data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        else:
+            data['logit'][0] = torch.cat(
+                data['logit'][0], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+            data['logit'][1] = torch.cat(
+                data['logit'][1], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+            data['action'] = torch.cat(
+                data['action'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
         data['weight'] = torch.cat(
@@ -201,7 +222,7 @@ class IMPALAPolicy(Policy):
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
         g, l, r, c, rg = self._gamma, self._lambda, self._rho_clip_ratio, self._c_clip_ratio, self._rho_pg_clip_ratio
-        vtrace_loss = vtrace_error(data, g, l, r, c, rg)
+        vtrace_loss = vtrace_error(data, g, l, r, c, rg, self._action_space)
         wv, we = self._value_weight, self._entropy_weight
         total_loss = vtrace_loss.policy_loss + wv * vtrace_loss.value_loss - we * vtrace_loss.entropy_loss
         # ====================
@@ -241,8 +262,15 @@ class IMPALAPolicy(Policy):
             - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
             - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
-                                               self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+        if self._action_space == 'discrete':
+            target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
+                                                   self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+        else:
+            target_logit = output['logit']
+            target_logit[0] = target_logit[0].reshape(self._unroll_len + 1, -1,
+                                                      self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+            target_logit[1] = target_logit[1].reshape(self._unroll_len + 1, -1,
+                                                      self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
         behaviour_logit = data['logit']  # shape T,B
         actions = data['action']  # shape T,B
         values = output['value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
@@ -406,3 +434,187 @@ class IMPALAPolicy(Policy):
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
+
+
+@POLICY_REGISTRY.register('qimpala')
+class QIMPALAPolicy(SACPolicy, IMPALAPolicy):
+
+    config = dict(
+        type='qimpala',
+        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous']
+        action_space='continuous',
+        # (int) the trajectory length to calculate v-trace target
+        unroll_len=32,
+        learn=dict(
+            # (int) collect n_sample data, train model update_per_collect times
+            # here we follow ppo serial pipeline
+            update_per_collect=4,
+            # (float) additional discounting parameter
+            lambda_=0.95,
+            # (float) clip ratio of importance weights
+            rho_clip_ratio=1.0,
+            # (float) clip ratio of importance weights
+            c_clip_ratio=1.0,
+            # (float) clip ratio of importance sampling
+        ),
+        collect=dict(
+            # (int) collect n_sample data, train model n_iteration times
+            # n_sample=16,
+            collector=dict(collect_print_freq=1000, ),
+        ),
+        eval=dict(evaluator=dict(eval_freq=1000, ), ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=1000,
+            max_use=16,
+        ), ),
+    )
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        pass
+
+    def _init_learn(self) -> None:
+        SACPolicy._init_learn(self)
+        self._auto_alpha = False
+        self._value_network = False
+
+        self._action_space = self._cfg.action_space
+        self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        self._gamma = self._cfg.learn.discount_factor
+        self._lambda = self._cfg.learn.lambda_
+        self._rho_clip_ratio = self._cfg.learn.rho_clip_ratio
+        self._c_clip_ratio = self._cfg.learn.c_clip_ratio
+
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        r"""
+        Overview:
+            Forward computation graph of learn mode(updating policy).
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]]`): List type data, a list of data for training. Each list element is a \
+            dict, whose values are torch.Tensor or np.ndarray or dict/list combinations, keys include at least 'obs',\
+             'next_obs', 'logit', 'action', 'reward', 'done'
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
+            - optional: 'collect_iter', 'replay_unique_id', 'replay_buffer_idx', 'priority', 'staleness', 'use', 'IS'
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_loss``, ``policy_loss`,``value_loss``,``entropy_loss``
+            - optional: ``priority``
+        """
+        loss_dict = {}
+        data['raw_action'] = data['action']
+        data = self._data_preprocess_learn(data)
+        # ====================
+        # IMPALA forward
+        # ====================
+        self._learn_model.train()
+        # data['obs_plus_1']: (T+1)*B,obs_shape
+        # output['logit']['mu']: (T+1)*B,action_shape
+        # output['logit']['sigma']: (T+1)*B,action_shape
+        output = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor')
+        dist = Independent(Normal(*output['logit']), 1)
+        pred = dist.rsample()
+        action = torch.tanh(pred)
+        log_prob = dist.log_prob(
+            pred
+        ) + 2 * (pred + torch.nn.functional.softplus(-2. * pred) - torch.log(torch.tensor(2.))).sum(-1)
+
+        eval_data = {'obs': data['obs_plus_1'], 'action': action}
+        new_q_value = self._learn_model.forward(eval_data, mode='compute_critic')['q_value']
+        if self._twin_critic:
+            new_q_value = torch.min(new_q_value[0], new_q_value[1])
+
+        loss_dict['policy_loss'] = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
+
+        # data['next_obs'][-1]: B,obs_shape
+        with torch.no_grad():
+            # B,action_shape
+            last_action = action[-1].detach()
+            # data['action_plus_1'] = (T+1)*B,action_shape
+            data['action_plus_1'] = torch.cat((data['raw_action'] + [last_action]), dim=0)
+            eval_data = {'obs': data['obs_plus_1'], 'action': data['action_plus_1']}
+            # output['q_value']: (T+1)*B
+            output.update(self._target_model.forward(eval_data, mode='compute_critic'))
+            if self._twin_critic:
+                output['value'] = torch.min(output['q_value'][0], output['q_value'][1]) - self._alpha * log_prob
+            else:
+                output['value'] = output['q_value'] - self.alpha * log_prob
+            data['reward'] -= (self.alpha * log_prob).reshape(self._unroll_len + 1, -1)[:-1]
+            target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
+
+            IS = compute_importance_weights(target_logit, behaviour_logit, actions, self._action_space)
+            rhos = torch.clamp(IS, max=self._rho_clip_ratio)
+            cs = torch.clamp(IS, max=self._c_clip_ratio)
+            # (T,B)
+            return_ = vtrace_nstep_return(rhos, cs, rewards, values, self._gamma, self._lambda)
+
+        eval_data = {'obs': data['obs_plus_1'], 'action': data['action_plus_1']}
+        q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
+        q_value = q_value.reshape(self._unroll_len + 1, -1)
+        loss_dict['critic_loss'] = (F.mse_loss(q_value[:-1], return_, reduction='none') * weights).mean()
+
+        # ====================
+        # IMPALA update
+        # ====================
+        # todo: alpha loss
+        # update critic
+        self._optimizer_q.zero_grad()
+        loss_dict['critic_loss'].backward()
+        self._optimizer_q.step()
+        # update policy
+        self._optimizer_policy.zero_grad()
+        loss_dict['policy_loss'].backward()
+        self._optimizer_policy.step()
+        # update temperature
+        # self._alpha_optim.zero_grad()
+        # loss_dict['alpha_loss'].backward()
+        # self._alpha_optim.step()
+        return {
+            'cur_lr_q': self._optimizer_q.defaults['lr'],
+            'cur_lr_p': self._optimizer_policy.defaults['lr'],
+            'alpha': self._alpha.item(),
+            'impala_return': self._alpha.item(),
+            **loss_dict,
+        }
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        SACPolicy._state_dict_learn(self)
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        SACPolicy._load_state_dict_learn(self, state_dict)
+
+    def _init_collect(self) -> None:
+        SACPolicy._init_collect(self)
+
+    def _forward_collect(self, data: dict) -> dict:
+        SACPolicy._forward_collect(self)
+
+    def _process_transition(self, obs: Any, policy_output: dict, timestep: namedtuple) -> dict:
+        # DynaWorldModel.__init__(self, cfg, env, tb_logger)
+        IMPALAPolicy._process_transition(self, obs, policy_output, timestep)
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        IMPALAPolicy._get_train_sample(self, data)
+
+    def _init_eval(self) -> None:
+        SACPolicy._init_eval(self)
+
+    def _forward_eval(self, data: dict) -> dict:
+        SACPolicy._forward_eval(self, data)
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        SACPolicy.default_model(self)
+
+    def _monitor_vars_learn(self) -> List[str]:
+        alpha_loss = ['alpha_loss'] if self._auto_alpha else []
+        return [
+            'policy_loss',
+            'critic_loss',
+            'cur_lr_q',
+            'cur_lr_p',
+            'alpha',
+            'impala_return',
+        ] + alpha_loss
