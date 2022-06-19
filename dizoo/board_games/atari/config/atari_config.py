@@ -112,7 +112,6 @@ game_config = EasyDict(dict(
     resnet_fc_reward_layers=[32],  # Define the hidden layers in the reward head of the dynamic network
     resnet_fc_value_layers=[32],  # Define the hidden layers in the value head of the prediction network
     resnet_fc_policy_layers=[32],  # Define the hidden layers in the policy head of the prediction network
-
 ))
 
 game_config = GameBaseConfig(game_config)

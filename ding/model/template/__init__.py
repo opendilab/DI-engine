@@ -1,5 +1,5 @@
 # general
-from .q_learning import DQN, RainbowDQN, QRDQN, IQN, DRQN, C51DQN
+from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN
 from .qac import QAC, DiscreteQAC
 from .pdqn import PDQN
 from .vac import VAC
@@ -18,3 +18,4 @@ from .ngu import NGU
 from .qac_dist import QACDIST
 from .maqac import MAQAC, ContinuousMAQAC
 from .vae import VanillaVAE
+from .decision_transformer import DecisionTransformer
