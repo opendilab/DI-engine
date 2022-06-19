@@ -24,11 +24,11 @@ class GameBaseConfig(object):
         for k, v in game_config.items():
             self.__dict__[k] = v
 
-    def visit_softmax_temperature_fn(self, num_moves, trained_steps):
+    def visit_softmax_temperature_fn(self, trained_steps):
         if self.change_temperature:
-            if trained_steps < 0.5 * (self.training_steps + self.last_steps):
+            if trained_steps < 0.5 * self.max_training_steps:
                 return 1.0
-            elif trained_steps < 0.75 * (self.training_steps + self.last_steps):
+            elif trained_steps < 0.75 * self.max_training_steps:
                 return 0.5
             else:
                 return 0.25

@@ -180,8 +180,10 @@ class EfficientZeroPolicy(Policy):
         # obs_target_batch is the observations for s_t (hidden states from representation function)
         # to save GPU memory usage, obs_batch_ori contains (stack + unroll steps) frames
 
-        # TODO(pu): / 255.0
-        obs_batch_ori = torch.from_numpy(obs_batch_ori).to(self.game_config.device).float()
+        if self.game_config.image_based:
+            obs_batch_ori = torch.from_numpy(obs_batch_ori).to(self.game_config.device).float() / 255.0
+        else:
+            obs_batch_ori = torch.from_numpy(obs_batch_ori).to(self.game_config.device).float()
         obs_batch = obs_batch_ori[:, 0:self.game_config.stacked_observations * self.game_config.image_channel, :, :]
         obs_target_batch = obs_batch_ori[:, self.game_config.image_channel:, :, :]
 
@@ -190,7 +192,6 @@ class EfficientZeroPolicy(Policy):
             obs_batch = self.game_config.transform(obs_batch)
             obs_target_batch = self.game_config.transform(obs_target_batch)
 
-        # use GPU tensor
         action_batch = torch.from_numpy(action_batch).to(self.game_config.device).unsqueeze(-1).long()
         mask_batch = torch.from_numpy(mask_batch).to(self.game_config.device).float()
         target_value_prefix = torch.from_numpy(target_value_prefix.astype('float64')).to(self.game_config.device
@@ -200,7 +201,7 @@ class EfficientZeroPolicy(Policy):
         weights = torch.from_numpy(weights_lst).to(self.game_config.device).float()
 
         # TODO
-        target_value_prefix = target_value_prefix.view(self.game_config.batch_size,-1)
+        target_value_prefix = target_value_prefix.view(self.game_config.batch_size, -1)
         target_value = target_value.view(self.game_config.batch_size, -1)
 
         batch_size = obs_batch.size(0)
@@ -369,9 +370,8 @@ class EfficientZeroPolicy(Policy):
 
         # ----------------------------------------------------------------------------------
         # update priority
-        new_priority = value_priority
-        # replay_buffer.update_priorities.remote(indices, new_priority, make_time)
-        replay_buffer.batch_update(indices=indices, metas={'make_time': make_time, 'batch_priorities': new_priority})
+        # priority_info = {'indices':indices, 'make_time':make_time, 'batch_priorities':value_priority}
+        replay_buffer.batch_update(indices=indices, metas={'make_time': make_time, 'batch_priorities': value_priority})
 
         # packing data for logging
         loss_data = (
@@ -416,7 +416,7 @@ class EfficientZeroPolicy(Policy):
                 )
 
             td_data = (
-                new_priority, target_value_prefix.detach().cpu().numpy(), target_value.detach().cpu().numpy(),
+                value_priority, target_value_prefix.detach().cpu().numpy(), target_value.detach().cpu().numpy(),
                 transformed_target_value_prefix.detach().cpu().numpy(), transformed_target_value.detach().cpu().numpy(),
                 target_value_prefix_phi.detach().cpu().numpy(), target_value_phi.detach().cpu().numpy(),
                 predicted_value_prefixs.detach().cpu().numpy(), predicted_values.detach().cpu().numpy(),
@@ -428,6 +428,7 @@ class EfficientZeroPolicy(Policy):
             td_data, priority_data = None, None
 
         return {
+            # 'priority':priority_info,
             'total_loss': loss_data[0],
             'weighted_loss': loss_data[1],
             'loss_mean': loss_data[2],
@@ -445,8 +446,11 @@ class EfficientZeroPolicy(Policy):
         self._collect_model = model_wrap(self._model, 'base')
         self._collect_model.eval()
         self._mcts_eval = MCTS(self.game_config)
+        # set temperature for distributions
+        self.collect_temperature = np.array(
+            [self.game_config.visit_softmax_temperature_fn(trained_steps=0) for _ in range(self.game_config.env_num)])
 
-    def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None):
+    def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None):
         """
         Shapes:
             obs: (B, S, C, H, W), where S is the stack num
@@ -454,27 +458,18 @@ class EfficientZeroPolicy(Policy):
         """
         # TODO priority
         stack_obs = data
-        self.game_config.env_num = len(stack_obs)
         with torch.no_grad():
-            network_output = self._collect_model.initial_inference(stack_obs.float())
+            network_output = self._collect_model.initial_inference(stack_obs)
             hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
             reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
             value_prefix_pool = network_output.value_prefix  # {list: 2}
             policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
 
-            # for atari:
-            # roots = cytree.Roots(self.game_config.env_num, self.game_config.action_space_size, self.game_config.num_simulations)
-            # noises = [
-            #     np.random.dirichlet([self.game_config.root_dirichlet_alpha] *self.game_config.action_space_size
-            #                         ).astype(np.float32).tolist() for _ in range(self.game_config.env_num)
-            # ]
-
-            # for board games:
-            # TODO: when action_num is a list
+            # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # action_num = [int(i.sum()) for i in action_mask]
             action_num = int(action_mask[0].sum())
             roots = cytree.Roots(self.game_config.env_num, action_num, self.game_config.num_simulations)
-            # difference between collect and eval
+            # the only difference between collect and eval is the dirichlet noise
             noises = [
                 np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(np.float32).tolist()
                 for _ in range(self.game_config.env_num)
@@ -490,8 +485,10 @@ class EfficientZeroPolicy(Policy):
             for i in range(self.game_config.env_num):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
-                action, _ = select_action(distributions, temperature=1, deterministic=True)
-                # TODO(pu): transform to real action index
+                # TODO(pu):
+                action, _ = select_action(distributions, temperature=temperature[i], deterministic=False)
+                # action, _ = select_action(distributions, temperature=1, deterministic=True)
+                # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
                 # actions.append(action)
                 output[i] = {'action': action, 'distributions': distributions, 'value': value}
@@ -536,25 +533,18 @@ class EfficientZeroPolicy(Policy):
                 values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
             - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ArgumentsKeys:
-            - necessary: ``obs``
-        ReturnsKeys
-            - necessary: ``action``
         """
         self._eval_model.eval()
         stack_obs = data
         with torch.no_grad():
-            # stack_obs {Tensor:(2,12,96,96)}
-            network_output = self._eval_model.initial_inference(stack_obs.float())
+            # stack_obs shape [B, S x C, W, H] e.g. {Tensor:(2,12,96,96)}
+            network_output = self._eval_model.initial_inference(stack_obs)
             hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
             reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
             value_prefix_pool = network_output.value_prefix  # {list: 2}
             policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
 
-            # for atari:
-            # roots = cytree.Roots(self.game_config.env_num, self.game_config.action_space_size, self.game_config.num_simulations)
-            # for board games:
-            # TODO: when action_num is a list
+            # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # action_num = [int(i.sum()) for i in action_mask]
             action_num = int(action_mask[0].sum())
             roots = cytree.Roots(self.game_config.env_num, action_num, self.game_config.num_simulations)
@@ -570,7 +560,7 @@ class EfficientZeroPolicy(Policy):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
-                # TODO(pu): transform to real action index
+                # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
                 # actions.append(action)
                 output[i] = {'action': action, 'distributions': distributions, 'value': value}

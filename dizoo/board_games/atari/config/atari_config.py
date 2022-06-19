@@ -2,8 +2,66 @@ from easydict import EasyDict
 from ding.rl_utils.efficientzero.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
-    training_steps=100000,
-    last_steps=20000,
+    # TODO:
+    env_name='PongNoFrameskip-v4',
+    image_based=True,
+    device='cuda',  # TODO
+    # device='cpu',
+    action_space_size=6,
+    amp_type='none',
+    obs_shape=(12, 96, 96),
+    image_channel=3,
+    gray_scale=False,
+    downsample=True,  # Downsample observations before representation network (See paper appendix Network Architecture)
+
+    env_num=8,
+    max_episode_steps=int(1e5),
+    test_max_episode_steps=int(1e5),
+    num_simulations=50,
+    batch_size=256,
+    game_history_max_length=200,
+    total_transitions=int(1e6),
+    num_unroll_steps=5,
+    td_steps=5,
+
+    # debug
+    # env_num=2,
+    # test_max_episode_steps=int(1e2),
+    # num_simulations=2,
+    # batch_size=8,
+    # game_history_max_length=20,
+    # total_transitions=int(1e3),
+    # num_unroll_steps=5,
+    # td_steps=3,
+
+    # TODO
+    clip_reward=False,
+    # clip_reward=True,
+
+    use_max_priority=True,
+    use_priority=True,
+    root_dirichlet_alpha=0.3,
+    root_exploration_fraction=0.25,
+    auto_td_steps=int(0.3 * 2e5),
+    use_root_value=True,
+    mini_infer_size=2,
+    use_augmentation=False,
+    vis_result=True,
+
+    priority_prob_alpha=0.6,
+    priority_prob_beta=0.4,
+    prioritized_replay_eps=1e-6,
+
+    # UCB formula
+    pb_c_base=19652,
+    pb_c_init=1.25,
+
+    value_support=DiscreteSupport(-300, 300, delta=1),
+    reward_support=DiscreteSupport(-300, 300, delta=1),
+    max_grad_norm=5,
+
+    max_training_steps=int(1e6),
+    change_temperature=True,
     test_interval=10000,
     log_interval=1000,
     vis_interval=1000,
@@ -17,10 +75,8 @@ game_config = EasyDict(dict(
     # network initialization/ & normalization
     episode_life=True,
     init_zero=True,
-    clip_reward=True,
     # storage efficient
     cvt_string=False,
-    image_based=True,
     # lr scheduler
     lr_warm_up=0.01,
     lr_init=0.2,
@@ -56,55 +112,7 @@ game_config = EasyDict(dict(
     resnet_fc_reward_layers=[32],  # Define the hidden layers in the reward head of the dynamic network
     resnet_fc_value_layers=[32],  # Define the hidden layers in the value head of the prediction network
     resnet_fc_policy_layers=[32],  # Define the hidden layers in the policy head of the prediction network
-    downsample=True,  # Downsample observations before representation network (See paper appendix Network Architecture)
 
-    # TODO(pu):
-    env_name='PongNoFrameskip-v4',
-    device='cpu',  # TODO
-    action_space_size=6,
-    amp_type='none',
-    obs_shape=(12, 96, 96),
-    gray_scale=False,
-    use_max_priority=True,
-    use_priority=True,
-    root_dirichlet_alpha=0.3,
-    root_exploration_fraction=0.25,
-    auto_td_steps=int(0.3 * 2e5),
-    use_root_value=True,
-    mini_infer_size=2,
-    use_augmentation=False,
-    vis_result=True,
-    image_channel=3,
-
-    # env_num=8,
-    # debug
-    env_num=2,
-    game_history_length=200,
-    history_length=200,
-    total_transitions=int(1e6),
-    priority_prob_alpha=0.6,
-    priority_prob_beta=0.4,
-    prioritized_replay_eps=1e-6,
-
-    # max_moves=int(1e5),
-    # test_max_moves=int(1e5),
-    # num_simulations=50,
-    # debug
-    max_moves=int(1e3),
-    test_max_moves=int(1e3),
-    num_simulations=2,
-    num_unroll_steps=5,
-    td_steps=5,
-    # batch_size=256,  # TODO
-    batch_size=64,  # TODO
-
-    # UCB formula
-    pb_c_base=19652,
-    pb_c_init=1.25,
-
-    value_support=DiscreteSupport(-300, 300, delta=1),
-    reward_support=DiscreteSupport(-300, 300, delta=1),
-    max_grad_norm=5,
 ))
 
 game_config = GameBaseConfig(game_config)

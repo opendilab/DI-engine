@@ -14,15 +14,14 @@ class MCTS(object):
         self.config = config
 
     def search(self, roots, model, hidden_state_roots, reward_hidden_roots):
-        """Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference
-        Parameters
-        ----------
-        roots: Any
-            a batch of expanded root nodes
-        hidden_state_roots: list
-            the hidden states of the roots
-        reward_hidden_roots: list
-            the value prefix hidden states in LSTM of the roots
+        """
+        Overview:
+            Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference
+            Parameters
+        Arguments:
+            - roots (:obj:`Any`): a batch of expanded root nodes
+            - hidden_state_roots (:obj:`list`): the hidden states of the roots
+            - reward_hidden_roots(:obj:`list`): the value prefix hidden states in LSTM of the roots
         """
         with torch.no_grad():
             model.eval()

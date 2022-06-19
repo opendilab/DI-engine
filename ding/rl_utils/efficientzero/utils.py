@@ -288,14 +288,13 @@ def init_logger(base_path):
 
 
 def select_action(visit_counts, temperature=1, deterministic=True):
-    """select action from the root visit counts.
-    Parameters
-    ----------
-    temperature: float
-        the temperature for the distribution
-    deterministic: bool
-        True -> select the argmax
-        False -> sample from the distribution
+    """
+    Overview: select action from the root visit counts.
+    Arguments:
+        temperature: float the temperature for the distribution
+        deterministic: bool
+            True -> select the argmax
+            False -> sample from the distribution
     """
     action_probs = [visit_count_i ** (1 / temperature) for visit_count_i in visit_counts]
     total_count = sum(action_probs)
@@ -314,11 +313,13 @@ def prepare_observation_lst(observation_lst):
     [B, S, W, H, C] -> [B, S x C, W, H]
     batch, stack num, width, height, channel
     """
-    # B, S, W, H, C
+    # B, S, W, H, C e.g. in atari, [B, 4, 96, 96, 3]
     observation_lst = np.array(observation_lst, dtype=np.uint8)
+    # B, S, C, W, H e.g. in atari, [B, 4, 3, 96, 96]
     observation_lst = np.moveaxis(observation_lst, -1, 2)
 
     shape = observation_lst.shape
+    # [B, S x C, W, H]
     observation_lst = observation_lst.reshape((shape[0], -1, shape[-2], shape[-1]))
 
     return observation_lst

@@ -197,8 +197,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         """
         self.close()
 
-    """MuZero"""
-
+    """
+    MuZero
+    """
     def get_priorities(self, i, pred_values_lst, search_values_lst):
         # obtain the priorities at index i
         if self.game_config.use_priority and not self.game_config.use_max_priority:
@@ -212,10 +213,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             priorities = None
 
         return priorities
-
-    def put(self, data):
-        # put a game history into the pool
-        self.trajectory_pool.append(data)
 
     def len_pool(self):
         # current pool size
@@ -237,7 +234,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
             del self.trajectory_pool[:]
 
-    def put_last_trajectory(self, i, last_game_histories, last_game_priorities, game_histories):
+    def put_last_trajectory(self, i, last_game_histories, last_game_priorities, game_histories, done):
         """put the last game history into the pool if the current game is finished
         Parameters
         ----------
@@ -253,10 +250,12 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         beg_index = self.game_config.stacked_observations
         end_index = beg_index + self.game_config.num_unroll_steps
 
+        # the start 4 obs is init zero obs, so we take the 4th -(4+5）th obs as the pad obs
         pad_obs_lst = game_histories[i].obs_history[beg_index:end_index]
         pad_child_visits_lst = game_histories[i].child_visits[beg_index:end_index]
 
         beg_index = 0
+        # self.gap_step = self.game_config.num_unroll_steps + self.game_config.td_steps
         end_index = beg_index + self.gap_step - 1
 
         pad_reward_lst = game_histories[i].rewards[beg_index:end_index]
@@ -268,20 +267,26 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
         # pad over and save
         last_game_histories[i].pad_over(pad_obs_lst, pad_reward_lst, pad_root_values_lst, pad_child_visits_lst)
+        """
+        game_history element shape:
+        obs: game_history_length + stack + num_unroll_steps, 20+4 +5  
+        rew: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+3-1  
+        action: game_history_length -> 20  
+        root_values:  game_history_length + num_unroll_steps + td_steps -> 20 +5+3
+        child_visits： game_history_length + num_unroll_steps -> 20 +5
+        """
+
         last_game_histories[i].game_over()
 
-        self.put((last_game_histories[i], last_game_priorities[i]))
-
-        # todo
-        game_histories_tmp = self.trajectory_pool
-
-        self.free()
+        # put a game history into the pool
+        self.trajectory_pool.append((last_game_histories[i], last_game_priorities[i], done[i]))
+        # self.free()
 
         # reset last block
         last_game_histories[i] = None
         last_game_priorities[i] = None
 
-        return game_histories_tmp
+        return None
 
     def collect(self,
                 n_episode: Optional[int] = None,
@@ -306,6 +311,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         assert n_episode >= self._env_num, "Please make sure n_episode >= env_num{}/{}".format(n_episode, self._env_num)
         if policy_kwargs is None:
             policy_kwargs = {}
+        temperature = policy_kwargs['temperature']
         collected_episode = 0
         return_data = []
         ready_env_id = set()
@@ -320,7 +326,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         dones = np.array([False for _ in range(env_nums)])
         game_histories = [
             GameHistory(
-                self._env.action_space, max_length=self.game_config.game_history_length, config=self.game_config
+                self._env.action_space, max_length=self.game_config.game_history_max_length, config=self.game_config
             ) for _ in range(env_nums)
         ]
         for i in range(env_nums):
@@ -364,33 +370,31 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         other_dist = {}
         total_transitions = 0
 
-        def _get_max_entropy(action_space):
-            p = 1.0 / action_space
-            ep = -action_space * p * np.log2(p)
-            return ep
-
-        max_visit_entropy = _get_max_entropy(self.game_config.action_space_size)
+        # def _get_max_entropy(action_space):
+        #     p = 1.0 / action_space
+        #     ep = - action_space * p * np.log2(p)
+        #     return ep
+        #
+        # max_visit_entropy = _get_max_entropy(self.game_config.action_space_size)
+        # print('max_visit_entropy', max_visit_entropy)
+        # TODO
         start_training = False
+        # start_training = True
 
         while True:
             with self._timer:
                 new_available_env_id = set(self._env.ready_obs.keys()).difference(ready_env_id)
                 # ready_env_id = ready_env_id.union(set(list(new_available_env_id)[:remain_episode]))
                 remain_episode -= min(len(new_available_env_id), remain_episode)
-
+                stack_obs = [game_history.step_obs() for game_history in game_histories]
+                stack_obs = to_ndarray(stack_obs)
+                stack_obs = prepare_observation_lst(stack_obs)
                 if self.game_config.image_based:
-                    stack_obs = []
-                    for game_history in game_histories:
-                        stack_obs.append(game_history.step_obs())
-                    stack_obs = prepare_observation_lst(stack_obs)
                     stack_obs = torch.from_numpy(stack_obs).to(self.game_config.device).float() / 255.0
                 else:
-                    stack_obs = [game_history.step_obs() for game_history in game_histories]
-                    stack_obs = to_ndarray(stack_obs)
-                    stack_obs = prepare_observation_lst(stack_obs)
                     stack_obs = torch.from_numpy(np.array(stack_obs)).to(self.game_config.device)
 
-                policy_output = self._policy.forward(stack_obs, action_mask)
+                policy_output = self._policy.forward(stack_obs, action_mask, temperature)
 
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 distributions_dict = {i: a['distributions'] for i, a in policy_output.items()}
@@ -439,7 +443,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
                         # TODO(pu): return the one game history
-                        _ = self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories)
+                        _ = self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories, dones)
 
                     # calculate priority
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)
@@ -451,10 +455,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # new block trajectory
                     game_histories[i] = GameHistory(
                         self._env.action_space,
-                        max_length=self.game_config.game_history_length,
+                        max_length=self.game_config.game_history_max_length,
                         config=self.game_config
                     )
-
                     game_histories[i].init(stack_obs_windows[i])
 
                     # TODO(pu): return data
@@ -491,18 +494,20 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
                     # ready_env_id.remove(env_id)
+
                     """TODO"""
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
-                        self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories)
+                        self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories, dones)
 
                     # store current block trajectory
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)
                     game_histories[i].game_over()
+
                     # NOTE: put the last game history into the pool
                     # save the game histories and clear the pool
-                    self.put((game_histories[i], priorities))
-                    self.free()
+                    self.trajectory_pool.append((game_histories[i], priorities, dones[i]))
+                    # self.free()
                     """TODO"""
 
                     # reset the finished env and new a env
@@ -512,7 +517,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     action_mask[i] = to_ndarray(init_obses[i].obs['action_mask'])
                     game_histories[i] = GameHistory(
                         self._env.action_space,
-                        max_length=self.game_config.game_history_length,
+                        max_length=self.game_config.game_history_max_length,
                         config=self.game_config
                     )
                     last_game_histories[i] = None
@@ -538,6 +543,19 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     visit_entropies_lst[i] = 0
 
             if collected_episode >= n_episode:
+                # def free(self):
+                # save the game histories and clear the pool
+                # self.trajectory_pool: list of (game_history, priority)
+                self.replay_buffer.push_games(
+                    [self.trajectory_pool[i][0] for i in range(self.len_pool())], [
+                        {
+                            'priorities': self.trajectory_pool[i][1],
+                            'end_tag': self.trajectory_pool[i][2],
+                            'gap_steps': self.gap_step
+                        } for i in range(self.len_pool())
+                    ]
+                )
+                del self.trajectory_pool[:]
                 break
         # log
         self._output_log(train_iter)

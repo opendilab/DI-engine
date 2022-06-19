@@ -92,7 +92,7 @@ class BaseNet(nn.Module):
 
         if not self.training:
             # if not in training, obtain the scalars of the value/reward
-            # tictoctoe: value {Tensor: (2,32)}
+            # tictactoe: value {Tensor: (2,32)}
             value = self.inverse_value_transform(value).detach().cpu().numpy()
             state = state.detach().cpu().numpy()
             actor_logit = actor_logit.detach().cpu().numpy()

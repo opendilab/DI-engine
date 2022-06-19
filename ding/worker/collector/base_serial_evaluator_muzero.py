@@ -206,7 +206,7 @@ class BaseSerialEvaluatorMuZero(object):
         dones = np.array([False for _ in range(env_nums)])
 
         game_histories = [
-            GameHistory(self._env.action_space, max_length=self.game_config.max_moves, config=self.game_config)
+            GameHistory(self._env.action_space, max_length=self.game_config.game_history_max_length, config=self.game_config)
             for _ in range(env_nums)
         ]
         for i in range(env_nums):
@@ -219,14 +219,11 @@ class BaseSerialEvaluatorMuZero(object):
 
         with self._timer:
             while not eval_monitor.is_finished():
+                stack_obs = [game_history.step_obs() for game_history in game_histories]
+                stack_obs = prepare_observation_lst(stack_obs)
                 if self.game_config.image_based:
-                    stack_obs = [game_history.step_obs() for game_history in game_histories]
-                    stack_obs = prepare_observation_lst(stack_obs)
-                    stack_obs = prepare_observation_lst(stack_obs)
                     stack_obs = torch.from_numpy(stack_obs).to(self.game_config.device).float() / 255.0
                 else:
-                    stack_obs = [game_history.step_obs() for game_history in game_histories]
-                    stack_obs = prepare_observation_lst(stack_obs)
                     stack_obs = torch.from_numpy(np.array(stack_obs)).to(self.game_config.device)
                 policy_output = self._policy.forward(stack_obs, action_mask)
 
@@ -269,14 +266,13 @@ class BaseSerialEvaluatorMuZero(object):
 
                         # reset the finished env
                         init_obses = self._env.ready_obs
-                        init_obs = init_obses[i].obs['observation']
                         action_mask[i] = to_ndarray(init_obses[i].obs['action_mask'])
                         game_histories[i] = GameHistory(
                             self._env.action_space,
-                            max_length=self.game_config.game_history_length,
+                            max_length=self.game_config.game_history_max_length,
                             config=self.game_config
                         )
-                        game_histories[i].init([init_obs for _ in range(self.game_config.stacked_observations)])
+                        game_histories[i].init([init_obses[i].obs['observation'] for _ in range(self.game_config.stacked_observations)])
 
                     envstep_count += 1
         duration = self._timer.value

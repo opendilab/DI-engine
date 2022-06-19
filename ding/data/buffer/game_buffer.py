@@ -48,6 +48,35 @@ class GameBuffer(Buffer):
         self.transition_top = config.total_transitions
         self.clear_time = 0
 
+    def sample_train_data(self, batch_size, policy):
+        beta = 0.1
+        # revisit_policy_search_rate = 0.99
+        revisit_policy_search_rate = 1
+        target_weights = policy._target_model.state_dict()
+        batch_context = self.prepare_batch_context(batch_size, beta)
+        input_context = self.make_batch(batch_context, revisit_policy_search_rate, weights=target_weights)
+        reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, target_weights = input_context
+        # if target_weights is not None:
+        #     self.model.load_state_dict(target_weights)
+        #     self.model.to(self.config.device)
+        #     self.model.eval()
+
+        # target reward, value
+        batch_value_prefixs, batch_values = self._prepare_reward_value(
+            reward_value_context, policy._learn_model
+        )
+        # target policy
+        batch_policies_re = self._prepare_policy_re(policy_re_context, policy._learn_model)
+        batch_policies_non_re = self._prepare_policy_non_re(policy_non_re_context)
+        # batch_policies = np.concatenate([batch_policies_re, batch_policies_non_re])
+        batch_policies = batch_policies_re
+        targets_batch = [batch_value_prefixs, batch_values, batch_policies]
+        # a batch contains the inputs and the targets; inputs is prepared in CPU workers
+        # train_data = [inputs_batch, targets_batch]
+        # TODO(pu):
+        train_data = [inputs_batch, targets_batch, self]
+        return train_data
+
     def push_games(self, data: Any, meta):
         # in EfficientZero replay_buffer.py
         # def save_pools(self, pools, gap_step):
@@ -183,7 +212,7 @@ class GameBuffer(Buffer):
             if ignore_insufficient:
                 logging.warning(
                     "Sample operation is ignored due to data insufficient, current buffer is {} while sample is {}".
-                    format(self.count(), size)
+                        format(self.count(), size)
                 )
             else:
                 raise ValueError("There are less than {} records/groups in buffer({})".format(size, self.count()))
@@ -193,7 +222,7 @@ class GameBuffer(Buffer):
         return sampled_data
 
     def _independence(
-        self, buffered_samples: Union[List[BufferedData], List[List[BufferedData]]]
+            self, buffered_samples: Union[List[BufferedData], List[List[BufferedData]]]
     ) -> Union[List[BufferedData], List[List[BufferedData]]]:
         """
         Overview:
@@ -451,10 +480,13 @@ class GameBuffer(Buffer):
             td_steps = np.clip(td_steps, 1, 5).astype(np.int)
 
             # prepare the corresponding observations for bootstrapped values o_{t+k}
+            # o[t+ td_steps, t + td_steps + stack frames + num_unroll_steps]
+            # t=2+3 -> o[2+3, 2+3+4+5] -> o[5, 14]
             game_obs = game.obs(state_index + td_steps, config.num_unroll_steps)
             rewards_lst.append(game.rewards)
             for current_index in range(state_index, state_index + config.num_unroll_steps + 1):
                 td_steps_lst.append(td_steps)
+                # index of bootstrapped obs o_{t+td_steps}
                 bootstrap_index = current_index + td_steps
 
                 if bootstrap_index < traj_len:
@@ -468,7 +500,6 @@ class GameBuffer(Buffer):
 
                 value_obs_lst.append(obs)
 
-        # value_obs_lst = ray.put(value_obs_lst)
         reward_value_context = [value_obs_lst, value_mask, state_index_lst, rewards_lst, traj_lens, td_steps_lst]
         return reward_value_context
 
@@ -533,7 +564,6 @@ class GameBuffer(Buffer):
                         obs = zero_obs
                     policy_obs_lst.append(obs)
 
-        # policy_obs_lst = ray.put(policy_obs_lst)
         policy_re_context = [policy_obs_lst, policy_mask, state_index_lst, indices, child_visits, traj_lens]
         return policy_re_context
 
@@ -573,13 +603,14 @@ class GameBuffer(Buffer):
             ]
 
             # obtain the input observations
+            # stack+num_unroll_steps  4+5
+            # pad if length of obs in game_history is less than stack+num_unroll_steps
             obs_lst.append(game_lst[i].obs(game_pos_lst[i], extra_len=self.config.num_unroll_steps, padding=True))
             action_lst.append(_actions)
             mask_lst.append(_mask)
 
         re_num = int(batch_size * ratio)
         # formalize the input observations
-        # pad
         obs_lst = prepare_observation_lst(obs_lst)
 
         # formalize the inputs of a batch
@@ -587,7 +618,6 @@ class GameBuffer(Buffer):
         for i in range(len(inputs_batch)):
             inputs_batch[i] = np.asarray(inputs_batch[i])
 
-        # total_transitions = ray.get(self.replay_buffer.get_total_len.remote())
         total_transitions = self.get_total_num_transitions()
 
         # obtain the context of value targets
@@ -614,9 +644,8 @@ class GameBuffer(Buffer):
         else:
             policy_non_re_context = None
 
-        countext = reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, weights
-        # self.mcts_storage.push(countext)
-        return countext
+        context = reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, weights
+        return context
 
     """
     GPU Batch Worker for reanalyzing targets, see Appendix.
@@ -642,7 +671,10 @@ class GameBuffer(Buffer):
             for i in range(slices):
                 beg_index = m_batch * i
                 end_index = m_batch * (i + 1)
-                m_obs = torch.from_numpy(value_obs_lst[beg_index:end_index]).to(device).float() / 255.0
+                if self.config.image_based:
+                    m_obs = torch.from_numpy(value_obs_lst[beg_index:end_index]).to(device).float() / 255.0
+                else:
+                    m_obs = torch.from_numpy(value_obs_lst[beg_index:end_index]).to(device).float()
                 # if self.config.amp_type == 'torch_amp':
                 #     with autocast():
                 #         m_output = self.model.initial_inference(m_obs)
@@ -659,6 +691,7 @@ class GameBuffer(Buffer):
                 )
                 value_prefix_pool = value_prefix_pool.squeeze().tolist()
                 policy_logits_pool = policy_logits_pool.tolist()
+                # TODO(pu)
                 roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
                 noises = [
                     np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
@@ -675,7 +708,7 @@ class GameBuffer(Buffer):
 
             # get last state value
             value_lst = value_lst.reshape(-1) * (
-                np.array([self.config.discount for _ in range(batch_size)]) ** td_steps_lst
+                    np.array([self.config.discount for _ in range(batch_size)]) ** td_steps_lst
             )
             value_lst = value_lst * np.array(value_mask)
             value_lst = value_lst.tolist()

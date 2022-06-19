@@ -42,8 +42,8 @@ tictactoe_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=10,
-            batch_size=4,  # TODO(pu)
+            update_per_collect=1,
+            batch_size=32,  # TODO(pu)
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,
