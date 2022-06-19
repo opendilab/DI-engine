@@ -68,12 +68,12 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'football_iql', ['dizoo.gfootball.model.iql']
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_debug'
-# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_200eps_lt0_epc1000_bs512_e5_lsce'
+# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_debug'
+gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed1_200eps_lt0_epc1000_bs512_e5_lsce'
 # gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_lt0_epc1000_bs512_accuracy'
-seed=0
-demo_episodes = 2  # debug
-# demo_episodes = 100  # key hyper-parameter
+seed=1
+# demo_episodes = 2  # debug
+demo_episodes = 200  # key hyper-parameter
 data_path_episode = dir_path + f'/gfootball_rule_{demo_episodes}eps.pkl'
 data_path_transitions_lt0 = dir_path + f'/gfootball_rule_{demo_episodes}eps_transitions_lt0.pkl'
 
@@ -122,7 +122,8 @@ il_config[0].policy.eval.evaluator.multi_gpu = False
 football_iql_model = FootballIQL()
 
 il_config[0].policy.learn.show_accuracy = False
-il_config[0].policy.learn.ce_class_weight = True
+il_config[0].policy.learn.ce_class_weight = False
+il_config[0].policy.learn.lsce = True
 
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0, model=football_iql_model)
 

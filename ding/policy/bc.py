@@ -61,7 +61,7 @@ class DiscreteBehaviourCloningPolicy(Policy):
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
         self._ce_loss = nn.CrossEntropyLoss()
-        # self._lsce_loss = LabelSmoothCELoss(0.1)
+        self._lsce_loss = LabelSmoothCELoss(0.1)
         # for gfootball debug
         self.total_accuracy_dataset = []
         self.action_accuracy_dataset = {k:[] for k in range(19)}
@@ -90,6 +90,8 @@ class DiscreteBehaviourCloningPolicy(Policy):
                 if self._cuda:
                     weight = to_device(weight, self._device)
                 loss = F.cross_entropy(a_logit['logit'], action, weight=weight)
+            elif self._cfg.learn.lsce:
+                loss = self._lsce_loss(a_logit['logit'], action)
             else:
                 loss = self._ce_loss(a_logit['logit'], action)
 
