@@ -26,7 +26,9 @@ def ttorch_collate(x):
 
 
 def default_collate(batch: Sequence,
+                    dim: int = 0,
                     cat_1dim: bool = True,
+                    allow_key_mismatch: bool = False,
                     ignore_prefix: list = ['collate_ignore']) -> Union[torch.Tensor, Mapping, Sequence]:
     """
     Overview:
@@ -71,10 +73,10 @@ def default_collate(batch: Sequence,
             out = elem.new(storage)
         if elem.shape == (1, ) and cat_1dim:
             # reshape (B, 1) -> (B)
-            return torch.cat(batch, 0, out=out)
+            return torch.cat(batch, dim, out=out)
             # return torch.stack(batch, 0, out=out)
         else:
-            return torch.stack(batch, 0, out=out)
+            return torch.stack(batch, dim, out=out)
     elif isinstance(elem, ttorch.Tensor):
         ret = ttorch.stack(batch).json()
         for k in ret:
@@ -87,7 +89,7 @@ def default_collate(batch: Sequence,
             # array of string classes and object
             if np_str_obj_array_pattern.search(elem.dtype.str) is not None:
                 raise TypeError(default_collate_err_msg_format.format(elem.dtype))
-            return default_collate([torch.as_tensor(b) for b in batch], cat_1dim=cat_1dim)
+            return default_collate([torch.as_tensor(b) for b in batch], dim=dim, cat_1dim=cat_1dim)
         elif elem.shape == ():  # scalars
             return torch.as_tensor(batch)
     elif isinstance(elem, float):
@@ -100,16 +102,22 @@ def default_collate(batch: Sequence,
     elif isinstance(elem, container_abcs.Mapping):
         ret = {}
         for key in elem:
-            if any([key.startswith(t) for t in ignore_prefix]):
-                ret[key] = [d[key] for d in batch]
+            if allow_key_mismatch:
+                if any([key.startswith(t) for t in ignore_prefix]):
+                    ret[key] = [d[key] for d in batch if key in d.keys()]
+                else:
+                    ret[key] = default_collate([d[key] for d in batch if key in d.keys()], dim=dim, cat_1dim=cat_1dim)
             else:
-                ret[key] = default_collate([d[key] for d in batch], cat_1dim=cat_1dim)
+                if any([key.startswith(t) for t in ignore_prefix]):
+                    ret[key] = [d[key] for d in batch]
+                else:
+                    ret[key] = default_collate([d[key] for d in batch], dim=dim, cat_1dim=cat_1dim)
         return ret
     elif isinstance(elem, tuple) and hasattr(elem, '_fields'):  # namedtuple
-        return elem_type(*(default_collate(samples, cat_1dim=cat_1dim) for samples in zip(*batch)))
+        return elem_type(*(default_collate(samples, dim=dim, cat_1dim=cat_1dim) for samples in zip(*batch)))
     elif isinstance(elem, container_abcs.Sequence):
         transposed = zip(*batch)
-        return [default_collate(samples, cat_1dim=cat_1dim) for samples in transposed]
+        return [default_collate(samples, dim=dim, cat_1dim=cat_1dim) for samples in transposed]
 
     raise TypeError(default_collate_err_msg_format.format(elem_type))
 

@@ -1,9 +1,11 @@
-from typing import Dict
+from typing import Dict, Optional, List
+from easydict import EasyDict
 import os.path as osp
 import torch
 import torch.nn.functional as F
 from torch.optim import Adam
 
+from ding.model import model_wrap
 from ding.policy import Policy
 from ding.torch_utils import to_device
 from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho, vtrace_error_with_rho, \
@@ -60,7 +62,7 @@ def kl_error(
             kl = kl * mask['actions_mask'][head_type]
         if head_type == 'action_type':
             flag = game_steps < action_type_kl_steps
-            action_type_kl = kl * flag * mask['cum_action_mask']
+            action_type_kl = kl * flag
             action_type_kl_loss = action_type_kl.mean()
             kl_loss_dict['kl/extra_at'] = action_type_kl_loss.item()
         kl_loss = kl.mean()
@@ -71,10 +73,12 @@ def kl_error(
 
 class DIStarPolicy(Policy):
     config = dict(
+        type='distar',
+        on_policy=False,
         cuda=True,
-        multi_gpu=False,
         learning_rate=1e-5,
         model=dict(),
+        learn=dict(multi_gpu=False, ),
         loss_weights=dict(
             baseline=dict(
                 winloss=10.0,
@@ -100,6 +104,7 @@ class DIStarPolicy(Policy):
         vtrace_head_weights=dict(
             action_type=1.0,
             delay=1.0,
+            queued=1.0,
             select_unit_num_logits=1.0,
             selected_units=0.01,
             target_unit=1.0,
@@ -108,6 +113,7 @@ class DIStarPolicy(Policy):
         upgo_head_weights=dict(
             action_type=1.0,
             delay=1.0,
+            queued=1.0,
             select_unit_num_logits=1.0,
             selected_units=0.01,
             target_unit=1.0,
@@ -116,6 +122,7 @@ class DIStarPolicy(Policy):
         entropy_head_weights=dict(
             action_type=1.0,
             delay=1.0,
+            queued=1.0,
             select_unit_num_logits=1.0,
             selected_units=0.01,
             target_unit=1.0,
@@ -124,6 +131,7 @@ class DIStarPolicy(Policy):
         kl_head_weights=dict(
             action_type=1.0,
             delay=1.0,
+            queued=1.0,
             select_unit_num_logits=1.0,
             selected_units=0.01,
             target_unit=1.0,
@@ -151,8 +159,22 @@ class DIStarPolicy(Policy):
         grad_clip=dict(threshold=1.0, )
     )
 
+    def _create_model(
+            self,
+            cfg: EasyDict,
+            model: Optional[torch.nn.Module] = None,
+            enable_field: Optional[List[str]] = None
+    ) -> torch.nn.Module:
+        assert model is None, "not implemented user-defined model"
+        assert len(enable_field) == 1, "only support distributed enable policy"
+        field = enable_field[0]
+        if field == 'learn':
+            return Model(self._cfg.model, use_value_network=True)
+        else:
+            raise KeyError("invalid policy mode: {}".format(field))
+
     def _init_learn(self):
-        self.learn_model = Model(self._cfg.model, use_value_network=True)
+        self.learn_model = model_wrap(self._model, 'base')
         self.head_types = ['action_type', 'delay', 'queued', 'target_unit', 'selected_units', 'target_location']
         # policy parameters
         self.gammas = self._cfg.gammas
@@ -179,7 +201,7 @@ class DIStarPolicy(Policy):
         # ===========
         inputs = collate_fn_learn(inputs)
         if self._cfg.cuda:
-            inputs = to_device(inputs)
+            inputs = to_device(inputs, self._device)
 
         # =============
         # model forward
@@ -256,8 +278,8 @@ class DIStarPolicy(Policy):
                 weight = self.vtrace_head_weights[head_type]
                 if head_type not in ['action_type', 'delay']:
                     weight = weight * masks_dict['actions_mask'][head_type]
-                if field in ['build_order', 'built_unit', 'effect']:
-                    weight = weight * masks_dict[field + '_mask']
+                # if field in ['build_order', 'built_unit', 'effect']:
+                #    weight = weight * masks_dict[field + '_mask']
 
                 data_item = vtrace_data_with_rho(
                     target_action_log_probs_dict[head_type], clipped_rhos_dict[head_type], baseline_value, reward,
@@ -302,16 +324,17 @@ class DIStarPolicy(Policy):
             # Notice: in general, we need to include done when we consider discount factor, but in our implementation
             # of alphastar, traj_data(with size equal to unroll-len) sent from actor comes from the same episode.
             # If the game is draw, we don't consider it is actually done
-            if field in ['build_order', 'built_unit', 'effect']:
-                weight = masks_dict[[field + '_mask']]
-            else:
-                weight = None
+            # if field in ['build_order', 'built_unit', 'effect']:
+            #    weight = masks_dict[[field + '_mask']]
+            # else:
+            #    weight = None
+            weight = None
 
             field_data = td_lambda_data(baseline, reward, weight)
-            critic_loss = td_lambda_error(baseline, reward, masks_dict, gamma=self.gammas.baseline[field])
+            critic_loss = td_lambda_error(field_data, gamma=self.gammas.baseline[field])
 
             total_critic_loss += self.loss_weights.baseline[field] * critic_loss
-            loss_info_dict['td' + field] = critic_loss.item()
+            loss_info_dict['td/' + field] = critic_loss.item()
             loss_info_dict['reward/' + field] = reward.float().mean().item()
             loss_info_dict['value/' + field] = baseline.mean().item()
         loss_info_dict['reward/battle'] = rewards_dict['battle'].float().mean().item()
@@ -346,7 +369,7 @@ class DIStarPolicy(Policy):
         with self.timer:
             self.optimizer.zero_grad()
             total_loss.backward()
-            if self._cfg.multi_gpu:
+            if self._cfg.learn.multi_gpu:
                 self.sync_gradients()
             gradient = torch.nn.utils.clip_grad_norm_(self.learn_model.parameters(), self._cfg.grad_clip.threshold, 2)
             self.optimizer.step()
@@ -378,6 +401,12 @@ class DIStarPolicy(Policy):
         pass
 
     def _forward_collect(self, data):
+        pass
+
+    def _process_transition(self):
+        pass
+
+    def _get_train_sample(self):
         pass
 
     _init_eval = _init_collect
