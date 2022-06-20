@@ -1,7 +1,7 @@
 from tabnanny import check
 from typing import Any, Callable, List, Tuple
 import numpy as np
-from collections import Sequence
+from collections.abc import Sequence
 from easydict import EasyDict
 
 from ding.envs.env import BaseEnv, BaseEnvTimestep
