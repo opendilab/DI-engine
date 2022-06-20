@@ -84,23 +84,19 @@ class BattleContext(Context):
         self.__dict__ = self
         # collect target paras
         self.n_episode = None
-        self.n_sample = 1
-        self.unroll_len = 1
-        
+
         #collect process paras
         self.env_episode = 0
         self.env_step = 0
         self.total_envstep_count = 0
         self.train_iter = 0
         self.collect_kwargs = {}
-        self.agent_num = 2
-        self.traj_len = float("inf")
         self.current_policies = []
         self.ready_env_id = set()
         self.remain_episode = 0
 
         #job paras
-        self.job = None
+        self.player_id_list = []
         self.job_finish = False
 
         #data
@@ -112,6 +108,4 @@ class BattleContext(Context):
         self.episode_info = []
         self.trajectories_list = []
         self.trajectory_end_idx_list = []
-        self.trajectories = []
-        self.trajectory_end_idx = None
         self.train_data = None
