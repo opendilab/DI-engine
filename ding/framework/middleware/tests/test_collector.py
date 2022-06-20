@@ -124,15 +124,13 @@ def test_battle_transition_list():
 
     transition_list_2 = copy.deepcopy(transition_list)
 
-    env_0_result = transition_list.get_trajectories(env_id=0)
-    env_1_result = transition_list.get_trajectories(env_id=1)
+    env_0_result = transition_list.get_env_trajectories(env_id=0)
+    env_1_result = transition_list.get_env_trajectories(env_id=1)
 
     # print(env_0_result)
     # print(env_1_result)
 
-    # print(env_0_result)
     assert len(env_0_result) == 3
-    # print(env_1_result)
     assert len(env_1_result) == 4
 
     for trajectory in env_0_result:

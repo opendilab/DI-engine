@@ -107,5 +107,4 @@ class BattleContext(Context):
         self.episodes = []
         self.episode_info = []
         self.trajectories_list = []
-        self.trajectory_end_idx_list = []
         self.train_data = None

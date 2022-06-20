@@ -47,13 +47,6 @@ class TransitionList:
         for item in self._done_idx:
             item.clear()
 
-    def clear_env_transitions(self, env_id: int) -> None:
-        self._transitions[env_id].clear()
-        self._done_idx[env_id].clear()
-
-    def length(self, env_id: int) -> int:
-        return len(self._transitions[env_id])
-
 
 class BattleTransitionList:
 
@@ -65,7 +58,7 @@ class BattleTransitionList:
         self._done_episode = [deque() for _ in range(env_num)]
         self._unroll_len = unroll_len
 
-    def get_trajectories(self, env_id: int):
+    def get_env_trajectories(self, env_id: int, only_finished: bool = False):
         trajectories = []
         if len(self._transitions[env_id]) == 0:
             # if we have no episode for this env, we return an empty list
@@ -81,7 +74,7 @@ class BattleTransitionList:
             trajectories += self._cut_trajectory_from_episode(oldest_episode)
             oldest_episode.clear()
 
-        if len(self._transitions[env_id]) == 1 and self._done_episode[env_id][0] is False:
+        if not only_finished and len(self._transitions[env_id]) == 1 and self._done_episode[env_id][0] is False:
             # If last episode is not done, we only cut the trajectories till the Trajectory(t-1) (not including)
             # This is because we need Trajectory(t-1) to fill up Trajectory(t) if in Trajectory(t) this episode is done
             tail_idx = max(

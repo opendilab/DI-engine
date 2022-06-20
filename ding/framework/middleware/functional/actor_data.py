@@ -1,17 +1,21 @@
-from typing import Any
-from dataclasses import dataclass
+from typing import Any, List
+from dataclasses import dataclass, field
 
 
 @dataclass
 class ActorDataMeta:
     player_total_env_step: int = 0
     actor_id: int = 0
-    env_id: int = 0
     send_wall_time: float = 0.0
+
+
+@dataclass
+class ActorEnvTrajectories:
+    env_id: int = 0
+    trajectories: List = field(default_factory=[])
 
 
 @dataclass
 class ActorData:
     meta: ActorDataMeta
-    # TODO make train data a list in which each env_id has a list
-    train_data: Any
+    train_data: List = field(default_factory=[])
