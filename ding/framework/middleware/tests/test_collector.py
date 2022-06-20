@@ -100,11 +100,12 @@ def test_battle_transition_list():
         timestep = EasyDict({'obs': i, 'done': False})
         transition_list.append(env_id=0, transition=timestep)
 
+    transition_list.append(env_id=0, transition=EasyDict({'obs': len_env_0, 'done': True}))
+
     for i in range(len_env_1):
         timestep = EasyDict({'obs': i, 'done': False})
         transition_list.append(env_id=1, transition=timestep)
 
-    transition_list.append(env_id=0, transition=EasyDict({'obs': len_env_0, 'done': True}))
     transition_list.append(env_id=1, transition=EasyDict({'obs': len_env_1, 'done': True}))
 
     len_env_0_2 = 12
@@ -113,7 +114,9 @@ def test_battle_transition_list():
     for i in range(len_env_0_2):
         timestep = EasyDict({'obs': i, 'done': False})
         transition_list.append(env_id=0, transition=timestep)
+
     transition_list.append(env_id=0, transition=EasyDict({'obs': len_env_0_2, 'done': True}))
+
     for i in range(len_env_1_2):
         timestep = EasyDict({'obs': i, 'done': False})
         transition_list.append(env_id=1, transition=timestep)
@@ -135,22 +138,18 @@ def test_battle_transition_list():
         assert len(trajectory) == unroll_len
     #env_0
     i = 0
-    for trajectory in env_0_result[:-2]:
-        assert len(trajectory) == unroll_len
-        for transition in trajectory:
-            assert transition.obs == i
-            i += 1
+    trajectory = env_0_result[0]
+    for transition in trajectory:
+        assert transition.obs == i
+        i += 1
 
-    trajectory = env_0_result[-2]
-    assert len(trajectory) == unroll_len
-
+    trajectory = env_0_result[1]
     i = len_env_0 - unroll_len + 1
     for transition in trajectory:
         assert transition.obs == i
         i += 1
 
-    trajectory = env_0_result[-1]
-    assert len(trajectory) == unroll_len
+    trajectory = env_0_result[2]
     test_number = 0
     for i, transition in enumerate(trajectory):
         if i < unroll_len - len_env_0_2 - 1:

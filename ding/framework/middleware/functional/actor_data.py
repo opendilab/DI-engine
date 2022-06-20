@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass
 class ActorDataMeta:
-    palyer_total_env_step: int = 0
+    player_total_env_step: int = 0
     actor_id: int = 0
     env_id: int = 0
     send_wall_time: float = 0.0

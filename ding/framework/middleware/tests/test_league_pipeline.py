@@ -1,7 +1,7 @@
 from copy import deepcopy
 from time import sleep
 import pytest
-from ding.envs import BaseEnvManager
+from ding.envs import BaseEnvManager, EnvSupervisor
 from ding.framework.context import BattleContext
 from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearner
 
@@ -28,6 +28,9 @@ def prepare_test():
         env = BaseEnvManager(
             env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
+        # env = EnvSupervisor(
+        #     env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], **cfg.env.manager
+        # )
         env.seed(cfg.seed)
         return env
 

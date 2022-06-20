@@ -118,7 +118,7 @@ class BattleTransitionList:
     def clear(self):
         for item in self._transitions:
             item.clear()
-        for item in self._done_idx:
+        for item in self._done_episode:
             item.clear()
 
 

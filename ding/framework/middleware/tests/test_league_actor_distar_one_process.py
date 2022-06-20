@@ -1,24 +1,22 @@
 from time import sleep
 import pytest
 from copy import deepcopy
-from ding.envs import BaseEnvManager
+from ding.envs import BaseEnvManager, EnvSupervisor
 from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware import LeagueActor, StepLeagueActor
+from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
-from easydict import EasyDict
 
 from ding.framework.task import task
 from ding.league.v2.base_league import Job
 from dizoo.distar.envs.distar_env import DIStarEnv
-from unittest.mock import Mock, patch
+from unittest.mock import patch
+from ding.framework.supervisor import ChildType
 
 from ding.framework import EventEnum
-from typing import Dict, Any, List, Optional
-from collections import namedtuple
 from distar.ctools.utils import read_config
 from ding.model import VAC
 
@@ -36,6 +34,9 @@ def prepare_test():
         env = BaseEnvManager(
             env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
+        # env = EnvSupervisor(
+        #     env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], **cfg.env.manager
+        # )
         env.seed(cfg.seed)
         return env
 
