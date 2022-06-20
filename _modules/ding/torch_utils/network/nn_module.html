@@ -524,7 +524,7 @@
 <span class="sd">    nn.Linear but with normalized fan-in init</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">out</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">bias</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">bias</span><span class="p">)</span>
 
     <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">bias</span><span class="p">:</span>
@@ -550,7 +550,15 @@
 <span class="sd">    nn.Conv2d but with normalized fan-in init</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
-        <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">dilation</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">bias</span><span class="p">,</span> <span class="n">padding_mode</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span>
+        <span class="n">in_channels</span><span class="p">,</span>
+        <span class="n">out_channels</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="p">,</span>
+        <span class="n">stride</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">,</span>
+        <span class="n">dilation</span><span class="p">,</span>
+        <span class="n">groups</span><span class="p">,</span>
+        <span class="n">bias</span><span class="p">,</span>
+        <span class="n">padding_mode</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">bias</span><span class="p">:</span>
