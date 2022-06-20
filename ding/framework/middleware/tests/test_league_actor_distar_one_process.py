@@ -22,56 +22,8 @@ from collections import namedtuple
 from distar.ctools.utils import read_config
 from ding.model import VAC
 
-from ding.framework.middleware.tests import DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar, DIStarMockPolicy
-
-
-class LearnMode:
-
-    def __init__(self) -> None:
-        pass
-
-    def state_dict(self):
-        return {}
-
-
-class CollectMode:
-
-    def __init__(self) -> None:
-        self._cfg = EasyDict(dict(collect=dict(n_episode=64)))
-
-    def load_state_dict(self, state_dict):
-        return
-
-    def forward(self, data: Dict):
-        return_data = {}
-        return_data['action'] = DIStarEnv.random_action(data)
-        return_data['logit'] = [1]
-        return_data['value'] = [0]
-
-        return return_data
-
-    def process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'logit': model_output['logit'],
-            'value': model_output['value'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
-        return transition
-
-    def reset(self, data_id: Optional[List[int]] = None) -> None:
-        pass
-
-    def get_attribute(self, name: str) -> Any:
-        if hasattr(self, '_get_' + name):
-            return getattr(self, '_get_' + name)()
-        elif hasattr(self, '_' + name):
-            return getattr(self, '_' + name)
-        else:
-            raise NotImplementedError
+from ding.framework.middleware.tests import DIStarMockPolicy, DIStarMockPolicyCollect, \
+    battle_inferencer_for_distar, battle_rolloutor_for_distar
 
 
 def prepare_test():

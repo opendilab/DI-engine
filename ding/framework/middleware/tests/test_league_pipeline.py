@@ -9,7 +9,8 @@ from ding.model import VAC
 from ding.framework.task import task, Parallel
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
 from dizoo.distar.envs.distar_env import DIStarEnv
-from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar
+from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, \
+    battle_inferencer_for_distar, battle_rolloutor_for_distar
 from distar.ctools.utils import read_config
 from unittest.mock import patch
 

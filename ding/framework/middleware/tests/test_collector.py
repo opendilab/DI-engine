@@ -6,6 +6,8 @@ from ding.framework import OnlineRLContext, task
 from ding.framework.middleware import TransitionList, inferencer, rolloutor
 from ding.framework.middleware import StepCollector, EpisodeCollector
 from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
+from ding.framework.middleware import BattleTransitionList
+from easydict import EasyDict
 
 
 @pytest.mark.unittest
@@ -84,10 +86,6 @@ def test_episode_collector():
             collector = EpisodeCollector(cfg, policy, env, random_collect_size=8)
             collector(ctx)
     assert len(ctx.episodes) == 16
-
-
-from ding.framework.middleware import BattleTransitionList
-from easydict import EasyDict
 
 
 @pytest.mark.unittest
