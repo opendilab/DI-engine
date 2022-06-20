@@ -36,8 +36,6 @@ def sequence_mask(lengths: torch.Tensor, max_len: Optional[int] = None) -> torch
     bz = lengths.numel()
     if max_len is None:
         max_len = lengths.max()
-    else:
-        max_len = min(max_len, lengths.max())
     return torch.arange(0, max_len).type_as(lengths).repeat(bz, 1).lt(lengths).to(lengths.device)
 
 

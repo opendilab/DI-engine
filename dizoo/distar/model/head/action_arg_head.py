@@ -25,8 +25,7 @@ class DelayHead(nn.Module):
 
     def __init__(self, cfg):
         super(DelayHead, self).__init__()
-        self.whole_cfg = cfg
-        self.cfg = self.whole_cfg.model.policy.head.delay_head
+        self.cfg = cfg
         self.act = build_activation(self.cfg.activation)
         self.fc1 = fc_block(self.cfg.input_dim, self.cfg.decode_dim, activation=self.act, norm_type=None)
         self.fc2 = fc_block(self.cfg.decode_dim, self.cfg.decode_dim, activation=self.act, norm_type=None)
@@ -55,8 +54,7 @@ class QueuedHead(nn.Module):
 
     def __init__(self, cfg):
         super(QueuedHead, self).__init__()
-        self.whole_cfg = cfg
-        self.cfg = self.whole_cfg.model.policy.head.queued_head
+        self.cfg = cfg
         self.act = build_activation(self.cfg.activation)
         # to get queued logits
         self.fc1 = fc_block(self.cfg.input_dim, self.cfg.decode_dim, activation=self.act, norm_type=None)
@@ -73,7 +71,7 @@ class QueuedHead(nn.Module):
         x = self.fc1(embedding)
         x = self.fc2(x)
         x = self.fc3(x)
-        x.div_(self.whole_cfg.model.temperature)
+        x.div_(self.cfg.temperature)
         if queued is None:
             p = F.softmax(x, dim=1)
             queued = torch.multinomial(p, 1)[:, 0]
@@ -89,8 +87,7 @@ class SelectedUnitsHead(nn.Module):
 
     def __init__(self, cfg):
         super(SelectedUnitsHead, self).__init__()
-        self.whole_cfg = cfg
-        self.cfg = self.whole_cfg.model.policy.head.selected_units_head
+        self.cfg = cfg
         self.act = build_activation(self.cfg.activation)
         self.key_fc = fc_block(self.cfg.entity_embedding_dim, self.cfg.key_dim, activation=None, norm_type=None)
         self.query_fc1 = fc_block(self.cfg.input_dim, self.cfg.func_dim, activation=self.act)
@@ -108,9 +105,9 @@ class SelectedUnitsHead(nn.Module):
         self.end_embedding = torch.nn.Parameter(torch.FloatTensor(1, self.key_dim))
         stdv = 1. / math.sqrt(self.end_embedding.size(1))
         self.end_embedding.data.uniform_(-stdv, stdv)
-        if self.whole_cfg.model.entity_reduce_type == 'attention_pool':
+        if self.cfg.entity_reduce_type == 'attention_pool':
             self.attention_pool = AttentionPool(key_dim=self.cfg.key_dim, head_num=2, output_dim=self.cfg.input_dim)
-        elif self.whole_cfg.model.entity_reduce_type == 'attention_pool_add_num':
+        elif self.cfg.entity_reduce_type == 'attention_pool_add_num':
             self.attention_pool = AttentionPool(
                 key_dim=self.cfg.key_dim, head_num=2, output_dim=self.cfg.input_dim, max_num=MAX_SELECTED_UNITS_NUM + 1
             )
@@ -128,7 +125,7 @@ class SelectedUnitsHead(nn.Module):
         end_embeddings = end_embeddings * ~flag
         key = key * flag
         key = key + end_embeddings
-        reduce_type = self.whole_cfg.model.entity_reduce_type
+        reduce_type = self.cfg.entity_reduce_type
         if reduce_type == 'entity_num':
             key_reduce = torch.div(key, entity_num.reshape(-1, 1, 1))
             key_embeddings = self.embed_fc(key_reduce)
@@ -145,7 +142,7 @@ class SelectedUnitsHead(nn.Module):
         return key, mask, key_embeddings
 
     def _get_pred_with_logit(self, logit):
-        logit.div_(self.whole_cfg.model.temperature)
+        logit.div_(self.cfg.temperature)
         p = F.softmax(logit, dim=-1)
         units = torch.multinomial(p, 1)[:, 0]
         return units
@@ -190,23 +187,23 @@ class SelectedUnitsHead(nn.Module):
                 lstm_input = self.query_fc2(self.query_fc1(ae)).unsqueeze(0)
                 lstm_output, state = self.lstm(lstm_input, state)
                 queries.append(lstm_output)
-                reduce_type = self.whole_cfg.model.entity_reduce_type
+                reduce_type = self.cfg.entity_reduce_type
                 if reduce_type == 'selected_units_num' or 'attention' in reduce_type:
                     new_selected_units_one_hot = selected_units_one_hot.clone()  # inplace operation can not backward
                     end_flag[selected_units[:, i] == entity_num] = 1
                     new_selected_units_one_hot[torch.arange(bs)[~end_flag], selected_units[:, i][~end_flag], :] = 1
-                    if self.whole_cfg.model.entity_reduce_type == 'selected_units_num':
+                    if reduce_type == 'selected_units_num':
                         selected_units_emebedding = (key_embeddings * new_selected_units_one_hot).sum(dim=1)
                         S = selected_units_num
                         selected_units_emebedding[S != 0] = \
                             selected_units_emebedding[S != 0] / new_selected_units_one_hot.sum(dim=1)[S != 0]
                         selected_units_emebedding = self.embed_fc2(self.embed_fc1(selected_units_emebedding))
                         ae = autoregressive_embedding + selected_units_emebedding
-                    elif self.whole_cfg.model.entity_reduce_type == 'attention_pool':
+                    elif reduce_type == 'attention_pool':
                         ae = autoregressive_embedding + self.attention_pool(
                             key_embeddings, mask=new_selected_units_one_hot
                         )
-                    elif self.whole_cfg.model.entity_reduce_type == 'attention_pool_add_num':
+                    elif reduce_type == 'attention_pool_add_num':
                         ae = autoregressive_embedding + self.attention_pool(
                             key_embeddings,
                             num=new_selected_units_one_hot.sum(dim=1).squeeze(dim=1),
@@ -251,19 +248,19 @@ class SelectedUnitsHead(nn.Module):
                 end_flag[result == entity_num] = torch.tensor([1], dtype=torch.bool, device=ae.device)
                 results_list.append(result)
                 logits_list.append(step_logits)
-                reduce_type = self.whole_cfg.model.entity_reduce_type
+                reduce_type = self.cfg.entity_reduce_type
                 if reduce_type == 'selected_units_num' or 'attention' in reduce_type:
                     selected_units_one_hot[torch.arange(bs)[~end_flag], result[~end_flag], :] = 1
-                    if self.whole_cfg.model.entity_reduce_type == 'selected_units_num':
+                    if reduce_type == 'selected_units_num':
                         selected_units_emebedding = (key_embeddings * selected_units_one_hot).sum(dim=1)
                         slected_num = selected_units_one_hot.sum(dim=1).squeeze(dim=1)
                         selected_units_emebedding[slected_num != 0] = selected_units_emebedding[
                             slected_num != 0] / slected_num[slected_num != 0].unsqueeze(dim=1)
                         selected_units_emebedding = self.embed_fc2(self.embed_fc1(selected_units_emebedding))
                         ae = autoregressive_embedding + selected_units_emebedding
-                    elif self.whole_cfg.model.entity_reduce_type == 'attention_pool':
+                    elif reduce_type == 'attention_pool':
                         ae = autoregressive_embedding + self.attention_pool(key_embeddings, mask=selected_units_one_hot)
-                    elif self.whole_cfg.model.entity_reduce_type == 'attention_pool_add_num':
+                    elif reduce_type == 'attention_pool_add_num':
                         ae = autoregressive_embedding + self.attention_pool(
                             key_embeddings,
                             num=selected_units_one_hot.sum(dim=1).squeeze(dim=1),
@@ -302,8 +299,7 @@ class TargetUnitHead(nn.Module):
 
     def __init__(self, cfg):
         super(TargetUnitHead, self).__init__()
-        self.whole_cfg = cfg
-        self.cfg = self.whole_cfg.model.policy.head.target_unit_head
+        self.cfg = cfg
         self.act = build_activation(self.cfg.activation)
         self.key_fc = fc_block(self.cfg.entity_embedding_dim, self.cfg.key_dim, activation=None, norm_type=None)
         self.query_fc1 = fc_block(self.cfg.input_dim, self.cfg.key_dim, activation=self.act, norm_type=None)
@@ -321,7 +317,7 @@ class TargetUnitHead(nn.Module):
         logits = logits.sum(dim=2)  # b, n, -1
         logits.masked_fill_(~mask, value=-1e9)
 
-        logits.div_(self.whole_cfg.model.temperature)
+        logits.div_(self.cfg.temperature)
         if target_unit is None:
             p = F.softmax(logits, dim=1)
             target_unit = torch.multinomial(p, 1)[:, 0]
@@ -332,8 +328,7 @@ class LocationHead(nn.Module):
 
     def __init__(self, cfg):
         super(LocationHead, self).__init__()
-        self.whole_cfg = cfg
-        self.cfg = self.whole_cfg.model.policy.head.location_head
+        self.cfg = cfg
         self.act = build_activation(self.cfg.activation)
         self.reshape_channel = self.cfg.reshape_channel
 
@@ -352,7 +347,7 @@ class LocationHead(nn.Module):
         self.use_gate = self.cfg.gate
         self.project_embed = fc_block(
             self.cfg.input_dim,
-            self.whole_cfg.model.spatial_y // 8 * self.whole_cfg.model.spatial_x // 8 * 4,
+            self.cfg.spatial_y // 8 * self.cfg.spatial_x // 8 * 4,
             activation=build_activation(self.cfg.activation)
         )
 
@@ -391,8 +386,7 @@ class LocationHead(nn.Module):
     def forward(self, embedding, map_skip: List[Tensor], location=None):
         projected_embedding = self.project_embed(embedding)
         reshape_embedding = projected_embedding.reshape(
-            projected_embedding.shape[0], self.reshape_channel, self.whole_cfg.model.spatial_y // 8,
-            self.whole_cfg.model.spatial_x // 8
+            projected_embedding.shape[0], self.reshape_channel, self.cfg.spatial_y // 8, self.cfg.spatial_x // 8
         )
         cat_feature = torch.cat([reshape_embedding, map_skip[-1]], dim=1)
 
@@ -414,7 +408,7 @@ class LocationHead(nn.Module):
             x = layer(x)
 
         logits_flatten = x.view(x.shape[0], -1)
-        logits_flatten.div_(self.whole_cfg.model.temperature)
+        logits_flatten.div_(self.cfg.temperature)
         p = F.softmax(logits_flatten, dim=1)
         if location is None:
             location = torch.multinomial(p, 1)[:, 0]

@@ -8,19 +8,17 @@ from torch import Tensor
 from ding.torch_utils import fc_block, ScatterConnection
 
 from .obs_encoder import ScalarEncoder, SpatialEncoder, EntityEncoder
-from .lstm import script_lnlstm
 
 
 class Encoder(nn.Module):
 
     def __init__(self, cfg):
         super(Encoder, self).__init__()
-        self.whole_cfg = cfg
-        self.cfg = cfg.model.encoder
+        self.cfg = cfg.encoder
         self.encoder = nn.ModuleDict()
-        self.scalar_encoder = ScalarEncoder(self.whole_cfg)
-        self.spatial_encoder = SpatialEncoder(self.whole_cfg)
-        self.entity_encoder = EntityEncoder(self.whole_cfg)
+        self.scalar_encoder = ScalarEncoder(self.cfg.obs_encoder.scalar_encoder)
+        self.spatial_encoder = SpatialEncoder(self.cfg.obs_encoder.spatial_encoder)
+        self.entity_encoder = EntityEncoder(self.cfg.obs_encoder.entity_encoder)
         self.scatter_project = fc_block(self.cfg.scatter.input_dim, self.cfg.scatter.output_dim, activation=nn.ReLU())
         self.scatter_dim = self.cfg.scatter.output_dim
         self.scatter_connection = ScatterConnection(self.cfg.scatter.scatter_type)

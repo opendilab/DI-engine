@@ -1,6 +1,6 @@
 import torch
 from ding.torch_utils import flatten, sequence_mask
-from ding.utils import default_collate
+from ding.utils.data import default_collate
 from dizoo.distar.envs import MAX_SELECTED_UNITS_NUM
 
 MASK_INF = -1e9
@@ -65,13 +65,13 @@ def collate_fn_learn(traj_batch):
         [len(traj_data['entity_info']['x']) for traj_data_list in traj_batch for traj_data in traj_data_list]
     )
 
-    # padding entity_info in observatin, target_unit, selected_units, mask
+    # padding entity_info in observation, target_unit, selected_units, mask
     traj_batch = [
         [padding_entity_info(traj_data, max_entity_num) for traj_data in traj_data_list]
         for traj_data_list in traj_batch
     ]
 
-    data = [default_collate(traj_data_list) for traj_data_list in traj_batch]
+    data = [default_collate(traj_data_list, allow_key_mismatch=True) for traj_data_list in traj_batch]
 
     batch_size = len(data)
     unroll_len = len(data[0]['step'])
