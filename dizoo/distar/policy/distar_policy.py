@@ -11,7 +11,7 @@ from ding.torch_utils import to_device
 from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho, vtrace_error_with_rho, \
     upgo_data, upgo_error
 from ding.utils import EasyTimer
-from dizoo.distar.model import Model
+from dizoo.distar.model.model import Model
 from .utils import collate_fn_learn
 
 EPS = 1e-9

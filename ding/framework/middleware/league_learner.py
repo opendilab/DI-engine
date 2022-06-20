@@ -1,16 +1,18 @@
 import os
-import logging
 from dataclasses import dataclass
 from threading import Lock
 from time import sleep
 from typing import TYPE_CHECKING, Callable, Optional
+from ding.data.buffer.deque_buffer import DequeBuffer
 
 from ding.framework import task, EventEnum
+from ding.framework.middleware import OffPolicyLearner, CkptSaver, data_pusher
 from ding.framework.storage import Storage, FileStorage
 from ding.league.player import PlayerMeta
 from ding.worker.learner.base_learner import BaseLearner
 
 if TYPE_CHECKING:
+    from ding.data import Buffer
     from ding.framework import Context
     from ding.framework.middleware.league_actor import ActorData
     from ding.league import ActivePlayer
@@ -21,6 +23,40 @@ class LearnerModel:
     player_id: str
     state_dict: dict
     train_iter: int = 0
+
+
+class OffPolicyLeagueLearner:
+
+    def __init__(self, cfg: dict, policy_fn: Callable, player: "ActivePlayer") -> None:
+        self._buffer = DequeBuffer(size=10000)
+        self._policy = policy_fn().learn_mode
+        self.player_id = player.player_id
+        task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
+        self._learner = OffPolicyLearner(cfg, self._policy, self._buffer)
+        # self._ckpt_handler = CkptSaver(cfg, self._policy, train_freq=100)
+    
+    def _push_data(self, data: "ActorData"):
+        print("wait for lock")
+        print("push data into the buffer!")
+        self._buffer.push(data.train_data)
+
+    def __call__(self, ctx: "OnlineRLContext"):
+        print("num of objects in buffer:", self._buffer.count())
+        self._learner(ctx)
+        checkpoint = None
+
+        sleep(2)
+        print('learner send player meta\n', flush=True)
+        task.emit(
+            EventEnum.LEARNER_SEND_META,
+            PlayerMeta(player_id=self.player_id, checkpoint=checkpoint, total_agent_step=0)
+        )
+
+        learner_model = LearnerModel(
+            player_id=self.player_id, state_dict=self._policy.state_dict(), train_iter=0
+        )
+        print('learner send model\n', flush=True)
+        task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
 
 
 class LeagueLearner:

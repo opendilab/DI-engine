@@ -3,7 +3,7 @@ from time import sleep
 import pytest
 from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
-from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearner
+from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearner, OffPolicyLeagueLearner
 
 from ding.model import VAC
 from ding.framework.task import task, Parallel
@@ -13,8 +13,8 @@ from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DISt
 from distar.ctools.utils import read_config
 from unittest.mock import patch
 
-N_ACTORS = 2
-N_LEARNERS = 2
+N_ACTORS = 1
+N_LEARNERS = 1
 
 
 def prepare_test():
@@ -57,8 +57,7 @@ def _main():
                 else:
                     n_players = len(league.active_players_ids)
                     player = league.active_players[task.router.node_id % n_players]
-                    learner = LeagueLearner(cfg, policy_fn, player)
-                    learner._learner._tb_logger = MockLogger()
+                    learner = OffPolicyLeagueLearner(cfg, policy_fn, player)
                     task.use(learner)
 
                 task.run()
