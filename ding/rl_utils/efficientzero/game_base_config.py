@@ -3,7 +3,7 @@ The following code is adapted from https://github.com/YeWR/EfficientZero
 """
 import torch
 import numpy as np
-from ding.rl_utils.efficientzero.dataset import Transforms
+# from ding.rl_utils.efficientzero.dataset import Transforms
 
 
 class DiscreteSupport(object):

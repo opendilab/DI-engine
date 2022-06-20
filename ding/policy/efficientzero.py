@@ -9,12 +9,12 @@ import copy
 import numpy as np
 from torch.nn import L1Loss
 import torch.nn.functional as F
-from ding.torch_utils import Adam, to_device, ContrastiveLoss
+from ding.torch_utils import Adam, ContrastiveLoss
 from ding.rl_utils import get_nstep_return_data, get_train_sample
 import ding.rl_utils.efficientzero.ctree.cytree as cytree
 from ding.rl_utils.efficientzero.mcts import MCTS
 from ding.rl_utils.efficientzero.utils import select_action
-from ding.torch_utils import to_tensor, to_ndarray, to_dtype
+from ding.torch_utils import to_tensor, to_ndarray, to_dtype, to_device
 # TODO(pu): choose game config
 from dizoo.board_games.atari.config.atari_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
@@ -181,7 +181,7 @@ class EfficientZeroPolicy(Policy):
         # to save GPU memory usage, obs_batch_ori contains (stack + unroll steps) frames
 
         if self.game_config.image_based:
-            obs_batch_ori = torch.from_numpy(obs_batch_ori).to(self.game_config.device).float() / 255.0
+            obs_batch_ori = torch.from_numpy(obs_batch_ori / 255.0).to(self.game_config.device).float()
         else:
             obs_batch_ori = torch.from_numpy(obs_batch_ori).to(self.game_config.device).float()
         obs_batch = obs_batch_ori[:, 0:self.game_config.stacked_observations * self.game_config.image_channel, :, :]
@@ -237,6 +237,7 @@ class EfficientZeroPolicy(Policy):
         policy_logits = to_tensor(policy_logits)
         hidden_state = to_tensor(hidden_state)
         reward_hidden = to_tensor(reward_hidden)
+        reward_hidden = to_device(reward_hidden, self.game_config.device)
 
         scaled_value = self.game_config.inverse_value_transform(value)
 

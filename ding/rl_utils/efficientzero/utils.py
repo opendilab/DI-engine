@@ -13,6 +13,7 @@ import logging
 import numpy as np
 
 from scipy.stats import entropy
+from ding.torch_utils import to_tensor, to_ndarray, to_dtype, to_device
 
 
 class LinearSchedule(object):
@@ -376,6 +377,27 @@ def concat_output(output_lst):
         hidden_state_lst.append(output.hidden_state)
         reward_hidden_c_lst.append(output.reward_hidden[0].squeeze(0))
         reward_hidden_h_lst.append(output.reward_hidden[1].squeeze(0))
+    
+    # TODO(pu)
+    if isinstance(value_lst[0], torch.Tensor):
+        value_lst = to_device(value_lst, 'cpu')
+        value_lst = to_ndarray(value_lst)
+    if isinstance(reward_lst[0], torch.Tensor):
+        reward_lst = to_device(reward_lst, 'cpu')
+        reward_lst = to_ndarray(reward_lst)
+    if isinstance(policy_logits_lst[0], torch.Tensor):
+        policy_logits_lst = to_device(policy_logits_lst, 'cpu')
+        policy_logits_lst = to_ndarray(policy_logits_lst)
+    if isinstance(hidden_state_lst[0], torch.Tensor):
+        hidden_state_lst = to_device(hidden_state_lst, 'cpu')
+        hidden_state_lst = to_ndarray(hidden_state_lst)
+    if isinstance(reward_hidden_c_lst[0], torch.Tensor):
+        reward_hidden_c_lst = to_device(reward_hidden_c_lst, 'cpu')
+        reward_hidden_c_lst = to_ndarray(reward_hidden_c_lst)
+    if isinstance(reward_hidden_h_lst[0], torch.Tensor):
+        reward_hidden_h_lst = to_device(reward_hidden_h_lst, 'cpu')
+        reward_hidden_h_lst = to_ndarray(reward_hidden_h_lst)
+
 
     value_lst = np.concatenate(value_lst)
     reward_lst = np.concatenate(reward_lst)
