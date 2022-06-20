@@ -49,12 +49,3 @@ class BaseGameEnv(BaseEnv):
             choice = input("Ilegal action. Enter another action : ")
         return int(choice)
 
-    def action_to_string(self, action_number):
-        """
-        Convert an action number to a string representing the action.
-        Args:
-            action_number: an integer from the action space.
-        Returns:
-            String representing the action.
-        """
-        return str(action_number)

@@ -4,15 +4,14 @@ The following code is adapted from https://github.com/YeWR/EfficientZero/blob/ma
 
 import copy
 import numpy as np
-from ding.rl_utils.efficientzero.utils import str_to_arr
+from ding.utils.compression_helper import str_to_arr
 
 
 class Game:
 
-    def __init__(self, env, action_space_size: int, discount: float, config=None):
+    def __init__(self, env, action_space_size: int, config=None):
         self.env = env
         self.action_space_size = action_space_size
-        self.discount = discount
         self.config = config
 
     def legal_actions(self):

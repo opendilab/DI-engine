@@ -11,12 +11,11 @@ import gym
 from ding.envs import BaseEnv, BaseEnvTimestep, update_shape
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
-from dizoo.atari.envs.atari_wrappers import wrap_deepmind, wrap_deepmind_mr
+from dizoo.atari.envs.atari_wrappers import wrap_deepmind, wrap_deepmind_mr, AtariWrapper
 from ding.rl_utils.efficientzero.utils import make_atari, WarpFrame, EpisodicLifeEnv
-from ding.rl_utils.efficientzero.atari_env_wrapper import AtariWrapper
 
 
-@ENV_REGISTRY.register('atari-game')
+@ENV_REGISTRY.register('atari-muzero')
 class AtariMuZeroEnv(BaseEnv):
     def __init__(self, cfg=None):
         self.cfg = cfg
@@ -185,18 +184,16 @@ class AtariMuZeroEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def __repr__(self) -> str:
-        return "DI-engine Atari Env({})".format(self.cfg.env_name)
+        return "DI-engine Atari MuZero Env({})".format(self.cfg.env_name)
 
     @staticmethod
     def create_collector_envcfg(cfg: dict) -> List[dict]:
         collector_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
-        cfg.is_train = True
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_envcfg(cfg: dict) -> List[dict]:
         evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
-        cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
