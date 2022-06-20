@@ -3,6 +3,7 @@ from easydict import EasyDict
 nstep = 3
 collector_env_num=8
 evaluator_env_num=8
+# debug
 # collector_env_num=2
 # evaluator_env_num=2
 atari_efficientzero_config = dict(
@@ -15,8 +16,6 @@ atari_efficientzero_config = dict(
         env_name='PongNoFrameskip-v4',
         obs_shape=(12, 96, 96),
         gray_scale=False,
-        # debug
-        # max_episode_steps=int(1e2),
         max_episode_steps=int(1e5),
         episode_life=True,
         cvt_string=False,  # TODO(pu)
@@ -53,7 +52,7 @@ atari_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=1,
+            update_per_collect=20,
             batch_size=256,
             # debug
             # batch_size=8,

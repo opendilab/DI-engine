@@ -11,6 +11,7 @@ from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF,
 from ding.rl_utils.efficientzero.game import GameHistory
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
 from torch.nn import L1Loss
+from ding.envs import BaseEnvTimestep
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('episode_muzero')
@@ -316,12 +317,18 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         return_data = []
         ready_env_id = set()
         remain_episode = n_episode
-        # env_nums = 1
         env_nums = self._env_num
         # initializations
         init_obses = self._env.ready_obs
+        for i in range(env_nums):
+            if isinstance(init_obses[i], dict):
+                # not done env: self._ready_obs[env_id] = timesteps[env_id].obs
+                init_obses[i] = BaseEnvTimestep(init_obses[i], None, None, None)
         init_obses = to_tensor(init_obses, dtype=torch.float32)
-        action_mask = [to_ndarray(init_obses[i].obs['action_mask']) for i in range(env_nums)]
+        try:
+            action_mask = [to_ndarray(init_obses[i].obs['action_mask']) for i in range(env_nums)]
+        except Exception as error:
+            print(error)
 
         dones = np.array([False for _ in range(env_nums)])
         game_histories = [
@@ -383,9 +390,11 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
         while True:
             with self._timer:
-                new_available_env_id = set(self._env.ready_obs.keys()).difference(ready_env_id)
+                # new_available_env_id = set(self._env.ready_obs.keys()).difference(ready_env_id)
                 # ready_env_id = ready_env_id.union(set(list(new_available_env_id)[:remain_episode]))
-                remain_episode -= min(len(new_available_env_id), remain_episode)
+                # remain_episode -= min(len(new_available_env_id), remain_episode)
+                # obs = {env_id: obs[env_id] for env_id in ready_env_id}
+
                 stack_obs = [game_history.step_obs() for game_history in game_histories]
                 stack_obs = to_ndarray(stack_obs)
                 stack_obs = prepare_observation_lst(stack_obs)

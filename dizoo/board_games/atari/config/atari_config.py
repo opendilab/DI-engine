@@ -5,7 +5,8 @@ game_config = EasyDict(dict(
     # TODO:
     env_name='PongNoFrameskip-v4',
     image_based=True,
-    device='cuda',  # TODO
+    # TODO
+    device='cuda',
     # device='cpu',
     action_space_size=6,
     amp_type='none',
