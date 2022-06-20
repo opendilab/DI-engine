@@ -1,12 +1,22 @@
 from typing import Optional
+from functools import reduce
+import operator
+import math
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-from ding.torch_utils import ResFCBlock, ResBlock, Flatten
+from ding.torch_utils import ResFCBlock, ResBlock, Flatten, normed_linear, normed_conv2d
 from ding.utils import SequenceType
 
-import math
+
+def prod(iterable):
+    """
+    Product of all elements.(To be deprecated soon.)
+    This function denifition is for supporting python version that under 3.8.
+    In python3.8 and larger, 'math.prod()' is recommended.
+    """
+    return reduce(operator.mul, iterable, 1)
 
 
 class ConvEncoder(nn.Module):
@@ -164,53 +174,26 @@ class StructEncoder(nn.Module):
     pass
 
 
-def intprod(xs):
+class IMPALACnnResidualBlock(nn.Module):
     """
-    Product of a sequence of integers
-    """
-    out = 1
-    for x in xs:
-        out *= x
-    return out
-
-
-def NormedLinear(*args, scale=1.0, dtype=torch.float32, **kwargs):
-    """
-    nn.Linear but with normalized fan-in init
-    """
-
-    out = nn.Linear(*args, **kwargs)
-
-    out.weight.data *= scale / out.weight.norm(dim=1, p=2, keepdim=True)
-    if kwargs.get("bias", True):
-        out.bias.data.zero_()
-    return out
-
-
-def NormedConv2d(*args, scale=1, **kwargs):
-    """
-    nn.Conv2d but with normalized fan-in init
-    """
-    out = nn.Conv2d(*args, **kwargs)
-    out.weight.data *= scale / out.weight.norm(dim=(1, 2, 3), p=2, keepdim=True)
-    if kwargs.get("bias", True):
-        out.bias.data.zero_()
-    return out
-
-
-class CnnBasicBlock(nn.Module):
-    """
-    Residual basic block (without batchnorm), as in ImpalaCNN
+    Residual basic block (without batchnorm) in IMPALA cnn encoder.
     Preserves channel number and shape
     """
 
     def __init__(self, in_channnel, scale=1, batch_norm=False):
+        """
+        Overview:
+            Init every impala cnn residual block.
+        Arguments:
+            - in_channnel (:obj:`int`): Channel number of input features.
+            - scale (:obj:`float`): Scale of module.
+        """
         super().__init__()
         self.in_channnel = in_channnel
         self.batch_norm = batch_norm
         s = math.sqrt(scale)
-        self.conv0 = NormedConv2d(self.in_channnel, self.in_channnel, 3, padding=1, scale=s)
-        self.conv1 = NormedConv2d(self.in_channnel, self.in_channnel, 3, padding=1, scale=s)
+        self.conv0 = normed_conv2d(self.in_channnel, self.in_channnel, 3, padding=1, scale=s)
+        self.conv1 = normed_conv2d(self.in_channnel, self.in_channnel, 3, padding=1, scale=s)
         if self.batch_norm:
             self.bn0 = nn.BatchNorm2d(self.in_channnel)
             self.bn1 = nn.BatchNorm2d(self.in_channnel)
@@ -233,19 +216,29 @@ class CnnBasicBlock(nn.Module):
         return x + self.residual(x)
 
 
-class CnnDownStack(nn.Module):
+class IMPALACnnDownStack(nn.Module):
     """
     Downsampling stack from Impala CNN
     """
 
     def __init__(self, in_channnel, nblock, out_channel, scale=1, pool=True, **kwargs):
+        """
+        Overview:
+            Init every impala cnn block of the Impala Cnn Encoder.
+        Arguments:
+            - in_channnel (:obj:`int`): Channel number of input features.
+            - nblock (:obj:`int`): Residual Block number in each block.
+            - out_channel (:obj:`int`): Channel number of output features.
+            - scale (:obj:`float`): Scale of the module.
+            - pool (:obj:`bool`): Whether to use maxing pooling after first conv layer.
+        """
         super().__init__()
         self.in_channnel = in_channnel
         self.out_channel = out_channel
         self.pool = pool
-        self.firstconv = NormedConv2d(in_channnel, out_channel, 3, padding=1)
+        self.firstconv = normed_conv2d(in_channnel, out_channel, 3, padding=1)
         s = scale / math.sqrt(nblock)
-        self.blocks = nn.ModuleList([CnnBasicBlock(out_channel, scale=s, **kwargs) for _ in range(nblock)])
+        self.blocks = nn.ModuleList([IMPALACnnResidualBlock(out_channel, scale=s, **kwargs) for _ in range(nblock)])
 
     def forward(self, x):
         x = self.firstconv(x)
@@ -264,21 +257,37 @@ class CnnDownStack(nn.Module):
             return (self.out_channel, h, w)
 
 
-class ImpalaConvEncoder(nn.Module):
-    name = "ImpalaConvEncoder"  # put it here to preserve pickle compat
+class IMPALAConvEncoder(nn.Module):
+    name = "IMPALAConvEncoder"  # put it here to preserve pickle compat
 
-    def __init__(self, inshape, chans=(16, 32, 32), outsize=256, scale_ob=255.0, nblock=2, final_relu=True, **kwargs):
+    def __init__(
+        self, obs_shape, channels=(16, 32, 32), outsize=256, scale_ob=255.0, nblock=2, final_relu=True, **kwargs
+    ):
+        """
+        Overview:
+            Init the Encoder described in paper, \
+            IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures, \
+            https://arxiv.org/pdf/1802.01561.pdf,
+        Arguments:
+            - obs_shape (:obj:`int`): Observation shape.
+            - channels (:obj:`SequenceType`): Channel number of each impala cnn block. \
+                The size of it is the number of impala cnn blocks in the encoder
+            - outsize (:obj:`int`): Out feature of the encoder.
+            - scale_ob (:obj:`float`): Scale of each pixel.
+            - nblock (:obj:`int`): Residual Block number in each block.
+            - final_relu (:obj:`bool`): Whether to use Relu in the end of encoder.
+        """
         super().__init__()
         self.scale_ob = scale_ob
-        c, h, w = inshape
+        c, h, w = obs_shape
         curshape = (c, h, w)
-        s = 1 / math.sqrt(len(chans))  # per stack scale
+        s = 1 / math.sqrt(len(channels))  # per stack scale
         self.stacks = nn.ModuleList()
-        for out_channel in chans:
-            stack = CnnDownStack(curshape[0], nblock=nblock, out_channel=out_channel, scale=s, **kwargs)
+        for out_channel in channels:
+            stack = IMPALACnnDownStack(curshape[0], nblock=nblock, out_channel=out_channel, scale=s, **kwargs)
             self.stacks.append(stack)
             curshape = stack.output_shape(curshape)
-        self.dense = NormedLinear(intprod(curshape), outsize, scale=1.4)
+        self.dense = normed_linear(prod(curshape), outsize, scale=1.4)
         self.outsize = outsize
         self.final_relu = final_relu
 

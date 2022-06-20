@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
-from ding.compatibility import torch_gt_131
+from typing import Union, Tuple, List, Callable
+from ding.compatibility import torch_ge_131
 
 from .normalization import build_normalization
 
@@ -249,6 +250,45 @@ def fc_block(
     if use_dropout:
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
+
+
+def normed_linear(in_features, out_features, bias: bool = True, device=None, dtype=None, scale=1.0):
+    """
+    nn.Linear but with normalized fan-in init
+    """
+
+    out = nn.Linear(in_features, out_features, bias, device, dtype)
+
+    out.weight.data *= scale / out.weight.norm(dim=1, p=2, keepdim=True)
+    if bias:
+        out.bias.data.zero_()
+    return out
+
+
+def normed_conv2d(
+    in_channels,
+    out_channels,
+    kernel_size,
+    stride=1,
+    padding=0,
+    dilation=1,
+    groups=1,
+    bias: bool = True,
+    padding_mode='zeros',
+    device=None,
+    dtype=None,
+    scale=1
+):
+    """
+    nn.Conv2d but with normalized fan-in init
+    """
+    out = nn.Conv2d(
+        in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode, device, dtype
+    )
+    out.weight.data *= scale / out.weight.norm(dim=(1, 2, 3), p=2, keepdim=True)
+    if bias:
+        out.bias.data.zero_()
+    return out
 
 
 def MLP(
@@ -641,7 +681,7 @@ class NaiveFlatten(nn.Module):
             return x.view(*x.shape[:self.start_dim], -1)
 
 
-if torch_gt_131():
+if torch_ge_131():
     Flatten = nn.Flatten
 else:
     Flatten = NaiveFlatten

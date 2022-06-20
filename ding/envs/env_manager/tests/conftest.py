@@ -42,6 +42,7 @@ class FakeEnv(object):
         if isinstance(stat, str) and stat == 'error':
             self.dead()
         if isinstance(stat, str) and stat == 'error_once':
+            # Die on every two reset with error_once stat.
             if self._dead_once:
                 self._dead_once = False
                 self.dead()

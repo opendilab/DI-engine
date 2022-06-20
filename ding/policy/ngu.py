@@ -3,14 +3,13 @@ from collections import namedtuple
 import torch
 import copy
 
-from ding.torch_utils import Adam, to_device, to_tensor
+from ding.torch_utils import Adam, to_device
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
-import numpy as np
 
 
 @POLICY_REGISTRY.register('ngu')
@@ -207,25 +206,25 @@ class NGUPolicy(Policy):
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step]
+        # the q_nstep_td_error, should be length of [self._sequence_len-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - bs - self._nstep)]
+            data['done'] = [None for _ in range(self._sequence_len - bs - self._nstep)]
         else:
             data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
             # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step],
+        # with length of [self._sequence_len-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - bs)]
+            data['value_gamma'] = [None for _ in range(self._sequence_len - bs)]
         else:
             data['value_gamma'] = data['value_gamma'][bs:]
 
         if 'weight' not in data:
-            data['weight'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - bs)]
+            data['weight'] = [None for _ in range(self._sequence_len - bs)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
@@ -293,10 +292,10 @@ class NGUPolicy(Policy):
                     'enable_fast_timestep': True
                 }
                 tmp = self._learn_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                    inputs, saved_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
                 tmp_target = self._target_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                    inputs, saved_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
 
         inputs = {
@@ -306,11 +305,11 @@ class NGUPolicy(Policy):
             'beta': data['main_beta'],
             'enable_fast_timestep': True
         }
-        self._learn_model.reset(data_id=None, state=tmp['saved_hidden_state'][0])
+        self._learn_model.reset(data_id=None, state=tmp['saved_state'][0])
         q_value = self._learn_model.forward(inputs)['logit']
 
-        self._learn_model.reset(data_id=None, state=tmp['saved_hidden_state'][1])
-        self._target_model.reset(data_id=None, state=tmp_target['saved_hidden_state'][1])
+        self._learn_model.reset(data_id=None, state=tmp['saved_state'][1])
+        self._target_model.reset(data_id=None, state=tmp_target['saved_state'][1])
 
         next_inputs = {
             'obs': data['target_obs'],
@@ -326,7 +325,7 @@ class NGUPolicy(Policy):
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         value_gamma = [
-            None for _ in range(self._learn_unroll_len_plus_burnin_step - self._burnin_step)
+            None for _ in range(self._sequence_len - self._burnin_step)
         ]  # NOTE this is important, because we use diffrent gamma according to their beta in NGU alg.
 
         # T, B, nstep -> T, nstep, B
@@ -336,7 +335,7 @@ class NGUPolicy(Policy):
         self._gamma = [self.index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B -> B, e.g. 75,64 -> 64
 
         # reward torch.Size([4, 5, 64])
-        for t in range(self._learn_unroll_len_plus_burnin_step - self._burnin_step - self._nstep):
+        for t in range(self._sequence_len - self._burnin_step - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
@@ -356,7 +355,7 @@ class NGUPolicy(Policy):
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
         )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
-        # td_error shape list(<self._learn_unroll_len_plus_burnin_step-self._burnin_step-self._nstep>, B),
+        # td_error shape list(<self._sequence_len-self._burnin_step-self._nstep>, B),
         # for example, (75,64)
         # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
 
@@ -407,8 +406,8 @@ class NGUPolicy(Policy):
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
-        self._learn_unroll_len_plus_burnin_step = self._cfg.learn_unroll_len + self._cfg.burnin_step
-        self._unroll_len = self._learn_unroll_len_plus_burnin_step
+        self._sequence_len = self._cfg.learn_unroll_len + self._cfg.burnin_step
+        self._unroll_len = self._sequence_len
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
@@ -527,7 +526,7 @@ class NGUPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self.index_to_gamma[int(data[0]['beta'])].item())
-        return get_train_sample(data, self._learn_unroll_len_plus_burnin_step)
+        return get_train_sample(data, self._sequence_len)
 
     def _init_eval(self) -> None:
         r"""

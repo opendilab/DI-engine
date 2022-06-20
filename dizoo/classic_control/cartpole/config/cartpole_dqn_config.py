@@ -46,10 +46,7 @@ cartpole_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
-    replay_buffer=dict(
-        type='deque',
-        import_names=['ding.data.buffer.deque_buffer_wrapper']
-    ),
+    replay_buffer=dict(type='deque', import_names=['ding.data.buffer.deque_buffer_wrapper']),
 )
 cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
 create_config = cartpole_dqn_create_config
