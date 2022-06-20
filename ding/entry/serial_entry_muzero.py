@@ -135,39 +135,7 @@ def serial_pipeline_muzero(
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            # beta_schedule = LinearSchedule(config.training_steps + config.last_steps,
-            #                                     initial_p=config.priority_prob_beta, final_p=1.0)
-            # beta = beta_schedule.value(trained_steps)
-
-            # beta = 0.1
-            # # revisit_policy_search_rate = 0.99
-            # revisit_policy_search_rate = 1
-            # target_weights = policy._target_model.state_dict()
-            # batch_context = replay_buffer.prepare_batch_context(learner.policy.get_attribute('batch_size'), beta)
-            # input_countext = replay_buffer.make_batch(batch_context, revisit_policy_search_rate, weights=target_weights)
-            # reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, target_weights = input_countext
-            # # if target_weights is not None:
-            # #     self.model.load_state_dict(target_weights)
-            # #     self.model.to(self.config.device)
-            # #     self.model.eval()
-            #
-            # # target reward, value
-            # batch_value_prefixs, batch_values = replay_buffer._prepare_reward_value(
-            #     reward_value_context, policy._learn_model
-            # )
-            # # target policy
-            # batch_policies_re = replay_buffer._prepare_policy_re(policy_re_context, policy._learn_model)
-            # batch_policies_non_re = replay_buffer._prepare_policy_non_re(policy_non_re_context)
-            # # batch_policies = np.concatenate([batch_policies_re, batch_policies_non_re])
-            # batch_policies = batch_policies_re
-            # targets_batch = [batch_value_prefixs, batch_values, batch_policies]
-            # # a batch contains the inputs and the targets; inputs is prepared in CPU workers
-            # # train_data = [inputs_batch, targets_batch]
-            # # TODO(pu):
-            # train_data = [inputs_batch, targets_batch, replay_buffer]
-
             train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
-
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(

@@ -15,15 +15,7 @@ game_config = EasyDict(dict(
     gray_scale=False,
     downsample=True,  # Downsample observations before representation network (See paper appendix Network Architecture)
 
-    env_num=8,
-    max_episode_steps=int(1e5),
-    test_max_episode_steps=int(1e5),
-    num_simulations=50,
-    batch_size=256,
-    game_history_max_length=200,
-    total_transitions=int(1e6),
-    num_unroll_steps=5,
-    td_steps=5,
+
 
     # debug
     # env_num=2,
@@ -35,22 +27,33 @@ game_config = EasyDict(dict(
     # num_unroll_steps=5,
     # td_steps=3,
 
-    # TODO
-    clip_reward=False,
-    # clip_reward=True,
+    env_num=8,
+    max_episode_steps=int(1.08e5),
+    test_max_episode_steps=int(1.08e5),
+    num_simulations=50,
+    batch_size=256,
+    game_history_max_length=200,
+    total_transitions=int(1e6),
+    num_unroll_steps=5,
+    td_steps=5,
 
+    # TODO
+    revisit_policy_search_rate=1,
+    # revisit_policy_search_rate=0.99,
+
+    clip_reward=False,
     use_max_priority=True,
     use_priority=True,
     root_dirichlet_alpha=0.3,
     root_exploration_fraction=0.25,
     auto_td_steps=int(0.3 * 2e5),
-    use_root_value=True,
+    use_root_value=False,  # TODO
     mini_infer_size=2,
     use_augmentation=False,
     vis_result=True,
 
     priority_prob_alpha=0.6,
-    priority_prob_beta=0.4,
+    priority_prob_beta=1,  # TODO(pu): 0.4->1
     prioritized_replay_eps=1e-6,
 
     # UCB formula
@@ -59,7 +62,7 @@ game_config = EasyDict(dict(
 
     value_support=DiscreteSupport(-300, 300, delta=1),
     reward_support=DiscreteSupport(-300, 300, delta=1),
-    max_grad_norm=5,
+    max_grad_norm=10,
 
     max_training_steps=int(1e6),
     change_temperature=True,
@@ -78,6 +81,7 @@ game_config = EasyDict(dict(
     init_zero=True,
     # storage efficient
     cvt_string=False,
+    # TODO(pu)
     # lr scheduler
     lr_warm_up=0.01,
     lr_init=0.2,

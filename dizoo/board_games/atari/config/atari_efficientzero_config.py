@@ -1,25 +1,25 @@
 from easydict import EasyDict
 
-nstep = 3
-collector_env_num=8
-evaluator_env_num=8
 # debug
 # collector_env_num=2
 # evaluator_env_num=2
+
+collector_env_num=8
+evaluator_env_num=8
 atari_efficientzero_config = dict(
-    exp_name='atari_efficientzero_seed0',
+    exp_name='pong_efficientzero_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=20,
         env_name='PongNoFrameskip-v4',
-        obs_shape=(12, 96, 96),
-        gray_scale=False,
-        max_episode_steps=int(1e5),
-        episode_life=True,
-        cvt_string=False,  # TODO(pu)
         frame_skip=4,
+        obs_shape=(12, 96, 96),
+        max_episode_steps=int(1.08e5),
+        episode_life=True,
+        gray_scale=False,
+        cvt_string=False,  # TODO(pu)
     ),
     policy=dict(
         env_name='PongNoFrameskip-v4',
@@ -52,13 +52,13 @@ atari_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=20,
-            batch_size=256,
+            update_per_collect=50,
             # debug
             # batch_size=8,
-            learning_rate=0.001,
+            batch_size=256,
+            learning_rate=1e-3,
             # Frequency of target network update.
-            target_update_freq=100,
+            target_update_freq=400,
         ),
         # collect_mode config
         collect=dict(
@@ -74,9 +74,9 @@ atari_efficientzero_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
-                decay=50000,
+                decay=int(5e4),
             ),
-            replay_buffer=dict(replay_buffer_size=100000, type='game')
+            replay_buffer=dict(replay_buffer_size=int(1e6), type='game')
         ),
     ),
 )

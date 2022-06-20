@@ -82,16 +82,16 @@ class EfficientZeroPolicy(Policy):
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=3,
+            update_per_collect=10,
             # (int) How many samples in a training batch
-            batch_size=64,
+            batch_size=256,
             # (float) The step size of gradient descent
             learning_rate=0.001,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
-            target_update_freq=100,
+            target_update_freq=400,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
             weight_decay=1e-4,
@@ -465,6 +465,7 @@ class EfficientZeroPolicy(Policy):
             reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
             value_prefix_pool = network_output.value_prefix  # {list: 2}
             policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
+            pred_values_pool = network_output.value  # {list: 2}
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # action_num = [int(i.sum()) for i in action_mask]
@@ -487,12 +488,12 @@ class EfficientZeroPolicy(Policy):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 # TODO(pu):
-                action, _ = select_action(distributions, temperature=temperature[i], deterministic=False)
+                action, visit_entropy = select_action(distributions, temperature=temperature[i], deterministic=False)
                 # action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
                 # actions.append(action)
-                output[i] = {'action': action, 'distributions': distributions, 'value': value}
+                output[i] = {'action': action, 'distributions': distributions, 'visit_entropy': visit_entropy, 'value': value, 'pred_value': pred_values_pool[i]}
 
         return output
 

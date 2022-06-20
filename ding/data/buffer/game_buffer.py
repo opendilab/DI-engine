@@ -39,7 +39,7 @@ class GameBuffer(Buffer):
 
         self.buffer = []
         self.priorities = []
-        self.game_look_up = []
+        self.game_history_look_up = []
 
         self._eps_collected = 0
         self.base_idx = 0
@@ -49,24 +49,20 @@ class GameBuffer(Buffer):
         self.clear_time = 0
 
     def sample_train_data(self, batch_size, policy):
-        beta = 0.1
-        # revisit_policy_search_rate = 0.99
-        revisit_policy_search_rate = 1
         target_weights = policy._target_model.state_dict()
-        batch_context = self.prepare_batch_context(batch_size, beta)
-        input_context = self.make_batch(batch_context, revisit_policy_search_rate, weights=target_weights)
+        batch_context = self.prepare_batch_context(batch_size, self.config.priority_prob_beta)
+        input_context = self.make_batch(batch_context, self.config.revisit_policy_search_rate, weights=target_weights)
         reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, target_weights = input_context
-        # if target_weights is not None:
-        #     self.model.load_state_dict(target_weights)
-        #     self.model.to(self.config.device)
-        #     self.model.eval()
+        if target_weights is not None:
+            policy._target_model.to(self.config.device)
+            policy._target_model.eval()
 
         # target reward, value
         batch_value_prefixs, batch_values = self._prepare_reward_value(
-            reward_value_context, policy._learn_model
+            reward_value_context, policy._target_model
         )
         # target policy
-        batch_policies_re = self._prepare_policy_re(policy_re_context, policy._learn_model)
+        batch_policies_re = self._prepare_policy_re(policy_re_context, policy._target_model)
         batch_policies_non_re = self._prepare_policy_non_re(policy_non_re_context)
         # batch_policies = np.concatenate([batch_policies_re, batch_policies_non_re])
         batch_policies = batch_policies_re
@@ -131,7 +127,7 @@ class GameBuffer(Buffer):
             self.priorities = np.concatenate((self.priorities, priorities))
 
         self.buffer.append(data)
-        self.game_look_up += [(self.base_idx + len(self.buffer) - 1, step_pos) for step_pos in range(len(data))]
+        self.game_history_look_up += [(self.base_idx + len(self.buffer) - 1, step_pos) for step_pos in range(len(data))]
 
     def sample(
             self,
@@ -162,9 +158,9 @@ class GameBuffer(Buffer):
         # if size:
         #     if replace:
         #         sampled_indices = np.random.randint(0, self.get_num_of_game_historys(), size)
-        #         return [self.buffer[game_id] for game_id in sampled_indices]
+        #         return [self.buffer[game_history_idx] for game_history_idx in sampled_indices]
         # elif indices:
-        #     return [self.buffer[game_id] for game_id in indices]
+        #     return [self.buffer[game_history_idx] for game_history_idx in indices]
 
         storage = self.buffer
         if sample_range:
@@ -191,7 +187,7 @@ class GameBuffer(Buffer):
             # hashed_data = dict(hashed_data)
             # # Re-sample and return in indices order
             # sampled_data = [hashed_data[index] for index in indices]
-            sampled_data = [self.buffer[game_id] for game_id in indices]
+            sampled_data = [self.buffer[game_history_idx] for game_history_idx in indices]
 
         elif groupby:
             sampled_data = self._sample_by_group(size=size, groupby=groupby, replace=replace, storage=storage)
@@ -257,17 +253,17 @@ class GameBuffer(Buffer):
         # idx: transition index
         # return the game history including this transition
 
-        # game_id is the index of this game history in the self.buffer list
-        # game_pos is the relative position of this transition in this game history
-        game_id, game_pos = self.game_look_up[idx]
-        game_id -= self.base_idx
-        game = self.buffer[game_id]
+        # game_history_idx is the index of this game history in the self.buffer list
+        # game_history_pos is the relative position of this transition in this game history
+        game_history_idx, game_history_pos = self.game_history_look_up[idx]
+        game_history_idx -= self.base_idx
+        game = self.buffer[game_history_idx]
         return game
 
     def sample_one_transition(self, idx):
-        game_id, game_pos = self.game_look_up[idx]
-        game_id -= self.base_idx
-        transition = self.buffer[game_id][game_pos]
+        game_history_idx, game_history_pos = self.game_history_look_up[idx]
+        game_history_idx -= self.base_idx
+        transition = self.buffer[game_history_idx][game_history_pos]
         return transition
 
     def update(self, index, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
@@ -291,10 +287,10 @@ class GameBuffer(Buffer):
         if index < self.get_total_num_transitions():
             prio = meta['priorities']
             self.priorities[index] = prio
-            game_id, game_pos = self.game_look_up[index]
-            game_id -= self.base_idx
+            game_history_idx, game_history_pos = self.game_history_look_up[index]
+            game_history_idx -= self.base_idx
             # update one transition
-            self.buffer[game_id][game_pos] = data
+            self.buffer[game_history_idx][game_history_pos] = data
             success = True
 
         return success
@@ -340,7 +336,7 @@ class GameBuffer(Buffer):
         excess_games_steps = sum([len(game) for game in self.buffer[:num_excess_games]])
         del self.buffer[:num_excess_games]
         self.priorities = self.priorities[excess_games_steps:]
-        del self.game_look_up[:excess_games_steps]
+        del self.game_history_look_up[:excess_games_steps]
         self.base_idx += num_excess_games
 
         self.clear_time = time.time()
@@ -377,9 +373,9 @@ class GameBuffer(Buffer):
         # def get_game(self, idx):
         # return a game
         #
-        game_id, game_pos = self.game_look_up[idx]
-        game_id -= self.base_idx
-        game = self.buffer[game_id]
+        game_history_idx, game_history_pos = self.game_history_look_up[idx]
+        game_history_idx -= self.base_idx
+        game = self.buffer[game_history_idx]
         return game
 
     def episodes_collected(self):
@@ -404,7 +400,7 @@ class GameBuffer(Buffer):
     def prepare_batch_context(self, batch_size, beta):
         """Prepare a batch context that contains:
         game_lst:               a list of game histories
-        game_pos_lst:           transition index in game (relative index)
+        game_history_pos_lst:           transition index in game (relative index)
         indices_lst:            transition index in replay buffer
         weights_lst:            the weight concerning the priority
         make_time:              the time the batch is made (for correctly updating replay buffer when data is deleted)
@@ -431,23 +427,24 @@ class GameBuffer(Buffer):
         weights_lst /= weights_lst.max()
 
         game_lst = []
-        game_pos_lst = []
+        game_history_pos_lst = []
 
         for idx in indices_lst:
-            game_id, game_pos = self.game_look_up[idx]
-            game_id -= self.base_idx
-            game = self.buffer[game_id]
+            game_history_idx, game_history_pos = self.game_history_look_up[idx]
+            game_history_idx -= self.base_idx
+            game = self.buffer[game_history_idx]
 
             game_lst.append(game)
-            game_pos_lst.append(game_pos)
+            game_history_pos_lst.append(game_history_pos)
 
         make_time = [time.time() for _ in range(len(indices_lst))]
 
-        context = (game_lst, game_pos_lst, indices_lst, weights_lst, make_time)
+        context = (game_lst, game_history_pos_lst, indices_lst, weights_lst, make_time)
         return context
 
     def _prepare_reward_value_context(self, indices, games, state_index_lst, total_transitions):
-        """prepare the context of rewards and values for reanalyzing part
+        """
+        prepare the context of rewards and values for reanalyzing part
         Parameters
         ----------
         indices: list
@@ -584,15 +581,15 @@ class GameBuffer(Buffer):
             the target model weights
         """
         # obtain the batch context from replay buffer
-        game_lst, game_pos_lst, indices_lst, weights_lst, make_time_lst = batch_context
+        game_lst, game_history_pos_lst, indices_lst, weights_lst, make_time_lst = batch_context
         batch_size = len(indices_lst)
         obs_lst, action_lst, mask_lst = [], [], []
         # prepare the inputs of a batch
         for i in range(batch_size):
             game = game_lst[i]
-            game_pos = game_pos_lst[i]
+            game_history_pos = game_history_pos_lst[i]
 
-            _actions = game.actions[game_pos:game_pos + self.config.num_unroll_steps].tolist()
+            _actions = game.actions[game_history_pos:game_history_pos + self.config.num_unroll_steps].tolist()
             # add mask for invalid actions (out of trajectory)
             _mask = [1. for i in range(len(_actions))]
             _mask += [0. for _ in range(self.config.num_unroll_steps - len(_mask))]
@@ -605,7 +602,7 @@ class GameBuffer(Buffer):
             # obtain the input observations
             # stack+num_unroll_steps  4+5
             # pad if length of obs in game_history is less than stack+num_unroll_steps
-            obs_lst.append(game_lst[i].obs(game_pos_lst[i], extra_len=self.config.num_unroll_steps, padding=True))
+            obs_lst.append(game_lst[i].obs(game_history_pos_lst[i], extra_len=self.config.num_unroll_steps, padding=True))
             action_lst.append(_actions)
             mask_lst.append(_mask)
 
@@ -622,7 +619,7 @@ class GameBuffer(Buffer):
 
         # obtain the context of value targets
         reward_value_context = self._prepare_reward_value_context(
-            indices_lst, game_lst, game_pos_lst, total_transitions
+            indices_lst, game_lst, game_history_pos_lst, total_transitions
         )
 
         # 0:re_num -> reanalyzed policy, re_num:end -> non reanalyzed policy
@@ -630,7 +627,7 @@ class GameBuffer(Buffer):
         if re_num > 0:
             # obtain the context of reanalyzed policy targets
             policy_re_context = self._prepare_policy_re_context(
-                indices_lst[:re_num], game_lst[:re_num], game_pos_lst[:re_num]
+                indices_lst[:re_num], game_lst[:re_num], game_history_pos_lst[:re_num]
             )
         else:
             policy_re_context = None
@@ -639,7 +636,7 @@ class GameBuffer(Buffer):
         if re_num < batch_size:
             # obtain the context of non-reanalyzed policy targets
             policy_non_re_context = self._prepare_policy_non_re_context(
-                indices_lst[re_num:], game_lst[re_num:], game_pos_lst[re_num:]
+                indices_lst[re_num:], game_lst[re_num:], game_history_pos_lst[re_num:]
             )
         else:
             policy_non_re_context = None

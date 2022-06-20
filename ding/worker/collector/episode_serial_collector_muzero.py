@@ -143,13 +143,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         self._total_duration = 0
         self._last_train_iter = 0
         self._end_flag = False
-        # self.rank = rank
-        # self.storage = storage
-        # self.replay_buffer = replay_buffer
         # double buffering when data is sufficient
         self.trajectory_pool = []
         self.pool_size = 1
-        # self.device = self.game_config.device
         self.gap_step = self.game_config.num_unroll_steps + self.game_config.td_steps
         self.last_model_index = -1
 
@@ -199,7 +195,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         self.close()
 
     """
-    MuZero
+    MuZero related method
     """
     def get_priorities(self, i, pred_values_lst, search_values_lst):
         # obtain the priorities at index i
@@ -377,24 +373,16 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         other_dist = {}
         total_transitions = 0
 
-        # def _get_max_entropy(action_space):
-        #     p = 1.0 / action_space
-        #     ep = - action_space * p * np.log2(p)
-        #     return ep
-        #
-        # max_visit_entropy = _get_max_entropy(self.game_config.action_space_size)
-        # print('max_visit_entropy', max_visit_entropy)
-        # TODO
-        start_training = False
-        # start_training = True
+        def _get_max_entropy(action_space):
+            p = 1.0 / action_space
+            ep = - action_space * p * np.log2(p)
+            return ep
+        
+        max_visit_entropy = _get_max_entropy(self.game_config.action_space_size)
+        print('max_visit_entropy', max_visit_entropy)
 
         while True:
             with self._timer:
-                # new_available_env_id = set(self._env.ready_obs.keys()).difference(ready_env_id)
-                # ready_env_id = ready_env_id.union(set(list(new_available_env_id)[:remain_episode]))
-                # remain_episode -= min(len(new_available_env_id), remain_episode)
-                # obs = {env_id: obs[env_id] for env_id in ready_env_id}
-
                 stack_obs = [game_history.step_obs() for game_history in game_histories]
                 stack_obs = to_ndarray(stack_obs)
                 stack_obs = prepare_observation_lst(stack_obs)
@@ -405,15 +393,17 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                 policy_output = self._policy.forward(stack_obs, action_mask, temperature)
 
-                actions = {i: a['action'] for i, a in policy_output.items()}
-                distributions_dict = {i: a['distributions'] for i, a in policy_output.items()}
-                value_dict = {i: a['value'] for i, a in policy_output.items()}
+                actions = {k: v['action'] for k, v in policy_output.items()}
+                distributions_dict = {k: v['distributions'] for k, v in policy_output.items()}
+                value_dict = {k: v['value'] for k, v in policy_output.items()}
+                pred_value_dict = {k: v['pred_value'] for k, v in policy_output.items()}
+
 
                 timesteps = self._env.step(actions)
                 action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
 
                 # if int(action_mask[0].sum())==0:
-                #     print('done')
+                #     print('board game one episode done')
 
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
@@ -433,14 +423,14 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 eps_reward_lst[i] += clip_reward
                 eps_ori_reward_lst[i] += ori_reward
                 dones[i] = done
-                # visit_entropies_lst[i] += visit_entropy
+                visit_entropies_lst[i] += visit_entropy
 
                 eps_steps_lst[i] += 1
                 total_transitions += 1
 
-                if self.game_config.use_priority and not self.game_config.use_max_priority and start_training:
-                    pred_values_lst[i].append(policy_output.value[i].item())
-                    search_values_lst[i].append(value_dict[i].value)
+                if self.game_config.use_priority and not self.game_config.use_max_priority:
+                    pred_values_lst[i].append(pred_value_dict[i])
+                    search_values_lst[i].append(value_dict[i])
 
                 # fresh stack windows
                 del stack_obs_windows[i][0]
@@ -468,26 +458,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                         config=self.game_config
                     )
                     game_histories[i].init(stack_obs_windows[i])
-
                     # TODO(pu): return data
-                    """
-                    # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
-                    transition = game_histories
-                    transition['collect_iter'] = train_iter
-                    self._traj_buffer[env_id].append(transition)
-                    self._env_info[env_id]['step'] += 1
-                    self._total_envstep_count += 1
-                    # prepare data
-                    if timestep.done:
-                        transitions = to_tensor_transitions(self._traj_buffer[env_id])
-                        if self._cfg.get_train_sample:
-                            train_sample = self._policy.get_train_sample(transitions)
-                            return_data.extend(train_sample)
-                        else:
-                            return_data.append(transitions)
-                        self._traj_buffer[env_id].clear()
-                    """
 
+                self._env_info[env_id]['step'] += 1
+                self._total_envstep_count += 1
                 self._env_info[env_id]['time'] += self._timer.value + interaction_duration
 
                 if timestep.done:
@@ -502,9 +476,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     self._episode_info.append(info)
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
-                    # ready_env_id.remove(env_id)
 
-                    """TODO"""
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
                         self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories, dones)
@@ -513,13 +485,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)
                     game_histories[i].game_over()
 
-                    # NOTE: put the last game history into the pool
-                    # save the game histories and clear the pool
+                    # NOTE: put the last game history in one episode into the trajectory_pool
                     self.trajectory_pool.append((game_histories[i], priorities, dones[i]))
-                    # self.free()
-                    """TODO"""
 
-                    # reset the finished env and new a env
+                    # reset the finished env and init game_histories
                     init_obses = self._env.ready_obs
                     init_obs = init_obses[i].obs['observation']
                     init_obs = to_ndarray(init_obs)
@@ -545,14 +514,26 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                     pred_values_lst[i] = []
                     search_values_lst[i] = []
-                    # end_tags[i] = True
                     eps_steps_lst[i] = 0
                     eps_reward_lst[i] = 0
                     eps_ori_reward_lst[i] = 0
                     visit_entropies_lst[i] = 0
 
             if collected_episode >= n_episode:
-                # def free(self):
+                # logs
+                visit_entropies = np.array(self_play_visit_entropy).mean()
+                visit_entropies /= max_visit_entropy
+                print('visit_entropies:', visit_entropies)
+                
+                if self_play_episodes > 0:
+                    log_self_play_moves = self_play_moves / self_play_episodes
+                    log_self_play_rewards = self_play_rewards / self_play_episodes
+                    log_self_play_ori_rewards = self_play_ori_rewards / self_play_episodes
+                else:
+                    log_self_play_moves = 0
+                    log_self_play_rewards = 0
+                    log_self_play_ori_rewards = 0
+
                 # save the game histories and clear the pool
                 # self.trajectory_pool: list of (game_history, priority)
                 self.replay_buffer.push_games(
