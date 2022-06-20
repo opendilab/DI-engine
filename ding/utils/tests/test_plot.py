@@ -64,4 +64,4 @@ def test_plot():
         I2 = Image.open('./pic_compare_diffpic.jpg')
         I1_array = np.array(I1)
         I2_array = np.array(I2)
-        assert (I1_array - I2_array).sum() < 1e8
+        assert (I1_array - I2_array).mean() < 100
