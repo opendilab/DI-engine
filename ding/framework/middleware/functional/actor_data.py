@@ -18,4 +18,4 @@ class ActorEnvTrajectories:
 @dataclass
 class ActorData:
     meta: ActorDataMeta
-    train_data: List = field(default_factory=[])
+    train_data: List[ActorEnvTrajectories] = field(default_factory=[])

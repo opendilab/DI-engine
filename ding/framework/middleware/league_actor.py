@@ -134,7 +134,7 @@ class LeagueActor:
             if not job.is_eval and len(ctx.episodes[0]) > 0:
                 actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.episodes[0])
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
-                ctx.episodes = []
+            ctx.episodes = []
             time_end = time.time()
             self.collect_time[job.launch_player] += time_end - time_begin
             total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[
@@ -162,7 +162,7 @@ class StepLeagueActor:
         self.env_fn = env_fn
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
-        self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
+        self.unroll_len = self.cfg.policy.collect.get("unroll_len") or 0
         self._collectors: Dict[str, BattleEpisodeCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
@@ -198,8 +198,7 @@ class StepLeagueActor:
         env = self.env_fn()
         collector = task.wrap(
             BattleStepCollector(
-                cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies,
-                self.agent_num
+                cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.all_policies, self.agent_num
             )
         )
         self._collectors[player_id] = collector
@@ -272,23 +271,31 @@ class StepLeagueActor:
             old_envstep = ctx.total_envstep_count
             collector(ctx)
 
+            # print(ctx.trajectories_list)
+            # ctx.trajectories_list[0] for policy_id 0
+            # ctx.trajectories_list[0][0] for first env
+            print(len(ctx.trajectories_list[0]))
+            if len(ctx.trajectories_list[0]) > 0:
+                print(len(ctx.trajectories_list[0][0].trajectories))
+                for traj in ctx.trajectories_list[0][0].trajectories:
+                    assert len(traj) == self.unroll_len
+            if ctx.job_finish is True:
+                print('we finish the job !')
+                assert len(ctx.trajectories_list[0][0].trajectories) > 0
+
             if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
                 trajectories = ctx.trajectories_list[0]
-                trajectory_end_idx = ctx.trajectory_end_idx_list[0]
-                print('actor {}, len trajectories {}'.format(task.router.node_id, len(trajectories)), flush=True)
+                print('actor {}, {} envs send traj '.format(task.router.node_id, len(trajectories)), flush=True)
                 meta_data = ActorDataMeta(
                     player_total_env_step=ctx.total_envstep_count,
                     actor_id=task.router.node_id,
-                    # TODO transfer env_id to train_data, each env has a trajectory or not
-                    env_id=0,
                     send_wall_time=time.time()
                 )
                 actor_data = ActorData(meta=meta_data, train_data=trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
                 print('Actor {} send data\n'.format(task.router.node_id), flush=True)
 
-                ctx.trajectories_list = []
-                ctx.trajectory_end_idx_list = []
+            ctx.trajectories_list = []
             time_end = time.time()
             self.collect_time[job.launch_player] += time_end - time_begin
             total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[

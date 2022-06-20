@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
 from easydict import EasyDict
 from functools import reduce
+from more_itertools import only
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
@@ -11,6 +12,7 @@ from ding.torch_utils import to_tensor, to_ndarray
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
+from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
 
 
 class TransitionList:
@@ -84,6 +86,14 @@ class BattleTransitionList:
             self._transitions[env_id][0] = self._transitions[env_id][0][tail_idx:]
 
         return trajectories
+
+    def to_trajectories(self, only_finished: bool = False):
+        all_env_data = []
+        for env_id in range(self.env_num):
+            trajectories = self.get_env_trajectories(env_id, only_finished=only_finished)
+            if len(trajectories) > 0:
+                all_env_data.append(ActorEnvTrajectories(env_id=env_id, trajectories=trajectories))
+        return all_env_data
 
     def _cut_trajectory_from_episode(self, episode: list):
         # first we cut complete trajectories (list of transitions whose length equal to unroll_len)

@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task
-from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor
+from .functional import inferencer, rolloutor, TransitionList, BattleTransitionList, battle_inferencer, battle_rolloutor
 from typing import Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -88,8 +88,7 @@ class BattleEpisodeCollector:
 class BattleStepCollector:
 
     def __init__(
-        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict,
-        agent_num: int
+        self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, all_policies: Dict, agent_num: int
     ):
         self.cfg = cfg
         self.end_flag = False
@@ -98,13 +97,15 @@ class BattleStepCollector:
         self.env_num = self.env.env_num
 
         self.total_envstep_count = 0
-        self.n_rollout_samples = n_rollout_samples
+        self.unroll_len = unroll_len
         self.model_dict = model_dict
         self.all_policies = all_policies
         self.agent_num = agent_num
 
         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
-        self._transitions_list = [TransitionList(self.env.env_num) for _ in range(self.agent_num)]
+        self._transitions_list = [
+            BattleTransitionList(self.env.env_num, self.unroll_len) for _ in range(self.agent_num)
+        ]
         self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self._transitions_list))
 
     def __del__(self) -> None:
@@ -151,16 +152,16 @@ class BattleStepCollector:
 
             self.total_envstep_count = ctx.total_envstep_count
 
-            if (self.n_rollout_samples > 0
-                    and ctx.env_step - old >= self.n_rollout_samples) or ctx.env_episode >= ctx.n_episode:
+            only_finished = True if ctx.env_episode >= ctx.n_episode else False
+            if (self.unroll_len > 0 and ctx.env_step - old >= self.unroll_len) or ctx.env_episode >= ctx.n_episode:
                 for transitions in self._transitions_list:
-                    trajectories, trajectory_end_idx = transitions.to_trajectories()
+                    trajectories = transitions.to_trajectories(only_finished=only_finished)
                     ctx.trajectories_list.append(trajectories)
-                    ctx.trajectory_end_idx_list.append(trajectory_end_idx)
-                    transitions.clear()
                 if ctx.env_episode >= ctx.n_episode:
                     self.env.close()
                     ctx.job_finish = True
+                    for transitions in self._transitions_list:
+                        transitions.clear()
                 break
 
 
