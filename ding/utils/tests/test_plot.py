@@ -51,7 +51,7 @@ def test_plot():
         I2 = Image.open('./pic_compare.jpg')
         I1_array = np.array(I1)
         I2_array = np.array(I2)
-        assert (I1_array - I2_array).sum() == 0
+        assert (I1_array - I2_array).mean() == 0
         plt.figure(3)
         sns.set(style="darkgrid", font_scale=1.5)
         sns.lineplot(x=np.concatenate((episode1, episode2)), y=np.concatenate((rewards1, rewards2)), label='line1')
