@@ -8,6 +8,7 @@ from ding.framework.middleware import StepCollector, EpisodeCollector
 from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
 from ding.framework.middleware import BattleTransitionList
 from easydict import EasyDict
+import copy
 
 
 @pytest.mark.unittest
@@ -121,11 +122,13 @@ def test_battle_transition_list():
         timestep = EasyDict({'obs': i, 'done': False})
         transition_list.append(env_id=1, transition=timestep)
 
+    transition_list_2 = copy.deepcopy(transition_list)
+
     env_0_result = transition_list.get_trajectories(env_id=0)
     env_1_result = transition_list.get_trajectories(env_id=1)
 
-    print(env_0_result)
-    print(env_1_result)
+    # print(env_0_result)
+    # print(env_1_result)
 
     # print(env_0_result)
     assert len(env_0_result) == 3
@@ -183,8 +186,14 @@ def test_battle_transition_list():
 
     # print(env_0_result)
     # print(env_1_result)
-    print(transition_list._transitions[0])
-    print(transition_list._transitions[1])
+    # print(transition_list._transitions[0])
+    # print(transition_list._transitions[1])
+
+    transition_list_2.clear_newest_episode(env_id=0)
+    transition_list_2.clear_newest_episode(env_id=1)
+
+    assert len(transition_list_2._transitions[0]) == 2
+    assert len(transition_list_2._transitions[1]) == 1
 
 
 if __name__ == '__main__':

@@ -10,6 +10,7 @@ from ding.torch_utils import to_tensor, to_ndarray
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
+from collections import deque
 
 
 class TransitionList:
@@ -57,24 +58,32 @@ class TransitionList:
 class BattleTransitionList:
 
     def __init__(self, env_num: int, unroll_len: int) -> None:
+        # for each env, we have a deque to buffer episodes,
+        # and a deque to tell each episode is finished or not
         self.env_num = env_num
-        self._transitions = [[] for _ in range(env_num)]
-        self._done_episode = [[] for _ in range(env_num)]
+        self._transitions = [deque() for _ in range(env_num)]
+        self._done_episode = [deque() for _ in range(env_num)]
         self._unroll_len = unroll_len
 
     def get_trajectories(self, env_id: int):
         trajectories = []
         if len(self._transitions[env_id]) == 0:
-            return None
+            # if we have no episode for this env, we return an empty list
+            return trajectories
         while len(self._transitions[env_id]) > 0:
+            # Every time we check if oldest episode is done,
+            # if is done, we cut the episode to trajectories
+            # and finally drop this episode
             if self._done_episode[env_id][0] is False:
                 break
-            trajectories += self._cut_trajectory_from_episode(self._transitions[env_id][0])
-            self._transitions[env_id][0].clear()
-            self._transitions[env_id] = self._transitions[env_id][1:]
-            self._done_episode[env_id] = self._done_episode[env_id][1:]
+            oldest_episode = self._transitions[env_id].popleft()
+            self._done_episode[env_id].popleft()
+            trajectories += self._cut_trajectory_from_episode(oldest_episode)
+            oldest_episode.clear()
 
         if len(self._transitions[env_id]) == 1 and self._done_episode[env_id][0] is False:
+            # If last episode is not done, we only cut the trajectories till the Trajectory(t-1) (not including)
+            # This is because we need Trajectory(t-1) to fill up Trajectory(t) if in Trajectory(t) this episode is done
             tail_idx = max(
                 0, ((len(self._transitions[env_id][0]) - self._unroll_len) // self._unroll_len) * self._unroll_len
             )
@@ -84,6 +93,10 @@ class BattleTransitionList:
         return trajectories
 
     def _cut_trajectory_from_episode(self, episode: list):
+        # first we cut complete trajectories (list of transitions whose length equal to unroll_len)
+        # then we gather the transitions in the tail of episode, and fill up the trajectory with the tail transitions in Trajectory(t-1)
+        # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len, we fill up the trajectory
+        # with the first element of episode.
         return_episode = []
         i = 0
         num_complele_trajectory, num_tail_transitions = divmod(len(episode), self._unroll_len)
@@ -102,12 +115,17 @@ class BattleTransitionList:
 
         return return_episode  # list of trajectories
 
-    def clear_newest_transition(self, env_id: int) -> None:
-        self._transitions[env_id][-1].clear()
-        self._transitions[env_id] = self._transitions[env_id][:-1]
-        self._done_episode[env_id] = self._done_episode[env_id][:-1]
+    def clear_newest_episode(self, env_id: int) -> None:
+        # Use it when env.step raise some error
+        if self._done_episode[env_id][-1] is False:
+            newest_episode = self._transitions[env_id].pop()
+            newest_episode.clear()
+            self._done_episode[env_id].pop()
+        else:
+            return
 
     def append(self, env_id: int, transition: Any) -> None:
+        # If previous episode is done, we create a new episode
         if len(self._done_episode[env_id]) == 0 or self._done_episode[env_id][-1] is True:
             self._transitions[env_id].append([])
             self._done_episode[env_id].append(False)
