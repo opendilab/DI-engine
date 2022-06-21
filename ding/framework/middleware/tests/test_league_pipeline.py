@@ -6,8 +6,8 @@ from ding.data import DequeBuffer
 from ding.envs import BaseEnvManager, EnvSupervisor
 from ding.framework.supervisor import ChildType
 from ding.framework.context import BattleContext
-from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearnerExchanger, data_pusher, OffPolicyLearner
-from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar
+from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, \
+    LeagueLearnerExchanger, data_pusher, OffPolicyLearner
 from ding.framework.task import task, Parallel
 from ding.league.v2 import BaseLeague
 from dizoo.distar.config import distar_cfg
