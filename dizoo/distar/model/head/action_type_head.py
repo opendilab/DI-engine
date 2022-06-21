@@ -18,8 +18,7 @@ class ActionTypeHead(nn.Module):
 
     def __init__(self, cfg):
         super(ActionTypeHead, self).__init__()
-        self.whole_cfg = cfg
-        self.cfg = self.whole_cfg.model.policy.head.action_type_head
+        self.cfg = cfg
         self.act = build_activation(self.cfg.activation)  # use relu as default
         self.project = fc_block(self.cfg.input_dim, self.cfg.res_dim, activation=self.act, norm_type=None)
         blocks = [ResFCBlock(self.cfg.res_dim, self.act, self.cfg.norm_type) for _ in range(self.cfg.res_num)]
@@ -45,7 +44,7 @@ class ActionTypeHead(nn.Module):
         x = self.project(lstm_output)
         x = self.res(x)
         x = self.action_fc(x, scalar_context)
-        x.div_(self.whole_cfg.model.temperature)
+        x.div_(self.cfg.temperature)
         if self.use_mask:
             mask = ACTION_RACE_MASK[self.race].to(x.device)
             x = x.masked_fill(~mask.unsqueeze(dim=0), -1e9)

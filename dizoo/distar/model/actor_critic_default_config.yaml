@@ -11,21 +11,16 @@ var10: &SPATIAL_Y 152
 var11: &NUM_UNIT_MIX_ABILITIES 269
 
 
-learner:
-    use_value_feature: False
 model:
-    spatial_x: *SPATIAL_X
-    spatial_y: *SPATIAL_Y
-    temperature: 1.0
     # ===== Tuning =====
     freeze_targets: []
     state_dict_mask: []
     use_value_network: False
     only_update_baseline: False
     enable_baselines: ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
-    entity_reduce_type: 'selected_units_num'  # ['constant', 'entity_num', 'selected_units_num']
     # ===== Value =====
     value:
+        use_value_feature: False
         encoder:
             modules:
                 enemy_unit_counts_bow:
@@ -195,6 +190,7 @@ model:
                     beginning_order:
                         arc: transformer
                         action_one_hot_dim: *NUM_BEGINNING_ORDER_ACTIONS
+                        spatial_x: *SPATIAL_X
                         binary_dim: 10
                         head_dim: 8
                         output_dim: 64
@@ -261,6 +257,8 @@ model:
                 activation: 'relu'
                 norm_type: 'none'
                 head_type: 'fc'
+                spatial_x: *SPATIAL_X
+                spatial_y: *SPATIAL_Y
             entity_encoder:
                 module:
                     unit_type:
@@ -373,7 +371,7 @@ model:
                 dropout_ratio: 0
                 activation: 'relu'
                 ln_type: 'post'
-            use_score_cumulative: False
+                entity_reduce_type: 'selected_units_num'  # ['constant', 'entity_num', 'selected_units_num']
         scatter:
             input_dim: 256  # entity_encoder.output_dim
             output_dim: 32
@@ -405,6 +403,7 @@ model:
                 ln_type: 'normal'
                 use_mask: False
                 race: 'zerg'
+                temperature: 1.0
             delay_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 decode_dim: 256
@@ -417,6 +416,7 @@ model:
                 queued_dim: 2
                 queued_map_dim: 256
                 activation: 'relu'
+                temperature: 1.0
             selected_units_head:
                 lstm_type: 'pytorch'
                 lstm_norm_type: 'none'
@@ -431,6 +431,8 @@ model:
                 max_entity_num: 64
                 activation: 'relu'
                 extra_units: True  # select extra units if selected units exceed max_entity_num=64
+                entity_reduce_type: 'selected_units_num'
+                temperature: 1.0
             target_unit_head:
                 input_dim: 1024  # action_type_head.gate_dim
                 entity_embedding_dim: 256  # entity_encoder.output_dim
@@ -439,6 +441,7 @@ model:
                 func_dim: 256
                 activation: 'relu'
                 embedding_norm: True
+                temperature: 1.0
             location_head:
                 input_dim: 1024
                 project_dim: 1024
@@ -450,3 +453,6 @@ model:
                 reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
                 map_skip_dim: 128  # spatial_encoder.down_channels[-1]
                 activation: 'relu'
+                spatial_x: *SPATIAL_X
+                spatial_y: *SPATIAL_Y
+                temperature: 1.0
