@@ -157,9 +157,9 @@ setup(
         'envpool': [
             'envpool',
         ],
-        'dmc2gym': [
-            'dmc2gym @ git+https://github.com/denisyarats/dmc2gym@master#egg=dmc2gym',
-        ],
+        # 'dmc2gym': [
+        #    'dmc2gym @ git+https://github.com/denisyarats/dmc2gym@master#egg=dmc2gym',
+        # ],
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},
     classifiers=[

@@ -32,7 +32,7 @@
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
-Updated on 2022.04.22 DI-engine-v0.3.1
+Updated on 2022.06.21 DI-engine-v0.4.0
 
 
 ## Introduction to DI-engine (beta)
@@ -40,14 +40,14 @@ Updated on 2022.04.22 DI-engine-v0.3.1
 
 **DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** ([link](https://di-engine-docs.readthedocs.io/en/latest/12_policies/index.html)):
 
-- Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2
+- Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2, IMPALA
 - Multi-agent RL algorithms like QMIX, MAPPO
 - Imitation learning algorithms (BC/IRL/GAIL) , such as GAIL, SQIL, Guided Cost Learning
-- Exploration algorithms like HER, RND, ICM
+- Exploration algorithms like HER, RND, ICM, NGU
 - Offline RL algorithms: CQL, TD3BC, Decision Transformer
 - Model-based RL algorithms: MBPO
 
-**DI-engine** aims to **standardize different RL enviroments and applications**. Various training pipelines and customized decision AI applications are also supported.
+**DI-engine** aims to **standardize different Decision Intelligence enviroments and applications**. Various training pipelines and customized decision AI applications are also supported.
 
 - Traditional academic environments
   - [DI-zoo](https://github.com/opendilab/DI-engine#environment-versatility)
@@ -109,6 +109,7 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - mujoco: opendilab/ding:nightly-mujoco
 - smac: opendilab/ding:nightly-smac
 - grf: opendilab/ding:nightly-grf
+- dmc: opendilab/ding:nightly-dmc2gym
 
 The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
 
@@ -117,8 +118,6 @@ The detailed documentation are hosted on [doc](https://di-engine-docs.readthedoc
 [3 Minutes Kickoff](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/first_rl_program.html)
 
 [3 Minutes Kickoff (colab)](https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing)
-
-[3 分钟上手中文版 (kaggle)](https://www.kaggle.com/fallinx/di-engine/)
 
 [How to migrate a new **RL Env**](https://di-engine-docs.readthedocs.io/en/latest/11_dizoo/index.html) | [如何迁移一个新的**强化学习环境**](https://di-engine-docs.readthedocs.io/zh_CN/latest/11_dizoo/index_zh.html)
 
