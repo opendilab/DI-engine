@@ -88,7 +88,7 @@ def main():
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         else:
-            task.use(StepLeagueActor(cfg, PrepareTest.env_fn, PrepareTest.collect_policy_fn))
+            task.use(StepLeagueActor(cfg, PrepareTest.get_env_supervisor, PrepareTest.collect_policy_fn))
 
         task.run()
 

@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from time import sleep
 import torch
 import pytest
@@ -11,13 +12,15 @@ from ding.framework import EventEnum
 from ding.framework.task import task, Parallel
 from ding.framework.middleware import data_pusher,\
     OffPolicyLearner, LeagueLearnerExchanger
-from ding.framework.middleware.functional.actor_data import ActorData
+from ding.framework.middleware.functional.actor_data import ActorData, ActorDataMeta, ActorEnvTrajectories
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
 from ding.league.v2 import BaseLeague
 from dizoo.distar.envs.distar_env import DIStarEnv
 from dizoo.distar.envs import fake_rl_data_batch_with_last
 from distar.ctools.utils import read_config
+import time
+from typing import Any
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -52,6 +55,12 @@ def coordinator_mocker():
     return _coordinator_mocker
 
 
+@dataclass
+class TestActorData:
+    env_step: int
+    train_data: Any
+
+
 def actor_mocker(league):
 
     def _actor_mocker(ctx):
@@ -59,8 +68,14 @@ def actor_mocker(league):
         player = league.active_players[(task.router.node_id + 2) % n_players]
         print("actor player:", player.player_id)
         for _ in range(24):
+            # meta = ActorDataMeta(player_total_env_step=0, actor_id=0, send_wall_time=time.time())
+            # data = fake_rl_data_batch_with_last()
+            # actor_data = ActorData(meta=ActorDataMeta, train_data=ActorEnvTrajectories(env_id=0, trajectories=[data]))
+
             data = fake_rl_data_batch_with_last()
-            actor_data = ActorData(env_step=0, train_data=data)
+            actor_data = TestActorData(env_step=0, train_data=data)
+            task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
+
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
         sleep(9)
 

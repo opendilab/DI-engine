@@ -39,6 +39,11 @@ class LeagueLearnerExchanger:
 
     def _push_data(self, data: "ActorData"):
         print("learner {} receive data from actor! \n".format(task.router.node_id), flush=True)
+
+        # for env_trajectories in data.train_data:
+        #     for traj in env_trajectories.trajectories:
+        #         print(len(traj))
+        #         self._cache.append(traj)
         self._cache.append(data.train_data)
 
     def __call__(self, ctx: "Context"):
