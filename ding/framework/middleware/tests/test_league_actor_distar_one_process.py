@@ -23,40 +23,45 @@ from ding.model import VAC
 from ding.framework.middleware.tests import DIStarMockPolicy, DIStarMockPolicyCollect, \
     battle_inferencer_for_distar, battle_rolloutor_for_distar
 
+cfg = deepcopy(cfg)
+env_cfg = read_config('./test_distar_config.yaml')
 
-def prepare_test():
-    global cfg
-    cfg = deepcopy(cfg)
 
-    env_cfg = read_config('./test_distar_config.yaml')
+class PrepareTest():
 
-    def env_fn():
-        env = BaseEnvManager(
-            env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
-        )
-        # env = EnvSupervisor(
-        #     env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], **cfg.env.manager
+    @classmethod
+    def get_env_fn(cls):
+        return DIStarEnv(env_cfg)
+
+    @classmethod
+    def get_env_supervisor(cls):
+        # env = BaseEnvManager(
+        #     env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         # )
+        env = EnvSupervisor(
+            type_=ChildType.THREAD,
+            env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
+            **cfg.env.manager
+        )
         env.seed(cfg.seed)
         return env
 
-    def policy_fn():
+    @classmethod
+    def policy_fn(cls):
         model = VAC(**cfg.policy.model)
         policy = DIStarMockPolicy(cfg.policy, model=model)
         return policy
 
-    def collect_policy_fn():
+    @classmethod
+    def collect_policy_fn(cls):
         policy = DIStarMockPolicyCollect()
         return policy
-
-    return cfg, env_fn, policy_fn, collect_policy_fn
 
 
 @pytest.mark.unittest
 def test_league_actor():
-    cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
-    policy = policy_fn()
     with task.start(async_mode=True, ctx=BattleContext()):
+        policy = PrepareTest.policy_fn()
 
         def test_actor():
             job = Job(
@@ -115,7 +120,9 @@ def test_league_actor():
 
         with patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar):
             with patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
-                league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=collect_policy_fn)
+                league_actor = StepLeagueActor(
+                    cfg=cfg, env_fn=PrepareTest.get_env_supervisor, policy_fn=PrepareTest.collect_policy_fn
+                )
                 task.use(test_actor())
                 task.use(league_actor)
                 task.run()

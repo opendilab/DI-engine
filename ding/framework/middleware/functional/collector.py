@@ -120,12 +120,13 @@ class BattleTransitionList:
 
     def clear_newest_episode(self, env_id: int) -> None:
         # Use it when env.step raise some error
+        len_newest_episode = 0
         if self._done_episode[env_id][-1] is False:
             newest_episode = self._transitions[env_id].pop()
+            len_newest_episode = len(newest_episode)
             newest_episode.clear()
             self._done_episode[env_id].pop()
-        else:
-            return
+        return len_newest_episode
 
     def append(self, env_id: int, transition: Any) -> None:
         # If previous episode is done, we create a new episode

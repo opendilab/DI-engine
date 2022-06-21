@@ -102,6 +102,7 @@ class BattleContext(Context):
         #data
         self.obs = None
         self.actions = None
+        self.inference_output = {}
 
         #Return data paras
         self.episodes = []
