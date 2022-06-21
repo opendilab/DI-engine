@@ -17,9 +17,10 @@ def compute_denominator(x: torch.Tensor, dim: int) -> torch.Tensor:
 
 class BeginningBuildOrderEncoder(nn.Module):
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, bo_cfg):
         super(BeginningBuildOrderEncoder, self).__init__()
-        self.cfg = cfg
+        self.whole_cfg = cfg
+        self.cfg = bo_cfg
         self.output_dim = self.cfg.output_dim
         self.input_dim = self.cfg.action_one_hot_dim + 20 + self.cfg.binary_dim * 2
         self.act = build_activation(self.cfg.activation)
@@ -48,8 +49,8 @@ class BeginningBuildOrderEncoder(nn.Module):
     def forward(self, x, bo_location):
         x = self.action_one_hot(x.long())
         x = self._add_seq_info(x)
-        location_x = bo_location % self.cfg.spatial_x
-        location_y = bo_location // self.cfg.spatial_x
+        location_x = bo_location % self.whole_cfg.model.spatial_x
+        location_y = bo_location // self.whole_cfg.model.spatial_x
         location_x = self.location_binary(location_x.long())
         location_y = self.location_binary(location_y.long())
         x = torch.cat([x, location_x, location_y], dim=2)
@@ -64,7 +65,8 @@ class ScalarEncoder(nn.Module):
 
     def __init__(self, cfg):
         super(ScalarEncoder, self).__init__()
-        self.cfg = cfg
+        self.whole_cfg = cfg
+        self.cfg = self.whole_cfg.model.encoder.obs_encoder.scalar_encoder
         self.act = build_activation(self.cfg.activation)
         self.keys = []
         self.scalar_context_keys = []
@@ -96,8 +98,8 @@ class ScalarEncoder(nn.Module):
             requires_grad=False
         )
         self.time_embedding_dim = self.cfg.module.time.output_dim
-        bo_cfg = self.cfg.module.beginning_order
-        self.encode_modules['beginning_order'] = BeginningBuildOrderEncoder(bo_cfg)
+        bo_cfg = self.whole_cfg.model.encoder.obs_encoder.scalar_encoder.module.beginning_order
+        self.encode_modules['beginning_order'] = BeginningBuildOrderEncoder(self.whole_cfg, bo_cfg)
 
     def time_encoder(self, x: Tensor):
         v = torch.zeros(size=(x.shape[0], self.time_embedding_dim), dtype=torch.float, device=x.device)

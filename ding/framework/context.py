@@ -102,7 +102,6 @@ class BattleContext(Context):
         #data
         self.obs = None
         self.actions = None
-        self.trajectories = None
 
         #Return data paras
         self.episodes = []
@@ -110,5 +109,3 @@ class BattleContext(Context):
         self.trajectories_list = []
         self.trajectory_end_idx_list = []
         self.train_data = None
-
-        self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')

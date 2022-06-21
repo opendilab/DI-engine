@@ -27,7 +27,8 @@ class EntityEncoder(nn.Module):
     def __init__(self, cfg):
         super(EntityEncoder, self).__init__()
         self.encode_modules = nn.ModuleDict()
-        self.cfg = cfg
+        self.whole_cfg = cfg
+        self.cfg = self.whole_cfg.model.encoder.obs_encoder.entity_encoder
         for k, item in self.cfg.module.items():
             if item['arc'] == 'one_hot':
                 self.encode_modules[k] = nn.Embedding.from_pretrained(
@@ -51,10 +52,10 @@ class EntityEncoder(nn.Module):
         )
         self.entity_fc = fc_block(self.cfg.output_dim, self.cfg.output_dim, activation=self.act)
         self.embed_fc = fc_block(self.cfg.output_dim, self.cfg.output_dim, activation=self.act)
-        if self.cfg.entity_reduce_type == 'attention_pool':
+        if self.whole_cfg.model.entity_reduce_type == 'attention_pool':
             from ding.torch_utils import AttentionPool
             self.attention_pool = AttentionPool(key_dim=self.cfg.output_dim, head_num=2, output_dim=self.cfg.output_dim)
-        elif self.cfg.entity_reduce_type == 'attention_pool_add_num':
+        elif self.whole_cfg.model.entity_reduce_type == 'attention_pool_add_num':
             from ding.torch_utils import AttentionPool
             self.attention_pool = AttentionPool(
                 key_dim=self.cfg.output_dim, head_num=2, output_dim=self.cfg.output_dim, max_num=MAX_ENTITY_NUM + 1
@@ -84,15 +85,15 @@ class EntityEncoder(nn.Module):
         x = self.transformer(x, mask=mask)
         entity_embeddings = self.entity_fc(self.act(x))
 
-        if self.cfg.entity_reduce_type in ['entity_num', 'selected_units_num']:
+        if self.whole_cfg.model.entity_reduce_type in ['entity_num', 'selected_units_num']:
             x_mask = x * mask.unsqueeze(dim=2)
             embedded_entity = x_mask.sum(dim=1) / entity_num.unsqueeze(dim=-1)
-        elif self.cfg.entity_reduce_type == 'constant':
+        elif self.whole_cfg.model.entity_reduce_type == 'constant':
             x_mask = x * mask.unsqueeze(dim=2)
             embedded_entity = x_mask.sum(dim=1) / 512
-        elif self.cfg.entity_reduce_type == 'attention_pool':
+        elif self.whole_cfg.model.entity_reduce_type == 'attention_pool':
             embedded_entity = self.attention_pool(x, mask=mask.unsqueeze(dim=2))
-        elif self.cfg.entity_reduce_type == 'attention_pool_add_num':
+        elif self.whole_cfg.model.entity_reduce_type == 'attention_pool_add_num':
             embedded_entity = self.attention_pool(x, num=entity_num, mask=mask.unsqueeze(dim=2))
         else:
             raise NotImplementedError

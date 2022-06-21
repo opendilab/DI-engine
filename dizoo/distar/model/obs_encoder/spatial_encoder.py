@@ -11,7 +11,8 @@ class SpatialEncoder(nn.Module):
 
     def __init__(self, cfg):
         super(SpatialEncoder, self).__init__()
-        self.cfg = cfg
+        self.whole_cfg = cfg
+        self.cfg = self.whole_cfg.model.encoder.obs_encoder.spatial_encoder
         self.act = build_activation(self.cfg.activation)
         if self.cfg.norm_type == 'none':
             self.norm = None
@@ -48,7 +49,9 @@ class SpatialEncoder(nn.Module):
             self.res.append(ResBlock(dim, self.act, norm_type=self.norm))
         if self.head_type == 'fc':
             self.fc = fc_block(
-                dim * self.cfg.spatial_y // 8 * self.cfg.spatial_x // 8, self.cfg.fc_dim, activation=self.act
+                dim * self.whole_cfg.model.spatial_y // 8 * self.whole_cfg.model.spatial_x // 8,
+                self.cfg.fc_dim,
+                activation=self.act
             )
         else:
             self.gap = nn.AdaptiveAvgPool2d((1, 1))
@@ -65,7 +68,7 @@ class SpatialEncoder(nn.Module):
                 assert k == 'height_map'
                 embeddings.append(x[k].unsqueeze(dim=1).float() / 256)
             elif item['arc'] == 'scatter':
-                bs, shape_x, shape_y = x[k].shape[0], self.cfg.spatial_x, self.cfg.spatial_y
+                bs, shape_x, shape_y = x[k].shape[0], self.whole_cfg.model.spatial_x, self.whole_cfg.model.spatial_y
                 embedding = torch.zeros(bs * shape_y * shape_x, device=x[k].device)
                 bias = torch.arange(bs, device=x[k].device).unsqueeze(dim=1) * shape_y * shape_x
                 x[k] = x[k] + bias

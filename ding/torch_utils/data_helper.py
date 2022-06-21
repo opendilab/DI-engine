@@ -408,21 +408,4 @@ def detach_grad(data):
             data[k] = detach_grad(data[k])
     elif isinstance(data, torch.Tensor):
         data = data.detach()
-    else:
-        raise TypeError("not support data type: {}".format(type(data)))
     return data
-
-
-def flatten(data):
-    if isinstance(data, torch.Tensor):
-        return torch.flatten(data, start_dim=0, end_dim=1)  # (1, (T+1) * B)
-    elif isinstance(data, dict):
-        new_data = {}
-        for k, val in data.items():
-            new_data[k] = flatten(val)
-        return new_data
-    elif isinstance(data, Sequence):
-        new_data = [flatten(v) for v in data]
-        return new_data
-    else:
-        raise TypeError("not support data type: {}".format(type(data)))

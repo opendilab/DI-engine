@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from collections import namedtuple
+from ding.hpc_rl import hpc_wrapper
 from .td import generalized_lambda_returns
 
 
@@ -48,29 +48,40 @@ def upgo_returns(rewards: torch.Tensor, bootstrap_values: torch.Tensor) -> torch
     return generalized_lambda_returns(bootstrap_values, rewards, 1.0, lambdas)
 
 
-upgo_data = namedtuple('upgo_data', ['target_log_prob', 'rhos', 'bootstrap_values', 'rewards', 'weights'])
-
-
-def upgo_error(data: namedtuple, ) -> torch.Tensor:
-    """
+@hpc_wrapper(
+    shape_fn=lambda args: args[0].shape,
+    namedtuple_data=True,
+    include_args=5,
+    include_kwargs=['target_output', 'rhos', 'action', 'rewards', 'bootstrap_values']
+)
+def upgo_loss(
+        target_output: torch.Tensor,
+        rhos: torch.Tensor,
+        action: torch.Tensor,
+        rewards: torch.Tensor,
+        bootstrap_values: torch.Tensor,
+        mask=None
+) -> torch.Tensor:
+    r"""
     Overview:
-        Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value, \
+        Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
         if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.
     Arguments:
-        - target_log_prob (:obj:`torch.Tensor`): The output computed by the target policy network, \
+        - target_output (:obj:`torch.Tensor`): the output computed by the target policy network, \
             of size [T_traj, batchsize, n_output]
-        - rhos (:obj:`torch.Tensor`): The importance sampling ratio, of size [T_traj, batchsize]
-        - bootstrap_values (:obj:`torch.Tensor`): The estimation of the state value at step 0 to T, \
+        - rhos (:obj:`torch.Tensor`): the importance sampling ratio, of size [T_traj, batchsize]
+        - action (:obj:`torch.Tensor`): the action taken, of size [T_traj, batchsize]
+        - rewards (:obj:`torch.Tensor`): the returns from time step 0 to T-1, of size [T_traj, batchsize]
+        - bootstrap_values (:obj:`torch.Tensor`): estimation of the state value at step 0 to T, \
             of size [T_traj+1, batchsize]
-        - rewards (:obj:`torch.Tensor`): The returns from time step 0 to T-1, of size [T_traj, batchsize]
-        - weights (:obj:`torch.Tensor`): Data weights per sample, of size [T_traj, batchsize].
     Returns:
-        - loss (:obj:`torch.Tensor`): Computed importance sampled UPGO loss, averaged over the samples, 0-dim tensor.
+        - loss (:obj:`torch.Tensor`): Computed importance sampled UPGO loss, averaged over the samples, of size []
     """
-    target_log_prob, rhos, bootstrap_values, rewards, weights = data
     # discard the value at T as it should be considered in the next slice
     with torch.no_grad():
         returns = upgo_returns(rewards, bootstrap_values)
         advantages = rhos * (returns - bootstrap_values[:-1])
-    loss = -advantages * target_log_prob * weights
-    return loss.mean()
+    metric = tb_cross_entropy(target_output, action, mask)
+    assert (metric.shape == action.shape[:2])
+    losses = advantages * metric
+    return -losses.mean()

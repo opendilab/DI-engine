@@ -7,7 +7,6 @@ from ding.framework import task, EventEnum
 import logging
 
 if TYPE_CHECKING:
-    from easydict import EasyDict
     from ding.framework import Task, Context
     from ding.league.v2 import BaseLeague
     from ding.league.player import PlayerMeta
@@ -16,11 +15,12 @@ if TYPE_CHECKING:
 
 class LeagueCoordinator:
 
-    def __init__(self, cfg: "EasyDict", league: "BaseLeague") -> None:
+    def __init__(self, league: "BaseLeague") -> None:
         self.league = league
         self._lock = Lock()
         self._total_send_jobs = 0
         self._eval_frequency = 10
+        self._step = 0
 
         task.on(EventEnum.ACTOR_GREETING, self._on_actor_greeting)
         task.on(EventEnum.LEARNER_SEND_META, self._on_learner_meta)
@@ -42,11 +42,13 @@ class LeagueCoordinator:
 
     def _on_learner_meta(self, player_meta: "PlayerMeta"):
         print('coordinator recieve learner meta for player{}\n'.format(player_meta.player_id), flush=True)
+        # print("on_learner_meta {}".format(player_meta))
         self.league.update_active_player(player_meta)
         self.league.create_historical_player(player_meta)
 
     def _on_actor_job(self, job: "Job"):
         print('coordinator recieve actor finished job, palyer {}\n'.format(job.launch_player), flush=True)
+        print("on_actor_job {}".format(job.launch_player))  # right
         self.league.update_payoff(job)
 
     def __del__(self):
@@ -54,3 +56,5 @@ class LeagueCoordinator:
 
     def __call__(self, ctx: "Context") -> None:
         sleep(1)
+        # logging.info("{} Step: {}".format(self.__class__, self._step))
+        # self._step += 1
