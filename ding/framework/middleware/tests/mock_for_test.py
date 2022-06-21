@@ -10,8 +10,8 @@ from ding.torch_utils import to_device
 from ding.league.player import PlayerMeta
 from ding.league.v2 import BaseLeague, Job
 from ding.framework.storage import FileStorage
+from ding.policy import PPOPolicy
 from dizoo.distar.envs.distar_env import DIStarEnv
-from dizoo.distar.policy.distar_policy import DIStarPolicy
 from ding.envs import BaseEnvManager
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvTimestep
@@ -176,14 +176,29 @@ class MockLogger():
         pass
 
 
-class DIStarMockPolicy(DIStarPolicy):
+class DIStarMockPolicy(PPOPolicy):
+
+    def _mock_data(self, data_list):
+        for data in data_list:
+            assert isinstance(data, dict)
+            assert 'obs' in data
+            assert 'next_obs' in data
+            assert 'action' in data
+            assert 'reward' in data
+            data['obs'] = torch.rand(16)
+            data['next_obs'] = torch.rand(16)
+            data['action'] = torch.rand(4)
+        return data_list
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         print("Call forward_learn:")
-        return super()._forward_learn(data)
+        data = self._mock_data(data)
+        # return super()._forward_learn(data)
+        return
 
-    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
-        return DIStarEnv.random_action(data)
+    # def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+    #     data = {i: torch.rand(self.policy.model.obs_shape) for i in range(self.cfg.env.collector_env_num)}
+    #     return super()._forward_eval(data)
 
 
 class DIstarCollectMode:

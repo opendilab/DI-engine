@@ -11,13 +11,14 @@ class Policy(nn.Module):
 
     def __init__(self, cfg):
         super(Policy, self).__init__()
-        self.cfg = cfg.policy
-        self.action_type_head = ActionTypeHead(self.cfg.head.action_type_head)
-        self.delay_head = DelayHead(self.cfg.head.delay_head)
-        self.queued_head = QueuedHead(self.cfg.head.queued_head)
-        self.selected_units_head = SelectedUnitsHead(self.cfg.head.selected_units_head)
-        self.target_unit_head = TargetUnitHead(self.cfg.head.target_unit_head)
-        self.location_head = LocationHead(self.cfg.head.location_head)
+        self.whole_cfg = cfg
+        self.cfg = cfg.model.policy
+        self.action_type_head = ActionTypeHead(self.whole_cfg)
+        self.delay_head = DelayHead(self.whole_cfg)
+        self.queued_head = QueuedHead(self.whole_cfg)
+        self.selected_units_head = SelectedUnitsHead(self.whole_cfg)
+        self.target_unit_head = TargetUnitHead(self.whole_cfg)
+        self.location_head = LocationHead(self.whole_cfg)
 
     def forward(
         self, lstm_output: Tensor, entity_embeddings: Tensor, map_skip: List[Tensor], scalar_context: Tensor,

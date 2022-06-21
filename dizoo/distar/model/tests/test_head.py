@@ -13,7 +13,7 @@ class TestHead():
 
     def test_action_type_head(self):
         cfg = total_config.model.policy.head.action_type_head
-        head = ActionTypeHead(cfg)
+        head = ActionTypeHead(total_config)
         lstm_output = torch.randn(B, cfg.input_dim)
         scalar_context = torch.randn(B, cfg.context_dim)
 
@@ -29,7 +29,7 @@ class TestHead():
 
     def test_delay_head(self):
         cfg = total_config.model.policy.head.delay_head
-        head = DelayHead(cfg)
+        head = DelayHead(total_config)
         inputs = torch.randn(B, cfg.input_dim)
 
         logit, delay, embedding = head(inputs)
@@ -44,7 +44,7 @@ class TestHead():
 
     def test_queued_head(self):
         cfg = total_config.model.policy.head.queued_head
-        head = QueuedHead(cfg)
+        head = QueuedHead(total_config)
         inputs = torch.randn(B, cfg.input_dim)
 
         logit, queued, embedding = head(inputs)
@@ -59,7 +59,7 @@ class TestHead():
 
     def test_target_unit_head(self):
         cfg = total_config.model.policy.head.target_unit_head
-        head = TargetUnitHead(cfg)
+        head = TargetUnitHead(total_config)
         inputs = torch.randn(B, cfg.input_dim)
         entity_embedding = torch.rand(B, ENTITY, cfg.entity_embedding_dim)
         entity_num = torch.randint(ENTITY // 2, ENTITY, size=(B, ))
@@ -75,9 +75,9 @@ class TestHead():
 
     def test_location_head(self):
         cfg = total_config.model.policy.head.location_head
-        head = LocationHead(cfg)
+        head = LocationHead(total_config)
         inputs = torch.randn(B, cfg.input_dim)
-        Y, X = cfg.spatial_y, cfg.spatial_x
+        Y, X = total_config.model.spatial_y, total_config.model.spatial_x
         map_skip = [torch.randn(B, cfg.res_dim, Y // 8, X // 8) for _ in range(cfg.res_num)]
 
         logit, location = head(inputs, map_skip)
@@ -90,7 +90,7 @@ class TestHead():
 
     def test_selected_units_head(self):
         cfg = total_config.model.policy.head.selected_units_head
-        head = SelectedUnitsHead(cfg)
+        head = SelectedUnitsHead(total_config)
         inputs = torch.randn(B, cfg.input_dim)
         entity_embedding = torch.rand(B, ENTITY, cfg.entity_embedding_dim)
         entity_num = torch.randint(ENTITY // 2, ENTITY, size=(B, ))

@@ -69,7 +69,7 @@ class Policy(ABC):
         assert set(self._enable_field).issubset(self.total_field), self._enable_field
 
         if len(set(self._enable_field).intersection(set(['learn', 'collect', 'eval']))) > 0:
-            model = self._create_model(cfg, model, enable_field)
+            model = self._create_model(cfg, model)
             self._cuda = cfg.cuda and torch.cuda.is_available()
             # now only support multi-gpu for only enable learn mode
             if len(set(self._enable_field).intersection(set(['learn']))) > 0:
@@ -117,12 +117,7 @@ class Policy(ABC):
                     grad_acc = p_tmp.grad_fn.next_functions[0][0]
                     grad_acc.register_hook(make_hook(name, p))
 
-    def _create_model(
-            self,
-            cfg: dict,
-            model: Optional[torch.nn.Module] = None,
-            enable_field: Optional[List[str]] = None
-    ) -> torch.nn.Module:
+    def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         if model is None:
             model_cfg = cfg.model
             if 'type' not in model_cfg:

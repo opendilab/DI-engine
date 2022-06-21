@@ -80,7 +80,7 @@ cfg = EasyDict(
                 'n_episode': 1,
                 'n_rollout_samples': 32,
                 'n_sample': 64,
-                'unroll_len': 1
+                'unroll_len': 2
             },
             'eval': {
                 'evaluator': {
@@ -106,7 +106,7 @@ cfg = EasyDict(
                         'main_player': 2
                     },
                     'main_player': {
-                        'one_phase_step': 10,  # 20
+                        'one_phase_step': 200,
                         'branch_probs': {
                             'pfsp': 0.0,
                             'sp': 1.0

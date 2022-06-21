@@ -1,6 +1,6 @@
 import pytest
 import torch
-from ding.rl_utils.upgo import upgo_data, upgo_error, upgo_returns, tb_cross_entropy
+from ding.rl_utils.upgo import upgo_loss, upgo_returns, tb_cross_entropy
 
 
 @pytest.mark.unittest
@@ -31,10 +31,7 @@ def test_upgo():
 
     # upgo loss
     rhos = torch.randn(T, B)
-    dist = torch.distributions.Categorical(logits=logit)
-    log_prob = dist.log_prob(action)
-    data = upgo_data(log_prob, rhos, bootstrap_values, rewards, torch.ones_like(rewards))
-    loss = upgo_error(data)
+    loss = upgo_loss(logit, rhos, action, rewards, bootstrap_values)
     assert logit.requires_grad
     assert bootstrap_values.requires_grad
     for t in [logit, bootstrap_values]:

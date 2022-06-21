@@ -47,7 +47,7 @@ class ValueEncoder(nn.Module):
         for i in range(self.resblock_num):
             self.res.append(ResBlock(dim, self.act, norm_type=None))
         self.spatial_fc = fc_block(
-            dim * self.cfg.spatial_y // 8 * self.cfg.spatial_x // 8,
+            dim * self.whole_cfg.model.spatial_y // 8 * self.whole_cfg.model.spatial_x // 8,
             self.cfg.spatial.spatial_fc_dim,
             activation=self.act
         )

@@ -42,7 +42,7 @@ def prepare_test():
 def test_league_actor():
     cfg, env_fn, policy_fn = prepare_test()
     policy = policy_fn()
-    with task.start(async_mode=True, ctx=BattleContext()):
+    with task.start(async_mode=True, ctx = BattleContext()):
         league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
 
         def test_actor():

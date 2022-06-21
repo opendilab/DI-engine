@@ -1,1 +1,0 @@
-from .distar_config import distar_cfg
