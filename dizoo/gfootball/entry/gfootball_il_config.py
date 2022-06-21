@@ -26,6 +26,7 @@ gfootball_il_main_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
             learner=dict(load_path=None),
+            weight_decay=1e-4,
         ),
         collect=dict(n_sample=4096, ),
         eval=dict(evaluator=dict(eval_freq=1000, n_episode=evaluator_env_num)),

@@ -68,7 +68,7 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'football_iql', ['dizoo.gfootball.model.iql']
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_easy_il_rule_seed0'
+gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_easy_il_rule_200ep_lt0_seed0_lsce_cecw_wd1e-4'
 # gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed1_200eps_lt0_epc1000_bs512_e5_lsce'
 # gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_lt0_epc1000_bs512_accuracy'
 seed=0
@@ -100,7 +100,7 @@ collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_crea
 eval_config = deepcopy(collect_config)
 """if eval demo model"""
 # eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
-eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
+# eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
 """if collect demo data"""
 collect_episodic_demo_data(
     collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,
@@ -122,8 +122,8 @@ il_config[0].policy.eval.evaluator.multi_gpu = False
 football_iql_model = FootballIQL()
 
 il_config[0].policy.learn.show_accuracy = False
-il_config[0].policy.learn.ce_class_weight = False
-il_config[0].policy.learn.lsce = False
+il_config[0].policy.learn.ce_class_weight = True
+il_config[0].policy.learn.lsce = True
 
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0, model=football_iql_model)
 

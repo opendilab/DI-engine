@@ -42,11 +42,11 @@ class DiscreteBehaviourCloningPolicy(Policy):
     )
 
     def _init_learn(self):
-        self._optimizer = Adam(
-            self._model.parameters(),
-            lr=self._cfg.learn.learning_rate,
-        )
-        # self._optimizer = AdamW(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay)
+        # self._optimizer = Adam(
+        #     self._model.parameters(),
+        #     lr=self._cfg.learn.learning_rate,
+        # )
+        self._optimizer = AdamW(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay)
 
         self._timer = EasyTimer(cuda=True)
 
