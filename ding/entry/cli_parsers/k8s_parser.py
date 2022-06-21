@@ -1,11 +1,12 @@
 import os
 import numpy as np
-from typing import List, Optional
+from time import sleep
+from typing import Dict, List, Optional
 
 
 class K8SParser():
 
-    def __init__(self, platform_spec: Optional[str] = None, **kwargs) -> None:
+    def __init__(self, platform_spec: Optional[Dict] = None, **kwargs) -> None:
         """
         Overview:
             Should only set global cluster properties
@@ -14,10 +15,11 @@ class K8SParser():
         self.nodelist = self._parse_node_list()
         self.ntasks = len(self.nodelist)
         self.platform_spec = platform_spec
-        self.parallel_workers = kwargs.get("parallel_workers", 1)
-        self.topology = kwargs.get("topology", "alone")
-        self.ports = kwargs.get("ports", 50515)
+        self.parallel_workers = kwargs.get("parallel_workers") or 1
+        self.topology = kwargs.get("topology") or "alone"
+        self.ports = int(kwargs.get("ports") or 50515)
         self.tasks = {}
+        self.startup_interval = int(kwargs.get("startup_interval") or 1)
 
     def parse(self) -> dict:
         if self.kwargs.get("mq_type", "nng") != "nng":
@@ -25,6 +27,7 @@ class K8SParser():
         procid = int(os.environ["DI_RANK"])
         nodename = self.nodelist[procid]
         task = self._get_task(procid)
+        sleep(self.startup_interval)
         # Validation
         assert task["address"] == nodename
         return {**self.kwargs, **task}

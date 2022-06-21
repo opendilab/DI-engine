@@ -43,8 +43,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     "--ports",
     type=str,
-    default="50515",
-    help="The port addresses that the tasks listen to, e.g. 50515,50516, default: 50515"
+    help="The port addresses that the tasks listen to, e.g. 50515,50516, default: k8s, local: 50515, slurm: 15151"
 )
 @click.option("--attach-to", type=str, help="The addresses to connect to.")
 @click.option("--address", type=str, help="The address to listen to (without port).")
@@ -62,6 +61,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option("--redis-host", type=str, help="Redis host.")
 @click.option("--redis-port", type=int, help="Redis port.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
+@click.option("--startup-interval", type=int, default=1, help="Start up interval between each slurm task or k8s pod.")
 @click.option("--local_rank", type=int, default=0, help="Compatibility with PyTorch DDP")
 def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
@@ -87,7 +87,7 @@ def _parse_platform_args(platform: str, platform_spec: str, all_args: dict):
         parsed_args = PLATFORM_PARSERS[platform](platform_spec, **all_args)
     except Exception as e:
         click.echo("error when parse platform spec configure: {}".format(e))
-        exit(1)
+        raise e
 
     return parsed_args
 
@@ -106,6 +106,7 @@ def _cli_ditask(
     mq_type: str,
     redis_host: str,
     redis_port: int,
+    startup_interval: int,
     local_rank: int = 0,
     platform: str = None,
     platform_spec: str = None,
@@ -130,6 +131,7 @@ def _cli_ditask(
     mod = importlib.import_module(mod_name)
     main_func = getattr(mod, func_name)
     # Parse arguments
+    ports = ports or 50515
     if not isinstance(ports, int):
         ports = ports.split(",")
         ports = list(map(lambda i: int(i), ports))
