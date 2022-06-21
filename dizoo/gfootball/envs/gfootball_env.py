@@ -32,8 +32,10 @@ class GfootballEnv(BaseEnv):
         self._launch_env()
 
     def _launch_env(self, gui=False):
+
         self._env = football_env.create_environment(
-            env_name="11_vs_11_stochastic",
+            # env_name="11_vs_11_stochastic",
+            env_name=self._cfg.env_name,
             representation='raw',
             stacked=False,
             logdir='./tmp/football',

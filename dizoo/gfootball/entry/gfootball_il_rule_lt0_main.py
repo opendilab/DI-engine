@@ -68,14 +68,14 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'football_iql', ['dizoo.gfootball.model.iql']
-# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_debug'
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed1_200eps_lt0_epc1000_bs512_e5_lsce'
+gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_easy_il_rule_seed0'
+# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed1_200eps_lt0_epc1000_bs512_e5_lsce'
 # gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_lt0_epc1000_bs512_accuracy'
-seed=1
+seed=0
 # demo_episodes = 2  # debug
 demo_episodes = 200  # key hyper-parameter
-data_path_episode = dir_path + f'/gfootball_rule_{demo_episodes}eps.pkl'
-data_path_transitions_lt0 = dir_path + f'/gfootball_rule_{demo_episodes}eps_transitions_lt0.pkl'
+data_path_episode = dir_path + f'/gfootball_easy_rule_{demo_episodes}eps.pkl'
+data_path_transitions_lt0 = dir_path + f'/gfootball_easy_rule_{demo_episodes}eps_transitions_lt0.pkl'
 
 """
 phase 1: train/obtain expert policy
@@ -100,14 +100,14 @@ collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_crea
 eval_config = deepcopy(collect_config)
 """if eval demo model"""
 # eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
-# eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
+eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
 """if collect demo data"""
-# collect_episodic_demo_data(
-#     collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,
-#     model=football_rule_base_model, state_dict=state_dict
-# )
+collect_episodic_demo_data(
+    collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,
+    model=football_rule_base_model, state_dict=state_dict
+)
 # only use the episode whose return is larger than 0 as demo data
-# episode_to_transitions_filter(data_path=data_path_episode, expert_data_path=data_path_transitions_lt0, nstep=1, min_episode_return=1)
+episode_to_transitions_filter(data_path=data_path_episode, expert_data_path=data_path_transitions_lt0, nstep=1, min_episode_return=1)
 
 """
 phase 2: il training
@@ -123,7 +123,7 @@ football_iql_model = FootballIQL()
 
 il_config[0].policy.learn.show_accuracy = False
 il_config[0].policy.learn.ce_class_weight = False
-il_config[0].policy.learn.lsce = True
+il_config[0].policy.learn.lsce = False
 
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0, model=football_iql_model)
 

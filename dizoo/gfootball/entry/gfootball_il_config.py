@@ -11,6 +11,8 @@ gfootball_il_main_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=999,
+        # env_name="11_vs_11_stochastic",  # default
+        env_name="11_vs_11_easy_stochastic",
     ),
     policy=dict(
         cuda=True,
