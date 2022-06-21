@@ -1,5 +1,6 @@
 from easydict import EasyDict
-cfg = EasyDict(
+
+distar_cfg = EasyDict(
     {
         'env': {
             'manager': {

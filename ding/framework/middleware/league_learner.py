@@ -13,7 +13,7 @@ from ding.league.player import PlayerMeta
 from ding.worker.learner.base_learner import BaseLearner
 
 if TYPE_CHECKING:
-    from ding.data import Buffer
+    from ding.policy import Policy
     from ding.framework import Context
     from ding.framework.middleware.league_actor import ActorData
     from ding.league import ActivePlayer
@@ -36,12 +36,13 @@ class LeagueLearnerExchanger:
         self.policy = policy
         self.prefix = '{}/ckpt'.format(cfg.exp_name)
         task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
-    
+
     def _push_data(self, data: "ActorData"):
-        print("push data into the cache!")
+        print("learner {} receive data from actor! \n".format(task.router.node_id), flush=True)
         self._cache.append(data.train_data)
 
     def __call__(self, ctx: "Context"):
+        print("push data into the ctx")
         ctx.trajectories = list(self._cache)
         self._cache.clear()
         sleep(1)
@@ -73,7 +74,7 @@ class OffPolicyLeagueLearner:
         task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
         self._learner = OffPolicyLearner(cfg, self._policy, self._buffer)
         # self._ckpt_handler = CkptSaver(cfg, self._policy, train_freq=100)
-    
+
     def _push_data(self, data: "ActorData"):
         print("push data into the buffer!")
         self._buffer.push(data.train_data)
@@ -91,7 +92,9 @@ class OffPolicyLeagueLearner:
         )
 
         learner_model = LearnerModel(
-            player_id=self.player_id, state_dict=self._policy.state_dict(), train_iter=ctx.train_iter    # self._policy.state_dict()
+            player_id=self.player_id,
+            state_dict=self._policy.state_dict(),
+            train_iter=ctx.train_iter  # self._policy.state_dict()
         )
         print('learner send model\n', flush=True)
         task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
@@ -162,5 +165,3 @@ class LeagueLearner:
 
     def __call__(self, _: "Context") -> None:
         sleep(1)
-        # logging.info("{} Step: {}".format(self.__class__, self._step))
-        # self._step += 1

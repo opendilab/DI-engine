@@ -25,11 +25,13 @@ def ttorch_collate(x):
     return x
 
 
-def default_collate(batch: Sequence,
-                    dim: int = 0,
-                    cat_1dim: bool = True,
-                    allow_key_mismatch: bool = False,
-                    ignore_prefix: list = ['collate_ignore']) -> Union[torch.Tensor, Mapping, Sequence]:
+def default_collate(
+        batch: Sequence,
+        dim: int = 0,
+        cat_1dim: bool = True,
+        allow_key_mismatch: bool = False,
+        ignore_prefix: list = ['collate_ignore']
+) -> Union[torch.Tensor, Mapping, Sequence]:
     """
     Overview:
         Put each data field into a tensor with outer dimension batch size.

@@ -9,14 +9,15 @@ from ding.data import DequeBuffer
 from ding.framework.context import BattleContext
 from ding.framework import EventEnum
 from ding.framework.task import task, Parallel
-from ding.framework.middleware import OffPolicyLeagueLearner, data_pusher,\
+from ding.framework.middleware import data_pusher,\
     OffPolicyLearner, LeagueLearnerExchanger
 from ding.framework.middleware.functional.actor_data import ActorData
 from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
+from ding.league.v2 import BaseLeague
 from dizoo.distar.envs.distar_env import DIStarEnv
-from distar.ctools.utils import read_config
 from dizoo.distar.envs import fake_rl_data_batch_with_last
+from distar.ctools.utils import read_config
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -57,7 +58,7 @@ def actor_mocker(league):
         n_players = len(league.active_players_ids)
         player = league.active_players[(task.router.node_id + 2) % n_players]
         print("actor player:", player.player_id)
-        for _ in range(3):
+        for _ in range(24):
             data = fake_rl_data_batch_with_last()
             actor_data = ActorData(env_step=0, train_data=data)
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
@@ -68,7 +69,7 @@ def actor_mocker(league):
 
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
-    league = MockLeague(cfg.policy.other.league)
+    league = BaseLeague(cfg.policy.other.league)
 
     with task.start(async_mode=True, ctx=BattleContext()):
         if task.router.node_id == 0:
@@ -84,7 +85,7 @@ def _main():
             task.use(LeagueLearnerExchanger(cfg, policy.learn_mode, player))
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.run(max_step=200)
+        task.run(max_step=30)
 
 
 @pytest.mark.unittest

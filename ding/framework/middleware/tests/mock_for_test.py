@@ -186,7 +186,6 @@ class DIStarMockPolicy(DIStarPolicy):
         return DIStarEnv.random_action(data)
 
 
-
 class DIstarCollectMode:
 
     def __init__(self) -> None:
