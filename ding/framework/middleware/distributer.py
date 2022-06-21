@@ -39,6 +39,11 @@ class ContextExchanger:
             task.emit(self._event_name, payload, only_remote=True)
 
     def put(self, ctx_payload: Dict):
+        """
+        Overview:
+            Get attributes from ctx on the callback of event.
+            Each attribute should have a standalone put handler, which named `_put_{key}`
+        """
         for key, item in ctx_payload.items():
             fn_name = "_put_{}".format(key)
             if hasattr(self, fn_name):
@@ -47,6 +52,11 @@ class ContextExchanger:
                 logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
 
     def fetch(self, ctx: "Context") -> Dict[str, Any]:
+        """
+        Overview:
+            Fetch attributes from ctx before emit them to the event bus.
+            Each attribute should have a standalone fetch handler, which named `_fetch_{key}`
+        """
         payload = {}
         for key, item in ctx.items():
             fn_name = "_fetch_{}".format(key)
@@ -86,6 +96,17 @@ class ContextExchanger:
     def _fetch_episodes(self, episodes: List[Any]):
         if task.has_role(task.role.COLLECTOR):
             return episodes
+
+    def _put_trajectory_end_idx(self, trajectory_end_idx: List[str]):
+        if not task.has_role(task.role.LEARNER):
+            return
+        if "trajectory_end_idx" not in self._state:
+            self._state["trajectory_end_idx"] = []
+        self._state["trajectory_end_idx"].extend(trajectory_end_idx)
+
+    def _fetch_trajectory_end_idx(self, trajectory_end_idx: List[str]):
+        if task.has_role(task.role.COLLECTOR):
+            return trajectory_end_idx
 
     def _put_env_step(self, env_step: int):
         if not task.has_role(task.role.COLLECTOR):
