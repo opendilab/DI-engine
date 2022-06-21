@@ -12,7 +12,7 @@ from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
 from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
-from .ppo import PPOPolicy, PPOOffPolicy, PPOSTDIMPolicy
+from .ppo import PPOPolicy, PPOOffPolicy, PPOPGPolicy, PPOSTDIMPolicy
 from .offppo_collect_traj import OffPPOCollectTrajPolicy
 from .ppg import PPGPolicy, PPGOffPolicy
 from .a2c import A2CPolicy
@@ -166,8 +166,13 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
     pass
 
 
+<<<<<<< HEAD
 @POLICY_REGISTRY.register('ppo_stdim_command')
 class PPOCommandModePolicy(PPOSTDIMPolicy, DummyCommandModePolicy):
+=======
+@POLICY_REGISTRY.register('ppo_pg_command')
+class PPOPGCommandModePolicy(PPOPGPolicy, DummyCommandModePolicy):
+>>>>>>> 8e8e53cab345c91061a7769c2051421da0557308
     pass
 
 

@@ -4,6 +4,10 @@ import numpy as np
 import pytest
 
 from ding.utils.plot_helper import plot
+from PIL import Image
+import matplotlib.pyplot as plt
+import seaborn as sns
+from hbutils.testing import isolated_directory
 
 
 @pytest.mark.unittest
@@ -31,5 +35,33 @@ def test_plot():
     data2['label'] = 'line2'
 
     data = [data1, data2]
-    plot(data, 'step', 'reward_rate', 'test_pic', './pic.jpg')
-    assert os.path.exists('./pic.jpg')
+    with isolated_directory():
+        plt.figure(1)
+        plot(data, 'step', 'reward_rate', 'test_pic', './pic.jpg')
+        assert os.path.exists('./pic.jpg')
+        plt.figure(2)
+        sns.set(style="darkgrid", font_scale=1.5)
+        sns.lineplot(x=np.concatenate((episode1, episode2)), y=np.concatenate((rewards1, rewards2)), label='line1')
+        sns.lineplot(x=np.concatenate((episode3, episode4)), y=np.concatenate((rewards3, rewards4)), label='line2')
+        plt.xlabel('step')
+        plt.ylabel('reward_rate')
+        plt.title('test_pic')
+        plt.savefig('./pic_compare.jpg')
+        I1 = Image.open('./pic.jpg')
+        I2 = Image.open('./pic_compare.jpg')
+        I1_array = np.array(I1)
+        I2_array = np.array(I2)
+        assert (I1_array - I2_array).mean() == 0
+        plt.figure(3)
+        sns.set(style="darkgrid", font_scale=1.5)
+        sns.lineplot(x=np.concatenate((episode1, episode2)), y=np.concatenate((rewards1, rewards2)), label='line1')
+        sns.lineplot(x=np.concatenate((episode3, episode4)), y=np.concatenate((rewards1, rewards3)), label='line2')
+        plt.xlabel('step')
+        plt.ylabel('reward_rate')
+        plt.title('test_pic')
+        plt.savefig('./pic_compare_diffpic.jpg')
+        I1 = Image.open('./pic.jpg')
+        I2 = Image.open('./pic_compare_diffpic.jpg')
+        I1_array = np.array(I1)
+        I2_array = np.array(I2)
+        assert (I1_array - I2_array).mean() < 100
