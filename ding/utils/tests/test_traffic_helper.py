@@ -6,7 +6,7 @@ import os
 import shutil
 import random
 import time
-import logging
+from ditk import logging
 import timeit
 import numpy as np
 import pandas as pd

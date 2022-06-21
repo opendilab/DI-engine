@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Union
 import time
 import os
 import json
-import logging
+from ditk import logging
 from random import random
 import pandas as pd
 import ding.utils
@@ -20,11 +20,11 @@ class Traffic:
         self._data = None
 
     def set_config(
-            self,
-            is_writer: bool = False,
-            file_path: str = None,
-            maxlen: int = 10000,
-            router: "Parallel" = None
+        self,
+        is_writer: bool = False,
+        file_path: str = None,
+        maxlen: int = 10000,
+        router: "Parallel" = None
     ) -> "Traffic":
         """
         Overview:

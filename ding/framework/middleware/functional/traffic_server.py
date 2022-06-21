@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Callable, Union, List
 import time
-import logging
+from ditk import logging
 from tabulate import tabulate
 import atexit
 from easydict import EasyDict
