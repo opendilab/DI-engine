@@ -184,12 +184,6 @@ class DIStarMockPolicy(DIStarPolicy):
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
         return DIStarEnv.random_action(data)
-    
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        return
-    
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        return dict()
 
 
 

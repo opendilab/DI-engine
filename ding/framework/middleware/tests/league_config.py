@@ -46,7 +46,7 @@ cfg = EasyDict(
                 },
                 'multi_gpu': False,
                 'epoch_per_collect': 10,
-                'batch_size': 16,
+                'batch_size': 4,
                 'learning_rate': 1e-05,
                 'value_weight': 0.5,
                 'entropy_weight': 0.0,
@@ -106,7 +106,7 @@ cfg = EasyDict(
                         'main_player': 2
                     },
                     'main_player': {
-                        'one_phase_step': 200,
+                        'one_phase_step': 10,  # 20
                         'branch_probs': {
                             'pfsp': 0.0,
                             'sp': 1.0

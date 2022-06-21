@@ -56,5 +56,3 @@ class LeagueCoordinator:
 
     def __call__(self, ctx: "Context") -> None:
         sleep(1)
-        # logging.info("{} Step: {}".format(self.__class__, self._step))
-        # self._step += 1

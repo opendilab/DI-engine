@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from collections import deque
 from threading import Lock
 from time import sleep
 from typing import TYPE_CHECKING, Callable, Optional
@@ -25,6 +26,44 @@ class LearnerModel:
     train_iter: int = 0
 
 
+class LeagueLearnerExchanger:
+
+    def __init__(self, cfg: dict, policy: "Policy", player: "ActivePlayer") -> None:
+        self.cfg = cfg
+        self._cache = deque(maxlen=1000)
+        self.player = player
+        self.player_id = player.player_id
+        self.policy = policy
+        self.prefix = '{}/ckpt'.format(cfg.exp_name)
+        task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
+    
+    def _push_data(self, data: "ActorData"):
+        print("push data into the cache!")
+        self._cache.append(data.train_data)
+
+    def __call__(self, ctx: "Context"):
+        ctx.trajectories = list(self._cache)
+        self._cache.clear()
+        sleep(1)
+        yield
+        print("Learner: save model, ctx.train_iter:", ctx.train_iter)
+        self.player.total_agent_step = ctx.train_iter
+        if self.player.is_trained_enough():
+            storage = FileStorage(
+                path=os.path.join(self.prefix, "{}_{}_ckpt.pth".format(self.player_id, ctx.train_iter))
+            )
+            storage.save(self.policy.state_dict())
+            task.emit(
+                EventEnum.LEARNER_SEND_META,
+                PlayerMeta(player_id=self.player_id, checkpoint=storage, total_agent_step=ctx.train_iter)
+            )
+
+            learner_model = LearnerModel(
+                player_id=self.player_id, state_dict=self.policy.state_dict(), train_iter=ctx.train_iter
+            )
+            task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
+
+
 class OffPolicyLeagueLearner:
 
     def __init__(self, cfg: dict, policy_fn: Callable, player: "ActivePlayer") -> None:
@@ -36,11 +75,10 @@ class OffPolicyLeagueLearner:
         # self._ckpt_handler = CkptSaver(cfg, self._policy, train_freq=100)
     
     def _push_data(self, data: "ActorData"):
-        print("wait for lock")
         print("push data into the buffer!")
         self._buffer.push(data.train_data)
 
-    def __call__(self, ctx: "OnlineRLContext"):
+    def __call__(self, ctx: "Context"):
         print("num of objects in buffer:", self._buffer.count())
         self._learner(ctx)
         checkpoint = None
@@ -53,7 +91,7 @@ class OffPolicyLeagueLearner:
         )
 
         learner_model = LearnerModel(
-            player_id=self.player_id, state_dict=self._policy.state_dict(), train_iter=0
+            player_id=self.player_id, state_dict=self._policy.state_dict(), train_iter=ctx.train_iter    # self._policy.state_dict()
         )
         print('learner send model\n', flush=True)
         task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)

@@ -31,8 +31,7 @@ def prepare_test():
         return env
 
     def policy_fn():
-        model = VAC(**cfg.policy.model)
-        policy = DIStarMockPolicy(cfg.policy, model=model)
+        policy = DIStarMockPolicy(DIStarMockPolicy.default_config(), enable_field=['learn'])
         return policy
 
     def collect_policy_fn():
@@ -57,8 +56,7 @@ def _main():
                 else:
                     n_players = len(league.active_players_ids)
                     player = league.active_players[task.router.node_id % n_players]
-                    learner = OffPolicyLeagueLearner(cfg, policy_fn, player)
-                    task.use(learner)
+                    task.use(OffPolicyLeagueLearner(cfg, policy_fn, player))
 
                 task.run()
 
