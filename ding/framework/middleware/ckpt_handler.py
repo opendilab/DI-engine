@@ -17,6 +17,11 @@ class CkptSaver:
             The class used to save checkpoint data.
     """
 
+    def __new__(cls, *args, **kwargs):
+        if task.router.is_active and not (task.has_role(task.role.LEARNER) or task.has_role(task.role.EVALUATOR)):
+            return task.void()
+        return super(CkptSaver, cls).__new__(cls)
+
     def __init__(self, cfg: EasyDict, policy: Policy, train_freq: Optional[int] = None, save_finish: bool = True):
         """
         Overview:

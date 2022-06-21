@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, List
+from typing import TYPE_CHECKING
 from easydict import EasyDict
 
 from ding.policy import get_random_policy
@@ -16,6 +16,11 @@ class StepCollector:
         The class of the collector running by steps, including model inference and transition \
             process. Use the `__call__` method to execute the whole collection process.
     """
+
+    def __new__(cls, *args, **kwargs):
+        if task.router.is_active and not task.has_role(task.role.COLLECTOR):
+            return task.void()
+        return super(StepCollector, cls).__new__(cls)
 
     def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
         """

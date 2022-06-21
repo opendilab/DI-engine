@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING, Callable, List
+from typing import TYPE_CHECKING, Callable
 from easydict import EasyDict
 from ding.rl_utils import get_epsilon_greedy_fn
+from ding.framework import task
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
@@ -13,6 +14,8 @@ def eps_greedy_handler(cfg: EasyDict) -> Callable:
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
     """
+    if task.router.is_active and not task.has_role(task.role.COLLECTOR):
+        return task.void()
 
     eps_cfg = cfg.policy.other.eps
     handle = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)

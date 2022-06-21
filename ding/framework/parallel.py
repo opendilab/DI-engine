@@ -181,6 +181,7 @@ class Parallel(metaclass=SingletonMetaclass):
             - runner_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for runner.
             - main_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for main function.
         """
+        logging.getLogger().setLevel(logging.INFO)
         main_process, args, kwargs = main_params
 
         with Parallel() as router:

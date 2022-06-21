@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Callable
 from easydict import EasyDict
 from ditk import logging
 import torch
-from ding.policy import Policy
+from ding.framework import task
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
     from ding.reward_model import BaseRewardModel, HerRewardModel
@@ -17,6 +17,8 @@ def reward_estimator(cfg: EasyDict, reward_model: "BaseRewardModel") -> Callable
         - cfg (:obj:`EasyDict`): Config.
         - reward_model (:obj:`BaseRewardModel`): Reward model.
     """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     def _enhance(ctx: "OnlineRLContext"):
         """
@@ -40,6 +42,8 @@ def her_data_enhancer(cfg: EasyDict, buffer_: "Buffer", her_reward_model: "HerRe
         - her_reward_model (:obj:`HerRewardModel`): Hindsight Experience Replay (HER) model \
             which is used to process episodes.
     """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     def _fetch_and_enhance(ctx: "OnlineRLContext"):
         """
@@ -68,6 +72,9 @@ def her_data_enhancer(cfg: EasyDict, buffer_: "Buffer", her_reward_model: "HerRe
 
 
 def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
+
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     def _enhance(ctx: "OnlineRLContext"):
         nstep = cfg.policy.nstep
