@@ -48,7 +48,7 @@ class LeagueCoordinator:
 
     def _on_actor_job(self, job: "Job"):
         print('coordinator recieve actor finished job, palyer {}\n'.format(job.launch_player), flush=True)
-        print("on_actor_job {}".format(job.launch_player))  # right
+        print("on_actor_job {}\n".format(job.launch_player))  # right
         self.league.update_payoff(job)
 
     def __del__(self):

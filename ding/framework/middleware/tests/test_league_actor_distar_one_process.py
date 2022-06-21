@@ -35,9 +35,6 @@ class PrepareTest():
 
     @classmethod
     def get_env_supervisor(cls):
-        # env = BaseEnvManager(
-        #     env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
-        # )
         env = EnvSupervisor(
             type_=ChildType.THREAD,
             env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
