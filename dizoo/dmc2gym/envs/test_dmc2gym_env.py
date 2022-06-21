@@ -17,7 +17,11 @@ class TestDMC2GymEnv:
         env.seed(314, dynamic_seed=False)
         assert env._seed == 314
         obs = env.reset()
-        assert obs.shape == (5, )
+        assert obs.shape == (
+            3,
+            100,
+            100,
+        )
         for _ in range(5):
             env.reset()
             np.random.seed(314)
@@ -33,7 +37,11 @@ class TestDMC2GymEnv:
                 print(timestep)
                 assert isinstance(timestep.obs, np.ndarray)
                 assert isinstance(timestep.done, bool)
-                assert timestep.obs.shape == (5, )
+                assert timestep.obs.shape == (
+                    3,
+                    100,
+                    100,
+                )
                 assert timestep.reward.shape == (1, )
                 assert timestep.reward >= env.reward_space.low
                 assert timestep.reward <= env.reward_space.high

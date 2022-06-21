@@ -2,7 +2,7 @@ import torch
 import pytest
 from ding.torch_utils import build_activation, build_normalization
 from ding.torch_utils.network.nn_module import conv1d_block, conv2d_block, fc_block, deconv2d_block, ChannelShuffle, \
-    one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten
+    one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten, normed_linear, normed_conv2d
 
 batch_size = 2
 in_channels = 2
@@ -111,6 +111,35 @@ class TestNnModule:
             )
             output = self.run_model(input, block)
             assert output.shape == (batch_size, out_channels)
+
+    def test_normed_linear(self):
+        input = torch.rand(batch_size, in_channels).requires_grad_(True)
+        block = normed_linear(in_channels, out_channels, scale=1)
+        r = block.weight.norm(dim=None, keepdim=False) * block.weight.norm(dim=None, keepdim=False)
+        assert r.item() < out_channels + 0.01
+        assert r.item() > out_channels - 0.01
+        output = self.run_model(input, block)
+        assert output.shape == (batch_size, out_channels)
+
+    def test_normed_conv2d(self):
+        input = torch.rand(batch_size, in_channels, H, W).requires_grad_(True)
+        block = normed_conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            groups=groups,
+            scale=1
+        )
+        r = block.weight.norm(dim=(1, 2, 3), p=2, keepdim=True)[0, 0, 0, 0]
+        assert r.item() < 1.01
+        assert r.item() > 0.99
+        output = self.run_model(input, block)
+        output_H = (H - kernel_size + 2 * padding // stride) + 1
+        output_W = (W - kernel_size + 2 * padding // stride) + 1
+        assert output.shape == (batch_size, out_channels, output_H, output_W)
 
     def test_channel_shuffle(self):
         group_num = 2
