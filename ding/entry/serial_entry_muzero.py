@@ -66,26 +66,8 @@ def serial_pipeline_muzero(
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
 
-    # replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
-    # gamebuffer_config = EasyDict(
-    #     dict(
-    #         batch_size=10,
-    #         transition_num=20,
-    #         priority_prob_alpha=0.5,
-    #         total_transitions=10000,
-    #         num_unroll_steps=5,
-    #         td_steps=5,
-    #         auto_td_steps=int(0.3*2e5),
-    #         stacked_observations=4,
-    #         device='cpu',
-    #         use_root_value=True,
-    #         mini_infer_size = 2,
-    #
-    #     )
-    # )
-    # gamebuffer_config=game_config
+    # MuZero
     replay_buffer = GameBuffer(game_config)
-
     collector = create_serial_collector(
         cfg.policy.collect.collector,
         env=collector_env,
@@ -120,7 +102,7 @@ def serial_pipeline_muzero(
         collect_kwargs = commander.step()
         # set temperature for distributions
         collect_kwargs['temperature'] = np.array(
-            [game_config.visit_softmax_temperature_fn(trained_steps=learner.train_iter) for _ in range(game_config.env_num)])
+            [game_config.visit_softmax_temperature_fn(trained_steps=learner.train_iter) for _ in range(game_config.collector_env_num)])
         # Evaluate policy performance
         # if evaluator.should_eval(learner.train_iter):
         stop, reward = evaluator.eval(

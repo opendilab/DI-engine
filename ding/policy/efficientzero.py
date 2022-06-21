@@ -91,7 +91,7 @@ class EfficientZeroPolicy(Policy):
             # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
-            target_update_freq=400,
+            target_update_freq=200,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
             weight_decay=1e-4,
@@ -437,6 +437,14 @@ class EfficientZeroPolicy(Policy):
             'value_prefix_loss': loss_data[5],
             'value_loss': loss_data[6],
             'consistency_loss': loss_data[7],
+
+            'value_priority':td_data[0],
+            'target_value_prefix':td_data[1],
+            'target_value':td_data[2],
+            'predicted_value_prefixs':td_data[7],
+            'predicted_values':td_data[8],
+            'target_policy':td_data[9],
+            'predicted_policies':td_data[10]
             # 'td_data': td_data,
             # 'priority_data_weights': priority_data[0],
             # 'priority_data_indices': priority_data[1]
@@ -449,7 +457,7 @@ class EfficientZeroPolicy(Policy):
         self._mcts_eval = MCTS(self.game_config)
         # set temperature for distributions
         self.collect_temperature = np.array(
-            [self.game_config.visit_softmax_temperature_fn(trained_steps=0) for _ in range(self.game_config.env_num)])
+            [self.game_config.visit_softmax_temperature_fn(trained_steps=0) for _ in range(self.game_config.collector_env_num)])
 
     def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None):
         """
@@ -470,11 +478,11 @@ class EfficientZeroPolicy(Policy):
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # action_num = [int(i.sum()) for i in action_mask]
             action_num = int(action_mask[0].sum())
-            roots = cytree.Roots(self.game_config.env_num, action_num, self.game_config.num_simulations)
+            roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
             # the only difference between collect and eval is the dirichlet noise
             noises = [
                 np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(np.float32).tolist()
-                for _ in range(self.game_config.env_num)
+                for _ in range(self.game_config.collector_env_num)
             ]
             roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
             # do MCTS for a policy (argmax in testing)
@@ -482,9 +490,9 @@ class EfficientZeroPolicy(Policy):
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
-            data_id = [i for i in range(self.game_config.env_num)]
+            data_id = [i for i in range(self.game_config.collector_env_num)]
             output = {i: None for i in data_id}
-            for i in range(self.game_config.env_num):
+            for i in range(self.game_config.collector_env_num):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 # TODO(pu):
@@ -549,16 +557,16 @@ class EfficientZeroPolicy(Policy):
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # action_num = [int(i.sum()) for i in action_mask]
             action_num = int(action_mask[0].sum())
-            roots = cytree.Roots(self.game_config.env_num, action_num, self.game_config.num_simulations)
+            roots = cytree.Roots(self.game_config.evaluator_env_num, action_num, self.game_config.num_simulations)
             roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
             # do MCTS for a policy (argmax in testing)
             self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
-            data_id = [i for i in range(self.game_config.env_num)]
+            data_id = [i for i in range(self.game_config.evaluator_env_num)]
             output = {i: None for i in data_id}
-            for i in range(self.game_config.env_num):
+            for i in range(self.game_config.evaluator_env_num):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
@@ -578,9 +586,17 @@ class EfficientZeroPolicy(Policy):
             'value_prefix_loss',
             'value_loss',
             'consistency_loss',
-            # 'td_data': td_data,
-            'priority_data_weights',
-            'priority_data_indices'
+            #
+            'value_priority',
+            'target_value_prefix',
+            'target_value',
+            'predicted_value_prefixs',
+            'predicted_values',
+            'target_policy',
+            'predicted_policies',
+            # 'td_data',
+            # 'priority_data_weights',
+            # 'priority_data_indices'
         ]
 
     def _state_dict_learn(self) -> Dict[str, Any]:

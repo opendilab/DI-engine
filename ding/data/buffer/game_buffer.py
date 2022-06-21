@@ -64,8 +64,10 @@ class GameBuffer(Buffer):
         # target policy
         batch_policies_re = self._prepare_policy_re(policy_re_context, policy._target_model)
         batch_policies_non_re = self._prepare_policy_non_re(policy_non_re_context)
-        # batch_policies = np.concatenate([batch_policies_re, batch_policies_non_re])
-        batch_policies = batch_policies_re
+        if self.config.revisit_policy_search_rate < 1:
+            batch_policies = np.concatenate([batch_policies_re, batch_policies_non_re])
+        else:
+            batch_policies = batch_policies_re
         targets_batch = [batch_value_prefixs, batch_values, batch_policies]
         # a batch contains the inputs and the targets; inputs is prepared in CPU workers
         # train_data = [inputs_batch, targets_batch]

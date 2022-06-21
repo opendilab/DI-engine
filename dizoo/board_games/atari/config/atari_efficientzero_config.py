@@ -4,10 +4,10 @@ from easydict import EasyDict
 # collector_env_num=2
 # evaluator_env_num=2
 
-collector_env_num=8
-evaluator_env_num=8
+collector_env_num=1
+evaluator_env_num=5
 atari_efficientzero_config = dict(
-    exp_name='pong_efficientzero_seed0',
+    exp_name='pong_efficientzero_seed0_2',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -52,19 +52,20 @@ atari_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=50,
+            update_per_collect=500,
             # debug
             # batch_size=8,
             batch_size=256,
-            learning_rate=1e-3,
+            # learning_rate=1e-3,
+            learning_rate=0.02,
             # Frequency of target network update.
-            target_update_freq=400,
+            target_update_freq=200,
         ),
         # collect_mode config
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            n_episode=8,
+            n_episode=1,
         ),
         # command_mode config
         other=dict(
@@ -76,7 +77,7 @@ atari_efficientzero_config = dict(
                 end=0.1,
                 decay=int(5e4),
             ),
-            replay_buffer=dict(replay_buffer_size=int(1e6), type='game')
+            replay_buffer=dict(replay_buffer_size=int(1e5), type='game')
         ),
     ),
 )

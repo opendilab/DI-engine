@@ -397,6 +397,8 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 distributions_dict = {k: v['distributions'] for k, v in policy_output.items()}
                 value_dict = {k: v['value'] for k, v in policy_output.items()}
                 pred_value_dict = {k: v['pred_value'] for k, v in policy_output.items()}
+                visit_entropy_dict = {k: v['visit_entropy'] for k, v in policy_output.items()}
+
 
 
                 timesteps = self._env.step(actions)
@@ -423,7 +425,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 eps_reward_lst[i] += clip_reward
                 eps_ori_reward_lst[i] += ori_reward
                 dones[i] = done
-                visit_entropies_lst[i] += visit_entropy
+                visit_entropies_lst[i] += visit_entropy_dict[i]
 
                 eps_steps_lst[i] += 1
                 total_transitions += 1
@@ -524,7 +526,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 visit_entropies = np.array(self_play_visit_entropy).mean()
                 visit_entropies /= max_visit_entropy
                 print('visit_entropies:', visit_entropies)
-                
+
                 if self_play_episodes > 0:
                     log_self_play_moves = self_play_moves / self_play_episodes
                     log_self_play_rewards = self_play_rewards / self_play_episodes

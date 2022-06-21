@@ -18,7 +18,8 @@ game_config = EasyDict(dict(
 
 
     # debug
-    # env_num=2,
+    # collector_env_num=1,
+    # evaluator_env_num=1,
     # test_max_episode_steps=int(1e2),
     # num_simulations=2,
     # batch_size=8,
@@ -27,19 +28,20 @@ game_config = EasyDict(dict(
     # num_unroll_steps=5,
     # td_steps=3,
 
-    env_num=8,
+    collector_env_num=1,
+    evaluator_env_num=5,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=50,
     batch_size=256,
     game_history_max_length=200,
-    total_transitions=int(1e6),
+    total_transitions=int(1e5),
     num_unroll_steps=5,
     td_steps=5,
 
     # TODO
-    revisit_policy_search_rate=1,
-    # revisit_policy_search_rate=0.99,
+    # revisit_policy_search_rate=1,
+    revisit_policy_search_rate=0.99,
 
     clip_reward=False,
     use_max_priority=True,
@@ -64,7 +66,7 @@ game_config = EasyDict(dict(
     reward_support=DiscreteSupport(-300, 300, delta=1),
     max_grad_norm=10,
 
-    max_training_steps=int(1e6),
+    max_training_steps=int(1.2e5),  # TODO
     change_temperature=True,
     test_interval=10000,
     log_interval=1000,
