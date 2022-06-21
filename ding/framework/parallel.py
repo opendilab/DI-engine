@@ -11,6 +11,7 @@ import socket
 from os import path
 from typing import Callable, Dict, List, Optional, Tuple, Union, Set
 from threading import Thread
+from ding.data import DataSerializer
 from ding.framework.event_loop import EventLoop
 from ding.utils.design_helper import SingletonMetaclass
 from ding.framework.message_queue import *
@@ -46,7 +47,8 @@ class Parallel(metaclass=SingletonMetaclass):
         self.labels = labels or set()
         self.auto_recover = auto_recover
         self.max_retries = max_retries
-        self._mq = MQ_REGISTRY.get(mq_type)(**kwargs)
+        self._mq: MQ = MQ_REGISTRY.get(mq_type)(**kwargs)
+        self._data_serializer = DataSerializer().start()
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
@@ -320,12 +322,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         """
         if self.is_active:
             payload = {"a": args, "k": kwargs}
-            try:
-                data = pickle.dumps(payload, protocol=-1)
-            except AttributeError as e:
-                logging.error("Arguments are not pickable! Event: {}, Args: {}".format(event, args))
-                raise e
-            self._mq.publish(event, data)
+            self._data_serializer.dump(payload, lambda s: self._mq.publish(event, s))
 
     def _handle_message(self, topic: str, msg: bytes) -> None:
         """
@@ -339,12 +336,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         if not self._event_loop.listened(event):
             logging.debug("Event {} was not listened in parallel {}".format(event, self.node_id))
             return
-        try:
-            payload = pickle.loads(msg)
-        except Exception as e:
-            logging.error("Error when unpacking message on node {}, msg: {}".format(self.node_id, e))
-            return
-        self._event_loop.emit(event, *payload["a"], **payload["k"])
+
+        self._data_serializer.load(msg, lambda payload: self._event_loop.emit(event, *payload["a"], **payload["k"]))
 
     @classmethod
     def get_ip(cls):
@@ -352,12 +345,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         try:
             # doesn't even have to be reachable
             s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
+            ip = s.getsockname()[0]
         except Exception:
-            IP = '127.0.0.1'
+            ip = '127.0.0.1'
         finally:
             s.close()
-        return IP
+        return ip
 
     def __enter__(self) -> "Parallel":
         return self
@@ -375,4 +368,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         if self._listener:
             self._listener.join(timeout=1)
             self._listener = None
+        if self._data_serializer:
+            self._data_serializer.stop()
+            self._data_serializer = None
         self._event_loop.stop()
