@@ -9,9 +9,15 @@ import os
 obs_space_1d, obs_space_3d = 4, [4, 84, 84]
 expert_data_path_1d, expert_data_path_3d = './expert_data_1d', './expert_data_3d'
 if not os.path.exists('./expert_data_1d'):
-    os.mkdir('./expert_data_1d')
+    try:
+        os.mkdir('./expert_data_1d')
+    except FileExistsError:
+        pass
 if not os.path.exists('./expert_data_3d'):
-    os.mkdir('./expert_data_3d')
+    try:
+        os.mkdir('./expert_data_3d')
+    except FileExistsError:
+        pass
 device = 'cpu'
 action_space = 3
 

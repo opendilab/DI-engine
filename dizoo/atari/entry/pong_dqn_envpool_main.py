@@ -29,6 +29,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             'env_id': cfg.env.env_id,
             'env_num': cfg.env.collector_env_num,
             'batch_size': cfg.env.collector_batch_size,
+            # env wrappers
+            'episodic_life': True,  # collector: True
+            'reward_clip': True,  # collector: True
+            'gray_scale': cfg.env.get('gray_scale', True),
+            'stack_num': cfg.env.get('stack_num', 4),
+            'frame_skip': cfg.env.get('frame_skip', 4),
         }
     )
     collector_env = PoolEnvManager(collector_env_cfg)
@@ -37,6 +43,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             'env_id': cfg.env.env_id,
             'env_num': cfg.env.evaluator_env_num,
             'batch_size': cfg.env.evaluator_batch_size,
+            # env wrappers
+            'episodic_life': False,  # evaluator: False
+            'reward_clip': False,  # evaluator: False
+            'gray_scale': cfg.env.get('gray_scale', True),
+            'stack_num': cfg.env.get('stack_num', 4),
+            'frame_skip': cfg.env.get('frame_skip', 4),
         }
     )
     evaluator_env = PoolEnvManager(evaluator_env_cfg)

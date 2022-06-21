@@ -119,7 +119,6 @@ class DMC2GymEnv(BaseEnv):
 
         self._init_flag = False
 
-        # TODO(zjow) Add replay configuration.
         self._replay_path = None
 
         self._observation_space = dmc2gym_env_info[cfg.domain_name][cfg.task_name]["observation_space"](
@@ -145,9 +144,15 @@ class DMC2GymEnv(BaseEnv):
                 frame_skip=self._cfg["frame_skip"]
             )
 
-            #TODO(zjow) Add replay recording.
             if self._replay_path is not None:
-                pass
+                self._env.metadata.update({'render.modes': ["rgb_array"]})
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
+                )
+                self._env.start_video_recorder()
 
             self._init_flag = True
 
