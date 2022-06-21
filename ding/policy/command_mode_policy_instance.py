@@ -166,13 +166,13 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
     pass
 
 
-<<<<<<< HEAD
 @POLICY_REGISTRY.register('ppo_stdim_command')
 class PPOCommandModePolicy(PPOSTDIMPolicy, DummyCommandModePolicy):
-=======
+    pass
+
+
 @POLICY_REGISTRY.register('ppo_pg_command')
 class PPOPGCommandModePolicy(PPOPGPolicy, DummyCommandModePolicy):
->>>>>>> 8e8e53cab345c91061a7769c2051421da0557308
     pass
 
 
