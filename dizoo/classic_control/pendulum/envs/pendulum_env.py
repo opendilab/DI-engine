@@ -11,7 +11,7 @@ from ding.torch_utils import to_ndarray, to_list
 @ENV_REGISTRY.register('pendulum')
 class PendulumEnv(BaseEnv):
 
-    def __init__(self, cfg: dict) -> None:
+    def __init__(self, cfg: dict, is_continue=True) -> None:
         self._cfg = cfg
         self._act_scale = cfg.act_scale
         self._env = gym.make('Pendulum-v0')
@@ -24,6 +24,9 @@ class PendulumEnv(BaseEnv):
         self._reward_space = gym.spaces.Box(
             low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32
         )
+        # require discrete env
+        self._is_continue=is_continue
+        self._discrete_action_num=11
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -58,12 +61,17 @@ class PendulumEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
+        # if require discrete env, convert actions to [-2 ~ 2] float actions
+        if not self._is_continue:
+            action=(action-(self._discrete_action_num-1)/2)/((self._discrete_action_num-1)/4)
+        # why scale? into [-2, 2]
         if self._act_scale:
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
+        # rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
+        rew = np.array([rew], dtype=np.float32)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
@@ -74,15 +82,25 @@ class PendulumEnv(BaseEnv):
         self._replay_path = replay_path
 
     def random_action(self) -> np.ndarray:
-        return self.action_space.sample().astype(np.float32)
+        # consider discrete
+        if self._is_continue:
+            return self.action_space.sample().astype(np.float32)
+        else:
+            random_action=gym.spaces.Discrete(self._discrete_action_num).sample()
+            random_action = to_ndarray([random_action], dtype=np.int64)
+            return random_action
 
     @property
     def observation_space(self) -> gym.spaces.Space:
         return self._observation_space
-
+        
     @property
     def action_space(self) -> gym.spaces.Space:
-        return self._action_space
+        # consider discrete
+        if self._is_continue:
+            return self._action_space
+        else:
+            return gym.spaces.Discrete(self._discrete_action_num)
 
     @property
     def reward_space(self) -> gym.spaces.Space:

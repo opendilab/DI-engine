@@ -29,3 +29,27 @@ class TestPendulumEnv:
             # assert isinstance(timestep, tuple)
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
+
+    def test_discrete(self):
+        env = PendulumEnv(EasyDict({'act_scale': True},is_continue=False))
+        env.seed(314)
+        assert env._seed == 314
+        obs = env.reset()
+        assert obs.shape == (3, )
+        for i in range(10):
+            # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
+            # can generate legal random action.
+            if i < 5:
+                random_action = np.array([env.action_space.sample()])
+            else:
+                random_action = env.random_action()
+            timestep = env.step(random_action)
+            print(env.observation_space, env.action_space, env.reward_space)
+            print(timestep.reward, timestep.obs, timestep.reward)
+            assert timestep.reward.shape == (1, )
+            assert timestep.obs.shape == (3, )
+            assert timestep.reward >= env.reward_space.low
+            assert timestep.reward <= env.reward_space.high
+            # assert isinstance(timestep, tuple)
+        print(env.observation_space, env.action_space, env.reward_space)
+        env.close()
