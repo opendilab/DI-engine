@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 def sample_range_view(buffer_: 'Buffer', start: Optional[int] = None, end: Optional[int] = None) -> Callable:
     """
     Overview:
-        The middleware that places restrictions on indices range when sampling.
+        The middleware that places restrictions on the range of indices during sampling.
     Arguments:
         - start (:obj:`int`): The starting index.
         - end (:obj:`int`): One above the ending index.

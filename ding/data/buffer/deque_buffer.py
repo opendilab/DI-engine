@@ -61,18 +61,18 @@ class DequeBuffer(Buffer):
         """
         super().__init__(size=size)
         self.storage = deque(maxlen=size)
-        # Meta index is a dict which use deque as values
         self.indices = BufferIndex(maxlen=size)
+        # Meta index is a dict which uses deque as values
         self.meta_index = {}
 
     @apply_middleware("push")
     def push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
         """
         Overview:
-            The method that input the objects and related meta information into the buffer.
+            The method that input the objects and the related meta information into the buffer.
         Arguments:
-            - data (:obj:`Any`): The input object that can be in any format.
-            - meta (:obj:`Optional[dict]`): A dict that help describe data, such as\
+            - data (:obj:`Any`): The input object which can be in any format.
+            - meta (:obj:`Optional[dict]`): A dict that helps describe data, such as\
                 category, label, priority, etc. Default to ``None``.
         """
         return self._push(data, meta)
@@ -93,17 +93,17 @@ class DequeBuffer(Buffer):
             The method that randomly sample data from the buffer or retrieve certain data by indices.
         Arguments:
             - size (:obj:`Optional[int]`): The number of objects to be obtained from the buffer.
-                If ``indices`` is not specified, ``size`` is required to randomly sample corresponding\
-                number of objects from the buffer.
+                If ``indices`` is not specified, the ``size`` is required to randomly sample the\
+                corresponding number of objects from the buffer.
             - indices (:obj:`Optional[List[str]]`): Only used when you want to retrieve data by indices.
                 Default to ``None``.
             - replace (:obj:`bool`): As the sampling process is carried out one by one, this parameter\
                 determines whether the previous samples will be put back into the buffer for subsequent\
                 sampling. Default to ``False``, it means that duplicate samples will not appear in one\
-                call.
+                ``sample`` call.
             - sample_range (:obj:`Optional[slice]`): The indices range to sample data. Default to ``None``,\
-                it means no restrictions on the indices range for this sampling process.
-            - ignore_insufficient (:obj:`bool`): whether throw `` ValueError`` if sampled size is smaller\
+                it means no restrictions on the range of indices for the sampling process.
+            - ignore_insufficient (:obj:`bool`): whether throw `` ValueError`` if the sampled size is smaller\
                 than the required size. Default to ``False``.
             - groupby (:obj:`Optional[str]`): If this parameter is activated, the method will return a\
                 target size of object groups.
@@ -168,11 +168,11 @@ class DequeBuffer(Buffer):
     def update(self, index: str, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
         """
         Overview:
-            the method that update data and related meta with a certain index.
+            the method that update data and the related meta information with a certain index.
         Arguments:
-            - data (:obj:`Any`): The new data to replace the old one. If you set the new data\
-                to ``None``, nothing will happen to the old data.
-            - meta (:obj:`Optional[dict]`): The new dict to merge with the old one.
+            - data (:obj:`Any`): The data which is supposed to replace the old one. If you set it\
+                to ``None``, nothing will happen to the old record.
+            - meta (:obj:`Optional[dict]`): The new dict which is supposed to merge with the old one.
         """
         if not self.indices.has(index):
             return False
@@ -192,7 +192,7 @@ class DequeBuffer(Buffer):
         Overview:
             The method that delete the data and related meta information by specific indices.
         Arguments:
-            - indices (Union[str, Iterable[str]]): The indices (position) to be cleared.
+            - indices (Union[str, Iterable[str]]): Where the data to be cleared in the buffer.
         """
         if isinstance(indices, str):
             indices = [indices]
@@ -227,7 +227,7 @@ class DequeBuffer(Buffer):
     def clear(self) -> None:
         """
         Overview:
-            The method that clear all data, indices, and meta information in the buffer.
+            The method that clear all data, indices, and the meta information in the buffer.
         """
         self.storage.clear()
         self.indices.clear()
