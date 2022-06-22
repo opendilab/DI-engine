@@ -18,6 +18,7 @@ from dizoo.classic_control.pendulum.config.mbrl.pendulum_stevesac_mbpo_config \
 @pytest.mark.unittest
 def test_dyna():
     config = [deepcopy(pendulum_sac_mbpo_main_config), deepcopy(pendulum_sac_mbpo_create_config)]
+    config[0].world_model.model.max_epochs_since_update = 0
     try:
         serial_pipeline_dyna(config, seed=0, max_train_iter=1)
     except Exception:
@@ -34,6 +35,7 @@ def test_dream():
     ]
     try:
         for config in configs:
+            config[0].world_model.model.max_epochs_since_update = 0
             serial_pipeline_dream(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"

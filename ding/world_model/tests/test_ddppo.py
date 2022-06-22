@@ -18,6 +18,7 @@ class TestDDPPO:
 
     def get_world_model(self, state_size, action_size):
         cfg = DDPPOWorldMode.default_config()
+        cfg.model.max_epochs_since_update = 0
         cfg = deep_merge_dicts(
             cfg, dict(cuda=False, model=dict(state_size=state_size, action_size=action_size, reward_size=1))
         )
