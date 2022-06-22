@@ -6,15 +6,14 @@ from ding.data import DequeBuffer
 from ding.envs import BaseEnvManager, EnvSupervisor
 from ding.framework.supervisor import ChildType
 from ding.framework.context import BattleContext
-from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, \
-    LeagueLearnerExchanger, data_pusher, OffPolicyLearner
+from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearnerCommunicator, data_pusher, OffPolicyLearner
+from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar
 from ding.framework.task import task, Parallel
 from ding.league.v2 import BaseLeague
 from dizoo.distar.config import distar_cfg
 from dizoo.distar.envs.distar_env import DIStarEnv
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, \
     battle_inferencer_for_distar, battle_rolloutor_for_distar
-from distar.ctools.utils import read_config
 from unittest.mock import patch
 
 env_cfg = dict(
@@ -36,7 +35,6 @@ env_cfg = dict(
     ),
 )
 env_cfg = EasyDict(env_cfg)
-
 cfg = deepcopy(distar_cfg)
 
 
@@ -69,7 +67,6 @@ class PrepareTest():
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    # cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
     league = BaseLeague(cfg.policy.other.league)
     N_PLAYERS = len(league.active_players_ids)
     print("League: n_players =", N_PLAYERS)
@@ -81,10 +78,13 @@ def main():
         if task.router.node_id == 0:
             task.use(LeagueCoordinator(cfg, league))
         elif task.router.node_id <= N_PLAYERS:
-            buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
+            cfg.policy.collect.unroll_len = 1
             player = league.active_players[task.router.node_id % N_PLAYERS]
+
+            buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             policy = PrepareTest.policy_fn()
-            task.use(LeagueLearnerExchanger(cfg, policy.learn_mode, player))
+
+            task.use(LeagueLearnerCommunicator(cfg, policy.learn_mode, player))
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         else:

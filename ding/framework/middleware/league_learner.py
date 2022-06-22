@@ -26,7 +26,7 @@ class LearnerModel:
     train_iter: int = 0
 
 
-class LeagueLearnerExchanger:
+class LeagueLearnerCommunicator:
 
     def __init__(self, cfg: dict, policy: "Policy", player: "ActivePlayer") -> None:
         self.cfg = cfg
@@ -38,16 +38,15 @@ class LeagueLearnerExchanger:
         task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
 
     def _push_data(self, data: "ActorData"):
-        print("learner {} receive data from actor! \n".format(task.router.node_id), flush=True)
-
-        # for env_trajectories in data.train_data:
-        #     for traj in env_trajectories.trajectories:
-        #         print(len(traj))
-        #         self._cache.append(traj)
-        self._cache.append(data.train_data)
+        for env_trajectories in data.train_data:
+            self._cache.extend(env_trajectories.trajectories)
+        # if isinstance(data.train_data, list):
+        #     self._cache.extend(data.train_data)
+        # else:
+        #     self._cache.append(data.train_data)
 
     def __call__(self, ctx: "Context"):
-        print("push data into the ctx")
+        print("Learner: push data into the ctx")
         ctx.trajectories = list(self._cache)
         self._cache.clear()
         sleep(1)

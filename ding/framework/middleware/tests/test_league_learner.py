@@ -5,19 +5,18 @@ import torch
 import pytest
 import logging
 
-from ding.envs import BaseEnvManager
 from ding.data import DequeBuffer
+from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
 from ding.framework import EventEnum
 from ding.framework.task import task, Parallel
-from ding.framework.middleware import data_pusher,\
-    OffPolicyLearner, LeagueLearnerExchanger
-from ding.framework.middleware.functional.actor_data import ActorData, ActorDataMeta, ActorEnvTrajectories
-from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
+from ding.framework.middleware import data_pusher, OffPolicyLearner, LeagueLearnerCommunicator
+from ding.framework.middleware.functional.actor_data import ActorData
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
 from ding.league.v2 import BaseLeague
+from dizoo.distar.config import distar_cfg
+from dizoo.distar.envs import get_fake_rl_trajectory
 from dizoo.distar.envs.distar_env import DIStarEnv
-from dizoo.distar.envs import fake_rl_data_batch_with_last
 from distar.ctools.utils import read_config
 import time
 from typing import Any
@@ -27,7 +26,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 def prepare_test():
     global cfg
-    cfg = deepcopy(cfg)
+    cfg = deepcopy(distar_cfg)
     env_cfg = read_config('./test_distar_config.yaml')
 
     def env_fn():
@@ -66,16 +65,10 @@ def actor_mocker(league):
     def _actor_mocker(ctx):
         n_players = len(league.active_players_ids)
         player = league.active_players[(task.router.node_id + 2) % n_players]
-        print("actor player:", player.player_id)
+        print("Actor: actor player:", player.player_id)
         for _ in range(24):
-            # meta = ActorDataMeta(player_total_env_step=0, actor_id=0, send_wall_time=time.time())
-            # data = fake_rl_data_batch_with_last()
-            # actor_data = ActorData(meta=ActorDataMeta, train_data=ActorEnvTrajectories(env_id=0, trajectories=[data]))
-
-            data = fake_rl_data_batch_with_last()
+            data = get_fake_rl_trajectory()
             actor_data = TestActorData(env_step=0, train_data=data)
-            task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
-
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
         sleep(9)
 
@@ -97,7 +90,7 @@ def _main():
             print("League: n_players: ", n_players)
             player = league.active_players[task.router.node_id % n_players]
             policy = policy_fn()
-            task.use(LeagueLearnerExchanger(cfg, policy.learn_mode, player))
+            task.use(LeagueLearnerCommunicator(cfg, policy.learn_mode, player))
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.run(max_step=30)

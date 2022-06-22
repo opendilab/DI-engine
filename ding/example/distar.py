@@ -5,7 +5,7 @@ from copy import deepcopy
 from ding.data import DequeBuffer
 from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
-from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearnerExchanger, data_pusher, OffPolicyLearner
+from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearnerCommunicator, data_pusher, OffPolicyLearner
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar
 from ding.framework.task import task, Parallel
 from ding.league.v2 import BaseLeague
@@ -74,7 +74,7 @@ def main():
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             player = league.active_players[task.router.node_id % N_PLAYERS]
             policy = policy_fn()
-            task.use(LeagueLearnerExchanger(cfg, policy.learn_mode, player))
+            task.use(LeagueLearnerCommunicator(cfg, policy.learn_mode, player))
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         else:
