@@ -12,7 +12,8 @@ import torch.nn.functional as F
 from ding.torch_utils import Adam, ContrastiveLoss
 from ding.rl_utils import get_nstep_return_data, get_train_sample
 import ding.rl_utils.efficientzero.ctree.cytree as cytree
-from ding.rl_utils.efficientzero.mcts import MCTS
+import ding.rl_utils.muzero.ptree as tree
+from ding.rl_utils.efficientzero.mcts_ptree import MCTS
 from ding.rl_utils.efficientzero.utils import select_action
 from ding.torch_utils import to_tensor, to_ndarray, to_dtype, to_device
 # TODO(pu): choose game config
@@ -476,14 +477,24 @@ class EfficientZeroPolicy(Policy):
             pred_values_pool = network_output.value  # {list: 2}
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
-            # action_num = [int(i.sum()) for i in action_mask]
-            action_num = int(action_mask[0].sum())
-            roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
+            # cpp mcts
+            # action_num = int(action_mask[0].sum())
+            # roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
+            # noises = [
+            #     np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(
+            #         np.float32).tolist()
+            #     for j in range(self.game_config.collector_env_num)
+            # ]
+
+            # python mcts
+            legal_actions = [[i for i,x in enumerate(action_mask[j]) if x==1] for j in range(self.game_config.collector_env_num)]
+            roots = tree.Roots(self.game_config.collector_env_num, legal_actions, self.game_config.num_simulations)
             # the only difference between collect and eval is the dirichlet noise
             noises = [
-                np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(np.float32).tolist()
-                for _ in range(self.game_config.collector_env_num)
+                np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))).astype(np.float32).tolist()
+                for j in range(self.game_config.collector_env_num)
             ]
+
             roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
             # do MCTS for a policy (argmax in testing)
             self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots)
@@ -496,6 +507,7 @@ class EfficientZeroPolicy(Policy):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 # TODO(pu):
+                # only legal actions have visit counts
                 action, visit_entropy = select_action(distributions, temperature=temperature[i], deterministic=False)
                 # action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
@@ -555,12 +567,21 @@ class EfficientZeroPolicy(Policy):
             policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
+            # cpp mcts
             # action_num = [int(i.sum()) for i in action_mask]
-            action_num = int(action_mask[0].sum())
-            roots = cytree.Roots(self.game_config.evaluator_env_num, action_num, self.game_config.num_simulations)
+            # action_num = int(action_mask[0].sum())
+            # roots = cytree.Roots(self.game_config.evaluator_env_num, action_num, self.game_config.num_simulations)
+
+            # python mcts
+            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x==1] for j in range(self.game_config.evaluator_env_num)]
+            roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
+
             roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
             # do MCTS for a policy (argmax in testing)
+            # try:
             self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
+            # except Exception as error:
+            #     print(error)
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}

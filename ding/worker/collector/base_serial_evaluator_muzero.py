@@ -202,7 +202,7 @@ class BaseSerialEvaluatorMuZero(object):
         # initializations
         init_obses = self._env.ready_obs
         init_obses = to_tensor(init_obses, dtype=torch.float32)
-        action_mask = [to_ndarray(init_obses[i].obs['action_mask']) for i in range(env_nums)]
+        action_mask = [init_obses[i].obs['action_mask'] for i in range(env_nums)]
         dones = np.array([False for _ in range(env_nums)])
 
         game_histories = [
@@ -232,8 +232,9 @@ class BaseSerialEvaluatorMuZero(object):
                 value_dict = {i: a['value'] for i, a in policy_output.items()}
 
                 timesteps = self._env.step(actions)
+
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
-                action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
+                action_mask = [timesteps[i].obs['action_mask'] for i in range(env_nums)]
 
                 for env_id, t in timesteps.items():
                     # obs, ori_reward, done, info = env.step(action)

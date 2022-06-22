@@ -4,8 +4,8 @@ from ding.rl_utils.efficientzero.game_base_config import GameBaseConfig, Discret
 game_config = EasyDict(dict(
     env_name='tictactoe',
     image_based=False,
-    device='cuda',
-    # device='cpu',
+    # device='cuda',
+    device='cpu',
     action_space_size=int(3 * 3),
     amp_type='none',
     # obs_shape=(3, 3, 3),
@@ -14,8 +14,8 @@ game_config = EasyDict(dict(
     gray_scale=False,
     downsample=False,
 
-    collector_env_num=1,
-    evaluator_env_num=1,
+    collector_env_num=2,
+    evaluator_env_num=2,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=25,

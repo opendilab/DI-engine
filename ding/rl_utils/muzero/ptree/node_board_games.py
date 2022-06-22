@@ -8,9 +8,9 @@ from scipy.special import softmax
 
 class Node:
 
-    def __init__(self, prior: float, action_num: int, ptr_node_pool: List = []):
+    def __init__(self, prior: float, legal_actions: Any = None):
         self.prior = prior
-        self.action_num = action_num
+        self.legal_actions = legal_actions
 
         self.is_reset = 0
         self.visit_count = 0
@@ -18,31 +18,48 @@ class Node:
         self.best_action = -1
         self.to_play = 0
         self.value_prefix = 0.0
-        self.ptr_node_pool = ptr_node_pool
+        self.children = {}
         self.children_index = []
-        self.hidden_state_index_x = -1
-        self.hidden_state_index_y = -1
+        # self.hidden_state_index_x = -1
+        # self.hidden_state_index_y = -1
+        self.hidden_state_index_x = 0
+        self.hidden_state_index_y = 0
 
-    def expand(
-        self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
-        policy_logits: List[float]
-    ):
+    # def expand(self, to_play: int, legal_actions: Any, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float, policy_logits: List[float]):
+    def expand(self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float, policy_logits: List[float]):
         self.to_play = to_play
+        if self.legal_actions is None:
+            # TODO
+            self.legal_actions = np.arange(len(policy_logits))
+
         self.hidden_state_index_x = hidden_state_index_x
-        self.hidden_state_index_y = hidden_state_index_y
+        # self.hidden_state_index_y = hidden_state_index_y
         self.value_prefix = value_prefix
 
-        priors = softmax(np.array(policy_logits))
-        for a in range(self.action_num):
-            index = len(self.ptr_node_pool)
-            self.children_index.append(index)
-            self.ptr_node_pool.append(
-                Node(prior=priors[a], action_num=self.action_num, ptr_node_pool=self.ptr_node_pool)
-            )
+        import torch
+        policy_values = torch.softmax(torch.tensor([policy_logits[a] for a in self.legal_actions]), dim=0).tolist()
+        policy = {a: policy_values[i] for i, a in enumerate(self.legal_actions)}
+        for action, p in policy.items():
+            self.children[action] = Node(p)
+
+        # priors = softmax(np.array(policy_logits))
+        # for a in self.legal_actions:
+            # index = len(self.ptr_node_pool)
+            # self.children_index.append(index)
+            # self.ptr_node_pool.append(
+            #     Node(prior=priors[a], legal_actions=self.legal_actions, ptr_node_pool=self.ptr_node_pool)
+            # )
+            # self.children[a] = Node(prior=priors[a], legal_actions=self.legal_actions)
 
     def add_exploration_noise(self, exploration_fraction: float, noises: List[float]):
-        for a in range(self.action_num):
-            noise = noises[a]
+        # for a in self.legal_actions:
+        # for a in range(len(self.legal_actions)):
+        for i, a in enumerate(self.legal_actions):
+            # i in index, a is action, e.g. [0,1,2,4,6,8]
+            try:
+                noise = noises[i]
+            except Exception as error:
+                print(error)
             child = self.get_child(a)
             prior = child.prior
             child.prior = prior * (1 - exploration_fraction) + noise * exploration_fraction
@@ -51,7 +68,7 @@ class Node:
         total_unsigned_q = 0.0
         total_visits = 0
         parent_value_prefix = self.value_prefix
-        for a in range(self.action_num):
+        for a in self.legal_actions:
             child = self.get_child(a)
             if child.visit_count > 0:
                 true_reward = child.value_prefix - parent_value_prefix
@@ -81,21 +98,25 @@ class Node:
         return traj
 
     def get_children_distribution(self):
-        distribution = [0 for _ in range(self.action_num)]
+        # distribution = [0 for _ in self.legal_actions]
+        distribution = {a: 0 for a in self.legal_actions}
         if self.expanded:
-            for a in range(self.action_num):
+            for a in self.legal_actions:
                 child = self.get_child(a)
                 distribution[a] = child.visit_count
+            # only take the visit counts
+            distribution = [v for k, v in distribution.items()]
         return distribution
 
     def get_child(self, action):
-        index = self.children_index[action]
-        return self.ptr_node_pool[index]
+        # assert isinstance(action, int)
+        if not isinstance(action, np.int64):
+            action = int(action)
+        return self.children[action]
 
     @property
     def expanded(self):
-        child_num = len(self.children_index)
-        return child_num > 0
+        return len(self.children) > 0
 
     @property
     def value(self):
@@ -107,20 +128,19 @@ class Node:
 
 class Roots:
 
-    def __init__(self, root_num: int, action_num: Any, pool_size: int):
+    def __init__(self, root_num: int, legal_actions_list: Any, pool_size: int):
         self.num = root_num
         self.root_num = root_num
-        self.action_num = action_num
+        self.legal_actions_list = legal_actions_list  # list of list
         self.pool_size = pool_size
 
         self.roots = []
-        self.node_pools = []
         for i in range(self.root_num):
-            self.node_pools.append([])
-            if isinstance(action_num, list):
-                self.roots.append(Node(0, action_num[i], self.node_pools[i]))
+            if isinstance(legal_actions_list, list):
+                self.roots.append(Node(0, legal_actions_list[i]))
             else:
-                self.roots.append(Node(0, action_num, self.node_pools[i]))
+                # legal_actions_list is int
+                self.roots.append(Node(0, np.arange(legal_actions_list)))
 
     def prepare(self, root_exploration_fraction, noises, value_prefixs, policies):
         for i in range(self.root_num):
@@ -134,7 +154,6 @@ class Roots:
             self.roots[i].visit_count += 1
 
     def clear(self):
-        self.node_pools.clear()
         self.roots.clear()
 
     def get_trajectories(self):
@@ -147,6 +166,7 @@ class Roots:
         distributions = []
         for i in range(self.root_num):
             distributions.append(self.roots[i].get_children_distribution())
+
         return distributions
 
     def get_values(self):
@@ -174,7 +194,7 @@ def update_tree_q(root: Node, min_max_stats, discount: float):
     node_stack.append(root)
     parent_value_prefix = 0.0
     is_reset = 0
-    while node_stack.size() > 0:
+    while len(node_stack) > 0:
         node = node_stack[-1]
         node_stack.pop()
 
@@ -184,9 +204,9 @@ def update_tree_q(root: Node, min_max_stats, discount: float):
                 true_reward = node.value_prefix
             qsa = true_reward + discount * node.value
             min_max_stats.update(qsa)
-        for a in range(node.action_num):
+        for a in node.legal_actions:
             child = node.get_child(a)
-            if child.extended:
+            if child.expanded:
                 node_stack.append(child)
         parent_value_prefix = node.value_prefix
         is_reset = node.is_reset
@@ -220,7 +240,7 @@ def back_propagate(search_path, min_max_stats, to_play: int, value: float, disco
 
 def batch_back_propagate(
         hidden_state_index_x: int, discount: float, value_prefixs: List, values: List[float], policies: List[float],
-        min_max_stats_lst: List, results: List, is_reset_lst: List
+        min_max_stats_lst, results, is_reset_lst: List
 ) -> None:
     for i in range(results.num):
         results.nodes[i].expand(0, hidden_state_index_x, i, value_prefixs[i], policies[i])
@@ -230,10 +250,10 @@ def batch_back_propagate(
 
 
 def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, mean_q: float) -> int:
-    max_score = -str('inf')
+    max_score = -np.inf
     epsilon = 0.000001
     max_index_lst = []
-    for a in range(root.action_num):
+    for a in root.legal_actions:
         child = root.get_child(a)
         temp_score = ucb_score(
             child, min_max_stats, mean_q, root.is_reset, root.visit_count - 1, root.value_prefix, pb_c_base, pb_c_int,
@@ -244,7 +264,10 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
             max_index_lst.clear()
             max_index_lst.append(a)
         elif temp_score >= max_score - epsilon:
-            max_index_lst.push_back(a)
+            # TODO
+            # max_index_lst.push_back(a)
+            max_index_lst.append(a)
+
     action = 0
     if len(max_index_lst) > 0:
         action = random.choice(max_index_lst)
@@ -278,21 +301,24 @@ def ucb_score(
 
 
 def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults):
-    # set seed
-    # timeval
-    # t1;
-    # gettimeofday( & t1, NULL);
-    # srand(t1.tv_usec);
-
     last_action = -1
     parent_q = 0.0
-    results.search_paths = {}
-    results.search_lens = []
+    results.search_lens = [None for i in range(results.num)]
+    # results.last_actions ={i:[] for i in range(results.num)}
+    results.last_actions =[None for i in range(results.num)]
+
+    results.nodes=[None for i in range(results.num)]
+    results.hidden_state_index_x_lst=[None for i in range(results.num)]
+    results.hidden_state_index_y_lst=[None for i in range(results.num)]
+
+    results.search_paths = {i:[] for i in range(results.num)}
     for i in range(results.num):
         node = roots.roots[i]  # TODO (zsh)
         is_root = 1
         search_len = 0
+        # results.search_paths[i] = []
         results.search_paths[i].append(node)
+        # results.search_paths.append(node)
 
         while node.expanded:
             mean_q = node.get_mean_q(is_root, parent_q, discount)
@@ -308,10 +334,20 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
 
             parent = results.search_paths[i][len(results.search_paths[i]) - 2]
 
-            results.hidden_state_index_x_lst.append(parent.hidden_state_index_x)
-            results.hidden_state_index_y_lst.append(parent.hidden_state_index_y)
+            # results.hidden_state_index_x_lst.append(parent.hidden_state_index_x)
+            # results.hidden_state_index_y_lst.append(parent.hidden_state_index_y)
+            # results.last_actions.append(last_action)
+            # results.search_lens.append(search_len)
+            # results.nodes.append(node)
+            # results.last_actions[i].append(last_action)
+            # results.search_lens[i].append(search_len)
 
-            results.last_actions.append(last_action)
-            results.search_lens.append(search_len)
-            results.nodes.append(node)
+            results.hidden_state_index_x_lst[i]=parent.hidden_state_index_x
+            results.hidden_state_index_y_lst[i]=parent.hidden_state_index_y
+            results.last_actions[i]=last_action
+            results.search_lens[i]=search_len
+            results.nodes[i] = node
+
+        # print(f'env {i} one simulation done!')
+    return results.hidden_state_index_x_lst, results.hidden_state_index_y_lst, results.last_actions
 

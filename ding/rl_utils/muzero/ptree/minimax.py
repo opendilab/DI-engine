@@ -37,8 +37,8 @@ class MinMaxStatsList:
 
     def __init__(self, num):
         self.num = num
-        self.state_list = [MinMaxStats() for _ in range(self.num)]
+        self.stats_lst = [MinMaxStats() for _ in range(self.num)]
 
     def set_delta(self, value_delta_max: float):
         for i in range(self.num):
-            self.state_list[i].set_delta(value_delta_max)
+            self.stats_lst[i].set_delta(value_delta_max)

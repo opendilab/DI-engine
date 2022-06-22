@@ -12,7 +12,7 @@ from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 import ding.rl_utils.efficientzero.ctree.cytree as cytree
 from ding.rl_utils.efficientzero.game import GameHistory
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
-from ding.rl_utils.efficientzero.mcts import MCTS
+from ding.rl_utils.efficientzero.mcts_ptree import MCTS
 from dizoo.board_games.tictactoe.envs import TicTacToeEnv
 from dizoo.board_games.tictactoe.config.tictactoe_config_backup import game_config as config
 from ding.model.template.efficientzero.efficientzero_tictactoe_model import EfficientZeroNet

@@ -12,7 +12,8 @@ from ding.data.buffer import Buffer, apply_middleware, BufferedData
 from ding.utils import fastcopy
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst, concat_output, concat_output_value
 import ding.rl_utils.efficientzero.ctree.cytree as cytree
-from ding.rl_utils.efficientzero.mcts import MCTS
+import ding.rl_utils.muzero.ptree as tree
+from ding.rl_utils.efficientzero.mcts_ptree import MCTS
 
 
 @dataclass
@@ -689,12 +690,26 @@ class GameBuffer(Buffer):
                 )
                 value_prefix_pool = value_prefix_pool.squeeze().tolist()
                 policy_logits_pool = policy_logits_pool.tolist()
-                # TODO(pu)
-                roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
+
+                # cpp mcts
+                # roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
+                # noises = [
+                #     np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
+                #                         ).astype(np.float32).tolist() for _ in range(batch_size)
+                # ]
+
+                # python mcts
+                # TODO:
+                action_mask = [list(np.ones(self.config.action_space_size)) for i in range(batch_size)]
+                legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in
+                                 range(self.config.evaluator_env_num)]
+                roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
                 noises = [
-                    np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
-                                        ).astype(np.float32).tolist() for _ in range(batch_size)
+                    np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))).astype(
+                        np.float32).tolist()
+                    for j in range(batch_size)
                 ]
+
                 roots.prepare(self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
                 MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots)
 
@@ -786,11 +801,25 @@ class GameBuffer(Buffer):
             value_prefix_pool = value_prefix_pool.squeeze().tolist()
             policy_logits_pool = policy_logits_pool.tolist()
 
-            roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
+            # cpp mcts
+            # roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
+            # noises = [
+            #     np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
+            #                         ).astype(np.float32).tolist() for _ in range(batch_size)
+            # ]
+
+            # python mcts
+            # TODO:
+            action_mask = [list(np.ones(self.config.action_space_size)) for i in range(batch_size)]
+            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in
+                             range(batch_size)]
+            roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
             noises = [
-                np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
-                                    ).astype(np.float32).tolist() for _ in range(batch_size)
+                np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))).astype(
+                    np.float32).tolist()
+                for j in range(batch_size)
             ]
+
             roots.prepare(self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
             # do MCTS for a new policy with the recent target model
             MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots)

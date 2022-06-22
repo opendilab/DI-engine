@@ -399,8 +399,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 pred_value_dict = {k: v['pred_value'] for k, v in policy_output.items()}
                 visit_entropy_dict = {k: v['visit_entropy'] for k, v in policy_output.items()}
 
-
-
                 timesteps = self._env.step(actions)
                 action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
 

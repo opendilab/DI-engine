@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import yaml
 
-from ding.rl_utils.efficientzero.mcts import MCTS
+from ding.rl_utils.efficientzero.mcts_ptree import MCTS
 
 
 class MuzeroModel(torch.nn.Module):

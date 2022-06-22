@@ -14,7 +14,7 @@ import ding.rl_utils.efficientzero.ctree.cytree as cytree
 from ding.rl_utils.efficientzero.game import GameHistory
 from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
 from dizoo.board_games.atari.config.atari_config_backup import game_config
-from ding.rl_utils.efficientzero.mcts import MCTS
+from ding.rl_utils.efficientzero.mcts_ptree import MCTS
 
 config = game_config
 
