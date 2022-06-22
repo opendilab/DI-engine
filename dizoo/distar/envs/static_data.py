@@ -3,6 +3,12 @@ import torch
 import numpy as np
 from collections import defaultdict
 
+RACE_DICT = {
+    1: 'terran',
+    2: 'zerg',
+    3: 'protoss',
+    4: 'random',
+}
 
 ACTION_INFO_MASK = \
     {

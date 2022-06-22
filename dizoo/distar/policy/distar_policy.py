@@ -12,8 +12,13 @@ from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho,
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from dizoo.distar.model import Model
-from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, Stat
+from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, RACE_DICT, NUM_CUMULATIVE_STAT_ACTIONS, Stat
 from .utils import collate_fn_learn, kl_error, entropy_error
+import os
+import json
+import random
+from copy import deepcopy
+from s2clientprotocol import sc2api_pb2 as sc_pb
 
 
 class DIStarPolicy(Policy):
@@ -108,6 +113,7 @@ class DIStarPolicy(Policy):
         zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
         zero_z_value=1,
         extra_units=True,  # selcet extra units if selected units exceed 64
+        z_path='7map_filter_spine.json'
     )
 
     def _create_model(
@@ -352,9 +358,12 @@ class DIStarPolicy(Policy):
 
     def _init_collect(self):
         self.collect_model = model_wrap(self._model, 'base')
+        self.z_path = self._cfg.z_path
+        # TODO(zms): in _setup_agents, load state_dict to set up z_idx
+        self.z_idx = None
         self._reset_collect()
 
-    def _reset_collect(self, env_id=0):
+    def _reset_collect(self, game_info, obs, map_name='KingsCove', env_id=0):
         self.stat = Stat('zerg')  # TODO
         self.target_z_loop = 43200  # TODO
         self.exceed_loop_flag = False
@@ -366,12 +375,59 @@ class DIStarPolicy(Policy):
         self.last_targeted_unit_tag = None
         self.last_location = None  # [x, y]
         self.enemy_unit_type_bool = torch.zeros(NUM_UNIT_TYPES, dtype=torch.uint8)
-
-        self.target_building_order = None  # TODO
-        self.target_bo_location = None
-        self.target_cumulative_stat = None
-
+        self.map_name = map_name
         self.map_size = None  # TODO
+        self.requested_races = {
+            info.player_id: info.race_requested
+            for info in game_info.player_info if info.type != sc_pb.Observer
+        }
+
+        # init Z
+        raw_ob = obs['raw_obs']
+        location = []
+        for i in raw_ob.observation.raw_data.units:
+            if i.unit_type == 59 or i.unit_type == 18 or i.unit_type == 86:
+                location.append([i.pos.x, i.pos.y])
+        assert len(location) == 1, 'no fog of war, check game version!'
+        self.born_location = deepcopy(location[0])
+        born_location = location[0]
+        born_location[0] = int(born_location[0])
+        # TODO(zms): map_size from Features
+        born_location[1] = int(self.map_size.y - born_location[1])
+        born_location_str = str(born_location[0] + born_location[1] * 160)
+        self.z_path = os.path.join(os.path.dirname(__file__), 'lib', self.z_path)
+        with open(self.z_path, 'r') as f:
+            self.z_data = json.load(f)
+            z_data = self.z_data
+
+        z_type = None
+        idx = None
+        raw_ob = obs['raw_obs']
+        # TODO(zms): requested_races from Features
+        race = RACE_DICT[self.requested_races[raw_ob.observation.player_common.player_id]]
+        opponent_id = 1 if raw_ob.observation.player_common.player_id == 2 else 2
+        opponent_race = RACE_DICT[self.requested_races[opponent_id]]
+        if race == opponent_race:
+            mix_race = race
+        else:
+            mix_race = race + opponent_race
+        if self.z_idx is not None:
+            idx, z_type = random.choice(self.z_idx[self.map_name][mix_race][born_location_str])
+            z = z_data[self.map_name][mix_race][born_location_str][idx]
+        else:
+            z = random.choice(z_data[self.map_name][mix_race][born_location_str])
+
+        if len(z) == 5:
+            self.target_building_order, target_cumulative_stat, bo_location, self._target_z_loop, z_type = z
+        else:
+            self.target_building_order, target_cumulative_stat, bo_location, self._target_z_loop = z
+        # TODO(zms): other attributes like use_bo_reward
+        self.target_building_order = torch.tensor(self.target_building_order, dtype=torch.long)
+        self.target_bo_location = torch.tensor(bo_location, dtype=torch.long)
+        self.target_cumulative_stat = torch.zeros(NUM_CUMULATIVE_STAT_ACTIONS, dtype=torch.float)
+        self.target_cumulative_stat.scatter_(
+            index=torch.tensor(target_cumulative_stat, dtype=torch.long), dim=0, value=1.
+        )
 
     def _forward_collect(self, data):
         game_info = data.pop('game_info')
