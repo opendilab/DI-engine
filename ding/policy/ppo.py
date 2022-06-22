@@ -1120,7 +1120,7 @@ class PPOSTDIMPolicy(PPOPolicy):
                 if self._cfg.learn.multi_gpu:
                     self.sync_gradients(self._aux_model)
                 self._aux_optimizer.step()
-                
+
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
                 if self._adv_norm:
