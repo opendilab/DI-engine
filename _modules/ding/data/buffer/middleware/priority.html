@@ -282,6 +282,10 @@
 
 
 <div class="viewcode-block" id="PriorityExperienceReplay"><a class="viewcode-back" href="../../../../../05_api_doc/data/buffer/middleware/priority.html#ding.data.buffer.middleware.priority.PriorityExperienceReplay">[docs]</a><span class="k">class</span> <span class="nc">PriorityExperienceReplay</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The middleware that implements priority experience replay (PER).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PriorityExperienceReplay.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/data/buffer/middleware/priority.html#ding.data.buffer.middleware.priority.PriorityExperienceReplay.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -291,6 +295,18 @@
             <span class="n">IS_weight_power_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span>
             <span class="n">IS_weight_anneal_train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - buffer (:obj:`Buffer`): The buffer to use PER.</span>
+<span class="sd">            - IS_weight (:obj:`bool`): Whether use importance sampling or not.</span>
+<span class="sd">            - priority_power_factor (:obj:`float`): The factor that adjust the sensitivity between\</span>
+<span class="sd">                the sampling probability and the priority level.</span>
+<span class="sd">            - IS_weight_power_factor (:obj:`float`): The factor that adjust the sensitivity between\</span>
+<span class="sd">                the sample rarity and sampling probability in importance sampling.</span>
+<span class="sd">            - IS_weight_anneal_train_iter (:obj:`float`): The factor that controls the increasing of\</span>
+<span class="sd">                ``IS_weight_power_factor`` during training.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">buffer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer_idx</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer_size</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">size</span>

@@ -282,6 +282,8 @@
 <span class="sd">        This middleware aims to check staleness before each sample operation,</span>
 <span class="sd">        staleness = train_iter_sample_data - train_iter_data_collected, means how old/off-policy the data is,</span>
 <span class="sd">        If data&#39;s staleness is greater(&gt;) than max_staleness, this data will be removed from buffer as soon as possible.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - max_staleness (:obj:`int`): The maximum legal span between the time of collecting and time of sampling.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="nb">next</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>

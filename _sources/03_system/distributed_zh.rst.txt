@@ -133,3 +133,60 @@ task 对象上面提供了五个与事件系统有关的方法 —— ``emit``, 
 .. note::
 
     以上模板将启动 6 个 DI-engine 进程（3 个 pod，每个 pod 两个进程）
+
+Worker & Job & Pod & Task & Node & ...
+-------------------------------
+
+由于 DI-engine 支持单机，k8s 和 slurm 多种方式部署，而 k8s，slurm 本身也有类似 node 和 task 之类的概念，为了避免混淆，在此处做出一些说明。
+
+.. code-block:: python
+
+    def main():
+        with task.start(async_mode=False, ctx=OnlineRLContext()):
+            if task.router.is_active:  # In distributed mode
+                if task.router.node_id == 0:
+                    ... # Use learner middlewares
+                elif task.router.node_id == 1:
+                    ... # Use evaluator middlewares
+                else:
+                    ... # Use collector middlewares
+
+            task.run()
+
+
+    if __name__ == "__main__":
+        main()
+
+以上代码将任务按不同的 node_id 分为 1 learner + 1 evaluator + N collector
+（完整代码见 `dqn.py <https://github.com/opendilab/DI-engine/blob/6d861b6a1/ding/example/dqn.py>`_ ），
+其中 node_id 即为 ditask 中的 worker 数量，按 0 到 N 标记。假设我们设置 worker 数量为 4，则上述代码将分为四个进程，
+依次序为 learner，evaluator 和 2 个 collector：
+
+.. image::
+    images/worker.png
+    :width: 800
+    :align: center
+
+Slurm 集群带来了 node 和 task 两个概念，node 表示集群节点，与物理机对应，每个 node 可以分配多个 task，与进程对应。所以在 slurm 中运行 ditask 时，
+建议每个 ditask 只启用一个 worker（ditask 参数 --parallel-workers 1），slurm task 数量等于 4（srun 参数 -n 4）：
+
+.. image::
+    images/worker_slurm.png
+    :width: 800
+    :align: center
+
+以此类推，K8s 集群带来了 job 和 pod 的概念，一个 job 可以通过 replica 配置多个 pod，每个 pod 有定量的资源分配。此处 pod 相当于单机内的进程，或者 slurm 中的 task 概念。
+所以我们建议在 k8s 中部署 ditask 时，每个 ditask 只启动一个 worker（ditask 参数 --parallel-workers 1），replica 数量为 4：
+
+.. image::
+    images/worker_k8s.png
+    :width: 800
+    :align: center
+
+假如出于某些特殊原因（例如因为 gpu 数量不足而希望减少 pod 数量），你仍然可以在 k8s 的 pod 或 slurm 的 task 中启用多个 ditask worker，实际执行的进程将按如下方式分配。
+无论哪种方式，--parallel-workers 参数都只影响当前容器内的子进程数量，而整个训练任务的 worker 数量需要乘以 ditask 主进程数量（pod 数或 slurm task 数量）。
+
+.. image::
+    images/worker_k8s_multi_workers.png
+    :width: 800
+    :align: center

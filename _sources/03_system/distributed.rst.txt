@@ -152,3 +152,64 @@ Once installed, the following template can help you quickly deploy the DI-engine
 .. note::
 
     The above template will start 6 DI-engine processes (3 pods, two processes per pod)
+
+Worker & Job & Pod & Task & Node & ...
+-------------------------------
+
+Since DI-engine supports standalone, k8s and slurm deployment, and k8s and slurm itself have similar concepts like node and task, here are some explanations to avoid confusion.
+
+.. code-block:: python
+
+    def main():
+        with task.start(async_mode=False, ctx=OnlineRLContext()):
+            if task.router.is_active: # In distributed mode
+                if task.router.node_id == 0:
+                    ... # Use learner middlewares
+                elif task.router.node_id == 1:
+                    ... # Use evaluator middlewares
+                else:
+                    ... # Use collector middlewares
+
+            task.run()
+
+
+    if __name__ == "__main__":
+        main()
+
+The above code divides the task into 1 learner + 1 evaluator + N collector by different node_id \
+(see `dqn.py <https://github.com/opendilab/DI-engine/blob/6d861b6a1/ding/example/dqn.py>`_ for full code). \
+where node_id is the number of workers in the ditask, labeled 0 to N. Assuming we set the number of workers to 4, the above code will be divided into four processes \
+in the order of learner, evaluator and 2 collectors.
+
+.. image::
+    images/worker.png
+    :width: 800
+    :align: center
+
+Slurm clusters bring two concepts of node and task. Node represents a cluster node, which corresponds to a physical machine, and each node can be assigned multiple tasks, \
+which correspond to processes. So when running ditask in slurm it is recommended to enable only one worker per ditask (ditask parameter --parallel-workers 1) \
+and the number of slurm tasks is equal to 4 (srun parameter -n 4).
+
+.. image::
+    images/worker_slurm.png
+    :width: 800
+    :align: center
+
+By analogy, K8s clustering brings the concept of jobs and pods, where a job can be configured with multiple pods via replica, each with a quantitative resource allocation. \
+Here a pod is equivalent to a process within a single machine, or the concept of a task in slurm. \
+So we recommend deploying ditask in k8s with only one worker per ditask (ditask parameter --parallel-workers 1) and 4 replicas.
+
+.. image::
+    images/worker_k8s.png
+    :width: 800
+    :align: center
+
+If for some special reason (e.g. you want to reduce the number of pods because you don't have enough gpu), you can still enable multiple ditask workers in a \
+pod of k8s or a task of slurm, and the actual executing processes will be distributed as follows. \
+Either way, the --parallel-workers argument only affects the number of child processes in the current container, and the number of workers for the entire \
+training task needs to be multiplied by the number of ditask master processes (number of pods or number of slurm tasks).
+
+.. images::
+    images/worker_k8s_multi_workers.png
+    :width: 800
+    :align: center

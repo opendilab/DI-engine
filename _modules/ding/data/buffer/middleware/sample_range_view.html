@@ -278,6 +278,13 @@
 
 
 <div class="viewcode-block" id="sample_range_view"><a class="viewcode-back" href="../../../../../05_api_doc/data/buffer/middleware/sample_range_view.html#ding.data.buffer.middleware.sample_range_view.sample_range_view">[docs]</a><span class="k">def</span> <span class="nf">sample_range_view</span><span class="p">(</span><span class="n">buffer_</span><span class="p">:</span> <span class="s1">&#39;Buffer&#39;</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The middleware that places restrictions on the range of indices during sampling.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - start (:obj:`int`): The starting index.</span>
+<span class="sd">        - end (:obj:`int`): One above the ending index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">buffer_</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">start</span>

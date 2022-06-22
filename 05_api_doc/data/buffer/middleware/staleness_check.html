@@ -297,6 +297,10 @@
 staleness = train_iter_sample_data - train_iter_data_collected, means how old/off-policy the data is,
 If data’s staleness is greater(&gt;) than max_staleness, this data will be removed from buffer as soon as possible.</p>
 </dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>max_staleness (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The maximum legal span between the time of collecting and time of sampling.</p></li>
+</ul>
+</dd>
 </dl>
 </dd></dl>
 

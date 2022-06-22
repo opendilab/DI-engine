@@ -278,9 +278,10 @@
 
 <div class="viewcode-block" id="clone_object"><a class="viewcode-back" href="../../../../../05_api_doc/data/buffer/middleware/clone_object.html#ding.data.buffer.middleware.clone_object.clone_object">[docs]</a><span class="k">def</span> <span class="nf">clone_object</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This middleware freezes the objects saved in memory buffer as a copy,</span>
-<span class="sd">    try this middleware when you need to keep the object unchanged in buffer, and modify</span>
-<span class="sd">    the object after sampling it (usually in multiple threads)</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        This middleware freezes the objects saved in memory buffer and return copies during sampling,</span>
+<span class="sd">        try this middleware when you need to keep the object unchanged in buffer, and modify\</span>
+<span class="sd">        the object after sampling it (usually in multiple threads)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="n">chain</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedData</span><span class="p">:</span>

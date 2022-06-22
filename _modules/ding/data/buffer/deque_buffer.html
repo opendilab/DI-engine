@@ -320,16 +320,34 @@
 
 
 <div class="viewcode-block" id="DequeBuffer"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer">[docs]</a><span class="k">class</span> <span class="nc">DequeBuffer</span><span class="p">(</span><span class="n">Buffer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        A buffer implementation based on the deque structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The initialization method of DequeBuffer.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - size (:obj:`int`): The maximum number of objects that the buffer can hold.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">storage</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
-        <span class="c1"># Meta index is a dict which use deque as values</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">BufferIndex</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+        <span class="c1"># Meta index is a dict which uses deque as values</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meta_index</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="DequeBuffer.push"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.push">[docs]</a>    <span class="nd">@apply_middleware</span><span class="p">(</span><span class="s2">&quot;push&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedData</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that input the objects and the related meta information into the buffer.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Any`): The input object which can be in any format.</span>
+<span class="sd">            - meta (:obj:`Optional[dict]`): A dict that helps describe data, such as\</span>
+<span class="sd">                category, label, priority, etc. Default to ``None``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_push</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DequeBuffer.sample"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.sample">[docs]</a>    <span class="nd">@apply_middleware</span><span class="p">(</span><span class="s2">&quot;sample&quot;</span><span class="p">)</span>
@@ -343,6 +361,30 @@
             <span class="n">groupby</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">unroll_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">BufferedData</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">BufferedData</span><span class="p">]]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that randomly sample data from the buffer or retrieve certain data by indices.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - size (:obj:`Optional[int]`): The number of objects to be obtained from the buffer.</span>
+<span class="sd">                If ``indices`` is not specified, the ``size`` is required to randomly sample the\</span>
+<span class="sd">                corresponding number of objects from the buffer.</span>
+<span class="sd">            - indices (:obj:`Optional[List[str]]`): Only used when you want to retrieve data by indices.</span>
+<span class="sd">                Default to ``None``.</span>
+<span class="sd">            - replace (:obj:`bool`): As the sampling process is carried out one by one, this parameter\</span>
+<span class="sd">                determines whether the previous samples will be put back into the buffer for subsequent\</span>
+<span class="sd">                sampling. Default to ``False``, it means that duplicate samples will not appear in one\</span>
+<span class="sd">                ``sample`` call.</span>
+<span class="sd">            - sample_range (:obj:`Optional[slice]`): The indices range to sample data. Default to ``None``,\</span>
+<span class="sd">                it means no restrictions on the range of indices for the sampling process.</span>
+<span class="sd">            - ignore_insufficient (:obj:`bool`): whether throw `` ValueError`` if the sampled size is smaller\</span>
+<span class="sd">                than the required size. Default to ``False``.</span>
+<span class="sd">            - groupby (:obj:`Optional[str]`): If this parameter is activated, the method will return a\</span>
+<span class="sd">                target size of object groups.</span>
+<span class="sd">            - unroll_len (:obj:`Optional[int]`): The unroll length of a trajectory, used only when the\</span>
+<span class="sd">                ``groupby`` is activated.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - sampled_data (Union[List[BufferedData], List[List[BufferedData]]]): The sampling result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">storage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span>
         <span class="k">if</span> <span class="n">sample_range</span><span class="p">:</span>
             <span class="n">storage</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">islice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="p">,</span> <span class="n">sample_range</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sample_range</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">sample_range</span><span class="o">.</span><span class="n">step</span><span class="p">))</span>
@@ -397,6 +439,14 @@
 
 <div class="viewcode-block" id="DequeBuffer.update"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.update">[docs]</a>    <span class="nd">@apply_middleware</span><span class="p">(</span><span class="s2">&quot;update&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            the method that update data and the related meta information with a certain index.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Any`): The data which is supposed to replace the old one. If you set it\</span>
+<span class="sd">                to ``None``, nothing will happen to the old record.</span>
+<span class="sd">            - meta (:obj:`Optional[dict]`): The new dict which is supposed to merge with the old one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
@@ -411,6 +461,12 @@
 
 <div class="viewcode-block" id="DequeBuffer.delete"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.delete">[docs]</a>    <span class="nd">@apply_middleware</span><span class="p">(</span><span class="s2">&quot;delete&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that delete the data and related meta information by specific indices.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - indices (Union[str, Iterable[str]]): Where the data to be cleared in the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">indices</span><span class="p">]</span>
         <span class="n">del_idx</span> <span class="o">=</span> <span class="p">[]</span>
@@ -426,23 +482,47 @@
         <span class="n">key_value_pairs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">remain_indices</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">BufferIndex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">maxlen</span><span class="p">,</span> <span class="n">key_value_pairs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="p">)</span>
+<div class="viewcode-block" id="DequeBuffer.count"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that returns the current length of the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DequeBuffer.get"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedData</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that returns the BufferedData object given a specific index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
 
-    <span class="nd">@apply_middleware</span><span class="p">(</span><span class="s2">&quot;clear&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="DequeBuffer.clear"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/deque_buffer.html#ding.data.buffer.deque_buffer.DequeBuffer.clear">[docs]</a>    <span class="nd">@apply_middleware</span><span class="p">(</span><span class="s2">&quot;clear&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that clear all data, indices, and the meta information in the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">meta_index</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta_index</span> <span class="o">=</span> <span class="p">{}</span></div>
 
     <span class="k">def</span> <span class="nf">import_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_with_meta</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that push data by sequence.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            data_with_meta (List[Tuple[Any, dict]]): The sequence of (data, meta) tuples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">meta</span> <span class="ow">in</span> <span class="n">data_with_meta</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_push</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">export_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">BufferedData</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The method that export all data in the buffer by sequence.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            storage (List[BufferedData]): All ``BufferedData`` objects stored in the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedData</span><span class="p">:</span>

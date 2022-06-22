@@ -385,6 +385,34 @@
 <p>The above template will start 6 DI-engine processes (3 pods, two processes per pod)</p>
 </div>
 </section>
+<section id="worker-job-pod-task-node">
+<h2>Worker &amp; Job &amp; Pod &amp; Task &amp; Node &amp; …<a class="headerlink" href="#worker-job-pod-task-node" title="Permalink to this headline">¶</a></h2>
+<p>Since DI-engine supports standalone, k8s and slurm deployment, and k8s and slurm itself have similar concepts like node and task, here are some explanations to avoid confusion.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span> <span class="c1"># In distributed mode</span>
+            <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="o">...</span> <span class="c1"># Use learner middlewares</span>
+            <span class="k">elif</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="o">...</span> <span class="c1"># Use evaluator middlewares</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="o">...</span> <span class="c1"># Use collector middlewares</span>
+
+        <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The above code divides the task into 1 learner + 1 evaluator + N collector by different node_id (see <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/6d861b6a1/ding/example/dqn.py">dqn.py</a> for full code). where node_id is the number of workers in the ditask, labeled 0 to N. Assuming we set the number of workers to 4, the above code will be divided into four processes in the order of learner, evaluator and 2 collectors.</p>
+<a class="reference internal image-reference" href="../_images/worker.png"><img alt="../_images/worker.png" class="align-center" src="../_images/worker.png" style="width: 800px;" /></a>
+<p>Slurm clusters bring two concepts of node and task. Node represents a cluster node, which corresponds to a physical machine, and each node can be assigned multiple tasks, which correspond to processes. So when running ditask in slurm it is recommended to enable only one worker per ditask (ditask parameter –parallel-workers 1) and the number of slurm tasks is equal to 4 (srun parameter -n 4).</p>
+<a class="reference internal image-reference" href="../_images/worker_slurm.png"><img alt="../_images/worker_slurm.png" class="align-center" src="../_images/worker_slurm.png" style="width: 800px;" /></a>
+<p>By analogy, K8s clustering brings the concept of jobs and pods, where a job can be configured with multiple pods via replica, each with a quantitative resource allocation. Here a pod is equivalent to a process within a single machine, or the concept of a task in slurm. So we recommend deploying ditask in k8s with only one worker per ditask (ditask parameter –parallel-workers 1) and 4 replicas.</p>
+<a class="reference internal image-reference" href="../_images/worker_k8s.png"><img alt="../_images/worker_k8s.png" class="align-center" src="../_images/worker_k8s.png" style="width: 800px;" /></a>
+<p>If for some special reason (e.g. you want to reduce the number of pods because you don’t have enough gpu), you can still enable multiple ditask workers in a pod of k8s or a task of slurm, and the actual executing processes will be distributed as follows. Either way, the –parallel-workers argument only affects the number of child processes in the current container, and the number of workers for the entire training task needs to be multiplied by the number of ditask master processes (number of pods or number of slurm tasks).</p>
+</section>
 </section>
 
 
@@ -434,6 +462,7 @@
 <li><a class="reference internal" href="#using-the-event-system">Using the Event System</a></li>
 <li><a class="reference internal" href="#parallelize">Parallelize</a></li>
 <li><a class="reference internal" href="#deploying-on-kubernetes">Deploying on Kubernetes</a></li>
+<li><a class="reference internal" href="#worker-job-pod-task-node">Worker &amp; Job &amp; Pod &amp; Task &amp; Node &amp; …</a></li>
 </ul>
 </li>
 </ul>

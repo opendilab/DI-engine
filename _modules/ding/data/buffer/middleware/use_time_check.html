@@ -283,7 +283,10 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        This middleware aims to check the usage times of data in buffer. If the usage times of a data is</span>
 <span class="sd">        greater than or equal to max_use, this data will be removed from buffer as soon as possible.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - max_use (:obj:`int`): The max reused (resampled) count for any individual object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">use_count</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_need_delete</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">BufferedData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
