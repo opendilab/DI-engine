@@ -97,7 +97,8 @@ class MCTS(object):
 if __name__ == '__main__':
     import os
     import yaml
-    import EasyDict
+    from easydict import EasyDict
+
 
     default_config_path = os.path.join(os.path.dirname(__file__), 'mcts_config.yaml')
     with open(default_config_path, "r") as f:
