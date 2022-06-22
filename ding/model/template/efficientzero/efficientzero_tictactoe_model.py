@@ -22,26 +22,26 @@ class DiscreteSupport(object):
         self.delta = delta
 
 
-value_support = DiscreteSupport(-300, 300, delta=1)
-reward_support = DiscreteSupport(-300, 300, delta=1)
+value_support = DiscreteSupport(-10, 10, delta=1)
+reward_support = DiscreteSupport(-10, 10, delta=1)
 
 
 def inverse_reward_transform(reward_logits):
-    # return inverse_scalar_transform(reward_logits, reward_support)
-    return reward_logits  # TODO
+    return inverse_scalar_transform(reward_logits, reward_support)
+    # return reward_logits  # TODO
 
 
 def inverse_value_transform(value_logits):
-    # return inverse_scalar_transform(value_logits, value_support)
-    return value_logits  # TODO
+    return inverse_scalar_transform(value_logits, value_support)
+    # return value_logits  # TODO
 
 
 def inverse_scalar_transform(logits, scalar_support):
     """ Reference from MuZerp: Appendix F => Network Architecture
     & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
     """
-    value_support = DiscreteSupport(-300, 300, delta=1)
-    reward_support = DiscreteSupport(-300, 300, delta=1)
+    value_support = DiscreteSupport(-10, 10, delta=1)
+    reward_support = DiscreteSupport(-10, 10, delta=1)
     delta = value_support.delta
     value_probs = torch.softmax(logits, dim=1)
     value_support = torch.ones(value_probs.shape)
@@ -200,7 +200,8 @@ class DownSample(nn.Module):
 class RepresentationNetwork(nn.Module):
 
     def __init__(self, ):
-        """Representation network
+        """
+        Representation network
         equivalence transformation
         """
         super().__init__()
@@ -208,7 +209,7 @@ class RepresentationNetwork(nn.Module):
         self._dummy_param = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, x):
-        return x  # TODO
+        return x.float()  # TODO(pu)
 
     def get_param_mean(self):
         mean = []
@@ -419,8 +420,6 @@ class EfficientZeroNet(BaseNet):
         downsample,
         inverse_value_transform=inverse_value_transform,
         inverse_reward_transform=inverse_reward_transform,
-        # inverse_value_transform,
-        # inverse_reward_transform,
         lstm_hidden_size=512,
         bn_mt=0.1,
         proj_hid=256,

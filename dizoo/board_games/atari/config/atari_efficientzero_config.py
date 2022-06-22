@@ -1,13 +1,14 @@
 from easydict import EasyDict
+from dizoo.board_games.atari.config.atari_config import game_config
 
 # debug
-# collector_env_num=2
-# evaluator_env_num=2
+# collector_env_num=1
+# evaluator_env_num=1
 
 collector_env_num=1
 evaluator_env_num=5
 atari_efficientzero_config = dict(
-    exp_name='pong_efficientzero_seed0_2',
+    exp_name='data_ez/pong_efficientzero_seed0_upc50',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -30,6 +31,7 @@ atari_efficientzero_config = dict(
         model=dict(
             observation_shape=(12, 96, 96),  # 3,96,96 stack4
             action_space_size=6,
+            downsample=True,
             num_blocks=1,
             num_channels=64,
             reduced_channels_reward=16,
@@ -40,7 +42,6 @@ atari_efficientzero_config = dict(
             fc_policy_layers=[32],
             reward_support_size=601,
             value_support_size=601,
-            downsample=True,
             lstm_hidden_size=512,
             bn_mt=0.1,
             proj_hid=1024,
@@ -52,9 +53,10 @@ atari_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=500,
             # debug
+            # update_per_collect=10,
             # batch_size=8,
+            update_per_collect=50,
             batch_size=256,
             # learning_rate=1e-3,
             learning_rate=0.02,
@@ -100,4 +102,4 @@ create_config = atari_efficientzero_create_config
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
     from dizoo.board_games.atari.config.atari_config import game_config
-    serial_pipeline_muzero([main_config, create_config],  seed=0, max_env_step=int(10e6), game_config=game_config)
+    serial_pipeline_muzero([main_config, create_config],  seed=0, max_env_step=int(5e6), game_config=game_config)

@@ -60,7 +60,7 @@ class GomokuEnv(BaseGameEnv):
             self._current_player = self.current_opponent_player
         else:
             print("Error: input illegal action, we randomly choice a action from self.legal_actions!")
-            action = np.random.choice(self.legal_actions)
+            action = self.random_action()
             row, col = self.action_to_coord(action)
             self.board[row, col] = self.current_player
             self._current_player = self.current_opponent_player
@@ -82,14 +82,24 @@ class GomokuEnv(BaseGameEnv):
         return BaseEnvTimestep(obs, reward, done, info)
 
     def current_state(self):
+        """
+        Overview:
+            self.board is nd-array, 0 indicates that no stones is placed here,
+            1 indicates that player 1's stone is placed here, 2 indicates player 2's stone is placed here
+        Arguments:
+            - obs (:obj:`array`): the 0 dim means which positions is occupied by self.current_player,
+                the 1 dim indicates which positions are occupied by self.current_opponent_player,
+                the 2 dim indicates which player is the to_play player, 1 means player 1, 2 means player 2
+        """
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
         board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
         board_to_play = np.full((self.board_size, self.board_size), self.current_player)
         return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
 
     def coord_to_action(self, i, j):
-        ''' convert coordinate i, j to action a in [0, board_size**2)
-        '''
+        """
+        convert coordinate i, j to action a in [0, board_size**2)
+        """
         a = i * self.board_size + j  # action index
         return a
 
@@ -125,6 +135,7 @@ class GomokuEnv(BaseGameEnv):
                         # if 5 in a line, store positions of all stones, return value
                         if count == 5:
                             return True, player
+        # if the players don't have legal actions, return done=True
         return not has_legal_actions, -1
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
@@ -251,3 +262,4 @@ class GomokuEnv(BaseGameEnv):
 
     def __repr__(self) -> str:
         return "DI-engine Gomoku Env"
+        

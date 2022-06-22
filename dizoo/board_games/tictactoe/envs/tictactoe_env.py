@@ -1,10 +1,14 @@
+"""
+Adapt TicTacToe to BaseGameEnv interface from https://github.com/werner-duvaud/muzero-general
+"""
+
 import sys
 import gym
 import numpy as np
 from ding.envs.env.base_env import BaseEnvTimestep
 from ding.utils.registry_factory import ENV_REGISTRY
 from dizoo.board_games.base_game_env import BaseGameEnv
-
+import copy
 
 @ENV_REGISTRY.register('tictactoe')
 class TicTacToeEnv(BaseGameEnv):
@@ -16,6 +20,13 @@ class TicTacToeEnv(BaseGameEnv):
     @property
     def current_player(self):
         return self._current_player
+
+    @property
+    def current_player_to_compute_expert_action(self):
+        """
+        Overview: to compute expert action easily.
+        """
+        return -1 if self._current_player == 1 else 1
 
     @property
     def current_opponent_player(self):
@@ -43,7 +54,6 @@ class TicTacToeEnv(BaseGameEnv):
         self._current_player = self.players[start_player]
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         self._final_eval_reward = 0.
-        # return self.current_state()
         action_mask = np.zeros(self.num_actions, 'int8')
         action_mask[self.legal_actions] = 1
         obs = {'observation': self.current_state(), 'action_mask': action_mask}
@@ -130,12 +140,23 @@ class TicTacToeEnv(BaseGameEnv):
 
     def expert_action(self):
         """
-         Hard coded agent that MuZero faces to assess his progress in multiplayer games.
-         It doesn't influence training
-         Returns:
-             Action as an integer to take in the current game state
-         """
-        board = self.board
+        Overview: 
+            Hard coded expert agent for tictactoe env
+        Returns:
+            - action (:obj:`int`): the expert action to take in the current game state.
+        """
+        # To easily calculate expert action, we convert the chessboard notation:
+        # from player 1:  1, player 2: 2 
+        # to   player 1: -1, player 2: 1
+        # TODO: more elegant implementation
+        board = copy.deepcopy(self.board)
+        for i in range(board.shape[0]):
+            for j in range(board.shape[1]):
+                if board[i][j]==1:
+                    board[i][j]=-1
+                elif board[i][j]==2:
+                    board[i][j]=1
+
         action = np.random.choice(self.legal_actions)
         # Horizontal and vertical checks
         for i in range(3):
@@ -144,7 +165,7 @@ class TicTacToeEnv(BaseGameEnv):
                 action = np.ravel_multi_index(
                     (np.array([i]), np.array([ind])), (3, 3)
                 )[0]
-                if self.current_player * sum(board[i, :]) > 0:
+                if self.current_player_to_compute_expert_action * sum(board[i, :]) > 0:
                     return action
 
             if abs(sum(board[:, i])) == 2:
@@ -152,7 +173,7 @@ class TicTacToeEnv(BaseGameEnv):
                 action = np.ravel_multi_index(
                     (np.array([ind]), np.array([i])), (3, 3)
                 )[0]
-                if self.current_player * sum(board[:, i]) > 0:
+                if self.current_player_to_compute_expert_action * sum(board[:, i]) > 0:
                     return action
 
         # Diagonal checks
@@ -163,7 +184,7 @@ class TicTacToeEnv(BaseGameEnv):
             action = np.ravel_multi_index(
                 (np.array([ind]), np.array([ind])), (3, 3)
             )[0]
-            if self.current_player * sum(diag) > 0:
+            if self.current_player_to_compute_expert_action * sum(diag) > 0:
                 return action
 
         if abs(sum(anti_diag)) == 2:
@@ -171,7 +192,7 @@ class TicTacToeEnv(BaseGameEnv):
             action = np.ravel_multi_index(
                 (np.array([ind]), np.array([2 - ind])), (3, 3)
             )[0]
-            if self.current_player * sum(anti_diag) > 0:
+            if self.current_player_to_compute_expert_action * sum(anti_diag) > 0:
                 return action
 
         return action

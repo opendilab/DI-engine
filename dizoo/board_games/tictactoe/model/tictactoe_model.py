@@ -72,3 +72,4 @@ if __name__ == '__main__':
     inputs = torch.randn(batch_size, input_channels, board_size, board_size)
     model = TicTacToeModel({})
     print(model(inputs))
+    

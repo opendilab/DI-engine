@@ -1,58 +1,67 @@
 from easydict import EasyDict
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
-nstep = 3
+# debug
+# collector_env_num=1
+# evaluator_env_num=1
+
+# TODO: now only support env_num=1, because in MCTS root node, we must assign the one same action mask, 
+# but when env_num>1, the action mask for different env may be different
+collector_env_num=1
+evaluator_env_num=1
 tictactoe_efficientzero_config = dict(
-    exp_name='tictactoe_efficientzero_seed0',
+    exp_name='data_ez/tictactoe_efficientzero_seed0',
     env=dict(
-        collector_env_num=1,
-        evaluator_env_num=1,
-        n_evaluator_episode=1,
-        stop_value=200,
+        collector_env_num=collector_env_num,
+        evaluator_env_num=evaluator_env_num,
+        n_evaluator_episode=evaluator_env_num,
+        stop_value=2,
     ),
     policy=dict(
         env_name='tictactoe',
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
         # Whether to use cuda for network.
-        cuda=False,
+        cuda=True,
         model=dict(
             # observation_shape=(3, 3, 3),
             observation_shape=(12, 3, 3),  # if stacked_observations=4
             action_space_size=9,
+            downsample=False,
             num_blocks=1,
             num_channels=12,
             reduced_channels_reward=16,
             reduced_channels_value=16,
             reduced_channels_policy=16,
-            fc_reward_layers=[32],
-            fc_value_layers=[32],
-            fc_policy_layers=[32],
-            reward_support_size=601,
-            value_support_size=601,
-            downsample=False,
-            lstm_hidden_size=512,
+            fc_reward_layers=[8],
+            fc_value_layers=[8],
+            fc_policy_layers=[8],
+            reward_support_size=21,
+            value_support_size=21,
+            lstm_hidden_size=64,
             bn_mt=0.1,
-            proj_hid=1024,
-            proj_out=1024,
-            pred_hid=512,
-            pred_out=1024,
+            proj_hid=128,
+            proj_out=128,
+            pred_hid=64,
+            pred_out=128,
             init_zero=True,
             state_norm=False,
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=1,
-            batch_size=32,  # TODO(pu)
-            learning_rate=0.001,
+            update_per_collect=10,
+            batch_size=64,
+            learning_rate=0.02,
             # Frequency of target network update.
-            target_update_freq=100,
+            target_update_freq=200,
         ),
         # collect_mode config
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            n_episode=8,
+            # n_episode=8,
+            n_episode=16,
+
         ),
         # command_mode config
         other=dict(
@@ -62,9 +71,9 @@ tictactoe_efficientzero_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
-                decay=50000,
+                decay=int(5e4),
             ),
-            replay_buffer=dict(replay_buffer_size=100000, type='game')
+            replay_buffer=dict(replay_buffer_size=int(3e3), type='game')
         ),
     ),
 )
@@ -86,4 +95,4 @@ create_config = tictactoe_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
-    serial_pipeline_muzero([main_config, create_config], game_config=game_config, seed=0, max_env_step=int(1e6))
+    serial_pipeline_muzero([main_config, create_config], game_config=game_config, seed=0, max_env_step=int(5e6))

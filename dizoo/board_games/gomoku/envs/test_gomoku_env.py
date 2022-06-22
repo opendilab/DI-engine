@@ -3,7 +3,7 @@ from dizoo.board_games.gomoku.envs.gomoku_env import GomokuEnv
 
 
 @pytest.mark.envtest
-class TestTicTacToeEnv:
+class TestGomokuEnv:
     def test_naive(self):
         env = GomokuEnv()
         obs = env.reset()
@@ -33,3 +33,6 @@ class TestTicTacToeEnv:
                 else:
                     print('draw')
                 break
+
+test = TestGomokuEnv()
+test.test_naive()

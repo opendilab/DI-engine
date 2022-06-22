@@ -2,7 +2,8 @@ import pickle
 import zlib
 
 import lz4.block
-
+import cv2
+import numpy as np
 
 def dummy_compressor(data):
     r"""
@@ -105,3 +106,32 @@ def get_data_decompressor(name: str):
         >>> origin_data = compressed(compressed_data)
     """
     return _DECOMPRESSORS_MAP[name]
+
+
+def arr_to_str(arr):
+    """To reduce memory usage, we choose to store the jpeg strings of image instead of the numpy array in the buffer.
+    This function encodes the observation numpy arr to the jpeg strings
+    """
+    img_str = cv2.imencode('.jpg', arr)[1].tobytes()
+
+    return img_str
+
+
+def str_to_arr(s, gray_scale=False):
+    """To reduce memory usage, we choose to store the jpeg strings of image instead of the numpy array in the buffer.
+    This function decodes the observation numpy arr from the jpeg strings
+    Parameters
+    ----------
+    s: string
+        the inputs
+    gray_scale: bool
+        True -> the inputs observation is gray not RGB.
+    """
+    nparr = np.frombuffer(s, np.uint8)
+    if gray_scale:
+        arr = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+        arr = np.expand_dims(arr, -1)
+    else:
+        arr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    return arr

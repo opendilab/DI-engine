@@ -107,7 +107,7 @@ class GameBuffer(Buffer):
         # in EfficientZero replay_buffer.py
         # def save_game(self, game, end_tag, gap_steps, priorities=None):
 
-        if self.get_total_num_transitions() >= self.config.total_transitions:
+        if self.get_num_of_transitions() >= self.config.total_transitions:
             return
 
         if meta['end_tag']:
@@ -267,6 +267,23 @@ class GameBuffer(Buffer):
         game_history_idx -= self.base_idx
         transition = self.buffer[game_history_idx][game_history_pos]
         return transition
+    
+    def get(self, idx: int) -> BufferedData:
+        """
+        Overview:
+            Get item by subscript index
+        Arguments:
+            - idx (:obj:`int`): Subscript index.  Index of one transition to get.
+        Returns:
+            - buffered_data (:obj:`BufferedData`): Item from buffer
+        """
+        # def get_game(self, idx):
+        # return a game
+        #
+        game_history_idx, game_history_pos = self.game_history_look_up[idx]
+        game_history_idx -= self.base_idx
+        game = self.buffer[game_history_idx]
+        return game
 
     def update(self, index, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
         """
@@ -286,7 +303,7 @@ class GameBuffer(Buffer):
         # update the priorities for data still in replay buffer
         success = False
         # if meta['make_time'] > self.clear_time:
-        if index < self.get_total_num_transitions():
+        if index < self.get_num_of_transitions():
             prio = meta['priorities']
             self.priorities[index] = prio
             game_history_idx, game_history_pos = self.game_history_look_up[index]
@@ -321,7 +338,7 @@ class GameBuffer(Buffer):
     def remove_to_fit(self):
         # remove some old data if the replay buffer is full.
         nums_of_game_histoty = self.get_num_of_game_historys()
-        total_transition = self.get_total_num_transitions()
+        total_transition = self.get_num_of_transitions()
         if total_transition > self.transition_top:
             index = 0
             for i in range(nums_of_game_histoty):
@@ -352,37 +369,8 @@ class GameBuffer(Buffer):
         """
         pass
 
-    def get_num_of_game_historys(self) -> int:
-        # number of games, i.e. num  of game history blocks
-        return len(self.buffer)
-
-    def count(self):
-        # number of games, i.e. num  of game history blocks
-        return len(self.buffer)
-
     def clear(self) -> None:
         del self.buffer[:]
-
-    def get(self, idx: int) -> BufferedData:
-        """
-        Overview:
-            Get item by subscript index
-        Arguments:
-            - idx (:obj:`int`): Subscript index.  Index of one transition to get.
-        Returns:
-            - buffered_data (:obj:`BufferedData`): Item from buffer
-        """
-        # def get_game(self, idx):
-        # return a game
-        #
-        game_history_idx, game_history_pos = self.game_history_look_up[idx]
-        game_history_idx -= self.base_idx
-        game = self.buffer[game_history_idx]
-        return game
-
-    def episodes_collected(self):
-        # number of collected histories
-        return self._eps_collected
 
     def get_batch_size(self):
         return self.batch_size
@@ -390,8 +378,20 @@ class GameBuffer(Buffer):
     def get_priorities(self):
         return self.priorities
 
-    def get_total_num_transitions(self):
-        # number of transitions
+    def get_num_of_episodes(self):
+        # number of collected episodes
+        return self._eps_collected
+    
+    def get_num_of_game_historys(self) -> int:
+        # number of games, i.e. num of game history blocks
+        return len(self.buffer)
+
+    def count(self):
+        # number of games, i.e. num of game history blocks
+        return len(self.buffer)
+
+    def get_num_of_transitions(self):
+        # total number of transitions
         return len(self.priorities)
 
     def __copy__(self) -> "GameBuffer":
@@ -416,7 +416,7 @@ class GameBuffer(Buffer):
         assert beta > 0
 
         # total number of transitions
-        total = self.get_total_num_transitions()
+        total = self.get_num_of_transitions()
 
         probs = self.priorities ** self._alpha
 
@@ -617,7 +617,7 @@ class GameBuffer(Buffer):
         for i in range(len(inputs_batch)):
             inputs_batch[i] = np.asarray(inputs_batch[i])
 
-        total_transitions = self.get_total_num_transitions()
+        total_transitions = self.get_num_of_transitions()
 
         # obtain the context of value targets
         reward_value_context = self._prepare_reward_value_context(
@@ -656,7 +656,6 @@ class GameBuffer(Buffer):
         """
         self.model = model
         value_obs_lst, value_mask, state_index_lst, rewards_lst, traj_lens, td_steps_lst = reward_value_context
-        # value_obs_lst = ray.get(value_obs_lst)
         device = self.config.device
         batch_size = len(value_obs_lst)
 

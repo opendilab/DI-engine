@@ -16,9 +16,9 @@ from ding.rl_utils.efficientzero.mcts import MCTS
 from ding.rl_utils.efficientzero.utils import select_action
 from ding.torch_utils import to_tensor, to_ndarray, to_dtype, to_device
 # TODO(pu): choose game config
-from dizoo.board_games.atari.config.atari_config import game_config
+# from dizoo.board_games.atari.config.atari_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
-# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 
 class ModifiedCrossEntropyLoss(torch.nn.Module):
@@ -438,13 +438,13 @@ class EfficientZeroPolicy(Policy):
             'value_loss': loss_data[6],
             'consistency_loss': loss_data[7],
 
-            'value_priority':td_data[0],
-            'target_value_prefix':td_data[1],
-            'target_value':td_data[2],
-            'predicted_value_prefixs':td_data[7],
-            'predicted_values':td_data[8],
-            'target_policy':td_data[9],
-            'predicted_policies':td_data[10]
+            'value_priority':td_data[0].flatten().mean().item(),
+            'target_value_prefix':td_data[1].flatten().mean().item(),
+            'target_value':td_data[2].flatten().mean().item(),
+            'predicted_value_prefixs':td_data[7].flatten().mean().item(),
+            'predicted_values':td_data[8].flatten().mean().item(),
+            # 'target_policy':td_data[9],
+            # 'predicted_policies':td_data[10]
             # 'td_data': td_data,
             # 'priority_data_weights': priority_data[0],
             # 'priority_data_indices': priority_data[1]
@@ -592,8 +592,8 @@ class EfficientZeroPolicy(Policy):
             'target_value',
             'predicted_value_prefixs',
             'predicted_values',
-            'target_policy',
-            'predicted_policies',
+            # 'target_policy',
+            # 'predicted_policies'
             # 'td_data',
             # 'priority_data_weights',
             # 'priority_data_indices'

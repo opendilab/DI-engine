@@ -4,7 +4,7 @@ The following code is adapted from https://github.com/YeWR/EfficientZero/blob/ma
 
 import copy
 import numpy as np
-from ding.rl_utils.efficientzero.utils import str_to_arr
+from ding.utils.compression_helper import str_to_arr
 
 
 class Game:
@@ -130,18 +130,20 @@ class GameHistory:
         self.obs_history.append(obs)
         self.rewards.append(reward)
 
-    def obs(self, t, extra_len=0, padding=False):
+    def obs(self, i, extra_len=0, padding=False):
         """To obtain an observation of correct format: o[t, t + stack frames + extra len]
         Parameters
         ----------
-        t: int
-            time step t
+        i: int
+            time step i
         extra_len: int
             extra len of the obs frames
         padding: bool
             True -> padding frames if (t + stack frames) are out of trajectory
         """
-        frames = self.obs_history[t:t + self.stacked_observations + extra_len]
+        # frames = self.obs_history[index:index + self.stacked_observations]
+
+        frames = self.obs_history[i:i + self.stacked_observations + extra_len]
         if padding:
             pad_len = self.stacked_observations + extra_len - len(frames)
             if pad_len > 0:

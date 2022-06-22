@@ -15,8 +15,6 @@ game_config = EasyDict(dict(
     gray_scale=False,
     downsample=True,  # Downsample observations before representation network (See paper appendix Network Architecture)
 
-
-
     # debug
     # collector_env_num=1,
     # evaluator_env_num=1,
