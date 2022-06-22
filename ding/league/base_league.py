@@ -49,7 +49,7 @@ class BaseLeague:
         # "use_pretrain_init_historical". If both are False, "pretrain_checkpoint_path" can be omitted as well.
         # Otherwise, "pretrain_checkpoint_path" should list paths of all player categories.
         use_pretrain_init_historical=False,
-        pretrain_checkpoint_path=dict(default='default_cate_pretrain.pth', ),
+        pretrain_checkpoint_path=dict(default='/home/pi/DI-engine/slime_volley_ppo_seed0/ckpt_learner1/iteration_3000000.pth.tar', ),
         # ---payoff---
         payoff=dict(
             # Supports ['battle']
@@ -194,6 +194,7 @@ class BaseLeague:
                 return True
             else:
                 return False
+            #return False
 
     @abstractmethod
     def _mutate_player(self, player: ActivePlayer) -> None:

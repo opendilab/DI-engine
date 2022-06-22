@@ -139,7 +139,7 @@ class BattleSharedPayoff:
         handle = self._data[key]
         # No enough game records.
         if handle['games'] < self._min_win_rate_games:
-            return 0.5
+            return 0.1
         # should use reverse here
         wins = handle['wins'] if not reverse else handle['losses']
         return (wins + 0.5 * handle['draws']) / (handle['games'])
