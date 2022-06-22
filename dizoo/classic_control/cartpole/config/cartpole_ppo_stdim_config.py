@@ -22,12 +22,12 @@ cartpole_ppo_stdim_config = dict(
         ),
         aux_model=dict(
             encode_shape=64,
-            heads = [1, 1],
-            loss_type = 'infonce',
-            temperature = 1.0,
+            heads=[1, 1],
+            loss_type='infonce',
+            temperature=1.0,
         ),
-        # the ratio of the auxiliary loss to the TD loss
-        aux_loss_ratio = 0.003,
+        # the weight of the auxiliary loss to the TD loss
+        aux_loss_weight=0.003,
         learn=dict(
             epoch_per_collect=2,
             batch_size=64,

@@ -1044,10 +1044,10 @@ class PPOSTDIMPolicy(PPOPolicy):
         if self._cuda:
             test_data = to_device(test_data, self._device)
         with torch.no_grad():
-            x, y = self._aux_encode(test_data)
+            x, y = self._model_encode(test_data)
         return x.size()[1:], y.size()[1:]
 
-    def _aux_encode(self, data):
+    def _model_encode(self, data):
         x = self._model.encoder(data["obs"])
         y = self._model.encoder(data["next_obs"])
         return x, y
@@ -1108,8 +1108,8 @@ class PPOSTDIMPolicy(PPOPolicy):
                 # Auxiliary model update
                 # ======================
                 with torch.no_grad():
-                    x_no_grad, y_no_grad = self._aux_encode(batch)
-                aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
+                    x_no_grad, y_no_grad = self._model_encode(batch)    # RL network encoding
+                aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)  # aux network forward
                 self._aux_optimizer.zero_grad()
                 aux_loss_learn.backward()
                 if self._cfg.learn.multi_gpu:
@@ -1162,11 +1162,12 @@ class PPOSTDIMPolicy(PPOPolicy):
                 # ======================
                 # Compute auxiliary loss
                 # ======================
-                x, y = self._aux_encode(data)
+                x, y = self._model_encode(data)
                 aux_loss_eval = self._aux_model.forward(x, y) * self._aux_ratio
 
                 wv, we = self._value_weight, self._entropy_weight
-                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss\
+                    + aux_loss_eval
 
                 self._optimizer.zero_grad()
                 total_loss.backward()

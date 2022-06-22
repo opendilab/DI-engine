@@ -522,10 +522,10 @@ class DQNSTDIMPolicy(DQNPolicy):
         if self._cuda:
             test_data = to_device(test_data, self._device)
         with torch.no_grad():
-            x, y = self._aux_encode(test_data)
+            x, y = self._model_encode(test_data)
         return x.size()[1:], y.size()[1:]
 
-    def _aux_encode(self, data):
+    def _model_encode(self, data):
         x = self._model.encoder(data["obs"])
         y = self._model.encoder(data["next_obs"])
         return x, y
@@ -557,6 +557,18 @@ class DQNSTDIMPolicy(DQNPolicy):
         if self._cuda:
             data = to_device(data, self._device)
 
+        # ======================
+        # Auxiliary model update
+        # ======================
+        with torch.no_grad():
+            x_no_grad, y_no_grad = self._model_encode(data)
+        aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
+        self._aux_optimizer.zero_grad()
+        aux_loss_learn.backward()
+        if self._cfg.learn.multi_gpu:
+            self.sync_gradients(self._aux_model)
+        self._aux_optimizer.step()
+
         # ====================
         # Q-learning forward
         # ====================
@@ -570,18 +582,6 @@ class DQNSTDIMPolicy(DQNPolicy):
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
-        # ======================
-        # Auxiliary model update
-        # ======================
-        with torch.no_grad():
-            x_no_grad, y_no_grad = self._aux_encode(data)
-        aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
-        self._aux_optimizer.zero_grad()
-        aux_loss_learn.backward()
-        if self._cfg.learn.multi_gpu:
-            self.sync_gradients(self._aux_model)
-        self._aux_optimizer.step()
-
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
@@ -593,7 +593,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         # ======================
         # Compute auxiliary loss
         # ======================
-        x, y = self._aux_encode(data)
+        x, y = self._model_encode(data)
         aux_loss_eval = self._aux_model.forward(x, y) * self._aux_ratio
         loss = aux_loss_eval + bellman_loss
 
