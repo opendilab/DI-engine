@@ -9,7 +9,7 @@ EPS = 1e-9
 
 
 def padding_entity_info(traj_data, max_entity_num):
-    traj_data.pop('map_name', None)
+    # traj_data.pop('map_name', None)
     entity_padding_num = max_entity_num - len(traj_data['entity_info']['x'])
     if 'entity_embeddings' in traj_data.keys():
         traj_data['entity_embeddings'] = torch.nn.functional.pad(

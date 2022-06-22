@@ -13,6 +13,7 @@ from ding.torch_utils import to_tensor, to_ndarray
 from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
+from dizoo.distar.envs.fake_data import rl_step_data
 
 
 class TransitionList:
@@ -106,6 +107,8 @@ class BattleTransitionList:
         num_complele_trajectory, num_tail_transitions = divmod(len(episode), self._unroll_len)
         for i in range(num_complele_trajectory):
             trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
+            # TODO(zms): 测试专用，之后去掉
+            trajectory.append(rl_step_data(last=True))
             return_episode.append(trajectory)
 
         if num_tail_transitions > 0:
@@ -116,6 +119,8 @@ class BattleTransitionList:
                 for _ in range(self._unroll_len - len(trajectory)):
                     initial_elements.append(trajectory[0])
                 trajectory = initial_elements + trajectory
+            # TODO(zms): 测试专用，之后去掉
+            trajectory.append(rl_step_data(last=True))
             return_episode.append(trajectory)
 
         return return_episode  # list of trajectories

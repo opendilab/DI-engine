@@ -82,7 +82,7 @@ distar_cfg = EasyDict(
                 'n_episode': 1,
                 'n_rollout_samples': 64,
                 'n_sample': 64,
-                'unroll_len': 1
+                'unroll_len': 4
             },
             'eval': {
                 'evaluator': {

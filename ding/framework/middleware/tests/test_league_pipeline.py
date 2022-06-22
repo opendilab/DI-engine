@@ -68,7 +68,7 @@ class PrepareTest():
 
 
 def main():
-    logging.getLogger().setLevel(logging.INFO)
+    logging.disable(logging.WARNING)
     # cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
     league = BaseLeague(cfg.policy.other.league)
     N_PLAYERS = len(league.active_players_ids)
@@ -81,6 +81,7 @@ def main():
         if task.router.node_id == 0:
             task.use(LeagueCoordinator(cfg, league))
         elif task.router.node_id <= N_PLAYERS:
+            cfg.policy.collect.unroll_len = 1
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             player = league.active_players[task.router.node_id % N_PLAYERS]
             policy = PrepareTest.policy_fn()
