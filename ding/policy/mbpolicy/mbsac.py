@@ -8,13 +8,13 @@ from torch import nn
 from torch.distributions import Normal, Independent, TransformedDistribution, TanhTransform
 from easydict import EasyDict
 
-from ding.torch_utils import to_device
+from ding.torch_utils import to_device, fold_batch, unfold_batch
 from ding.utils import POLICY_REGISTRY, deep_merge_dicts
 from ding.policy import SACPolicy
 from ding.rl_utils import generalized_lambda_returns
 from ding.policy.common_utils import default_preprocess_learn
 
-from .utils import q_evaluation, flatten_batch, unflatten_batch
+from .utils import q_evaluation
 
 
 @POLICY_REGISTRY.register('mbsac')
@@ -270,7 +270,7 @@ class STEVESACPolicy(SACPolicy):
         self._auto_alpha = False
 
         def actor_fn(obs: Tensor):
-            obs, dim = flatten_batch(obs, 1)
+            obs, dim = fold_batch(obs, 1)
             (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
             dist = Independent(Normal(mu, sigma), 1)
             pred = dist.rsample()
@@ -281,7 +281,7 @@ class STEVESACPolicy(SACPolicy):
             ) + 2 * (pred + torch.nn.functional.softplus(-2. * pred) - torch.log(torch.tensor(2.))).sum(-1)
             aug_reward = -self._alpha.detach() * log_prob
 
-            return unflatten_batch(action, dim), unflatten_batch(aug_reward, dim)
+            return unfold_batch(action, dim), unfold_batch(aug_reward, dim)
 
         self._actor_fn = actor_fn
 
