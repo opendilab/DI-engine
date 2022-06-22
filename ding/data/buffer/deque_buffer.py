@@ -219,7 +219,7 @@ class DequeBuffer(Buffer):
     def get(self, idx: int) -> BufferedData:
         """
         Overview:
-            The method that returns the object given a specific index.
+            The method that returns the BufferedData object given a specific index.
         """
         return self.storage[idx]
 
