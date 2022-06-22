@@ -43,6 +43,7 @@ class BattleEpisodeCollector:
         self.env.close()
 
     def _update_policies(self, player_id_list) -> None:
+        # TODO(zms): update train_iter
         for player_id in player_id_list:
             if self.model_dict.get(player_id) is None:
                 continue
@@ -120,6 +121,7 @@ class BattleStepCollector:
         self.env.close()
 
     def _update_policies(self, player_id_list) -> None:
+        # TODO: 60 秒 没有更新 就阻塞，更新才返回
         for player_id in player_id_list:
             if self.model_dict.get(player_id) is None:
                 continue

@@ -23,6 +23,10 @@ class DIStarEnv(SC2Env, BaseEnv):
         # In DI-engine, the return of BaseEnv.step is ('obs', 'reward', 'done', 'info')
         # Here in DI-star, the return is ({'raw_obs': self._obs[agent_idx], 'opponent_obs': opponent_obs, 'action_result': self._action_result[agent_idx]}, reward, episode_complete)
         next_observations, reward, done = super(DIStarEnv, self).step(actions)
+        # next_observations 和 observations 格式一样
+        # reward 是 list [policy reward 1, policy reard 2]
+        # done 是 一个 bool 值
+        # TODO(zms): final_eval_reward 这局赢没赢
         info = {}
         for policy_id in range(self._num_agents):
             info[policy_id] = {'result': None}

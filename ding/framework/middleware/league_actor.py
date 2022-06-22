@@ -162,6 +162,7 @@ class StepLeagueActor:
         self.env_fn = env_fn
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
+        # TODO('self.unroll_len = self.cfg.policy.collect.unroll_len')
         self.unroll_len = self.cfg.policy.collect.get("unroll_len") or 0
         self._collectors: Dict[str, BattleEpisodeCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
@@ -282,7 +283,7 @@ class StepLeagueActor:
             if ctx.job_finish is True:
                 print('we finish the job !')
                 assert len(ctx.trajectories_list[0][0].trajectories) > 0
-
+            # TODO(zms): 判断是不是main_player
             if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
                 trajectories = ctx.trajectories_list[0]
                 print('actor {}, {} envs send traj '.format(task.router.node_id, len(trajectories)), flush=True)

@@ -80,9 +80,9 @@ distar_cfg = EasyDict(
                 'discount_factor': 1.0,
                 'gae_lambda': 1.0,
                 'n_episode': 1,
-                'n_rollout_samples': 32,
+                'n_rollout_samples': 64,
                 'n_sample': 64,
-                'unroll_len': 64
+                'unroll_len': 1
             },
             'eval': {
                 'evaluator': {

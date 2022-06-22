@@ -59,6 +59,7 @@ class BattleTransitionList:
         self._transitions = [deque() for _ in range(env_num)]
         self._done_episode = [deque() for _ in range(env_num)]
         self._unroll_len = unroll_len
+        # TODO(zms): last transition + 1
 
     def get_env_trajectories(self, env_id: int, only_finished: bool = False):
         trajectories = []
@@ -84,6 +85,8 @@ class BattleTransitionList:
             )
             trajectories += self._cut_trajectory_from_episode(self._transitions[env_id][0][:tail_idx])
             self._transitions[env_id][0] = self._transitions[env_id][0][tail_idx:]
+
+            # 少于 64 直接删
 
         return trajectories
 

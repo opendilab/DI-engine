@@ -237,7 +237,18 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
 
         # Get current env obs.
         obs = env.ready_obs
+        # {
+        #     env_id: {
+        #         policy_id:{
+        #             'raw_obs': <class 's2clientprotocol.sc2api_pb2.ResponseObservation'>
+        #             'opponent_obs': <class 's2clientprotocol.sc2api_pb2.ResponseObservation'>
+        #             'action_result': <class 'google.protobuf.pyext._message.RepeatedScalarContainer'>
+        #         }
+        #     }
+        # }
+
         # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
+        # 如果每个 actor 只有一个 env, 下面这部分代码可以全部去掉
         new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
         ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
         ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
@@ -253,9 +264,19 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
             inference_output[env_id] = {}
             actions[env_id] = {}
             for policy_id, policy_obs in observations.items():
+                # policy.forward
                 output = ctx.current_policies[policy_id].forward(policy_obs)
                 inference_output[env_id][policy_id] = output
                 actions[env_id][policy_id] = output['action']
+        #  aciton[env_id][policy_id] = {
+        #     'func_id': func_id,
+        #     'skip_steps': random.randint(0, MAX_DELAY - 1),
+        #     # 'skip_steps': 8,
+        #     'queued': random.randint(0, 1),
+        #     'unit_tags': unit_tags,
+        #     'target_unit_tag': target_unit_tag,
+        #     'location': (random.randint(0, SPATIAL_SIZE[0] - 1), random.randint(0, SPATIAL_SIZE[1] - 1))
+        # }
         ctx.inference_output = inference_output
         ctx.actions = actions
 
@@ -266,18 +287,21 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
-        # for env_id, timestep in timesteps.items():
+        #
 
         ctx.total_envstep_count += len(timesteps)
         ctx.env_step += len(timesteps)
         # for env_id, timestep in timesteps.items():
         # TODO(zms): make sure a standard
+        # 这里 timestep 是 一个 env_num 长的 list，但是每次step真的会返回所有 env 的 timestep 吗？（需要确认）是就用 dict，否就用 list
         for env_id, timestep in enumerate(timesteps):
             if timestep.info.get('abnormal'):
                 # TODO(zms): cannot get exact env_step of a episode because for each observation,
                 # in most cases only one of two policies has a obs.
                 # ctx.total_envstep_count -= transitions_list[0].length(env_id)
                 # ctx.env_step -= transitions_list[0].length(env_id)
+
+                # TODO(zms): 如果要有available_env_id 的话，这里也要更新
                 for transitions in transitions_list:
                     transitions.clear_newest_episode(env_id)
                 continue
