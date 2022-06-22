@@ -1021,7 +1021,7 @@ class PPOSTDIMPolicy(PPOPolicy):
             gae_lambda=0.95,
         ),
         eval=dict(),
-        aux_loss_ratio=0.05,
+        aux_loss_weight=0.001,
     )
 
     def _init_learn(self) -> None:
@@ -1031,7 +1031,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         if self._cuda:
             self._aux_model.cuda()
         self._aux_optimizer = Adam(self._aux_model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._aux_ratio = self._cfg.aux_loss_ratio
+        self._aux_loss_weight = self._cfg.aux_loss_weight
 
     def _get_encoding_size(self):
         obs = self._cfg.model.obs_shape
@@ -1107,9 +1107,14 @@ class PPOSTDIMPolicy(PPOPolicy):
                 # ======================
                 # Auxiliary model update
                 # ======================
+
+                # RL network encoding
+                # To train the auxiliary network, the gradients of x, y should be 0.
                 with torch.no_grad():
-                    x_no_grad, y_no_grad = self._model_encode(batch)    # RL network encoding
-                aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)  # aux network forward
+                    x_no_grad, y_no_grad = self._model_encode(batch)
+                # the forward function of the auxiliary network
+                aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
+                # the BP process of the auxiliary network
                 self._aux_optimizer.zero_grad()
                 aux_loss_learn.backward()
                 if self._cfg.learn.multi_gpu:
@@ -1162,8 +1167,12 @@ class PPOSTDIMPolicy(PPOPolicy):
                 # ======================
                 # Compute auxiliary loss
                 # ======================
+
+                # In total_loss BP, the gradients of x, y are required to update the encoding network.
+                # The auxiliary network won't be updated since the self._optimizer does not contain
+                # its weights.
                 x, y = self._model_encode(data)
-                aux_loss_eval = self._aux_model.forward(x, y) * self._aux_ratio
+                aux_loss_eval = self._aux_model.forward(x, y) * self._aux_loss_weight
 
                 wv, we = self._value_weight, self._entropy_weight
                 total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss\

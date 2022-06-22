@@ -437,8 +437,8 @@ class DQNSTDIMPolicy(DQNPolicy):
                                                                                                  | decay from start
                                                                                                  | value to end value
                                                                                                  | during decay length.
-        20 | ``aux_loss_ratio`` float    0.05           | the ratio of the auxiliary loss to     | any real value,
-                                                        | the TD loss                            | typically in
+        20 | ``aux_loss``       float    0.001          | the ratio of the auxiliary loss to     | any real value,
+           | ``_weight``                                | the TD loss                            | typically in
                                                                                                  | [-0.1, 0.1].
         == ==================== ======== ============== ======================================== =======================
     """
@@ -499,7 +499,7 @@ class DQNSTDIMPolicy(DQNPolicy):
             ),
             replay_buffer=dict(replay_buffer_size=10000, ),
         ),
-        aux_loss_ratio=0.05,
+        aux_loss_weight=0.001,
     )
 
     def _init_learn(self) -> None:
@@ -509,7 +509,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         if self._cuda:
             self._aux_model.cuda()
         self._aux_optimizer = Adam(self._aux_model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._aux_ratio = self._cfg.aux_loss_ratio
+        self._aux_loss_weight = self._cfg.aux_loss_weight
 
     def _get_encoding_size(self):
         obs = self._cfg.model.obs_shape
@@ -560,9 +560,13 @@ class DQNSTDIMPolicy(DQNPolicy):
         # ======================
         # Auxiliary model update
         # ======================
+        # RL network encoding
+        # To train the auxiliary network, the gradients of x, y should be 0.
         with torch.no_grad():
             x_no_grad, y_no_grad = self._model_encode(data)
+        # the forward function of the auxiliary network
         aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
+        # the BP process of the auxiliary network
         self._aux_optimizer.zero_grad()
         aux_loss_learn.backward()
         if self._cfg.learn.multi_gpu:
@@ -594,7 +598,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         # Compute auxiliary loss
         # ======================
         x, y = self._model_encode(data)
-        aux_loss_eval = self._aux_model.forward(x, y) * self._aux_ratio
+        aux_loss_eval = self._aux_model.forward(x, y) * self._aux_loss_weight
         loss = aux_loss_eval + bellman_loss
 
         # ====================

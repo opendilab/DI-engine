@@ -69,7 +69,7 @@ def test_onpolicy_ppo_continuous():
 
 
 @pytest.mark.platformtest
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_onppo_stdim():
     config = [deepcopy(cartpole_ppo_stdim_config), deepcopy(cartpole_ppo_stdim_create_config)]
     config[0].policy.learn.update_per_collect = 1
