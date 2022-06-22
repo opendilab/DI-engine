@@ -86,8 +86,6 @@ class BattleTransitionList:
             trajectories += self._cut_trajectory_from_episode(self._transitions[env_id][0][:tail_idx])
             self._transitions[env_id][0] = self._transitions[env_id][0][tail_idx:]
 
-            # 少于 64 直接删
-
         return trajectories
 
     def to_trajectories(self, only_finished: bool = False):
@@ -113,6 +111,7 @@ class BattleTransitionList:
         if num_tail_transitions > 0:
             trajectory = episode[-self._unroll_len:]
             if len(trajectory) < self._unroll_len:
+                # TODO(zms): 少于 64 直接删
                 initial_elements = []
                 for _ in range(self._unroll_len - len(trajectory)):
                     initial_elements.append(trajectory[0])
