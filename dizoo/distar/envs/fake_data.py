@@ -2,7 +2,7 @@ from typing import Sequence
 import torch
 
 from ding.utils.data import default_collate
-from .meta import MAX_DELAY, MAX_ENTITY_NUM, NUM_ACTIONS, ENTITY_TYPE_NUM, NUM_UPGRADES, NUM_CUMULATIVE_STAT_ACTIONS, \
+from .meta import MAX_DELAY, MAX_ENTITY_NUM, NUM_ACTIONS, NUM_UNIT_TYPES, NUM_UPGRADES, NUM_CUMULATIVE_STAT_ACTIONS, \
     NUM_BEGINNING_ORDER_ACTIONS, NUM_UNIT_MIX_ABILITIES, NUM_QUEUE_ACTION, NUM_BUFFS, NUM_ADDON, MAX_SELECTED_UNITS_NUM
 
 H, W = 152, 160
@@ -28,7 +28,7 @@ def spatial_info():
 
 def entity_info():
     data = {
-        'unit_type': torch.randint(0, ENTITY_TYPE_NUM, size=(MAX_ENTITY_NUM, ), dtype=torch.float),
+        'unit_type': torch.randint(0, NUM_UNIT_TYPES, size=(MAX_ENTITY_NUM, ), dtype=torch.float),
         'alliance': torch.randint(0, 5, size=(MAX_ENTITY_NUM, ), dtype=torch.float),
         'cargo_space_taken': torch.randint(0, 9, size=(MAX_ENTITY_NUM, ), dtype=torch.float),
         'build_progress': torch.rand(MAX_ENTITY_NUM),
@@ -74,7 +74,7 @@ def scalar_info():
         'away_race': torch.randint(0, 4, size=(), dtype=torch.float),
         'agent_statistics': torch.rand(10),
         'time': torch.randint(0, 100, size=(), dtype=torch.float),
-        'unit_counts_bow': torch.randint(0, 10, size=(ENTITY_TYPE_NUM, ), dtype=torch.float),
+        'unit_counts_bow': torch.randint(0, 10, size=(NUM_UNIT_TYPES, ), dtype=torch.float),
         'beginning_build_order': torch.randint(0, 20, size=(20, ), dtype=torch.float),
         'cumulative_stat': torch.randint(0, 2, size=(NUM_CUMULATIVE_STAT_ACTIONS, ), dtype=torch.float),
         'last_delay': torch.randint(0, MAX_DELAY, size=(), dtype=torch.float),
@@ -83,8 +83,8 @@ def scalar_info():
         'upgrades': torch.randint(0, 2, size=(NUM_UPGRADES, ), dtype=torch.float),
         'beginning_order': torch.randint(0, NUM_BEGINNING_ORDER_ACTIONS, size=(20, ), dtype=torch.float),
         'bo_location': torch.randint(0, 100 * 100, size=(20, ), dtype=torch.float),
-        'unit_type_bool': torch.randint(0, 2, size=(ENTITY_TYPE_NUM, ), dtype=torch.float),
-        'enemy_unit_type_bool': torch.randint(0, 2, size=(ENTITY_TYPE_NUM, ), dtype=torch.float),
+        'unit_type_bool': torch.randint(0, 2, size=(NUM_UNIT_TYPES, ), dtype=torch.float),
+        'enemy_unit_type_bool': torch.randint(0, 2, size=(NUM_UNIT_TYPES, ), dtype=torch.float),
         'unit_order_type': torch.randint(0, 2, size=(NUM_UNIT_MIX_ABILITIES, ), dtype=torch.float)
     }
     return data
