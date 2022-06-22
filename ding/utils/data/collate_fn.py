@@ -6,7 +6,7 @@ import treetensor.torch as ttorch
 import re
 from torch._six import string_classes
 import collections.abc as container_abcs
-from ding.compatibility import torch_gt_131
+from ding.compatibility import torch_ge_131
 
 int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
@@ -25,11 +25,13 @@ def ttorch_collate(x):
     return x
 
 
-def default_collate(batch: Sequence,
-                    dim: int = 0,
-                    cat_1dim: bool = True,
-                    allow_key_mismatch: bool = False,
-                    ignore_prefix: list = ['collate_ignore']) -> Union[torch.Tensor, Mapping, Sequence]:
+def default_collate(
+        batch: Sequence,
+        dim: int = 0,
+        cat_1dim: bool = True,
+        allow_key_mismatch: bool = False,
+        ignore_prefix: list = ['collate_ignore']
+) -> Union[torch.Tensor, Mapping, Sequence]:
     """
     Overview:
         Put each data field into a tensor with outer dimension batch size.
@@ -65,7 +67,7 @@ def default_collate(batch: Sequence,
         return batch.json()
     if isinstance(elem, torch.Tensor):
         out = None
-        if torch_gt_131() and torch.utils.data.get_worker_info() is not None:
+        if torch_ge_131() and torch.utils.data.get_worker_info() is not None:
             # If we're in a background process, directly concatenate into a
             # shared memory tensor to avoid an extra copy
             numel = sum([x.numel() for x in batch])

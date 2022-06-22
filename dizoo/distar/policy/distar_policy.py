@@ -127,7 +127,7 @@ class DIStarPolicy(Policy):
             raise KeyError("invalid policy mode: {}".format(field))
 
     def _init_learn(self):
-        self.learn_model = model_wrap(self._model, 'base')
+        self._learn_model = model_wrap(self._model, 'base')
         self.head_types = ['action_type', 'delay', 'queued', 'target_unit', 'selected_units', 'target_location']
         # policy parameters
         self.gammas = self._cfg.gammas
@@ -140,7 +140,7 @@ class DIStarPolicy(Policy):
 
         # optimizer
         self.optimizer = Adam(
-            self.learn_model.parameters(),
+            self._learn_model.parameters(),
             lr=self._cfg.learning_rate,
             betas=(0, 0.99),
             eps=1e-5,
@@ -162,7 +162,7 @@ class DIStarPolicy(Policy):
         # create loss show dict
         loss_info_dict = {}
         with self.timer:
-            model_output = self.learn_model.rl_learn_forward(**inputs)
+            model_output = self._learn_model.rl_learn_forward(**inputs)
         loss_info_dict['model_forward_time'] = self.timer.value
 
         # ===========
@@ -324,7 +324,7 @@ class DIStarPolicy(Policy):
             total_loss.backward()
             if self._cfg.learn.multi_gpu:
                 self.sync_gradients()
-            gradient = torch.nn.utils.clip_grad_norm_(self.learn_model.parameters(), self._cfg.grad_clip.threshold, 2)
+            gradient = torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), self._cfg.grad_clip.threshold, 2)
             self.optimizer.step()
 
         loss_info_dict['backward_time'] = self.timer.value
@@ -342,12 +342,12 @@ class DIStarPolicy(Policy):
 
     def _state_dict(self) -> Dict:
         return {
-            'model': self.learn_model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, _state_dict: Dict) -> None:
-        self.learn_model.load_state_dict(_state_dict['model'])
+        self._learn_model.load_state_dict(_state_dict['model'])
         self.optimizer.load_state_dict(_state_dict['optimizer'])
 
     def _init_collect(self):

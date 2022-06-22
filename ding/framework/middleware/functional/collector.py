@@ -1,14 +1,18 @@
-from typing import TYPE_CHECKING, Callable, List, Tuple, Any
+from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
 from easydict import EasyDict
 from functools import reduce
-import torch
+from more_itertools import only
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
-from ding.framework import task
+import torch
+from ding.utils import dicts_to_lists
+from ding.torch_utils import to_tensor, to_ndarray
 
-if TYPE_CHECKING:
-    from ding.framework import OnlineRLContext
+# if TYPE_CHECKING:
+from ding.framework import OnlineRLContext, BattleContext
+from collections import deque
+from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
 
 
 class TransitionList:
@@ -43,6 +47,103 @@ class TransitionList:
         for item in self._transitions:
             item.clear()
         for item in self._done_idx:
+            item.clear()
+
+
+class BattleTransitionList:
+
+    def __init__(self, env_num: int, unroll_len: int) -> None:
+        # for each env, we have a deque to buffer episodes,
+        # and a deque to tell each episode is finished or not
+        self.env_num = env_num
+        self._transitions = [deque() for _ in range(env_num)]
+        self._done_episode = [deque() for _ in range(env_num)]
+        self._unroll_len = unroll_len
+        # TODO(zms): last transition + 1
+
+    def get_env_trajectories(self, env_id: int, only_finished: bool = False):
+        trajectories = []
+        if len(self._transitions[env_id]) == 0:
+            # if we have no episode for this env, we return an empty list
+            return trajectories
+        while len(self._transitions[env_id]) > 0:
+            # Every time we check if oldest episode is done,
+            # if is done, we cut the episode to trajectories
+            # and finally drop this episode
+            if self._done_episode[env_id][0] is False:
+                break
+            oldest_episode = self._transitions[env_id].popleft()
+            self._done_episode[env_id].popleft()
+            trajectories += self._cut_trajectory_from_episode(oldest_episode)
+            oldest_episode.clear()
+
+        if not only_finished and len(self._transitions[env_id]) == 1 and self._done_episode[env_id][0] is False:
+            # If last episode is not done, we only cut the trajectories till the Trajectory(t-1) (not including)
+            # This is because we need Trajectory(t-1) to fill up Trajectory(t) if in Trajectory(t) this episode is done
+            tail_idx = max(
+                0, ((len(self._transitions[env_id][0]) - self._unroll_len) // self._unroll_len) * self._unroll_len
+            )
+            trajectories += self._cut_trajectory_from_episode(self._transitions[env_id][0][:tail_idx])
+            self._transitions[env_id][0] = self._transitions[env_id][0][tail_idx:]
+
+            # 少于 64 直接删
+
+        return trajectories
+
+    def to_trajectories(self, only_finished: bool = False):
+        all_env_data = []
+        for env_id in range(self.env_num):
+            trajectories = self.get_env_trajectories(env_id, only_finished=only_finished)
+            if len(trajectories) > 0:
+                all_env_data.append(ActorEnvTrajectories(env_id=env_id, trajectories=trajectories))
+        return all_env_data
+
+    def _cut_trajectory_from_episode(self, episode: list):
+        # first we cut complete trajectories (list of transitions whose length equal to unroll_len)
+        # then we gather the transitions in the tail of episode, and fill up the trajectory with the tail transitions in Trajectory(t-1)
+        # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len, we fill up the trajectory
+        # with the first element of episode.
+        return_episode = []
+        i = 0
+        num_complele_trajectory, num_tail_transitions = divmod(len(episode), self._unroll_len)
+        for i in range(num_complele_trajectory):
+            trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
+            return_episode.append(trajectory)
+
+        if num_tail_transitions > 0:
+            trajectory = episode[-self._unroll_len:]
+            if len(trajectory) < self._unroll_len:
+                initial_elements = []
+                for _ in range(self._unroll_len - len(trajectory)):
+                    initial_elements.append(trajectory[0])
+                trajectory = initial_elements + trajectory
+            return_episode.append(trajectory)
+
+        return return_episode  # list of trajectories
+
+    def clear_newest_episode(self, env_id: int) -> None:
+        # Use it when env.step raise some error
+        len_newest_episode = 0
+        if self._done_episode[env_id][-1] is False:
+            newest_episode = self._transitions[env_id].pop()
+            len_newest_episode = len(newest_episode)
+            newest_episode.clear()
+            self._done_episode[env_id].pop()
+        return len_newest_episode
+
+    def append(self, env_id: int, transition: Any) -> None:
+        # If previous episode is done, we create a new episode
+        if len(self._done_episode[env_id]) == 0 or self._done_episode[env_id][-1] is True:
+            self._transitions[env_id].append([])
+            self._done_episode[env_id].append(False)
+        self._transitions[env_id][-1].append(transition)
+        if transition.done:
+            self._done_episode[env_id][-1] = True
+
+    def clear(self):
+        for item in self._transitions:
+            item.clear()
+        for item in self._done_episode:
             item.clear()
 
 
@@ -133,3 +234,63 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
         # TODO log
 
     return _rollout
+
+
+def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
+
+    def _battle_inferencer(ctx: "BattleContext"):
+
+        if env.closed:
+            env.launch()
+
+        # Get current env obs.
+        obs = env.ready_obs
+        # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
+        new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
+        ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
+        ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
+        obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
+
+        # Policy forward.
+        if cfg.transform_obs:
+            obs = to_tensor(obs, dtype=torch.float32)
+        obs = dicts_to_lists(obs)
+        inference_output = [p.forward(obs[i], **ctx.collect_kwargs) for i, p in enumerate(ctx.current_policies)]
+        ctx.obs = obs
+        ctx.inference_output = inference_output
+        # Interact with env.
+        actions = {}
+        for env_id in ctx.ready_env_id:
+            actions[env_id] = []
+            for output in inference_output:
+                actions[env_id].append(output[env_id]['action'])
+        ctx.actions = to_ndarray(actions)
+
+    return _battle_inferencer
+
+
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
+
+    def _battle_rolloutor(ctx: "BattleContext"):
+        timesteps = env.step(ctx.actions)
+        ctx.total_envstep_count += len(timesteps)
+        ctx.env_step += len(timesteps)
+        for env_id, timestep in timesteps.items():
+            for policy_id, _ in enumerate(ctx.current_policies):
+                policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
+                policy_timestep = type(timestep)(*policy_timestep_data)
+                transition = ctx.current_policies[policy_id].process_transition(
+                    ctx.obs[policy_id][env_id], ctx.inference_output[policy_id][env_id], policy_timestep
+                )
+                transition = ttorch.as_tensor(transition)
+                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+                transitions_list[policy_id].append(env_id, transition)
+                if timestep.done:
+                    ctx.current_policies[policy_id].reset([env_id])
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
+
+            if timestep.done:
+                ctx.ready_env_id.remove(env_id)
+                ctx.env_episode += 1
+
+    return _battle_rolloutor

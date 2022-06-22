@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 
 from ding.utils import read_yaml_config, deep_merge_dicts
-from ding.utils.data import default_collate
 from ding.torch_utils import detach_grad, script_lstm
 from dizoo.distar.envs import MAX_SELECTED_UNITS_NUM
 from .encoder import Encoder
