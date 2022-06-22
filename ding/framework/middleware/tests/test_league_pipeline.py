@@ -3,14 +3,18 @@ import pytest
 from easydict import EasyDict
 from copy import deepcopy
 from ding.data import DequeBuffer
-from ding.envs import BaseEnvManager
+from ding.envs import BaseEnvManager, EnvSupervisor
+from ding.framework.supervisor import ChildType
 from ding.framework.context import BattleContext
-from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, LeagueLearnerExchanger, data_pusher, OffPolicyLearner
-from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, battle_inferencer_for_distar, battle_rolloutor_for_distar
+from ding.framework.middleware import StepLeagueActor, LeagueCoordinator, \
+    LeagueLearnerExchanger, data_pusher, OffPolicyLearner
 from ding.framework.task import task, Parallel
 from ding.league.v2 import BaseLeague
 from dizoo.distar.config import distar_cfg
 from dizoo.distar.envs.distar_env import DIStarEnv
+from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy, DIStarMockPolicyCollect, \
+    battle_inferencer_for_distar, battle_rolloutor_for_distar
+from distar.ctools.utils import read_config
 from unittest.mock import patch
 
 env_cfg = dict(
@@ -31,35 +35,41 @@ env_cfg = dict(
         version='4.10.0',
     ),
 )
+env_cfg = EasyDict(env_cfg)
+
+cfg = deepcopy(distar_cfg)
 
 
-def prepare_test():
-    global distar_cfg, env_cfg
-    env_cfg = EasyDict(env_cfg)
-    cfg = deepcopy(distar_cfg)
+class PrepareTest():
 
-    def env_fn():
-        # subprocess env manager
-        env = BaseEnvManager(
-            env_fn=[lambda: DIStarEnv(env_cfg) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
+    @classmethod
+    def get_env_fn(cls):
+        return DIStarEnv(env_cfg)
+
+    @classmethod
+    def get_env_supervisor(cls):
+        env = EnvSupervisor(
+            type_=ChildType.THREAD,
+            env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
+            **cfg.env.manager
         )
         env.seed(cfg.seed)
         return env
 
-    def policy_fn():
+    @classmethod
+    def policy_fn(cls):
         policy = DIStarMockPolicy(DIStarMockPolicy.default_config(), enable_field=['learn'])
         return policy
 
-    def collect_policy_fn():
+    @classmethod
+    def collect_policy_fn(cls):
         policy = DIStarMockPolicyCollect()
         return policy
-
-    return cfg, env_fn, policy_fn, collect_policy_fn
 
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
+    # cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
     league = BaseLeague(cfg.policy.other.league)
     N_PLAYERS = len(league.active_players_ids)
     print("League: n_players =", N_PLAYERS)
@@ -73,12 +83,12 @@ def main():
         elif task.router.node_id <= N_PLAYERS:
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             player = league.active_players[task.router.node_id % N_PLAYERS]
-            policy = policy_fn()
+            policy = PrepareTest.policy_fn()
             task.use(LeagueLearnerExchanger(cfg, policy.learn_mode, player))
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         else:
-            task.use(StepLeagueActor(cfg, env_fn, collect_policy_fn))
+            task.use(StepLeagueActor(cfg, PrepareTest.get_env_supervisor, PrepareTest.collect_policy_fn))
 
         task.run()
 

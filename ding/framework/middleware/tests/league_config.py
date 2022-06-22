@@ -4,14 +4,15 @@ cfg = EasyDict(
         'env': {
             'manager': {
                 'episode_num': 100000,
-                'max_retry': 1,
-                'retry_type': 'reset',
+                'max_retry': 1000,
+                'retry_type': 'renew',
                 'auto_reset': True,
                 'step_timeout': None,
                 'reset_timeout': None,
                 'retry_waiting_time': 0.1,
                 'cfg_type': 'BaseEnvManagerDict',
-                'shared_memory': False
+                'shared_memory': False,
+                'return_original_data': True
             },
             'collector_env_num': 1,
             'evaluator_env_num': 1,
@@ -78,7 +79,7 @@ cfg = EasyDict(
                 'discount_factor': 1.0,
                 'gae_lambda': 1.0,
                 'n_episode': 1,
-                'n_rollout_samples': 32,
+                'n_rollout_samples': 64,
                 'n_sample': 64,
                 'unroll_len': 1
             },

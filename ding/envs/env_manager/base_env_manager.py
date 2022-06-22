@@ -77,9 +77,7 @@ class BaseEnvManager(object):
     config = dict(
         episode_num=float("inf"),
         max_retry=1,
-        # inf
         retry_type='reset',
-        # renew
         auto_reset=True,
         step_timeout=None,
         reset_timeout=None,

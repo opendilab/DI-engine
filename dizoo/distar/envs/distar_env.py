@@ -11,20 +11,10 @@ class DIStarEnv(SC2Env, BaseEnv):
 
     def __init__(self, cfg):
         super(DIStarEnv, self).__init__(cfg)
-        self._game_info = None
-        self._map_name = None
 
     def reset(self):
-        while True:
-            try:
-                observations, game_info, map_name = super(DIStarEnv, self).reset()
-                # print(game_info)
-                self.game_info = game_info
-                self.map_name = map_name
-                return observations
-            except Exception as e:
-                print("during reset SC2 env, an error happend: ", e, flush=True)
-                self.close()
+        observations, game_info, map_name = super(DIStarEnv, self).reset()
+        return observations
 
     def close(self):
         super(DIStarEnv, self).close()
@@ -33,6 +23,10 @@ class DIStarEnv(SC2Env, BaseEnv):
         # In DI-engine, the return of BaseEnv.step is ('obs', 'reward', 'done', 'info')
         # Here in DI-star, the return is ({'raw_obs': self._obs[agent_idx], 'opponent_obs': opponent_obs, 'action_result': self._action_result[agent_idx]}, reward, episode_complete)
         next_observations, reward, done = super(DIStarEnv, self).step(actions)
+        # next_observations 和 observations 格式一样
+        # reward 是 list [policy reward 1, policy reard 2]
+        # done 是 一个 bool 值
+        # TODO(zms): final_eval_reward 这局赢没赢
         info = {}
         for policy_id in range(self._num_agents):
             info[policy_id] = {'result': None}
@@ -46,17 +40,9 @@ class DIStarEnv(SC2Env, BaseEnv):
     def game_info(self):
         return self._game_info
 
-    @game_info.setter
-    def game_info(self, new_game_info):
-        self._game_info = new_game_info
-
     @property
     def map_name(self):
         return self._map_name
-
-    @map_name.setter
-    def map_name(self, new_map_name):
-        self._map_name = new_map_name
 
     @property
     def observation_space(self):
