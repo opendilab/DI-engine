@@ -4,7 +4,7 @@ The following code is adapted from https://github.com/YeWR/EfficientZero/blob/ma
 
 import copy
 import numpy as np
-from ding.utils.compression_helper import str_to_arr
+from ding.utils.compression_helper import jpeg_data_decompressor
 
 
 class Game:
@@ -150,7 +150,7 @@ class GameHistory:
                 pad_frames = np.array([frames[-1] for _ in range(pad_len)])
                 frames = np.concatenate((frames, pad_frames))
         if self.config.cvt_string:  # TODO
-            frames = [str_to_arr(obs, self.config.gray_scale) for obs in frames]
+            frames = [jpeg_data_decompressor(obs, self.config.gray_scale) for obs in frames]
         return frames
 
     def zero_obs(self):
@@ -162,7 +162,7 @@ class GameHistory:
         index = len(self.rewards)
         frames = self.obs_history[index:index + self.stacked_observations]
         if self.config.cvt_string:  # TODO
-            frames = [str_to_arr(obs, self.config.gray_scale) for obs in frames]
+            frames = [jpeg_data_decompressor(obs, self.config.gray_scale) for obs in frames]
         return frames
 
     def get_targets(self, i):

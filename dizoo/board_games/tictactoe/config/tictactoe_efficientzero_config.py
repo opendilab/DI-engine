@@ -1,3 +1,7 @@
+"""
+ding/policy/efficientzero ding/data/buffer/game_buffer
+cpp mcts python mcts
+"""
 from easydict import EasyDict
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
@@ -5,10 +9,10 @@ from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # collector_env_num=1
 # evaluator_env_num=1
 
-# TODO: now only support env_num=1, because in MCTS root node, we must assign the one same action mask, 
+# TODO: cpp mcts only support env_num=1, because in MCTS root node, we must assign the one same action mask
 # but when env_num>1, the action mask for different env may be different
-collector_env_num=2
-evaluator_env_num=2
+collector_env_num = 16
+evaluator_env_num = 5
 tictactoe_efficientzero_config = dict(
     exp_name='data_ez/tictactoe_efficientzero_seed0',
     env=dict(
@@ -16,6 +20,9 @@ tictactoe_efficientzero_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=2,
+        # 'one_player_mode' when eval, 'two_player_mode' when collect
+        # automatically assign in tictactoe env
+        battle_mode='two_player_mode',
     ),
     policy=dict(
         env_name='tictactoe',
@@ -59,9 +66,7 @@ tictactoe_efficientzero_config = dict(
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            # n_episode=8,
             n_episode=16,
-
         ),
         # command_mode config
         other=dict(

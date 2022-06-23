@@ -1,9 +1,9 @@
 import pickle
 import zlib
-
 import lz4.block
 import cv2
 import numpy as np
+
 
 def dummy_compressor(data):
     r"""
@@ -35,9 +35,24 @@ def lz4_data_compressor(data):
     return lz4.block.compress(pickle.dumps(data))
 
 
+def jpeg_data_compressor(data):
+    """
+    Overview:
+        To reduce memory usage, we can choose to store the jpeg strings of image
+        instead of the numpy array in the buffer.
+        This function encodes the observation numpy arr to the jpeg strings.
+    Arguments:
+        data (:obj:`np.array`): the observation numpy arr.
+    """
+    img_str = cv2.imencode('.jpg', data)[1].tobytes()
+
+    return img_str
+
+
 _COMPRESSORS_MAP = {
     'lz4': lz4_data_compressor,
     'zlib': zlib_data_compressor,
+    'jpeg': jpeg_data_compressor,
     'none': dummy_compressor,
 }
 
@@ -47,7 +62,7 @@ def get_data_compressor(name: str):
     Overview:
         Get the data compressor according to the input name
     Arguments:
-        - name(:obj:`str`): Name of the compressor, support ``['lz4', 'zlib', 'none']``
+        - name(:obj:`str`): Name of the compressor, support ``['lz4', 'zlib', 'jpeg', 'none']``
     Return:
         - (:obj:`Callable`): Corresponding data_compressor, taking input data returning compressed data.
     Example:
@@ -81,9 +96,31 @@ def zlib_data_decompressor(compressed_data):
     return pickle.loads(zlib.decompress(compressed_data))
 
 
+def jpeg_data_decompressor(compressed_data, gray_scale=False):
+    """
+    Overview:
+        To reduce memory usage, we can choose to store the jpeg strings of image
+        instead of the numpy array in the buffer.
+        This function decodes the observation numpy arr from the jpeg strings.
+    Arguments:
+        compressed_data (:obj:`str`): the jpeg strings.
+        gray_scale (:obj:`bool`): if the observation is gray, ``gray_scale=True``,
+            if the observation is RGB, ``gray_scale=False``.
+    """
+    nparr = np.frombuffer(compressed_data, np.uint8)
+    if gray_scale:
+        arr = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+        arr = np.expand_dims(arr, -1)
+    else:
+        arr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    return arr
+
+
 _DECOMPRESSORS_MAP = {
     'lz4': lz4_data_decompressor,
     'zlib': zlib_data_decompressor,
+    'jpeg': jpeg_data_decompressor,
     'none': dummy_decompressor,
 }
 
@@ -106,32 +143,3 @@ def get_data_decompressor(name: str):
         >>> origin_data = compressed(compressed_data)
     """
     return _DECOMPRESSORS_MAP[name]
-
-
-def arr_to_str(arr):
-    """To reduce memory usage, we choose to store the jpeg strings of image instead of the numpy array in the buffer.
-    This function encodes the observation numpy arr to the jpeg strings
-    """
-    img_str = cv2.imencode('.jpg', arr)[1].tobytes()
-
-    return img_str
-
-
-def str_to_arr(s, gray_scale=False):
-    """To reduce memory usage, we choose to store the jpeg strings of image instead of the numpy array in the buffer.
-    This function decodes the observation numpy arr from the jpeg strings
-    Parameters
-    ----------
-    s: string
-        the inputs
-    gray_scale: bool
-        True -> the inputs observation is gray not RGB.
-    """
-    nparr = np.frombuffer(s, np.uint8)
-    if gray_scale:
-        arr = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
-        arr = np.expand_dims(arr, -1)
-    else:
-        arr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    return arr

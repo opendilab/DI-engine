@@ -1,3 +1,4 @@
+
 from typing import List, Dict, Any, Tuple, Union
 import treetensor.torch as ttorch
 import torch.optim as optim
@@ -17,19 +18,9 @@ from ding.rl_utils.efficientzero.mcts_ptree import MCTS
 from ding.rl_utils.efficientzero.utils import select_action
 from ding.torch_utils import to_tensor, to_ndarray, to_dtype, to_device
 # TODO(pu): choose game config
-# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.atari.config.atari_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
-
-
-class ModifiedCrossEntropyLoss(torch.nn.Module):
-
-    def __init__(self, reduction: str = 'none'):
-        assert reduction == 'none', reduction
-        self.reduction = reduction
-
-    def forward(self, inputs, target):
-        return -(torch.log_softmax(inputs, dim=-1) * target).sum(dim=-1)
+# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 
 @POLICY_REGISTRY.register('efficientzero')
@@ -130,7 +121,7 @@ class EfficientZeroPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
         """
-        # TODO(pu): atari or tictactoe
+        # TODO(pu): atari or board_games
         if self._cfg.env_name == 'PongNoFrameskip-v4':
             return 'EfficientZeroNet_atari', ['ding.model.template.efficientzero.efficientzero_atari_model']
         elif self._cfg.env_name == 'tictactoe':
@@ -139,9 +130,6 @@ class EfficientZeroPolicy(Policy):
             return 'EfficientZeroNet_gomoku', ['ding.model.template.efficientzero.efficientzero_gomoku_model']
 
     def _init_learn(self) -> None:
-        # self._metric_loss = torch.nn.L1Loss()
-        # self._cos = torch.nn.CosineSimilarity(dim=1, eps=1e-05)
-        # self._ce = ModifiedCrossEntropyLoss(reduction='none')
         self._optimizer = optim.SGD(
             self._model.parameters(),
             lr=self._cfg.learn.learning_rate,

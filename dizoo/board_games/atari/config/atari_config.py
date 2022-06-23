@@ -26,7 +26,7 @@ game_config = EasyDict(dict(
     # num_unroll_steps=5,
     # td_steps=3,
 
-    collector_env_num=1,
+    collector_env_num=8,
     evaluator_env_num=5,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
@@ -38,8 +38,8 @@ game_config = EasyDict(dict(
     td_steps=5,
 
     # TODO
-    # revisit_policy_search_rate=1,
-    revisit_policy_search_rate=0.99,
+    revisit_policy_search_rate=1,
+    # revisit_policy_search_rate=0.99,
 
     clip_reward=False,
     use_max_priority=True,

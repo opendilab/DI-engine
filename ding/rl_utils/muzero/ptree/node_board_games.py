@@ -1,3 +1,6 @@
+"""
+The Node and Roots class for MCTS in board games in which we must consider legal_actions
+"""
 import math
 import random
 from typing import List, Any
@@ -25,15 +28,15 @@ class Node:
         self.hidden_state_index_x = 0
         self.hidden_state_index_y = 0
 
-    # def expand(self, to_play: int, legal_actions: Any, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float, policy_logits: List[float]):
-    def expand(self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float, policy_logits: List[float]):
+    def expand(self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
+               policy_logits: List[float]):
         self.to_play = to_play
         if self.legal_actions is None:
             # TODO
             self.legal_actions = np.arange(len(policy_logits))
 
         self.hidden_state_index_x = hidden_state_index_x
-        # self.hidden_state_index_y = hidden_state_index_y
+        self.hidden_state_index_y = hidden_state_index_y
         self.value_prefix = value_prefix
 
         import torch
@@ -42,16 +45,13 @@ class Node:
         for action, p in policy.items():
             self.children[action] = Node(p)
 
-        # priors = softmax(np.array(policy_logits))
-        # for a in self.legal_actions:
-            # index = len(self.ptr_node_pool)
-            # self.children_index.append(index)
-            # self.ptr_node_pool.append(
-            #     Node(prior=priors[a], legal_actions=self.legal_actions, ptr_node_pool=self.ptr_node_pool)
-            # )
-            # self.children[a] = Node(prior=priors[a], legal_actions=self.legal_actions)
-
     def add_exploration_noise(self, exploration_fraction: float, noises: List[float]):
+        """
+        Overview:
+            add exploration noise to priors
+        Arguments:
+            - noises (:obj: list): length is len(self.legal_actions)
+        """
         # for a in self.legal_actions:
         # for a in range(len(self.legal_actions)):
         for i, a in enumerate(self.legal_actions):
@@ -275,8 +275,8 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
 
 
 def ucb_score(
-    child: Node, min_max_stats, parent_mean_q, is_reset: int, total_children_visit_counts: float,
-    parent_value_prefix: float, pb_c_base: float, pb_c_init: float, discount: float
+        child: Node, min_max_stats, parent_mean_q, is_reset: int, total_children_visit_counts: float,
+        parent_value_prefix: float, pb_c_base: float, pb_c_init: float, discount: float
 ):
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))
@@ -301,24 +301,20 @@ def ucb_score(
 
 
 def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults):
-    last_action = -1
     parent_q = 0.0
     results.search_lens = [None for i in range(results.num)]
-    # results.last_actions ={i:[] for i in range(results.num)}
-    results.last_actions =[None for i in range(results.num)]
+    results.last_actions = [None for i in range(results.num)]
 
-    results.nodes=[None for i in range(results.num)]
-    results.hidden_state_index_x_lst=[None for i in range(results.num)]
-    results.hidden_state_index_y_lst=[None for i in range(results.num)]
+    results.nodes = [None for i in range(results.num)]
+    results.hidden_state_index_x_lst = [None for i in range(results.num)]
+    results.hidden_state_index_y_lst = [None for i in range(results.num)]
 
-    results.search_paths = {i:[] for i in range(results.num)}
+    results.search_paths = {i: [] for i in range(results.num)}
     for i in range(results.num):
-        node = roots.roots[i]  # TODO (zsh)
+        node = roots.roots[i]
         is_root = 1
         search_len = 0
-        # results.search_paths[i] = []
         results.search_paths[i].append(node)
-        # results.search_paths.append(node)
 
         while node.expanded:
             mean_q = node.get_mean_q(is_root, parent_q, discount)
@@ -334,20 +330,11 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
 
             parent = results.search_paths[i][len(results.search_paths[i]) - 2]
 
-            # results.hidden_state_index_x_lst.append(parent.hidden_state_index_x)
-            # results.hidden_state_index_y_lst.append(parent.hidden_state_index_y)
-            # results.last_actions.append(last_action)
-            # results.search_lens.append(search_len)
-            # results.nodes.append(node)
-            # results.last_actions[i].append(last_action)
-            # results.search_lens[i].append(search_len)
-
-            results.hidden_state_index_x_lst[i]=parent.hidden_state_index_x
-            results.hidden_state_index_y_lst[i]=parent.hidden_state_index_y
-            results.last_actions[i]=last_action
-            results.search_lens[i]=search_len
+            results.hidden_state_index_x_lst[i] = parent.hidden_state_index_x
+            results.hidden_state_index_y_lst[i] = parent.hidden_state_index_y
+            results.last_actions[i] = last_action
+            results.search_lens[i] = search_len
             results.nodes[i] = node
 
         # print(f'env {i} one simulation done!')
     return results.hidden_state_index_x_lst, results.hidden_state_index_y_lst, results.last_actions
-

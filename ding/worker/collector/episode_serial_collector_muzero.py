@@ -490,9 +490,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                     # reset the finished env and init game_histories
                     init_obses = self._env.ready_obs
-                    init_obs = init_obses[i].obs['observation']
+                    init_obs = init_obses[i]['observation']
                     init_obs = to_ndarray(init_obs)
-                    action_mask[i] = to_ndarray(init_obses[i].obs['action_mask'])
+                    action_mask[i] = to_ndarray(init_obses[i]['action_mask'])
                     game_histories[i] = GameHistory(
                         self._env.action_space,
                         max_length=self.game_config.game_history_max_length,

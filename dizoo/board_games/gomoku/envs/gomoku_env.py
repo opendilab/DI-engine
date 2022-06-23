@@ -1,3 +1,4 @@
+from ditk import logging
 import gym
 import numpy as np
 import sys
@@ -9,21 +10,21 @@ from ding.utils import ENV_REGISTRY
 
 @ENV_REGISTRY.register('gomoku')
 class GomokuEnv(BaseGameEnv):
-    def __init__(self, cfg={}):
+    def __init__(self, cfg: dict = None, board_size: int = 15):
         self.cfg = cfg
-        self.board_size = self.cfg.get('board_size', 15)
+        self.board_size = board_size
         self.players = [1, 2]
         self.board_markers = [
             str(i + 1) for i in range(self.board_size)
         ]
-        self.num_actions = self.board_size * self.board_size
+        self.total_num_actions = self.board_size * self.board_size
 
     @property
     def current_player(self):
         return self._current_player
 
     @property
-    def current_opponent_player(self):
+    def to_play(self):
         return self.players[0] if self.current_player == self.players[1] else self.players[1]
 
     @property
@@ -44,39 +45,37 @@ class GomokuEnv(BaseGameEnv):
 
         self._current_player = self.players[start_player]
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
-        self._final_eval_reward = 0.
-        # return self.current_state()
-        action_mask = np.zeros(self.num_actions, 'int8')
+        action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
         obs = {'observation': self.current_state(), 'action_mask': action_mask}
-        return BaseEnvTimestep(obs, None, None, None)
+        return obs
 
     def step(self, action):
-        curr_player = self.current_player
-        next_player = self.current_opponent_player
         if action in self.legal_actions:
             row, col = self.action_to_coord(action)
             self.board[row, col] = self.current_player
-            self._current_player = self.current_opponent_player
         else:
-            print("Error: input illegal action, we randomly choice a action from self.legal_actions!")
-            action = self.random_action()
+            logging.warning(
+                f"You input illegal action: {action}, the legal_actions are {self.legal_actions}. "
+                f"Now we randomly choice a action from self.legal_actions."
+            )
+            action = np.random.choice(self.legal_actions)
             row, col = self.action_to_coord(action)
             self.board[row, col] = self.current_player
-            self._current_player = self.current_opponent_player
-            # sys.exit(-1)
 
+        # Check whether the game is ended or not and give the winner
         done, winner = self.have_winner()
 
-        reward = int((winner == curr_player))
-        info = {'next player to play': next_player}
+        reward = np.array(float(winner == self.current_player)).astype(np.float32)
+        info = {'next player to play': self.to_play}
+        # NOTE: exchange the player
+        self.current_player = self.to_play
 
         if done:
-            self._final_eval_reward = reward
-            info['final_eval_reward'] = self._final_eval_reward
-            print('gomoku one episode done: ', info)
+            info['final_eval_reward'] = reward
+            # print('gomoku one episode done: ', info)
 
-        action_mask = np.zeros(self.num_actions, 'int8')
+        action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
         obs = {'observation': self.current_state(), 'action_mask': action_mask}
         return BaseEnvTimestep(obs, reward, done, info)
@@ -88,24 +87,27 @@ class GomokuEnv(BaseGameEnv):
             1 indicates that player 1's stone is placed here, 2 indicates player 2's stone is placed here
         Arguments:
             - obs (:obj:`array`): the 0 dim means which positions is occupied by self.current_player,
-                the 1 dim indicates which positions are occupied by self.current_opponent_player,
+                the 1 dim indicates which positions are occupied by self.to_play,
                 the 2 dim indicates which player is the to_play player, 1 means player 1, 2 means player 2
         """
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
-        board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
+        board_opponent_player = np.where(self.board == self.to_play, 1, 0)
         board_to_play = np.full((self.board_size, self.board_size), self.current_player)
         return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
 
     def coord_to_action(self, i, j):
         """
-        convert coordinate i, j to action a in [0, board_size**2)
+        Overview:
+            convert coordinate i, j to action index a in [0, board_size**2)
         """
-        a = i * self.board_size + j  # action index
-        return a
+        return i * self.board_size + j
 
     def action_to_coord(self, a):
-        coord = (a // self.board_size, a % self.board_size)
-        return coord
+        """
+        Overview:
+            convert action index a in [0, board_size**2) to coordinate (i, j)
+        """
+        return a // self.board_size, a % self.board_size
 
     def have_winner(self):
         has_legal_actions = False
@@ -147,33 +149,15 @@ class GomokuEnv(BaseGameEnv):
         action_list = self.legal_actions
         return np.random.choice(action_list)
 
-    def render(self):
-        marker = "   "
-        for i in range(self.board_size):
-            if i <= 8:
-                marker = marker + self.board_markers[i] + "  "
-            else:
-                marker = marker + self.board_markers[i] + " "
-        print(marker)
-        for row in range(self.board_size):
-            if row <= 8:
-                print(str(1 + row) + ' ', end=" ")
-            else:
-                print(str(1 + row), end=" ")
-            for col in range(self.board_size):
-                ch = self.board[row][col]
-                if ch == 0:
-                    print(".", end="  ")
-                elif ch == 1:
-                    print("X", end="  ")
-                elif ch == 2:
-                    print("O", end="  ")
-            print()
+    def expert_action(self):
+        # TODO
+        pass
 
     def human_to_action(self):
         """
-        For multiplayer games, ask the user for a legal action
-        and return the corresponding action number.
+        Overview:
+            For multiplayer games, ask the user for a legal action
+            and return the corresponding action number.
         Returns:
             An integer from the action space.
         """
@@ -207,43 +191,41 @@ class GomokuEnv(BaseGameEnv):
                 print("Wrong input, try again")
         return choice
 
+    def render(self, mode="human"):
+        marker = "   "
+        for i in range(self.board_size):
+            if i <= 8:
+                marker = marker + self.board_markers[i] + "  "
+            else:
+                marker = marker + self.board_markers[i] + " "
+        print(marker)
+        for row in range(self.board_size):
+            if row <= 8:
+                print(str(1 + row) + ' ', end=" ")
+            else:
+                print(str(1 + row), end=" ")
+            for col in range(self.board_size):
+                ch = self.board[row][col]
+                if ch == 0:
+                    print(".", end="  ")
+                elif ch == 1:
+                    print("X", end="  ")
+                elif ch == 2:
+                    print("O", end="  ")
+            print()
+
     def action_to_string(self, action_number):
         """
-        Convert an action number to a string representing the action.
-
-        Args:
-            action_number: an integer from the action space.
+        Overview:
+            Convert an action number to a string representing the action.
+        Arguments:
+            - action_number: an integer from the action space.
         Returns:
-            String representing the action.
+            - String representing the action.
         """
         row = action_number // self.board_size + 1
         col = action_number % self.board_size + 1
         return f"Play row {row}, column {col}"
-
-    def get_equi_data(self, play_data):
-        """augment the data set by rotation and flipping
-        play_data: [(state, mcts_prob, winner_z), ..., ...]
-        """
-        extend_data = []
-        for data in play_data:
-            state = data['state']
-            mcts_prob = data['mcts_prob']
-            winner = data['winner']
-            for i in [1, 2, 3, 4]:
-                # rotate counterclockwise
-                equi_state = np.array([np.rot90(s, i) for s in state])
-                equi_mcts_prob = np.rot90(np.flipud(
-                    mcts_prob.reshape(self.board_size, self.board_size)), i)
-                extend_data.append({'state': equi_state,
-                                    'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
-                                    'winner': winner})
-                # flip horizontally
-                equi_state = np.array([np.fliplr(s) for s in equi_state])
-                equi_mcts_prob = np.fliplr(equi_mcts_prob)
-                extend_data.append({'state': equi_state,
-                                    'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
-                                    'winner': winner})
-        return extend_data
 
     @property
     def observation_space(self) -> gym.spaces.Space:
@@ -260,6 +242,10 @@ class GomokuEnv(BaseGameEnv):
     def close(self) -> None:
         pass
 
+    @current_player.setter
+    def current_player(self, value):
+        self._current_player = value
+
     def __repr__(self) -> str:
         return "DI-engine Gomoku Env"
-        
+

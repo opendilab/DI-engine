@@ -5,7 +5,7 @@ from dizoo.board_games.atari.config.atari_config import game_config
 # collector_env_num=1
 # evaluator_env_num=1
 
-collector_env_num=1
+collector_env_num=8
 evaluator_env_num=5
 atari_efficientzero_config = dict(
     exp_name='data_ez/pong_efficientzero_seed0_upc50',
@@ -21,6 +21,7 @@ atari_efficientzero_config = dict(
         episode_life=True,
         gray_scale=False,
         cvt_string=False,  # TODO(pu)
+        game_wrapper=True,
     ),
     policy=dict(
         env_name='PongNoFrameskip-v4',
@@ -58,7 +59,6 @@ atari_efficientzero_config = dict(
             # batch_size=8,
             update_per_collect=50,
             batch_size=256,
-            # learning_rate=1e-3,
             learning_rate=0.02,
             # Frequency of target network update.
             target_update_freq=200,
@@ -67,7 +67,7 @@ atari_efficientzero_config = dict(
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            n_episode=1,
+            n_episode=collector_env_num,
         ),
         # command_mode config
         other=dict(
@@ -89,7 +89,7 @@ main_config = atari_efficientzero_config
 atari_efficientzero_create_config = dict(
     env=dict(
         type='atari-muzero',
-        import_names=['dizoo.board_games.atari.envs.atari_muzero_env'],
+        import_names=['dizoo.atari.envs.atari_muzero_env'],
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),

@@ -95,9 +95,6 @@ def serial_pipeline_muzero(
     # Learner's before_run hook.
     learner.call_hook('before_run')
 
-    # Accumulate plenty of data at the beginning of training.
-    # if cfg.policy.get('random_collect_size', 0) > 0:
-    #     random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     while True:
         collect_kwargs = commander.step()
         # set temperature for distributions
@@ -117,22 +114,22 @@ def serial_pipeline_muzero(
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            # try:
-            train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
-            # except Exception as exception:
-            #     print(exception)
-            #     print(f'The data in replay_buffer is not sufficient to sample a minibatch: \
-            #         batch_size: {replay_buffer.get_batch_size()} \
-            #     num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_historys()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
-            #         continue to collect now ....')
-            #     break
-            if train_data is None:
-                # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
-                logging.warning(
-                    "Replay buffer's data can only train for {} steps. ".format(i) +
-                    "You can modify data collect config, e.g. increasing n_sample, n_episode."
-                )
+            try:
+                train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
+            except Exception as exception:
+                print(exception)
+                logging.warning(f'The data in replay_buffer is not sufficient to sample a minibatch: \
+                    batch_size: {replay_buffer.get_batch_size()} \
+                num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_historys()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
+                    continue to collect now ....')
                 break
+            # if train_data is None:
+            #     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
+            #     logging.warning(
+            #         "Replay buffer's data can only train for {} steps. ".format(i) +
+            #         "You can modify data collect config, e.g. increasing n_sample, n_episode."
+            #     )
+            #     break
             learner.train(train_data, collector.envstep)
             # if learner.policy.get_attribute('priority'):
             #     replay_buffer.update(learner.priority_info)

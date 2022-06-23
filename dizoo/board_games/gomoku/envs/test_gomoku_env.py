@@ -33,6 +33,3 @@ class TestGomokuEnv:
                 else:
                     print('draw')
                 break
-
-test = TestGomokuEnv()
-test.test_naive()

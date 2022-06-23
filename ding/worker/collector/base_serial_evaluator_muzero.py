@@ -202,7 +202,7 @@ class BaseSerialEvaluatorMuZero(object):
         # initializations
         init_obses = self._env.ready_obs
         init_obses = to_tensor(init_obses, dtype=torch.float32)
-        action_mask = [init_obses[i].obs['action_mask'] for i in range(env_nums)]
+        action_mask = [init_obses[i]['action_mask'] for i in range(env_nums)]
         dones = np.array([False for _ in range(env_nums)])
 
         game_histories = [
@@ -211,7 +211,7 @@ class BaseSerialEvaluatorMuZero(object):
         ]
         for i in range(env_nums):
             game_histories[i].init(
-                [to_ndarray(init_obses[i].obs['observation']) for _ in range(self.game_config.stacked_observations)]
+                [to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.stacked_observations)]
             )
 
         ep_ori_rewards = np.zeros(env_nums)
@@ -267,13 +267,13 @@ class BaseSerialEvaluatorMuZero(object):
 
                         # reset the finished env
                         init_obses = self._env.ready_obs
-                        action_mask[i] = to_ndarray(init_obses[i].obs['action_mask'])
+                        action_mask[i] = to_ndarray(init_obses[i]['action_mask'])
                         game_histories[i] = GameHistory(
                             self._env.action_space,
                             max_length=self.game_config.game_history_max_length,
                             config=self.game_config
                         )
-                        game_histories[i].init([init_obses[i].obs['observation'] for _ in range(self.game_config.stacked_observations)])
+                        game_histories[i].init([init_obses[i]['observation'] for _ in range(self.game_config.stacked_observations)])
 
                     envstep_count += 1
         duration = self._timer.value
