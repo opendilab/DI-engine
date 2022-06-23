@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Union, Any, List, Callable, Dict, Optional
 from collections import namedtuple
 import random
+from numpy import append
 import torch
 import treetensor.numpy as tnp
 from easydict import EasyDict
@@ -10,6 +11,7 @@ from ding.torch_utils import to_device
 from ding.league.player import PlayerMeta
 from ding.league.v2 import BaseLeague, Job
 from ding.framework.storage import FileStorage
+from ding.policy import PPOPolicy
 from dizoo.distar.envs.distar_env import DIStarEnv
 from dizoo.distar.policy.distar_policy import DIStarPolicy
 from ding.envs import BaseEnvManager
@@ -186,6 +188,15 @@ class DIStarMockPolicy(DIStarPolicy):
         return DIStarEnv.random_action(data)
 
 
+class DIStarMockPPOPolicy(PPOPolicy):
+
+    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        pass
+
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        return DIStarEnv.random_action(data)
+
+
 class DIstarCollectMode:
 
     def __init__(self) -> None:
@@ -237,29 +248,14 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
 
         # Get current env obs.
         obs = env.ready_obs
-        # {
-        #     env_id: {
-        #         policy_id:{
-        #             'raw_obs': <class 's2clientprotocol.sc2api_pb2.ResponseObservation'>
-        #             'opponent_obs': <class 's2clientprotocol.sc2api_pb2.ResponseObservation'>
-        #             'action_result': <class 'google.protobuf.pyext._message.RepeatedScalarContainer'>
-        #         }
-        #     }
-        # }
-
-        # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
-        # 如果每个 actor 只有一个 env, 下面这部分代码可以全部去掉
-        new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
-        ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
-        ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
-        obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
+        assert isinstance(obs, dict)
 
         ctx.obs = obs
 
         # Policy forward.
         inference_output = {}
         actions = {}
-        for env_id in ctx.ready_env_id:
+        for env_id in ctx.obs.keys():
             observations = obs[env_id]
             inference_output[env_id] = {}
             actions[env_id] = {}
@@ -268,15 +264,6 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
                 output = ctx.current_policies[policy_id].forward(policy_obs)
                 inference_output[env_id][policy_id] = output
                 actions[env_id][policy_id] = output['action']
-        #  aciton[env_id][policy_id] = {
-        #     'func_id': func_id,
-        #     'skip_steps': random.randint(0, MAX_DELAY - 1),
-        #     # 'skip_steps': 8,
-        #     'queued': random.randint(0, 1),
-        #     'unit_tags': unit_tags,
-        #     'target_unit_tag': target_unit_tag,
-        #     'location': (random.randint(0, SPATIAL_SIZE[0] - 1), random.randint(0, SPATIAL_SIZE[1] - 1))
-        # }
         ctx.inference_output = inference_output
         ctx.actions = actions
 
@@ -287,10 +274,10 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
-        #
 
         ctx.total_envstep_count += len(timesteps)
         ctx.env_step += len(timesteps)
+
         # for env_id, timestep in timesteps.items():
         # TODO(zms): make sure a standard
         # 这里 timestep 是 一个 env_num 长的 list，但是每次step真的会返回所有 env 的 timestep 吗？（需要确认）是就用 dict，否就用 list
@@ -301,22 +288,23 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                 # ctx.total_envstep_count -= transitions_list[0].length(env_id)
                 # ctx.env_step -= transitions_list[0].length(env_id)
 
-                # TODO(zms): 如果要有available_env_id 的话，这里也要更新
-                for transitions in transitions_list:
-                    transitions.clear_newest_episode(env_id)
+                for policy_id, _ in enumerate(ctx.current_policies):
+                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    ctx.current_policies[policy_id].reset([env_id])
                 continue
 
+            append_succeed = True
             for policy_id, _ in enumerate(ctx.current_policies):
                 transition = ctx.current_policies[policy_id].process_transition(timestep)
                 transition = EasyDict(transition)
                 transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
-                transitions_list[policy_id].append(env_id, transition)
+                append_succeed = transitions_list[policy_id].append(env_id, transition)
                 if timestep.done:
                     ctx.current_policies[policy_id].reset([env_id])
-                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
+                    if append_succeed:
+                        ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
-            if timestep.done:
-                ctx.ready_env_id.remove(env_id)
+            if timestep.done and append_succeed:
                 ctx.env_episode += 1
 
     return _battle_rolloutor

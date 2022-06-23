@@ -4,7 +4,7 @@ from copy import deepcopy
 from ding.envs import BaseEnvManager, EnvSupervisor
 from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
-from ding.framework.middleware.tests.league_config import cfg
+from dizoo.distar.config import distar_cfg
 from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
@@ -20,10 +20,10 @@ from ding.framework import EventEnum
 from distar.ctools.utils import read_config
 from ding.model import VAC
 
-from ding.framework.middleware.tests import DIStarMockPolicy, DIStarMockPolicyCollect, \
+from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect, \
     battle_inferencer_for_distar, battle_rolloutor_for_distar
 
-cfg = deepcopy(cfg)
+cfg = deepcopy(distar_cfg)
 env_cfg = read_config('./test_distar_config.yaml')
 
 
@@ -46,7 +46,7 @@ class PrepareTest():
     @classmethod
     def policy_fn(cls):
         model = VAC(**cfg.policy.model)
-        policy = DIStarMockPolicy(cfg.policy, model=model)
+        policy = DIStarMockPPOPolicy(cfg.policy, model=model)
         return policy
 
     @classmethod

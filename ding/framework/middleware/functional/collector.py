@@ -114,7 +114,6 @@ class BattleTransitionList:
         if num_tail_transitions > 0:
             trajectory = episode[-self._unroll_len:]
             if len(trajectory) < self._unroll_len:
-                # TODO(zms): 少于 64 直接删
                 initial_elements = []
                 for _ in range(self._unroll_len - len(trajectory)):
                     initial_elements.append(trajectory[0])
@@ -135,7 +134,7 @@ class BattleTransitionList:
             self._done_episode[env_id].pop()
         return len_newest_episode
 
-    def append(self, env_id: int, transition: Any) -> None:
+    def append(self, env_id: int, transition: Any) -> bool:
         # If previous episode is done, we create a new episode
         if len(self._done_episode[env_id]) == 0 or self._done_episode[env_id][-1] is True:
             self._transitions[env_id].append([])
@@ -143,6 +142,12 @@ class BattleTransitionList:
         self._transitions[env_id][-1].append(transition)
         if transition.done:
             self._done_episode[env_id][-1] = True
+            if len(self._transitions[env_id][-1]) < self._unroll_len:
+                newest_episode = self._transitions[env_id].pop()
+                newest_episode.clear()
+                self._done_episode[env_id].pop()
+                return False
+        return True
 
     def clear(self):
         for item in self._transitions:

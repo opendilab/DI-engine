@@ -267,7 +267,6 @@ class StepLeagueActor:
 
         ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(self.agent_num)]
-        ctx.remain_episode = ctx.n_episode
 
         while True:
             time_begin = time.time()
