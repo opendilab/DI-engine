@@ -1,8 +1,10 @@
-from distar.envs.env import SC2Env
-
 from ding.envs import BaseEnv, BaseEnvTimestep
+
+from distar.envs.env import SC2Env
+from distar.envs.map_info import get_map_size
 from distar.agent.default.lib.features import MAX_DELAY, SPATIAL_SIZE, MAX_SELECTED_UNITS_NUM
 from distar.pysc2.lib.action_dict import ACTIONS_STAT
+
 import torch
 import random
 
@@ -14,6 +16,13 @@ class DIStarEnv(SC2Env, BaseEnv):
 
     def reset(self):
         observations, game_info, map_name = super(DIStarEnv, self).reset()
+        map_size = get_map_size(map_name)
+
+        for policy_id, policy_obs in observations.items():
+            policy_obs['game_info'] = game_info[policy_id]
+            policy_obs['map_name'] = map_name
+            policy_obs['map_size'] = map_size
+
         return observations
 
     def close(self):
