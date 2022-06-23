@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Union, Any, List, Callable, Dict, Optional
 from collections import namedtuple
 import random
-from numpy import append
 import torch
 import treetensor.numpy as tnp
 from easydict import EasyDict
@@ -280,7 +279,7 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
         # for env_id, timestep in timesteps.items():
         # TODO(zms): make sure a standard
-        # 这里 timestep 是 一个 env_num 长的 list，但是每次step真的会返回所有 env 的 timestep 吗？（需要确认）是就用 dict，否就用 list
+        # If for each step, the env manager can't get the obs of all envs, we need to use dict here.
         for env_id, timestep in enumerate(timesteps):
             if timestep.info.get('abnormal'):
                 # TODO(zms): cannot get exact env_step of a episode because for each observation,
@@ -288,6 +287,7 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                 # ctx.total_envstep_count -= transitions_list[0].length(env_id)
                 # ctx.env_step -= transitions_list[0].length(env_id)
 
+                # 1st case when env step has bug and need to reset.
                 for policy_id, _ in enumerate(ctx.current_policies):
                     transitions_list[policy_id].clear_newest_episode(env_id)
                     ctx.current_policies[policy_id].reset([env_id])
@@ -298,13 +298,18 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                 transition = ctx.current_policies[policy_id].process_transition(timestep)
                 transition = EasyDict(transition)
                 transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
-                append_succeed = transitions_list[policy_id].append(env_id, transition)
+
+                # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
+                append_succeed = append_succeed and transitions_list[policy_id].append(env_id, transition)
                 if timestep.done:
                     ctx.current_policies[policy_id].reset([env_id])
-                    if append_succeed:
-                        ctx.episode_info[policy_id].append(timestep.info[policy_id])
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
-            if timestep.done and append_succeed:
+            if not append_succeed:
+                for policy_id, _ in enumerate(ctx.current_policies):
+                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    ctx.episode_info[policy_id].pop()
+            elif timestep.done:
                 ctx.env_episode += 1
 
     return _battle_rolloutor
