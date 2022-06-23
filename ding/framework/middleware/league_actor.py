@@ -1,5 +1,5 @@
 from ding.framework import task, EventEnum
-import logging
+from ditk import logging
 
 from typing import TYPE_CHECKING, Dict, Callable
 from ding.league import player
@@ -12,6 +12,8 @@ from threading import Lock
 import queue
 from easydict import EasyDict
 import time
+
+from ding.utils.sparse_logging import log_every_sec
 
 if TYPE_CHECKING:
     from ding.league.v2.base_league import Job
@@ -42,7 +44,7 @@ class LeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
-        print("Actor {} receive model from learner \n".format(task.router.node_id), flush=True)
+        log_every_sec(logging.INFO, 5, "[Actor {}] receive model from learner \n".format(task.router.node_id))
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -86,7 +88,7 @@ class LeagueActor:
         try:
             job = self.job_queue.get(timeout=10)
         except queue.Empty:
-            logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
+            logging.warning("[Actor {}] no Job got from coordinator".format(task.router.node_id))
 
         return job
 
@@ -97,7 +99,7 @@ class LeagueActor:
             current_policies.append(self._get_policy(player))
             if player.player_id == job.launch_player:
                 main_player = player
-        assert main_player, "can not find active player, on actor: {}".format(task.router.node_id)
+        assert main_player, "[Actor {}] cannot find active player.".format(task.router.node_id)
 
         if current_policies is not None:
             assert len(current_policies) > 1, "battle collector needs more than 1 policies"
@@ -121,7 +123,9 @@ class LeagueActor:
         main_player, ctx.current_policies = self._get_current_policies(job)
 
         ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
-        assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
+        assert ctx.n_episode >= self.env_num, "[Actor {}] Please make sure n_episode >= env_num".format(
+            task.router.node_id
+        )
 
         ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(self.agent_num)]
@@ -141,8 +145,9 @@ class LeagueActor:
                 job.launch_player] != 0 else 0
             envstep_passed = ctx.total_envstep_count - old_envstep
             real_time_speed = envstep_passed / (time_end - time_begin)
-            print(
-                'in actor {}, total_env_step:{}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
+            log_every_sec(
+                logging.INFO, 5,
+                '[Actor {}] total_env_step:{}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
                 .format(
                     task.router.node_id, ctx.total_envstep_count, ctx.env_step, total_collect_speed, real_time_speed
                 )
@@ -182,7 +187,9 @@ class StepLeagueActor:
         """
         If get newest learner model, put it inside model_queue.
         """
-        print('Actor {} recieved model {} \n'.format(task.router.node_id, learner_model.player_id), flush=True)
+        log_every_sec(
+            logging.INFO, 5, '[Actor {}] recieved model {}'.format(task.router.node_id, learner_model.player_id)
+        )
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
 
@@ -225,7 +232,7 @@ class StepLeagueActor:
         try:
             job = self.job_queue.get(timeout=10)
         except queue.Empty:
-            logging.warning("For actor {}, no Job get from coordinator".format(task.router.node_id))
+            logging.warning("[Actor {}] no Job got from coordinator.".format(task.router.node_id))
 
         return job
 
@@ -236,14 +243,16 @@ class StepLeagueActor:
             current_policies.append(self._get_policy(player))
             if player.player_id == job.launch_player:
                 main_player = player
-        assert main_player, "can not find active player, on actor: {}".format(task.router.node_id)
+        assert main_player, "[Actor {}] can not find active player.".format(task.router.node_id)
 
         if current_policies is not None:
-            assert len(current_policies) > 1, "battle collector needs more than 1 policies"
+            assert len(current_policies) > 1, "[Actor {}] battle collector needs more than 1 policies".format(
+                task.router.node_id
+            )
             for p in current_policies:
                 p.reset()
         else:
-            raise RuntimeError('current_policies should not be None')
+            raise RuntimeError('[Actor {}] current_policies should not be None'.format(task.router.node_id))
 
         return main_player, current_policies
 
@@ -252,7 +261,9 @@ class StepLeagueActor:
         job = self._get_job()
         if job is None:
             return
-        print('For actor {}, a job {} begin \n'.format(task.router.node_id, job.launch_player), flush=True)
+        log_every_sec(
+            logging.INFO, 5, '[Actor {}] job of player {} begins.'.format(task.router.node_id, job.launch_player)
+        )
 
         ctx.player_id_list = [player.player_id for player in job.players]
         self.agent_num = len(job.players)
@@ -261,7 +272,9 @@ class StepLeagueActor:
         main_player, ctx.current_policies = self._get_current_policies(job)
 
         ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
-        assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
+        assert ctx.n_episode >= self.env_num, "[Actor {}] Please make sure n_episode >= env_num".format(
+            task.router.node_id
+        )
 
         ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(self.agent_num)]
@@ -272,19 +285,20 @@ class StepLeagueActor:
             old_envstep = ctx.total_envstep_count
             collector(ctx)
 
-            # print(ctx.trajectories_list)
             # ctx.trajectories_list[0] for policy_id 0
             # ctx.trajectories_list[0][0] for first env
             if len(ctx.trajectories_list[0]) > 0:
                 for traj in ctx.trajectories_list[0][0].trajectories:
                     assert len(traj) == self.unroll_len + 1
             if ctx.job_finish is True:
-                print('we finish the job !')
+                logging.info('[Actor {}] finish current job !'.format(task.router.node_id))
                 assert len(ctx.trajectories_list[0][0].trajectories) > 0
             # TODO(zms): 判断是不是main_player
             if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
                 trajectories = ctx.trajectories_list[0]
-                print('actor {}, {} envs send traj '.format(task.router.node_id, len(trajectories)), flush=True)
+                log_every_sec(
+                    logging.INFO, 5, '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
+                )
                 meta_data = ActorDataMeta(
                     player_total_env_step=ctx.total_envstep_count,
                     actor_id=task.router.node_id,
@@ -292,7 +306,7 @@ class StepLeagueActor:
                 )
                 actor_data = ActorData(meta=meta_data, train_data=trajectories)
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
-                print('Actor {} send data\n'.format(task.router.node_id), flush=True)
+                log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
 
             ctx.trajectories_list = []
             time_end = time.time()
@@ -301,16 +315,17 @@ class StepLeagueActor:
                 job.launch_player] != 0 else 0
             envstep_passed = ctx.total_envstep_count - old_envstep
             real_time_speed = envstep_passed / (time_end - time_begin)
-            print(
-                'in actor {}, total_env_step: {}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
+            log_every_sec(
+                logging.INFO, 5,
+                '[Actor {}] total_env_step: {}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
                 .format(
                     task.router.node_id, ctx.total_envstep_count, ctx.env_step, total_collect_speed, real_time_speed
                 )
             )
 
             if ctx.job_finish is True:
-                job.result = None
+                job.result = [['wins']]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
-                print('Actor {} job finish, send job\n'.format(task.router.node_id), flush=True)
+                logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
                 break

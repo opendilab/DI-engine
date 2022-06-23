@@ -111,4 +111,4 @@ class BattleContext(Context):
         self.trajectories_list = []
         self.train_data = None
 
-        self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')
+        self.keep('train_iter')

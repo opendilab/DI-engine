@@ -7,6 +7,7 @@ import re
 from torch._six import string_classes
 import collections.abc as container_abcs
 from ding.compatibility import torch_ge_131
+from easydict import EasyDict
 
 int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
@@ -62,6 +63,13 @@ def default_collate(
     """
     elem = batch[0]
 
+    # if isinstance(elem, dict):
+    #     for key, val in elem.items():
+    #         if isinstance(val, torch.Tensor):
+    #             print("{}: {}".format(key, print(val.size())))
+    #         elif isinstance(val, EasyDict):
+    #             print("{}: {}".format(key, val.keys()))
+
     elem_type = type(elem)
     if isinstance(batch, ttorch.Tensor):
         return batch.json()
@@ -75,6 +83,9 @@ def default_collate(
             out = elem.new(storage)
         if elem.shape == (1, ) and cat_1dim:
             # reshape (B, 1) -> (B)
+            # print("debug:", batch)
+            # print("debug:", len(batch))
+            # print("debug:", len(batch[0]))
             return torch.cat(batch, dim, out=out)
             # return torch.stack(batch, 0, out=out)
         else:

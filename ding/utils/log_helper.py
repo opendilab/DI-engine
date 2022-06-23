@@ -1,7 +1,7 @@
 import json
 from ditk import logging
 import os
-from typing import Optional, Tuple, Union, Dict, Any
+from typing import Callable, Optional, Tuple, Union, Dict, Any
 
 import ditk.logging
 import numpy as np

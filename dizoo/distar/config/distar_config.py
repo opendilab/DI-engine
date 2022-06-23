@@ -48,7 +48,7 @@ distar_cfg = EasyDict(
                 },
                 'multi_gpu': False,
                 'epoch_per_collect': 10,
-                'batch_size': 16,
+                'batch_size': 3,
                 'learning_rate': 1e-05,
                 'value_weight': 0.5,
                 'entropy_weight': 0.0,
@@ -105,7 +105,7 @@ distar_cfg = EasyDict(
                     'player_category': ['default'],
                     'path_policy': 'league_demo/ckpt',
                     'active_players': {
-                        'main_player': 2
+                        'main_player': 1
                     },
                     'main_player': {
                         'one_phase_step': 10,  # 20

@@ -66,8 +66,7 @@ class PrepareTest():
 
 
 def main():
-    logging.disable(logging.WARNING)
-    # cfg, env_fn, policy_fn, collect_policy_fn = prepare_test()
+    logging.getLogger().setLevel(logging.INFO)
     league = BaseLeague(cfg.policy.other.league)
     N_PLAYERS = len(league.active_players_ids)
     print("League: n_players =", N_PLAYERS)
@@ -97,8 +96,8 @@ def main():
 
 @pytest.mark.unittest
 def test_league_pipeline():
-    Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(main)
 
 
 if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(main)

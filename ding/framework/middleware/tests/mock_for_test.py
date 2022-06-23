@@ -179,7 +179,7 @@ class MockLogger():
 class DIStarMockPolicy(DIStarPolicy):
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        print("Call forward_learn:")
+        print("Call forward_learn:", flush=True)
         return super()._forward_learn(data)
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
