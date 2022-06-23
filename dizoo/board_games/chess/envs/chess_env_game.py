@@ -9,7 +9,7 @@ from pettingzoo.classic.chess import chess_utils
 import numpy as np
 import sys
 from dizoo.board_games.base_game_env import BaseGameEnv
-from ding.envs import  BaseEnvTimestep
+from ding.envs import BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 
 
@@ -27,8 +27,8 @@ class ChessEnv(BaseGameEnv):
 
         self._agent_selector = agent_selector(self.agents)
 
-        self.action_spaces = {name: spaces.Discrete(8 * 8 * 73) for name in self.agents}
-        self.observation_spaces = {name: spaces.Dict({
+        self._action_spaces = {name: spaces.Discrete(8 * 8 * 73) for name in self.agents}
+        self._observation_spaces = {name: spaces.Dict({
             'observation': spaces.Box(low=0, high=1, shape=(8, 8, 111), dtype=bool),
             'action_mask': spaces.Box(low=0, high=1, shape=(4672,), dtype=np.int8)
         }) for name in self.agents}
@@ -62,7 +62,6 @@ class ChessEnv(BaseGameEnv):
         self.infos = {name: {} for name in self.agents}
 
         self.board_history = np.zeros((8, 8, 104), dtype=bool)
-
         self.current_player_index = 0
 
         for agent, reward in self.rewards.items():
@@ -72,12 +71,12 @@ class ChessEnv(BaseGameEnv):
         current_index = self.agents.index(agent)
         self.current_player_index = current_index
         obs = self.observe(agent)
-        return BaseEnvTimestep(obs, None, None, None)
+        return obs
 
     def observe(self, agent):
         observation = chess_utils.get_observation(self.board, self.possible_agents.index(agent))
         observation = np.dstack((observation[:, :, :7], self.board_history))
-        action_mask = self.legal_actions()
+        action_mask = self.legal_actions
 
         return {'observation': observation, 'action_mask': action_mask}
 
@@ -129,6 +128,7 @@ class ChessEnv(BaseGameEnv):
 
         return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
 
+    @property
     def legal_actions(self):
         action_mask = np.zeros(4672, 'uint8')
         action_mask[chess_utils.legal_moves(self.board)] = 1
@@ -136,21 +136,15 @@ class ChessEnv(BaseGameEnv):
 
     def legal_moves(self):
         legal_moves = chess_utils.legal_moves(self.board)
-
         return legal_moves
-
-    def observation_space(self):
-        return self.observation_spaces
-
-    def action_space(self):
-        return self.action_spaces
 
     def random_action(self):
         action_list = self.legal_moves()
         return np.random.choice(action_list)
 
-    def render(self, mode='human'):
-        print(self.board)
+    def expert_action(self):
+        # TODO
+        pass
 
     def human_to_action(self):
         """
@@ -175,23 +169,28 @@ class ChessEnv(BaseGameEnv):
                 print("Wrong input, try again")
         return choice
 
-    def action_to_string(self, action_number):
-        """
-        Convert an action number to a string representing the action.
-        Args:
-            action_number: an integer from the action space.
-        Returns:
-            String representing the action.
-        """
-        return str(action_number)
+    def render(self, mode='human'):
+        print(self.board)
 
-    def close(self) -> None:
-        pass
+    @property
+    def observation_space(self):
+        return self._observation_spaces
+
+    @property
+    def action_space(self):
+        return self._action_spaces
+
+    @property
+    def reward_space(self):
+        return self._reward_space
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
+
+    def close(self) -> None:
+        pass
 
     def __repr__(self) -> str:
         return "DI-engine Chess Env"

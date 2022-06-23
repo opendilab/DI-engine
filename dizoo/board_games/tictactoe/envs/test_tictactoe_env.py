@@ -9,7 +9,6 @@ class TestTicTacToeEnv:
         env.reset()
         print('init board state: ')
         env.render()
-        done = False
         while True:
             """player 1"""
             # action = env.human_to_action()

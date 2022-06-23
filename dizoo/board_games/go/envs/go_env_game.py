@@ -41,13 +41,13 @@ class GoEnv(BaseGameEnv):
 
         self.screen = None
 
-        self.observation_spaces = self._convert_to_dict(
+        self._observation_space = self._convert_to_dict(
             [spaces.Dict({'observation': spaces.Box(low=0, high=1, shape=(self._N, self._N, 17), dtype=bool),
                           'action_mask': spaces.Box(low=0, high=1, shape=((self._N * self._N) + 1,),
                                                     dtype=np.int8)})
              for _ in range(self.num_agents)])
 
-        self.action_spaces = self._convert_to_dict(
+        self._action_space = self._convert_to_dict(
             [spaces.Discrete(self._N * self._N + 1) for _ in range(self.num_agents)])
 
         self._agent_selector = agent_selector(self.agents)
@@ -104,6 +104,7 @@ class GoEnv(BaseGameEnv):
     def current_player(self):
         return self.current_player_index
 
+    @property
     def to_play(self):
         return self.current_player_index
 
@@ -130,10 +131,9 @@ class GoEnv(BaseGameEnv):
         current_index = self.agents.index(agent)
         self.current_player_index = current_index
         obs = self.observe(agent)
-        return BaseEnvTimestep(obs, None, None, None)
+        return obs
 
     def observe(self, agent):
-        # current_agent_plane, opponent_agent_plane = self._encode_board_planes(agent)
         player_plane = self._encode_player_plane(agent)
         observation = np.dstack((self.board_history, player_plane))
         legal_moves = self.next_legal_moves if agent == self.agent_selection else []
@@ -193,6 +193,37 @@ class GoEnv(BaseGameEnv):
             self.next_legal_moves = self._encode_legal_actions(self._go.all_legal_moves())
 
         return self.next_legal_moves
+
+    def random_action(self):
+        action_list = self.legal_moves()
+        return np.random.choice(action_list)
+
+    def expert_action(self):
+        # TODO
+        pass
+
+    def human_to_action(self):
+        """
+        For multiplayer games, ask the user for a legal action
+        and return the corresponding action number.
+        Returns:
+            An integer from the action space.
+        """
+        while True:
+            try:
+                print(f"Current available actions for the player {self.to_play()} are:{self.legal_moves()}")
+                choice = int(
+                    input(
+                        f"Enter the index of next move for the player {self.to_play()}: "
+                    )
+                )
+                if choice in self.legal_moves():
+                    break
+            except KeyboardInterrupt:
+                sys.exit(0)
+            except Exception as e:
+                print("Wrong input, try again")
+        return choice
 
     def render(self, mode='human'):
         screen_width = 1026
@@ -267,49 +298,12 @@ class GoEnv(BaseGameEnv):
         return self.observation_spaces
 
     def action_space(self):
-        return self.action_spaces
+        return self._action_space
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
-
-    def random_action(self):
-        action_list = self.legal_moves()
-        return np.random.choice(action_list)
-
-    def human_to_action(self):
-        """
-        For multiplayer games, ask the user for a legal action
-        and return the corresponding action number.
-        Returns:
-            An integer from the action space.
-        """
-        while True:
-            try:
-                print(f"Current available actions for the player {self.to_play()} are:{self.legal_moves()}")
-                choice = int(
-                    input(
-                        f"Enter the index of next move for the player {self.to_play()}: "
-                    )
-                )
-                if choice in self.legal_moves():
-                    break
-            except KeyboardInterrupt:
-                sys.exit(0)
-            except Exception as e:
-                print("Wrong input, try again")
-        return choice
-
-    def action_to_string(self, action_number):
-        """
-        Convert an action number to a string representing the action.
-        Args:
-            action_number: an integer from the action space.
-        Returns:
-            String representing the action.
-        """
-        return str(action_number)
 
     def close(self) -> None:
         pass

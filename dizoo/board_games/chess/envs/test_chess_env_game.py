@@ -7,14 +7,14 @@ class TestChessEnv:
 
     def test_naive(self):
         env = ChessEnv()
-        obs, reward, done, info = env.reset()
+        env.reset()
         print('init board state: ')
         env.render()
         for i in range(100):
             """player 1"""
             # action = env.human_to_action()
             action = env.random_action()
-            print('player 1: ' + env.action_to_string(action))
+            print('player 1: ', action)
             obs, reward, done, info = env.step(action)
             assert isinstance(obs, dict)
             assert isinstance(done, bool)
@@ -30,7 +30,7 @@ class TestChessEnv:
 
             """player 2"""
             action = env.random_action()
-            print('player 2 (computer player): ' + env.action_to_string(action))
+            print('player 2 (computer player): ', action)
             obs, reward, done, info = env.step(action)
             # env.render()
             if done:
