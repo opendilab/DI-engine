@@ -29,6 +29,7 @@ from .time_helper import build_time_helper, EasyTimer, WatchDog
 from .type_helper import SequenceType
 from .render_helper import render, fps
 from .fast_copy import fastcopy
+from .sparse_logging import log_every_n, log_every_sec
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
