@@ -11,11 +11,12 @@ from ding.framework.context import BattleContext
 from ding.framework import EventEnum
 from ding.framework.task import task, Parallel
 from ding.framework.middleware import data_pusher, OffPolicyLearner, LeagueLearnerCommunicator
-from ding.framework.middleware.functional.actor_data import ActorData
+from ding.framework.middleware.functional.actor_data import ActorData, ActorDataMeta, ActorEnvTrajectories
+from dizoo.distar.config import distar_cfg
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
 from ding.league.v2 import BaseLeague
 from dizoo.distar.config import distar_cfg
-from dizoo.distar.envs import get_fake_rl_trajectory
+from dizoo.distar.envs import get_fake_rl_trajectory, fake_rl_data_batch_with_last
 from dizoo.distar.envs.distar_env import DIStarEnv
 from distar.ctools.utils import read_config
 import time
@@ -25,7 +26,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def prepare_test():
-    global cfg
+    global distar_cfg
     cfg = deepcopy(distar_cfg)
     env_cfg = read_config('./test_distar_config.yaml')
 
@@ -67,8 +68,12 @@ def actor_mocker(league):
         player = league.active_players[(task.router.node_id + 2) % n_players]
         print("Actor: actor player:", player.player_id)
         for _ in range(24):
-            data = get_fake_rl_trajectory()
-            actor_data = TestActorData(env_step=0, train_data=data)
+            meta = ActorDataMeta(player_total_env_step=0, actor_id=0, send_wall_time=time.time())
+            data = fake_rl_data_batch_with_last()
+            actor_data = ActorData(meta=meta, train_data=[ActorEnvTrajectories(env_id=0, trajectories=[data])])
+
+            # data = fake_rl_data_batch_with_last()
+            # actor_data = TestActorData(env_step=0, train_data=data)
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
         sleep(9)
 
@@ -76,15 +81,17 @@ def actor_mocker(league):
 
 
 def _main():
+    logging.disable(logging.WARNING)
     cfg, env_fn, policy_fn = prepare_test()
     league = BaseLeague(cfg.policy.other.league)
 
     with task.start(async_mode=True, ctx=BattleContext()):
         if task.router.node_id == 0:
             task.use(coordinator_mocker())
-        elif task.router.node_id <= 2:
+        elif task.router.node_id <= 1:
             task.use(actor_mocker(league))
         else:
+            cfg.policy.collect.unroll_len = 1
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             n_players = len(league.active_players_ids)
             print("League: n_players: ", n_players)
@@ -98,8 +105,8 @@ def _main():
 
 @pytest.mark.unittest
 def test_league_learner():
-    Parallel.runner(n_parallel_workers=5, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="mesh")(_main)
 
 
 if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=5, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="mesh")(_main)

@@ -13,6 +13,7 @@ from ding.torch_utils import to_tensor, to_ndarray
 from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
+from dizoo.distar.envs.fake_data import rl_step_data
 
 
 class TransitionList:
@@ -86,8 +87,6 @@ class BattleTransitionList:
             trajectories += self._cut_trajectory_from_episode(self._transitions[env_id][0][:tail_idx])
             self._transitions[env_id][0] = self._transitions[env_id][0][tail_idx:]
 
-            # 少于 64 直接删
-
         return trajectories
 
     def to_trajectories(self, only_finished: bool = False):
@@ -108,15 +107,20 @@ class BattleTransitionList:
         num_complele_trajectory, num_tail_transitions = divmod(len(episode), self._unroll_len)
         for i in range(num_complele_trajectory):
             trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
+            # TODO(zms): 测试专用，之后去掉
+            trajectory.append(rl_step_data(last=True))
             return_episode.append(trajectory)
 
         if num_tail_transitions > 0:
             trajectory = episode[-self._unroll_len:]
             if len(trajectory) < self._unroll_len:
+                # TODO(zms): 少于 64 直接删
                 initial_elements = []
                 for _ in range(self._unroll_len - len(trajectory)):
                     initial_elements.append(trajectory[0])
                 trajectory = initial_elements + trajectory
+            # TODO(zms): 测试专用，之后去掉
+            trajectory.append(rl_step_data(last=True))
             return_episode.append(trajectory)
 
         return return_episode  # list of trajectories

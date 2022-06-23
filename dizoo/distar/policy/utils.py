@@ -1,13 +1,15 @@
 import torch
+import torch.nn.functional as F
 from ding.torch_utils import flatten, sequence_mask
 from ding.utils.data import default_collate
 from dizoo.distar.envs import MAX_SELECTED_UNITS_NUM
 
 MASK_INF = -1e9
+EPS = 1e-9
 
 
 def padding_entity_info(traj_data, max_entity_num):
-    traj_data.pop('map_name', None)
+    # traj_data.pop('map_name', None)
     entity_padding_num = max_entity_num - len(traj_data['entity_info']['x'])
     if 'entity_embeddings' in traj_data.keys():
         traj_data['entity_embeddings'] = torch.nn.functional.pad(
@@ -88,3 +90,57 @@ def collate_fn_learn(traj_batch):
     new_data['batch_size'] = batch_size
     new_data['unroll_len'] = unroll_len
     return new_data
+
+
+def entropy_error(target_policy_probs_dict, target_policy_log_probs_dict, mask, head_weights_dict):
+    total_entropy_loss = 0.
+    entropy_dict = {}
+    for head_type in ['action_type', 'queued', 'delay', 'selected_units', 'target_unit', 'target_location']:
+        ent = -target_policy_probs_dict[head_type] * target_policy_log_probs_dict[head_type]
+        if head_type == 'selected_units':
+            ent = ent.sum(dim=-1) / (
+                EPS + torch.log(mask['selected_units_logits_mask'].float().sum(dim=-1) + 1).unsqueeze(-1)
+            )  # normalize
+            ent = (ent * mask['selected_units_mask']).sum(-1)
+            ent = ent.div(mask['selected_units_mask'].sum(-1) + EPS)
+        elif head_type == 'target_unit':
+            # normalize by unit
+            ent = ent.sum(dim=-1) / (EPS + torch.log(mask['target_units_logits_mask'].float().sum(dim=-1) + 1))
+        else:
+            ent = ent.sum(dim=-1) / torch.log(torch.FloatTensor([ent.shape[-1]]).to(ent.device))
+        if head_type not in ['action_type', 'delay']:
+            ent = ent * mask['actions_mask'][head_type]
+        entropy = ent.mean()
+        entropy_dict['entropy/' + head_type] = entropy.item()
+        total_entropy_loss += (-entropy * head_weights_dict[head_type])
+    return total_entropy_loss, entropy_dict
+
+
+def kl_error(
+    target_policy_log_probs_dict, teacher_policy_logits_dict, mask, game_steps, action_type_kl_steps, head_weights_dict
+):
+    total_kl_loss = 0.
+    kl_loss_dict = {}
+
+    for head_type in ['action_type', 'queued', 'delay', 'selected_units', 'target_unit', 'target_location']:
+        target_policy_log_probs = target_policy_log_probs_dict[head_type]
+        teacher_policy_logits = teacher_policy_logits_dict[head_type]
+
+        teacher_policy_log_probs = F.log_softmax(teacher_policy_logits, dim=-1)
+        teacher_policy_probs = torch.exp(teacher_policy_log_probs)
+        kl = teacher_policy_probs * (teacher_policy_log_probs - target_policy_log_probs)
+
+        kl = kl.sum(dim=-1)
+        if head_type == 'selected_units':
+            kl = (kl * mask['selected_units_mask']).sum(-1)
+        if head_type not in ['action_type', 'delay']:
+            kl = kl * mask['actions_mask'][head_type]
+        if head_type == 'action_type':
+            flag = game_steps < action_type_kl_steps
+            action_type_kl = kl * flag
+            action_type_kl_loss = action_type_kl.mean()
+            kl_loss_dict['kl/extra_at'] = action_type_kl_loss.item()
+        kl_loss = kl.mean()
+        total_kl_loss += (kl_loss * head_weights_dict[head_type])
+        kl_loss_dict['kl/' + head_type] = kl_loss.item()
+    return total_kl_loss, action_type_kl_loss, kl_loss_dict

@@ -275,11 +275,9 @@ class StepLeagueActor:
             # print(ctx.trajectories_list)
             # ctx.trajectories_list[0] for policy_id 0
             # ctx.trajectories_list[0][0] for first env
-            print(len(ctx.trajectories_list[0]))
             if len(ctx.trajectories_list[0]) > 0:
-                print(len(ctx.trajectories_list[0][0].trajectories))
                 for traj in ctx.trajectories_list[0][0].trajectories:
-                    assert len(traj) == self.unroll_len
+                    assert len(traj) == self.unroll_len + 1
             if ctx.job_finish is True:
                 print('we finish the job !')
                 assert len(ctx.trajectories_list[0][0].trajectories) > 0
@@ -311,7 +309,7 @@ class StepLeagueActor:
             )
 
             if ctx.job_finish is True:
-                job.result = [e['result'] for e in ctx.episode_info[0]]
+                job.result = None
                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 print('Actor {} job finish, send job\n'.format(task.router.node_id), flush=True)

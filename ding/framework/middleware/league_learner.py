@@ -38,22 +38,23 @@ class LeagueLearnerCommunicator:
         task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
 
     def _push_data(self, data: "ActorData"):
+        print("learner {} receive data from actor! \n".format(task.router.node_id), flush=True)
         for env_trajectories in data.train_data:
-            self._cache.extend(env_trajectories.trajectories)
-        # if isinstance(data.train_data, list):
-        #     self._cache.extend(data.train_data)
-        # else:
-        #     self._cache.append(data.train_data)
+            for traj in env_trajectories.trajectories:
+                self._cache.append(traj)
+        # self._cache.append(data.train_data)
 
     def __call__(self, ctx: "Context"):
-        print("Learner: push data into the ctx")
+        # print("push data into the ctx")
         ctx.trajectories = list(self._cache)
         self._cache.clear()
         sleep(1)
         yield
-        print("Learner: save model, ctx.train_iter:", ctx.train_iter)
+        # print("Learner: save model, ctx.train_iter:", ctx.train_iter)
         self.player.total_agent_step = ctx.train_iter
         if self.player.is_trained_enough():
+            print('trained enough!')
+            print('----------------------------------------------------------------------------------')
             storage = FileStorage(
                 path=os.path.join(self.prefix, "{}_{}_ckpt.pth".format(self.player_id, ctx.train_iter))
             )

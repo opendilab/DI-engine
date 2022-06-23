@@ -2,7 +2,6 @@ from typing import Dict, Optional, List
 from easydict import EasyDict
 import os.path as osp
 import torch
-import torch.nn.functional as F
 from torch.optim import Adam
 
 from ding.model import model_wrap
@@ -11,64 +10,15 @@ from ding.torch_utils import to_device
 from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho, vtrace_error_with_rho, \
     upgo_data, upgo_error
 from ding.utils import EasyTimer
-from dizoo.distar.model.model import Model
-from .utils import collate_fn_learn
-
-EPS = 1e-9
-
-
-def entropy_error(target_policy_probs_dict, target_policy_log_probs_dict, mask, head_weights_dict):
-    total_entropy_loss = 0.
-    entropy_dict = {}
-    for head_type in ['action_type', 'queued', 'delay', 'selected_units', 'target_unit', 'target_location']:
-        ent = -target_policy_probs_dict[head_type] * target_policy_log_probs_dict[head_type]
-        if head_type == 'selected_units':
-            ent = ent.sum(dim=-1) / (
-                EPS + torch.log(mask['selected_units_logits_mask'].float().sum(dim=-1) + 1).unsqueeze(-1)
-            )  # normalize
-            ent = (ent * mask['selected_units_mask']).sum(-1)
-            ent = ent.div(mask['selected_units_mask'].sum(-1) + EPS)
-        elif head_type == 'target_unit':
-            # normalize by unit
-            ent = ent.sum(dim=-1) / (EPS + torch.log(mask['target_units_logits_mask'].float().sum(dim=-1) + 1))
-        else:
-            ent = ent.sum(dim=-1) / torch.log(torch.FloatTensor([ent.shape[-1]]).to(ent.device))
-        if head_type not in ['action_type', 'delay']:
-            ent = ent * mask['actions_mask'][head_type]
-        entropy = ent.mean()
-        entropy_dict['entropy/' + head_type] = entropy.item()
-        total_entropy_loss += (-entropy * head_weights_dict[head_type])
-    return total_entropy_loss, entropy_dict
-
-
-def kl_error(
-    target_policy_log_probs_dict, teacher_policy_logits_dict, mask, game_steps, action_type_kl_steps, head_weights_dict
-):
-    total_kl_loss = 0.
-    kl_loss_dict = {}
-
-    for head_type in ['action_type', 'queued', 'delay', 'selected_units', 'target_unit', 'target_location']:
-        target_policy_log_probs = target_policy_log_probs_dict[head_type]
-        teacher_policy_logits = teacher_policy_logits_dict[head_type]
-
-        teacher_policy_log_probs = F.log_softmax(teacher_policy_logits, dim=-1)
-        teacher_policy_probs = torch.exp(teacher_policy_log_probs)
-        kl = teacher_policy_probs * (teacher_policy_log_probs - target_policy_log_probs)
-
-        kl = kl.sum(dim=-1)
-        if head_type == 'selected_units':
-            kl = (kl * mask['selected_units_mask']).sum(-1)
-        if head_type not in ['action_type', 'delay']:
-            kl = kl * mask['actions_mask'][head_type]
-        if head_type == 'action_type':
-            flag = game_steps < action_type_kl_steps
-            action_type_kl = kl * flag
-            action_type_kl_loss = action_type_kl.mean()
-            kl_loss_dict['kl/extra_at'] = action_type_kl_loss.item()
-        kl_loss = kl.mean()
-        total_kl_loss += (kl_loss * head_weights_dict[head_type])
-        kl_loss_dict['kl/' + head_type] = kl_loss.item()
-    return total_kl_loss, action_type_kl_loss, kl_loss_dict
+from ding.utils.data import default_collate, default_decollate
+from dizoo.distar.model import Model
+from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, RACE_DICT, NUM_CUMULATIVE_STAT_ACTIONS, Stat
+from .utils import collate_fn_learn, kl_error, entropy_error
+import os
+import json
+import random
+from copy import deepcopy
+from s2clientprotocol import sc2api_pb2 as sc_pb
 
 
 class DIStarPolicy(Policy):
@@ -78,6 +28,7 @@ class DIStarPolicy(Policy):
         cuda=True,
         learning_rate=1e-5,
         model=dict(),
+        # learn
         learn=dict(multi_gpu=False, ),
         loss_weights=dict(
             baseline=dict(
@@ -156,7 +107,13 @@ class DIStarPolicy(Policy):
                 battle=0.997,
             ),
         ),
-        grad_clip=dict(threshold=1.0, )
+        grad_clip=dict(threshold=1.0, ),
+        # collect
+        use_value_feature=True,  # whether to use value feature, this must be False when play against bot
+        zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
+        zero_z_value=1,
+        extra_units=True,  # selcet extra units if selected units exceed 64
+        z_path='7map_filter_spine.json'
     )
 
     def _create_model(
@@ -170,6 +127,8 @@ class DIStarPolicy(Policy):
         field = enable_field[0]
         if field == 'learn':
             return Model(self._cfg.model, use_value_network=True)
+        elif field == 'collect':  # disable value network
+            return Model(self._cfg.model)
         else:
             raise KeyError("invalid policy mode: {}".format(field))
 
@@ -398,13 +357,187 @@ class DIStarPolicy(Policy):
         self.optimizer.load_state_dict(_state_dict['optimizer'])
 
     def _init_collect(self):
-        pass
+        self.collect_model = model_wrap(self._model, 'base')
+        self.z_path = self._cfg.z_path
+        # TODO(zms): in _setup_agents, load state_dict to set up z_idx
+        self.z_idx = None
+        self._reset_collect()
+
+    def _reset_collect(self, game_info, obs, map_name='KingsCove', env_id=0):
+        self.stat = Stat('zerg')  # TODO
+        self.target_z_loop = 43200  # TODO
+        self.exceed_loop_flag = False
+        self.hidden_state = None
+        self.last_action_type = torch.tensor(0, dtype=torch.long)
+        self.last_delay = torch.tensor(0, dtype=torch.long)
+        self.last_queued = torch.tensor(0, dtype=torch.long)
+        self.last_selected_unit_tags = None
+        self.last_targeted_unit_tag = None
+        self.last_location = None  # [x, y]
+        self.enemy_unit_type_bool = torch.zeros(NUM_UNIT_TYPES, dtype=torch.uint8)
+        self.map_name = map_name
+        self.map_size = None  # TODO
+        self.requested_races = {
+            info.player_id: info.race_requested
+            for info in game_info.player_info if info.type != sc_pb.Observer
+        }
+
+        # init Z
+        raw_ob = obs['raw_obs']
+        location = []
+        for i in raw_ob.observation.raw_data.units:
+            if i.unit_type == 59 or i.unit_type == 18 or i.unit_type == 86:
+                location.append([i.pos.x, i.pos.y])
+        assert len(location) == 1, 'no fog of war, check game version!'
+        self.born_location = deepcopy(location[0])
+        born_location = location[0]
+        born_location[0] = int(born_location[0])
+        # TODO(zms): map_size from Features
+        born_location[1] = int(self.map_size.y - born_location[1])
+        born_location_str = str(born_location[0] + born_location[1] * 160)
+        self.z_path = os.path.join(os.path.dirname(__file__), 'lib', self.z_path)
+        with open(self.z_path, 'r') as f:
+            self.z_data = json.load(f)
+            z_data = self.z_data
+
+        z_type = None
+        idx = None
+        raw_ob = obs['raw_obs']
+        # TODO(zms): requested_races from Features
+        race = RACE_DICT[self.requested_races[raw_ob.observation.player_common.player_id]]
+        opponent_id = 1 if raw_ob.observation.player_common.player_id == 2 else 2
+        opponent_race = RACE_DICT[self.requested_races[opponent_id]]
+        if race == opponent_race:
+            mix_race = race
+        else:
+            mix_race = race + opponent_race
+        if self.z_idx is not None:
+            idx, z_type = random.choice(self.z_idx[self.map_name][mix_race][born_location_str])
+            z = z_data[self.map_name][mix_race][born_location_str][idx]
+        else:
+            z = random.choice(z_data[self.map_name][mix_race][born_location_str])
+
+        if len(z) == 5:
+            self.target_building_order, target_cumulative_stat, bo_location, self._target_z_loop, z_type = z
+        else:
+            self.target_building_order, target_cumulative_stat, bo_location, self._target_z_loop = z
+        # TODO(zms): other attributes like use_bo_reward
+        self.target_building_order = torch.tensor(self.target_building_order, dtype=torch.long)
+        self.target_bo_location = torch.tensor(bo_location, dtype=torch.long)
+        self.target_cumulative_stat = torch.zeros(NUM_CUMULATIVE_STAT_ACTIONS, dtype=torch.float)
+        self.target_cumulative_stat.scatter_(
+            index=torch.tensor(target_cumulative_stat, dtype=torch.long), dim=0, value=1.
+        )
 
     def _forward_collect(self, data):
-        pass
+        game_info = data.pop('game_info')
+        obs = self._data_preprocess_collect(data, game_info)
+        obs = default_collate([obs])
+        if self._cfg.cuda:
+            obs = to_device(obs, self._device)
 
-    def _process_transition(self):
-        pass
+        with torch.no_grad():
+            policy_output = self.collect_model.compute_logp_action(**obs)
+
+        if self._cfg.cuda:
+            policy_output = to_device(policy_output, self._device)
+        policy_output = default_decollate(policy_output)[0]
+        policy_output = self._data_postprocess_collect(policy_output, game_info)
+        return policy_output
+
+    def _data_preprocess_collect(self, data, game_info):
+        transform_obs = None
+        if self._cfg.use_value_feature:
+            obs = transform_obs(data['raw_obs'], opponent_obs=data['opponent_obs'])
+        else:
+            raise NotImplementedError
+
+        game_step = game_info['game_loop']
+        if self._cfg.zero_z_exceed_loop and game_step > self._target_z_loop:
+            self._exceed_loop_flag = True
+
+        last_selected_units = torch.zeros(obs['entity_num'], dtype=torch.int8)
+        last_targeted_unit = torch.zeros(obs['entity_num'], dtype=torch.int8)
+        tags = game_info['tags']
+        if self.last_selected_unit_tags is not None:
+            for t in self.last_selected_unit_tags:
+                if t in tags:
+                    last_selected_units[tags.index(t)] = 1
+        if self.last_targeted_unit_tag is None:
+            if self.last_targeted_unit_tag in tags:
+                last_targeted_unit[tags.index(self.last_targeted_unit_tag)] = 1
+        obs['entity_info']['last_selected_units'] = last_selected_units
+        obs['entity_info']['last_targeted_unit'] = last_targeted_unit
+
+        obs['hidden_state'] = self.hidden_state
+
+        obs['scalar_info']['last_action_type'] = self.last_action_type
+        obs['scalar_info']['last_delay'] = self.last_delay
+        obs['scalar_info']['last_queued'] = self.last_queued
+        obs['scalar_info']['enemy_unit_type_bool'] = (
+            self.enemy_unit_type_bool | obs['scalar_info']['enemy_unit_type_bool']
+        ).to(torch.uint8)
+        obs['scalar_info']['beginning_order'] = self.target_building_order * (~self.exceed_loop_flag)
+        obs['scalar_info']['bo_location'] = self.target_bo_location * (~self.exceed_loop_flag)
+        if self.exceed_loop_flag:
+            obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat * 0 + self._cfg.zero_z_value
+        else:
+            obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat
+
+        # update stat
+        self.stat.update(self.last_action_type, data['action_result'][0], obs, game_step)
+        return obs
+
+    def _data_postprocess_collect(self, data, game_info):
+        self.hidden_state = data['hidden_state']
+
+        self.last_action_type = data['action_info']['action_type']
+        self.last_delay = data['action_info']['delay']
+        self.last_queued = data['action_info']['queued']
+        action_type = self.last_action_type.item()
+        action_attr = ACTIONS[action_type]
+
+        # transform into env format action
+        tags = game_info['tags']
+        raw_action = {}
+        raw_action['func_id'] = action_attr['func_id']
+        raw_action['skip_steps'] = self.last_delay.item()
+        raw_action['queued'] = self.queued.item()
+
+        unit_tags = []
+        for i in range(data['selected_units_num'] - 1):  # remove end flag
+            unit_tags.append(tags[data['action_info']['selected_units'][i].item()])
+        if self._cfg.extra_units:
+            extra_units = torch.nonzero(data['extra_units']).squeeze(dim=1).tolist()
+            for unit_index in extra_units:
+                unit_tags.append(tags[unit_index])
+        raw_action['unit_tags'] = unit_tags
+        if action_attr['selected_units']:
+            self.last_selected_unit_tags = unit_tags
+        else:
+            self.last_selected_unit_tags = None
+
+        raw_action['target_unit_tag'] = tags[data['action_info']['target_unit'].item()]
+        if action_attr['target_unit']:
+            self.last_targeted_unit_tag = raw_action['target_unit_tag']
+        else:
+            self.last_targeted_unit_tag = None
+
+        x = data['action_info']['target_location'].item() % self.map_size.x
+        y = data['action_info']['target_location'].item() // self.map_size.x
+        inverse_y = max(self.map_size.y - y, 0)
+        raw_action['location'] = (x, inverse_y)
+        self.last_location = data['action_info']['target_location']
+
+        data['action'] = raw_action
+
+        return data
+
+    def _process_transition(self, obs, policy_output, timestep):
+        return {
+            'obs': obs,
+            'action': policy_output['action_info'],
+        }
 
     def _get_train_sample(self):
         pass
