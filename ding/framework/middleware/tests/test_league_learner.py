@@ -15,7 +15,7 @@ from ding.framework.middleware import data_pusher, OffPolicyLearner, LeagueLearn
 from ding.framework.middleware.functional.actor_data import *
 from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
 from ding.league.v2 import BaseLeague
-from ding.utils import run_every_s
+from ding.utils import log_every_sec
 from dizoo.distar.config import distar_cfg
 from dizoo.distar.envs import fake_rl_data_batch_with_last
 from dizoo.distar.envs.distar_env import DIStarEnv
@@ -43,8 +43,8 @@ def prepare_test():
 
 
 def coordinator_mocker():
-    task.on(EventEnum.LEARNER_SEND_META, lambda x: run_every_s("test:", x))
-    task.on(EventEnum.LEARNER_SEND_MODEL, lambda x: run_every_s("test: send model success"))
+    task.on(EventEnum.LEARNER_SEND_META, lambda x: logging.info("test: {}".format(x)))
+    task.on(EventEnum.LEARNER_SEND_MODEL, lambda x: logging.info("test: send model success"))
 
     def _coordinator_mocker(ctx):
         sleep(10)
@@ -63,12 +63,11 @@ def actor_mocker(league):
     def _actor_mocker(ctx):
         n_players = len(league.active_players_ids)
         player = league.active_players[(task.router.node_id + 2) % n_players]
-        run_every_s(5, "Actor: actor player:", player.player_id)
+        log_every_sec(logging.INFO, 5, "Actor: actor player: {}".format(player.player_id))
         for _ in range(24):
             meta = ActorDataMeta(player_total_env_step=0, actor_id=0, send_wall_time=time.time())
             data = fake_rl_data_batch_with_last()
             actor_data = ActorData(meta=meta, train_data=[ActorEnvTrajectories(env_id=0, trajectories=[data])])
-            # actor_data = TestActorData(env_step=0, train_data=data)
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
         sleep(9)
 
@@ -76,7 +75,7 @@ def actor_mocker(league):
 
 
 def _main():
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     cfg, env_fn, policy_fn = prepare_test()
     league = BaseLeague(cfg.policy.other.league)
     n_players = len(league.active_players_ids)
