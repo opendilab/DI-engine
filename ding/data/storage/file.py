@@ -1,12 +1,14 @@
 from typing import Any
 from ding.data.storage import Storage
-from ding.utils import read_file, save_file
+import pickle
 
 
 class FileStorage(Storage):
 
     def save(self, data: Any) -> None:
-        save_file(self.path, data)
+        with open(self.path, "wb") as f:
+            pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load(self) -> Any:
-        return read_file(self.path)
+        with open(self.path, "rb") as f:
+            return pickle.load(f)

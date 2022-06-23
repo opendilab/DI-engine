@@ -1,7 +1,8 @@
 import multiprocessing as mp
 import ctypes
-from time import sleep
+from time import sleep, time
 from typing import Any, Dict, List
+from aiohttp import payload_type
 import pytest
 from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType, SharedObject
 
@@ -24,6 +25,9 @@ class MockEnv():
 
     def block_reset(self):
         sleep(10)
+
+    def sleep1(self):
+        sleep(1)
 
 
 @pytest.mark.unittest
@@ -244,7 +248,7 @@ def test_shared_memory():
     sv = Supervisor(type_=ChildType.PROCESS)
 
     def shm_callback(payload: RecvPayload, shm: Any):
-        shm[payload.proc_id] = payload.data
+        shm[payload.proc_id] = payload.req_id
         payload.data = 0
 
     shm = mp.Array(ctypes.c_uint8, 3)
@@ -252,12 +256,37 @@ def test_shared_memory():
         sv.register(MockEnv, "AnyArgs", shared_object=SharedObject(buf=shm, callback=shm_callback))
     sv.start_link()
 
+    # Send init request
     for env_id in range(len(sv._children)):
-        sv.send(SendPayload(proc_id=env_id, method="step", args=["any action"]))
+        sv.send(SendPayload(proc_id=env_id, req_id=env_id, method="sleep1", args=[]))
 
-    for i in range(3):
+    start = time()
+    for i in range(6):
         payload = sv.recv()
         assert payload.data == 0
-        assert shm[payload.proc_id] == 1
+        assert shm[payload.proc_id] == payload.req_id
+        sv.send(SendPayload(proc_id=payload.proc_id, req_id=i, method="sleep1", args=[]))
+
+    # Non blocking
+    assert time() - start < 3
 
     sv.shutdown()
+
+
+@pytest.mark.benchmark
+@pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+def test_supervisor_benchmark(type_):
+    sv = Supervisor(type_=type_)
+    for _ in range(3):
+        sv.register(MockEnv, "AnyArgs")
+    sv.start_link()
+
+    for env_id in range(len(sv._children)):
+        sv.send(SendPayload(proc_id=env_id, method="step", args=[""]))
+
+    start = time()
+    for _ in range(1000):
+        payload = sv.recv()
+        sv.send(SendPayload(proc_id=payload.proc_id, method="step", args=[""]))
+
+    assert time() - start < 1

@@ -3,3 +3,4 @@ from ding.utils.data import create_dataset, offline_data_save_type  # for compat
 from .buffer import *
 from .storage import *
 from .data_serializer import DataSerializer
+from .shm_buffer import ShmBufferContainer, ShmBuffer

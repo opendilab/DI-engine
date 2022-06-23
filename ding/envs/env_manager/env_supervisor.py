@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
 from ding.framework.supervisor import ChildType, RecvPayload, SendPayload, SharedObject
 from ding.utils import make_key_as_identifier
 from ditk import logging
-from ding.envs.env_manager.subprocess_env_manager import ShmBufferContainer
+from ding.data import ShmBufferContainer
 import enum
 import treetensor.numpy as tnp
 import numbers
@@ -136,6 +136,11 @@ class EnvSupervisor(Supervisor):
         self._last_called = defaultdict(lambda: {"step": math.inf, "reset": math.inf})
 
     def _shm_callback(self, payload: RecvPayload, obs_buffers: Any):
+        """
+        Overview:
+            This method will be called in child worker, so we can put large data into shared memory
+            and replace the original payload data to none, then reduce the serialization/deserialization cost.
+        """
         if payload.method == "reset" and payload.data is not None:
             obs_buffers[payload.proc_id].fill(payload.data)
             payload.data = None

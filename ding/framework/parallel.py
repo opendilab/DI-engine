@@ -4,14 +4,12 @@ import random
 import time
 import traceback
 from mpire.pool import WorkerPool
-import pickle
 from ditk import logging
 import tempfile
 import socket
 from os import path
 from typing import Callable, Dict, List, Optional, Tuple, Union, Set
 from threading import Thread
-from ding.data import DataSerializer
 from ding.framework.event_loop import EventLoop
 from ding.utils.design_helper import SingletonMetaclass
 from ding.framework.message_queue import *
@@ -48,6 +46,8 @@ class Parallel(metaclass=SingletonMetaclass):
         self.auto_recover = auto_recover
         self.max_retries = max_retries
         self._mq: MQ = MQ_REGISTRY.get(mq_type)(**kwargs)
+
+        from ding.data.data_serializer import DataSerializer  # Avoid circular import
         self._data_serializer = DataSerializer().start()
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()

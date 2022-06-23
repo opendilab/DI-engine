@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+import functools
 import multiprocessing as mp
+from multiprocessing.context import BaseContext
 import threading
 import queue
 import platform
@@ -10,6 +12,13 @@ from ditk import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 from enum import Enum
+
+
+@functools.lru_cache(maxsize=1)
+def get_mp_ctx() -> BaseContext:
+    context = 'spawn' if platform.system().lower() == 'windows' else 'fork'
+    mp_ctx = mp.get_context(context)
+    return mp_ctx
 
 
 @dataclass
@@ -127,21 +136,21 @@ class ChildProcess(Child):
         self._proc = None
 
     def start(self, recv_queue: mp.Queue):
-        self._recv_queue = recv_queue
-        context = 'spawn' if platform.system().lower() == 'windows' else 'fork'
-        ctx = mp.get_context(context)
-        self._send_queue = ctx.Queue()
-        proc = ctx.Process(
-            target=self._target,
-            args=(
-                self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue,
-                self._shared_object
-            ),
-            name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
-            daemon=True
-        )
-        proc.start()
-        self._proc = proc
+        if self._proc is None:
+            self._recv_queue = recv_queue
+            ctx = get_mp_ctx()
+            self._send_queue = ctx.Queue()
+            proc = ctx.Process(
+                target=self._target,
+                args=(
+                    self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue,
+                    self._shared_object
+                ),
+                name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
+                daemon=True
+            )
+            proc.start()
+            self._proc = proc
 
     def shutdown(self, timeout: Optional[float] = None):
         if self._proc:
@@ -168,16 +177,17 @@ class ChildThread(Child):
         self._thread = None
 
     def start(self, recv_queue: queue.Queue):
-        self._recv_queue = recv_queue
-        self._send_queue = queue.Queue()
-        thread = threading.Thread(
-            target=self._target,
-            args=(self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue),
-            name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
-            daemon=True
-        )
-        thread.start()
-        self._thread = thread
+        if self._thread is None:
+            self._recv_queue = recv_queue
+            self._send_queue = queue.Queue()
+            thread = threading.Thread(
+                target=self._target,
+                args=(self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue),
+                name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
+                daemon=True
+            )
+            thread.start()
+            self._thread = thread
 
     def shutdown(self, timeout: Optional[float] = None):
         if self._thread:
@@ -194,10 +204,7 @@ class Supervisor:
 
     TYPE_MAPPING = {ChildType.PROCESS: ChildProcess, ChildType.THREAD: ChildThread}
 
-    QUEUE_MAPPING = {
-        ChildType.PROCESS: mp.get_context('spawn' if platform.system().lower() == 'windows' else 'fork').Queue,
-        ChildType.THREAD: queue.Queue
-    }
+    QUEUE_MAPPING = {ChildType.PROCESS: get_mp_ctx().Queue, ChildType.THREAD: queue.Queue}
 
     def __init__(self, type_: ChildType) -> None:
         self._children: List[Child] = []
