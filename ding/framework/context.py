@@ -92,8 +92,6 @@ class BattleContext(Context):
         self.train_iter = 0
         self.collect_kwargs = {}
         self.current_policies = []
-        self.ready_env_id = set()
-        self.remain_episode = 0
 
         #job paras
         self.player_id_list = []

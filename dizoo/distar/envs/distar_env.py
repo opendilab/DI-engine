@@ -1,8 +1,11 @@
-from distar.envs.env import SC2Env
-
+from ding import policy
 from ding.envs import BaseEnv, BaseEnvTimestep
+
+from distar.envs.env import SC2Env
+from distar.envs.map_info import get_map_size
 from distar.agent.default.lib.features import MAX_DELAY, SPATIAL_SIZE, MAX_SELECTED_UNITS_NUM
 from distar.pysc2.lib.action_dict import ACTIONS_STAT
+
 import torch
 import random
 
@@ -14,6 +17,13 @@ class DIStarEnv(SC2Env, BaseEnv):
 
     def reset(self):
         observations, game_info, map_name = super(DIStarEnv, self).reset()
+        map_size = get_map_size(map_name)
+
+        for policy_id, policy_obs in observations.items():
+            policy_obs['game_info'] = game_info[policy_id]
+            policy_obs['map_name'] = map_name
+            policy_obs['map_size'] = map_size
+
         return observations
 
     def close(self):
@@ -24,12 +34,18 @@ class DIStarEnv(SC2Env, BaseEnv):
         # Here in DI-star, the return is ({'raw_obs': self._obs[agent_idx], 'opponent_obs': opponent_obs, 'action_result': self._action_result[agent_idx]}, reward, episode_complete)
         next_observations, reward, done = super(DIStarEnv, self).step(actions)
         # next_observations 和 observations 格式一样
-        # reward 是 list [policy reward 1, policy reard 2]
+        # reward 是 list [policy reward 1, policy reward 2]
         # done 是 一个 bool 值
-        # TODO(zms): final_eval_reward 这局赢没赢
         info = {}
         for policy_id in range(self._num_agents):
-            info[policy_id] = {'result': None}
+            info[policy_id] = {}
+            if done:
+                info[policy_id]['final_eval_reward'] = reward[policy_id]
+                info[policy_id]['result'] = 'draws'
+                if reward[policy_id] == 1:
+                    info[policy_id]['result'] = 'wins'
+                elif reward[policy_id] == -1:
+                    info[policy_id]['result'] = 'losses'
         timestep = BaseEnvTimestep(obs=next_observations, reward=reward, done=done, info=info)
         return timestep
 

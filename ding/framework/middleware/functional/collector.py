@@ -8,12 +8,15 @@ from ding.policy import Policy
 import torch
 from ding.utils import dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
+from ding.framework import task
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
 from dizoo.distar.envs.fake_data import rl_step_data
+
+import logging
 
 
 class TransitionList:
@@ -114,7 +117,6 @@ class BattleTransitionList:
         if num_tail_transitions > 0:
             trajectory = episode[-self._unroll_len:]
             if len(trajectory) < self._unroll_len:
-                # TODO(zms): 少于 64 直接删
                 initial_elements = []
                 for _ in range(self._unroll_len - len(trajectory)):
                     initial_elements.append(trajectory[0])
@@ -127,15 +129,13 @@ class BattleTransitionList:
 
     def clear_newest_episode(self, env_id: int) -> None:
         # Use it when env.step raise some error
-        len_newest_episode = 0
-        if self._done_episode[env_id][-1] is False:
-            newest_episode = self._transitions[env_id].pop()
-            len_newest_episode = len(newest_episode)
-            newest_episode.clear()
-            self._done_episode[env_id].pop()
+        newest_episode = self._transitions[env_id].pop()
+        len_newest_episode = len(newest_episode)
+        newest_episode.clear()
+        self._done_episode[env_id].pop()
         return len_newest_episode
 
-    def append(self, env_id: int, transition: Any) -> None:
+    def append(self, env_id: int, transition: Any) -> bool:
         # If previous episode is done, we create a new episode
         if len(self._done_episode[env_id]) == 0 or self._done_episode[env_id][-1] is True:
             self._transitions[env_id].append([])
@@ -143,6 +143,13 @@ class BattleTransitionList:
         self._transitions[env_id][-1].append(transition)
         if transition.done:
             self._done_episode[env_id][-1] = True
+            if len(self._transitions[env_id][-1]) < self._unroll_len:
+                logging.warning(
+                    'The length of the newest finished episode in node {}, env {}, is {}, which is shorter than unroll_len: {}, and need to be dropped'
+                    .format(task.router.node_id, env_id, len(self._transitions[env_id][-1]), self._unroll_len)
+                )
+                return False
+        return True
 
     def clear(self):
         for item in self._transitions:

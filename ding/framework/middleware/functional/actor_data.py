@@ -1,6 +1,8 @@
 from typing import Any, List
 from dataclasses import dataclass, field
 
+#TODO(zms): simplify fields
+
 
 @dataclass
 class ActorDataMeta:
