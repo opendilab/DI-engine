@@ -26,7 +26,7 @@ class LeagueActor:
         self.env_fn = env_fn
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
-        self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
+        self.n_rollout_samples = self.cfg.policy.collect.n_rollout_samples
         self._collectors: Dict[str, BattleEpisodeCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
@@ -120,7 +120,7 @@ class LeagueActor:
 
         main_player, ctx.current_policies = self._get_current_policies(job)
 
-        ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
+        ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
         ctx.train_iter = main_player.total_agent_step
@@ -130,9 +130,12 @@ class LeagueActor:
             old_envstep = ctx.total_envstep_count
             time_begin = time.time()
             collector(ctx)
+            meta_data = ActorDataMeta(
+                player_total_env_step=ctx.total_envstep_count, actor_id=task.router.node_id, send_wall_time=time.time()
+            )
 
             if not job.is_eval and len(ctx.episodes[0]) > 0:
-                actor_data = ActorData(env_step=ctx.total_envstep_count, train_data=ctx.episodes[0])
+                actor_data = ActorData(meta=meta_data, train_data=ctx.episodes[0])
                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
             ctx.episodes = []
             time_end = time.time()
@@ -162,8 +165,7 @@ class StepLeagueActor:
         self.env_fn = env_fn
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
-        # TODO('self.unroll_len = self.cfg.policy.collect.unroll_len')
-        self.unroll_len = self.cfg.policy.collect.get("unroll_len") or 0
+        self.unroll_len = self.cfg.policy.collect.unroll_len
         self._collectors: Dict[str, BattleEpisodeCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
@@ -260,7 +262,7 @@ class StepLeagueActor:
 
         main_player, ctx.current_policies = self._get_current_policies(job)
 
-        ctx.n_episode = self.cfg.policy.collect.get("n_episode") or 1
+        ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
         ctx.train_iter = main_player.total_agent_step
