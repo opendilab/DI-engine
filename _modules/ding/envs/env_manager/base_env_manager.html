@@ -376,11 +376,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># env_ref is used to acquire some common attributes of env, like obs_shape and act_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_fn</span><span class="p">[</span><span class="mi">0</span><span class="p">]()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">observation_space</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">action_space</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reward_space</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">observation_space</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">action_space</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reward_space</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c1"># For some environment,</span>
+            <span class="c1"># we have to reset before getting observation description.</span>
+            <span class="c1"># However, for dmc-mujoco, we should not reset the env at the main thread,</span>
+            <span class="c1"># when using in a subprocess mode, which would cause opengl rendering bugs,</span>
+            <span class="c1"># leading to no response subprocesses.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">observation_space</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">action_space</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reward_space</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">VOID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)}</span>
 
