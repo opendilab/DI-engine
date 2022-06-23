@@ -1,3 +1,4 @@
+from ding import policy
 from ding.envs import BaseEnv, BaseEnvTimestep
 
 from distar.envs.env import SC2Env
@@ -33,12 +34,14 @@ class DIStarEnv(SC2Env, BaseEnv):
         # Here in DI-star, the return is ({'raw_obs': self._obs[agent_idx], 'opponent_obs': opponent_obs, 'action_result': self._action_result[agent_idx]}, reward, episode_complete)
         next_observations, reward, done = super(DIStarEnv, self).step(actions)
         # next_observations 和 observations 格式一样
-        # reward 是 list [policy reward 1, policy reard 2]
+        # reward 是 list [policy reward 1, policy reward 2]
         # done 是 一个 bool 值
         # TODO(zms): final_eval_reward 这局赢没赢
         info = {}
         for policy_id in range(self._num_agents):
-            info[policy_id] = {'result': None}
+            info[policy_id] = {}
+            if done:
+                info[policy_id]['final_eval_reward'] = reward[policy_id]
         timestep = BaseEnvTimestep(obs=next_observations, reward=reward, done=done, info=info)
         return timestep
 
