@@ -1,4 +1,4 @@
-from .distar_env import DIStarEnv
+from .distar_env import DIStarEnv, parse_new_game, transform_obs
 from .meta import *
 from .static_data import RACE_DICT, BEGIN_ACTIONS, ACTION_RACE_MASK, SELECTED_UNITS_MASK, ACTIONS
 from .stat import Stat
