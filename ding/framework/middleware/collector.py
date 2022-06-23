@@ -43,14 +43,14 @@ class BattleEpisodeCollector:
         self.env.close()
 
     def _update_policies(self, player_id_list) -> None:
-        # TODO(zms): update train_iter
+        # TODO(zms): update train_iter, update train_iter and player_id inside policy is a good idea
         for player_id in player_id_list:
             if self.model_dict.get(player_id) is None:
                 continue
             else:
                 learner_model = self.model_dict.get(player_id)
                 policy = self.all_policies.get(player_id)
-                assert policy, "for player{}, policy should have been initialized already"
+                assert policy, "for player {}, policy should have been initialized already".format(player_id)
                 # update policy model
                 policy.load_state_dict(learner_model.state_dict)
                 self.model_dict[player_id] = None
@@ -121,7 +121,7 @@ class BattleStepCollector:
         self.env.close()
 
     def _update_policies(self, player_id_list) -> None:
-        # TODO: 60 秒 没有更新 就阻塞，更新才返回
+        # TODO(zms): 60 秒 没有更新 就阻塞，更新才返回
         for player_id in player_id_list:
             if self.model_dict.get(player_id) is None:
                 continue

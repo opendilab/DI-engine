@@ -36,7 +36,6 @@ class DIStarEnv(SC2Env, BaseEnv):
         # next_observations 和 observations 格式一样
         # reward 是 list [policy reward 1, policy reward 2]
         # done 是 一个 bool 值
-        # TODO(zms): final_eval_reward 这局赢没赢
         info = {}
         for policy_id in range(self._num_agents):
             info[policy_id] = {}
