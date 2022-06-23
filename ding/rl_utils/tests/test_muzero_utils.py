@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 from ding.rl_utils.efficientzero.utils import get_augmented_data
 
+
 @pytest.mark.unittest
 class TestMuZeroUtils():
 
@@ -21,10 +22,3 @@ class TestMuZeroUtils():
         assert extented_data[0]['state'].flatten().shape == state.flatten().shape
         assert extented_data[0]['mcts_prob'].shape == mcts_prob.flatten().shape
         assert extented_data[0]['winner'].shape == winner.shape
-
-
-
-
-
-
-

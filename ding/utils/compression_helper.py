@@ -143,4 +143,3 @@ def get_data_decompressor(name: str):
         >>> origin_data = compressed(compressed_data)
     """
     return _DECOMPRESSORS_MAP[name]
-
