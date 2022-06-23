@@ -41,6 +41,11 @@ class DIStarEnv(SC2Env, BaseEnv):
             info[policy_id] = {}
             if done:
                 info[policy_id]['final_eval_reward'] = reward[policy_id]
+                info[policy_id]['result'] = 'draws'
+                if reward[policy_id] == 1:
+                    info[policy_id]['result'] = 'wins'
+                elif reward[policy_id] == -1:
+                    info[policy_id]['result'] = 'losses'
         timestep = BaseEnvTimestep(obs=next_observations, reward=reward, done=done, info=info)
         return timestep
 
