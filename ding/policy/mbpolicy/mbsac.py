@@ -8,7 +8,7 @@ from torch import nn
 from torch.distributions import Normal, Independent, TransformedDistribution, TanhTransform
 from easydict import EasyDict
 
-from ding.torch_utils import to_device, fold_batch, unfold_batch
+from ding.torch_utils import to_device, fold_batch, unfold_batch, unsqueeze_repeat
 from ding.utils import POLICY_REGISTRY, deep_merge_dicts
 from ding.policy import SACPolicy
 from ding.rl_utils import generalized_lambda_returns
@@ -19,10 +19,13 @@ from .utils import q_evaluation
 
 @POLICY_REGISTRY.register('mbsac')
 class MBSACPolicy(SACPolicy):
-    """
+    r"""
        Overview:
-           Model based SAC with value expansion (arXiv: 1803.00101)\
-               and value gradient (arXiv: 1510.09142) w.r.t lambda-return.
+           Model based SAC with value expansion (arXiv: 1803.00101)
+           and value gradient (arXiv: 1510.09142) w.r.t lambda-return.
+
+           https://arxiv.org/pdf/1803.00101.pdf
+           https://arxiv.org/pdf/1510.09142.pdf
 
        Config:
            == ====================   ========    =============  ==================================
@@ -58,15 +61,14 @@ class MBSACPolicy(SACPolicy):
 
     def _init_learn(self) -> None:
         super()._init_learn()
+        self._target_model.requires_grad_(False)
 
         self._lambda = self._cfg.learn.lambda_
         self._grad_clip = self._cfg.learn.grad_clip
         self._sample_state = self._cfg.learn.sample_state
-
-        self._target_model.requires_grad_(False)
-
+        self._auto_alpha = self._cfg.learn.auto_alpha
         # TODO: auto alpha
-        self._auto_alpha = False
+        assert not self._auto_alpha, "NotImplemented"
 
         # TODO: TanhTransform leads to NaN
         def actor_fn(obs: Tensor):
@@ -225,10 +227,12 @@ class MBSACPolicy(SACPolicy):
 
 @POLICY_REGISTRY.register('stevesac')
 class STEVESACPolicy(SACPolicy):
-    """
+    r"""
        Overview:
            Model based SAC with stochastic value expansion (arXiv 1807.01675).\
-               This implementation also uses value gradient w.r.t the same STEVE target.
+           This implementation also uses value gradient w.r.t the same STEVE target.
+
+           https://arxiv.org/pdf/1807.01675.pdf
 
        Config:
            == ====================    ========    =============  =====================================
@@ -260,14 +264,13 @@ class STEVESACPolicy(SACPolicy):
 
     def _init_learn(self) -> None:
         super()._init_learn()
+        self._target_model.requires_grad_(False)
 
         self._grad_clip = self._cfg.learn.grad_clip
         self._ensemble_size = self._cfg.learn.ensemble_size
-
-        self._target_model.requires_grad_(False)
-
+        self._auto_alpha = self._cfg.learn.auto_alpha
         # TODO: auto alpha
-        self._auto_alpha = False
+        assert not self._auto_alpha, "NotImplemented"
 
         def actor_fn(obs: Tensor):
             obs, dim = fold_batch(obs, 1)
@@ -308,9 +311,9 @@ class STEVESACPolicy(SACPolicy):
             data['action'] = data['action'].unsqueeze(1)
 
         # [B, D] -> [E, B, D]
-        data['next_obs'] = data['next_obs'].unsqueeze(0).repeat(self._ensemble_size, 1, 1)
-        data['reward'] = data['reward'].unsqueeze(0).repeat(self._ensemble_size, 1)
-        data['done'] = data['done'].unsqueeze(0).repeat(self._ensemble_size, 1)
+        data['next_obs'] = unsqueeze_repeat(data['next_obs'], self._ensemble_size)
+        data['reward'] = unsqueeze_repeat(data['reward'], self._ensemble_size)
+        data['done'] = unsqueeze_repeat(data['done'], self._ensemble_size)
 
         self._learn_model.train()
         self._target_model.train()
@@ -339,7 +342,7 @@ class STEVESACPolicy(SACPolicy):
         with torch.no_grad():
             steve_return_inv_var = 1 / (1e-8 + steve_return.var(1, unbiased=False))
             steve_return_weight = steve_return_inv_var / (1e-8 + steve_return_inv_var.sum(dim=0))
-        # (B)
+        # (B, )
         steve_return = (steve_return_mean * steve_return_weight).sum(0)
 
         eval_data = {'obs': data['obs'], 'action': data['action']}

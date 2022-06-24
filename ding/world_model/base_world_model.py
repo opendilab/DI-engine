@@ -25,7 +25,7 @@ def create_world_model(cfg, *args, **kwargs):
 
 
 class WorldModel(ABC):
-    """
+    r"""
     Overview:
         Abstract baseclass for world model.
 
@@ -70,14 +70,14 @@ class WorldModel(ABC):
         return merge_cfg
 
     def should_train(self, envstep: int):
-        """
+        r"""
         Overview:
             Check whether need to train world model.
         """
         return (envstep - self.last_train_step) >= self.train_freq
 
     def should_eval(self, envstep: int):
-        """
+        r"""
         Overview:
             Check whether need to evaluate world model.
         """
@@ -85,9 +85,10 @@ class WorldModel(ABC):
 
     @abstractmethod
     def train(self, env_buffer: IBuffer, envstep: int, train_iter: int):
-        """
+        r"""
         Overview:
             Train world model using data from env_buffer.
+
         Arguments:
             - env_buffer (:obj:`IBuffer`): the buffer which collects real environment steps
             - envstep (:obj:`int`): the current number of environment steps in real environment
@@ -97,9 +98,10 @@ class WorldModel(ABC):
 
     @abstractmethod
     def eval(self, env_buffer: IBuffer, envstep: int, train_iter: int):
-        """
+        r"""
         Overview:
             Evaluate world model using data from env_buffer.
+
         Arguments:
             - env_buffer (:obj:`IBuffer`): the buffer that collects real environment steps
             - envstep (:obj:`int`): the current number of environment steps in real environment
@@ -109,20 +111,23 @@ class WorldModel(ABC):
 
     @abstractmethod
     def step(self, obs: Tensor, action: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
-        """
+        r"""
         Overview:
             Take one step in world model.
+
         Arguments:
-            - obs (:obj:`torch.Tensor`): current observations S_t
-            - action (:obj:`torch.Tensor`): current actions A_t
+            - obs (:obj:`torch.Tensor`): current observations :math:`S_t`
+            - action (:obj:`torch.Tensor`): current actions :math:`A_t`
+
         Returns:
-            - reward (:obj:`torch.Tensor`): rewards R_t
-            - next_obs (:obj:`torch.Tensor`): next observations S_t+1
+            - reward (:obj:`torch.Tensor`): rewards :math:`R_t`
+            - next_obs (:obj:`torch.Tensor`): next observations :math:`S_t+1`
             - done (:obj:`torch.Tensor`): whether the episodes ends
+
         Shapes:
-            B: batch size
-            O: observation dimension
-            A: action dimension
+            :math:`B`: batch size
+            :math:`O`: observation dimension
+            :math:`A`: action dimension
 
             - obs:      [B, O]
             - action:   [B, A]
@@ -134,7 +139,7 @@ class WorldModel(ABC):
 
 
 class DynaWorldModel(WorldModel, ABC):
-    """
+    r"""
     Overview:
         Dyna-style world model (summarized in arXiv: 1907.02057) which stores and\
         reuses imagination rollout in the imagination buffer.
@@ -168,16 +173,18 @@ class DynaWorldModel(WorldModel, ABC):
             lambda x: self.rollout_length_scheduler(x) * self.rollout_batch_size * self.rollout_retain
 
     def sample(self, env_buffer: IBuffer, img_buffer: IBuffer, batch_size: int, train_iter: int) -> dict:
-        """
+        r"""
         Overview:
             Sample from the combination of environment buffer and imagination buffer with\
             certain ratio to generate batched data for policy training.
+
         Arguments:
             - policy (:obj:`namedtuple`): policy in collect mode
             - env_buffer (:obj:`IBuffer`): the buffer that collects real environment steps
             - img_buffer (:obj:`IBuffer`): the buffer that collects imagination steps
             - batch_size (:obj:`int`): the batch size for policy training
             - train_iter (:obj:`int`): the current number of policy training iterations
+
         Returns:
             - data (:obj:`int`): the training data for policy training
         """
@@ -191,9 +198,10 @@ class DynaWorldModel(WorldModel, ABC):
     def fill_img_buffer(
         self, policy: namedtuple, env_buffer: IBuffer, img_buffer: IBuffer, envstep: int, train_iter: int
     ):
-        """
+        r"""
         Overview:
             Sample from the env_buffer, rollouts to generate new data, and push them into the img_buffer.
+
         Arguments:
             - policy (:obj:`namedtuple`): policy in collect mode
             - env_buffer (:obj:`IBuffer`): the buffer that collects real environment steps
@@ -259,7 +267,7 @@ class DynaWorldModel(WorldModel, ABC):
 
 
 class DreamWorldModel(WorldModel, ABC):
-    """
+    r"""
     Overview:
         Dreamer-style world model which uses each imagination rollout only once\
         and backpropagate through time(rollout) to optimize policy.
@@ -270,32 +278,35 @@ class DreamWorldModel(WorldModel, ABC):
 
     def rollout(self, obs: Tensor, actor_fn: Callable[[Tensor], Tuple[Tensor, Tensor]], envstep: int,
                 **kwargs) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Optional[bool]]:
-        """
+        r"""
         Overview:
-            Generate batched imagination rollouts starting from the current observations.
+            Generate batched imagination rollouts starting from the current observations.\
             This function is useful for value gradients where the policy is optimized by BPTT.
-        Arguments:
-            - obs (:obj:`Tensor`): the current observations S_t
-            - actor_fn (:obj:`Callable`): the unified API (A_t, H_t) = pi(S_t)
-            - envstep (:obj:`int`): the current number of environment steps in real environment
-        Returns:
-            - obss (:obj:`Tensor`):        S_t,  ...  S_t+n
-            - actions (:obj:`Tensor`):     A_t,  ..., A_t+n
-            - rewards (:obj:`Tensor`):     R_t,  ..., R_t+n-1
-            - aug_rewards (:obj:`Tensor`): H_t', ..., H_t+n, this can be entropy bonus as in SAC,\
-                                                otherwise it should be a zero tensor
-            - dones (:obj:`Tensor`):       done_t, ..., done_t+n
-        Shapes:
-            N: time step
-            B: batch size
-            O: observation dimension
-            A: action dimension
 
-            - obss:        [N+1, B, O], where obss[0] are the real observations
-            - actions:     [N+1, B, A]
-            - rewards:     [N,   B]
-            - aug_rewards: [N+1, B]
-            - dones:       [N,  B]
+        Arguments:
+            - obs (:obj:`Tensor`): the current observations :math:`S_t`
+            - actor_fn (:obj:`Callable`): the unified API :math:`(A_t, H_t) = pi(S_t)`
+            - envstep (:obj:`int`): the current number of environment steps in real environment
+
+        Returns:
+            - obss (:obj:`Tensor`):        :math:`S_t,  ..., S_t+n`
+            - actions (:obj:`Tensor`):     :math:`A_t,  ..., A_t+n`
+            - rewards (:obj:`Tensor`):     :math:`R_t,  ..., R_t+n-1`
+            - aug_rewards (:obj:`Tensor`): :math:`H_t,  ..., H_t+n`, this can be entropy bonus as in SAC,
+                                                otherwise it should be a zero tensor
+            - dones (:obj:`Tensor`):       :math:`\text{done}_t, ..., \text{done}_t+n`
+
+        Shapes:
+            :math:`N`: time step
+            :math:`B`: batch size
+            :math:`O`: observation dimension
+            :math:`A`: action dimension
+
+            - obss:        :math:`[N+1, B, O]`, where obss[0] are the real observations
+            - actions:     :math:`[N+1, B, A]`
+            - rewards:     :math:`[N,   B]`
+            - aug_rewards: :math:`[N+1, B]`
+            - dones:       :math:`[N,   B]`
 
         .. note::
             - The rollout length is determined by rollout length scheduler.
@@ -338,7 +349,7 @@ class DreamWorldModel(WorldModel, ABC):
 
 
 class HybridWorldModel(DynaWorldModel, DreamWorldModel, ABC):
-    """
+    r"""
     Overview:
         The hybrid model that combines reused and on-the-fly rollouts.
 

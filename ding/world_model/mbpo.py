@@ -8,7 +8,7 @@ from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.world_model.base_world_model import HybridWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
-from ding.torch_utils import fold_batch, unfold_batch
+from ding.torch_utils import fold_batch, unfold_batch, unsqueeze_repeat
 
 
 @WORLD_MODEL_REGISTRY.register('mbpo')
@@ -85,7 +85,7 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
                 input = inputs[:, i:i + batch_size]
             else:
                 # input:  [B, D]
-                input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+                input = unsqueeze_repeat(inputs[i:i + batch_size], self.ensemble_size)
             b_mean, b_var = self.ensemble_model(input, ret_log_var=False)
             ensemble_mean.append(b_mean)
             ensemble_var.append(b_var)
@@ -140,8 +140,8 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         inputs = self.scaler.transform(inputs)
 
         # repeat for ensemble
-        inputs = inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
-        labels = labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        inputs = unsqueeze_repeat(inputs, self.ensemble_size)
+        labels = unsqueeze_repeat(labels, self.ensemble_size)
 
         # eval
         with torch.no_grad():
@@ -194,8 +194,8 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
         #repeat for ensemble
-        holdout_inputs = holdout_inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
-        holdout_labels = holdout_labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        holdout_inputs = unsqueeze_repeat(holdout_inputs, self.ensemble_size)
+        holdout_labels = unsqueeze_repeat(holdout_labels, self.ensemble_size)
 
         self._epochs_since_update = 0
         self._snapshots = {i: (-1, 1e10) for i in range(self.ensemble_size)}

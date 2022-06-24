@@ -8,18 +8,21 @@ def q_evaluation(obss: Tensor, actions: Tensor, q_critic_fn: Callable[[Tensor, T
                                                                       Tensor]) -> Union[Tensor, Tuple[Tensor, Tensor]]:
     """
     Overview:
-        Evaluate observation&action pairs along the trajectory
+        Evaluate (observation, action) pairs along the trajectory
+
     Arguments:
         - obss (:obj:`torch.Tensor`): the observations along the trajectory
         - actions (:obj:`torch.Size`): the actions along the trajectory
-        - q_critic_fn (:obj:`Callable`): the unified API Q(S_t, A_t)
+        - q_critic_fn (:obj:`Callable`): the unified API :math:`Q(S_t, A_t)`
+
     Returns:
         - q_value (:obj:`torch.Tensor`): the action-value function evaluated along the trajectory
+
     Shapes:
-        N: time step
-        B: batch size
-        O: observation dimension
-        A: action dimension
+        :math:`N`: time step
+        :math:`B`: batch size
+        :math:`O`: observation dimension
+        :math:`A`: action dimension
 
         - obss:        [N, B, O]
         - actions:     [N, B, A]
