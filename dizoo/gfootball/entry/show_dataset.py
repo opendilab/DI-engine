@@ -1,12 +1,9 @@
 from dizoo.gfootball.entry.gfootball_il_config import main_config, create_config
-import os
 import torch
 from torch.utils.data import DataLoader
 from ding.config import read_config, compile_config
 from ding.utils.data import create_dataset
 import numpy as np
-import matplotlib.pyplot as plt
-import gym
 import os
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)

@@ -1,29 +1,22 @@
 from copy import deepcopy
-from typing import Tuple, List, Dict, Any
-import torch
-from collections import namedtuple
 import os
+import torch
+
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)
 
-from ding.torch_utils import Adam, to_device
-from ding.rl_utils import get_train_sample, get_nstep_return_data
-from ding.entry import serial_pipeline_bc, collect_demo_data, collect_episodic_demo_data, episode_to_transitions, episode_to_transitions_filter, eval
-from ding.policy import PPOOffPolicy, DiscreteBehaviourCloningPolicy
-from ding.utils import POLICY_REGISTRY
+from ding.entry import serial_pipeline_bc, collect_demo_data, collect_episodic_demo_data, episode_to_transitions, \
+    episode_to_transitions_filter, eval
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
-from ding.utils.data import default_collate, default_decollate
 from dizoo.gfootball.entry.gfootball_il_config import gfootball_il_main_config, gfootball_il_create_config
 from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
 from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseModel
 
-     
+seed = 0
 gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_easy_il_rule_200ep_lt0_seed0_lsce_cecw_wd1e-4'
-# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed1_200eps_lt0_epc1000_bs512_e5_lsce'
-# gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_lt0_epc1000_bs512_accuracy'
-seed=0
-# demo_episodes = 2  # debug
+# in gfootball env: 3000 transitions = one episode
+# 3e5 transitions = 200 episode, The memory needs about 350G
 demo_episodes = 200  # key hyper-parameter
 data_path_episode = dir_path + f'/gfootball_easy_rule_{demo_episodes}eps.pkl'
 data_path_transitions_lt0 = dir_path + f'/gfootball_easy_rule_{demo_episodes}eps_transitions_lt0.pkl'
@@ -50,6 +43,7 @@ collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_crea
 
 eval_config = deepcopy(collect_config)
 """if eval demo model"""
+# # if save eval replay
 # eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
 # eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
 """if collect demo data"""
@@ -58,13 +52,13 @@ collect_episodic_demo_data(
     model=football_rule_base_model, state_dict=state_dict
 )
 # only use the episode whose return is larger than 0 as demo data
-episode_to_transitions_filter(data_path=data_path_episode, expert_data_path=data_path_transitions_lt0, nstep=1, min_episode_return=1)
+episode_to_transitions_filter(data_path=data_path_episode, expert_data_path=data_path_transitions_lt0, nstep=1,
+                              min_episode_return=1)
 
 """
 phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
-# il_config[0].policy.learn.train_epoch = 2  # debug
 il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 
 il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
@@ -75,11 +69,13 @@ il_config[0].policy.learn.show_accuracy = False
 il_config[0].policy.learn.ce_class_weight = True
 il_config[0].policy.learn.lsce = True
 
-_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0, model=football_naive_q)
+_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0,
+                                           model=football_naive_q)
 
 """
 phase 3: test accuracy in train dataset and validation dataset
 """
+
 # """
 # load trained model, calculate accuracy in train dataset
 # """
@@ -95,7 +91,7 @@ phase 3: test accuracy in train dataset and validation dataset
 # print('calculate accuracy in train dataset'*10)
 # print('=='*10)
 # _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0, model=football_naive_q)
-
+#
 # """
 # load trained model, calculate accuracy in validation dataset
 # """

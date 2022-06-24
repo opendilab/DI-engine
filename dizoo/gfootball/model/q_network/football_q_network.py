@@ -68,7 +68,6 @@ class FootballNaiveQ(nn.Module):
         x = torch.cat(encoding_list, dim=1)
 
         x = self.pred_head(x)
-        # return x
         return {'logit': x, 'action': torch.argmax(x, dim=-1)}
 
 
@@ -76,9 +75,9 @@ class FootballNaiveQ(nn.Module):
 class FootballDRQN(nn.Module):
     """
     Overview:
+        special football obs encoder
         DQN + RNN = DRQN
     """
-
     def __init__(
             self,
             obs_shape: Union[int, SequenceType] = 1312,   # football

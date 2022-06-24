@@ -1,26 +1,22 @@
 from copy import deepcopy
-from typing import Tuple, List, Dict, Any
-import torch
-from collections import namedtuple
 import os
+import torch
+
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)
 
-from ding.torch_utils import Adam, to_device
-from ding.rl_utils import get_train_sample, get_nstep_return_data
-from ding.entry import serial_pipeline_bc, collect_demo_data, collect_episodic_demo_data, episode_to_transitions, episode_to_transitions_filter, eval
-from ding.policy import PPOOffPolicy, DiscreteBehaviourCloningPolicy
-from ding.utils import POLICY_REGISTRY
+from ding.entry import serial_pipeline_bc, collect_demo_data, collect_episodic_demo_data, episode_to_transitions, \
+    episode_to_transitions_filter, eval
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
-from ding.utils.data import default_collate, default_decollate
 from dizoo.gfootball.entry.gfootball_il_config import gfootball_il_main_config, gfootball_il_create_config
 from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
 from dizoo.gfootball.model.bots.kaggle_5th_place_model import FootballKaggle5thPlaceModel
 
-seed=0
+seed = 0
 gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_kaggle5th_seed0'
-# demo_transitions = 2  # debug
+# in gfootball env: 3000 transitions = one episode
+# 3e5 transitions = 100 episode, The memory needs about 180G
 demo_transitions = int(3e5)  # key hyper-parameter
 data_path_transitions = dir_path + f'/gfootball_kaggle5th_{demo_transitions}-demo-transitions.pkl'
 
@@ -53,10 +49,9 @@ collect_demo_data(
 phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
-il_config[0].policy.learn.train_epoch = 50  # key hyper-parameter
-# il_config[0].policy.learn.train_epoch = 2  # debug
-il_config[0].policy.type = 'iql_bc'
+il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
 il_config[0].policy.eval.evaluator.multi_gpu = False
 football_naive_q = FootballNaiveQ()
-_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions, model=football_naive_q)
+_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions,
+                                           model=football_naive_q)

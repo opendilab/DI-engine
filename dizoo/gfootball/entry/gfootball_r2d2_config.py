@@ -2,9 +2,7 @@ from easydict import EasyDict
 
 collector_env_num = 8
 evaluator_env_num = 5
-# debug
-# collector_env_num = 1
-# evaluator_env_num = 1  
+
 gfootball_r2d2_main_config = dict(
     exp_name='data_gfootball/gfootball_easy_r2d2_seed0',
     # exp_name='data_gfootball/gfootball_medium_r2d2_seed0',
@@ -13,6 +11,7 @@ gfootball_r2d2_main_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=999,
+        # env_name="11_vs_11_hard_stochastic",
         # env_name="11_vs_11_stochastic",  # default: medium
         env_name="11_vs_11_easy_stochastic",
     ),
