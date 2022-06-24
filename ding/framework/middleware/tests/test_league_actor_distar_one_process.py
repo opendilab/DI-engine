@@ -84,6 +84,7 @@ def test_league_actor():
 
             def on_actor_job(job_: Job):
                 assert job_.launch_player == job.launch_player
+                print(job)
                 testcases["on_actor_job"] = True
 
             def on_actor_data(actor_data):

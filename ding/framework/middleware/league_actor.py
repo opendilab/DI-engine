@@ -328,7 +328,7 @@ class StepLeagueActor:
             )
 
             if ctx.job_finish is True:
-                job.result = [['wins']]
+                job.result = [e['result'] for e in ctx.episode_info[0]]
                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
