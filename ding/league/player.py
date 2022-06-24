@@ -231,13 +231,13 @@ class ActivePlayer(Player):
         else:
             # If win rate of pretrain_historical is larger than ``self._strong_win_rate``, then 0.5 sp, 0.5 pfsp
             # selected_players = self._get_players(lambda x: isinstance(x, HistoricalPlayer))
-            selected_players = self._get_players(lambda x: 'pretrain' in x.player_id)
-            win_rates = self._payoff[self, selected_players]
-            if win_rates.min() < self._strong_win_rate:
-                opponent = getattr(self, '_pfsp_branch')()
-            else:
-                # collect opponent is a Player.
-                opponent = self._get_collect_opponent()
+            #selected_players = self._get_players(lambda x: 'pretrain' in x.player_id)
+            #win_rates = self._payoff[self, selected_players]
+            #if win_rates.min() < self._strong_win_rate:
+            #    opponent = getattr(self, '_pfsp_branch')()
+            #else:
+            # collect opponent is a Player.
+            opponent = self._get_collect_opponent()
         return {
             'opponent': opponent,
         }

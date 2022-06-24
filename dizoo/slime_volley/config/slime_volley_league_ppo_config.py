@@ -42,12 +42,13 @@ league_demo_ppo_config = dict(
                 path_policy="policy_path_placeholer",
                 active_players=dict(main_player=1, ),
                 main_player=dict(
-                    one_phase_step=20000,
-                    branch_probs=dict(pfsp=0.5, sp=0.5),
+                    one_phase_step=50000,
+                    branch_probs=dict(pfsp=1.0),
                     strong_win_rate=0.55,
                 ),
                 use_pretrain=False,
                 use_pretrain_init_historical=True,
+                use_bot_init=True,
                 payoff=dict(
                     type='battle',
                     decay=0.99,

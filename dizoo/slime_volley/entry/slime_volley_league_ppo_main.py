@@ -11,11 +11,12 @@ from easydict import EasyDict
 from ding.config import compile_config
 from ding.worker import BaseLearner, BattleEpisodeSerialCollector, NaiveReplayBuffer, InteractionSerialEvaluator
 from ding.envs import SyncSubprocessEnvManager
-from ding.policy import PPOPolicy
-from ding.model import VAC
+from ding.policy import PPOPolicy, Botpolicy
+from ding.model import VAC, Bot
 from ding.utils import set_pkg_seed
 from ding.league import BaseLeague, ActivePlayer
 from dizoo.slime_volley.envs import SlimeVolleyEnv
+import slimevolleygym
 from dizoo.slime_volley.config.slime_volley_league_ppo_config import main_config
 
 
@@ -120,6 +121,9 @@ def main(cfg, seed=0):
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     policies['historical'] = policy
+    model_bot = Bot()
+    policy_bot = Botpolicy(cfg.policy, model=model_bot)
+    policies['bot'] = policy_bot
     main_key = [k for k in learners.keys() if k.startswith('main_player')][0]
     main_player = league.get_player_by_id(main_key)
     main_learner = learners[main_key]
@@ -179,6 +183,8 @@ def main(cfg, seed=0):
                 opponent_policy = policies['historical'].collect_mode
                 opponent_path = job['checkpoint_path'][1]
                 opponent_policy.load_state_dict(torch.load(opponent_path, map_location='cpu'))
+            elif 'bot' in opponent_player_id:
+                opponent_policy = policies['bot'].collect_mode
             else:
                 opponent_policy = policies[opponent_player_id].collect_mode
             collector.reset_policy([policies[player_id].collect_mode, opponent_policy])

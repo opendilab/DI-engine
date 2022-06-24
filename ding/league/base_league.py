@@ -50,6 +50,8 @@ class BaseLeague:
         # Otherwise, "pretrain_checkpoint_path" should list paths of all player categories.
         use_pretrain_init_historical=False,
         pretrain_checkpoint_path=dict(default='/home/pi/DI-engine/slime_volley_ppo_seed0/ckpt_learner1/iteration_3000000.pth.tar', ),
+        # "use_bot" means whether to use bot as an init historical player
+        use_bot_init=False,
         # ---payoff---
         payoff=dict(
             # Supports ['battle']
@@ -121,6 +123,27 @@ class BaseLeague:
                     cate,
                     self.payoff,
                     self.cfg.pretrain_checkpoint_path[cate],
+                    name,
+                    0,
+                    self.metric_env.create_rating(),
+                    parent_id=parent_name
+                )
+                self.historical_players.append(hp)
+                self.payoff.add_player(hp)
+        
+        # Add bot as the initial HistoricalPlayer for each player category.
+        if self.cfg.use_bot_init:
+            for cate in self.cfg.player_category:
+                main_player_name = [k for k in self.cfg.keys() if 'main_player' in k]
+                assert len(main_player_name) == 1, main_player_name
+                main_player_name = main_player_name[0]
+                name = '{}_{}_bot_init'.format(main_player_name, cate)
+                parent_name = '{}_{}_0'.format(main_player_name, cate)
+                hp = HistoricalPlayer(
+                    self.cfg.get(main_player_name),
+                    cate,
+                    self.payoff,
+                    self.path_policy,
                     name,
                     0,
                     self.metric_env.create_rating(),

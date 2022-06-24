@@ -12,6 +12,7 @@ from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
+from .bot import Botpolicy
 from .sac import SACPolicy, SACDiscretePolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 from .impala import IMPALAPolicy
