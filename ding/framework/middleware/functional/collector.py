@@ -65,7 +65,7 @@ class BattleTransitionList:
         self._unroll_len = unroll_len
         # TODO(zms): last transition + 1
 
-    def get_env_trajectories(self, env_id: int, only_finished: bool = False):
+    def get_env_trajectories(self, env_id: int, only_finished: bool = False) -> List[List]:
         trajectories = []
         if len(self._transitions[env_id]) == 0:
             # if we have no episode for this env, we return an empty list
@@ -92,7 +92,7 @@ class BattleTransitionList:
 
         return trajectories
 
-    def to_trajectories(self, only_finished: bool = False):
+    def to_trajectories(self, only_finished: bool = False) -> List[ActorEnvTrajectories]:
         all_env_data = []
         for env_id in range(self.env_num):
             trajectories = self.get_env_trajectories(env_id, only_finished=only_finished)
@@ -100,7 +100,7 @@ class BattleTransitionList:
                 all_env_data.append(ActorEnvTrajectories(env_id=env_id, trajectories=trajectories))
         return all_env_data
 
-    def _cut_trajectory_from_episode(self, episode: list):
+    def _cut_trajectory_from_episode(self, episode: list) -> List[List]:
         # first we cut complete trajectories (list of transitions whose length equal to unroll_len)
         # then we gather the transitions in the tail of episode, and fill up the trajectory with the tail transitions in Trajectory(t-1)
         # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len, we fill up the trajectory
@@ -151,7 +151,7 @@ class BattleTransitionList:
                 return False
         return True
 
-    def clear(self):
+    def clear(self) -> None:
         for item in self._transitions:
             item.clear()
         for item in self._done_episode:
