@@ -305,3 +305,80 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List)
                 ctx.env_episode += 1
 
     return _battle_rolloutor
+
+
+def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
+
+    def _battle_inferencer(ctx: "BattleContext"):
+
+        if env.closed:
+            env.launch()
+
+        # Get current env obs.
+        obs = env.ready_obs
+        assert isinstance(obs, dict)
+
+        ctx.obs = obs
+
+        # Policy forward.
+        inference_output = {}
+        actions = {}
+        for env_id in ctx.obs.keys():
+            observations = obs[env_id]
+            inference_output[env_id] = {}
+            actions[env_id] = {}
+            for policy_id, policy_obs in observations.items():
+                # policy.forward
+                output = ctx.current_policies[policy_id].forward(policy_obs)
+                inference_output[env_id][policy_id] = output
+                actions[env_id][policy_id] = output['action']
+        ctx.inference_output = inference_output
+        ctx.actions = actions
+
+    return _battle_inferencer
+
+
+def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
+
+    def _battle_rolloutor(ctx: "BattleContext"):
+        timesteps = env.step(ctx.actions)
+
+        ctx.total_envstep_count += len(timesteps)
+        ctx.env_step += len(timesteps)
+
+        # for env_id, timestep in timesteps.items():
+        # TODO(zms): make sure a standard
+        # If for each step, the env manager can't get the obs of all envs, we need to use dict here.
+        for env_id, timestep in enumerate(timesteps):
+            if timestep.info.get('abnormal'):
+                # TODO(zms): cannot get exact env_step of a episode because for each observation,
+                # in most cases only one of two policies has a obs.
+                # ctx.total_envstep_count -= transitions_list[0].length(env_id)
+                # ctx.env_step -= transitions_list[0].length(env_id)
+
+                # 1st case when env step has bug and need to reset.
+                for policy_id, _ in enumerate(ctx.current_policies):
+                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    ctx.current_policies[policy_id].reset([env_id])
+                continue
+
+            append_succeed = True
+            for policy_id, _ in enumerate(ctx.current_policies):
+                transition = ctx.current_policies[policy_id].process_transition(timestep)
+                transition = EasyDict(transition)
+                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+
+                # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
+                append_succeed = append_succeed and transitions_list[policy_id].append(env_id, transition)
+                if timestep.done:
+                    ctx.current_policies[policy_id].reset([env_id])
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
+
+            if not append_succeed:
+                for policy_id, _ in enumerate(ctx.current_policies):
+                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    ctx.episode_info[policy_id].pop()
+            elif timestep.done:
+                ctx.env_episode += 1
+
+    return _battle_rolloutor

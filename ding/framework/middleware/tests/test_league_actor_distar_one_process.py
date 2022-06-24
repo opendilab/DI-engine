@@ -20,8 +20,8 @@ from ding.framework import EventEnum
 from distar.ctools.utils import read_config
 from ding.model import VAC
 
-from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect, \
-    battle_inferencer_for_distar, battle_rolloutor_for_distar
+from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect
+from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
 
 cfg = deepcopy(distar_cfg)
 env_cfg = read_config('./test_distar_config.yaml')

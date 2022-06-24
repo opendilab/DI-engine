@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, Callable
 from ding.league import player
 
 from ding.policy import Policy
-from ding.framework.middleware import BattleEpisodeCollector, BattleStepCollector
+from ding.framework.middleware import BattleStepCollector
 from ding.framework.middleware.functional import ActorData, ActorDataMeta
 from ding.league.player import PlayerMeta
 from threading import Lock
@@ -29,7 +29,7 @@ class StepLeagueActor:
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
         self.unroll_len = self.cfg.policy.collect.unroll_len
-        self._collectors: Dict[str, BattleEpisodeCollector] = {}
+        self._collectors: Dict[str, BattleStepCollector] = {}
         self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
