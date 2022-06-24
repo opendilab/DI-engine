@@ -51,7 +51,7 @@ gfootball_il_create_config = dict(
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
-    policy=dict(type='bc'),
+    policy=dict(type='football_bc'),
 )
 gfootball_il_create_config = EasyDict(gfootball_il_create_config)
 create_config = gfootball_il_create_config

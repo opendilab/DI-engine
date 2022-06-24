@@ -1,22 +1,26 @@
 from easydict import EasyDict
 
 collector_env_num = 8
-evaluator_env_num = 3
+evaluator_env_num = 5
 # debug
 # collector_env_num = 1
 # evaluator_env_num = 1  
 gfootball_dqn_main_config = dict(
-    exp_name='data_gfootball/gfootball_dqn_seed0',
+    exp_name='data_gfootball/gfootball_easy_dqn_seed0_rbs1e5_df0.999',
+    # exp_name='data_gfootball/gfootball_medium_dqn_seed0_rbs1e5_df0.999',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=999,
+        # env_name="11_vs_11_stochastic",  # default: medium
+        env_name="11_vs_11_easy_stochastic",
     ),
     policy=dict(
         cuda=True,
         nstep=3,
-        discount_factor=0.97,
+        # discount_factor=0.97,
+        discount_factor=0.999,
         model=dict(),
         learn=dict(
             update_per_collect=20,
@@ -29,11 +33,11 @@ gfootball_dqn_main_config = dict(
         other=dict(
             eps=dict(
                 type='exp',
-                start=0.95,
-                end=0.1,
+                start=1,
+                end=0.05,
                 decay=int(1e5),
             ),
-            replay_buffer=dict(replay_buffer_size=int(1e6), ),
+            replay_buffer=dict(replay_buffer_size=int(1e5), ),
             ),
         ),
 )
@@ -55,6 +59,6 @@ create_config = gfootball_dqn_create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c gfootball_dqn_config.py -s 0`
     from ding.entry import serial_pipeline
-    from dizoo.gfootball.model.iql.iql_network import FootballIQL
-    football_iql_model = FootballIQL()
-    serial_pipeline((main_config, create_config), model=football_iql_model, seed=0, max_env_step=10e6)
+    from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
+    football_naive_q = FootballNaiveQ()
+    serial_pipeline((main_config, create_config), model=football_naive_q, seed=0, max_env_step=10e6)
