@@ -22,6 +22,7 @@ All pages relative to our algorithms are grouped by category and follow the stru
     qrdqn
     rainbow
     iqn
+    fqf
     sql
     sqn
 
