@@ -37,6 +37,8 @@ class LeagueLearnerCommunicator:
         self.player_id = player.player_id
         self.policy = policy
         self.prefix = '{}/ckpt'.format(cfg.exp_name)
+        if not os.path.exists(self.prefix):
+            os.makedirs(self.prefix)
         task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
 
     def _push_data(self, data: "ActorData"):

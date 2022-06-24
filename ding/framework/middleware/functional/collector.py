@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
 from easydict import EasyDict
 from functools import reduce
-from more_itertools import only
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
@@ -16,7 +15,7 @@ from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
 from dizoo.distar.envs.fake_data import rl_step_data
 
-import logging
+from ditk import logging
 
 
 class TransitionList:
