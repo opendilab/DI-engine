@@ -113,7 +113,7 @@ class Botpolicy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
-        output = self._collect_model.predict(data)
+        output = self._collect_model.predict(data_id, data)
         # a dict{env_id: {'action': np.array(0-5)}}
         return output
 

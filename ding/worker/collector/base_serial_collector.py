@@ -141,9 +141,9 @@ class CachePool(object):
                     else:
                         self._pool[i].append(copy_d)
         except Exception as err:
-            pass
-            #print(err)
-            #breakpoint()
+            #pass
+            print(err)
+            breakpoint()
 
     def __getitem__(self, idx: int) -> Any:
         """

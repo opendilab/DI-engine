@@ -277,7 +277,7 @@ class BaseLeague:
             )
 
     def get_player_by_id(self, player_id: str) -> 'Player':  # noqa
-        if 'historical' in player_id:
+        if 'historical' in player_id or 'bot' in player_id:
             return [p for p in self.historical_players if p.player_id == player_id][0]
         else:
             return [p for p in self.active_players if p.player_id == player_id][0]

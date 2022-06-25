@@ -234,6 +234,7 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                 try:
                     self._policy_output_pool.update(policy_output)
                 except Exception as err:
+                    #pass
                     print(err)
                     breakpoint()
                 # Interact with env.

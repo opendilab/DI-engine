@@ -53,7 +53,7 @@ class Bot:
         self.inputState[:, 0:self.nGameInput] = obs[:,0:8].numpy()
         self.inputState[:, self.nGameInput:] = self.outputState
 
-    def _getAction(self):
+    def _getAction(self, env_id):
         ret = {}
         action = 0
         """ binary_to_action = {
@@ -65,7 +65,7 @@ class Bot:
             '[0, 1, 0]': 5,  # RIGHT (backward)
         } """
         # traverse every collector_env
-        for env_id, outputState in enumerate(self.outputState):
+        for env_id, outputState in zip(env_id, self.outputState):
             forward = 0
             backward = 0
             jump = 0
@@ -91,9 +91,12 @@ class Bot:
             ret[env_id] = {'action': action}
         return ret
 
-    def predict(self, obs):
-        """ take obs, update rnn state, return action """
+    def predict(self, env_id, obs):
+        """ 
+        take obs, update rnn state, return action 
+        - env_id (:obj:`List[int]`)
+        """
         self._reset(obs)
         self._setInputState(obs)
         self._forward()
-        return self._getAction()
+        return self._getAction(env_id)

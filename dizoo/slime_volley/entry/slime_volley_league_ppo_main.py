@@ -90,6 +90,7 @@ def main(cfg, seed=0):
             env_fn=[partial(SlimeVolleyEnv, collector_env_cfg) for _ in range(collector_env_num)], cfg=cfg.env.manager
         )
         collector_env.seed(seed)
+        #collector_env.enable_save_replay(cfg.env.replay_path)
 
         learners[player_id] = BaseLearner(
             cfg.policy.learn.learner,

@@ -9,6 +9,7 @@ league_demo_ppo_config = dict(
         # we don't set agent_vs_agent field because it should be set in entry for different usage.
         stop_value=5,  # 5 times per episode
         env_id="SlimeVolley-v0",
+        replay_path='slime_volley_league_ppo_seed0/video',
     ),
     policy=dict(
         cuda=True,
@@ -43,7 +44,7 @@ league_demo_ppo_config = dict(
                 active_players=dict(main_player=1, ),
                 main_player=dict(
                     one_phase_step=50000,
-                    branch_probs=dict(pfsp=1.0),
+                    branch_probs=dict(pfsp=0.5, sp=0.5),
                     strong_win_rate=0.55,
                 ),
                 use_pretrain=False,
