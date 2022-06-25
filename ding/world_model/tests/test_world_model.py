@@ -118,4 +118,4 @@ class TestDreamWorldModel:
         assert actions.shape == (T + 1, B, A)
         assert rewards.shape == (T, B)
         assert aug_rewards.shape == (T + 1, B)
-        assert dones.shape == (T + 1, B)
+        assert dones.shape == (T, B)
