@@ -31,7 +31,7 @@ class TestPendulumEnv:
         env.close()
 
     def test_discrete(self):
-        env = PendulumEnv(EasyDict({'act_scale': True},is_continue=False))
+        env = PendulumEnv(EasyDict({'act_scale': True}),continue_space=False)
         env.seed(314)
         assert env._seed == 314
         obs = env.reset()
