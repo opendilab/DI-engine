@@ -4,7 +4,7 @@ import numpy as np
 import gym
 from easydict import EasyDict
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list

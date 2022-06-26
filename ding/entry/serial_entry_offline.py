@@ -1,7 +1,7 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
-from ditk import logging
+from tqdm import tqdm
 from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
@@ -11,7 +11,7 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from ding.utils.data import create_dataset
+from ding.utils.data import create_dataset, default_collate
 
 
 def serial_pipeline_offline(
@@ -45,7 +45,32 @@ def serial_pipeline_offline(
 
     # Dataset
     dataset = create_dataset(cfg)
-    dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
+    if 'holdout_ratio' not in cfg.policy.learn:
+        dataloader = DataLoader(
+            dataset, 
+            cfg.policy.learn.batch_size, 
+            shuffle=True, 
+            collate_fn=lambda x: x,
+            pin_memory=cfg.policy.cuda,
+        )
+    else:
+        # holdout validation set applies in behavioral cloning
+        ratio = cfg.policy.learn.holdout_ratio
+        split = -int(len(dataset)*ratio)
+        dataloader = DataLoader(
+            dataset[:split], 
+            cfg.policy.learn.batch_size, 
+            shuffle=True, 
+            collate_fn=lambda x: x,
+            pin_memory=cfg.policy.cuda,
+        )
+        eval_dataloader = DataLoader(
+            dataset[split:], 
+            cfg.policy.learn.batch_size, 
+            shuffle=True, 
+            collate_fn=default_collate,
+            pin_memory=cfg.policy.cuda,
+        )
     # Env, Policy
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env, collect=False)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
@@ -56,7 +81,7 @@ def serial_pipeline_offline(
 
     # Normalization for state in offlineRL dataset.
     if cfg.policy.collect.get('normalize_states', None):
-        policy.set_norm_statistics(dataset.mean, dataset.std)
+        policy.set_norm_statistics(dataset.statistics)
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -71,17 +96,22 @@ def serial_pipeline_offline(
     learner.call_hook('before_run')
     stop = False
 
-    for epoch in range(cfg.policy.learn.train_epoch):
-        # Evaluate policy performance
-        for i, train_data in enumerate(dataloader):
-            if evaluator.should_eval(learner.train_iter):
-                stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
-                if stop:
-                    break
+    for epoch in tqdm(range(cfg.policy.learn.train_epoch)):
+        # Evaluate policy per epoch
+        for train_data in tqdm(dataloader):
             learner.train(train_data)
-            if learner.train_iter >= max_train_iter:
-                stop = True
-        if stop:
+
+        if 'holdout_ratio' in cfg.policy.learn:
+            loss_list = []
+            for eval_data in eval_dataloader:
+                res = policy._forward_eval(eval_data['obs'])
+                loss_list.append(torch.nn.MSELoss()(res['action'], eval_data['action'].squeeze(-1)).item())
+            tb_logger.add_scalar('validation_mse', sum(loss_list) / len(loss_list), epoch)
+            
+        stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
+
+        if stop or learner.train_iter >= max_train_iter:
+            stop = True
             break
 
     learner.call_hook('after_run')

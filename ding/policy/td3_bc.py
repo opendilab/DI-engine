@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Tuple, Union
+from easydict import EasyDict
 from collections import namedtuple
 import torch
 import torch.nn.functional as F
@@ -330,7 +331,7 @@ class TD3BCPolicy(DDPGPolicy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def set_norm_statistics(self, mean: float, std: float) -> None:
+    def set_norm_statistics(self, statistics: EasyDict) -> None:
         r"""
         Overview:
             Set (mean, std) for state normalization.
@@ -340,5 +341,5 @@ class TD3BCPolicy(DDPGPolicy):
         Returns:
             - None
         """
-        self._mean = mean
-        self._std = std
+        self._mean = statistics.mean
+        self._std = statistics.std

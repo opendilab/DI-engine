@@ -85,6 +85,7 @@ setup(
         'hbutils>=0.5.0',
         'moviepy',
         'hbutils',
+        'tqdm',
     ],
     extras_require={
         'test': [
