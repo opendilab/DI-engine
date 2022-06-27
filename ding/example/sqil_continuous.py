@@ -48,12 +48,15 @@ def main():
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(
-            StepCollector(cfg, policy.collect_mode, collector_env, cfg.policy.get('random_collect_size', 0))
+            StepCollector(cfg, policy.collect_mode, collector_env, random_collect_size=cfg.policy.random_collect_size)
         )  # agent data collector
         task.use(sqil_data_pusher(cfg, buffer_, expert=False))
         task.use(
             StepCollector(
-                cfg, expert_policy.collect_mode, expert_collector_env, cfg.policy.get('expert_random_collect_size', 0)
+                cfg,
+                expert_policy.collect_mode,
+                expert_collector_env,
+                random_collect_size=cfg.policy.expert_random_collect_size
             )
         )  # expert data collector
         task.use(sqil_data_pusher(cfg, expert_buffer, expert=True))
