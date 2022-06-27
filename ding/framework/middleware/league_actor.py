@@ -1,18 +1,15 @@
-from ding.framework import task, EventEnum
-from ditk import logging
-
 from typing import TYPE_CHECKING, Dict, Callable
-from ding.league import player
-
-from ding.policy import Policy
-from ding.framework.middleware import BattleStepCollector
-from ding.framework.middleware.functional import ActorData, ActorDataMeta
-from ding.league.player import PlayerMeta
 from threading import Lock
 import queue
 from easydict import EasyDict
 import time
+from ditk import logging
 
+from ding.policy import Policy
+from ding.framework import task, EventEnum
+from ding.framework.middleware import BattleStepCollector
+from ding.framework.middleware.functional import ActorData, ActorDataMeta
+from ding.league.player import PlayerMeta
 from ding.utils.sparse_logging import log_every_sec
 
 if TYPE_CHECKING:
@@ -36,6 +33,7 @@ class StepLeagueActor:
         self.job_queue = queue.Queue()
         self.model_dict = {}
         self.model_dict_lock = Lock()
+        self.model_time_dict = {}
 
         self.agent_num = 2
 
@@ -52,6 +50,7 @@ class StepLeagueActor:
         )
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
+            self.model_time_dict[learner_model.player_id] = time.time()
 
     def _on_league_job(self, job: "Job"):
         """
@@ -66,7 +65,8 @@ class StepLeagueActor:
         env = self.env_fn()
         collector = task.wrap(
             BattleStepCollector(
-                cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.all_policies, self.agent_num
+                cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.model_time_dict,
+                self.all_policies, self.agent_num
             )
         )
         self._collectors[player_id] = collector

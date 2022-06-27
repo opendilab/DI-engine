@@ -82,7 +82,7 @@ def test_league_actor():
             def _test_actor(ctx):
                 sleep(0.3)
                 task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), job)
-                sleep(0.3)
+                sleep(5)
 
                 task.emit(
                     EventEnum.LEARNER_SEND_MODEL,
@@ -90,7 +90,6 @@ def test_league_actor():
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
-                sleep(5)
                 try:
                     print(testcases)
                     assert all(testcases.values())

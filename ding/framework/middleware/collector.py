@@ -1,18 +1,26 @@
 from easydict import EasyDict
+from typing import Dict, TYPE_CHECKING
+import time
+from ditk import logging
+
 from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
+from ding.utils import log_every_sec
 from ding.framework import task
-from .functional import inferencer, rolloutor, TransitionList, BattleTransitionList, battle_inferencer, battle_rolloutor
-from typing import Dict, TYPE_CHECKING
+from .functional import inferencer, rolloutor, TransitionList, BattleTransitionList, \
+    battle_inferencer, battle_rolloutor
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, BattleContext
+
+WAIT_MODEL_TIME = 60
 
 
 class BattleStepCollector:
 
     def __init__(
-        self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, all_policies: Dict, agent_num: int
+        self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, model_time_dict: Dict,
+        all_policies: Dict, agent_num: int
     ):
         self.cfg = cfg
         self.end_flag = False
@@ -23,6 +31,7 @@ class BattleStepCollector:
         self.total_envstep_count = 0
         self.unroll_len = unroll_len
         self.model_dict = model_dict
+        self.model_time_dict = model_time_dict
         self.all_policies = all_policies
         self.agent_num = agent_num
 
@@ -44,7 +53,28 @@ class BattleStepCollector:
         self.env.close()
 
     def _update_policies(self, player_id_list) -> None:
-        # TODO(zms): 60 秒 没有更新 就阻塞，更新才返回
+        for player_id in player_id_list:
+            # for this player, actor didn't recieve any new model, use initial model instead.
+            if self.model_time_dict.get(player_id) is None:
+                self.model_time_dict[player_id] = time.time()
+
+        while True:
+            time_now = time.time()
+            time_list = [time_now - self.model_time_dict[player_id] for player_id in player_id_list]
+            if any(x >= WAIT_MODEL_TIME for x in time_list):
+                for player_id in player_id_list:
+                    if time_now - self.model_time_dict[player_id] >= WAIT_MODEL_TIME:
+                        #TODO: log_every_sec can only print the first model that not updated
+                        log_every_sec(
+                            logging.WARNING, 5,
+                            'In actor {}, model for {} is not updated for {} senconds, and need new model'.format(
+                                task.router.node_id, player_id, time_now - self.model_time_dict[player_id]
+                            )
+                        )
+                time.sleep(1)
+            else:
+                break
+
         for player_id in player_id_list:
             if self.model_dict.get(player_id) is None:
                 continue
