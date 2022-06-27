@@ -95,7 +95,7 @@ distar_cfg = EasyDict(
             'other': {
                 'replay_buffer': {
                     'type': 'naive',
-                    'replay_buffer_size': 10000,
+                    'replay_buffer_size': 20,
                     'deepcopy': False,
                     'enable_track_used_data': False,
                     'periodic_thruput_seconds': 60,
@@ -105,7 +105,7 @@ distar_cfg = EasyDict(
                     'player_category': ['default'],
                     'path_policy': 'league_demo/ckpt',
                     'active_players': {
-                        'main_player': 1
+                        'main_player': 2
                     },
                     'main_player': {
                         'one_phase_step': 10,  # 20
