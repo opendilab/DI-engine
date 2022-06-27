@@ -180,7 +180,6 @@ def concat_output(output_lst):
     value_lst = np.concatenate(value_lst)
     reward_lst = np.concatenate(reward_lst)
     policy_logits_lst = np.concatenate(policy_logits_lst)
-    # hidden_state_lst = torch.cat(hidden_state_lst, 0)
     hidden_state_lst = np.concatenate(hidden_state_lst)
     reward_hidden_c_lst = np.expand_dims(np.concatenate(reward_hidden_c_lst), axis=0)
     reward_hidden_h_lst = np.expand_dims(np.concatenate(reward_hidden_h_lst), axis=0)

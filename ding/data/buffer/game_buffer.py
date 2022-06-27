@@ -6,14 +6,14 @@ from ding.utils import BUFFER_REGISTRY
 import itertools
 import random
 import logging
-from typing import Any, Iterable, List, Optional, Tuple, Union
-from collections import defaultdict, deque, OrderedDict
-from ding.data.buffer import Buffer, apply_middleware, BufferedData
+from typing import Any, List, Optional, Union
+from collections import defaultdict
+from ding.data.buffer import Buffer, BufferedData
 from ding.utils import fastcopy
-from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst, concat_output, concat_output_value
-import ding.rl_utils.efficientzero.ctree.cytree as cytree
-import ding.rl_utils.muzero.ptree as tree
-from ding.rl_utils.efficientzero.mcts_ptree import MCTS
+from ding.rl_utils.mcts.utils import prepare_observation_lst, concat_output, concat_output_value
+import ding.rl_utils.mcts.ptree as tree
+from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS
+from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 
 
 @dataclass
@@ -679,6 +679,16 @@ class GameBuffer(Buffer):
                 #         m_output = self.model.initial_inference(m_obs)
                 # else:
                 m_output = self.model.initial_inference(m_obs)
+                # TODO(pu)
+                if not self.model.training:
+                    # if not in training, obtain the scalars of the value/reward
+                    m_output.hidden_state = m_output.hidden_state.detach().cpu().numpy()
+                    m_output.value = inverse_scalar_transform(m_output.value,
+                                                                    self.config.support_size).detach().cpu().numpy()
+                    m_output.policy_logits = m_output.policy_logits.detach().cpu().numpy()
+                    m_output.reward_hidden = (m_output.reward_hidden[0].detach().cpu().numpy(),
+                                                    m_output.reward_hidden[1].detach().cpu().numpy())
+
                 network_output.append(m_output)
 
             # concat the output slices after model inference
@@ -793,6 +803,15 @@ class GameBuffer(Buffer):
                 #         m_output = self.model.initial_inference(m_obs)
                 # else:
                 m_output = self.model.initial_inference(m_obs)
+                # TODO(pu)
+                if not self.model.training:
+                    # if not in training, obtain the scalars of the value/reward
+                    m_output.hidden_state = m_output.hidden_state.detach().cpu().numpy()
+                    m_output.value = inverse_scalar_transform(m_output.value,
+                                                                    self.config.support_size).detach().cpu().numpy()
+                    m_output.policy_logits = m_output.policy_logits.detach().cpu().numpy()
+                    m_output.reward_hidden = (m_output.reward_hidden[0].detach().cpu().numpy(),
+                                                    m_output.reward_hidden[1].detach().cpu().numpy())
                 network_output.append(m_output)
 
             _, value_prefix_pool, policy_logits_pool, hidden_state_roots, reward_hidden_roots = concat_output(

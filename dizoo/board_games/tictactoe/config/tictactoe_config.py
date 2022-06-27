@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from ding.rl_utils.efficientzero.game_base_config import GameBaseConfig, DiscreteSupport
+from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
     env_name='tictactoe',
@@ -49,6 +49,7 @@ game_config = EasyDict(dict(
     pb_c_base=19652,
     pb_c_init=1.25,
 
+    support_size=10,
     value_support=DiscreteSupport(-10, 10, delta=1),
     reward_support=DiscreteSupport(-10, 10, delta=1),
     max_grad_norm=10,

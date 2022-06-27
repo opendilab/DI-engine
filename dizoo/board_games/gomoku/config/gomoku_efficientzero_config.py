@@ -78,7 +78,7 @@ gomoku_efficientzero_create_config = dict(
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
-    policy=dict(type='efficientzero'),
+    policy=dict(type='mcts'),
     collector=dict(type='episode_muzero', get_train_sample=True)
 )
 gomoku_efficientzero_create_config = EasyDict(gomoku_efficientzero_create_config)

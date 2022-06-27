@@ -30,6 +30,7 @@ atari_efficientzero_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
+            model_type='atari',
             observation_shape=(12, 96, 96),  # 3,96,96 stack4
             action_space_size=6,
             downsample=True,
@@ -93,7 +94,7 @@ atari_efficientzero_create_config = dict(
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
-    policy=dict(type='efficientzero'),
+    policy=dict(type='mcts'),
     collector=dict(type='episode_muzero', get_train_sample=True)
 )
 atari_efficientzero_create_config = EasyDict(atari_efficientzero_create_config)

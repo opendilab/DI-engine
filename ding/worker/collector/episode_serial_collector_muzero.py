@@ -8,8 +8,8 @@ from ding.envs import BaseEnvManager
 from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray
 from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
-from ding.rl_utils.efficientzero.game import GameHistory
-from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
+from ding.rl_utils.mcts.game import GameHistory
+from ding.rl_utils.mcts.utils import select_action, prepare_observation_lst
 from torch.nn import L1Loss
 from ding.envs import BaseEnvTimestep
 

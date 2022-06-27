@@ -8,11 +8,11 @@ import numpy as np
 from tqdm.auto import tqdm
 from torch.cuda.amp import autocast as autocast
 
-import ding.rl_utils.efficientzero.ctree.cytree as cytree
-from ding.rl_utils.efficientzero.game import GameHistory
-from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
-# from ding.rl_utils.efficientzero.mcts_ptree import MCTS
-from ding.rl_utils.efficientzero.mcts_ctree import MCTS
+import ding.rl_utils.mcts.ctree.cytree as cytree
+from ding.rl_utils.mcts.game import GameHistory
+from ding.rl_utils.mcts.utils import select_action, prepare_observation_lst
+# from ding.rl_utils.mcts.mcts_ptree import MCTS
+from ding.rl_utils.mcts.mcts_ctree import MCTS
 
 args = ['PongNoFrameskip-v4', 'tictactoe']
 

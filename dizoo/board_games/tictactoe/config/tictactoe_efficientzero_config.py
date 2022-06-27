@@ -1,5 +1,5 @@
 """
-ding/policy/efficientzero ding/data/buffer/game_buffer
+ding/policy/mcts ding/data/buffer/game_buffer
 cpp mcts python mcts
 """
 from easydict import EasyDict
@@ -31,6 +31,7 @@ tictactoe_efficientzero_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
+            model_type='tictactoe',
             # observation_shape=(3, 3, 3),
             observation_shape=(12, 3, 3),  # if stacked_observations=4
             action_space_size=9,
@@ -66,7 +67,7 @@ tictactoe_efficientzero_config = dict(
         collect=dict(
             # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
-            n_episode=16,
+            n_episode=collector_env_num,
         ),
         # command_mode config
         other=dict(

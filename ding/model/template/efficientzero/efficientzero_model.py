@@ -7,98 +7,12 @@ import torch
 
 import numpy as np
 import torch.nn as nn
-
-from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize
 from ding.utils import MODEL_REGISTRY
+from ding.model.template.efficientzero.efficientzero_base_model import BaseNet
+from ding.rl_utils.mcts.utils import mask_nan
+from ding.torch_utils.network.nn_module import MLP
+from ding.torch_utils.network.res_block import ResBlock
 
-# from dizoo.board_games.atari.config.atari_config import game_config
-
-
-class DiscreteSupport(object):
-
-    def __init__(self, min: int, max: int, delta=1.):
-        assert min < max
-        self.min = min
-        self.max = max
-        self.range = np.arange(min, max + 1, delta)
-        self.size = len(self.range)
-        self.delta = delta
-
-
-value_support = DiscreteSupport(-300, 300, delta=1)
-reward_support = DiscreteSupport(-300, 300, delta=1)
-
-
-def inverse_reward_transform(reward_logits):
-    return inverse_scalar_transform(reward_logits, reward_support)
-
-
-def inverse_value_transform(value_logits):
-    return inverse_scalar_transform(value_logits, value_support)
-
-
-def inverse_scalar_transform(logits, scalar_support):
-    """ Reference from MuZerp: Appendix F => Network Architecture
-    & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
-    """
-    value_support = DiscreteSupport(-300, 300, delta=1)
-    reward_support = DiscreteSupport(-300, 300, delta=1)
-    delta = value_support.delta
-    value_probs = torch.softmax(logits, dim=1)
-    value_support = torch.ones(value_probs.shape)
-    value_support[:, :] = torch.from_numpy(np.array([x for x in scalar_support.range]))
-    value_support = value_support.to(device=value_probs.device)
-    value = (value_support * value_probs).sum(1, keepdim=True) / delta
-
-    epsilon = 0.001
-    sign = torch.ones(value.shape).float().to(value.device)
-    sign[value < 0] = -1.0
-    output = (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
-    output = sign * output * delta
-
-    nan_part = torch.isnan(output)
-    output[nan_part] = 0.
-    output[torch.abs(output) < epsilon] = 0.
-    return output
-
-
-def mlp(
-    input_size,
-    layer_sizes,
-    output_size,
-    output_activation=nn.Identity,
-    activation=nn.ReLU,
-    momentum=0.1,
-    init_zero=False,
-):
-    """MLP layers
-    Parameters
-    ----------
-    input_size: int
-        dim of inputs
-    layer_sizes: list
-        dim of hidden layers
-    output_size: int
-        dim of outputs
-    init_zero: bool
-        zero initialization for the last layer (including w and b).
-        This can provide stable zero outputs in the beginning.
-    """
-    sizes = [input_size] + layer_sizes + [output_size]
-    layers = []
-    for i in range(len(sizes) - 1):
-        if i < len(sizes) - 2:
-            act = activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]), nn.BatchNorm1d(sizes[i + 1], momentum=momentum), act()]
-        else:
-            act = output_activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]), act()]
-
-    if init_zero:
-        layers[-2].weight.data.fill_(0)
-        layers[-2].bias.data.fill_(0)
-
-    return nn.Sequential(*layers)
 
 
 def conv3x3(in_channels, out_channels, stride=1):
@@ -115,13 +29,15 @@ class ResidualBlock(nn.Module):
         self.conv2 = conv3x3(out_channels, out_channels)
         self.bn2 = nn.BatchNorm2d(out_channels, momentum=momentum)
         self.downsample = downsample
+        self.activation = nn.ReLU()
+
 
     def forward(self, x):
         identity = x
 
         out = self.conv1(x)
         out = self.bn1(out)
-        out = nn.functional.relu(out)
+        out = self.activation(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
@@ -130,7 +46,8 @@ class ResidualBlock(nn.Module):
             identity = self.downsample(x)
 
         out += identity
-        out = nn.functional.relu(out)
+        out = self.activation(out)
+
         return out
 
 
@@ -170,11 +87,13 @@ class DownSample(nn.Module):
             [ResidualBlock(out_channels, out_channels, momentum=momentum) for _ in range(1)]
         )
         self.pooling2 = nn.AvgPool2d(kernel_size=3, stride=2, padding=1)
+        self.activation = nn.ReLU()
 
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
-        x = nn.functional.relu(x)
+        x = self.activation(x)
+
         for block in self.resblocks1:
             x = block(x)
         x = self.downsample_block(x)
@@ -188,15 +107,29 @@ class DownSample(nn.Module):
 
 
 # Encode the observations into hidden states
-class RepresentationNetwork(nn.Module):
+class RepresentationNetworkTictactoe(nn.Module):
+
+    def __init__(self, ):
+        """
+        Representation network
+        equivalence transformation
+        """
+        super().__init__()
+
+    def forward(self, x):
+        return x.float()  # TODO(pu)
+
+
+# Encode the observations into hidden states
+class RepresentationNetworkAtari(nn.Module):
 
     def __init__(
-        self,
-        observation_shape,
-        num_blocks,
-        num_channels,
-        downsample,
-        momentum=0.1,
+            self,
+            observation_shape,
+            num_blocks,
+            num_channels,
+            downsample,
+            momentum=0.1,
     ):
         """Representation network
         Parameters
@@ -225,6 +158,8 @@ class RepresentationNetwork(nn.Module):
         self.resblocks = nn.ModuleList(
             [ResidualBlock(num_channels, num_channels, momentum=momentum) for _ in range(num_blocks)]
         )
+        self.activation = nn.ReLU()
+
 
     def forward(self, x):
         if self.downsample:
@@ -232,34 +167,27 @@ class RepresentationNetwork(nn.Module):
         else:
             x = self.conv(x)
             x = self.bn(x)
-            x = nn.functional.relu(x)
+            x = self.activation(x)
 
         for block in self.resblocks:
             x = block(x)
         return x
-
-    def get_param_mean(self):
-        mean = []
-        for name, param in self.named_parameters():
-            mean += np.abs(param.detach().cpu().numpy().reshape(-1)).tolist()
-        mean = sum(mean) / len(mean)
-        return mean
 
 
 # Predict next hidden states given current states and actions
 class DynamicsNetwork(nn.Module):
 
     def __init__(
-        self,
-        num_blocks,
-        num_channels,
-        reduced_channels_reward,
-        fc_reward_layers,
-        full_support_size,
-        block_output_size_reward,
-        lstm_hidden_size=64,
-        momentum=0.1,
-        init_zero=False,
+            self,
+            num_blocks,
+            num_channels,
+            reduced_channels_reward,
+            fc_reward_layers,
+            full_support_size,
+            block_output_size_reward,
+            lstm_hidden_size=64,
+            momentum=0.1,
+            init_zero=False,
     ):
         """Dynamics network
         Parameters
@@ -298,9 +226,8 @@ class DynamicsNetwork(nn.Module):
         self.block_output_size_reward = block_output_size_reward
         self.lstm = nn.LSTM(input_size=self.block_output_size_reward, hidden_size=self.lstm_hidden_size)
         self.bn_value_prefix = nn.BatchNorm1d(self.lstm_hidden_size, momentum=momentum)
-        self.fc = mlp(
-            self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum
-        )
+        self.fc = MLP(self.lstm_hidden_size, fc_reward_layers[0], full_support_size, len(fc_reward_layers))
+        self.activation = nn.ReLU()
 
     def forward(self, x, reward_hidden):
         state = x[:, :-1, :, :]
@@ -308,7 +235,7 @@ class DynamicsNetwork(nn.Module):
         x = self.bn(x)
 
         x += state
-        x = nn.functional.relu(x)
+        x = self.activation(x)
 
         for block in self.resblocks:
             x = block(x)
@@ -316,13 +243,14 @@ class DynamicsNetwork(nn.Module):
 
         x = self.conv1x1_reward(x)
         x = self.bn_reward(x)
-        x = nn.functional.relu(x)
+        x = self.activation(x)
 
-        x = x.view(-1, self.block_output_size_reward).unsqueeze(0)
+        # RuntimeError: view size is not compatible with input tensor size and stride (at least one dimension spans across two contiguous subspaces)
+        x = x.contiguous().view(-1, self.block_output_size_reward).unsqueeze(0)
         value_prefix, reward_hidden = self.lstm(x, reward_hidden)
         value_prefix = value_prefix.squeeze(0)
         value_prefix = self.bn_value_prefix(value_prefix)
-        value_prefix = nn.functional.relu(value_prefix)
+        value_prefix = self.activation(value_prefix)
         value_prefix = self.fc(value_prefix)
 
         return state, reward_hidden, value_prefix
@@ -350,19 +278,19 @@ class DynamicsNetwork(nn.Module):
 class PredictionNetwork(nn.Module):
 
     def __init__(
-        self,
-        action_space_size,
-        num_blocks,
-        num_channels,
-        reduced_channels_value,
-        reduced_channels_policy,
-        fc_value_layers,
-        fc_policy_layers,
-        full_support_size,
-        block_output_size_value,
-        block_output_size_policy,
-        momentum=0.1,
-        init_zero=False,
+            self,
+            action_space_size,
+            num_blocks,
+            num_channels,
+            reduced_channels_value,
+            reduced_channels_policy,
+            fc_value_layers,
+            fc_policy_layers,
+            full_support_size,
+            block_output_size_value,
+            block_output_size_policy,
+            momentum=0.1,
+            init_zero=False,
     ):
         """Prediction network
         Parameters
@@ -401,23 +329,28 @@ class PredictionNetwork(nn.Module):
         self.bn_policy = nn.BatchNorm2d(reduced_channels_policy, momentum=momentum)
         self.block_output_size_value = block_output_size_value
         self.block_output_size_policy = block_output_size_policy
-        self.fc_value = mlp(
-            self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
+        # self.fc_value = mlp(
+        #     self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
+        # )
+        # self.fc_policy = mlp(
+        #     self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
+        # )
+        self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers))
+        self.fc_policy = MLP(
+            self.block_output_size_policy, fc_policy_layers[0], action_space_size, len(fc_policy_layers)
         )
-        self.fc_policy = mlp(
-            self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
-        )
+        self.activation = nn.ReLU()
 
     def forward(self, x):
         for block in self.resblocks:
             x = block(x)
         value = self.conv1x1_value(x)
         value = self.bn_value(value)
-        value = nn.functional.relu(value)
+        value = self.activation(value)
 
         policy = self.conv1x1_policy(x)
         policy = self.bn_policy(policy)
-        policy = nn.functional.relu(policy)
+        policy = self.activation(policy)
 
         value = value.view(-1, self.block_output_size_value)
         policy = policy.view(-1, self.block_output_size_policy)
@@ -426,34 +359,33 @@ class PredictionNetwork(nn.Module):
         return policy, value
 
 
-@MODEL_REGISTRY.register('EfficientZeroNet_atari')
+@MODEL_REGISTRY.register('EfficientZeroNet')
 class EfficientZeroNet(BaseNet):
 
     def __init__(
-        self,
-        observation_shape,
-        action_space_size,
-        num_blocks,
-        num_channels,
-        reduced_channels_reward,
-        reduced_channels_value,
-        reduced_channels_policy,
-        fc_reward_layers,
-        fc_value_layers,
-        fc_policy_layers,
-        reward_support_size,
-        value_support_size,
-        downsample,
-        inverse_value_transform=inverse_value_transform,
-        inverse_reward_transform=inverse_reward_transform,
-        lstm_hidden_size=512,
-        bn_mt=0.1,
-        proj_hid=256,
-        proj_out=256,
-        pred_hid=64,
-        pred_out=256,
-        init_zero=False,
-        state_norm=False
+            self,
+            model_type,
+            observation_shape,
+            action_space_size,
+            num_blocks,
+            num_channels,
+            reduced_channels_reward,
+            reduced_channels_value,
+            reduced_channels_policy,
+            fc_reward_layers,
+            fc_value_layers,
+            fc_policy_layers,
+            reward_support_size,
+            value_support_size,
+            downsample,
+            lstm_hidden_size=512,
+            bn_mt=0.1,
+            proj_hid=256,
+            proj_out=256,
+            pred_hid=64,
+            pred_out=256,
+            init_zero=False,
+            state_norm=False
     ):
         """EfficientZero network
         Parameters
@@ -505,13 +437,14 @@ class EfficientZeroNet(BaseNet):
         state_norm: bool
             True -> normalization for hidden states
         """
-        super(EfficientZeroNet, self).__init__(inverse_value_transform, inverse_reward_transform, lstm_hidden_size)
+        super(EfficientZeroNet, self).__init__(lstm_hidden_size)
         self.proj_hid = proj_hid
         self.proj_out = proj_out
         self.pred_hid = pred_hid
         self.pred_out = pred_out
         self.init_zero = init_zero
         self.state_norm = state_norm
+        self.model_type = model_type
 
         self.action_space_size = action_space_size
         block_output_size_reward = (
@@ -532,13 +465,16 @@ class EfficientZeroNet(BaseNet):
             (reduced_channels_policy * observation_shape[1] * observation_shape[2])
         )
 
-        self.representation_network = RepresentationNetwork(
-            observation_shape,
-            num_blocks,
-            num_channels,
-            downsample,
-            momentum=bn_mt,
-        )
+        if self.model_type == 'tictactoe':
+            self.representation_network = RepresentationNetworkTictactoe()
+        elif self.model_type == 'atari':
+            self.representation_network = RepresentationNetworkAtari(
+                observation_shape,
+                num_blocks,
+                num_channels,
+                downsample,
+                momentum=bn_mt,
+            )
 
         self.dynamics_network = DynamicsNetwork(
             num_blocks,
@@ -568,7 +504,12 @@ class EfficientZeroNet(BaseNet):
         )
 
         # projection
-        in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
+        # TODO(pu)
+        if self.model_type == 'tictactoe':
+            in_dim = observation_shape[0] * observation_shape[1] * observation_shape[2]
+        elif self.model_type == 'atari':
+            in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
+
         self.porjection_in_dim = in_dim
         self.projection = nn.Sequential(
             nn.Linear(self.porjection_in_dim, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(),
@@ -587,12 +528,7 @@ class EfficientZeroNet(BaseNet):
         return policy, value
 
     def representation(self, observation):
-        encoded_state = self.representation_network(observation)
-        if not self.state_norm:
-            return encoded_state
-        else:
-            encoded_state_normalized = renormalize(encoded_state)
-            return encoded_state_normalized
+        return self.representation_network(observation)
 
     def dynamics(self, encoded_state, reward_hidden, action):
         # Stack encoded_state with a game specific one hot encoded action
@@ -605,19 +541,28 @@ class EfficientZeroNet(BaseNet):
             )).to(action.device).float()
         )
         action_one_hot = (action[:, :, None, None] * action_one_hot / self.action_space_size)
+
         x = torch.cat((encoded_state, action_one_hot), dim=1)
         next_encoded_state, reward_hidden, value_prefix = self.dynamics_network(x, reward_hidden)
 
         return next_encoded_state, reward_hidden, value_prefix
 
+    def get_params_mean(self):
+        representation_mean = self.representation_network.get_param_mean()
+        dynamic_mean = self.dynamics_network.get_dynamic_mean()
+        reward_w_dist, reward_mean = self.dynamics_network.get_reward_mean()
+
+        return reward_w_dist, representation_mean, dynamic_mean, reward_mean
+
     def project(self, hidden_state, with_grad=True):
         # only the branch of proj + pred can share the gradients
-        hidden_state = hidden_state.view(-1, self.porjection_in_dim)
+        # hidden_state = hidden_state.view(-1, self.porjection_in_dim)
+        hidden_state = hidden_state.reshape(-1, self.porjection_in_dim)
+
         proj = self.projection(hidden_state)
 
         # with grad, use proj_head
         if with_grad:
-            proj = self.projection_head(proj)
-            return proj
+            return self.projection_head(proj)
         else:
             return proj.detach()

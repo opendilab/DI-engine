@@ -10,8 +10,10 @@ from kornia.filters import GaussianBlur2d
 
 
 class Transforms(object):
-    """ Reference : Data-Efficient Reinforcement Learning with Self-Predictive Representations
-    Thanks to Repo: https://github.com/mila-iqia/spr.git
+    """
+    Overview:
+        Reference : Data-Efficient Reinforcement Learning with Self-Predictive Representations
+        Thanks to Repo: https://github.com/mila-iqia/spr.git
     """
 
     def __init__(self, augmentation, shift_delta=4, image_shape=(96, 96)):
@@ -44,7 +46,7 @@ class Transforms(object):
 
     @torch.no_grad()
     def transform(self, images):
-        # images = images.float() / 255. if images.dtype == torch.uint8 else images
+        images = images.float() / 255. if images.dtype == torch.uint8 else images
         flat_images = images.reshape(-1, *images.shape[-3:])
         processed_images = self.apply_transforms(self.transforms, flat_images)
 
@@ -53,7 +55,10 @@ class Transforms(object):
 
 
 class Intensity(nn.Module):
-
+    """
+    Overview:
+        one kind of transformation to get augmentation data.
+    """
     def __init__(self, scale):
         super().__init__()
         self.scale = scale

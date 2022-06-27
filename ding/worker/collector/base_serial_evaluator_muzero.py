@@ -8,8 +8,8 @@ import torch
 from ding.utils import build_logger, EasyTimer, lists_to_dicts
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-from ding.rl_utils.efficientzero.game import GameHistory
-from ding.rl_utils.efficientzero.utils import prepare_observation_lst
+from ding.rl_utils.mcts.game import GameHistory
+from ding.rl_utils.mcts.utils import prepare_observation_lst
 
 
 class BaseSerialEvaluatorMuZero(object):

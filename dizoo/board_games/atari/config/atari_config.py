@@ -1,13 +1,13 @@
 from easydict import EasyDict
-from ding.rl_utils.efficientzero.game_base_config import GameBaseConfig, DiscreteSupport
+from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
     # TODO:
     env_name='PongNoFrameskip-v4',
     image_based=True,
     # TODO
-    device='cuda',
-    # device='cpu',
+    # device='cuda',
+    device='cpu',
     game_wrapper=True,
     action_space_size=6,
     amp_type='none',
@@ -61,6 +61,7 @@ game_config = EasyDict(dict(
     pb_c_base=19652,
     pb_c_init=1.25,
 
+    support_size=300,
     value_support=DiscreteSupport(-300, 300, delta=1),
     reward_support=DiscreteSupport(-300, 300, delta=1),
     max_grad_norm=10,

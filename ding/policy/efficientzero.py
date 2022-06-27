@@ -9,13 +9,12 @@ import copy
 import numpy as np
 from torch.nn import L1Loss
 import torch.nn.functional as F
-from ding.torch_utils import Adam, ContrastiveLoss
 from ding.rl_utils import get_nstep_return_data, get_train_sample
-import ding.rl_utils.efficientzero.ctree.cytree as cytree
-import ding.rl_utils.muzero.ptree as tree
-from ding.rl_utils.efficientzero.mcts_ptree import MCTS
-from ding.rl_utils.efficientzero.utils import select_action
-from ding.torch_utils import to_tensor, to_ndarray, to_dtype, to_device
+import ding.rl_utils.mcts.ptree as tree
+from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS
+from ding.rl_utils.mcts.utils import select_action
+from ding.torch_utils import to_tensor, to_device
+from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
 # from dizoo.board_games.atari.config.atari_config import game_config
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
@@ -121,10 +120,8 @@ class EfficientZeroPolicy(Policy):
             by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
         """
         # TODO(pu): atari or board_games
-        if self._cfg.env_name == 'PongNoFrameskip-v4':
-            return 'EfficientZeroNet_atari', ['ding.model.template.efficientzero.efficientzero_atari_model']
-        elif self._cfg.env_name == 'tictactoe':
-            return 'EfficientZeroNet_tictactoe', ['ding.model.template.efficientzero.efficientzero_tictactoe_model']
+        if self._cfg.env_name == 'tictactoe' or self._cfg.env_name == 'PongNoFrameskip-v4':
+            return 'EfficientZeroNet', ['ding.model.template.efficientzero.efficientzero_model']
         elif self._cfg.env_name == 'gomoku':
             return 'EfficientZeroNet_gomoku', ['ding.model.template.efficientzero.efficientzero_gomoku_model']
 
@@ -220,22 +217,24 @@ class EfficientZeroPolicy(Policy):
         transformed_target_value = self.game_config.scalar_transform(target_value)
         target_value_phi = self.game_config.value_phi(transformed_target_value)
 
-        # value, _, policy_logits, hidden_state, reward_hidden = self._learn_model.initial_inference(obs_batch)
-
         network_output = self._learn_model.initial_inference(obs_batch)
         value = network_output.value
+        value_prefix = network_output.value_prefix
         hidden_state = network_output.hidden_state  # （2, 64, 6, 6）
         reward_hidden = network_output.reward_hidden  # {tuple:2} (1,2,512)
         policy_logits = network_output.policy_logits  # {list: 2} {list:6}
 
-        # TODO(pu)
-        value = to_tensor(value)
-        policy_logits = to_tensor(policy_logits)
-        hidden_state = to_tensor(hidden_state)
-        reward_hidden = to_tensor(reward_hidden)
         reward_hidden = to_device(reward_hidden, self.game_config.device)
+        scaled_value = inverse_scalar_transform(value, self.game_config.support_size)
 
-        scaled_value = self.game_config.inverse_value_transform(value)
+        # TODO(pu)
+        if not self._learn_model.training:
+            # if not in training, obtain the scalars of the value/reward
+            scaled_value = scaled_value.detach().cpu().numpy()
+            scaled_value_prefix = inverse_scalar_transform(value_prefix, self.game_config.support_size).detach().cpu().numpy()
+            hidden_state = hidden_state.detach().cpu().numpy()
+            reward_hidden = (reward_hidden[0].detach().cpu().numpy(), reward_hidden[1].detach().cpu().numpy())
+            policy_logits = policy_logits.detach().cpu().numpy()
 
         if self.game_config.vis_result:
             state_lst = hidden_state.detach().cpu().numpy()
@@ -263,9 +262,6 @@ class EfficientZeroPolicy(Policy):
         # loss of the unrolled steps
         for step_i in range(self.game_config.num_unroll_steps):
             # unroll with the dynamics function
-            # value, value_prefix, policy_logits, hidden_state, reward_hidden = self._learn_model.recurrent_inference(
-            #     hidden_state, reward_hidden, action_batch[:, step_i]
-            # )
             network_output = self._learn_model.recurrent_inference(hidden_state, reward_hidden, action_batch[:, step_i])
             value = network_output.value
             value_prefix = network_output.value_prefix
@@ -274,11 +270,13 @@ class EfficientZeroPolicy(Policy):
             reward_hidden = network_output.reward_hidden  # {tuple:2} (1,2,512)
 
             # TODO(pu)
-            value = to_tensor(value)
-            value_prefix = to_tensor(value_prefix)
-            policy_logits = to_tensor(policy_logits)
-            hidden_state = to_tensor(hidden_state)
-            reward_hidden = to_tensor(reward_hidden)
+            if not self._learn_model.training:
+                # if not in training, obtain the scalars of the value/reward
+                value = inverse_scalar_transform(value, self.game_config.support_size).detach().cpu().numpy()
+                value_prefix = inverse_scalar_transform(value_prefix, self.game_config.support_size).detach().cpu().numpy()
+                hidden_state = hidden_state.detach().cpu().numpy()
+                reward_hidden = (reward_hidden[0].detach().cpu().numpy(), reward_hidden[1].detach().cpu().numpy())
+                policy_logits = policy_logits.detach().cpu().numpy()
 
             beg_index = self.game_config.image_channel * step_i
             end_index = self.game_config.image_channel * (step_i + self.game_config.stacked_observations)
@@ -286,9 +284,6 @@ class EfficientZeroPolicy(Policy):
             # consistency loss
             if self.game_config.consistency_coeff > 0:
                 # obtain the oracle hidden states from representation function
-                # _, _, _, presentation_state, _ = self._learn_model.initial_inference(
-                #     obs_target_batch[:, beg_index:end_index, :, :]
-                # )
                 network_output = self._learn_model.initial_inference(obs_target_batch[:, beg_index:end_index, :, :])
                 presentation_state = network_output.hidden_state
 
@@ -320,11 +315,11 @@ class EfficientZeroPolicy(Policy):
                 )
 
             if self.game_config.vis_result:
-                scaled_value_prefixs = self.game_config.inverse_reward_transform(value_prefix.detach())
+                scaled_value_prefixs = inverse_scalar_transform(value_prefix.detach(), self.game_config.support_size)
                 scaled_value_prefixs_cpu = scaled_value_prefixs.detach().cpu()
 
                 predicted_values = torch.cat(
-                    (predicted_values, self.game_config.inverse_value_transform(value).detach().cpu())
+                    (predicted_values, inverse_scalar_transform(value, self.game_config.support_size).detach().cpu())
                 )
                 predicted_value_prefixs.append(scaled_value_prefixs_cpu)
                 predicted_policies = torch.cat((predicted_policies, torch.softmax(policy_logits, dim=1).detach().cpu()))
@@ -472,10 +467,18 @@ class EfficientZeroPolicy(Policy):
         with torch.no_grad():
             network_output = self._collect_model.initial_inference(stack_obs)
             hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
-            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
-            value_prefix_pool = network_output.value_prefix  # {list: 2}
-            policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
             pred_values_pool = network_output.value  # {list: 2}
+            policy_logits_pool = network_output.policy_logits  # {list: 2} {list:6}
+            value_prefix_pool = network_output.value_prefix  # {list: 2}
+            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
+
+            # TODO(pu)
+            if not self._learn_model.training:
+                # if not in training, obtain the scalars of the value/reward
+                pred_values_pool = inverse_scalar_transform(pred_values_pool, self.game_config.support_size).detach().cpu().numpy()
+                hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
+                reward_hidden_roots = (reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy())
+                policy_logits_pool = policy_logits_pool.detach().cpu().numpy().tolist()
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # cpp mcts
@@ -571,9 +574,18 @@ class EfficientZeroPolicy(Policy):
             # stack_obs shape [B, S x C, W, H] e.g. {Tensor:(2,12,96,96)}
             network_output = self._eval_model.initial_inference(stack_obs)
             hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
+            pred_values_pool = network_output.value  # {list: 2}
             reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
             value_prefix_pool = network_output.value_prefix  # {list: 2} each element: (1,bs, dim)
-            policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2}  each element: {list: A}
+            policy_logits_pool = network_output.policy_logits  # {list: 2}  each element: {list: A}
+
+            # TODO(pu)
+            if not self._learn_model.training:
+                # if not in training, obtain the scalars of the value/reward
+                pred_values_pool = inverse_scalar_transform(pred_values_pool, self.game_config.support_size).detach().cpu().numpy()
+                hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
+                reward_hidden_roots = (reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy())
+                policy_logits_pool = policy_logits_pool.detach().cpu().numpy().tolist()
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # cpp mcts

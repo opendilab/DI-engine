@@ -5,10 +5,11 @@ The following code is adapted from https://github.com/werner-duvaud/muzero-gener
 import numpy as np
 import torch
 
-import ding.rl_utils.muzero.ptree as tree
+import ding.rl_utils.mcts.ptree as tree
+from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 
 
-class MCTS(object):
+class EfficientZeroMCTS(object):
 
     def __init__(self, config):
         self.config = config
@@ -38,10 +39,6 @@ class MCTS(object):
             reward_hidden_c_pool = [reward_hidden_roots[0]]
             reward_hidden_h_pool = [reward_hidden_roots[1]]
 
-            # hidden_state_pool = hidden_state_roots
-            # reward_hidden_c_pool = reward_hidden_roots
-            # reward_hidden_h_pool = reward_hidden_roots
-
             # the index of each layer in the tree
             hidden_state_index_x = 0
             # minimax value storage
@@ -64,9 +61,7 @@ class MCTS(object):
                     roots, pb_c_base, pb_c_init, discount, min_max_stats_lst, results
                 )
                 # obtain the search horizon for leaf nodes
-                # search_lens = results.get_search_len()
                 # TODO
-                # search_lens = len(results.search_lens)
                 search_lens = results.search_lens
 
                 # obtain the states for leaf nodes
@@ -87,6 +82,17 @@ class MCTS(object):
                     network_output = model.recurrent_inference(
                         hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
                     )
+
+                    # TODO(pu)
+                    if not model.training:
+                        # if not in training, obtain the scalars of the value/reward
+                        network_output.value = inverse_scalar_transform(network_output.value, self.config.support_size).detach().cpu().numpy()
+                        network_output.value_prefix = inverse_scalar_transform(network_output.value_prefix,
+                                                                self.config.support_size).detach().cpu().numpy()
+                        network_output.hidden_state = network_output.hidden_state.detach().cpu().numpy()
+                        network_output.reward_hidden = (network_output.reward_hidden[0].detach().cpu().numpy(), network_output.reward_hidden[1].detach().cpu().numpy())
+                        network_output.policy_logits = network_output.policy_logits.detach().cpu().numpy()
+
                 except Exception as error:
                     print(error)
 
@@ -117,3 +123,8 @@ class MCTS(object):
                     hidden_state_index_x, discount, value_prefix_pool, value_pool, policy_logits_pool,
                     min_max_stats_lst, results, is_reset_lst
                 )
+
+
+class MCTS(object):
+    pass
+    # TODO
