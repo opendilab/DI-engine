@@ -3,15 +3,14 @@ The following code is adapted from https://github.com/YeWR/EfficientZero/blob/ma
 """
 
 import torch
-import typing
-
 import numpy as np
 import torch.nn as nn
+from typing import List, NamedTuple
+from dataclasses import dataclass
 
-from typing import List
 
-
-class NetworkOutput(typing.NamedTuple):
+@dataclass
+class NetworkOutput:
     # output format of the model
     value: float
     value_prefix: float
@@ -46,7 +45,6 @@ def concat_output(output_lst):
     value_lst = np.concatenate(value_lst)
     reward_lst = np.concatenate(reward_lst)
     policy_logits_lst = np.concatenate(policy_logits_lst)
-    # hidden_state_lst = torch.cat(hidden_state_lst, 0)
     hidden_state_lst = np.concatenate(hidden_state_lst)
     reward_hidden_c_lst = np.expand_dims(np.concatenate(reward_hidden_c_lst), axis=0)
     reward_hidden_h_lst = np.expand_dims(np.concatenate(reward_hidden_h_lst), axis=0)
@@ -57,18 +55,19 @@ def concat_output(output_lst):
 class BaseNet(nn.Module):
 
     def __init__(self, inverse_value_transform, inverse_reward_transform, lstm_hidden_size):
-        """Base Network
-        schedule_timesteps. After this many timesteps pass final_p is
-        returned.
-        Parameters
-        ----------
-        # discrete support: [-300, 300] support of value to represent the value scalars
-        inverse_value_transform: Any
-            A function that maps value supports into value scalars
-        inverse_reward_transform: Any
-            A function that maps reward supports into value scalars
-        lstm_hidden_size: int
-            dim of lstm hidden
+        """
+        Overview:
+            Base Network
+            schedule_timesteps. After this many timesteps pass final_p is
+            returned.
+            # discrete support: [-300, 300] support of value to represent the value scalars
+        Arguments
+             - inverse_value_transform: Any
+                A function that maps value supports into value scalars
+             - inverse_reward_transform: Any
+                A function that maps reward supports into value scalars
+            - lstm_hidden_size: int
+                dim of lstm hidden
         """
         super(BaseNet, self).__init__()
         self.inverse_value_transform = inverse_value_transform
@@ -88,29 +87,27 @@ class BaseNet(nn.Module):
         num = obs.size(0)
 
         state = self.representation(obs)
-        actor_logit, value = self.prediction(state)
+        policy_logits, value = self.prediction(state)
 
-        if not self.training:
+        if self.training:
+            # zero initialization for reward (value prefix) hidden states
+            reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size), torch.zeros(1, num, self.lstm_hidden_size))
+        else:
             # if not in training, obtain the scalars of the value/reward
-            # tictactoe: value {Tensor: (2,32)}
             value = self.inverse_value_transform(value).detach().cpu().numpy()
             state = state.detach().cpu().numpy()
-            actor_logit = actor_logit.detach().cpu().numpy()
+            policy_logits = policy_logits.detach().cpu().numpy()
             # zero initialization for reward (value prefix) hidden states
             reward_hidden = (
                 torch.zeros(1, num, self.lstm_hidden_size).detach().cpu().numpy(),
                 torch.zeros(1, num, self.lstm_hidden_size).detach().cpu().numpy()
             )
-        else:
-            # zero initialization for reward (value prefix) hidden states
-            # reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size).to('cuda'), torch.zeros(1, num, self.lstm_hidden_size).to('cuda'))
-            reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size), torch.zeros(1, num, self.lstm_hidden_size))
 
-        return NetworkOutput(value, [0. for _ in range(num)], actor_logit, state, reward_hidden)
+        return NetworkOutput(value, [0. for _ in range(num)], policy_logits, state, reward_hidden)
 
     def recurrent_inference(self, hidden_state, reward_hidden, action) -> NetworkOutput:
         state, reward_hidden, value_prefix = self.dynamics(hidden_state, reward_hidden, action)
-        actor_logit, value = self.prediction(state)
+        policy_logits, value = self.prediction(state)
 
         if not self.training:
             # if not in training, obtain the scalars of the value/reward
@@ -118,15 +115,9 @@ class BaseNet(nn.Module):
             value_prefix = self.inverse_reward_transform(value_prefix).detach().cpu().numpy()
             state = state.detach().cpu().numpy()
             reward_hidden = (reward_hidden[0].detach().cpu().numpy(), reward_hidden[1].detach().cpu().numpy())
-            actor_logit = actor_logit.detach().cpu().numpy()
+            policy_logits = policy_logits.detach().cpu().numpy()
 
-        return NetworkOutput(value, value_prefix, actor_logit, state, reward_hidden)
-
-    def get_weights(self):
-        return {k: v.cpu() for k, v in self.state_dict().items()}
-
-    def set_weights(self, weights):
-        self.load_state_dict(weights)
+        return NetworkOutput(value, value_prefix, policy_logits, state, reward_hidden)
 
     def get_gradients(self):
         grads = []
@@ -135,19 +126,7 @@ class BaseNet(nn.Module):
             grads.append(grad)
         return grads
 
-    def set_gradients(self, gradients):
+    def set_gradients(self, gradients: torch.Tensor):
         for g, p in zip(gradients, self.parameters()):
             if g is not None:
-                p.grad = torch.from_numpy(g)
-
-
-def renormalize(tensor, first_dim=1):
-    # normalize the tensor (states)
-    if first_dim < 0:
-        first_dim = len(tensor.shape) + first_dim
-    flat_tensor = tensor.view(*tensor.shape[:first_dim], -1)
-    max = torch.max(flat_tensor, first_dim, keepdim=True).values
-    min = torch.min(flat_tensor, first_dim, keepdim=True).values
-    flat_tensor = (flat_tensor - min) / (max - min)
-
-    return flat_tensor.view(*tensor.shape)
+                p.grad = g

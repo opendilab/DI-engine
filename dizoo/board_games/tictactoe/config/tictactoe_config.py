@@ -3,13 +3,14 @@ from ding.rl_utils.efficientzero.game_base_config import GameBaseConfig, Discret
 
 game_config = EasyDict(dict(
     env_name='tictactoe',
+    battle_mode='two_player_mode',
     image_based=False,
-    device='cuda',
-    # device='cpu',
+    # device='cuda',
+    device='cpu',
     action_space_size=int(3 * 3),
     amp_type='none',
     # obs_shape=(3, 3, 3),
-    obs_shape = (12, 3, 3),  # if stacked_observations=4
+    obs_shape=(12, 3, 3),  # if stacked_observations=4
     image_channel=3,
     gray_scale=False,
     downsample=False,
@@ -67,6 +68,7 @@ game_config = EasyDict(dict(
     # network initialization/ & normalization
     episode_life=True,
     init_zero=True,
+    state_norm=False,
     # storage efficient
     cvt_string=False,
 

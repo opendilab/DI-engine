@@ -608,18 +608,7 @@ class EfficientZeroNet(BaseNet):
         x = torch.cat((encoded_state, action_one_hot), dim=1)
         next_encoded_state, reward_hidden, value_prefix = self.dynamics_network(x, reward_hidden)
 
-        if not self.state_norm:
-            return next_encoded_state, reward_hidden, value_prefix
-        else:
-            next_encoded_state_normalized = renormalize(next_encoded_state)
-            return next_encoded_state_normalized, reward_hidden, value_prefix
-
-    def get_params_mean(self):
-        representation_mean = self.representation_network.get_param_mean()
-        dynamic_mean = self.dynamics_network.get_dynamic_mean()
-        reward_w_dist, reward_mean = self.dynamics_network.get_reward_mean()
-
-        return reward_w_dist, representation_mean, dynamic_mean, reward_mean
+        return next_encoded_state, reward_hidden, value_prefix
 
     def project(self, hidden_state, with_grad=True):
         # only the branch of proj + pred can share the gradients

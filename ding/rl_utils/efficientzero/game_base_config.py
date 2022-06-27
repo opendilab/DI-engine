@@ -4,6 +4,7 @@ The following code is adapted from https://github.com/YeWR/EfficientZero
 import torch
 import numpy as np
 # from ding.rl_utils.efficientzero.dataset import Transforms
+from ding.model.template.efficientzero.efficientzero_atari_model import EfficientZeroNet
 
 
 class DiscreteSupport(object):
@@ -116,3 +117,29 @@ class GameBaseConfig(object):
             if 'path' not in k and (v is not None):
                 hparams[k] = v
         return hparams
+
+    def get_uniform_network(self):
+        return EfficientZeroNet(
+            self.obs_shape,
+            self.action_space_size,
+            self.blocks,
+            self.channels,
+            self.reduced_channels_reward,
+            self.reduced_channels_value,
+            self.reduced_channels_policy,
+            self.resnet_fc_reward_layers,
+            self.resnet_fc_value_layers,
+            self.resnet_fc_policy_layers,
+            self.reward_support.size,
+            self.value_support.size,
+            self.downsample,
+            self.inverse_value_transform,
+            self.inverse_reward_transform,
+            self.lstm_hidden_size,
+            bn_mt=self.bn_mt,
+            proj_hid=self.proj_hid,
+            proj_out=self.proj_out,
+            pred_hid=self.pred_hid,
+            pred_out=self.pred_out,
+            init_zero=self.init_zero,
+            state_norm=self.state_norm)

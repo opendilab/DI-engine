@@ -8,6 +8,7 @@ game_config = EasyDict(dict(
     # TODO
     device='cuda',
     # device='cpu',
+    game_wrapper=True,
     action_space_size=6,
     amp_type='none',
     obs_shape=(12, 96, 96),
@@ -79,6 +80,7 @@ game_config = EasyDict(dict(
     # network initialization/ & normalization
     episode_life=True,
     init_zero=True,
+    state_norm=False,
     # storage efficient
     cvt_string=False,
     # TODO(pu)

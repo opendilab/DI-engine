@@ -9,7 +9,9 @@ import numpy as np
 import torch.nn as nn
 from ding.utils import MODEL_REGISTRY
 from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize
-
+from ding.rl_utils.efficientzero.utils import mask_nan
+from ding.torch_utils.network.nn_module import MLP
+from ding.torch_utils import one_hot
 
 class DiscreteSupport(object):
 
@@ -28,16 +30,14 @@ reward_support = DiscreteSupport(-10, 10, delta=1)
 
 def inverse_reward_transform(reward_logits):
     return inverse_scalar_transform(reward_logits, reward_support)
-    # return reward_logits  # TODO
 
 
 def inverse_value_transform(value_logits):
     return inverse_scalar_transform(value_logits, value_support)
-    # return value_logits  # TODO
 
 
 def inverse_scalar_transform(logits, scalar_support):
-    """ Reference from MuZerp: Appendix F => Network Architecture
+    """ Reference from MuZero: Appendix F => Network Architecture
     & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
     """
     value_support = DiscreteSupport(-10, 10, delta=1)
@@ -54,11 +54,11 @@ def inverse_scalar_transform(logits, scalar_support):
     sign[value < 0] = -1.0
     output = (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
     output = sign * output * delta
-
-    nan_part = torch.isnan(output)
-    output[nan_part] = 0.
+    output = mask_nan(output)
     output[torch.abs(output) < epsilon] = 0.
+
     return output
+
 
 
 # value=torch.randn([2,32])
@@ -105,9 +105,6 @@ def mlp(
     return nn.Sequential(*layers)
 
 
-# test mlp
-# fc = mlp(27, [64,32,16,16], 9)
-# print(fc)
 
 
 def conv3x3(in_channels, out_channels, stride=1):
@@ -205,7 +202,7 @@ class RepresentationNetwork(nn.Module):
         equivalence transformation
         """
         super().__init__()
-        # be compatiable with method get_param_mean
+        # be compatible with method get_param_mean
         self._dummy_param = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, x):
@@ -271,9 +268,11 @@ class DynamicsNetwork(nn.Module):
         self.block_output_size_reward = block_output_size_reward
         self.lstm = nn.LSTM(input_size=self.block_output_size_reward, hidden_size=self.lstm_hidden_size)
         self.bn_value_prefix = nn.BatchNorm1d(self.lstm_hidden_size, momentum=momentum)
-        self.fc = mlp(
-            self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum
-        )
+        # self.fc = mlp(
+        #     self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum
+        # )
+        self.fc = MLP(self.lstm_hidden_size, fc_reward_layers[0], full_support_size, len(fc_reward_layers))
+        self.activation = nn.ReLU()
 
     def forward(self, x, reward_hidden):
         state = x[:, :-1, :, :]
@@ -281,7 +280,7 @@ class DynamicsNetwork(nn.Module):
         x = self.bn(x)
 
         x += state
-        x = nn.functional.relu(x)
+        x = self.activation(x)
 
         for block in self.resblocks:
             x = block(x)
@@ -289,14 +288,14 @@ class DynamicsNetwork(nn.Module):
 
         x = self.conv1x1_reward(x)
         x = self.bn_reward(x)
-        x = nn.functional.relu(x)
+        x = self.activation(x)
 
         # RuntimeError: view size is not compatible with input tensor size and stride (at least one dimension spans across two contiguous subspaces)
         x = x.contiguous().view(-1, self.block_output_size_reward).unsqueeze(0)
         value_prefix, reward_hidden = self.lstm(x, reward_hidden)
         value_prefix = value_prefix.squeeze(0)
         value_prefix = self.bn_value_prefix(value_prefix)
-        value_prefix = nn.functional.relu(value_prefix)
+        value_prefix = self.activation(value_prefix)
         value_prefix = self.fc(value_prefix)
 
         return state, reward_hidden, value_prefix
@@ -375,12 +374,15 @@ class PredictionNetwork(nn.Module):
         self.bn_policy = nn.BatchNorm2d(reduced_channels_policy, momentum=momentum)
         self.block_output_size_value = block_output_size_value
         self.block_output_size_policy = block_output_size_policy
-        self.fc_value = mlp(
-            self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
-        )
-        self.fc_policy = mlp(
-            self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
-        )
+        # self.fc_value = mlp(
+        #     self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
+        # )
+        # self.fc_policy = mlp(
+        #     self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
+        # )
+        self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers))
+        self.fc_policy = MLP(self.block_output_size_policy, fc_policy_layers[0], action_space_size, len(fc_policy_layers))
+
 
     def forward(self, x):
         for block in self.resblocks:
@@ -576,6 +578,8 @@ class EfficientZeroNet(BaseNet):
             )).to(action.device).float()
         )
         action_one_hot = (action[:, :, None, None] * action_one_hot / self.action_space_size)
+        # action_one_hot = one_hot(action,  self.action_space_size)
+
         x = torch.cat((encoded_state, action_one_hot), dim=1)
         next_encoded_state, reward_hidden, value_prefix = self.dynamics_network(x, reward_hidden)
 
@@ -601,7 +605,6 @@ class EfficientZeroNet(BaseNet):
 
         # with grad, use proj_head
         if with_grad:
-            proj = self.projection_head(proj)
-            return proj
+            return self.projection_head(proj)
         else:
             return proj.detach()

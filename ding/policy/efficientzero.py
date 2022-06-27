@@ -18,9 +18,9 @@ from ding.rl_utils.efficientzero.mcts_ptree import MCTS
 from ding.rl_utils.efficientzero.utils import select_action
 from ding.torch_utils import to_tensor, to_ndarray, to_dtype, to_device
 # TODO(pu): choose game config
-from dizoo.board_games.atari.config.atari_config import game_config
+# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
-# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 
 @POLICY_REGISTRY.register('efficientzero')
@@ -220,7 +220,15 @@ class EfficientZeroPolicy(Policy):
 
         transformed_target_value = self.game_config.scalar_transform(target_value)
         target_value_phi = self.game_config.value_phi(transformed_target_value)
-        value, _, policy_logits, hidden_state, reward_hidden = self._learn_model.initial_inference(obs_batch)
+
+        # value, _, policy_logits, hidden_state, reward_hidden = self._learn_model.initial_inference(obs_batch)
+
+        network_output = self._learn_model.initial_inference(obs_batch)
+        value = network_output.value
+        hidden_state = network_output.hidden_state  # （2, 64, 6, 6）
+        reward_hidden = network_output.reward_hidden  # {tuple:2} (1,2,512)
+        policy_logits = network_output.policy_logits  # {list: 2} {list:6}
+
         # TODO(pu)
         value = to_tensor(value)
         policy_logits = to_tensor(policy_logits)
@@ -256,9 +264,17 @@ class EfficientZeroPolicy(Policy):
         # loss of the unrolled steps
         for step_i in range(self.game_config.num_unroll_steps):
             # unroll with the dynamics function
-            value, value_prefix, policy_logits, hidden_state, reward_hidden = self._learn_model.recurrent_inference(
+            # value, value_prefix, policy_logits, hidden_state, reward_hidden = self._learn_model.recurrent_inference(
+            #     hidden_state, reward_hidden, action_batch[:, step_i]
+            # )
+            network_output = self._learn_model.recurrent_inference(
                 hidden_state, reward_hidden, action_batch[:, step_i]
             )
+            value = network_output.value
+            value_prefix = network_output.value_prefix
+            policy_logits = network_output.policy_logits  # {list: 2} {list:6}
+            hidden_state = network_output.hidden_state  # （2, 64, 6, 6）
+            reward_hidden = network_output.reward_hidden  # {tuple:2} (1,2,512)
 
             # TODO(pu)
             value = to_tensor(value)
@@ -273,9 +289,13 @@ class EfficientZeroPolicy(Policy):
             # consistency loss
             if self.game_config.consistency_coeff > 0:
                 # obtain the oracle hidden states from representation function
-                _, _, _, presentation_state, _ = self._learn_model.initial_inference(
+                # _, _, _, presentation_state, _ = self._learn_model.initial_inference(
+                #     obs_target_batch[:, beg_index:end_index, :, :]
+                # )
+                network_output = self._learn_model.initial_inference(
                     obs_target_batch[:, beg_index:end_index, :, :]
                 )
+                presentation_state =  network_output.hidden_state
 
                 hidden_state = to_tensor(hidden_state)
                 presentation_state = to_tensor(presentation_state)
@@ -369,11 +389,6 @@ class EfficientZeroPolicy(Policy):
             value_prefix_loss.mean().item(), value_loss.mean().item(), consistency_loss.mean()
         )
         if self.game_config.vis_result:
-            reward_w_dist, representation_mean, dynamic_mean, reward_mean = self._learn_model.get_params_mean()
-            other_dist['reward_weights_dist'] = reward_w_dist
-            other_log['representation_weight'] = representation_mean
-            other_log['dynamic_weight'] = dynamic_mean
-            other_log['reward_weight'] = reward_mean
 
             # reward l1 loss
             value_prefix_indices_0 = (
@@ -551,8 +566,8 @@ class EfficientZeroPolicy(Policy):
             network_output = self._eval_model.initial_inference(stack_obs)
             hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
             reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
-            value_prefix_pool = network_output.value_prefix  # {list: 2}
-            policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
+            value_prefix_pool = network_output.value_prefix  # {list: 2} each element: (1,bs, dim)
+            policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2}  each element: {list: A}
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # cpp mcts

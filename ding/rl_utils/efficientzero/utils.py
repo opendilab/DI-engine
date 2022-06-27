@@ -186,3 +186,9 @@ def concat_output(output_lst):
     reward_hidden_h_lst = np.expand_dims(np.concatenate(reward_hidden_h_lst), axis=0)
 
     return value_lst, reward_lst, policy_logits_lst, hidden_state_lst, (reward_hidden_c_lst, reward_hidden_h_lst)
+
+
+def mask_nan(x: torch.Tensor) -> torch.Tensor:
+    nan_part = torch.isnan(x)
+    x[nan_part] = 0.
+    return x
