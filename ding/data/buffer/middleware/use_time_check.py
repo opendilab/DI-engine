@@ -10,7 +10,10 @@ def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable:
     Overview:
         This middleware aims to check the usage times of data in buffer. If the usage times of a data is
         greater than or equal to max_use, this data will be removed from buffer as soon as possible.
+    Arguments:
+        - max_use (:obj:`int`): The max reused (resampled) count for any individual object.
     """
+
     use_count = defaultdict(int)
 
     def _need_delete(item: BufferedData) -> bool:

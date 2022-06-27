@@ -103,11 +103,21 @@ class BaseEnvManager(object):
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn[0]()
-        self._env_ref.reset()
-        self._observation_space = self._env_ref.observation_space
-        self._action_space = self._env_ref.action_space
-        self._reward_space = self._env_ref.reward_space
-        self._env_ref.close()
+        try:
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+        except:
+            # For some environment,
+            # we have to reset before getting observation description.
+            # However, for dmc-mujoco, we should not reset the env at the main thread,
+            # when using in a subprocess mode, which would cause opengl rendering bugs,
+            # leading to no response subprocesses.
+            self._env_ref.reset()
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+            self._env_ref.close()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
 
