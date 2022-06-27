@@ -13,6 +13,7 @@ from ding.utils.data import default_collate, default_decollate
 from ding.utils import POLICY_REGISTRY
 from .bc import BehaviourCloningPolicy
 from ding.model.template.ebm import create_stochastic_optimizer, StochasticOptimizer
+from ding.torch_utils import unsqueeze_repeat
 
 
 @POLICY_REGISTRY.register('ibc')
@@ -24,8 +25,8 @@ class IBCPolicy(BehaviourCloningPolicy):
         on_policy=False,
         continuous=True,
         model=dict(
-            hidden_size=256,
-            hidden_layer_num=2,
+            # hidden_size=256,
+            # hidden_layer_num=2,
             stochastic_optim=dict(
                 type='dfo',
                 noise_scale=0.33,
@@ -91,10 +92,14 @@ class IBCPolicy(BehaviourCloningPolicy):
         ground_truth = (permutation == 0).nonzero()[:, 1].to(self._device)
 
         # (B, N+1)
-        # TODO: energy shape is different for autoregressive
+        # or (B, N+1, A) for autoregressive ebm
         energy = self._learn_model.forward(obs, targets)
 
         logits = -1.0 * energy
+        if len(logits.shape) == 3:
+            # autoregressive case
+            # (B, A)
+            ground_truth = unsqueeze_repeat(ground_truth, logits.shape[-1], -1)
         loss = F.cross_entropy(logits, ground_truth)
 
         self._optimizer.zero_grad(set_to_none=True)
@@ -102,15 +107,19 @@ class IBCPolicy(BehaviourCloningPolicy):
         self._optimizer.step()
 
         return {
-            'cur_lr': self._scheduler.get_last_lr()[0],
+            # 'cur_lr': self._scheduler.get_last_lr()[0],
             'total_loss': loss.item(),
         }
 
     def _monitor_vars_learn(self):
-        return ['cur_lr', 'total_loss']
+        return [
+            # 'cur_lr', 
+            'total_loss'
+        ]
 
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
 
     @torch.no_grad()
     def _forward_eval(self, data: dict) -> dict:
