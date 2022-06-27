@@ -10,8 +10,8 @@ class TestDynaWorldModel:
 
     @pytest.mark.parametrize('buffer_type', [NaiveReplayBuffer, EpisodeReplayBuffer])
     def test_fill_img_buffer(self, buffer_type):
-        env_buffer = buffer_type(buffer_type.default_config(), None, 'exp_name', 'instance_name')
-        img_buffer = buffer_type(buffer_type.default_config(), None, 'exp_name', 'instance_name')
+        env_buffer = buffer_type(buffer_type.default_config(), None, 'exp_name', 'env_buffer_for_test')
+        img_buffer = buffer_type(buffer_type.default_config(), None, 'exp_name', 'img_buffer_for_test')
         fake_config = EasyDict(
             train_freq=250,  # w.r.t environment step
             eval_freq=250,  # w.r.t environment step
@@ -118,4 +118,4 @@ class TestDreamWorldModel:
         assert actions.shape == (T + 1, B, A)
         assert rewards.shape == (T, B)
         assert aug_rewards.shape == (T + 1, B)
-        assert dones.shape == (T + 1, B)
+        assert dones.shape == (T, B)

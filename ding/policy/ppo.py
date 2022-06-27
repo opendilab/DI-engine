@@ -457,6 +457,198 @@ class PPOPolicy(Policy):
         return variables
 
 
+@POLICY_REGISTRY.register('ppo_pg')
+class PPOPGPolicy(Policy):
+    r"""
+    Overview:
+        Policy class of on policy version PPO algorithm (pure policy gradient).
+    """
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='ppo_pg',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
+        on_policy=True,
+        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous', 'hybrid']
+        action_space='discrete',
+        # (bool) Whether to enable multi-agent training, i.e.: MAPPO
+        multi_agent=False,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
+        learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
+            epoch_per_collect=10,
+            batch_size=64,
+            learning_rate=3e-4,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            entropy_weight=0.0,
+            # (float) PPO clip ratio, defaults to 0.2
+            clip_ratio=0.2,
+            # (bool) Whether to use advantage norm in a whole training batch
+            ppo_param_init=True,
+            grad_clip_type='clip_norm',
+            grad_clip_value=0.5,
+            ignore_done=False,
+        ),
+        collect=dict(
+            # (int) Only one of [n_sample, n_episode] shoule be set
+            # n_sample=64,
+            # (int) Cut trajectories into pieces with length "unroll_len".
+            unroll_len=1,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) Reward's future discount factor, aka. gamma.
+            discount_factor=0.99,
+        ),
+        eval=dict(),
+    )
+
+    def _init_learn(self) -> None:
+        self._action_space = self._cfg.action_space
+        assert self._action_space == 'discrete', "NotImplementedError"
+        if self._cfg.learn.ppo_param_init:
+            for n, m in self._model.named_modules():
+                if isinstance(m, torch.nn.Linear):
+                    torch.nn.init.orthogonal_(m.weight)
+                    torch.nn.init.zeros_(m.bias)
+
+        # Optimizer
+        self._optimizer = Adam(
+            self._model.parameters(),
+            lr=self._cfg.learn.learning_rate,
+            grad_clip_type=self._cfg.learn.grad_clip_type,
+            clip_value=self._cfg.learn.grad_clip_value
+        )
+
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+
+        # Algorithm config
+        self._entropy_weight = self._cfg.learn.entropy_weight
+        self._clip_ratio = self._cfg.learn.clip_ratio
+        self._gamma = self._cfg.collect.discount_factor
+        # Main model
+        self._learn_model.reset()
+
+    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        data = default_preprocess_learn(data)
+        if self._cuda:
+            data = to_device(data, self._device)
+        return_infos = []
+        self._learn_model.train()
+
+        for epoch in range(self._cfg.learn.epoch_per_collect):
+            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+                output = self._learn_model.forward(batch['obs'])
+
+                ppo_batch = ppo_policy_data(
+                    output['logit'], batch['logit'], batch['action'], batch['return'], batch['weight']
+                )
+                ppo_loss, ppo_info = ppo_policy_error(ppo_batch, self._clip_ratio)
+                total_loss = ppo_loss.policy_loss - self._entropy_weight * ppo_loss.entropy_loss
+
+                self._optimizer.zero_grad()
+                total_loss.backward()
+                self._optimizer.step()
+
+                return_info = {
+                    'cur_lr': self._optimizer.defaults['lr'],
+                    'total_loss': total_loss.item(),
+                    'policy_loss': ppo_loss.policy_loss.item(),
+                    'entropy_loss': ppo_loss.entropy_loss.item(),
+                    'approx_kl': ppo_info.approx_kl,
+                    'clipfrac': ppo_info.clipfrac,
+                }
+                return_infos.append(return_info)
+        return return_infos
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
+    def _init_collect(self) -> None:
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
+        self._gamma = self._cfg.collect.discount_factor
+
+    def _forward_collect(self, data: dict) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        with torch.no_grad():
+            output = self._collect_model.forward(data)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        transition = {
+            'obs': obs,
+            'action': model_output['action'],
+            'logit': model_output['logit'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
+        return transition
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        assert data[-1]['done'] is True, "PPO-PG needs a complete epsiode"
+
+        if self._cfg.learn.ignore_done:
+            raise NotImplementedError
+
+        R = 0.
+        for i in reversed(range(len(data))):
+            R = self._gamma * R + data[i]['reward']
+            data[i]['return'] = R
+
+        return get_train_sample(data, self._unroll_len)
+
+    def _init_eval(self) -> None:
+        self._action_space = self._cfg.action_space
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
+
+    def _forward_eval(self, data: dict) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
+        with torch.no_grad():
+            output = self._eval_model.forward(data)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'discrete_bc', ['ding.model.template.bc']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + [
+            'policy_loss',
+            'entropy_loss',
+            'approx_kl',
+            'clipfrac',
+        ]
+
+
 @POLICY_REGISTRY.register('ppo_offpolicy')
 class PPOOffPolicy(Policy):
     r"""

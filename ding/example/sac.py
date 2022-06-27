@@ -1,8 +1,7 @@
-import gym
 from ditk import logging
 from ding.model import QAC
 from ding.policy import SACPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2
+from ding.envs import BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task

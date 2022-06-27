@@ -1,3 +1,45 @@
+2022.06.21(v0.4.0)
+- env: add MAPPO/MASAC all configs in SMAC (#310) **(SOTA results in SMAC!!!)**
+- env: add dmc2gym env (#344) (#360)
+- env: remove DI-star requirements of dizoo/smac, use official pysc2 (#302)
+- env: add latest GAIL mujoco config (#298)
+- env: polish procgen env (#311)
+- env: add MBPO ant and humanoid config for mbpo (#314)
+- env: fix slime volley env obs space bug when agent_vs_agent
+- env: fix smac env obs space bug
+- env: fix import path error in lunarlander (#362)
+- algo: add Decision Transformer algorithm (#327) (#364)
+- algo: add on-policy PPG algorithm (#312)
+- algo: add DDPPO & add model-based SAC with lambda-return algorithm (#332)
+- algo: add infoNCE loss and ST-DIM algorithm (#326)
+- algo: add FQF distributional RL algorithm (#274)
+- algo: add continuous BC algorithm (#318）
+- algo: add pure policy gradient PPO algorithm (#382)
+- algo: add SQIL + SAC algorithm (#348)
+- algo: polish NGU and related modules (#283) (#343) (#353)
+- algo: add marl distributional td loss (#331)
+- feature: add new worker middleware (#236)
+- feature: refactor model-based RL pipeline (ding/world_model) (#332)
+- feature: refactor logging system in the whole DI-engine (#316)
+- feature: add env supervisor design (#330)
+- feature: support async reset for envpool env manager (#250)
+- feature: add log videos to tensorboard (#320)
+- feature: refactor impala cnn encoder interface (#378)
+- fix: env save replay bug
+- fix: transformer mask inplace operation bug
+- fix: transtion_with_policy_data bug in SAC and PPG
+- style: add dockerfile for ding:hpc image (#337)
+- style: fix mpire 2.3.5 which handles default processes more elegantly (#306)
+- style: use FORMAT_DIR instead of ./ding (#309）
+- style: update quickstart colab link (#347)
+- style: polish comments in ding/model/common (#315)
+- style: update mujoco docker download path (#386)
+- style: fix protobuf new version compatibility bug
+- style: fix torch1.8.0 torch.div compatibility bug
+- style: update doc links in readme
+- style: add outline in readme and update wechat image
+- style: update head image and refactor docker dir
+
 2022.04.23(v0.3.1)
 - env: polish and standardize dizoo config (#252) (#255) (#249) (#246) (#262) (#261) (#266) (#273) (#263) (#280) (#259) (#286) (#277) (#290) (#289) (#299)
 - env: add GRF academic env and config (#281)
