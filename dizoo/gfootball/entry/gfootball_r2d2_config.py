@@ -7,7 +7,7 @@ evaluator_env_num = 5
 # evaluator_env_num = 1
 
 gfootball_r2d2_main_config = dict(
-    exp_name='data_gfootball/gfootball_easy_r2d2_seed0',
+    exp_name='data_gfootball/gfootball_easy_r2d2_seed0_e5',
     # exp_name='data_gfootball/gfootball_medium_r2d2_seed0',
     env=dict(
         collector_env_num=collector_env_num,

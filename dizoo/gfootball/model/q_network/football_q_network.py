@@ -179,7 +179,7 @@ class FootballDRQN(nn.Module):
             player_encodings = self.player_encoder(x['players'])
         encoding_list = list(scalar_encodings.values()) + [player_encodings]
         x = torch.cat(encoding_list, dim=1)  
-        # football obs encoding: shape (1312,)
+        # football obs encoding: shape (1, 1312)
         return x
 
     def forward(
@@ -244,8 +244,20 @@ class FootballDRQN(nn.Module):
             x['next_state'] = next_state
             return x
         else:
-            assert len(x.shape) in [3, 5], x.shape
-            x = parallel_wrapper(self.encoder)(x)  # (T, B, N)
+            # assert len(x.shape) in [3, 5], x.shape
+            # x = parallel_wrapper(self.encoder)(x)  # (T, B, N)
+
+            # gfootball
+            assert isinstance(x, list), type(x)
+            tmp = []
+            T = len(x)
+            B = len(x[0])
+            for t in range(T):
+                for bs in range(B):
+                    tmp.append(self.encoder(x[t][bs]).squeeze(0))
+            x = torch.stack(tmp)
+            x = x.view(T, B, -1)
+
             if self.res_link:
                 a = x
             lstm_embedding = []
@@ -302,6 +314,9 @@ class ScalarEncoder(nn.Module):
             data = x[k]
             # print(k, ' -- shape:{}, tensor:{}'.format(data.shape, data))
             encodings[k] = getattr(self, k)(data)
+            # TODO(pu):expand batch_dim
+            if len( encodings[k].shape) == 1:
+                encodings[k].unsqueeze_(0)  
         return encodings
 
 
@@ -317,8 +332,10 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
     ]
     attr = []
     for k in fixed_player_attr_sequence:
-        if len(player_data[k].shape) == 1:
-            player_data[k].unsqueeze_(-1)
+        if len(player_data[k].shape) == 1 and k!='tired_factor':
+            player_data[k].unsqueeze_(0)  # TODO(pu):expand batch_dim
+        elif len(player_data[k].shape) == 1 and k == 'tired_factor':
+            player_data[k].unsqueeze_(-1)  # TODO(pu):expand data_dim
         attr.append(player_data[k])
     attr = torch.cat(attr, dim=1)
     return attr
