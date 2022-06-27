@@ -1,6 +1,9 @@
 import gym
-from ditk import logging
 from tensorboardX import SummaryWriter
+import copy
+import easydict
+import os
+from ditk import logging
 
 from ding.model import DQN
 from ding.policy import DQNPolicy
@@ -15,9 +18,6 @@ from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_trex_dqn_config import main_config, create_config
 from ding.entry import trex_collecting_data
 from ding.reward_model import create_reward_model
-import copy
-import easydict
-import os
 
 
 def main():

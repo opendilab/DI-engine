@@ -125,3 +125,75 @@ class LeagueMetricEnv(TrueSkill):
 
 get_elo = EloCalculator.get_new_rating
 get_elo_array = EloCalculator.get_new_rating_array
+
+
+if __name__ == '__main__':
+    env = LeagueMetricEnv()
+    p1 = env.create_rating()
+    p2 = env.create_rating()
+    print(id(p1))
+    print(p1)
+    print(id(p2))
+    print(p2)
+    print('############################')
+    p1, p2 = env.rate_1vs1(p1, p2, result=['wins', 'wins'])
+    print(id(p1))
+    print(p1)
+    print(id(p2))
+    print(p2)
+    print('############################')
+    p1, p2 = env.rate_1vs1(p1, p2, result=['wins'])
+    print(id(p1))
+    print(p1)
+    print(id(p2))
+    print(p2)
+    print('############################')
+
+from ding.league import LeagueMetricEnv
+def get_elo(demos, reward_model):
+    ts_env = LeagueMetricEnv()
+    world_size = len(demos)
+    players = [{'rating': ts_env.create_rating(), 'demo': demos[i]} for i in range(world_size)]
+    iter_num = 10
+
+    def play_n(demo1, demo2, n=1):
+        rand_length = np.random.randint(50, 100, size=n)
+        min_len = min(len(demo1), len(demo2))
+        res = []
+        for _ in range(n):
+            rand_length[n] = min(rand_length[n], min_len)
+            t1_start = np.random.randint(min_len - rand_length[n] + 1)
+            t2_start = np.random.randint(min_len - rand_length[n] + 1)
+            t1 = demo1[t1_start:t1_start + rand_length[n]:2]
+            t2 = demo2[t2_start:t2_start + rand_length[n]:2]
+
+            r1 = reward_model.predict_traj_return(t1)
+            r2 = reward_model.predict_traj_return(t2)
+
+            if r1 > r2:
+                res.append('wins')
+            elif r1 == r2:
+                res.append('draws')
+            else:
+                res.append('losses')
+        return res
+
+    for _ in range(iter_num):
+        for i in range(world_size):
+            for j in range(i + 1, world_size):
+                play_res = play_n(players[i]['demo'], players[j]['demo'], n=3)
+                players[i]['rating'], players[j]['rating'] = \
+                    ts_env.rate_1vs1(players[i]['rating'], players[j]['rating'], result=play_res)
+
+    return players
+
+
+def add_elo(self, obs, rew):
+    tmp = sorted(zip(rew, obs), key=lambda pair: pair[0][0])
+    demonstrations = [x for _, x in tmp]
+    with torch.no_grad():
+        pls = get_elo(demonstrations, reward_model=self.reward_model)
+        pred_elos = [pls[i]['rating'].elo for i in range(len(pls))]
+    for ii in range(len(pred_elos)):
+        print("real:" + str(tmp[ii][0]) + " pred: " + str(pred_elos[ii]))
+        self.tb_logger.add_scalar('elo', pred_elos[ii], tmp[ii][0][0])
