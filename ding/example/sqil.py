@@ -51,16 +51,10 @@ def main():
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
-        task.use(
-            StepCollector(cfg, policy.collect_mode, collector_env, cfg.policy.get('random_collect_size', 0))
-        )  # agent data collector
+        task.use(StepCollector(cfg, policy.collect_mode, collector_env))  # agent data collector
         task.use(sqil_data_pusher(cfg, buffer_, expert=False))
         task.use(eps_greedy_masker())
-        task.use(
-            StepCollector(
-                cfg, expert_policy.collect_mode, expert_collector_env, cfg.policy.get('expert_random_collect_size', 0)
-            )
-        )  # expert data collector
+        task.use(StepCollector(cfg, expert_policy.collect_mode, expert_collector_env))  # expert data collector
         task.use(sqil_data_pusher(cfg, expert_buffer, expert=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, [(buffer_, 0.5), (expert_buffer, 0.5)]))
         task.use(CkptSaver(cfg, policy, train_freq=100))
