@@ -314,4 +314,3 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
             results.last_actions.append(last_action)
             results.search_lens.append(search_len)
             results.nodes.append(node)
-

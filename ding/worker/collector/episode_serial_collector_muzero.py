@@ -197,6 +197,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
     """
     MuZero related method
     """
+
     def get_priorities(self, i, pred_values_lst, search_values_lst):
         # obtain the priorities at index i
         if self.game_config.use_priority and not self.game_config.use_max_priority:
@@ -375,9 +376,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
         def _get_max_entropy(action_space):
             p = 1.0 / action_space
-            ep = - action_space * p * np.log2(p)
+            ep = -action_space * p * np.log2(p)
             return ep
-        
+
         max_visit_entropy = _get_max_entropy(self.game_config.action_space_size)
         print('max_visit_entropy', max_visit_entropy)
 
@@ -442,7 +443,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
                         # TODO(pu): return the one game history
-                        _ = self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories, dones)
+                        _ = self.put_last_trajectory(
+                            i, last_game_histories, last_game_priorities, game_histories, dones
+                        )
 
                     # calculate priority
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)

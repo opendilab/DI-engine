@@ -13,6 +13,7 @@ from ding.rl_utils.efficientzero.utils import mask_nan
 from ding.torch_utils.network.nn_module import MLP
 from ding.torch_utils import one_hot
 
+
 class DiscreteSupport(object):
 
     def __init__(self, min: int, max: int, delta=1.):
@@ -60,7 +61,6 @@ def inverse_scalar_transform(logits, scalar_support):
     return output
 
 
-
 # value=torch.randn([2,32])
 # inverse_value_transform(value)
 
@@ -103,8 +103,6 @@ def mlp(
         layers[-2].bias.data.fill_(0)
 
     return nn.Sequential(*layers)
-
-
 
 
 def conv3x3(in_channels, out_channels, stride=1):
@@ -381,8 +379,9 @@ class PredictionNetwork(nn.Module):
         #     self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
         # )
         self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers))
-        self.fc_policy = MLP(self.block_output_size_policy, fc_policy_layers[0], action_space_size, len(fc_policy_layers))
-
+        self.fc_policy = MLP(
+            self.block_output_size_policy, fc_policy_layers[0], action_space_size, len(fc_policy_layers)
+        )
 
     def forward(self, x):
         for block in self.resblocks:

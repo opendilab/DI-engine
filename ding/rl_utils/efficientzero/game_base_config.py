@@ -8,6 +8,7 @@ from ding.model.template.efficientzero.efficientzero_atari_model import Efficien
 
 
 class DiscreteSupport(object):
+
     def __init__(self, min: int, max: int, delta=1.):
         assert min < max
         self.min = min
@@ -142,4 +143,5 @@ class GameBaseConfig(object):
             pred_hid=self.pred_hid,
             pred_out=self.pred_out,
             init_zero=self.init_zero,
-            state_norm=self.state_norm)
+            state_norm=self.state_norm
+        )

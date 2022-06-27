@@ -117,4 +117,3 @@ class MCTS(object):
                     hidden_state_index_x, discount, value_prefix_pool, value_pool, policy_logits_pool,
                     min_max_stats_lst, results, is_reset_lst
                 )
-

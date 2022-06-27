@@ -59,9 +59,7 @@ class GameBuffer(Buffer):
             policy._target_model.eval()
 
         # target reward, value
-        batch_value_prefixs, batch_values = self._prepare_reward_value(
-            reward_value_context, policy._target_model
-        )
+        batch_value_prefixs, batch_values = self._prepare_reward_value(reward_value_context, policy._target_model)
         # target policy
         batch_policies_re = self._prepare_policy_re(policy_re_context, policy._target_model)
         batch_policies_non_re = self._prepare_policy_non_re(policy_non_re_context)
@@ -211,7 +209,7 @@ class GameBuffer(Buffer):
             if ignore_insufficient:
                 logging.warning(
                     "Sample operation is ignored due to data insufficient, current buffer is {} while sample is {}".
-                        format(self.count(), size)
+                    format(self.count(), size)
                 )
             else:
                 raise ValueError("There are less than {} records/groups in buffer({})".format(size, self.count()))
@@ -221,7 +219,7 @@ class GameBuffer(Buffer):
         return sampled_data
 
     def _independence(
-            self, buffered_samples: Union[List[BufferedData], List[List[BufferedData]]]
+        self, buffered_samples: Union[List[BufferedData], List[List[BufferedData]]]
     ) -> Union[List[BufferedData], List[List[BufferedData]]]:
         """
         Overview:
@@ -268,7 +266,7 @@ class GameBuffer(Buffer):
         game_history_idx -= self.base_idx
         transition = self.buffer[game_history_idx][game_history_pos]
         return transition
-    
+
     def get(self, idx: int) -> BufferedData:
         """
         Overview:
@@ -382,7 +380,7 @@ class GameBuffer(Buffer):
     def get_num_of_episodes(self):
         # number of collected episodes
         return self._eps_collected
-    
+
     def get_num_of_game_historys(self) -> int:
         # number of games, i.e. num of game history blocks
         return len(self.buffer)
@@ -605,7 +603,9 @@ class GameBuffer(Buffer):
             # obtain the input observations
             # stack+num_unroll_steps  4+5
             # pad if length of obs in game_history is less than stack+num_unroll_steps
-            obs_lst.append(game_lst[i].obs(game_history_pos_lst[i], extra_len=self.config.num_unroll_steps, padding=True))
+            obs_lst.append(
+                game_lst[i].obs(game_history_pos_lst[i], extra_len=self.config.num_unroll_steps, padding=True)
+            )
             action_lst.append(_actions)
             mask_lst.append(_mask)
 
@@ -701,13 +701,13 @@ class GameBuffer(Buffer):
                 # python mcts
                 # TODO:
                 action_mask = [list(np.ones(self.config.action_space_size)) for i in range(batch_size)]
-                legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in
-                                 range(self.config.evaluator_env_num)]
+                legal_actions = [
+                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.config.evaluator_env_num)
+                ]
                 roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
                 noises = [
-                    np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))).astype(
-                        np.float32).tolist()
-                    for j in range(batch_size)
+                    np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))
+                                        ).astype(np.float32).tolist() for j in range(batch_size)
                 ]
 
                 roots.prepare(self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
@@ -721,7 +721,7 @@ class GameBuffer(Buffer):
 
             # get last state value
             value_lst = value_lst.reshape(-1) * (
-                    np.array([self.config.discount for _ in range(batch_size)]) ** td_steps_lst
+                np.array([self.config.discount for _ in range(batch_size)]) ** td_steps_lst
             )
             value_lst = value_lst * np.array(value_mask)
             value_lst = value_lst.tolist()
@@ -811,13 +811,11 @@ class GameBuffer(Buffer):
             # python mcts
             # TODO:
             action_mask = [list(np.ones(self.config.action_space_size)) for i in range(batch_size)]
-            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in
-                             range(batch_size)]
+            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(batch_size)]
             roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
             noises = [
-                np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))).astype(
-                    np.float32).tolist()
-                for j in range(batch_size)
+                np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))
+                                    ).astype(np.float32).tolist() for j in range(batch_size)
             ]
 
             roots.prepare(self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)

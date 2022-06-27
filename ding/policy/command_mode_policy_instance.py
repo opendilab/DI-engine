@@ -345,8 +345,8 @@ class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
 @POLICY_REGISTRY.register('sqil_sac_command')
 class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
     pass
-  
-  
+
+
 @POLICY_REGISTRY.register('efficientzero_command')
 class EfficientZeroCommandModePolicy(EfficientZeroPolicy, DummyCommandModePolicy):
     pass

@@ -99,7 +99,11 @@ def serial_pipeline_muzero(
         collect_kwargs = commander.step()
         # set temperature for distributions
         collect_kwargs['temperature'] = np.array(
-            [game_config.visit_softmax_temperature_fn(trained_steps=learner.train_iter) for _ in range(game_config.collector_env_num)])
+            [
+                game_config.visit_softmax_temperature_fn(trained_steps=learner.train_iter)
+                for _ in range(game_config.collector_env_num)
+            ]
+        )
         # Evaluate policy performance
         # if evaluator.should_eval(learner.train_iter):
         stop, reward = evaluator.eval(
@@ -118,10 +122,12 @@ def serial_pipeline_muzero(
                 train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
             except Exception as exception:
                 print(exception)
-                logging.warning(f'The data in replay_buffer is not sufficient to sample a minibatch: \
+                logging.warning(
+                    f'The data in replay_buffer is not sufficient to sample a minibatch: \
                     batch_size: {replay_buffer.get_batch_size()} \
                 num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_historys()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
-                    continue to collect now ....')
+                    continue to collect now ....'
+                )
                 break
             # if train_data is None:
             #     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times

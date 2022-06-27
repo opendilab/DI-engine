@@ -14,7 +14,7 @@ class MCTS(object):
         self.config = config
 
     def search(self, roots, model, hidden_state_roots, reward_hidden_roots):
-               # reward_hidden_roots):
+        # reward_hidden_roots):
         """Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference
         Parameters
         ----------
@@ -52,7 +52,6 @@ class MCTS(object):
 
             horizons = self.config.lstm_horizon_len
 
-
             for index_simulation in range(self.config.num_simulations):
                 hidden_states_list = []
                 hidden_states_c_reward = []
@@ -71,7 +70,6 @@ class MCTS(object):
                 # obtain the search horizon for leaf nodes
                 # search_lens = results.get_search_len()
                 search_lens = results.search_lens
-
 
                 # obtain the states for leaf nodes
                 for ix, iy in zip(hidden_state_index_x_lst, hidden_state_index_y_lst):

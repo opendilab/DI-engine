@@ -1,4 +1,3 @@
-
 from typing import List, Dict, Any, Tuple, Union
 import treetensor.torch as ttorch
 import torch.optim as optim
@@ -267,9 +266,7 @@ class EfficientZeroPolicy(Policy):
             # value, value_prefix, policy_logits, hidden_state, reward_hidden = self._learn_model.recurrent_inference(
             #     hidden_state, reward_hidden, action_batch[:, step_i]
             # )
-            network_output = self._learn_model.recurrent_inference(
-                hidden_state, reward_hidden, action_batch[:, step_i]
-            )
+            network_output = self._learn_model.recurrent_inference(hidden_state, reward_hidden, action_batch[:, step_i])
             value = network_output.value
             value_prefix = network_output.value_prefix
             policy_logits = network_output.policy_logits  # {list: 2} {list:6}
@@ -292,10 +289,8 @@ class EfficientZeroPolicy(Policy):
                 # _, _, _, presentation_state, _ = self._learn_model.initial_inference(
                 #     obs_target_batch[:, beg_index:end_index, :, :]
                 # )
-                network_output = self._learn_model.initial_inference(
-                    obs_target_batch[:, beg_index:end_index, :, :]
-                )
-                presentation_state =  network_output.hidden_state
+                network_output = self._learn_model.initial_inference(obs_target_batch[:, beg_index:end_index, :, :])
+                presentation_state = network_output.hidden_state
 
                 hidden_state = to_tensor(hidden_state)
                 presentation_state = to_tensor(presentation_state)
@@ -441,12 +436,11 @@ class EfficientZeroPolicy(Policy):
             'value_prefix_loss': loss_data[5],
             'value_loss': loss_data[6],
             'consistency_loss': loss_data[7],
-
-            'value_priority':td_data[0].flatten().mean().item(),
-            'target_value_prefix':td_data[1].flatten().mean().item(),
-            'target_value':td_data[2].flatten().mean().item(),
-            'predicted_value_prefixs':td_data[7].flatten().mean().item(),
-            'predicted_values':td_data[8].flatten().mean().item(),
+            'value_priority': td_data[0].flatten().mean().item(),
+            'target_value_prefix': td_data[1].flatten().mean().item(),
+            'target_value': td_data[2].flatten().mean().item(),
+            'predicted_value_prefixs': td_data[7].flatten().mean().item(),
+            'predicted_values': td_data[8].flatten().mean().item(),
             # 'target_policy':td_data[9],
             # 'predicted_policies':td_data[10]
             # 'td_data': td_data,
@@ -461,7 +455,11 @@ class EfficientZeroPolicy(Policy):
         self._mcts_eval = MCTS(self.game_config)
         # set temperature for distributions
         self.collect_temperature = np.array(
-            [self.game_config.visit_softmax_temperature_fn(trained_steps=0) for _ in range(self.game_config.collector_env_num)])
+            [
+                self.game_config.visit_softmax_temperature_fn(trained_steps=0)
+                for _ in range(self.game_config.collector_env_num)
+            ]
+        )
 
     def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None):
         """
@@ -490,12 +488,14 @@ class EfficientZeroPolicy(Policy):
             # ]
 
             # python mcts
-            legal_actions = [[i for i,x in enumerate(action_mask[j]) if x==1] for j in range(self.game_config.collector_env_num)]
+            legal_actions = [
+                [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.collector_env_num)
+            ]
             roots = tree.Roots(self.game_config.collector_env_num, legal_actions, self.game_config.num_simulations)
             # the only difference between collect and eval is the dirichlet noise
             noises = [
-                np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))).astype(np.float32).tolist()
-                for j in range(self.game_config.collector_env_num)
+                np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))
+                                    ).astype(np.float32).tolist() for j in range(self.game_config.collector_env_num)
             ]
 
             roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
@@ -516,7 +516,13 @@ class EfficientZeroPolicy(Policy):
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
                 # actions.append(action)
-                output[i] = {'action': action, 'distributions': distributions, 'visit_entropy': visit_entropy, 'value': value, 'pred_value': pred_values_pool[i]}
+                output[i] = {
+                    'action': action,
+                    'distributions': distributions,
+                    'visit_entropy': visit_entropy,
+                    'value': value,
+                    'pred_value': pred_values_pool[i]
+                }
 
         return output
 
@@ -576,7 +582,9 @@ class EfficientZeroPolicy(Policy):
             # roots = cytree.Roots(self.game_config.evaluator_env_num, action_num, self.game_config.num_simulations)
 
             # python mcts
-            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x==1] for j in range(self.game_config.evaluator_env_num)]
+            legal_actions = [
+                [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.evaluator_env_num)
+            ]
             roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
 
             roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)

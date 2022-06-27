@@ -16,6 +16,7 @@ from ding.rl_utils.efficientzero.mcts_ctree import MCTS
 
 args = ['PongNoFrameskip-v4', 'tictactoe']
 
+
 @pytest.mark.unittest
 @pytest.mark.parametrize('env_name', args)
 def test_game_history(env_name):
@@ -29,9 +30,9 @@ def test_game_history(env_name):
     config.device = 'cpu'
     config.evaluator_env_num = 2
     config.render = False
-    config.max_episode_steps=int(1e2)
-    config.num_simulations=2
-    config.game_history_max_length=20
+    config.max_episode_steps = int(1e2)
+    config.num_simulations = 2
+    config.game_history_max_length = 20
 
     # to obtain model
     # model = EfficientZeroNet()

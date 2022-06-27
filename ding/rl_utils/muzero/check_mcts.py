@@ -80,12 +80,7 @@ def check_mcts():
     ]
     roots.prepare(mcts_cfg.root_exploration_fraction, noises, reward_pool, policy_logits_pool)
 
-    MCTS(mcts_cfg).search(
-        roots,
-        model,
-        hidden_state_roots,
-        reward_hidden_state_roots
-    )
+    MCTS(mcts_cfg).search(roots, model, hidden_state_roots, reward_hidden_state_roots)
     roots_distributions = roots.get_distributions()
     print(roots_distributions)
 

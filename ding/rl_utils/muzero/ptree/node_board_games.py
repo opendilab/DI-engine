@@ -28,8 +28,10 @@ class Node:
         self.hidden_state_index_x = 0
         self.hidden_state_index_y = 0
 
-    def expand(self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
-               policy_logits: List[float]):
+    def expand(
+        self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
+        policy_logits: List[float]
+    ):
         self.to_play = to_play
         if self.legal_actions is None:
             # TODO
@@ -275,8 +277,8 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
 
 
 def ucb_score(
-        child: Node, min_max_stats, parent_mean_q, is_reset: int, total_children_visit_counts: float,
-        parent_value_prefix: float, pb_c_base: float, pb_c_init: float, discount: float
+    child: Node, min_max_stats, parent_mean_q, is_reset: int, total_children_visit_counts: float,
+    parent_value_prefix: float, pb_c_base: float, pb_c_init: float, discount: float
 ):
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))

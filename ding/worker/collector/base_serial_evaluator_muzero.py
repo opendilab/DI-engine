@@ -206,8 +206,9 @@ class BaseSerialEvaluatorMuZero(object):
         dones = np.array([False for _ in range(env_nums)])
 
         game_histories = [
-            GameHistory(self._env.action_space, max_length=self.game_config.game_history_max_length, config=self.game_config)
-            for _ in range(env_nums)
+            GameHistory(
+                self._env.action_space, max_length=self.game_config.game_history_max_length, config=self.game_config
+            ) for _ in range(env_nums)
         ]
         for i in range(env_nums):
             game_histories[i].init(
@@ -273,7 +274,9 @@ class BaseSerialEvaluatorMuZero(object):
                             max_length=self.game_config.game_history_max_length,
                             config=self.game_config
                         )
-                        game_histories[i].init([init_obses[i]['observation'] for _ in range(self.game_config.stacked_observations)])
+                        game_histories[i].init(
+                            [init_obses[i]['observation'] for _ in range(self.game_config.stacked_observations)]
+                        )
 
                     envstep_count += 1
         duration = self._timer.value
