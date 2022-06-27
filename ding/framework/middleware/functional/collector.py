@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
 from easydict import EasyDict
 from functools import reduce
-from more_itertools import only
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
@@ -16,7 +15,7 @@ from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
 from dizoo.distar.envs.fake_data import rl_step_data
 
-import logging
+from ditk import logging
 
 
 class TransitionList:
@@ -65,7 +64,7 @@ class BattleTransitionList:
         self._unroll_len = unroll_len
         # TODO(zms): last transition + 1
 
-    def get_env_trajectories(self, env_id: int, only_finished: bool = False):
+    def get_env_trajectories(self, env_id: int, only_finished: bool = False) -> List[List]:
         trajectories = []
         if len(self._transitions[env_id]) == 0:
             # if we have no episode for this env, we return an empty list
@@ -92,7 +91,7 @@ class BattleTransitionList:
 
         return trajectories
 
-    def to_trajectories(self, only_finished: bool = False):
+    def to_trajectories(self, only_finished: bool = False) -> List[ActorEnvTrajectories]:
         all_env_data = []
         for env_id in range(self.env_num):
             trajectories = self.get_env_trajectories(env_id, only_finished=only_finished)
@@ -100,7 +99,7 @@ class BattleTransitionList:
                 all_env_data.append(ActorEnvTrajectories(env_id=env_id, trajectories=trajectories))
         return all_env_data
 
-    def _cut_trajectory_from_episode(self, episode: list):
+    def _cut_trajectory_from_episode(self, episode: list) -> List[List]:
         # first we cut complete trajectories (list of transitions whose length equal to unroll_len)
         # then we gather the transitions in the tail of episode, and fill up the trajectory with the tail transitions in Trajectory(t-1)
         # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len, we fill up the trajectory
@@ -151,7 +150,7 @@ class BattleTransitionList:
                 return False
         return True
 
-    def clear(self):
+    def clear(self) -> None:
         for item in self._transitions:
             item.clear()
         for item in self._done_episode:
@@ -257,10 +256,10 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
         # Get current env obs.
         obs = env.ready_obs
         # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
-        new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
-        ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
-        ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
-        obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
+        # new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
+        # ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
+        # ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
+        # obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
 
         # Policy forward.
         if cfg.transform_obs:
@@ -271,7 +270,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
         ctx.inference_output = inference_output
         # Interact with env.
         actions = {}
-        for env_id in ctx.ready_env_id:
+        for env_id in range(env.env_num):
             actions[env_id] = []
             for output in inference_output:
                 actions[env_id].append(output[env_id]['action'])
@@ -301,7 +300,84 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List)
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
             if timestep.done:
-                ctx.ready_env_id.remove(env_id)
+                # ctx.ready_env_id.remove(env_id)
+                ctx.env_episode += 1
+
+    return _battle_rolloutor
+
+
+def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
+
+    def _battle_inferencer(ctx: "BattleContext"):
+
+        if env.closed:
+            env.launch()
+
+        # Get current env obs.
+        obs = env.ready_obs
+        assert isinstance(obs, dict)
+
+        ctx.obs = obs
+
+        # Policy forward.
+        inference_output = {}
+        actions = {}
+        for env_id in ctx.obs.keys():
+            observations = obs[env_id]
+            inference_output[env_id] = {}
+            actions[env_id] = {}
+            for policy_id, policy_obs in observations.items():
+                # policy.forward
+                output = ctx.current_policies[policy_id].forward(policy_obs)
+                inference_output[env_id][policy_id] = output
+                actions[env_id][policy_id] = output['action']
+        ctx.inference_output = inference_output
+        ctx.actions = actions
+
+    return _battle_inferencer
+
+
+def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
+
+    def _battle_rolloutor(ctx: "BattleContext"):
+        timesteps = env.step(ctx.actions)
+
+        ctx.total_envstep_count += len(timesteps)
+        ctx.env_step += len(timesteps)
+
+        # for env_id, timestep in timesteps.items():
+        # TODO(zms): make sure a standard
+        # If for each step, the env manager can't get the obs of all envs, we need to use dict here.
+        for env_id, timestep in enumerate(timesteps):
+            if timestep.info.get('abnormal'):
+                # TODO(zms): cannot get exact env_step of a episode because for each observation,
+                # in most cases only one of two policies has a obs.
+                # ctx.total_envstep_count -= transitions_list[0].length(env_id)
+                # ctx.env_step -= transitions_list[0].length(env_id)
+
+                # 1st case when env step has bug and need to reset.
+                for policy_id, _ in enumerate(ctx.current_policies):
+                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    ctx.current_policies[policy_id].reset([env_id])
+                continue
+
+            append_succeed = True
+            for policy_id, _ in enumerate(ctx.current_policies):
+                transition = ctx.current_policies[policy_id].process_transition(timestep)
+                transition = EasyDict(transition)
+                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+
+                # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
+                append_succeed = append_succeed and transitions_list[policy_id].append(env_id, transition)
+                if timestep.done:
+                    ctx.current_policies[policy_id].reset([env_id])
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
+
+            if not append_succeed:
+                for policy_id, _ in enumerate(ctx.current_policies):
+                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    ctx.episode_info[policy_id].pop()
+            elif timestep.done:
                 ctx.env_episode += 1
 
     return _battle_rolloutor

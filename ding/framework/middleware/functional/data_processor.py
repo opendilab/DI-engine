@@ -115,7 +115,7 @@ def offpolicy_data_fetcher(
         except (ValueError, AssertionError):
             # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
             log_every_sec(
-                logging.warning, 10,
+                logging.WARNING, 10,
                 "Replay buffer's data is not enough to support training, so skip this training for waiting more data."
             )
             ctx.train_data = None

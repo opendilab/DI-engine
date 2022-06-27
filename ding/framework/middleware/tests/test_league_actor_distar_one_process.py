@@ -20,8 +20,8 @@ from ding.framework import EventEnum
 from distar.ctools.utils import read_config
 from ding.model import VAC
 
-from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect, \
-    battle_inferencer_for_distar, battle_rolloutor_for_distar
+from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect
+from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
 
 cfg = deepcopy(distar_cfg)
 env_cfg = read_config('./test_distar_config.yaml')
@@ -84,6 +84,7 @@ def test_league_actor():
 
             def on_actor_job(job_: Job):
                 assert job_.launch_player == job.launch_player
+                print(job)
                 testcases["on_actor_job"] = True
 
             def on_actor_data(actor_data):
