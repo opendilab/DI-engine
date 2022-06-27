@@ -256,10 +256,10 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
         # Get current env obs.
         obs = env.ready_obs
         # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
-        new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
-        ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
-        ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
-        obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
+        # new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
+        # ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
+        # ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
+        # obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
 
         # Policy forward.
         if cfg.transform_obs:
@@ -270,7 +270,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
         ctx.inference_output = inference_output
         # Interact with env.
         actions = {}
-        for env_id in ctx.ready_env_id:
+        for env_id in range(env.env_num):
             actions[env_id] = []
             for output in inference_output:
                 actions[env_id].append(output[env_id]['action'])
@@ -300,7 +300,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List)
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
             if timestep.done:
-                ctx.ready_env_id.remove(env_id)
+                # ctx.ready_env_id.remove(env_id)
                 ctx.env_episode += 1
 
     return _battle_rolloutor

@@ -5,7 +5,7 @@ from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
 from dizoo.distar.config import distar_cfg
-from ding.framework.middleware import LeagueActor, StepLeagueActor
+from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
@@ -43,7 +43,7 @@ def test_league_actor():
     cfg, env_fn, policy_fn = prepare_test()
     policy = policy_fn()
     with task.start(async_mode=True, ctx=BattleContext()):
-        league_actor = LeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
+        league_actor = StepLeagueActor(cfg=cfg, env_fn=env_fn, policy_fn=policy_fn)
 
         def test_actor():
             job = Job(
