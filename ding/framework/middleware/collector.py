@@ -101,6 +101,8 @@ class BattleStepCollector:
         old = ctx.env_step
 
         while True:
+            if self.env.closed:
+                self.env.launch()
             self._update_policies(ctx.player_id_list)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
@@ -180,6 +182,8 @@ class BattleStepCollector:
 #         ctx.total_envstep_count = self.total_envstep_count
 #         old = ctx.env_episode
 #         while True:
+#             if self.env.closed:
+#                 self.env.launch()
 #             self._update_policies(ctx.player_id_list)
 #             self._battle_inferencer(ctx)
 #             self._battle_rolloutor(ctx)

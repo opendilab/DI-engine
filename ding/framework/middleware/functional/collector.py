@@ -249,10 +249,6 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
 def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
 
     def _battle_inferencer(ctx: "BattleContext"):
-
-        if env.closed:
-            env.launch()
-
         # Get current env obs.
         obs = env.ready_obs
         # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
@@ -309,10 +305,6 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List)
 def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
 
     def _battle_inferencer(ctx: "BattleContext"):
-
-        if env.closed:
-            env.launch()
-
         # Get current env obs.
         obs = env.ready_obs
         assert isinstance(obs, dict)
