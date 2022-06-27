@@ -22,20 +22,13 @@ cartpole_bco_config = dict(
             batch_size=32,
             learning_rate=0.01,
             weight_decay=1e-4,
-        ),
-        idm_learn=dict(
-            idm_batch_size=32,
-            idm_learning_rate=0.001,
-            idm_weight_decay=1e-4,
-            idm_train_epoch=10,
-            idm_encoder_hidden_size_list=[60, 80, 100, 40],
+            lr_decay=False,
         ),
         collect=dict(
             n_episode=10,
             # control the number (alpha*n_episode) of post-demonstration environment interactions at each iteration.
             # Notice: alpha * n_episode > collector_env_num
-            alpha=0.8,
-            model_path='abs model path',
+            model_path='/home/cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar',
             data_path='abs data path',
         ),
         eval=dict(evaluator=dict(eval_freq=40, )),
@@ -46,6 +39,11 @@ cartpole_bco_config = dict(
             decay=10000,
         ), )
     ),
+    bco=dict(
+        learn=dict(idm_batch_size=32, idm_learning_rate=0.001, idm_weight_decay=1e-4, idm_train_epoch=10),
+        model=dict(idm_encoder_hidden_size_list=[60, 80, 100, 40], ),
+        alpha=0.8,
+    )
 )
 cartpole_bco_config = EasyDict(cartpole_bco_config)
 main_config = cartpole_bco_config

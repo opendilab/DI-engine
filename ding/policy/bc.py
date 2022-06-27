@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import copy
-from torch.optim import Adam
+from torch.optim import Adam, SGD
 from torch.optim.lr_scheduler import LambdaLR
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
@@ -36,6 +36,12 @@ class BehaviourCloningPolicy(Policy):
             update_per_collect=1,
             batch_size=32,
             learning_rate=1e-5,
+            lr_decay=False,
+            decay_epoch=30,
+            decay_rate=0.1,
+            warmup_lr=1e-4,
+            warmup_epoch=3,
+            optimizer='SGD'
         ),
         collect=dict(unroll_len=1, ),
         eval=dict(),
@@ -43,9 +49,26 @@ class BehaviourCloningPolicy(Policy):
     )
 
     def _init_learn(self):
-        self._optimizer = Adam(
-            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
-        )
+        assert self._cfg.learn.optimizer in ['SGD', 'Adam']
+        if self._cfg.learn.optimizer == 'SGD':
+            self._optimizer = SGD(
+                self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
+            )
+        elif self._cfg.learn.optimizer == 'Adam':
+            self._optimizer = Adam(
+                self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
+            )
+        if self._cfg.learn.lr_decay:
+
+            def lr_scheduler_fn(epoch):
+                if epoch <= self._cfg.learn.warmup_epoch:
+                    return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
+                else:
+                    ratio = (epoch - self._cfg.learn.warmup_epoch) // self._cfg.learn.decay_epoch
+                    return math.pow(self._cfg.learn.decay_rate, ratio)
+
+            self._lr_scheduler = LambdaLR(self._optimizer, lr_scheduler_fn)
+
         self._timer = EasyTimer(cuda=True)
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
@@ -71,7 +94,7 @@ class BehaviourCloningPolicy(Policy):
             else:
                 obs, action = data['obs'], data['action'].squeeze()
             if self._cfg.continuous:
-                mu = self._eval_model.forward(data['obs'])['action']
+                mu = self._learn_model.forward(data['obs'])['action']
                 # when we use bco, action is predicted by idm, gradient is not expected.
                 loss = self._loss(mu, action.detach())
             else:

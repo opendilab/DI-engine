@@ -2,6 +2,7 @@ import os
 import time
 import copy
 import pickle
+from tokenize import String
 from xmlrpc.client import Boolean
 import torch
 import torch.nn as nn
@@ -10,7 +11,7 @@ from tensorboardX import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 from typing import Union, Optional, List, Any, Tuple, Dict
 
-from ding.model.common.head import DiscreteHead, RegressionHead
+from ding.model.common.head import DiscreteHead, RegressionHead, ReparameterizationHead
 from ding.worker import BaseLearner, BaseSerialCommander, InteractionSerialEvaluator, create_serial_collector
 from ding.config import read_config, compile_config
 from ding.utils import set_pkg_seed
@@ -19,6 +20,7 @@ from ding.policy.common_utils import default_preprocess_learn
 from ding.policy import create_policy
 from ding.utils import SequenceType, squeeze
 from ding.model.common.encoder import FCEncoder, ConvEncoder
+from torch.distributions import Independent, Normal
 
 
 class InverseDynamicsModel(nn.Module):
@@ -31,8 +33,9 @@ class InverseDynamicsModel(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            is_continuous: Boolean,
+            continuous: Boolean,
             encoder_hidden_size_list: SequenceType = [60, 80, 100, 40],
+            action_space: String = "regression",
             activation: Optional[nn.Module] = nn.LeakyReLU(),
             norm_type: Optional[str] = None
     ) -> None:
@@ -42,7 +45,7 @@ class InverseDynamicsModel(nn.Module):
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
-            - is_continuous(:obj:`Boolean`): whether action is continuous. eg: continuous:True, discrete: False.
+            - continuous(:obj:`Boolean`): whether action is continuous. eg: continuous:True, discrete: False.
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
@@ -65,32 +68,52 @@ class InverseDynamicsModel(nn.Module):
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own Model".format(obs_shape)
             )
-        self.is_continuous = is_continuous
-        if self.is_continuous:
-            self.header = RegressionHead(
-                encoder_hidden_size_list[-1],
-                action_shape,
-                final_tanh=False,
-                activation=activation,
-                norm_type=norm_type
-            )
+        self.continuous = continuous
+        self.action_space = action_space
+        assert self.action_space in ['regression', 'reparameterization']
+        if self.continuous:
+            if self.action_space == "regression":
+                self.header = RegressionHead(
+                    encoder_hidden_size_list[-1],
+                    action_shape,
+                    final_tanh=False,
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            elif self.action_space == "reparameterization":
+                self.header = ReparameterizationHead(
+                    encoder_hidden_size_list[-1],
+                    action_shape,
+                    sigma_type='conditioned',
+                    activation=activation,
+                    norm_type=norm_type
+                )
         else:
             self.header = DiscreteHead(
                 encoder_hidden_size_list[-1], action_shape, activation=activation, norm_type=norm_type
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        if self.is_continuous:
-            x = self.encoder(x)
-            x = self.header(x)
-            return {'action': x['pred']}
+        if self.continuous:
+            if self.action_space == "regression":
+                x = self.encoder(x)
+                x = self.header(x)
+                return {'action': x['pred']}
+            elif self.action_space == "reparameterization":
+                x = self.encoder(x)
+                x = self.header(x)
+                mu, sigma = x['mu'], x['sigma']
+                dist = Independent(Normal(mu, sigma), 1)
+                pred = dist.rsample()
+                action = torch.tanh(pred)
+                return {'logit': [mu, sigma], 'action': action}
         else:
             x = self.encoder(x)
             x = self.header(x)
             return x
 
     def predict_action(self, x: torch.Tensor) -> Dict:
-        if self.is_continuous:
+        if self.continuous:
             return self.forward(x)
         else:
             res = nn.Softmax(dim=-1)
@@ -108,7 +131,7 @@ class InverseDynamicsModel(nn.Module):
         return:
         loss: trained transition model
         '''
-        if self.is_continuous:
+        if self.continuous:
             # criterion = nn.MSELoss()
             criterion = nn.L1Loss()
         else:
@@ -118,7 +141,7 @@ class InverseDynamicsModel(nn.Module):
         for itr in range(n_epoch):
             data = training_set['obs']
             y = training_set['action']
-            if self.is_continuous:
+            if self.continuous:
                 y_pred = self.forward(data)['action']
             else:
                 y_pred = self.forward(data)['logit']
@@ -277,13 +300,13 @@ def serial_pipeline_bco(
     )
     learned_model = InverseDynamicsModel(
         cfg.policy.model.obs_shape, cfg.policy.model.action_shape, cfg.policy.continuous,
-        cfg.policy.idm_learn.idm_encoder_hidden_size_list
+        cfg.bco.model.idm_encoder_hidden_size_list
     )
     # ==========
     # Main loop
     # ==========
     learner.call_hook('before_run')
-    collect_episode = int(cfg.policy.collect.n_episode * cfg.policy.collect.alpha)
+    collect_episode = int(cfg.policy.collect.n_episode * cfg.bco.alpha)
     # agent_data = list()
     for epoch in range(cfg.policy.learn.train_epoch):
         collect_kwargs = commander.step()
@@ -304,13 +327,13 @@ def serial_pipeline_bco(
             )
         # agent_data = agent_data + new_data
         learn_dataset = load_agentdata(new_data)
-        learn_dataloader = DataLoader(learn_dataset, cfg.policy.idm_learn.idm_batch_size)
+        learn_dataloader = DataLoader(learn_dataset, cfg.bco.learn.idm_batch_size)
         for i, train_data in enumerate(learn_dataloader):
             idm_loss = learned_model.train(
                 train_data,
-                cfg.policy.idm_learn.idm_train_epoch,
-                cfg.policy.idm_learn.idm_learning_rate,
-                cfg.policy.idm_learn.idm_weight_decay,
+                cfg.bco.learn.idm_train_epoch,
+                cfg.bco.learn.idm_learning_rate,
+                cfg.bco.learn.idm_weight_decay,
             )
         tb_logger.add_scalar("idm_loss", idm_loss, learner.train_iter)
         # Generate state transitions from demonstrated state trajectories by IDM
@@ -318,7 +341,7 @@ def serial_pipeline_bco(
         post_expert_dataset = BCODataset(
             {
                 # next_obs are deleted
-                'obs': expert_learn_dataset.obs[:, 0:int(expert_learn_dataset.obs.shape[1] / 2)],
+                'obs': expert_learn_dataset.obs[:, 0:int(expert_learn_dataset.obs.shape[1] // 2)],
                 'action': expert_action_data,
                 'expert_action': expert_learn_dataset.action
             }
@@ -327,7 +350,8 @@ def serial_pipeline_bco(
         # Improve policy using BC
         for i, train_data in enumerate(expert_learn_dataloader):
             learner.train(train_data, collector.envstep)
-        # learner.policy.get_attribute('lr_scheduler').step()
+        if cfg.policy.learn.lr_decay:
+            learner.policy.get_attribute('lr_scheduler').step()
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 
