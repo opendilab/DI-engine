@@ -12,7 +12,7 @@ from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
 from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
-from .ppo import PPOPolicy, PPOOffPolicy
+from .ppo import PPOPolicy, PPOOffPolicy, PPOPGPolicy
 from .offppo_collect_traj import OffPPOCollectTrajPolicy
 from .ppg import PPGPolicy, PPGOffPolicy
 from .a2c import A2CPolicy
@@ -23,7 +23,7 @@ from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy, SACDiscretePolicy
-from .mbpolicy.mbsac import MBSACPolicy
+from .mbpolicy.mbsac import MBSACPolicy, STEVESACPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
@@ -168,6 +168,11 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('ppo_pg_command')
+class PPOPGCommandModePolicy(PPOPGPolicy, DummyCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('ppo_offpolicy_command')
 class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
     pass
@@ -259,6 +264,11 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('mbsac_command')
 class MBSACCommandModePolicy(MBSACPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('stevesac_command')
+class STEVESACCommandModePolicy(STEVESACPolicy, DummyCommandModePolicy):
     pass
 
 

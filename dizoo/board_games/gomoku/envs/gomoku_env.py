@@ -22,7 +22,7 @@ class GomokuEnv(BaseGameEnv):
     @property
     def current_player(self):
         return self._current_player
-
+    
     @property
     def to_play(self):
         return self.players[0] if self.current_player == self.players[1] else self.players[1]
@@ -248,4 +248,4 @@ class GomokuEnv(BaseGameEnv):
 
     def __repr__(self) -> str:
         return "DI-engine Gomoku Env"
-
+        

@@ -2,6 +2,7 @@
 # https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
 import gym
+from collections import deque
 from ding.envs import NoopResetWrapper, MaxAndSkipWrapper, EpisodicLifeWrapper, FireResetWrapper, WarpFrameWrapper, \
     ScaledFloatFrameWrapper, \
     ClipRewardWrapper, FrameStackWrapper

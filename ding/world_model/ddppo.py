@@ -8,6 +8,7 @@ from torch import nn
 from scipy.spatial import KDTree
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
+from ding.torch_utils import unsqueeze_repeat
 from ding.world_model.base_world_model import HybridWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 
@@ -172,7 +173,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         # predict
         ensemble_mean, ensemble_var = [], []
         for i in range(0, inputs.shape[0], batch_size):
-            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+            input = unsqueeze_repeat(inputs[i:i + batch_size], self.ensemble_size)
             if not torch.is_grad_enabled() or not self.gradient_model:
                 b_mean, b_var = self.rollout_model(input, ret_log_var=False)
             else:
@@ -194,7 +195,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
         sample = ensemble_sample[model_idxes, batch_idxes]
-        rewards, next_obs = sample[:, :1], sample[:, 1:]
+        rewards, next_obs = sample[:, 0], sample[:, 1:]
 
         return rewards, next_obs, self.env.termination_fn(next_obs)
 
@@ -223,8 +224,8 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         inputs = self.scaler.transform(inputs)
 
         # repeat for ensemble
-        inputs = inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
-        labels = labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        inputs = unsqueeze_repeat(inputs, self.ensemble_size)
+        labels = unsqueeze_repeat(labels, self.ensemble_size)
 
         # eval
         with torch.no_grad():
@@ -294,8 +295,8 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
         #repeat for ensemble
-        holdout_inputs = holdout_inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
-        holdout_labels = holdout_labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        holdout_inputs = unsqueeze_repeat(holdout_inputs, self.ensemble_size)
+        holdout_labels = unsqueeze_repeat(holdout_labels, self.ensemble_size)
 
         self._epochs_since_update = 0
         self._snapshots = {i: (-1, 1e10) for i in range(self.ensemble_size)}
@@ -384,8 +385,8 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
         #repeat for ensemble
-        holdout_inputs = holdout_inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
-        holdout_labels = holdout_labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        holdout_inputs = unsqueeze_repeat(holdout_inputs, self.ensemble_size)
+        holdout_labels = unsqueeze_repeat(holdout_labels, self.ensemble_size)
 
         #no split and normalization on regulation data
         train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
