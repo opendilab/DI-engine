@@ -132,6 +132,7 @@ class StepLeagueActor:
         )
 
         ctx.player_id_list = [player.player_id for player in job.players]
+        main_player_idx = [idx for idx, player in enumerate(job.players) if player.player_id == job.launch_player]
         self.agent_num = len(job.players)
         collector = self._get_collector(job.launch_player)
 
@@ -152,28 +153,24 @@ class StepLeagueActor:
             old_envstep = ctx.total_envstep_count
             collector(ctx)
 
-            # ctx.trajectories_list[0] for policy_id 0
-            # ctx.trajectories_list[0][0] for first env
-            if len(ctx.trajectories_list[0]) > 0:
-                for traj in ctx.trajectories_list[0][0].trajectories:
-                    assert len(traj) == self.unroll_len + 1
             if ctx.job_finish is True:
                 logging.info('[Actor {}] finish current job !'.format(task.router.node_id))
-                assert len(ctx.trajectories_list[0][0].trajectories) > 0
-            # TODO(zms): 判断是不是main_player
-            if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
-                trajectories = ctx.trajectories_list[0]
-                log_every_sec(
-                    logging.INFO, 5, '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
-                )
-                meta_data = ActorDataMeta(
-                    player_total_env_step=ctx.total_envstep_count,
-                    actor_id=task.router.node_id,
-                    send_wall_time=time.time()
-                )
-                actor_data = ActorData(meta=meta_data, train_data=trajectories)
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
-                log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
+
+            for idx in main_player_idx:
+                if not job.is_eval and len(ctx.trajectories_list[idx]) > 0:
+                    trajectories = ctx.trajectories_list[idx]
+                    log_every_sec(
+                        logging.INFO, 5,
+                        '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
+                    )
+                    meta_data = ActorDataMeta(
+                        player_total_env_step=ctx.total_envstep_count,
+                        actor_id=task.router.node_id,
+                        send_wall_time=time.time()
+                    )
+                    actor_data = ActorData(meta=meta_data, train_data=trajectories)
+                    task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
+                    log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
 
             ctx.trajectories_list = []
             time_end = time.time()
@@ -191,7 +188,10 @@ class StepLeagueActor:
             )
 
             if ctx.job_finish is True:
-                job.result = [e['result'] for e in ctx.episode_info[0]]
+                job.result = []
+                for idx in main_player_idx:
+                    for e in ctx.episode_info[idx]:
+                        job.result.append(e['result'])
                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))

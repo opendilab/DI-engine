@@ -165,7 +165,6 @@ class BattleStepCollector:
 #         self.env.close()
 
 #     def _update_policies(self, player_id_list) -> None:
-#         # TODO(zms): update train_iter, update train_iter and player_id inside policy is a good idea
 #         for player_id in player_id_list:
 #             if self.model_dict.get(player_id) is None:
 #                 continue
