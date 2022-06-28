@@ -2,8 +2,6 @@ from easydict import EasyDict
 from typing import Dict, TYPE_CHECKING
 import time
 from ditk import logging
-from more_itertools import last
-from ding.league import player
 
 from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
