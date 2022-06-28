@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
+from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any, Dict
 from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
+from ding import policy
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 import torch
@@ -275,7 +276,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
     return _battle_inferencer
 
 
-def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List, model_info_dict: Dict):
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
@@ -289,7 +290,9 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List)
                     ctx.obs[policy_id][env_id], ctx.inference_output[policy_id][env_id], policy_timestep
                 )
                 transition = ttorch.as_tensor(transition)
-                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+                transition.collect_train_iter = ttorch.as_tensor(
+                    [model_info_dict[ctx.player_id_list[policy_id]].train_iter]
+                )
                 transitions_list[policy_id].append(env_id, transition)
                 if timestep.done:
                     ctx.current_policies[policy_id].reset([env_id])
@@ -329,7 +332,7 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
     return _battle_inferencer
 
 
-def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List):
+def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List, model_info_dict: Dict):
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
@@ -357,7 +360,9 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
             for policy_id, _ in enumerate(ctx.current_policies):
                 transition = ctx.current_policies[policy_id].process_transition(timestep)
                 transition = EasyDict(transition)
-                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+                transition.collect_train_iter = ttorch.as_tensor(
+                    [model_info_dict[ctx.player_id_list[policy_id]].train_iter]
+                )
 
                 # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
                 append_succeed = append_succeed and transitions_list[policy_id].append(env_id, transition)
