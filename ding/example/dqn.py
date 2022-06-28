@@ -36,6 +36,7 @@ Remember to keep them connected by mesh to ensure that they can exchange informa
 """
 import gym
 from ditk import logging
+from ding.data.storage_loader import FileStorageLoader, StorageLoader
 from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2

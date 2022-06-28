@@ -21,13 +21,10 @@ class SlurmParser():
         self.ports = int(kwargs.get("ports") or 15151)
         self.parallel_workers = kwargs.get("parallel_workers") or 1
         self.topology = kwargs.get("topology") or "alone"
-        self.startup_interval = int(kwargs.get("startup_interval") or 1)
 
     def parse(self) -> dict:
         procid = int(os.environ["SLURM_PROCID"])
         task = self._get_task(procid)
-
-        sleep(self.startup_interval)
         # Validation
         assert task["address"] == os.environ["SLURMD_NODENAME"]
         return {**self.kwargs, **task}

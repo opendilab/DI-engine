@@ -124,7 +124,7 @@ def parallel_main():
 
 @pytest.mark.unittest
 def test_parallel_pipeline():
-    Parallel.runner(n_parallel_workers=2)(parallel_main)
+    Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(parallel_main)
 
 
 @pytest.mark.unittest
@@ -161,7 +161,7 @@ def emit_remote_main():
 
 @pytest.mark.unittest
 def test_emit_remote():
-    Parallel.runner(n_parallel_workers=2)(emit_remote_main)
+    Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(emit_remote_main)
 
 
 @pytest.mark.unittest
@@ -227,7 +227,7 @@ def early_stop_main():
 
 @pytest.mark.unittest
 def test_early_stop():
-    Parallel.runner(n_parallel_workers=2)(early_stop_main)
+    Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(early_stop_main)
 
 
 @pytest.mark.unittest
@@ -348,7 +348,7 @@ def broadcast_finish_main():
 
 def broadcast_main_target():
     Parallel.runner(
-        n_parallel_workers=1, protocol="tcp", address="127.0.0.1", topology="mesh", ports=50555
+        n_parallel_workers=1, protocol="tcp", address="127.0.0.1", topology="mesh", ports=50555, startup_interval=0.1
     )(broadcast_finish_main)
 
 
@@ -361,7 +361,8 @@ def broadcast_secondary_target():
         topology="alone",
         ports=50556,
         attach_to=["tcp://127.0.0.1:50555"],
-        node_ids=[1, 2]
+        node_ids=[1, 2],
+        startup_interval=0.1
     )(broadcast_finish_main)
 
 

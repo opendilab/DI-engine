@@ -61,7 +61,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option("--redis-host", type=str, help="Redis host.")
 @click.option("--redis-port", type=int, help="Redis port.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
-@click.option("--startup-interval", type=int, default=1, help="Start up interval between each slurm task or k8s pod.")
+@click.option("--startup-interval", type=int, default=1, help="Start up interval between each task.")
 @click.option("--local_rank", type=int, default=0, help="Compatibility with PyTorch DDP")
 def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
@@ -156,5 +156,6 @@ def _cli_ditask(
         node_ids=node_ids,
         mq_type=mq_type,
         redis_host=redis_host,
-        redis_port=redis_port
+        redis_port=redis_port,
+        startup_interval=startup_interval
     )(main_func)

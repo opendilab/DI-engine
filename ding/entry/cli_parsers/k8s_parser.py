@@ -19,7 +19,6 @@ class K8SParser():
         self.topology = kwargs.get("topology") or "alone"
         self.ports = int(kwargs.get("ports") or 50515)
         self.tasks = {}
-        self.startup_interval = int(kwargs.get("startup_interval") or 1)
 
     def parse(self) -> dict:
         if self.kwargs.get("mq_type", "nng") != "nng":
@@ -27,7 +26,6 @@ class K8SParser():
         procid = int(os.environ["DI_RANK"])
         nodename = self.nodelist[procid]
         task = self._get_task(procid)
-        sleep(self.startup_interval)
         # Validation
         assert task["address"] == nodename
         return {**self.kwargs, **task}

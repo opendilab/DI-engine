@@ -27,6 +27,7 @@ class Parallel(metaclass=SingletonMetaclass):
         self._listener = None
         self.is_active = False
         self.node_id = None
+        self.local_id = None
         self.labels = set()
         self._event_loop = EventLoop("parallel_{}".format(id(self)))
         self._retries = 0  # Retries in auto recovery
@@ -34,20 +35,24 @@ class Parallel(metaclass=SingletonMetaclass):
     def _run(
             self,
             node_id: int,
+            local_id: int,
             n_parallel_workers: int,
             labels: Optional[Set[str]] = None,
             auto_recover: bool = False,
             max_retries: int = float("inf"),
             mq_type: str = "nng",
+            startup_interval: int = 1,
             **kwargs
     ) -> None:
         self.node_id = node_id
+        self.local_id = local_id
+        self.startup_interval = startup_interval
         self.n_parallel_workers = n_parallel_workers
         self.labels = labels or set()
         self.auto_recover = auto_recover
         self.max_retries = max_retries
         self._mq: MQ = MQ_REGISTRY.get(mq_type)(**kwargs)
-
+        time.sleep(self.local_id * self.startup_interval)
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
@@ -66,7 +71,8 @@ class Parallel(metaclass=SingletonMetaclass):
             auto_recover: bool = False,
             max_retries: int = float("inf"),
             redis_host: Optional[str] = None,
-            redis_port: Optional[int] = None
+            redis_port: Optional[int] = None,
+            startup_interval: int = 1
     ) -> Callable:
         """
         Overview:
@@ -88,6 +94,7 @@ class Parallel(metaclass=SingletonMetaclass):
             - max_retries (:obj:`int`): Max retries for auto recover.
             - redis_host (:obj:`str`): Redis server host.
             - redis_port (:obj:`int`): Redis server port.
+            - startup_interval (:obj:`int`): Start up interval between each task.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -105,7 +112,10 @@ class Parallel(metaclass=SingletonMetaclass):
                 - main_process (:obj:`Callable`): The main function, your program start from here.
             """
             runner_params = args_parsers[mq_type](**all_args)
-            params_group = [[runner_kwargs, (main_process, args, kwargs)] for runner_kwargs in runner_params]
+            params_group = []
+            for i, runner_kwargs in enumerate(runner_params):
+                runner_kwargs["local_id"] = i
+                params_group.append([runner_kwargs, (main_process, args, kwargs)])
 
             if n_parallel_workers == 1:
                 cls._subprocess_runner(*params_group[0])
