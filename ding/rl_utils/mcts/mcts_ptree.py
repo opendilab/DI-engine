@@ -69,22 +69,19 @@ class EfficientZeroMCTS(object):
                     hidden_states.append(hidden_state_pool[ix][iy])
                     hidden_states_c_reward.append(reward_hidden_c_pool[ix][0][iy])
                     hidden_states_h_reward.append(reward_hidden_h_pool[ix][0][iy])
-                    # hidden_states_c_reward.append(reward_hidden_c_pool[ix][iy])
-                    # hidden_states_h_reward.append(reward_hidden_h_pool[ix][iy])
 
                 hidden_states = torch.from_numpy(np.asarray(hidden_states)).to(device).float()
                 hidden_states_c_reward = torch.from_numpy(np.asarray(hidden_states_c_reward)).to(device).unsqueeze(0)
                 hidden_states_h_reward = torch.from_numpy(np.asarray(hidden_states_h_reward)).to(device).unsqueeze(0)
 
                 last_actions = torch.from_numpy(np.asarray(last_actions)).to(device).unsqueeze(1).long()
-                try:
-                    # evaluation for leaf nodes
-                    network_output = model.recurrent_inference(
-                        hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
-                    )
+                # evaluation for leaf nodes
+                network_output = model.recurrent_inference(
+                    hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
+                )
 
-                    # TODO(pu)
-                    if not model.training:
+                # TODO(pu)
+                if not model.training:
                         # if not in training, obtain the scalars of the value/reward
                         network_output.value = inverse_scalar_transform(network_output.value, self.config.support_size).detach().cpu().numpy()
                         network_output.value_prefix = inverse_scalar_transform(network_output.value_prefix,
@@ -92,9 +89,6 @@ class EfficientZeroMCTS(object):
                         network_output.hidden_state = network_output.hidden_state.detach().cpu().numpy()
                         network_output.reward_hidden = (network_output.reward_hidden[0].detach().cpu().numpy(), network_output.reward_hidden[1].detach().cpu().numpy())
                         network_output.policy_logits = network_output.policy_logits.detach().cpu().numpy()
-
-                except Exception as error:
-                    print(error)
 
                 hidden_state_nodes = network_output.hidden_state
                 value_prefix_pool = network_output.value_prefix.reshape(-1).tolist()
@@ -108,10 +102,7 @@ class EfficientZeroMCTS(object):
                 # only need to predict the value prefix in a range (eg: s0 -> s5)
                 assert horizons > 0
                 reset_idx = (np.array(search_lens) % horizons == 0)
-                # assert len(reset_idx) == num
-                # if len(reset_idx) != num:
-                #     print('here')
-                # reset_idx = int(reset_idx.item())
+                reward_hidden_nodes[0][:, reset_idx, :] = 0
                 reward_hidden_nodes[1][:, reset_idx, :] = 0
                 is_reset_lst = reset_idx.astype(np.int32).tolist()
                 reward_hidden_c_pool.append(reward_hidden_nodes[0])

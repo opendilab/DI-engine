@@ -9,6 +9,32 @@ from kornia.augmentation import RandomAffine, RandomCrop, CenterCrop, RandomResi
 from kornia.filters import GaussianBlur2d
 
 
+def image_norm(images):
+    images = images.float() / 255. if images.dtype == torch.uint8 else images
+    return images
+
+
+def apply_transforms(transforms, image):
+    for transform in transforms:
+        image = transform(image)
+    return image
+
+
+class Intensity(nn.Module):
+    """
+    Overview:
+        one kind of transformation to get augmentation data.
+    """
+    def __init__(self, scale):
+        super().__init__()
+        self.scale = scale
+
+    def forward(self, x):
+        r = torch.randn((x.size(0), 1, 1, 1), device=x.device)
+        noise = 1.0 + (self.scale * r.clamp(-2.0, 2.0))
+        return x * noise
+
+
 class Transforms(object):
     """
     Overview:
@@ -39,31 +65,11 @@ class Transforms(object):
                 raise NotImplementedError()
             self.transforms.append(transformation)
 
-    def apply_transforms(self, transforms, image):
-        for transform in transforms:
-            image = transform(image)
-        return image
-
     @torch.no_grad()
     def transform(self, images):
-        images = images.float() / 255. if images.dtype == torch.uint8 else images
+        images = image_norm(images)
         flat_images = images.reshape(-1, *images.shape[-3:])
-        processed_images = self.apply_transforms(self.transforms, flat_images)
+        processed_images = apply_transforms(self.transforms, flat_images)
 
         processed_images = processed_images.view(*images.shape[:-3], *processed_images.shape[1:])
         return processed_images
-
-
-class Intensity(nn.Module):
-    """
-    Overview:
-        one kind of transformation to get augmentation data.
-    """
-    def __init__(self, scale):
-        super().__init__()
-        self.scale = scale
-
-    def forward(self, x):
-        r = torch.randn((x.size(0), 1, 1, 1), device=x.device)
-        noise = 1.0 + (self.scale * r.clamp(-2.0, 2.0))
-        return x * noise

@@ -16,8 +16,8 @@ from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
-# from dizoo.board_games.atari.config.atari_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+from dizoo.board_games.atari.config.atari_config import game_config
+# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
 
 
