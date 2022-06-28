@@ -17,10 +17,10 @@ class DIStarEnv(SC2Env, BaseEnv):
 
     def reset(self):
         observations, game_info, map_name = super(DIStarEnv, self).reset()
-        map_size = get_map_size(map_name)
 
         for policy_id, policy_obs in observations.items():
             policy_obs['game_info'] = game_info[policy_id]
+            map_size = game_info[policy_id].start_raw.map_size
             policy_obs['map_name'] = map_name
             policy_obs['map_size'] = map_size
 
