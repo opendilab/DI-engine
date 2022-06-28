@@ -17,14 +17,14 @@ class PendulumEnv(BaseEnv):
         self._env = gym.make('Pendulum-v0')
         self._init_flag = False
         self._replay_path = None
-        if 'continues' in cfg.keys():
-            self._continues=cfg.continues
+        if 'continuous' in cfg.keys():
+            self._continuous=cfg.continuous
         else:
-            self._continues=True
+            self._continuous=True
         self._observation_space = gym.spaces.Box(
             low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32
         )
-        if self._continues:
+        if self._continuous:
             self._action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
         else:
             self._discrete_action_num=11
@@ -67,7 +67,7 @@ class PendulumEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         # if require discrete env, convert actions to [-1 ~ 1] float actions
-        if not self._continues:
+        if not self._continuous:
             action = (action / (self._discrete_action_num-1)) * 2 - 1
         # scale into [-2, 2]
         if self._act_scale:
@@ -87,7 +87,7 @@ class PendulumEnv(BaseEnv):
 
     def random_action(self) -> np.ndarray:
         # consider discrete
-        if self._continues:
+        if self._continuous:
             random_action = self.action_space.sample().astype(np.float32)
         else:
             random_action=self.action_space.sample()
