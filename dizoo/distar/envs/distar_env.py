@@ -2,7 +2,7 @@ from typing import Optional, List
 from copy import deepcopy
 from collections import defaultdict
 from s2clientprotocol import sc2api_pb2 as sc_pb
-from pysc2.lib import named_array, colors
+from pysc2.lib import named_array, colors, point
 from pysc2.lib.features import Effects, ScoreCategories, FeatureType, Feature
 from torch import int8, uint8, int16, int32, float32, float16, int64
 
@@ -168,13 +168,15 @@ class DIStarEnv(SC2Env, BaseEnv):
 
 def parse_new_game(data, z_path: str, z_idx: Optional[None] = List):
     # init Z
-    z_path = osp.join(osp.dirname(__file__), '../envs', z_path)
+    z_path = osp.join(osp.dirname(__file__), "z_files", z_path)
     with open(z_path, 'r') as f:
         z_data = json.load(f)
 
     raw_ob = data['raw_obs']
     game_info = data['game_info']
     map_size = data['map_size']
+    if isinstance(map_size, list):
+        map_size = point.Point(map_size[0], map_size[1])
     map_name = data['map_name']
     requested_races = {
         info.player_id: info.race_requested
@@ -210,7 +212,7 @@ def parse_new_game(data, z_path: str, z_idx: Optional[None] = List):
         target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type = z
     else:
         target_building_order, target_cumulative_stat, bo_location, target_z_loop = z
-    return race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop
+    return race, requested_races, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop
 
 
 class FeatureUnit(enum.IntEnum):
@@ -258,7 +260,7 @@ class FeatureUnit(enum.IntEnum):
 
 class MinimapFeatures(collections.namedtuple(
         "MinimapFeatures",
-        ["height_map", "visibility_map", "creep", "player_relative", "alerts", "pathable", "buildable"])):
+    ["height_map", "visibility_map", "creep", "player_relative", "alerts", "pathable", "buildable"])):
     """The set of minimap feature layers."""
     __slots__ = ()
 
@@ -359,10 +361,10 @@ def compute_battle_score(obs):
     return battle_score
 
 
-def transform_obs(self, obs, padding_spatial=False, opponent_obs=None):
+def transform_obs(obs, map_size, requested_races, padding_spatial=False, opponent_obs=None):
     spatial_info = defaultdict(list)
     scalar_info = {}
-    entity_info = dict()
+    entity_info = {}
     game_info = {}
 
     raw = obs.observation.raw_data
@@ -380,7 +382,7 @@ def transform_obs(self, obs, padding_spatial=False, opponent_obs=None):
         if name in ['LiberatorDefenderZone', 'LurkerSpines'] and e.owner == 1:
             continue
         for p in e.pos:
-            location = int(p.x) + int(self.map_size.y - p.y) * DEFAULT_SPATIAL_SIZE[1]
+            location = int(p.x) + int(map_size.y - p.y) * DEFAULT_SPATIAL_SIZE[1]
             spatial_info['effect_' + name].append(location)
     for k, _ in SPATIAL_INFO:
         if 'effect' in k:
@@ -538,7 +540,7 @@ def transform_obs(self, obs, padding_spatial=False, opponent_obs=None):
         elif k == 'vespene_contents':
             entity_info[k] = torch.as_tensor(raw_entity_info[:, 'vespene_contents'], dtype=dtype) / 2500
         elif k == 'y':
-            entity_info[k] = torch.as_tensor(self.map_size.y - raw_entity_info[:, 'y'], dtype=dtype)
+            entity_info[k] = torch.as_tensor(map_size.y - raw_entity_info[:, 'y'], dtype=dtype)
         else:
             entity_info[k] = torch.as_tensor(raw_entity_info[:, k], dtype=dtype)
 
@@ -554,8 +556,8 @@ def transform_obs(self, obs, padding_spatial=False, opponent_obs=None):
     )
     scalar_info['agent_statistics'] = torch.log(scalar_info['agent_statistics'] + 1)
 
-    scalar_info["home_race"] = torch.tensor(self._requested_races[player.player_id], dtype=torch.uint8)
-    for player_id, race in self._requested_races.items():
+    scalar_info["home_race"] = torch.tensor(requested_races[player.player_id], dtype=torch.uint8)
+    for player_id, race in requested_races.items():
         if player_id != player.player_id:
             scalar_info["away_race"] = torch.tensor(race, dtype=torch.uint8)
 
@@ -586,7 +588,6 @@ def transform_obs(self, obs, padding_spatial=False, opponent_obs=None):
     )
 
     # game info
-    game_info['map_name'] = self._map_name
     game_info['action_result'] = [o.result for o in obs.action_errors]
     game_info['game_loop'] = obs.observation.game_loop
     game_info['tags'] = tags
@@ -628,7 +629,7 @@ def transform_obs(self, obs, padding_spatial=False, opponent_obs=None):
         unit_x = torch.cat([enemy_x, entity_info['x'][entity_info['alliance'] == 1]], dim=0)
 
         enemy_y = torch.as_tensor(enemy_y, dtype=float32)
-        enemy_y = torch.as_tensor(self.map_size.y - enemy_y, dtype=uint8)
+        enemy_y = torch.as_tensor(map_size.y - enemy_y, dtype=uint8)
         unit_y = torch.cat([enemy_y, entity_info['y'][entity_info['alliance'] == 1]], dim=0)
         total_unit_count = len(unit_y)
         unit_alliance += [0] * (total_unit_count - len(unit_alliance))

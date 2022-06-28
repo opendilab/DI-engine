@@ -356,11 +356,12 @@ class DIStarPolicy(Policy):
         self.z_path = self._cfg.z_path
         # TODO(zms): in _setup_agents, load state_dict to set up z_idx
         self.z_idx = None
-        self._reset_collect()
 
-    def _reset_collect(self, data: Dict, env_id=0):
+    def _reset_collect(self, data: Dict):
         self.exceed_loop_flag = False
-        self.hidden_state = None
+        hidden_size = 384  # TODO(nyz) set from cfg
+        num_layers = 3
+        self.hidden_state = [(torch.zeros(hidden_size), torch.zeros(hidden_size)) for _ in range(num_layers)]
         self.last_action_type = torch.tensor(0, dtype=torch.long)
         self.last_delay = torch.tensor(0, dtype=torch.long)
         self.last_queued = torch.tensor(0, dtype=torch.long)
@@ -369,15 +370,16 @@ class DIStarPolicy(Policy):
         self.last_location = None  # [x, y]
         self.enemy_unit_type_bool = torch.zeros(NUM_UNIT_TYPES, dtype=torch.uint8)
 
-        race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop = parse_new_game(
+        race, requested_race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop = parse_new_game(
             data, self.z_path, self.z_idx
         )
-        self.race = race
+        self.race = race  # home_race
+        self.requested_race = requested_race
         self.map_size = map_size
         self.target_z_loop = target_z_loop
         self.stat = Stat(self.race)
 
-        self.target_building_order = torch.tensor(self.target_building_order, dtype=torch.long)
+        self.target_building_order = torch.tensor(target_building_order, dtype=torch.long)
         self.target_bo_location = torch.tensor(bo_location, dtype=torch.long)
         self.target_cumulative_stat = torch.zeros(NUM_CUMULATIVE_STAT_ACTIONS, dtype=torch.float)
         self.target_cumulative_stat.scatter_(
@@ -385,8 +387,7 @@ class DIStarPolicy(Policy):
         )
 
     def _forward_collect(self, data):
-        game_info = data.pop('game_info')
-        obs = self._data_preprocess_collect(data, game_info)
+        obs, game_info = self._data_preprocess_collect(data)
         obs = default_collate([obs])
         if self._cfg.cuda:
             obs = to_device(obs, self._device)
@@ -400,15 +401,16 @@ class DIStarPolicy(Policy):
         policy_output = self._data_postprocess_collect(policy_output, game_info)
         return policy_output
 
-    def _data_preprocess_collect(self, data, game_info):
+    def _data_preprocess_collect(self, data):
         if self._cfg.use_value_feature:
-            obs = transform_obs(data['raw_obs'], opponent_obs=data['opponent_obs'])
+            obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, opponent_obs=data['opponent_obs'])
         else:
             raise NotImplementedError
 
+        game_info = obs.pop('game_info')
         game_step = game_info['game_loop']
-        if self._cfg.zero_z_exceed_loop and game_step > self._target_z_loop:
-            self._exceed_loop_flag = True
+        if self._cfg.zero_z_exceed_loop and game_step > self.target_z_loop:
+            self.exceed_loop_flag = True
 
         last_selected_units = torch.zeros(obs['entity_num'], dtype=torch.int8)
         last_targeted_unit = torch.zeros(obs['entity_num'], dtype=torch.int8)
@@ -431,16 +433,18 @@ class DIStarPolicy(Policy):
         obs['scalar_info']['enemy_unit_type_bool'] = (
             self.enemy_unit_type_bool | obs['scalar_info']['enemy_unit_type_bool']
         ).to(torch.uint8)
-        obs['scalar_info']['beginning_order'] = self.target_building_order * (~self.exceed_loop_flag)
-        obs['scalar_info']['bo_location'] = self.target_bo_location * (~self.exceed_loop_flag)
         if self.exceed_loop_flag:
             obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat * 0 + self._cfg.zero_z_value
+            obs['scalar_info']['beginning_order'] = self.target_building_order * 0
+            obs['scalar_info']['bo_location'] = self.target_bo_location * 0
         else:
             obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat
+            obs['scalar_info']['beginning_order'] = self.target_building_order
+            obs['scalar_info']['bo_location'] = self.target_bo_location
 
         # update stat
         self.stat.update(self.last_action_type, data['action_result'][0], obs, game_step)
-        return obs
+        return obs, game_info
 
     def _data_postprocess_collect(self, data, game_info):
         self.hidden_state = data['hidden_state']
@@ -456,7 +460,7 @@ class DIStarPolicy(Policy):
         raw_action = {}
         raw_action['func_id'] = action_attr['func_id']
         raw_action['skip_steps'] = self.last_delay.item()
-        raw_action['queued'] = self.queued.item()
+        raw_action['queued'] = self.last_queued.item()
 
         unit_tags = []
         for i in range(data['selected_units_num'] - 1):  # remove end flag
