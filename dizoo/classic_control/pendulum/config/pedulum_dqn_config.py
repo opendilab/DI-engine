@@ -9,6 +9,7 @@ pendulum_dqn_config = dict(
         act_scale=True,
         n_evaluator_episode=5,
         stop_value=-250,
+        continues=False,
     ),
     policy=dict(
         cuda=False,
