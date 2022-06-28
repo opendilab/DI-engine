@@ -3,6 +3,7 @@ import os
 import random
 import time
 import traceback
+import pickle
 from mpire.pool import WorkerPool
 from ditk import logging
 import tempfile
@@ -47,8 +48,6 @@ class Parallel(metaclass=SingletonMetaclass):
         self.max_retries = max_retries
         self._mq: MQ = MQ_REGISTRY.get(mq_type)(**kwargs)
 
-        from ding.data.data_serializer import DataSerializer  # Avoid circular import
-        self._data_serializer = DataSerializer().start()
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
@@ -322,7 +321,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         """
         if self.is_active:
             payload = {"a": args, "k": kwargs}
-            self._data_serializer.dump(payload, lambda s: self._mq.publish(event, s))
+            try:
+                data = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+            except AttributeError as e:
+                logging.error("Arguments are not pickable! Event: {}, Args: {}".format(event, args))
+                raise e
+            self._mq.publish(event, data)
 
     def _handle_message(self, topic: str, msg: bytes) -> None:
         """
@@ -336,8 +340,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         if not self._event_loop.listened(event):
             logging.debug("Event {} was not listened in parallel {}".format(event, self.node_id))
             return
-
-        self._data_serializer.load(msg, lambda payload: self._event_loop.emit(event, *payload["a"], **payload["k"]))
+        try:
+            payload = pickle.loads(msg)
+        except Exception as e:
+            logging.error("Error when unpacking message on node {}, msg: {}".format(self.node_id, e))
+            return
+        self._event_loop.emit(event, *payload["a"], **payload["k"])
 
     @classmethod
     def get_ip(cls):
@@ -368,7 +376,4 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         if self._listener:
             self._listener.join(timeout=1)
             self._listener = None
-        if self._data_serializer:
-            self._data_serializer.stop()
-            self._data_serializer = None
         self._event_loop.stop()

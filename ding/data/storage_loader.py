@@ -1,16 +1,15 @@
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from abc import ABC, abstractmethod
+import os
 import queue
 from time import sleep, time
 from ditk import logging
-import sys
 import numpy as np
 from threading import Lock, Thread
 from typing import Any, Callable, Dict, List, Optional, Union
+
 from ding.data import FileStorage, Storage
 from os import path
 import uuid
-import pickle
 from ding.data.shm_buffer import ShmBuffer
 from ding.framework.supervisor import RecvPayload, Supervisor, ChildType, SendPayload, SharedObject
 
@@ -21,31 +20,37 @@ class StorageWorker:
         return storage.load()
 
 
-class StorageLoader(Supervisor):
+class StorageLoader(Supervisor, ABC):
     """
     Overview:
         Load data storage in shadow processes.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, worker_num: int = 3) -> None:
         super().__init__(type_=ChildType.PROCESS)
         self._load_lock = Lock()  # Load (first meet) should be called one by one.
         self._load_queue = queue.Queue()  # Queue to be sent to child processes.
         self._callback_map: Dict[str, Callable] = {}
         self._shm_obj_map: Dict[int, SharedObject] = {}
         self._idle_proc_ids = set()
-        self._child_num = 3
+        self._worker_num = worker_num
 
     def shutdown(self, timeout: Optional[float] = None) -> None:
         super().shutdown(timeout)
         self._recv_loop = None
+        self._send_loop = None
 
     def start_link(self) -> None:
-        super().start_link()
-        self._recv_loop = Thread(target=self._loop_recv, daemon=True)
-        self._recv_loop.start()
-        self._send_loop = Thread(target=self._loop_send, daemon=True)
-        self._send_loop.start()
+        if not self._running:
+            super().start_link()
+            self._recv_loop = Thread(target=self._loop_recv, daemon=True)
+            self._recv_loop.start()
+            self._send_loop = Thread(target=self._loop_send, daemon=True)
+            self._send_loop.start()
+
+    @abstractmethod
+    def to_storage(self, obj: Union[Dict, List]) -> Storage:
+        raise NotImplementedError
 
     def load(self, storage: Storage, callback: Callable):
         with self._load_lock:
@@ -62,11 +67,11 @@ class StorageLoader(Supervisor):
         """
         obj = storage.load()
         # Create three workers for each usage type.
-        for i in range(self._child_num):
+        for i in range(self._worker_num):
             shm_obj = self._create_shared_object(obj)
             self._shm_obj_map[i] = shm_obj
-            self.register(lambda: StorageWorker(), shared_object=shm_obj)
-        self._idle_proc_ids = set(range(self._child_num))
+            self.register(StorageWorker, shared_object=shm_obj)
+        self._idle_proc_ids = set(range(self._worker_num))
         self.start_link()
         callback(obj)
 
@@ -150,123 +155,51 @@ class StorageLoader(Supervisor):
                     payload.data[i][key] = val.get()
 
 
-@dataclass
-class StorageObject:
-    storage: Storage
-    usage_type: str
+class FileStorageLoader(StorageLoader):
 
-
-class DataSerializer:
-    """
-    A data serializer that will encode/decode data in subprocesses.
-    """
-
-    def __init__(self, storage_type: type = FileStorage, dirname: Optional[str] = None) -> None:
-        self._serializer_pool = None
-        self._running = False
-        self._storage_type = storage_type
+    def __init__(self, dirname: str, ttl: int = 600, worker_num: int = 3) -> None:
+        """
+        Overview:
+            Dump and load object with file storage.
+        Arguments:
+            - dirname (:obj:`str`): The directory to save files.
+            - ttl (:obj:`str`): Maximum time to keep a file, after which it will be deleted.
+            - worker_num (:obj:`int`): Number of subprocess worker loaders.
+        """
+        super().__init__(worker_num)
         self._dirname = dirname
-        self._storage_fn = self._get_storage_fn()
-        self._storage_loaders = {}
+        self._files = []
+        self._cleanup_thread = None
+        self._ttl = ttl  # # Delete files created 10 minutes ago.
 
-    def _get_storage_fn(self) -> Callable:
-        if self._storage_type is FileStorage:
-            assert path.isdir(self._dirname), "Path {} is not a valid directory!".format(self._dirname)
-            return self._to_file_storage
-        else:
-            raise RuntimeError("Invalid storage type: {}".format(self._storage_type))
-
-    def start(self):
-        self._serializer_pool = ThreadPoolExecutor(max_workers=2)
-        self._running = True
-        return self
-
-    def stop(self):
-        if not self._running:
-            return
-        if self._serializer_pool is not None:
-            self._serializer_pool.shutdown()
-            self._serializer_pool = None
-        if self._storage_loaders:
-            for loader in self._storage_loaders.values():
-                loader.shutdown()
-            self._storage_loaders = None
-        self._running = False
-
-    def dump(self, obj: Union[Dict, List], callback: Callable):
-        assert self._running, "Data serializer is not running, call start first."
-        self._serializer_pool.submit(self._dump, obj, callback)
-
-    def load(self, s: bytes, callback: Callable):
-        assert self._running, "Data serializer is not running, call start first."
-        self._serializer_pool.submit(self._load, s, callback)
-
-    def _dump(self, obj: Union[Dict, List], callback: Callable):
-        obj = self._to_storage(obj)
-        s = pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL)
-        callback(s)
-
-    def _load(self, s: bytes, callback: Callable):
-        obj = pickle.loads(s)
-        self._from_storage(obj, callback)
-
-    def _to_storage(self, obj: Union[Dict, List]) -> Union[Dict, List, Storage]:
-        """
-        Overview:
-            Convert large data (>10MB) into data storage object.
-        """
-        size = self._get_size(obj)
-        if size > 10485760:
-            if isinstance(obj, Dict):
-                usage_type = ",".join(obj.keys())[:20]
-            elif isinstance(obj, List) and isinstance(obj[0], Dict):
-                usage_type = ",".join(obj[0].keys())[:20]
-            else:
-                logging.warning(
-                    "Object size ({}) is too large but the object type ({}) is not supported (Dict or List) in serializer."
-                    .format(size, type(obj))
-                )
-                return obj
-            return StorageObject(storage=self._storage_fn(obj), usage_type=usage_type)
-        else:
-            return obj
-
-    def _from_storage(self, obj: Union[Dict, List, StorageObject], callback: Callable):
-        """
-        Overview:
-            Convert data storage object to real data.
-        """
-        if isinstance(obj, StorageObject):
-            if obj.usage_type not in self._storage_loaders:
-                self._storage_loaders[obj.usage_type] = StorageLoader()
-            self._storage_loaders[obj.usage_type].load(obj.storage, callback)
-        else:
-            callback(obj)
-
-    def _get_size(self, obj: Union[Dict, List]) -> int:
-        """
-        Overview:
-            This method will only check ndarray that may generate
-            a large memory footprint and return the sum of them.
-            Note that only the topmost object of dict will be checked, not each child object recursively.
-        """
-        size = 0
-        if isinstance(obj, Dict):
-            for val in obj.values():
-                if isinstance(val, np.ndarray):
-                    size += sys.getsizeof(val)
-            return size
-        elif isinstance(obj, List):
-            return sum([self._get_size(o) for o in obj])
-        else:
-            return sys.getsizeof(obj)
-
-    def _to_file_storage(self, obj: Union[Dict, List]) -> Storage:
+    def to_storage(self, obj: Union[Dict, List]) -> FileStorage:
+        if not path.exists(self._dirname):
+            os.mkdir(self._dirname)
         filename = "{}.pkl".format(uuid.uuid1())
         full_path = path.join(self._dirname, filename)
         f = FileStorage(full_path)
         f.save(obj)
+        self._files.append([time(), f.path])
+        self._start_cleanup()
         return f
 
-    def __del__(self):
-        self.stop()
+    def _start_cleanup(self):
+        """
+        Overview:
+            Start a cleanup thread to clean up files that are taking up too much time on the disk.
+        """
+        if self._cleanup_thread is None:
+            self._cleanup_thread = Thread(target=self._loop_cleanup, daemon=True)
+            self._cleanup_thread.start()
+
+    def shutdown(self, timeout: Optional[float] = None) -> None:
+        super().shutdown(timeout)
+        self._cleanup_thread = None
+
+    def _loop_cleanup(self):
+        while True:
+            if len(self._files) == 0 or time() - self._files[0][0] < self._ttl:
+                sleep(1)
+            _, file_path = self._files.pop(0)
+            if path.exists(file_path):
+                os.remove(file_path)

@@ -1,8 +1,7 @@
-from time import time
 import pytest
 import numpy as np
 import timeit
-from ding.data.shm_buffer import ShmBuffer, ShmBufferContainer
+from ding.data.shm_buffer import ShmBuffer
 import multiprocessing as mp
 
 

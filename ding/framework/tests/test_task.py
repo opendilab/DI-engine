@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import pytest
-from threading import Lock, Thread
+from threading import Lock
 from time import sleep, time
 import random
 from ding.framework import task, Context, Parallel

@@ -1,24 +1,32 @@
 from time import sleep
-from typing import TYPE_CHECKING, List, Dict, Any
+from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 from ditk import logging
 from ding.framework import task
+from ding.data import StorageLoader, Storage
 if TYPE_CHECKING:
     from ding.framework.context import Context
 
 
 class ContextExchanger:
-    """
-    Overview:
-        Exchange context between processes,
-        support properties: trajectories, episodes, env_step, env_episode, train_iter
-    """
 
-    def __init__(self, skip_n_iter: int = 1) -> None:
+    def __init__(self, skip_n_iter: int = 1, storage_loader: Optional[StorageLoader] = None) -> None:
+        """
+        Overview:
+            Exchange context between processes,
+            support properties: trajectories, episodes, env_step, env_episode, train_iter
+        Arguments:
+            - skip_n_iter (:obj:`int`): For collectors, it may be necessary to skip waiting \
+                for the first n iterations to collect data for the learner to learn. This parameter \
+                will not work on learner.
+            - storage_loader (:obj:`Optional[StorageLoader]`): Turn data into storage class to reduce \
+                the network overhead.
+        """
         if not task.router.is_active:
             raise RuntimeError("ContextHandler should be used in parallel mode!")
         self._state = {}
         self._event_name = "context_exchanger"
         self._skip_n_iter = skip_n_iter
+        self._storage_loader = storage_loader
         task.on(self._event_name, self.put)
 
     def __new__(cls, *args, **kwargs):
@@ -36,20 +44,34 @@ class ContextExchanger:
         yield
         payload = self.fetch(ctx)
         if payload:
+            if self._storage_loader and task.has_role(task.role.COLLECTOR):
+                payload = self._storage_loader.to_storage(payload)
             task.emit(self._event_name, payload, only_remote=True)
 
-    def put(self, ctx_payload: Dict):
+    def __del__(self):
+        if self._storage_loader:
+            self._storage_loader.shutdown()
+
+    def put(self, payload: Union[Dict, Storage]):
         """
         Overview:
             Get attributes from ctx on the callback of event.
             Each attribute should have a standalone put handler, which named `_put_{key}`
         """
-        for key, item in ctx_payload.items():
-            fn_name = "_put_{}".format(key)
-            if hasattr(self, fn_name):
-                getattr(self, fn_name)(item)
-            else:
-                logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
+
+        def callback(payload: Dict):
+            for key, item in payload.items():
+                fn_name = "_put_{}".format(key)
+                if hasattr(self, fn_name):
+                    getattr(self, fn_name)(item)
+                else:
+                    logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
+
+        if isinstance(payload, Storage):
+            assert self._storage_loader is not None, "Storage loader is not defined when data is a storage object."
+            self._storage_loader.load(payload, callback)
+        else:
+            callback(payload)
 
     def fetch(self, ctx: "Context") -> Dict[str, Any]:
         """
