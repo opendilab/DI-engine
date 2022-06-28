@@ -200,6 +200,7 @@ class FileStorageLoader(StorageLoader):
         while True:
             if len(self._files) == 0 or time() - self._files[0][0] < self._ttl:
                 sleep(1)
+                continue
             _, file_path = self._files.pop(0)
             if path.exists(file_path):
                 os.remove(file_path)
