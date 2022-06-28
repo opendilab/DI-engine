@@ -11,20 +11,23 @@ from ding.torch_utils import to_ndarray, to_list
 @ENV_REGISTRY.register('pendulum')
 class PendulumEnv(BaseEnv):
 
-    def __init__(self, cfg: dict, continue_space=True) -> None:
+    def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._act_scale = cfg.act_scale
         self._env = gym.make('Pendulum-v0')
         self._init_flag = False
         self._replay_path = None
-        self._continue_space=continue_space
-        self._discrete_action_num=11
+        if 'continues' in cfg.keys():
+            self._continues=cfg.continues
+        else:
+            self._continues=True
         self._observation_space = gym.spaces.Box(
             low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32
         )
-        if self._continue_space:
+        if self._continues:
             self._action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
         else:
+            self._discrete_action_num=11
             self._action_space = gym.spaces.Discrete(self._discrete_action_num)
         self._reward_space = gym.spaces.Box(
             low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32
@@ -64,7 +67,7 @@ class PendulumEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         # if require discrete env, convert actions to [-1 ~ 1] float actions
-        if not self._continue_space:
+        if not self._continues:
             action = (action / (self._discrete_action_num-1)) * 2 - 1
         # scale into [-2, 2]
         if self._act_scale:
@@ -84,7 +87,7 @@ class PendulumEnv(BaseEnv):
 
     def random_action(self) -> np.ndarray:
         # consider discrete
-        if self._continue_space:
+        if self._continues:
             random_action = self.action_space.sample().astype(np.float32)
         else:
             random_action=self.action_space.sample()
@@ -105,8 +108,6 @@ class PendulumEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "DI-engine Pendulum Env({})".format(self._cfg.env_id)
-
-
 
 @ENV_REGISTRY.register('mbpendulum')
 class MBPendulumEnv(PendulumEnv):
