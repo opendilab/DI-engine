@@ -52,7 +52,7 @@ class AtariMuZeroEnv(BaseEnv):
         """
         observation = self.obs
         action_mask = np.ones(self._action_space.n, 'int8')
-        return {'observation': observation, 'action_mask': action_mask}
+        return {'observation': observation, 'action_mask': action_mask, 'to_play': None}
 
     def step(self, action):
         obs, reward, done, info = self._env.step(action)

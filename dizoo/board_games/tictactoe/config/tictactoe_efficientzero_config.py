@@ -14,7 +14,7 @@ from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 collector_env_num = 16
 evaluator_env_num = 5
 tictactoe_efficientzero_config = dict(
-    exp_name='data_ez/tictactoe_efficientzero_seed0_2',
+    exp_name='data_ez_ptree/tictactoe_efficientzero_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,

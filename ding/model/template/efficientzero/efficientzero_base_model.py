@@ -49,7 +49,9 @@ class BaseNet(nn.Module):
         reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size), torch.zeros(1, num, self.lstm_hidden_size))
         return NetworkOutput(value, [0. for _ in range(num)], policy_logits, hidden_state, reward_hidden)
 
-    def recurrent_inference(self, hidden_state: torch.Tensor, reward_hidden: torch.Tensor, action: torch.Tensor) -> NetworkOutput:
+    def recurrent_inference(
+            self, hidden_state: torch.Tensor, reward_hidden: torch.Tensor, action: torch.Tensor
+    ) -> NetworkOutput:
         hidden_state, reward_hidden, value_prefix = self.dynamics(hidden_state, reward_hidden, action)
         policy_logits, value = self.prediction(hidden_state)
         return NetworkOutput(value, value_prefix, policy_logits, hidden_state, reward_hidden)

@@ -17,9 +17,10 @@ class Node:
      Arguments:
      """
 
-    def __init__(self, prior: float, legal_actions: Any = None):
+    def __init__(self, prior: float, legal_actions: Any = None, action_space_size=9):
         self.prior = prior
         self.legal_actions = legal_actions
+        self.action_space_size = action_space_size
 
         self.is_reset = 0
         self.visit_count = 0
@@ -35,8 +36,8 @@ class Node:
         self.hidden_state_index_y = 0
 
     def expand(
-            self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
-            policy_logits: List[float]
+        self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
+        policy_logits: List[float]
     ):
         self.to_play = to_play
         if self.legal_actions is None:
@@ -118,7 +119,8 @@ class Node:
         return traj
 
     def get_children_distribution(self):
-        # distribution = [0 for _ in self.legal_actions]
+        if self.legal_actions == []:
+            return None
         distribution = {a: 0 for a in self.legal_actions}
         if self.expanded:
             for a in self.legal_actions:
@@ -166,17 +168,25 @@ class Roots:
                 # if legal_actions_list is int
                 self.roots.append(Node(0, np.arange(legal_actions_list)))
 
-    def prepare(self, root_exploration_fraction, noises, value_prefixs, policies):
+    def prepare(self, root_exploration_fraction, noises, value_prefixs, policies, to_play=None):
         for i in range(self.root_num):
-            #  to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, 
-            # TODO(pu): why to_play=0, hidden_state_index_x=0, hidden_state_index_y=i
-            self.roots[i].expand(0, 0, i, value_prefixs[i], policies[i])
+            #  to_play: int, hidden_state_index_x: int, hidden_state_index_y: int,
+            # TODO(pu): why hidden_state_index_x=0, hidden_state_index_y=i?
+            if to_play is None:
+                self.roots[i].expand(0, 0, i, value_prefixs[i], policies[i])
+            else:
+                self.roots[i].expand(to_play[i], 0, i, value_prefixs[i], policies[i])
+
             self.roots[i].add_exploration_noise(root_exploration_fraction, noises[i])
             self.roots[i].visit_count += 1
 
-    def prepare_no_noise(self, value_prefixs, policies):
+    def prepare_no_noise(self, value_prefixs, policies, to_play=None):
         for i in range(self.root_num):
-            self.roots[i].expand(0, 0, i, value_prefixs[i], policies[i])
+            if to_play is None:
+                self.roots[i].expand(0, 0, i, value_prefixs[i], policies[i])
+            else:
+                self.roots[i].expand(to_play[i], 0, i, value_prefixs[i], policies[i])
+
             self.roots[i].visit_count += 1
 
     def clear(self):
@@ -214,7 +224,7 @@ class SearchResults:
         self.search_lens = []
 
 
-def update_tree_q(root: Node, min_max_stats, discount: float):
+def update_tree_q(root: Node, min_max_stats, discount: float, players=1):
     node_stack = []
     node_stack.append(root)
     parent_value_prefix = 0.0
@@ -227,7 +237,11 @@ def update_tree_q(root: Node, min_max_stats, discount: float):
             true_reward = node.value_prefix - parent_value_prefix
             if is_reset == 1:
                 true_reward = node.value_prefix
-            q_of_s_a = true_reward + discount * node.value
+            if players == 1:
+                q_of_s_a = true_reward + discount * node.value
+            elif players == 2:
+                q_of_s_a = true_reward + discount * (-node.value)
+
             min_max_stats.update(q_of_s_a)
         for a in node.legal_actions:
             child = node.get_child(a)
@@ -237,43 +251,85 @@ def update_tree_q(root: Node, min_max_stats, discount: float):
         is_reset = node.is_reset
 
 
-def back_propagate(search_path, min_max_stats, to_play: int, value: float, discount: float):
-    bootstrap_value = value
-    path_len = len(search_path)
-    for i in range(path_len - 1, -1, -1):
-        node = search_path[i]
-        node.value_sum += bootstrap_value
-        node.visit_count += 1
+def back_propagate(search_path, min_max_stats, to_play, value: float, discount: float):
+    if to_play is None:
+        # 1 player
+        bootstrap_value = value
+        path_len = len(search_path)
+        for i in range(path_len - 1, -1, -1):
+            node = search_path[i]
+            node.value_sum += bootstrap_value
+            node.visit_count += 1
 
-        parent_value_prefix = 0.0
-        is_reset = 0
-        if i >= 1:
-            parent = search_path[i - 1]
-            parent_value_prefix = parent.value_prefix
-            is_reset = parent.is_reset
+            parent_value_prefix = 0.0
+            is_reset = 0
+            if i >= 1:
+                parent = search_path[i - 1]
+                parent_value_prefix = parent.value_prefix
+                is_reset = parent.is_reset
 
-        true_reward = node.value_prefix - parent_value_prefix
-        if is_reset == 1:
-            true_reward = node.value_prefix
+            true_reward = node.value_prefix - parent_value_prefix
+            if is_reset == 1:
+                true_reward = node.value_prefix
 
-        bootstrap_value = true_reward + discount * bootstrap_value
+            bootstrap_value = true_reward + discount * bootstrap_value
 
-    min_max_stats.clear()
-    root = search_path[0]
-    update_tree_q(root, min_max_stats, discount)
+        min_max_stats.clear()
+        root = search_path[0]
+        update_tree_q(root, min_max_stats, discount, 1)
+    else:
+        # 2 player
+        bootstrap_value = value
+        path_len = len(search_path)
+        for i in range(path_len - 1, -1, -1):
+            node = search_path[i]
+            # to_play related
+            node.value_sum += bootstrap_value if node.to_play == to_play else -bootstrap_value
+
+            node.visit_count += 1
+
+            parent_value_prefix = 0.0
+            is_reset = 0
+            if i >= 1:
+                parent = search_path[i - 1]
+                parent_value_prefix = parent.value_prefix
+                is_reset = parent.is_reset
+
+            true_reward = node.value_prefix - parent_value_prefix
+            if is_reset == 1:
+                true_reward = node.value_prefix
+            # to_play related
+            bootstrap_value = (-true_reward if node.to_play == to_play else true_reward) + discount * bootstrap_value
+
+        min_max_stats.clear()
+        root = search_path[0]
+        update_tree_q(root, min_max_stats, discount, 2)
 
 
 def batch_back_propagate(
-        hidden_state_index_x: int, discount: float, value_prefixs: List, values: List[float], policies: List[float],
-        min_max_stats_lst, results, is_reset_lst: List
+        hidden_state_index_x: int,
+        discount: float,
+        value_prefixs: List,
+        values: List[float],
+        policies: List[float],
+        min_max_stats_lst,
+        results,
+        is_reset_lst: List,
+        to_play: list = None
 ) -> None:
     for i in range(results.num):
         #  to_play: int, hidden_state_index_x: int, hidden_state_index_y: int,
         # TODO(pu): why to_play=0, hidden_state_index_x=hidden_state_index_x, hidden_state_index_y=i
-        results.nodes[i].expand(0, hidden_state_index_x, i, value_prefixs[i], policies[i])
+        if to_play is None:
+            results.nodes[i].expand(0, hidden_state_index_x, i, value_prefixs[i], policies[i])
+        else:
+            results.nodes[i].expand(to_play[i], hidden_state_index_x, i, value_prefixs[i], policies[i])
         # reset
         results.nodes[i].is_reset = is_reset_lst[i]
-        back_propagate(results.search_paths[i], min_max_stats_lst.stats_lst[i], 0, values[i], discount)
+        if to_play is None:
+            back_propagate(results.search_paths[i], min_max_stats_lst.stats_lst[i], 0, values[i], discount)
+        else:
+            back_propagate(results.search_paths[i], min_max_stats_lst.stats_lst[i], to_play[i], values[i], discount)
 
 
 def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, mean_q: float) -> int:
@@ -301,8 +357,16 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
 
 
 def ucb_score(
-        child: Node, min_max_stats, parent_mean_q, is_reset: int, total_children_visit_counts: float,
-        parent_value_prefix: float, pb_c_base: float, pb_c_init: float, discount: float
+    child: Node,
+    min_max_stats,
+    parent_mean_q,
+    is_reset: int,
+    total_children_visit_counts: float,
+    parent_value_prefix: float,
+    pb_c_base: float,
+    pb_c_init: float,
+    discount: float,
+    players=1
 ):
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))
@@ -314,10 +378,12 @@ def ucb_score(
         true_reward = child.value_prefix - parent_value_prefix
         if is_reset == 1:
             true_reward = child.value_prefix
-        value_score = true_reward + discount * child.value
+        if players == 1:
+            value_score = true_reward + discount * child.value
+        elif players == 2:
+            value_score = true_reward + discount * -child.value
 
     value_score = min_max_stats.normalize(value_score)
-
     if value_score < 0:
         value_score = 0
     if value_score > 1:
@@ -326,7 +392,9 @@ def ucb_score(
     return ucb_score
 
 
-def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults):
+def batch_traverse(
+    roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults, virtual_to_play
+):
     parent_q = 0.0
     results.search_lens = [None for i in range(results.num)]
     results.last_actions = [None for i in range(results.num)]
@@ -341,8 +409,16 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
         is_root = 1
         search_len = 0
         results.search_paths[i].append(node)
-
+        # if node.expanded is False:
+        #     print(i,node)
         while node.expanded:
+            if virtual_to_play is not None and virtual_to_play[i] is not None:
+                # Players play turn by turn
+                if virtual_to_play[i] == 1:
+                    virtual_to_play[i] = 2
+                else:
+                    virtual_to_play[i] = 1
+
             mean_q = node.get_mean_q(is_root, parent_q, discount)
             is_root = 0
             parent_q = mean_q
@@ -356,6 +432,8 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
 
             # TODO(pu): why?
             parent = results.search_paths[i][len(results.search_paths[i]) - 2]
+            if parent.hidden_state_index_x is None:
+                print(parent)
 
             results.hidden_state_index_x_lst[i] = parent.hidden_state_index_x
             results.hidden_state_index_y_lst[i] = parent.hidden_state_index_y
@@ -363,5 +441,15 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
             results.search_lens[i] = search_len
             results.nodes[i] = node
 
-        # print(f'env {i} one simulation done!')
-    return results.hidden_state_index_x_lst, results.hidden_state_index_y_lst, results.last_actions
+    # TODO(pu)
+    if None in results.hidden_state_index_x_lst:
+        none_index = [i for i, v in enumerate(results.hidden_state_index_x_lst) if v == None]
+        for index in none_index:
+            results.hidden_state_index_x_lst[index] = 0
+            results.hidden_state_index_y_lst[index] = index
+            results.last_actions[index] = last_action
+            results.search_lens[index] = search_len
+            results.nodes[index] = node
+
+    # print(f'env {i} one simulation done!')
+    return results.hidden_state_index_x_lst, results.hidden_state_index_y_lst, results.last_actions, virtual_to_play

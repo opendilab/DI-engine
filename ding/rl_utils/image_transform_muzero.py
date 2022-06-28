@@ -25,6 +25,7 @@ class Intensity(nn.Module):
     Overview:
         one kind of transformation to get augmentation data.
     """
+
     def __init__(self, scale):
         super().__init__()
         self.scale = scale

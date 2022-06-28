@@ -203,6 +203,12 @@ class BaseSerialEvaluatorMuZero(object):
         init_obses = self._env.ready_obs
         init_obses = to_tensor(init_obses, dtype=torch.float32)
         action_mask = [init_obses[i]['action_mask'] for i in range(env_nums)]
+        if 'to_play' in init_obses[0]:
+            two_plaer_game = True
+        else:
+            two_plaer_game = False
+        if two_plaer_game:
+            to_play = [init_obses[i]['to_play'] for i in range(env_nums)]
         dones = np.array([False for _ in range(env_nums)])
 
         game_histories = [
@@ -226,7 +232,10 @@ class BaseSerialEvaluatorMuZero(object):
                     stack_obs = torch.from_numpy(stack_obs).to(self.game_config.device).float() / 255.0
                 else:
                     stack_obs = torch.from_numpy(np.array(stack_obs)).to(self.game_config.device)
-                policy_output = self._policy.forward(stack_obs, action_mask)
+                if two_plaer_game:
+                    policy_output = self._policy.forward(stack_obs, action_mask, to_play)
+                else:
+                    policy_output = self._policy.forward(stack_obs, action_mask, None)
 
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 distributions_dict = {i: a['distributions'] for i, a in policy_output.items()}
@@ -236,18 +245,25 @@ class BaseSerialEvaluatorMuZero(object):
 
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
                 action_mask = [timesteps[i].obs['action_mask'] for i in range(env_nums)]
+                to_play = [timesteps[i].obs['to_play'] for i in range(env_nums)]
+
+                if two_plaer_game:
+                    to_play = [timesteps[i].obs['to_play'] for i in range(env_nums)]
 
                 for env_id, t in timesteps.items():
                     # obs, ori_reward, done, info = env.step(action)
                     i = env_id
-                    action = actions[i]
                     obs, ori_reward, done, info = t.obs, t.reward, t.done, t.info
                     if self.game_config.clip_reward:
                         clip_reward = np.sign(ori_reward)
                     else:
                         clip_reward = ori_reward
                     game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                    game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
+                    # game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
+                    # for two_player board games
+                    game_histories[i].append(
+                        actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
+                    )
 
                     dones[i] = done
                     ep_ori_rewards[i] += ori_reward
@@ -269,6 +285,8 @@ class BaseSerialEvaluatorMuZero(object):
                         # reset the finished env
                         init_obses = self._env.ready_obs
                         action_mask[i] = to_ndarray(init_obses[i]['action_mask'])
+                        to_play[i] = to_ndarray(init_obses[i]['to_play'])
+
                         game_histories[i] = GameHistory(
                             self._env.action_space,
                             max_length=self.game_config.game_history_max_length,

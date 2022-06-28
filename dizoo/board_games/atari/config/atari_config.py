@@ -6,22 +6,22 @@ game_config = EasyDict(dict(
     env_name='PongNoFrameskip-v4',
     image_based=True,
     # TODO
-    device='cuda',
-    # device='cpu',
+    # device='cuda',
+    device='cpu',
     game_wrapper=True,
     action_space_size=6,
     amp_type='none',
     obs_shape=(12, 96, 96),
     image_channel=3,
     gray_scale=False,
-    downsample=True,  # Downsample observations before representation network (See paper appendix Network Architecture)
+    downsample=True,
 
     # debug
     # collector_env_num=1,
     # evaluator_env_num=1,
     # test_max_episode_steps=int(1e2),
-    # num_simulations=2,
-    # batch_size=8,
+    # num_simulations=6,
+    # batch_size=4,
     # game_history_max_length=20,
     # total_transitions=int(1e3),
     # num_unroll_steps=5,

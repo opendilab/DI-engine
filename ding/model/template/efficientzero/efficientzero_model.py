@@ -14,7 +14,6 @@ from ding.torch_utils.network.nn_module import MLP
 from ding.torch_utils.network.res_block import ResBlock
 
 
-
 def conv3x3(in_channels, out_channels, stride=1):
     return nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
 
@@ -30,7 +29,6 @@ class ResidualBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(out_channels, momentum=momentum)
         self.downsample = downsample
         self.activation = nn.ReLU()
-
 
     def forward(self, x):
         identity = x
@@ -124,12 +122,12 @@ class RepresentationNetworkTictactoe(nn.Module):
 class RepresentationNetworkAtari(nn.Module):
 
     def __init__(
-            self,
-            observation_shape,
-            num_blocks,
-            num_channels,
-            downsample,
-            momentum=0.1,
+        self,
+        observation_shape,
+        num_blocks,
+        num_channels,
+        downsample,
+        momentum=0.1,
     ):
         """Representation network
         Parameters
@@ -160,7 +158,6 @@ class RepresentationNetworkAtari(nn.Module):
         )
         self.activation = nn.ReLU()
 
-
     def forward(self, x):
         if self.downsample:
             x = self.downsample_net(x)
@@ -178,16 +175,16 @@ class RepresentationNetworkAtari(nn.Module):
 class DynamicsNetwork(nn.Module):
 
     def __init__(
-            self,
-            num_blocks,
-            num_channels,
-            reduced_channels_reward,
-            fc_reward_layers,
-            full_support_size,
-            block_output_size_reward,
-            lstm_hidden_size=64,
-            momentum=0.1,
-            init_zero=False,
+        self,
+        num_blocks,
+        num_channels,
+        reduced_channels_reward,
+        fc_reward_layers,
+        full_support_size,
+        block_output_size_reward,
+        lstm_hidden_size=64,
+        momentum=0.1,
+        init_zero=False,
     ):
         """Dynamics network
         Parameters
@@ -278,19 +275,19 @@ class DynamicsNetwork(nn.Module):
 class PredictionNetwork(nn.Module):
 
     def __init__(
-            self,
-            action_space_size,
-            num_blocks,
-            num_channels,
-            reduced_channels_value,
-            reduced_channels_policy,
-            fc_value_layers,
-            fc_policy_layers,
-            full_support_size,
-            block_output_size_value,
-            block_output_size_policy,
-            momentum=0.1,
-            init_zero=False,
+        self,
+        action_space_size,
+        num_blocks,
+        num_channels,
+        reduced_channels_value,
+        reduced_channels_policy,
+        fc_value_layers,
+        fc_policy_layers,
+        full_support_size,
+        block_output_size_value,
+        block_output_size_policy,
+        momentum=0.1,
+        init_zero=False,
     ):
         """Prediction network
         Parameters
@@ -363,29 +360,29 @@ class PredictionNetwork(nn.Module):
 class EfficientZeroNet(BaseNet):
 
     def __init__(
-            self,
-            model_type,
-            observation_shape,
-            action_space_size,
-            num_blocks,
-            num_channels,
-            reduced_channels_reward,
-            reduced_channels_value,
-            reduced_channels_policy,
-            fc_reward_layers,
-            fc_value_layers,
-            fc_policy_layers,
-            reward_support_size,
-            value_support_size,
-            downsample,
-            lstm_hidden_size=512,
-            bn_mt=0.1,
-            proj_hid=256,
-            proj_out=256,
-            pred_hid=64,
-            pred_out=256,
-            init_zero=False,
-            state_norm=False
+        self,
+        model_type,
+        observation_shape,
+        action_space_size,
+        num_blocks,
+        num_channels,
+        reduced_channels_reward,
+        reduced_channels_value,
+        reduced_channels_policy,
+        fc_reward_layers,
+        fc_value_layers,
+        fc_policy_layers,
+        reward_support_size,
+        value_support_size,
+        downsample,
+        lstm_hidden_size=512,
+        bn_mt=0.1,
+        proj_hid=256,
+        proj_out=256,
+        pred_hid=64,
+        pred_out=256,
+        init_zero=False,
+        state_norm=False
     ):
         """EfficientZero network
         Parameters

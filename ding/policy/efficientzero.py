@@ -16,8 +16,8 @@ from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
-from dizoo.board_games.atari.config.atari_config import game_config
-# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
 
 
@@ -231,7 +231,8 @@ class EfficientZeroPolicy(Policy):
         if not self._learn_model.training:
             # if not in training, obtain the scalars of the value/reward
             scaled_value = scaled_value.detach().cpu().numpy()
-            scaled_value_prefix = inverse_scalar_transform(value_prefix, self.game_config.support_size).detach().cpu().numpy()
+            scaled_value_prefix = inverse_scalar_transform(value_prefix,
+                                                           self.game_config.support_size).detach().cpu().numpy()
             hidden_state = hidden_state.detach().cpu().numpy()
             reward_hidden = (reward_hidden[0].detach().cpu().numpy(), reward_hidden[1].detach().cpu().numpy())
             policy_logits = policy_logits.detach().cpu().numpy()
@@ -273,7 +274,8 @@ class EfficientZeroPolicy(Policy):
             if not self._learn_model.training:
                 # if not in training, obtain the scalars of the value/reward
                 value = inverse_scalar_transform(value, self.game_config.support_size).detach().cpu().numpy()
-                value_prefix = inverse_scalar_transform(value_prefix, self.game_config.support_size).detach().cpu().numpy()
+                value_prefix = inverse_scalar_transform(value_prefix,
+                                                        self.game_config.support_size).detach().cpu().numpy()
                 hidden_state = hidden_state.detach().cpu().numpy()
                 reward_hidden = (reward_hidden[0].detach().cpu().numpy(), reward_hidden[1].detach().cpu().numpy())
                 policy_logits = policy_logits.detach().cpu().numpy()
@@ -456,7 +458,7 @@ class EfficientZeroPolicy(Policy):
             ]
         )
 
-    def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None):
+    def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None, to_play=None):
         """
         Shapes:
             obs: (B, S, C, H, W), where S is the stack num
@@ -475,9 +477,12 @@ class EfficientZeroPolicy(Policy):
             # TODO(pu)
             if not self._learn_model.training:
                 # if not in training, obtain the scalars of the value/reward
-                pred_values_pool = inverse_scalar_transform(pred_values_pool, self.game_config.support_size).detach().cpu().numpy()
+                pred_values_pool = inverse_scalar_transform(pred_values_pool,
+                                                            self.game_config.support_size).detach().cpu().numpy()
                 hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
-                reward_hidden_roots = (reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy())
+                reward_hidden_roots = (
+                    reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy()
+                )
                 policy_logits_pool = policy_logits_pool.detach().cpu().numpy().tolist()
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
@@ -501,9 +506,11 @@ class EfficientZeroPolicy(Policy):
                                     ).astype(np.float32).tolist() for j in range(self.game_config.collector_env_num)
             ]
 
-            roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
+            roots.prepare(
+                self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play
+            )
             # do MCTS for a policy (argmax in testing)
-            self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots)
+            self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots, to_play)
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
@@ -518,7 +525,6 @@ class EfficientZeroPolicy(Policy):
                 # action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
-                # actions.append(action)
                 output[i] = {
                     'action': action,
                     'distributions': distributions,
@@ -557,7 +563,7 @@ class EfficientZeroPolicy(Policy):
         self._eval_model.reset()
         self._mcts_eval = MCTS(self.game_config)
 
-    def _forward_eval(self, data: ttorch.Tensor, action_mask: list):
+    def _forward_eval(self, data: ttorch.Tensor, action_mask: list, to_play: None):
         """
         Overview:
             Forward computation graph of eval mode(evaluate policy performance), at most cases, it is similar to \
@@ -582,9 +588,12 @@ class EfficientZeroPolicy(Policy):
             # TODO(pu)
             if not self._learn_model.training:
                 # if not in training, obtain the scalars of the value/reward
-                pred_values_pool = inverse_scalar_transform(pred_values_pool, self.game_config.support_size).detach().cpu().numpy()
+                pred_values_pool = inverse_scalar_transform(pred_values_pool,
+                                                            self.game_config.support_size).detach().cpu().numpy()
                 hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
-                reward_hidden_roots = (reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy())
+                reward_hidden_roots = (
+                    reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy()
+                )
                 policy_logits_pool = policy_logits_pool.detach().cpu().numpy().tolist()
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
@@ -599,10 +608,10 @@ class EfficientZeroPolicy(Policy):
             ]
             roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
 
-            roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
+            roots.prepare_no_noise(value_prefix_pool, policy_logits_pool, to_play)
             # do MCTS for a policy (argmax in testing)
             # try:
-            self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
+            self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots, to_play)
             # except Exception as error:
             #     print(error)
 

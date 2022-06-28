@@ -2,6 +2,8 @@ from ditk import logging
 import gym
 import numpy as np
 import sys
+from typing import Any, List, Union, Sequence
+import copy
 
 from dizoo.board_games.base_game_env import BaseGameEnv
 from ding.envs import BaseEnvTimestep
@@ -12,6 +14,7 @@ from ding.utils import ENV_REGISTRY
 class GomokuEnv(BaseGameEnv):
     def __init__(self, cfg: dict = None, board_size: int = 15):
         self.cfg = cfg
+        self.battle_mode = cfg.battle_mode
         self.board_size = board_size
         self.players = [1, 2]
         self.board_markers = [
@@ -47,10 +50,33 @@ class GomokuEnv(BaseGameEnv):
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask}
+        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
         return obs
 
     def step(self, action):
+        if self.battle_mode == 'two_player_mode':
+            timestep = self._player_step(action)
+            return timestep
+        elif self.battle_mode == 'one_player_mode':
+            # player 1 battle with expert player 2
+
+            # player 1's turn
+            timestep_player1 = self._player_step(action)
+            # self.env.render()
+            if timestep_player1.done:
+                return timestep_player1
+
+            # player 2's turn
+            expert_action = self.expert_action()
+            # print('player 2 (computer player): ' + self.action_to_string(expert_action))
+            timestep_player2 = self._player_step(expert_action)
+            # the final_eval_reward is calculated from Player 1's perspective
+            timestep_player2.info['final_eval_reward'] = - timestep_player2.reward
+
+            timestep = timestep_player2
+            return timestep
+
+    def _player_step(self, action):
         if action in self.legal_actions:
             row, col = self.action_to_coord(action)
             self.board[row, col] = self.current_player
@@ -68,7 +94,9 @@ class GomokuEnv(BaseGameEnv):
 
         reward = np.array(float(winner == self.current_player)).astype(np.float32)
         info = {'next player to play': self.to_play}
-        # NOTE: exchange the player
+        """
+        NOTE: here exchange the player
+        """
         self.current_player = self.to_play
 
         if done:
@@ -77,7 +105,7 @@ class GomokuEnv(BaseGameEnv):
 
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask}
+        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
         return BaseEnvTimestep(obs, reward, done, info)
 
     def current_state(self):
@@ -150,8 +178,8 @@ class GomokuEnv(BaseGameEnv):
         return np.random.choice(action_list)
 
     def expert_action(self):
+        self.random_action()
         # TODO
-        pass
 
     def human_to_action(self):
         """
@@ -245,6 +273,21 @@ class GomokuEnv(BaseGameEnv):
     @current_player.setter
     def current_player(self, value):
         self._current_player = value
+
+    @staticmethod
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.battle_mode = 'two_player_mode'
+        # cfg.battle_mode = 'one_player_mode'
+        return [cfg for _ in range(collector_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.battle_mode = 'one_player_mode'
+        return [cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self) -> str:
         return "DI-engine Gomoku Env"

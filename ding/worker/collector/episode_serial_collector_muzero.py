@@ -317,15 +317,19 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         env_nums = self._env_num
         # initializations
         init_obses = self._env.ready_obs
-        for i in range(env_nums):
-            if isinstance(init_obses[i], dict):
-                # not done env: self._ready_obs[env_id] = timesteps[env_id].obs
-                init_obses[i] = BaseEnvTimestep(init_obses[i], None, None, None)
+        # for i in range(env_nums):
+        #     if isinstance(init_obses[i], dict):
+        #         # not done env: self._ready_obs[env_id] = timesteps[env_id].obs
+        #         init_obses[i] = BaseEnvTimestep(init_obses[i], None, None, None)
         init_obses = to_tensor(init_obses, dtype=torch.float32)
-        try:
-            action_mask = [to_ndarray(init_obses[i].obs['action_mask']) for i in range(env_nums)]
-        except Exception as error:
-            print(error)
+        action_mask = [to_ndarray(init_obses[i]['action_mask']) for i in range(env_nums)]
+        if 'to_play' in init_obses[0]:
+            two_plaer_game = True
+        else:
+            two_plaer_game = False
+
+        if two_plaer_game:
+            to_play = [to_ndarray(init_obses[i]['to_play']) for i in range(env_nums)]
 
         dones = np.array([False for _ in range(env_nums)])
         game_histories = [
@@ -335,7 +339,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         ]
         for i in range(env_nums):
             game_histories[i].init(
-                [to_ndarray(init_obses[i].obs['observation']) for _ in range(self.game_config.stacked_observations)]
+                [to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.stacked_observations)]
             )
 
         ep_ori_rewards = np.zeros(env_nums)
@@ -348,7 +352,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         stack_obs_windows = [[] for _ in range(env_nums)]
         for i in range(env_nums):
             stack_obs_windows[i] = [
-                to_ndarray(init_obses[i].obs['observation']) for _ in range(self.game_config.stacked_observations)
+                to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.stacked_observations)
             ]
             game_histories[i].init(stack_obs_windows[i])
 
@@ -392,7 +396,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 else:
                     stack_obs = torch.from_numpy(np.array(stack_obs)).to(self.game_config.device)
 
-                policy_output = self._policy.forward(stack_obs, action_mask, temperature)
+                if two_plaer_game:
+                    policy_output = self._policy.forward(stack_obs, action_mask, temperature, to_play)
+                else:
+                    policy_output = self._policy.forward(stack_obs, action_mask, temperature, None)
 
                 actions = {k: v['action'] for k, v in policy_output.items()}
                 distributions_dict = {k: v['distributions'] for k, v in policy_output.items()}
@@ -402,6 +409,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                 timesteps = self._env.step(actions)
                 action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
+                to_play = [to_ndarray(timesteps[i].obs['to_play']) for i in range(env_nums)]
 
                 # if int(action_mask[0].sum())==0:
                 #     print('board game one episode done')
@@ -412,14 +420,17 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             for env_id, timestep in timesteps.items():
                 # obs, ori_reward, done, info = env.step(action)
                 i = env_id
-                action = actions[i]
                 obs, ori_reward, done, info = timestep.obs, timestep.reward, timestep.done, timestep.info
                 if self.game_config.clip_reward:
                     clip_reward = np.sign(ori_reward)
                 else:
                     clip_reward = ori_reward
                 game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                game_histories[i].append(action, to_ndarray(obs['observation']), clip_reward)
+                # game_histories[i].append(action[i], to_ndarray(obs['observation']), clip_reward)
+                # for two_player board games
+                game_histories[i].append(
+                    actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
+                )
 
                 eps_reward_lst[i] += clip_reward
                 eps_ori_reward_lst[i] += ori_reward
@@ -496,6 +507,8 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     init_obs = init_obses[i]['observation']
                     init_obs = to_ndarray(init_obs)
                     action_mask[i] = to_ndarray(init_obses[i]['action_mask'])
+                    to_play[i] = to_ndarray(init_obses[i]['to_play'])
+
                     game_histories[i] = GameHistory(
                         self._env.action_space,
                         max_length=self.game_config.game_history_max_length,

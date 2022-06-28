@@ -47,7 +47,7 @@ class TicTacToeEnv(BaseGameEnv):
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask}
+        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
         return obs
 
     def step(self, action):
@@ -111,7 +111,7 @@ class TicTacToeEnv(BaseGameEnv):
 
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask}
+        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
         return BaseEnvTimestep(obs, reward, done, info)
 
     def current_state(self):
@@ -306,6 +306,7 @@ class TicTacToeEnv(BaseGameEnv):
         collector_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
         cfg.battle_mode = 'two_player_mode'
+        # cfg.battle_mode = 'one_player_mode'
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod

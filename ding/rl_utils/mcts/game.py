@@ -61,6 +61,9 @@ class GameHistory:
         self.obs_history = []
         self.rewards = []
 
+        self.action_mask_history = []
+        self.to_play_history = []
+
     def init(self, init_observations):
         """Initialize a history block, stack the previous stacked_observations frames.
         Parameters
@@ -73,6 +76,10 @@ class GameHistory:
 
         self.actions = []
         self.obs_history = []
+        # TODO
+        self.action_mask_history = []
+        self.to_play_history = []
+
         self.rewards = []
         self.target_values = []
         self.target_rewards = []
@@ -124,11 +131,14 @@ class GameHistory:
     def legal_actions(self):
         return [_ for _ in range(self.action_space.n)]
 
-    def append(self, action, obs, reward):
+    def append(self, action, obs, reward, action_mask=None, to_play=None):
         # append a transition tuple
         self.actions.append(action)
         self.obs_history.append(obs)
         self.rewards.append(reward)
+
+        self.action_mask_history.append(action_mask)
+        self.to_play_history.append(to_play)
 
     def obs(self, i, extra_len=0, padding=False):
         """To obtain an observation of correct format: o[t, t + stack frames + extra len]
@@ -178,6 +188,11 @@ class GameHistory:
         self.actions = np.array(self.actions)
         self.child_visits = np.array(self.child_visits)
         self.root_values = np.array(self.root_values)
+
+        self.action_mask_history = np.array(self.action_mask_history)
+        # if self.to_play_history[0] is None:
+        #     self.to_play_history = self.to_play_history
+        self.to_play_history = np.array(self.to_play_history)
 
     def store_search_stats(self, visit_counts, root_value, idx: int = None):
         # store the visit count distributions and value of the root node after MCTS
