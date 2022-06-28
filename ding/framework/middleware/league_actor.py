@@ -8,7 +8,7 @@ from ditk import logging
 from ding.policy import Policy
 from ding.framework import task, EventEnum
 from ding.framework.middleware import BattleStepCollector
-from ding.framework.middleware.functional import ActorData, ActorDataMeta, ModelInfo
+from ding.framework.middleware.functional import ActorData, ActorDataMeta, PlayerModelInfo
 from ding.league.player import PlayerMeta
 from ding.utils.sparse_logging import log_every_sec
 
@@ -50,9 +50,13 @@ class StepLeagueActor:
         )
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
-            self.model_info_dict[learner_model.player_id] = ModelInfo(
-                get_model_time=time.time(), update_model_time=None, train_iter=learner_model.train_iter
-            )
+            if self.model_info_dict.get(learner_model.player_id):
+                self.model_info_dict[learner_model.player_id].get_new_model_time = time.time()
+                self.model_info_dict[learner_model.player_id].update_new_model_time = None
+            else:
+                self.model_info_dict[learner_model.player_id] = PlayerModelInfo(
+                    get_new_model_time=time.time(), update_new_model_time=None
+                )
 
     def _on_league_job(self, job: "Job"):
         """
@@ -141,7 +145,6 @@ class StepLeagueActor:
         ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
-        ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(self.agent_num)]
 
         while True:
@@ -301,7 +304,6 @@ class StepLeagueActor:
 #             task.router.node_id
 #         )
 
-#         ctx.train_iter = main_player.total_agent_step
 #         ctx.episode_info = [[] for _ in range(self.agent_num)]
 #         ctx.remain_episode = ctx.n_episode
 #         while True:

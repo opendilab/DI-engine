@@ -2,12 +2,14 @@ from easydict import EasyDict
 from typing import Dict, TYPE_CHECKING
 import time
 from ditk import logging
+from more_itertools import last
+from ding.league import player
 
 from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
 from ding.utils import log_every_sec
 from ding.framework import task
-from ding.framework.middleware.functional import ModelInfo
+from ding.framework.middleware.functional import PlayerModelInfo
 from .functional import inferencer, rolloutor, TransitionList, BattleTransitionList, \
     battle_inferencer, battle_rolloutor
 
@@ -57,15 +59,15 @@ class BattleStepCollector:
 
     def _update_policies(self, player_id_list) -> None:
         for player_id in player_id_list:
-            # for this player, actor didn't recieve any new model, use initial model instead.
+            # for this player, in the beginning of actor's lifetime, actor didn't recieve any new model, use initial model instead.
             if self.model_info_dict.get(player_id) is None:
-                self.model_info_dict[player_id] = ModelInfo(
-                    get_model_time=time.time(), update_model_time=None, train_iter=0
+                self.model_info_dict[player_id] = PlayerModelInfo(
+                    get_new_model_time=time.time(), update_new_model_time=None
                 )
 
         while True:
             time_now = time.time()
-            time_list = [time_now - self.model_info_dict[player_id].get_model_time for player_id in player_id_list]
+            time_list = [time_now - self.model_info_dict[player_id].get_new_model_time for player_id in player_id_list]
             if any(x >= WAIT_MODEL_TIME for x in time_list):
                 for index, player_id in enumerate(player_id_list):
                     if time_list[index] >= WAIT_MODEL_TIME:
@@ -89,7 +91,8 @@ class BattleStepCollector:
                 assert policy, "for player{}, policy should have been initialized already"
                 # update policy model
                 policy.load_state_dict(learner_model.state_dict)
-                self.model_info_dict[player_id].update_model_time = time.time()
+                self.model_info_dict[player_id].update_new_model_time = time.time()
+                self.model_info_dict[player_id].update_train_iter = learner_model.train_iter
                 self.model_dict[player_id] = None
 
     def __call__(self, ctx: "BattleContext") -> None:

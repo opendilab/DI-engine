@@ -89,7 +89,6 @@ class BattleContext(Context):
         self.env_episode = 0
         self.env_step = 0
         self.total_envstep_count = 0
-        self.train_iter = 0
         self.collect_kwargs = {}
         self.current_policies = []
 

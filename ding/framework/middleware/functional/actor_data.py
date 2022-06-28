@@ -24,7 +24,7 @@ class ActorData:
 
 
 @dataclass
-class ModelInfo:
-    get_model_time: float
-    update_model_time: float
-    train_iter: int
+class PlayerModelInfo:
+    get_new_model_time: float
+    update_new_model_time: float
+    update_train_iter: int = 0

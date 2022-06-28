@@ -291,7 +291,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
                 )
                 transition = ttorch.as_tensor(transition)
                 transition.collect_train_iter = ttorch.as_tensor(
-                    [model_info_dict[ctx.player_id_list[policy_id]].train_iter]
+                    [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
                 )
                 transitions_list[policy_id].append(env_id, transition)
                 if timestep.done:
@@ -361,7 +361,7 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                 transition = ctx.current_policies[policy_id].process_transition(timestep)
                 transition = EasyDict(transition)
                 transition.collect_train_iter = ttorch.as_tensor(
-                    [model_info_dict[ctx.player_id_list[policy_id]].train_iter]
+                    [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
                 )
 
                 # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
