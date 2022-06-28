@@ -16,7 +16,7 @@ pendulum_dqn_config = dict(
         load_path='pendulum_dqn_seed0/ckpt/ckpt_best.pth.tar',  # necessary for eval
         model=dict(
             obs_shape=3,
-            action_shape=11, # mean the action shape is 11, 11 discrete actions
+            action_shape=11,    # mean the action shape is 11, 11 discrete actions
             encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
