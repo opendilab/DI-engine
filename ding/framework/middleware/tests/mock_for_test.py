@@ -184,7 +184,8 @@ class DIStarMockPolicy(DIStarPolicy):
         return super()._forward_learn(data)
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
-        return DIStarEnv.random_action(data)
+        print("Call forward_collect:", flush=True)
+        return super()._forward_collect(data)
 
 
 class DIStarMockPPOPolicy(PPOPolicy):

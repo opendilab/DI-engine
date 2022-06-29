@@ -115,8 +115,6 @@ class StepLeagueActor:
             assert len(current_policies) > 1, "[Actor {}] battle collector needs more than 1 policies".format(
                 task.router.node_id
             )
-            for p in current_policies:
-                p.reset()
         else:
             raise RuntimeError('[Actor {}] current_policies should not be None'.format(task.router.node_id))
 
@@ -130,7 +128,7 @@ class StepLeagueActor:
         log_every_sec(
             logging.INFO, 5, '[Actor {}] job of player {} begins.'.format(task.router.node_id, job.launch_player)
         )
-
+        # TODO(zms): when get job, update the policies to the checkpoint in job
         ctx.player_id_list = [player.player_id for player in job.players]
         main_player_idx = [idx for idx, player in enumerate(job.players) if player.player_id == job.launch_player]
         self.agent_num = len(job.players)

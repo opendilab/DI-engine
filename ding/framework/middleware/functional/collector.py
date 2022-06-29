@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any, Dict
 from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
-from ding import policy
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 import torch
@@ -129,11 +128,14 @@ class BattleTransitionList:
 
     def clear_newest_episode(self, env_id: int) -> None:
         # Use it when env.step raise some error
-        newest_episode = self._transitions[env_id].pop()
-        len_newest_episode = len(newest_episode)
-        newest_episode.clear()
-        self._done_episode[env_id].pop()
-        return len_newest_episode
+        if len(self._transitions[env_id]) > 0:
+            newest_episode = self._transitions[env_id].pop()
+            len_newest_episode = len(newest_episode)
+            newest_episode.clear()
+            self._done_episode[env_id].pop()
+            return len_newest_episode
+        else:
+            return 0
 
     def append(self, env_id: int, transition: Any) -> bool:
         # If previous episode is done, we create a new episode
@@ -283,10 +285,10 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
         ctx.total_envstep_count += len(timesteps)
         ctx.env_step += len(timesteps)
         for env_id, timestep in timesteps.items():
-            for policy_id, _ in enumerate(ctx.current_policies):
+            for policy_id, policy in enumerate(ctx.current_policies):
                 policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                 policy_timestep = type(timestep)(*policy_timestep_data)
-                transition = ctx.current_policies[policy_id].process_transition(
+                transition = policy.process_transition(
                     ctx.obs[policy_id][env_id], ctx.inference_output[policy_id][env_id], policy_timestep
                 )
                 transition = ttorch.as_tensor(transition)
@@ -295,7 +297,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
                 )
                 transitions_list[policy_id].append(env_id, transition)
                 if timestep.done:
-                    ctx.current_policies[policy_id].reset([env_id])
+                    policy.reset([env_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
             if timestep.done:
@@ -351,26 +353,28 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                 # ctx.env_step -= transitions_list[0].length(env_id)
 
                 # 1st case when env step has bug and need to reset.
-                for policy_id, _ in enumerate(ctx.current_policies):
+
+                # TODO(zms): if it is first step of the episode, do not delete the last episode in the TransitionList 
+                for policy_id, policy in enumerate(ctx.current_policies):
                     transitions_list[policy_id].clear_newest_episode(env_id)
-                    ctx.current_policies[policy_id].reset([env_id])
+                    policy.reset(env.ready_obs[0][policy_id])
                 continue
 
-            append_succeed = True
-            for policy_id, _ in enumerate(ctx.current_policies):
-                transition = ctx.current_policies[policy_id].process_transition(timestep)
+            episode_long_enough = True
+            for policy_id, policy in enumerate(ctx.current_policies):
+                transition = policy.process_transition(timestep)
                 transition = EasyDict(transition)
                 transition.collect_train_iter = ttorch.as_tensor(
                     [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
                 )
 
                 # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
-                append_succeed = append_succeed and transitions_list[policy_id].append(env_id, transition)
+                episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
                 if timestep.done:
-                    ctx.current_policies[policy_id].reset([env_id])
+                    policy.reset(env.ready_obs[0][policy_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
-            if not append_succeed:
+            if not episode_long_enough:
                 for policy_id, _ in enumerate(ctx.current_policies):
                     transitions_list[policy_id].clear_newest_episode(env_id)
                     ctx.episode_info[policy_id].pop()

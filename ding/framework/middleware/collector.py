@@ -14,7 +14,7 @@ from .functional import inferencer, rolloutor, TransitionList, BattleTransitionL
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, BattleContext
 
-WAIT_MODEL_TIME = 60
+WAIT_MODEL_TIME = 6000
 
 
 class BattleStepCollector:
@@ -110,6 +110,9 @@ class BattleStepCollector:
         while True:
             if self.env.closed:
                 self.env.launch()
+                # TODO(zms): only runnable when 1 actor has exactly one env, need to write more general
+                for policy_id, policy in enumerate(ctx.current_policies):
+                    policy.reset(self.env.ready_obs[0][policy_id])
             self._update_policies(ctx.player_id_list)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)

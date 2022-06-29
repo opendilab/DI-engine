@@ -20,7 +20,7 @@ from ding.framework import EventEnum
 from distar.ctools.utils import read_config
 from ding.model import VAC
 
-from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect
+from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect, DIStarMockPolicy
 from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
 
 cfg = deepcopy(distar_cfg)
@@ -35,31 +35,34 @@ class PrepareTest():
 
     @classmethod
     def get_env_supervisor(cls):
-        env = EnvSupervisor(
-            type_=ChildType.THREAD,
-            env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
-            **cfg.env.manager
-        )
-        env.seed(cfg.seed)
-        return env
+        for _ in range(10):
+            try:
+                env = EnvSupervisor(
+                    type_=ChildType.THREAD,
+                    env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
+                    **cfg.env.manager
+                )
+                env.seed(cfg.seed)
+                return env
+            except:
+                continue
 
     @classmethod
-    def policy_fn(cls):
-        model = VAC(**cfg.policy.model)
-        policy = DIStarMockPPOPolicy(cfg.policy, model=model)
+    def learn_policy_fn(cls):
+        policy = DIStarMockPolicy(DIStarMockPolicy.default_config(), enable_field=['learn'])
         return policy
 
     @classmethod
     def collect_policy_fn(cls):
-        policy = DIStarMockPolicyCollect()
+        # policy = DIStarMockPolicyCollect()
+        policy = DIStarMockPolicy(DIStarMockPolicy.default_config(), enable_field=['collect'])
         return policy
 
 
 @pytest.mark.unittest
 def test_league_actor():
     with task.start(async_mode=True, ctx=BattleContext()):
-        policy = PrepareTest.policy_fn()
-
+        policy = PrepareTest.learn_policy_fn().learn_mode
         def test_actor():
             job = Job(
                 launch_player='main_player_default_0',
@@ -103,9 +106,7 @@ def test_league_actor():
 
                 task.emit(
                     EventEnum.LEARNER_SEND_MODEL,
-                    LearnerModel(
-                        player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
-                    )
+                    LearnerModel(player_id='main_player_default_0', state_dict=policy.state_dict(), train_iter=0)
                 )
                 # sleep(100)
                 # try:

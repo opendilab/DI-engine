@@ -12,7 +12,7 @@ from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho,
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from dizoo.distar.model import Model
-from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, NUM_CUMULATIVE_STAT_ACTIONS, Stat, parse_new_game, transform_obs
+from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, NUM_CUMULATIVE_STAT_ACTIONS, DEFAULT_SPATIAL_SIZE, Stat, parse_new_game, transform_obs
 from .utils import collate_fn_learn, kl_error, entropy_error
 
 
@@ -351,8 +351,11 @@ class DIStarPolicy(Policy):
         self._learn_model.load_state_dict(_state_dict['model'])
         self.optimizer.load_state_dict(_state_dict['optimizer'])
 
+    def _load_state_dict_collect(self, _state_dict: Dict) -> None:
+        self._collect_model.load_state_dict(_state_dict['model'], strict=False)
+
     def _init_collect(self):
-        self.collect_model = model_wrap(self._model, 'base')
+        self._collect_model = model_wrap(self._model, 'base')
         self.z_path = self._cfg.z_path
         # TODO(zms): in _setup_agents, load state_dict to set up z_idx
         self.z_idx = None
@@ -393,7 +396,7 @@ class DIStarPolicy(Policy):
             obs = to_device(obs, self._device)
 
         with torch.no_grad():
-            policy_output = self.collect_model.compute_logp_action(**obs)
+            policy_output = self._collect_model.compute_logp_action(**obs)
 
         if self._cfg.cuda:
             policy_output = to_device(policy_output, self._device)
@@ -403,7 +406,7 @@ class DIStarPolicy(Policy):
 
     def _data_preprocess_collect(self, data):
         if self._cfg.use_value_feature:
-            obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, opponent_obs=data['opponent_obs'])
+            obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, padding_spatial=True, opponent_obs=data['opponent_obs'])
         else:
             raise NotImplementedError
 
@@ -481,13 +484,13 @@ class DIStarPolicy(Policy):
         else:
             self.last_targeted_unit_tag = None
 
-        x = data['action_info']['target_location'].item() % self.map_size.x
-        y = data['action_info']['target_location'].item() // self.map_size.x
+        x = data['action_info']['target_location'].item() % DEFAULT_SPATIAL_SIZE[1]
+        y = data['action_info']['target_location'].item() // DEFAULT_SPATIAL_SIZE[1]
         inverse_y = max(self.map_size.y - y, 0)
         raw_action['location'] = (x, inverse_y)
         self.last_location = data['action_info']['target_location']
 
-        data['action'] = raw_action
+        data['action'] = [raw_action]
 
         return data
 
