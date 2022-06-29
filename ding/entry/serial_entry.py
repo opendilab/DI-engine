@@ -52,6 +52,9 @@ def serial_pipeline(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
+    if cfg.policy.replay_path is not None:
+        evaluator_env.enable_save_replay(cfg.policy.replay_path)
+
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
@@ -60,6 +63,9 @@ def serial_pipeline(
     if cfg.policy.il_model_path is not None:
         policy._learn_model.load_state_dict(torch.load(cfg.policy.il_model_path, map_location='cuda')['model'])
         policy._target_model.load_state_dict(torch.load(cfg.policy.il_model_path, map_location='cuda')['model'])
+    # load pretrained rl model
+    if cfg.policy.rl_model_path is not None:
+        policy.learn_mode.load_state_dict(torch.load(cfg.policy.rl_model_path, map_location='cuda'))
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))

@@ -40,10 +40,14 @@ gfootball_r2d2_main_config = dict(
             # samples, the length of each sequence sample is <burnin_step> + <learn_unroll_len>,
             # e.g. if  n_sample=32, <sequence length> is 100, thus 32*100/400=8,
             # we will set update_per_collect=8 in most environments.
-            update_per_collect=8,
+            # update_per_collect=8,
+            # batch_size=64,
+            update_per_collect=16,
+            batch_size=32,
             # debug
+            # update_per_collect=2,
             # batch_size=2,
-            batch_size=64,
+
             learning_rate=0.0005,
             target_update_theta=0.001,
         ),

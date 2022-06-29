@@ -333,6 +333,7 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
     attr = []
     for k in fixed_player_attr_sequence:
         if len(player_data[k].shape) == 1 and k!='tired_factor':
+            # player_data[k].unsqueeze_(-1)
             player_data[k].unsqueeze_(0)  # TODO(pu):expand batch_dim
         elif len(player_data[k].shape) == 1 and k == 'tired_factor':
             player_data[k].unsqueeze_(-1)  # TODO(pu):expand data_dim

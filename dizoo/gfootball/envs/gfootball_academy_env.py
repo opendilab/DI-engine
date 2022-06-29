@@ -308,15 +308,6 @@ class GfootballAcademyEnv(BaseEnv):
         """Save a replay."""
         pass
     
-    def enable_save_replay(self, replay_path: str) -> None:
-        """
-        Overview:
-            Save replay file in the given path, need to be self-implemented.
-        Arguments:
-            - replay_path(:obj:`str`): Storage path.
-        """
-        raise NotImplementedError
-
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
@@ -343,6 +334,12 @@ class GfootballAcademyEnv(BaseEnv):
         return f'GfootballEnv Academy Env {self.env_name}'
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        """
+        Overview:
+            Save replay file in the given path
+        Arguments:
+            - replay_path(:obj:`str`): Storage path.
+        """
         if replay_path is None:
             replay_path = './video'
         self._save_replay = True

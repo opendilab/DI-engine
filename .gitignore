@@ -12,6 +12,7 @@
 *.sig
 *.mov
 *.pkl
+*.csv
 
 pkg/
 src/
