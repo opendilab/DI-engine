@@ -6,6 +6,8 @@ import torch
 import numpy as np
 from torch.cuda.amp import autocast as autocast
 import ding.rl_utils.mcts.ctree.cytree as tree
+from ding.torch_utils.data_helper import to_ndarray
+from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 
 
 class MCTS(object):
@@ -65,8 +67,10 @@ class MCTS(object):
                     hidden_states.append(hidden_state_pool[ix][iy])
                     hidden_states_c_reward.append(reward_hidden_c_pool[ix][0][iy])
                     hidden_states_h_reward.append(reward_hidden_h_pool[ix][0][iy])
-
-                hidden_states = torch.from_numpy(np.asarray(hidden_states)).to(device).float()
+                try:
+                    hidden_states = torch.from_numpy(np.asarray(hidden_states)).to(device).float()
+                except Exception as error:
+                    print(error)
                 hidden_states_c_reward = torch.from_numpy(np.asarray(hidden_states_c_reward)).to(device).unsqueeze(0)
                 hidden_states_h_reward = torch.from_numpy(np.asarray(hidden_states_h_reward)).to(device).unsqueeze(0)
 
@@ -82,6 +86,20 @@ class MCTS(object):
                     network_output = model.recurrent_inference(
                         hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
                     )
+                # TODO(pu)
+                if not model.training:
+                    # if not in training, obtain the scalars of the value/reward
+                    network_output.value = inverse_scalar_transform(network_output.value,
+                                                                    self.config.support_size).detach().cpu().numpy()
+                    network_output.value_prefix = inverse_scalar_transform(
+                        network_output.value_prefix, self.config.support_size
+                    ).detach().cpu().numpy()
+                    network_output.hidden_state = network_output.hidden_state.detach().cpu().numpy()
+                    network_output.reward_hidden = (
+                        network_output.reward_hidden[0].detach().cpu().numpy(),
+                        network_output.reward_hidden[1].detach().cpu().numpy()
+                    )
+                    network_output.policy_logits = network_output.policy_logits.detach().cpu().numpy()
 
                 hidden_state_nodes = network_output.hidden_state
                 value_prefix_pool = network_output.value_prefix.reshape(-1).tolist()

@@ -101,3 +101,14 @@ def inverse_scalar_transform(logits, support_size):
     output[torch.abs(output) < epsilon] = 0.
 
     return output
+
+def renormalize(tensor, first_dim=1):
+    # normalize the tensor (states)
+    if first_dim < 0:
+        first_dim = len(tensor.shape) + first_dim
+    flat_tensor = tensor.view(*tensor.shape[:first_dim], -1)
+    max = torch.max(flat_tensor, first_dim, keepdim=True).values
+    min = torch.min(flat_tensor, first_dim, keepdim=True).values
+    flat_tensor = (flat_tensor - min) / (max - min)
+
+    return flat_tensor.view(*tensor.shape)

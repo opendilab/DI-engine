@@ -8,7 +8,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 from ding.utils import MODEL_REGISTRY
-from ding.model.template.efficientzero.efficientzero_base_model import BaseNet
+from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize
 from ding.rl_utils.mcts.utils import mask_nan
 from ding.torch_utils.network.nn_module import MLP
 from ding.torch_utils.network.res_block import ResBlock
@@ -525,7 +525,12 @@ class EfficientZeroNet(BaseNet):
         return policy, value
 
     def representation(self, observation):
-        return self.representation_network(observation)
+        encoded_state = self.representation_network(observation)
+        if not self.state_norm:
+            return encoded_state
+        else:
+            encoded_state_normalized = renormalize(encoded_state)
+            return encoded_state_normalized
 
     def dynamics(self, encoded_state, reward_hidden, action):
         # Stack encoded_state with a game specific one hot encoded action
@@ -541,8 +546,11 @@ class EfficientZeroNet(BaseNet):
 
         x = torch.cat((encoded_state, action_one_hot), dim=1)
         next_encoded_state, reward_hidden, value_prefix = self.dynamics_network(x, reward_hidden)
-
-        return next_encoded_state, reward_hidden, value_prefix
+        if not self.state_norm:
+            return next_encoded_state, reward_hidden, value_prefix
+        else:
+            next_encoded_state_normalized = renormalize(next_encoded_state)
+            return next_encoded_state_normalized, reward_hidden, value_prefix
 
     def get_params_mean(self):
         representation_mean = self.representation_network.get_param_mean()

@@ -8,7 +8,7 @@ from dizoo.board_games.atari.config.atari_config import game_config
 collector_env_num = 8
 evaluator_env_num = 5
 atari_efficientzero_config = dict(
-    exp_name='data_ez_ptree/pong_efficientzero_seed0_upc50',
+    exp_name='data_ez_ptree/pong_efficientzero_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -59,11 +59,11 @@ atari_efficientzero_config = dict(
             # update_per_collect=5,
             # batch_size=4,
 
-            update_per_collect=50,
+            update_per_collect=32,
             batch_size=256,
             learning_rate=0.02,
             # Frequency of target network update.
-            target_update_freq=200,
+            target_update_freq=400,
         ),
         # collect_mode config
         collect=dict(

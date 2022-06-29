@@ -34,7 +34,7 @@ game_config = EasyDict(dict(
     num_simulations=50,
     batch_size=256,
     game_history_max_length=200,
-    total_transitions=int(1e5),
+    total_transitions=int(25e6),  # TODO(pu): 125K sequences * 200
     num_unroll_steps=5,
     td_steps=5,
 
@@ -66,7 +66,7 @@ game_config = EasyDict(dict(
     reward_support=DiscreteSupport(-300, 300, delta=1),
     max_grad_norm=10,
 
-    max_training_steps=int(1.2e5),  # TODO
+    max_training_steps=int(2.2e5),  # TODO: 220K
     change_temperature=True,
     test_interval=10000,
     log_interval=1000,
@@ -81,7 +81,7 @@ game_config = EasyDict(dict(
     # network initialization/ & normalization
     episode_life=True,
     init_zero=True,
-    state_norm=False,
+    state_norm=True,  # TODO
     # storage efficient
     cvt_string=False,
     # TODO(pu)

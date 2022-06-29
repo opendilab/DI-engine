@@ -11,8 +11,12 @@ from collections import defaultdict
 from ding.data.buffer import Buffer, BufferedData
 from ding.utils import fastcopy
 from ding.rl_utils.mcts.utils import prepare_observation_lst, concat_output, concat_output_value
-import ding.rl_utils.mcts.ptree as tree
-from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS
+# cpp mcts
+from ding.rl_utils.mcts.ctree import cytree
+from ding.rl_utils.mcts.mcts_ctree import MCTS
+# python mcts
+# import ding.rl_utils.mcts.ptree as tree
+# from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 from ding.torch_utils.data_helper import to_ndarray
 
@@ -711,51 +715,64 @@ class GameBuffer(Buffer):
                 value_prefix_pool = value_prefix_pool.squeeze().tolist()
                 policy_logits_pool = policy_logits_pool.tolist()
 
-                # cpp mcts
-                # roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
-                # noises = [
-                #     np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
-                #                         ).astype(np.float32).tolist() for _ in range(batch_size)
-                # ]
-
-                # TODO: pass into action_mask and to_play from data
-                # python mcts
-                if to_play_history[0][0] is None:
-                    # for one_player atari games
-                    action_mask = [
-                        list(np.ones(self.config.action_space_size, dtype=np.int8)) for i in range(batch_size)
-                    ]
-                legal_actions = [
-                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.config.evaluator_env_num)
-                ]
-                roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
+                """
+                cpp mcts
+                """
+                roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
                 noises = [
-                    np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))
-                                        ).astype(np.float32).tolist() for j in range(batch_size)
+                    np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
+                                        ).astype(np.float32).tolist() for _ in range(batch_size)
                 ]
+                roots.prepare(
+                    self.config.root_exploration_fraction,
+                    noises,
+                    value_prefix_pool,
+                    policy_logits_pool,
+                )
+                # do MCTS for a new policy with the recent target model
+                MCTS(self.config).search(
+                    roots, self.model, hidden_state_roots, reward_hidden_roots
+                )
 
-                if to_play_history[0][0] is None:
-                    roots.prepare(
-                        self.config.root_exploration_fraction,
-                        noises,
-                        value_prefix_pool,
-                        policy_logits_pool,
-                        to_play=None
-                    )
-                    # do MCTS for a new policy with the recent target model
-                    MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=None)
-                else:
-                    roots.prepare(
-                        self.config.root_exploration_fraction,
-                        noises,
-                        value_prefix_pool,
-                        policy_logits_pool,
-                        to_play=to_play
-                    )
-                    # do MCTS for a new policy with the recent target model
-                    MCTS(self.config).search(
-                        roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=to_play
-                    )
+                """
+                python mcts
+                """
+                # if to_play_history[0][0] is None:
+                #     # for one_player atari games
+                #     action_mask = [
+                #         list(np.ones(self.config.action_space_size, dtype=np.int8)) for i in range(batch_size)
+                #     ]
+                # legal_actions = [
+                #     [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.config.evaluator_env_num)
+                # ]
+                # roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
+                # noises = [
+                #     np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))
+                #                         ).astype(np.float32).tolist() for j in range(batch_size)
+                # ]
+                #
+                # if to_play_history[0][0] is None:
+                #     roots.prepare(
+                #         self.config.root_exploration_fraction,
+                #         noises,
+                #         value_prefix_pool,
+                #         policy_logits_pool,
+                #         to_play=None
+                #     )
+                #     # do MCTS for a new policy with the recent target model
+                #     MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=None)
+                # else:
+                #     roots.prepare(
+                #         self.config.root_exploration_fraction,
+                #         noises,
+                #         value_prefix_pool,
+                #         policy_logits_pool,
+                #         to_play=to_play
+                #     )
+                #     # do MCTS for a new policy with the recent target model
+                #     MCTS(self.config).search(
+                #         roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=to_play
+                #     )
 
                 roots_values = roots.get_values()
                 value_lst = np.array(roots_values)
@@ -883,43 +900,54 @@ class GameBuffer(Buffer):
             value_prefix_pool = value_prefix_pool.squeeze().tolist()
             policy_logits_pool = policy_logits_pool.tolist()
 
-            # cpp mcts
-            # roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
-            # noises = [
-            #     np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
-            #                         ).astype(np.float32).tolist() for _ in range(batch_size)
-            # ]
-
-            # TODO: pass into action_mask and to_play from data
-            # python mcts
-            if to_play_history[0][0] is None:
-                # for one_player atari games
-                action_mask = [list(np.ones(self.config.action_space_size, dtype=np.int8)) for i in range(batch_size)]
-            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(batch_size)]
-            roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
+            """
+            cpp mcts
+            """
+            roots = cytree.Roots(batch_size, self.config.action_space_size, self.config.num_simulations)
             noises = [
-                np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))
-                                    ).astype(np.float32).tolist() for j in range(batch_size)
+                np.random.dirichlet([self.config.root_dirichlet_alpha] * self.config.action_space_size
+                                    ).astype(np.float32).tolist() for _ in range(batch_size)
             ]
-            if to_play_history[0][0] is None:
-                roots.prepare(
-                    self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play=None
-                )
-                # do MCTS for a new policy with the recent target model
-                MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=None)
-            else:
-                roots.prepare(
-                    self.config.root_exploration_fraction,
-                    noises,
-                    value_prefix_pool,
-                    policy_logits_pool,
-                    to_play=to_play
-                )
-                # do MCTS for a new policy with the recent target model
-                MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=to_play)
+            roots.prepare(
+                self.config.root_exploration_fraction,
+                noises,
+                value_prefix_pool,
+                policy_logits_pool,
+            )
+            # do MCTS for a new policy with the recent target model
+            MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots)
+
+            """
+            python mcts
+            """
+            # if to_play_history[0][0] is None:
+            #     # for one_player atari games
+            #     action_mask = [list(np.ones(self.config.action_space_size, dtype=np.int8)) for i in range(batch_size)]
+            # legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(batch_size)]
+            # roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
+            # noises = [
+            #     np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))
+            #                         ).astype(np.float32).tolist() for j in range(batch_size)
+            # ]
+            # if to_play_history[0][0] is None:
+            #     roots.prepare(
+            #         self.config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play=None
+            #     )
+            #     # do MCTS for a new policy with the recent target model
+            #     MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=None)
+            # else:
+            #     roots.prepare(
+            #         self.config.root_exploration_fraction,
+            #         noises,
+            #         value_prefix_pool,
+            #         policy_logits_pool,
+            #         to_play=to_play
+            #     )
+            #     # do MCTS for a new policy with the recent target model
+            #     MCTS(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=to_play)
+            # roots_legal_actions_list = roots.legal_actions_list
 
             roots_distributions = roots.get_distributions()
-            roots_legal_actions_list = roots.legal_actions_list
 
             policy_index = 0
             for state_index, game_idx in zip(state_index_lst, indices):
@@ -937,21 +965,32 @@ class GameBuffer(Buffer):
                                 list(np.ones(self.config.action_space_size) / self.config.action_space_size)
                             )
                         else:
-                            if to_play_history[0][0] is None:
-                                # for one_player atari games
-                                sum_visits = sum(distributions)
-                                policy = [visit_count / sum_visits for visit_count in distributions]
-                                target_policies.append(policy)
-                            else:
-                                # for two_player board games
-                                policy_tmp = [0 for _ in range(self.config.action_space_size)]
-                                # to make sure  target_policies have the same dimension
-                                # target_policy = torch.from_numpy(target_policy) be correct
-                                sum_visits = sum(distributions)
-                                policy = [visit_count / sum_visits for visit_count in distributions]
-                                for index, legal_action in enumerate(roots_legal_actions_list[policy_index]):
-                                    policy_tmp[legal_action] = policy[index]
-                                target_policies.append(policy_tmp)
+                            """
+                            cpp mcts
+                            """
+                            # for one_player atari games
+                            sum_visits = sum(distributions)
+                            policy = [visit_count / sum_visits for visit_count in distributions]
+                            target_policies.append(policy)
+
+                            """
+                            python mcts
+                            """
+                            # if to_play_history[0][0] is None:
+                            #     # for one_player atari games
+                            #     sum_visits = sum(distributions)
+                            #     policy = [visit_count / sum_visits for visit_count in distributions]
+                            #     target_policies.append(policy)
+                            # else:
+                            #     # for two_player board games
+                            #     policy_tmp = [0 for _ in range(self.config.action_space_size)]
+                            #     # to make sure  target_policies have the same dimension
+                            #     # target_policy = torch.from_numpy(target_policy) be correct
+                            #     sum_visits = sum(distributions)
+                            #     policy = [visit_count / sum_visits for visit_count in distributions]
+                            #     for index, legal_action in enumerate(roots_legal_actions_list[policy_index]):
+                            #         policy_tmp[legal_action] = policy[index]
+                            #     target_policies.append(policy_tmp)
 
                     policy_index += 1
 

@@ -10,14 +10,18 @@ import numpy as np
 from torch.nn import L1Loss
 import torch.nn.functional as F
 from ding.rl_utils import get_nstep_return_data, get_train_sample
+# cpp mcts
+from ding.rl_utils.mcts.ctree import cytree
+from ding.rl_utils.mcts.mcts_ctree import MCTS
+# python mcts
 import ding.rl_utils.mcts.ptree as tree
-from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS
+# from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS
 from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
-# from dizoo.board_games.atari.config.atari_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+from dizoo.board_games.atari.config.atari_config import game_config
+# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
 
 
@@ -487,30 +491,32 @@ class EfficientZeroPolicy(Policy):
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # cpp mcts
-            # action_num = int(action_mask[0].sum())
-            # roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
-            # noises = [
-            #     np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(
-            #         np.float32).tolist()
-            #     for j in range(self.game_config.collector_env_num)
-            # ]
+            action_num = int(action_mask[0].sum())
+            roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
+            noises = [
+                np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(
+                    np.float32).tolist()
+                for j in range(self.game_config.collector_env_num)
+            ]
+            roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
+            # do MCTS for a policy (argmax in testing)
+            self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots)
 
             # python mcts
-            legal_actions = [
-                [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.collector_env_num)
-            ]
-            roots = tree.Roots(self.game_config.collector_env_num, legal_actions, self.game_config.num_simulations)
-            # the only difference between collect and eval is the dirichlet noise
-            noises = [
-                np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))
-                                    ).astype(np.float32).tolist() for j in range(self.game_config.collector_env_num)
-            ]
-
-            roots.prepare(
-                self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play
-            )
-            # do MCTS for a policy (argmax in testing)
-            self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots, to_play)
+            # legal_actions = [
+            #     [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.collector_env_num)
+            # ]
+            # roots = tree.Roots(self.game_config.collector_env_num, legal_actions, self.game_config.num_simulations)
+            # # the only difference between collect and eval is the dirichlet noise
+            # noises = [
+            #     np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))
+            #                         ).astype(np.float32).tolist() for j in range(self.game_config.collector_env_num)
+            # ]
+            # roots.prepare(
+            #     self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play
+            # )
+            # # do MCTS for a policy (argmax in testing)
+            # self._mcts_eval.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots, to_play)
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
@@ -598,22 +604,21 @@ class EfficientZeroPolicy(Policy):
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # cpp mcts
-            # action_num = [int(i.sum()) for i in action_mask]
-            # action_num = int(action_mask[0].sum())
-            # roots = cytree.Roots(self.game_config.evaluator_env_num, action_num, self.game_config.num_simulations)
+            action_num = int(action_mask[0].sum())
+            roots = cytree.Roots(self.game_config.evaluator_env_num, action_num, self.game_config.num_simulations)
+            roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
+            # do MCTS for a policy (argmax in testing)
+            self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
 
             # python mcts
-            legal_actions = [
-                [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.evaluator_env_num)
-            ]
-            roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
-
-            roots.prepare_no_noise(value_prefix_pool, policy_logits_pool, to_play)
-            # do MCTS for a policy (argmax in testing)
-            # try:
-            self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots, to_play)
-            # except Exception as error:
-            #     print(error)
+            # legal_actions = [
+            #     [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.evaluator_env_num)
+            # ]
+            # roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
+            #
+            # roots.prepare_no_noise(value_prefix_pool, policy_logits_pool, to_play)
+            # # do MCTS for a policy (argmax in testing)
+            # self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots, to_play)
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
