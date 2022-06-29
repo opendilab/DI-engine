@@ -90,7 +90,7 @@ def main(cfg, seed=0):
             env_fn=[partial(SlimeVolleyEnv, collector_env_cfg) for _ in range(collector_env_num)], cfg=cfg.env.manager
         )
         collector_env.seed(seed)
-        #collector_env.enable_save_replay(cfg.env.replay_path)
+        collector_env.enable_save_replay(cfg.env.replay_path)
 
         learners[player_id] = BaseLearner(
             cfg.policy.learn.learner,
@@ -122,7 +122,7 @@ def main(cfg, seed=0):
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     policies['historical'] = policy
-    model_bot = Bot()
+    model_bot = Bot(cfg.env.collector_env_num)
     policy_bot = Botpolicy(cfg.policy, model=model_bot)
     policies['bot'] = policy_bot
     main_key = [k for k in learners.keys() if k.startswith('main_player')][0]

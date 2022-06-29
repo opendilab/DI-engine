@@ -117,6 +117,16 @@ class Botpolicy(Policy):
         # a dict{env_id: {'action': np.array(0-5)}}
         return output
 
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset collect model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
+        self._collect_model.reset(data_id)
+    
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:

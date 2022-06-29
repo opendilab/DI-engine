@@ -31,7 +31,7 @@ league_demo_ppo_config = dict(
             clip_ratio=0.2,
         ),
         collect=dict(
-            n_episode=16,
+            n_episode=15,
             discount_factor=0.99,
             gae_lambda=0.95,
         ),

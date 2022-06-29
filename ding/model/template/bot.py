@@ -6,7 +6,7 @@ import torch
 class Bot:
     """ Tiny RNN policy with only 120 parameters of otoro.net/slimevolley agent """
 
-    def __init__(self):
+    def __init__(self, collector_env_num):
         self.nGameInput = 8  # 8 states for agent
         self.nGameOutput = 3  # 3 buttons (forward, backward, jump)
         self.nRecurrentState = 4  # extra recurrent states for feedback.
@@ -28,30 +28,36 @@ class Bot:
                 0.1918, 3.0783, 0.0329, -0.1362, -0.1188, -0.7579, 0.3278, -0.977, -0.9377
             ]
         )
-
+        
         self.bias = np.array([2.2935, -2.0353, -1.7786, 5.4567, -3.6368, 3.4996, -0.0685])
 
         # unflatten weight, convert it into 15x7 matrix.
         self.weight = self.weight.reshape(
             self.nGameOutput + self.nRecurrentState, self.nGameInput + self.nGameOutput + self.nRecurrentState
         ).transpose()
-
-    def _reset(self, obs):
-        collector_env_num = obs.shape[0]
+        
         self.inputState = np.zeros([collector_env_num, self.nInput])  # (collector_env_num, 15)
         self.outputState = np.zeros([collector_env_num, self.nOutput])  # (collector_env_num, 7)
         self.prevOutputState = np.zeros([collector_env_num, self.nOutput])  # (collector_env_num, 7)
+
+    def reset(self, env_id):
+        self.inputState[env_id, :] = 0
+        self.outputState[env_id, :] = 0
+        self.prevOutputState[env_id, :] = 0
 
     def _forward(self):
         self.prevOutputState = self.outputState
         self.outputState = np.tanh(np.matmul(self.inputState, self.weight) + self.bias)
 
-    def _setInputState(self, obs):
+    def _setInputState(self, env_id, obs):
+        """
+        - env_id (:obj:`List[int]`)
+        """
         # obs is: (op is opponent). obs is also from perspective of the agent (x values negated for other agent)
         # [x, y, vx, vy, ball_x, ball_y, ball_vx, ball_vy, op_x, op_y, op_vx, op_vy] = [obs[:,i] for i in range(obs.shape[1])]
         # self.inputState[:, 0:self.nGameInput] = [item.numpy() for item in [x, y, vx, vy, ball_x, ball_y, ball_vx, ball_vy]]
-        self.inputState[:, 0:self.nGameInput] = obs[:,0:8].numpy()
-        self.inputState[:, self.nGameInput:] = self.outputState
+        self.inputState[env_id, 0:self.nGameInput] = obs[:,0:8].numpy()
+        self.inputState[env_id, self.nGameInput:] = self.outputState[env_id, :]
 
     def _getAction(self, env_id):
         ret = {}
@@ -94,9 +100,10 @@ class Bot:
     def predict(self, env_id, obs):
         """ 
         take obs, update rnn state, return action 
+        - obs (:obj:`List[List[int]]`)
         - env_id (:obj:`List[int]`)
         """
-        self._reset(obs)
-        self._setInputState(obs)
+        # self._reset(obs)
+        self._setInputState(env_id, obs)
         self._forward()
         return self._getAction(env_id)
