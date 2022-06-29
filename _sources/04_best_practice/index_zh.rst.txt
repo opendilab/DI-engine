@@ -4,6 +4,7 @@
 .. toctree::
    :maxdepth: 2
 
+   ding_env_zh
    env_wrapper_zh
    model_wrapper_zh
    multi_discrete_zh
