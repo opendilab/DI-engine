@@ -99,8 +99,8 @@ def main():
 
 @pytest.mark.unittest
 def test_league_pipeline():
-    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)
 
 
 if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)
