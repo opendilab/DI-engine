@@ -6,7 +6,7 @@ evaluator_env_num = 5
 # collector_env_num = 1
 # evaluator_env_num = 1  
 gfootball_dqn_main_config = dict(
-    exp_name='data_gfootball/gfootball_easy_dqn_seed0_rbs1e5_df0.999',
+    exp_name='data_gfootball/gfootball_easy_dqn_pretrain_seed0_rbs1e5_ed2e6',
     # exp_name='data_gfootball/gfootball_medium_dqn_seed0_rbs1e5_df0.999',
     env=dict(
         collector_env_num=collector_env_num,
@@ -18,10 +18,11 @@ gfootball_dqn_main_config = dict(
         env_name="11_vs_11_easy_stochastic",
     ),
     policy=dict(
+        il_model_path='/mnt/lustre/puyuan/DI-engine/data_gfootball/gfootball_easy_il_rule_200ep_lt0_seed2/ckpt/ckpt_best.pth.tar',
+        # il_model_path='/home/puyuan/DI-engine/data_gfootball/gfootball_easy_il_rule_200ep_lt0_seed2/ckpt/ckpt_best.pth.tar',
         cuda=True,
         nstep=3,
-        # discount_factor=0.97,
-        discount_factor=0.999,
+        discount_factor=0.97,
         model=dict(),
         learn=dict(
             update_per_collect=20,
@@ -36,7 +37,7 @@ gfootball_dqn_main_config = dict(
                 type='exp',
                 start=1,
                 end=0.05,
-                decay=int(1e5),
+                decay=int(2e6),
             ),
             replay_buffer=dict(replay_buffer_size=int(1e5), ),
             ),
@@ -62,4 +63,4 @@ if __name__ == '__main__':
     from ding.entry import serial_pipeline
     from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
     football_naive_q = FootballNaiveQ()
-    serial_pipeline((main_config, create_config), model=football_naive_q, seed=0, max_env_step=10e6)
+    serial_pipeline((main_config, create_config), model=football_naive_q, seed=0, max_env_step=5e6)

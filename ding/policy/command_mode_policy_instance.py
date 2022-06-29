@@ -42,8 +42,6 @@ from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 
-from .bc import DiscreteBehaviourCloningPolicy
-
 
 class EpsCommandModePolicy(CommandModePolicy):
 
@@ -339,11 +337,6 @@ class PDQNCommandModePolicy(PDQNPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('sac_discrete_command')
 class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
-    pass
-
-
-@POLICY_REGISTRY.register('bc_command')
-class BCCommandModePolicy(DiscreteBehaviourCloningPolicy, EpsCommandModePolicy):
     pass
 
 
