@@ -103,11 +103,21 @@ class BaseEnvManager(object):
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn[0]()
-        self._env_ref.reset()
-        self._observation_space = self._env_ref.observation_space
-        self._action_space = self._env_ref.action_space
-        self._reward_space = self._env_ref.reward_space
-        self._env_ref.close()
+        try:
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+        except:
+            # For some environment,
+            # we have to reset before getting observation description.
+            # However, for dmc-mujoco, we should not reset the env at the main thread,
+            # when using in a subprocess mode, which would cause opengl rendering bugs,
+            # leading to no response subprocesses.
+            self._env_ref.reset()
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+            self._env_ref.close()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
 
@@ -163,7 +173,7 @@ class BaseEnvManager(object):
         return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
     @property
-    def ready_imgs(self, render_mode: Optional[Tuple[str]] = ('rgb_array')) -> Dict[int, Any]:
+    def ready_imgs(self, render_mode: Optional[str] = 'rgb_array') -> Dict[int, Any]:
         """
         Overview:
             Get the next ready renderd frame and corresponding env id.
@@ -171,7 +181,7 @@ class BaseEnvManager(object):
             - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.
         """
         from ding.utils import render
-        assert render_mode[0] in ['rgb_array', 'depth_array']
+        assert render_mode in ['rgb_array', 'depth_array']
         return {i: render(self._envs[i], render_mode) for i in self.ready_obs.keys()}
 
     @property

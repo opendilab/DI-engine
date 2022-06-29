@@ -2,10 +2,10 @@ from typing import Union, Dict, Optional
 from easydict import EasyDict
 import torch
 import torch.nn as nn
-
+from copy import deepcopy
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
-    FCEncoder, ConvEncoder
+    FCEncoder, ConvEncoder, IMPALAConvEncoder
 
 
 @MODEL_REGISTRY.register('vac')
@@ -35,6 +35,7 @@ class VAC(nn.Module):
         fixed_sigma_value: Optional[int] = 0.3,
         bound_type: Optional[str] = None,
         encoder: Optional[torch.nn.Module] = None,
+        impala_cnn_encoder: bool = False,
     ) -> None:
         r"""
         Overview:
@@ -61,33 +62,55 @@ class VAC(nn.Module):
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
+        self.impala_cnn_encoder = impala_cnn_encoder
+        self.share_encoder = share_encoder
+
         # Encoder Type
-        if encoder is None:
-            if isinstance(obs_shape, int) or len(obs_shape) == 1:
-                encoder_cls = FCEncoder
-            elif len(obs_shape) == 3:
-                encoder_cls = ConvEncoder
+        def new_encoder(outsize):
+            if impala_cnn_encoder:
+                return IMPALAConvEncoder(obs_shape=obs_shape, channels=encoder_hidden_size_list, outsize=outsize)
             else:
-                raise RuntimeError(
-                    "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                    format(obs_shape)
-                )
-            self.share_encoder = share_encoder
-            if self.share_encoder:
-                self.encoder = encoder_cls(
-                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                )
+                if isinstance(obs_shape, int) or len(obs_shape) == 1:
+                    return FCEncoder(
+                        obs_shape=obs_shape,
+                        hidden_size_list=encoder_hidden_size_list,
+                        activation=activation,
+                        norm_type=norm_type
+                    )
+                elif len(obs_shape) == 3:
+                    return ConvEncoder(
+                        obs_shape=obs_shape,
+                        hidden_size_list=encoder_hidden_size_list,
+                        activation=activation,
+                        norm_type=norm_type
+                    )
+                else:
+                    raise RuntimeError(
+                        "not support obs_shape for pre-defined encoder: {}, please customize your own encoder".
+                        format(obs_shape)
+                    )
+
+        if self.share_encoder:
+            assert actor_head_hidden_size == critic_head_hidden_size, \
+                "actor and critic network head should have same size."
+            if encoder:
+                if isinstance(encoder, torch.nn.Module):
+                    self.encoder = encoder
+                else:
+                    raise ValueError("illegal encoder instance.")
             else:
-                self.actor_encoder = encoder_cls(
-                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                )
-                self.critic_encoder = encoder_cls(
-                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                )
+                self.encoder = new_encoder(actor_head_hidden_size)
         else:
-            assert share_encoder
-            self.share_encoder = share_encoder
-            self.encoder = encoder
+            if encoder:
+                if isinstance(encoder, torch.nn.Module):
+                    self.actor_encoder = encoder
+                    self.critic_encoder = deepcopy(encoder)
+                else:
+                    raise ValueError("illegal encoder instance.")
+            else:
+                self.actor_encoder = new_encoder(actor_head_hidden_size)
+                self.critic_encoder = new_encoder(critic_head_hidden_size)
+
         # Head Type
         self.critic_head = RegressionHead(
             critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type

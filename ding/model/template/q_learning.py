@@ -5,7 +5,7 @@ import torch.nn as nn
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
-    QuantileHead, QRDQNHead, DistributionHead
+    QuantileHead, FQFHead, QRDQNHead, DistributionHead
 from ding.torch_utils.network.gtrxl import GTrXL
 
 
@@ -416,6 +416,116 @@ class IQN(nn.Module):
         return x
 
 
+@MODEL_REGISTRY.register('fqf')
+class FQF(nn.Module):
+
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            head_hidden_size: Optional[int] = None,
+            head_layer_num: int = 1,
+            num_quantiles: int = 32,
+            quantile_embedding_size: int = 128,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
+    ) -> None:
+        r"""
+        Overview:
+            Init the FQF Model according to input arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - num_quantiles (:obj:`int`): Number of quantiles in the prediction distribution.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
+        """
+        super(FQF, self).__init__()
+        # For compatibility: 1, (1, ), [4, 32, 32]
+        obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
+        # FC Encoder
+        if isinstance(obs_shape, int) or len(obs_shape) == 1:
+            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        # Conv Encoder
+        elif len(obs_shape) == 3:
+            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own FQF".format(obs_shape)
+            )
+        # Head Type
+        head_cls = FQFHead
+        multi_head = not isinstance(action_shape, int)
+        if multi_head:
+            self.head = MultiHead(
+                head_cls,
+                head_hidden_size,
+                action_shape,
+                layer_num=head_layer_num,
+                num_quantiles=num_quantiles,
+                quantile_embedding_size=quantile_embedding_size,
+                activation=activation,
+                norm_type=norm_type
+            )
+        else:
+            self.head = head_cls(
+                head_hidden_size,
+                action_shape,
+                head_layer_num,
+                activation=activation,
+                norm_type=norm_type,
+                num_quantiles=num_quantiles,
+                quantile_embedding_size=quantile_embedding_size,
+            )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict FQF's output.
+            Parameter updates with FQF's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor with ``(B, N=hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
+                    ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), \
+                    ``quantiles_hats`` (:obj:`torch.Tensor`), \
+                    ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where B is batch size and N is head_hidden_size.
+            - logit: :math:`(B, M)`, where M is action_shape.
+            - q: :math:`(B, num_quantiles, M)`.
+            - quantiles: :math:`(B, num_quantiles + 1)`.
+            - quantiles_hats: :math:`(B, num_quantiles)`.
+            - q_tau_i: :math:`(B, num_quantiles - 1, M)`.
+            - entropies: :math:`(B, 1)`.
+        Examples:
+            >>> model = FQF(64, 64) # arguments: 'obs_shape' and 'action_shape'
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default num_quantiles: int = 32
+            >>> assert outputs['q'].shape == torch.Size([4, 32, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 33])
+            >>> assert outputs['quantiles_hats'].shape == torch.Size([4, 32])
+            >>> assert outputs['q_tau_i'].shape == torch.Size([4, 31, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 1])
+        """
+        x = self.encoder(x)
+        x = self.head(x)
+        return x
+
+
 @MODEL_REGISTRY.register('rainbowdqn')
 class RainbowDQN(nn.Module):
     """
@@ -635,9 +745,7 @@ class DRQN(nn.Module):
                 head_hidden_size, action_shape, head_layer_num, activation=activation, norm_type=norm_type
             )
 
-    def forward(
-            self, inputs: Dict, inference: bool = False, saved_hidden_state_timesteps: Optional[list] = None
-    ) -> Dict:
+    def forward(self, inputs: Dict, inference: bool = False, saved_state_timesteps: Optional[list] = None) -> Dict:
         r"""
         Overview:
             Use observation tensor to predict DRQN output.
@@ -646,9 +754,9 @@ class DRQN(nn.Module):
             - inputs (:obj:`Dict`):
             - inference: (:obj:'bool'): if inference is True, we unroll the one timestep transition,
                 if inference is False, we unroll the sequence transitions.
-            - saved_hidden_state_timesteps: (:obj:'Optional[list]'): when inference is False,
+            - saved_state_timesteps: (:obj:'Optional[list]'): when inference is False,
                 we unroll the sequence transitions, then we would save rnn hidden states at timesteps
-                that are listed in list saved_hidden_state_timesteps.
+                that are listed in list saved_state_timesteps.
 
        ArgumentsKeys:
             - obs (:obj:`torch.Tensor`): Encoded observation
@@ -705,12 +813,12 @@ class DRQN(nn.Module):
             lstm_embedding = []
             # TODO(nyz) how to deal with hidden_size key-value
             hidden_state_list = []
-            if saved_hidden_state_timesteps is not None:
-                saved_hidden_state = []
+            if saved_state_timesteps is not None:
+                saved_state = []
             for t in range(x.shape[0]):  # T timesteps
                 output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
-                if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
-                    saved_hidden_state.append(prev_state)
+                if saved_state_timesteps is not None and t + 1 in saved_state_timesteps:
+                    saved_state.append(prev_state)
                 lstm_embedding.append(output)
                 hidden_state = [p['h'] for p in prev_state]
                 # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
@@ -719,13 +827,15 @@ class DRQN(nn.Module):
             if self.res_link:
                 x = x + a
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
-            # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
+            # the last timestep state including the hidden state (h) and the cell state (c)
+            # shape: {list: B{dict: 2{Tensor:(1, 1, head_hidden_size}}}
             x['next_state'] = prev_state
             # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
             # This key is used in qtran, the algorithm requires to retain all h_{t} during training
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
-            if saved_hidden_state_timesteps is not None:
-                x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
+            if saved_state_timesteps is not None:
+                # the selected saved hidden states, including the hidden state (h) and the cell state (c)
+                x['saved_state'] = saved_state
             return x
 
 

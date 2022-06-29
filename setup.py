@@ -53,6 +53,7 @@ setup(
         'torch>=1.1.0,<=1.10.0',  # PyTorch 1.10.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
+        'protobuf<=3.20.1',
         'tensorboardX>=2.1,<=2.2',
         'matplotlib',  # pypy incompatible
         'seaborn',
@@ -83,6 +84,7 @@ setup(
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'moviepy',
+        'hbutils',
     ],
     extras_require={
         'test': [
@@ -155,6 +157,9 @@ setup(
         'envpool': [
             'envpool',
         ],
+        # 'dmc2gym': [
+        #    'dmc2gym @ git+https://github.com/denisyarats/dmc2gym@master#egg=dmc2gym',
+        # ],
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},
     classifiers=[

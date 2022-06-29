@@ -25,7 +25,7 @@ cfg = dict(
     discount_factor=0.99,
     burnin_step=2,
     nstep=5,
-    unroll_len=20,
+    learn_unroll_len=20,
     burning_step=5,
     learn=dict(
         value_rescale=True,
@@ -42,7 +42,8 @@ cfg = dict(
         ignore_done=False,
     ),
     collect=dict(
-        each_iter_n_sample=32,
+        n_sample=32,
+        traj_len_inf=True,
         env_num=8,
         pho=1 / 4,
     ),
@@ -122,10 +123,10 @@ def test_r2d3(cfg):
     )
     ts = policy._process_transition(batch[0], out[0], ts)
     assert len(set(ts.keys()).intersection({'prev_state', 'action', 'reward', 'done', 'obs'})) == 5
-    ts = get_transition(64 * policy._unroll_len_add_burnin_step)
+    ts = get_transition(64 * policy._sequence_len)
     sample = policy._get_train_sample(ts)
-    n_traj = len(ts) // policy._unroll_len_add_burnin_step
-    assert len(sample) == n_traj + 1 if len(ts) % policy._unroll_len_add_burnin_step != 0 else n_traj
+    n_traj = len(ts) // policy._sequence_len
+    assert len(sample) == n_traj + 1 if len(ts) % policy._sequence_len != 0 else n_traj
     out = policy._forward_eval(batch)
     assert len(set(out[0].keys()).intersection({'logit', 'action'})) == 2
     assert list(out[0]['logit'].shape) == [action_space]

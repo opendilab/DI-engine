@@ -3,6 +3,7 @@ import copy
 import numpy as np
 from easydict import EasyDict
 import gym
+import torch
 
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
@@ -119,3 +120,64 @@ class MujocoEnv(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
+
+
+@ENV_REGISTRY.register('mbmujoco')
+class MBMujocoEnv(MujocoEnv):
+    def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+            This function determines whether each state is a terminated state.
+        .. note::
+            This is a collection of termination functions for mujocos used in MBPO (arXiv: 1906.08253),\
+            directly copied from MBPO repo https://github.com/jannerm/mbpo/tree/master/mbpo/static.
+        """
+        assert len(next_obs.shape) == 2
+        if self._cfg.env_id == "Hopper-v2":
+            height = next_obs[:, 0]
+            angle = next_obs[:, 1]
+            not_done = torch.isfinite(next_obs).all(-1) \
+                       * (torch.abs(next_obs[:, 1:]) < 100).all(-1) \
+                       * (height > .7) \
+                       * (torch.abs(angle) < .2)
+
+            done = ~not_done
+            return done
+        elif self._cfg.env_id == "Walker2d-v2":
+            height = next_obs[:, 0]
+            angle = next_obs[:, 1]
+            not_done = (height > 0.8) \
+                       * (height < 2.0) \
+                       * (angle > -1.0) \
+                       * (angle < 1.0)
+            done = ~not_done
+            return done
+        elif 'walker_' in self._cfg.env_id:
+            torso_height = next_obs[:, -2]
+            torso_ang = next_obs[:, -1]
+            if 'walker_7' in self._cfg.env_id or 'walker_5' in self._cfg.env_id:
+                offset = 0.
+            else:
+                offset = 0.26
+            not_done = (torso_height > 0.8 - offset) \
+                       * (torso_height < 2.0 - offset) \
+                       * (torso_ang > -1.0) \
+                       * (torso_ang < 1.0)
+            done = ~not_done
+            return done
+        elif self._cfg.env_id == "HalfCheetah-v3":
+            done = torch.zeros_like(next_obs.sum(-1)).bool()
+            return done
+        elif self._cfg.env_id in ['Ant-v2', 'AntTruncatedObs-v2']:
+            x = next_obs[:, 0]
+            not_done = 	torch.isfinite(next_obs).all(axis=-1) \
+                        * (x >= 0.2) \
+                        * (x <= 1.0)
+            done = ~not_done
+            return done
+        elif self._cfg.env_id in ['Humanoid-v2', 'HumanoidTruncatedObs-v2']:
+            z = next_obs[:,0]
+            done = (z < 1.0) + (z > 2.0)
+            return done
+        else:
+            raise KeyError("not implemented env_id: {}".format(self._cfg.env_id))

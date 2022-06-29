@@ -11,12 +11,13 @@ from ding.config import compile_config
 from ding.model import model_wrap
 from ding.rl_utils import get_train_sample, get_nstep_return_data
 from ding.entry import serial_pipeline_bc, collect_demo_data, serial_pipeline
-from ding.policy import PPOOffPolicy, DiscreteBehaviourCloningPolicy
+from ding.policy import PPOOffPolicy, BehaviourCloningPolicy
 from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config, \
     cartpole_offppo_config, cartpole_offppo_create_config
+from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
 
 
 @POLICY_REGISTRY.register('ppo_bc')
@@ -73,6 +74,7 @@ def test_serial_pipeline_bc_ppo():
     il_config[0].policy.eval.evaluator.multi_gpu = False
     il_config[0].policy.learn.train_epoch = 20
     il_config[0].policy.type = 'ppo_bc'
+    il_config[0].policy.continuous = False
     il_config[0].exp_name = 'test_serial_pipeline_bc_ppo_il'
     _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
@@ -81,7 +83,7 @@ def test_serial_pipeline_bc_ppo():
 
 
 @POLICY_REGISTRY.register('dqn_bc')
-class DQNILPolicy(DiscreteBehaviourCloningPolicy):
+class DQNILPolicy(BehaviourCloningPolicy):
 
     def _forward_learn(self, data: dict) -> dict:
         return super()._forward_learn(data)
@@ -133,6 +135,7 @@ def test_serial_pipeline_bc_dqn():
     state_dict = expert_policy.collect_mode.state_dict()
     collect_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     collect_config[0].policy.type = 'dqn_bc'
+    collect_config[0].policy.continuous = False
     collect_config[0].policy.other.eps = 0
     collect_demo_data(
         collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
@@ -142,8 +145,44 @@ def test_serial_pipeline_bc_dqn():
     il_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     il_config[0].policy.learn.train_epoch = 15
     il_config[0].policy.type = 'dqn_bc'
+    il_config[0].policy.continuous = False
     il_config[0].env.stop_value = 50
     il_config[0].policy.eval.evaluator.multi_gpu = False
     _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
+    os.popen('rm -rf ' + expert_data_path)
+
+
+@pytest.mark.unittest
+def test_serial_pipeline_bc_sac():
+    # train expert policy
+    train_config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    expert_policy = serial_pipeline(train_config, seed=0, max_train_iter=10)
+
+    # collect expert demo data
+    collect_count = 10000
+    expert_data_path = 'expert_data_sac.pkl'
+    state_dict = expert_policy.collect_mode.state_dict()
+    collect_config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    collect_demo_data(
+        collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
+    )
+
+    # il training 2
+    il_config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    il_config[0].policy.learn.train_epoch = 15
+    il_config[0].policy.type = 'bc'
+    il_config[0].policy.continuous = True
+    il_config[0].env.stop_value = 50
+    il_config[0].policy.model = dict(
+        obs_shape=3,
+        action_shape=1,
+        action_space='regression',
+        actor_head_hidden_size=128,
+    )
+    il_config[0].policy.loss_type = 'l1_loss'
+    il_config[0].policy.learn.learning_rate = 1e-5
+    il_config[0].policy.eval.evaluator.multi_gpu = False
+    il_config[1].policy.type = 'bc'
+    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path, max_iter=10)
     os.popen('rm -rf ' + expert_data_path)
