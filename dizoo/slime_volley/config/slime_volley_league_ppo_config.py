@@ -35,6 +35,7 @@ league_demo_ppo_config = dict(
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
+        eval=dict(argmax_eval=False),
         other=dict(
             league=dict(
                 player_category=['default'],

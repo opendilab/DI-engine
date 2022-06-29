@@ -48,7 +48,7 @@ class Botpolicy(Policy):
             self._enable_field = enable_field
         assert set(self._enable_field).issubset(self.total_field), self._enable_field
 
-        if len(set(self._enable_field).intersection(set(['learn', 'collect', 'eval']))) > 0:
+        """ if len(set(self._enable_field).intersection(set(['learn', 'collect', 'eval']))) > 0:
             self._cuda = cfg.cuda and torch.cuda.is_available()
             # now only support multi-gpu for only enable learn mode
             if len(set(self._enable_field).intersection(set(['learn']))) > 0:
@@ -70,7 +70,11 @@ class Botpolicy(Policy):
         else:
             self._cuda = False
             self._rank = 0
-            self._device = 'cpu'
+            self._device = 'cpu' """
+        self._model = model
+        self._cuda = False
+        self._rank = 0
+        self._device = 'cpu'
 
         for field in self._enable_field:
             getattr(self, '_init_' + field)()

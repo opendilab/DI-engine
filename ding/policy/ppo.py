@@ -405,7 +405,10 @@ class PPOPolicy(Policy):
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
         elif self._action_space == 'discrete':
-            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+            if self._cfg.eval.argmax_eval:
+                self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+            else:
+                self._eval_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         elif self._action_space == 'hybrid':
             self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
         self._eval_model.reset()
@@ -728,7 +731,10 @@ class PPOOffPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        if self._cfg.eval.argmax_eval:
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        else:
+            self._eval_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
