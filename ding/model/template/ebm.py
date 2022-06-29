@@ -1,8 +1,9 @@
-"""Vanilla DFO and EBM are adapted from https://github.com/kevinzakka/ibc. 
+"""Vanilla DFO and EBM are adapted from https://github.com/kevinzakka/ibc.
+   MCMC is adapted from https://github.com/google-research/ibc. 
 """
 
 from dataclasses import replace
-from typing import Union, Dict, Optional
+from typing import Callable, Union, Dict, Optional, Tuple
 
 import numpy as np
 import torch
@@ -23,20 +24,65 @@ def create_stochastic_optimizer(stochastic_optimizer_config):
         **stochastic_optimizer_config
     )
 
+def no_ebm_grad():
+    def ebm_disable_grad_wrapper(func: Callable):
+        def wrapper(*args, **kwargs):
+            # make sure ebm is the last positional arguments
+            ebm = args[-1]
+            ebm.requires_grad_(False)
+            result = func(*args, **kwargs)
+            ebm.requires_grad_(True)
+            return result
+        return wrapper
+    return ebm_disable_grad_wrapper
 
 class StochasticOptimizer(ABC):
 
+    def _sample(self, obs: torch.Tensor, num_samples: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Helper method for drawing action samples from the uniform random distribution
+        and tiling observations to the same shape as action samples.
+        obs: (B, O)
+        return: (B, N, O), (B, N, A).
+        """
+        # TODO: do not use np.random
+        action_bounds = self.action_bounds.cpu().numpy()
+        size = (obs.shape[0], num_samples, action_bounds.shape[1])
+        action_samples = np.random.uniform(action_bounds[0, :], action_bounds[1, :], size=size)
+        action_samples = torch.as_tensor(action_samples, dtype=torch.float32).to(self.device)
+        tiled_obs = unsqueeze_repeat(obs, num_samples, 1)
+        return tiled_obs, action_samples
+
+    @staticmethod
+    @torch.no_grad()
+    def _get_best_action_sample(obs: torch.Tensor, action_samples: torch.Tensor, ebm: nn.Module):
+        """Return target with highest probability (lowest energy).
+        obs: (B, N, O), action_samples: (B, N, A)
+        return: (B, A).
+        """
+        # (B, N)
+        energies = ebm.forward(obs, action_samples)
+        probs = F.softmax(-1.0 * energies, dim=-1)
+        # (B, )
+        best_idxs = probs.argmax(dim=-1)
+        return action_samples[torch.arange(action_samples.size(0)), best_idxs, :]
+
     def set_action_bounds(self, action_bounds: np.ndarray):
-        self.action_bounds = action_bounds
+        self.action_bounds = torch.as_tensor(action_bounds, dtype=torch.float32).to(self.device)
 
     @abstractmethod
-    def sample(self, batch_size: int, ebm: nn.Module) -> torch.Tensor:
-        """Sample counter-negatives for feeding to the InfoNCE objective."""
+    def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
+        obs: (B, O)
+        return: (B, N, O), (B, N, A).
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def infer(self, x: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
-        """Optimize for the best action conditioned on the current observation."""
+    def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
+        """Optimize for the best action conditioned on the current observation.
+        obs: (B, O)
+        return: (B, A).
+        """
         raise NotImplementedError
 
 
@@ -61,31 +107,27 @@ class DFO(StochasticOptimizer):
         self.inference_samples = inference_samples
         self.device = torch.device('cuda' if cuda else "cpu")
 
-    def _sample(self, num_samples: int) -> torch.Tensor:
-        """Helper method for drawing samples from the uniform random distribution."""
-        size = (num_samples, self.action_bounds.shape[1])
-        samples = np.random.uniform(self.action_bounds[0, :], self.action_bounds[1, :], size=size)
-        return torch.as_tensor(samples, dtype=torch.float32, device=self.device)
-
-    def sample(self, batch_size: int, ebm: nn.Module) -> torch.Tensor:
-        samples = self._sample(batch_size * self.train_samples)
-        return samples.reshape(batch_size, self.train_samples, -1)
+    def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
+        obs: (B, O)
+        return: (B, N, O), (B, N, A).
+        """
+        del ebm
+        return self._sample(obs, self.train_samples)
 
     @torch.no_grad()
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
-        """Optimize for the best action given a trained EBM."""
+        """Optimize for the best action conditioned on the current observation.
+        obs: (B, O)
+        return: (B, A).
+        """
         noise_scale = self.noise_scale
-        action_bounds = torch.as_tensor(self.action_bounds).to(self.device)
 
-        action_samples = self._sample(obs.size(0) * self.inference_samples)
-        # (B, N, A)
-        action_samples = action_samples.reshape(obs.size(0), self.inference_samples, -1)
+        # (B, N, O), (B, N, A)
+        obs, action_samples = self._sample(obs, self.inference_samples)
 
         for i in range(self.iters):
-            # Compute energies.
-            # obs: (B, O)
-            # action_samples: (B, N, A)
-            # energy: (B, N)
+            # (B, N)
             energies = ebm.forward(obs, action_samples)
             probs = F.softmax(-1.0 * energies, dim=-1)
 
@@ -95,16 +137,12 @@ class DFO(StochasticOptimizer):
 
             # Add noise and clip to target bounds.
             action_samples = action_samples + torch.randn_like(action_samples) * noise_scale
-            action_samples = action_samples.clamp(min=action_bounds[0, :], max=action_bounds[1, :])
+            action_samples = action_samples.clamp(min=self.action_bounds[0, :], max=self.action_bounds[1, :])
 
             noise_scale *= self.noise_shrink
 
         # Return target with highest probability.
-        energies = ebm.forward(obs, action_samples)
-        probs = F.softmax(-1.0 * energies, dim=-1)
-        # (B, )
-        best_idxs = probs.argmax(dim=-1)
-        return action_samples[torch.arange(action_samples.size(0)), best_idxs, :]
+        return self._get_best_action_sample(obs, action_samples, ebm)
 
 
 @STOCHASTIC_OPTIMIZER_REGISTRY.register('ardfo')
@@ -123,13 +161,13 @@ class AutoRegressiveDFO(DFO):
 
     @torch.no_grad()
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
-        """Optimize for the best action given a trained EBM."""
+        """Optimize for the best action conditioned on the current observation.
+        obs: (B, O)
+        return: (B, A).
+        """
         noise_scale = self.noise_scale
-        action_bounds = torch.as_tensor(self.action_bounds).to(self.device)
 
-        action_samples = self._sample(obs.size(0) * self.inference_samples)
-        # (B, N, A)
-        action_samples = action_samples.reshape(obs.size(0), self.inference_samples, -1)
+        obs, action_samples = self._sample(obs, self.inference_samples)
 
         for i in range(self.iters):
 
@@ -145,7 +183,7 @@ class AutoRegressiveDFO(DFO):
                 _action_samples = _action_samples[torch.arange(_action_samples.size(0)).unsqueeze(-1), _idxs]
 
                 _action_samples = _action_samples + torch.randn_like(_action_samples) * noise_scale
-                _action_samples = _action_samples.clamp(min=action_bounds[0, j], max=action_bounds[1, j])
+                _action_samples = _action_samples.clamp(min=self.action_bounds[0, j], max=self.action_bounds[1, j])
 
                 action_samples[:, :, j] = _action_samples
 
@@ -161,7 +199,234 @@ class AutoRegressiveDFO(DFO):
 
 @STOCHASTIC_OPTIMIZER_REGISTRY.register('mcmc')
 class MCMC(StochasticOptimizer):
-    pass
+
+    class BaseScheduler(ABC):
+        @abstractmethod
+        def get_rate(self, index):
+            raise NotImplementedError
+
+    class ExponentialScheduler:
+        """Exponential learning rate schedule for Langevin sampler."""
+
+        def __init__(self, init, decay):
+            self._decay = decay
+            self._latest_lr = init
+
+        def get_rate(self, index):
+            """Get learning rate. Assumes calling sequentially."""
+            del index
+            lr = self._latest_lr 
+            self._latest_lr *= self._decay
+            return lr
+
+    class PolynomialScheduler:
+        """Polynomial learning rate schedule for Langevin sampler."""
+
+        def __init__(self, init, final, power, num_steps):
+            self._init = init
+            self._final = final
+            self._power = power
+            self._num_steps = num_steps
+
+        def get_rate(self, index):
+            """Get learning rate for index."""
+            if index == -1:
+                return self._init
+            return ((self._init - self._final) *
+                    ((1 - (float(index) / float(self._num_steps-1))) ** (self._power))
+                    ) + self._final
+
+    def __init__(
+        self,
+        # action_bounds: np.ndarray,
+        iters: int = 25,
+        use_langevin_negative_samples: bool = False,
+        train_samples: int = 256,
+        inference_samples: int = 512,
+        stepsize_scheduler: dict = dict(
+            init=1e-1,
+            decay=0.8,
+        ),
+        optimize_again: bool = True,
+        again_stepsize_scheduler: dict = dict(
+            init=1e-1,
+            final=1e-5, 
+            power=2.0,
+            # num_steps,
+        ),
+        cuda: bool = False,
+        ## langevin_step
+        noise_scale: float = 1.0,
+        grad_clip = None,
+        delta_action_clip: float = 0.1,
+        grad_norm_type: str = 'inf',
+        grad_margin: float = 1.0,
+        grad_loss_weight: float = 1.0,
+    ):
+        self.iters = iters
+        self.use_langevin_negative_samples = use_langevin_negative_samples
+        self.train_samples = train_samples
+        self.inference_samples = inference_samples
+        self.stepsize_scheduler = stepsize_scheduler
+        self.optimize_again = optimize_again
+        self.again_stepsize_scheduler = again_stepsize_scheduler
+
+        self.noise_scale = noise_scale
+        self.grad_clip = grad_clip
+        self.delta_action_clip = delta_action_clip
+        self.grad_norm_type = grad_norm_type
+        self.grad_margin = grad_margin
+        self.grad_loss_weight = grad_loss_weight
+        self.device = torch.device('cuda' if cuda else "cpu")
+    
+    @staticmethod
+    def _gradient_wrt_act(
+            obs: torch.Tensor, 
+            action: torch.Tensor, 
+            ebm: nn.Module,
+            create_graph: bool = False,
+    ) -> torch.Tensor:
+        """
+        Calculate gradient w.r.t action.
+        obs: (B, N, O), action: (B, N, A)
+        return: (B, N, A).
+        """
+        action = nn.Parameter(action)
+        energy = ebm.forward(obs, action).sum()
+        return torch.autograd.grad(energy, action, create_graph=create_graph)[0]
+
+    @no_ebm_grad()
+    def _langevin_step(
+            self, 
+            obs: torch.Tensor, 
+            action: torch.Tensor, 
+            stepsize: float, 
+            ebm: nn.Module
+    ) -> torch.Tensor:
+        """
+        Run one langevin MCMC step.
+        obs: (B, N, O), action: (B, N, A)
+        return: (B, N, A).
+        """
+        l_lambda = 1.0
+        de_dact = MCMC._gradient_wrt_act(obs, action, ebm)
+
+        if self.grad_clip:
+            de_dact = de_dact.clamp(min=-self.grad_clip, max=self.grad_clip)
+
+        gradient_scale = 0.5
+        de_dact = (gradient_scale * l_lambda * de_dact +
+             torch.randn_like(de_dact) * l_lambda * self.noise_scale)
+        
+        
+        delta_action = stepsize * de_dact
+        delta_action_clip = self.delta_action_clip * 0.5 * (
+            self.action_bounds[1] - self.action_bounds[0])
+        delta_action.clamp(min=-delta_action_clip, max=delta_action_clip)
+
+        action = action - delta_action
+        action.clamp(min=self.action_bounds[0], max=self.action_bounds[1])
+        
+        return action
+
+    # can not use @torch.no_grad() even during the inference
+    # because we need to calculate gradient w.r.t inputs as MCMC updates.
+    @no_ebm_grad()
+    def _langevin_action_gives_obs(
+            self, 
+            obs: torch.Tensor, 
+            action: torch.Tensor, 
+            ebm: nn.Module, 
+            scheduler: BaseScheduler = None
+    ) -> torch.Tensor:
+        """
+        Run langevin MCMC for `self.iters` steps.
+        obs: (B, N, O), action: (B, N, A)
+        return: (B, N, A)
+        """
+        if not scheduler:
+            scheduler = MCMC.ExponentialScheduler(**self.stepsize_scheduler)
+        stepsize = scheduler.get_rate(-1)
+        for i in range(self.iters):
+            action = self._langevin_step(obs, action, stepsize, ebm)
+            stepsize = scheduler.get_rate(i)
+        return action
+
+    def grad_penalty(
+            self, 
+            obs: torch.Tensor, 
+            action: torch.Tensor, 
+            ebm: nn.Module
+    ) -> torch.Tensor:
+        """
+        Calculate grad_penalty.
+        Make sure `torch.is_grad_enabled()==True` to calculate second order derivatives.
+        obs: (B, N+1, O), action: (B, N+1, A)
+        return: loss
+        """
+        # (B, N+1, A), this gradient is differentiable w.r.t model parameters
+        de_dact = MCMC._gradient_wrt_act(obs, action, ebm, create_graph=True)
+
+        def compute_grad_norm(grad_norm_type, de_dact):
+            # de_deact: B, N+1, A
+            # return:   B, N+1
+            grad_norm_type_to_ord = {
+                '1': 1,
+                '2': 2,
+                'inf': float('inf'),
+            }
+            ord = grad_norm_type_to_ord[grad_norm_type] 
+            return torch.linalg.norm(de_dact, ord, dim=-1)
+
+        # (B, N+1)
+        grad_norms = compute_grad_norm(self.grad_norm_type, de_dact)
+        grad_norms -= self.grad_margin
+        grad_norms.clamp(min=0., max=1e10)
+        grad_norms = grad_norms.pow(2)
+
+        grad_loss = grad_norms.mean()
+        return grad_loss * self.grad_loss_weight
+
+    @no_ebm_grad()
+    def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
+        obs: (B, O)
+        return: (B, N, O), (B, N, A)
+        """
+        obs, uniform_action_samples = self._sample(obs, self.inference_samples)
+        if not self.use_langevin_negative_samples:
+            return obs, uniform_action_samples
+        langevin_action_samples = self._langevin_action_gives_obs(obs, uniform_action_samples, ebm)
+        return obs, langevin_action_samples
+
+    @no_ebm_grad()
+    def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
+        """Optimize for the best action conditioned on the current observation.
+        obs: (B, O)
+        return: (B, A).
+        """
+        # (B, N, O), (B, N, A)
+        obs, uniform_action_samples = self._sample(obs, self.inference_samples)
+        action_samples = self._langevin_action_gives_obs(
+            obs, 
+            uniform_action_samples, 
+            ebm,
+            # MCMC.ExponentialScheduler(**self.stepsize_scheduler),
+        )
+
+        # Run a second optimization, a trick for more precise inference
+        if self.optimize_again:
+            self.again_stepsize_scheduler['num_steps'] = self.iters
+            action_samples = self._langevin_action_gives_obs(
+                obs, 
+                action_samples,
+                ebm,
+                scheduler=MCMC.PolynomialScheduler(**self.again_stepsize_scheduler),
+            )
+
+        # action_samples: B, N, A
+        return self._get_best_action_sample(obs, action_samples, ebm)
+
 
 
 @MODEL_REGISTRY.register('ebm')
@@ -189,10 +454,9 @@ class EBM(nn.Module):
         )
 
     def forward(self, obs, action):
-        # obs: (B, O)
+        # obs: (B, N, O)
         # action: (B, N, A)
         # return: (B, N)
-        obs = unsqueeze_repeat(obs, action.shape[1], 1)
         x = torch.concat([obs, action], -1)
         x = self.net(x)
         return x['pred']
@@ -241,10 +505,10 @@ class AutoregressiveEBM(nn.Module):
         ).permute(1, 0, 2).contiguous().to(self.device)
 
     def forward(self, obs, action):
-        # obs: (B, O)
+        # obs: (B, N, O)
         # action: (B, N, A)
         # return: (B, N, A)
-        obs = unsqueeze_repeat(obs, action.shape[1], 1)
+
         # obs: (B*N, O)
         # action: (B*N, A)
         obs, batch_dims = fold_batch(obs)

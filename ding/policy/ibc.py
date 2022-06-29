@@ -78,21 +78,22 @@ class IBCPolicy(BehaviourCloningPolicy):
         # obs: (B, O)
         # action: (B, A)
         obs, action = data['obs'], data['action']
-        batch_size = obs.shape[0]
 
-        # (B, N, A)
-        negatives = self._stochastic_optimizer.sample(batch_size, self._learn_model)
+        # (B, N, O), (B, N, A)
+        obs, negatives = self._stochastic_optimizer.sample(obs, self._learn_model)
 
         # (B, N+1, A)
         targets = torch.cat([action.unsqueeze(dim=1), negatives], dim=1)
+        # (B, N+1, O)
+        obs = torch.cat([obs[:, :1], obs], dim=1)
 
         permutation = torch.rand(targets.shape[0], targets.shape[1]).argsort(dim=1)
         targets = targets[torch.arange(targets.shape[0]).unsqueeze(-1), permutation]
 
         ground_truth = (permutation == 0).nonzero()[:, 1].to(self._device)
 
-        # (B, N+1)
-        # or (B, N+1, A) for autoregressive ebm
+        # (B, N+1) for ebm
+        # (B, N+1, A) for autoregressive ebm
         energy = self._learn_model.forward(obs, targets)
 
         logits = -1.0 * energy
@@ -101,6 +102,9 @@ class IBCPolicy(BehaviourCloningPolicy):
             # (B, A)
             ground_truth = unsqueeze_repeat(ground_truth, logits.shape[-1], -1)
         loss = F.cross_entropy(logits, ground_truth)
+
+        if hasattr(self._stochastic_optimizer, 'grad_penalty'):
+            loss += self._stochastic_optimizer.grad_penalty(obs, targets, self._learn_model)
 
         self._optimizer.zero_grad(set_to_none=True)
         loss.backward()
