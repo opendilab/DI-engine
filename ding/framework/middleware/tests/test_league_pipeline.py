@@ -45,13 +45,17 @@ class PrepareTest():
 
     @classmethod
     def get_env_supervisor(cls):
-        env = EnvSupervisor(
-            type_=ChildType.THREAD,
-            env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
-            **cfg.env.manager
-        )
-        env.seed(cfg.seed)
-        return env
+        for _ in range(10):
+            try:
+                env = EnvSupervisor(
+                    type_=ChildType.THREAD,
+                    env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
+                    **cfg.env.manager
+                )
+                env.seed(cfg.seed)
+                return env
+            except:
+                continue
 
     @classmethod
     def policy_fn(cls):
