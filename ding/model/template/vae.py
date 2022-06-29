@@ -8,39 +8,7 @@ from typing import List, Dict, Callable, Union, Any, TypeVar, Tuple, Optional
 from ding.utils.type_helper import Tensor
 
 
-class BaseVAE(nn.Module):
-    """
-        Overview:
-            The ``BaseVAE`` used as a base class of variational autoencoder.
-        Interfaces:
-            ``__init__``, ``encode``, ``decode``, ``sample``, ``generate``, ``forward``, ``loss_function``.
-    """
-
-    def __init__(self) -> None:
-        super(BaseVAE, self).__init__()
-
-    def encode(self, input: Tensor) -> List[Tensor]:
-        raise NotImplementedError
-
-    def decode(self, input: Tensor, obs_encoding: Optional[Tensor]) -> Any:
-        raise NotImplementedError
-
-    def sample(self, batch_size: int, current_device: int, **kwargs) -> Tensor:
-        raise RuntimeWarning()
-
-    def generate(self, x: Tensor, **kwargs) -> Tensor:
-        raise NotImplementedError
-
-    @abstractmethod
-    def forward(self, *inputs: Tensor) -> Tensor:
-        pass
-
-    @abstractmethod
-    def loss_function(self, *inputs: Any, **kwargs) -> Tensor:
-        pass
-
-
-class VanillaVAE(BaseVAE):
+class VanillaVAE(nn.Module):
     """
         Overview:
             Implementation of Vanilla variational autoencoder for action reconstruction.
