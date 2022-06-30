@@ -201,7 +201,7 @@ class BaseSerialEvaluatorMuZero(object):
 
         # initializations
         init_obses = self._env.ready_obs
-        init_obses = to_tensor(init_obses, dtype=torch.float32)
+        # init_obses = to_tensor(init_obses, dtype=torch.float32)
         action_mask = [init_obses[i]['action_mask'] for i in range(env_nums)]
         if 'to_play' in init_obses[0]:
             two_plaer_game = True
@@ -243,7 +243,7 @@ class BaseSerialEvaluatorMuZero(object):
 
                 timesteps = self._env.step(actions)
 
-                timesteps = to_tensor(timesteps, dtype=torch.float32)
+                # timesteps = to_tensor(timesteps, dtype=torch.float32)
                 action_mask = [timesteps[i].obs['action_mask'] for i in range(env_nums)]
                 to_play = [timesteps[i].obs['to_play'] for i in range(env_nums)]
 

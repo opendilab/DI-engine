@@ -10,6 +10,8 @@ import numpy as np
 from torch.nn import L1Loss
 import torch.nn.functional as F
 from ding.rl_utils import get_nstep_return_data, get_train_sample
+from ding.rl_utils.image_transform_muzero import Transforms
+
 # cpp mcts
 from ding.rl_utils.mcts.ctree import cytree
 from ding.rl_utils.mcts.mcts_ctree import MCTS
@@ -154,6 +156,8 @@ class EfficientZeroPolicy(Policy):
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # self.game_config = self._cfg.game_config
         self.game_config = game_config
+        self.transforms = Transforms(self.game_config.augmentation,
+                                image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2]))
 
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()
@@ -178,8 +182,8 @@ class EfficientZeroPolicy(Policy):
 
         # do augmentations
         if self.game_config.use_augmentation:
-            obs_batch = self.game_config.transform(obs_batch)
-            obs_target_batch = self.game_config.transform(obs_target_batch)
+            obs_batch = self.transforms.transform(obs_batch)
+            obs_target_batch = self.transforms.transform(obs_target_batch)
 
         action_batch = torch.from_numpy(action_batch).to(self.game_config.device).unsqueeze(-1).long()
         mask_batch = torch.from_numpy(mask_batch).to(self.game_config.device).float()

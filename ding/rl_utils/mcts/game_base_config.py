@@ -3,7 +3,6 @@ The following code is adapted from https://github.com/YeWR/EfficientZero
 """
 import torch
 import numpy as np
-# from ding.rl_utils.mcts.dataset import Transforms
 from ding.model.template.efficientzero.efficientzero_model import EfficientZeroNet
 
 
@@ -42,13 +41,6 @@ class GameBaseConfig(object):
 
     def scalar_value_loss(self, prediction, target):
         return -(torch.log_softmax(prediction, dim=1) * target).sum(1)
-
-    def set_transforms(self):
-        if self.use_augmentation:
-            self.transforms = Transforms(self.augmentation, image_shape=(self.obs_shape[1], self.obs_shape[2]))
-
-    def transform(self, images):
-        return self.transforms.transform(images)
 
     def scalar_transform(self, x):
         """ Reference from MuZerp: Appendix F => Network Architecture
@@ -145,3 +137,4 @@ class GameBaseConfig(object):
             init_zero=self.init_zero,
             state_norm=self.state_norm
         )
+

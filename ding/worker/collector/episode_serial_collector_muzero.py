@@ -321,7 +321,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         #     if isinstance(init_obses[i], dict):
         #         # not done env: self._ready_obs[env_id] = timesteps[env_id].obs
         #         init_obses[i] = BaseEnvTimestep(init_obses[i], None, None, None)
-        init_obses = to_tensor(init_obses, dtype=torch.float32)
+        # init_obses = to_tensor(init_obses, dtype=torch.float32)
         action_mask = [to_ndarray(init_obses[i]['action_mask']) for i in range(env_nums)]
         if 'to_play' in init_obses[0]:
             two_plaer_game = True

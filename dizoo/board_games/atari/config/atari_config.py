@@ -2,12 +2,12 @@ from easydict import EasyDict
 from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
-    # TODO:
+    # NOTE
     env_name='PongNoFrameskip-v4',
     image_based=True,
-    # TODO
-    # device='cuda',
-    device='cpu',
+    # NOTE
+    device='cuda',
+    # device='cpu',
     game_wrapper=True,
     action_space_size=6,
     amp_type='none',
@@ -27,30 +27,36 @@ game_config = EasyDict(dict(
     # num_unroll_steps=5,
     # td_steps=3,
 
-    collector_env_num=8,
+    collector_env_num=1,
     evaluator_env_num=5,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=50,
     batch_size=256,
-    game_history_max_length=200,
-    total_transitions=int(25e6),  # TODO(pu): 125K sequences * 200
+    game_history_max_length=400,
+    # total_transitions=int(25e6),  # TODO(pu): 125K sequences * 200
+    total_transitions=int(1e5),  # TODO(pu)
     num_unroll_steps=5,
     td_steps=5,
 
-    # TODO
-    revisit_policy_search_rate=1,
+    revisit_policy_search_rate=1,    # TODO
     # revisit_policy_search_rate=0.99,
 
-    clip_reward=False,
+    clip_reward=True,
     use_max_priority=True,
     use_priority=True,
     root_dirichlet_alpha=0.3,
     root_exploration_fraction=0.25,
     auto_td_steps=int(0.3 * 2e5),
+    # 'choose to use root value in reanalyzing')
+    max_training_steps=int(1e5),  # TODO(pu): 220K
+    change_temperature=True,
     use_root_value=False,  # TODO
     mini_infer_size=2,
-    use_augmentation=False,
+    use_augmentation=True,   # TODO
+    # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
+    # 'Style of augmentation'
+    augmentation=['shift', 'intensity'],
     vis_result=True,
 
     priority_prob_alpha=0.6,
@@ -66,8 +72,6 @@ game_config = EasyDict(dict(
     reward_support=DiscreteSupport(-300, 300, delta=1),
     max_grad_norm=10,
 
-    max_training_steps=int(2.2e5),  # TODO: 220K
-    change_temperature=True,
     test_interval=10000,
     log_interval=1000,
     vis_interval=1000,
@@ -81,11 +85,10 @@ game_config = EasyDict(dict(
     # network initialization/ & normalization
     episode_life=True,
     init_zero=True,
-    state_norm=True,  # TODO
+    state_norm=False,  # TODO(pu)
     # storage efficient
-    cvt_string=False,
-    # TODO(pu)
-    # lr scheduler
+    cvt_string=True,
+    # lr scheduler     # TODO(pu)
     lr_warm_up=0.01,
     lr_init=0.2,
     lr_decay_rate=0.1,

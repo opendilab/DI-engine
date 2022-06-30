@@ -102,6 +102,7 @@ def inverse_scalar_transform(logits, support_size):
 
     return output
 
+
 def renormalize(tensor, first_dim=1):
     # normalize the tensor (states)
     if first_dim < 0:
