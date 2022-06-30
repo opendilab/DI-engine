@@ -661,7 +661,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid seed arguments type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">seed</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_dynamic_seed</span> <span class="o">=</span> <span class="n">dynamic_seed</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># TODO(nyz) deal with nested action_space like SMAC</span>
+            <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="BaseEnvManager.enable_save_replay"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
