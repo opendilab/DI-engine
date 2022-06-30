@@ -44,7 +44,8 @@ class PrepareTest():
                 )
                 env.seed(cfg.seed)
                 return env
-            except:
+            except Exception as e:
+                print(e)
                 continue
 
     @classmethod
