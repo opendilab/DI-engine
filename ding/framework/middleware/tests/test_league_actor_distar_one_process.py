@@ -1,30 +1,46 @@
 from time import sleep
 import pytest
 from copy import deepcopy
-from ding.envs import BaseEnvManager, EnvSupervisor
-from ding.framework.context import BattleContext
-from ding.framework.middleware.league_learner import LearnerModel
+from unittest.mock import patch
+from easydict import EasyDict
+
 from dizoo.distar.config import distar_cfg
+from dizoo.distar.envs.distar_env import DIStarEnv
+
+from ding.envs import EnvSupervisor
+from ding.league.player import PlayerMeta
+from ding.league.v2.base_league import Job
+from ding.framework import EventEnum
+from ding.framework.storage import FileStorage
+from ding.framework.task import task
+from ding.framework.context import BattleContext
+
+from ding.framework.supervisor import ChildType
 from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
-from ding.league.player import PlayerMeta
-from ding.framework.storage import FileStorage
-
-from ding.framework.task import task
-from ding.league.v2.base_league import Job
-from dizoo.distar.envs.distar_env import DIStarEnv
-from unittest.mock import patch
-from ding.framework.supervisor import ChildType
-
-from ding.framework import EventEnum
-from distar.ctools.utils import read_config
-from ding.model import VAC
-
-from ding.framework.middleware.tests import DIStarMockPPOPolicy, DIStarMockPolicyCollect, DIStarMockPolicy
+from ding.framework.middleware.tests import DIStarMockPolicy
 from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
 
+env_cfg = dict(
+    actor=dict(job_type='train', ),
+    env=dict(
+        map_name='KingsCove',
+        player_ids=['agent1', 'agent2'],
+        races=['zerg', 'zerg'],
+        map_size_resolutions=[True, True],  # if True, ignore minimap_resolutions
+        minimap_resolutions=[[160, 152], [160, 152]],
+        realtime=False,
+        replay_dir='.',
+        random_seed='none',
+        game_steps_per_episode=100000,
+        update_bot_obs=False,
+        save_replay_episodes=1,
+        update_both_obs=False,
+        version='4.10.0',
+    ),
+)
+env_cfg = EasyDict(env_cfg)
 cfg = deepcopy(distar_cfg)
-env_cfg = read_config('./test_distar_config.yaml')
 
 
 class PrepareTest():
@@ -64,6 +80,7 @@ class PrepareTest():
 def test_league_actor():
     with task.start(async_mode=True, ctx=BattleContext()):
         policy = PrepareTest.learn_policy_fn().learn_mode
+
         def test_actor():
             job = Job(
                 launch_player='main_player_default_0',
