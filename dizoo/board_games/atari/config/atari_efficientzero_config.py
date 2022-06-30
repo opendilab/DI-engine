@@ -56,10 +56,10 @@ atari_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             # debug
-            # update_per_collect=5,
+            # update_per_collect=8,
             # batch_size=4,
 
-            update_per_collect=32,
+            update_per_collect=32,  # TODO(pu):500
             batch_size=256,
             learning_rate=0.002,
             # Frequency of target network update.

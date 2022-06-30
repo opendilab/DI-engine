@@ -266,21 +266,24 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         # pad over and save
         last_game_histories[i].pad_over(pad_obs_lst, pad_reward_lst, pad_root_values_lst, pad_child_visits_lst)
         """
-        game_history element shape:
-        obs: game_history_length + stack + num_unroll_steps, 20+4 +5  
-        rew: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+3-1  
-        action: game_history_length -> 20  
-        root_values:  game_history_length + num_unroll_steps + td_steps -> 20 +5+3
-        child_visits： game_history_length + num_unroll_steps -> 20 +5
+        Overview:
+            game_history element shape:
+            obs: game_history_length + stack + num_unroll_steps, 20+4 +5  
+            rew: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+3-1  
+            action: game_history_length -> 20  
+            root_values:  game_history_length + num_unroll_steps + td_steps -> 20 +5+3
+            child_visits： game_history_length + num_unroll_steps -> 20 +5
+            to_play: game_history_length -> 20  
+            action_mask: game_history_length -> 20 
         """
 
         last_game_histories[i].game_over()
 
-        # put a game history into the pool
+        # put the game history into the pool
         self.trajectory_pool.append((last_game_histories[i], last_game_priorities[i], done[i]))
-        # self.free()
+        self.free()
 
-        # reset last block
+        # reset last game_histories
         last_game_histories[i] = None
         last_game_priorities[i] = None
 
@@ -317,10 +320,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         env_nums = self._env_num
         # initializations
         init_obses = self._env.ready_obs
-        # for i in range(env_nums):
-        #     if isinstance(init_obses[i], dict):
-        #         # not done env: self._ready_obs[env_id] = timesteps[env_id].obs
-        #         init_obses[i] = BaseEnvTimestep(init_obses[i], None, None, None)
         # init_obses = to_tensor(init_obses, dtype=torch.float32)
         action_mask = [to_ndarray(init_obses[i]['action_mask']) for i in range(env_nums)]
         if 'to_play' in init_obses[0]:
@@ -408,11 +407,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 visit_entropy_dict = {k: v['visit_entropy'] for k, v in policy_output.items()}
 
                 timesteps = self._env.step(actions)
-                action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
-                to_play = [to_ndarray(timesteps[i].obs['to_play']) for i in range(env_nums)]
-
-                # if int(action_mask[0].sum())==0:
-                #     print('board game one episode done')
+                if two_plaer_game:
+                    action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
+                    to_play = [to_ndarray(timesteps[i].obs['to_play']) for i in range(env_nums)]
 
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
@@ -426,11 +423,13 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 else:
                     clip_reward = ori_reward
                 game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                # game_histories[i].append(action[i], to_ndarray(obs['observation']), clip_reward)
-                # for two_player board games
-                game_histories[i].append(
-                    actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
-                )
+                if two_plaer_game:
+                    # for two_player board games
+                    game_histories[i].append(
+                        actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
+                    )
+                else:
+                    game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
 
                 eps_reward_lst[i] += clip_reward
                 eps_ori_reward_lst[i] += ori_reward
@@ -448,8 +447,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 del stack_obs_windows[i][0]
                 stack_obs_windows[i].append(to_ndarray(obs['observation']))
 
-                # if game history is full;
                 # we will save a game history if it is the end of the game or the next game history is finished.
+
+                # if game history is full, we will save the game history
                 if game_histories[i].is_full():
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
@@ -461,11 +461,11 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # calculate priority
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)
 
-                    # save block trajectory
+                    #  the game_histories become last_game_history
                     last_game_histories[i] = game_histories[i]
                     last_game_priorities[i] = priorities
 
-                    # new block trajectory
+                    # new GameHistor
                     game_histories[i] = GameHistory(
                         self._env.action_space,
                         max_length=self.game_config.game_history_max_length,
@@ -491,16 +491,21 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
 
-                    # pad over last block trajectory
+                    # if it is the end of the game, we will save the game history
+
+                    # NOTE: put the  second last game history in one episode into the trajectory_pool
+                    # pad over 2th last game_history using the last game_history
                     if last_game_histories[i] is not None:
                         self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories, dones)
 
                     # store current block trajectory
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)
-                    game_histories[i].game_over()
 
                     # NOTE: put the last game history in one episode into the trajectory_pool
+                    game_histories[i].game_over()
                     self.trajectory_pool.append((game_histories[i], priorities, dones[i]))
+                    # NOTE: this is very important to save the done data to replay_buffer
+                    self.free()
 
                     # reset the finished env and init game_histories
                     init_obses = self._env.ready_obs

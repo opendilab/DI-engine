@@ -245,7 +245,6 @@ class BaseSerialEvaluatorMuZero(object):
 
                 # timesteps = to_tensor(timesteps, dtype=torch.float32)
                 action_mask = [timesteps[i].obs['action_mask'] for i in range(env_nums)]
-                to_play = [timesteps[i].obs['to_play'] for i in range(env_nums)]
 
                 if two_plaer_game:
                     to_play = [timesteps[i].obs['to_play'] for i in range(env_nums)]
@@ -259,11 +258,13 @@ class BaseSerialEvaluatorMuZero(object):
                     else:
                         clip_reward = ori_reward
                     game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                    # game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
-                    # for two_player board games
-                    game_histories[i].append(
-                        actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
-                    )
+                    if two_plaer_game:
+                        # for two_player board games
+                        game_histories[i].append(
+                            actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
+                        )
+                    else:
+                        game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
 
                     dones[i] = done
                     ep_ori_rewards[i] += ori_reward
@@ -284,8 +285,10 @@ class BaseSerialEvaluatorMuZero(object):
 
                         # reset the finished env
                         init_obses = self._env.ready_obs
-                        action_mask[i] = to_ndarray(init_obses[i]['action_mask'])
-                        to_play[i] = to_ndarray(init_obses[i]['to_play'])
+                        if two_plaer_game:
+                            # for two_player board games
+                            action_mask[i] = to_ndarray(init_obses[i]['action_mask'])
+                            to_play[i] = to_ndarray(init_obses[i]['to_play'])
 
                         game_histories[i] = GameHistory(
                             self._env.action_space,

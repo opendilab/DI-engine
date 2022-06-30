@@ -19,11 +19,12 @@ game_config = EasyDict(dict(
     # debug
     # collector_env_num=1,
     # evaluator_env_num=1,
-    # test_max_episode_steps=int(1e2),
+    # max_episode_steps=int(1e4),
+    # test_max_episode_steps=int(1e4),
     # num_simulations=6,
     # batch_size=4,
     # game_history_max_length=20,
-    # total_transitions=int(1e3),
+    # total_transitions=int(1e5),
     # num_unroll_steps=5,
     # td_steps=3,
 
@@ -53,7 +54,7 @@ game_config = EasyDict(dict(
     change_temperature=True,
     use_root_value=False,  # TODO
     mini_infer_size=2,
-    use_augmentation=True,   # TODO
+    use_augmentation=False,   # TODO
     # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
     # 'Style of augmentation'
     augmentation=['shift', 'intensity'],

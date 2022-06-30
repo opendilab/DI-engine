@@ -10,7 +10,7 @@ import numpy as np
 from torch.nn import L1Loss
 import torch.nn.functional as F
 from ding.rl_utils import get_nstep_return_data, get_train_sample
-from ding.rl_utils.image_transform_muzero import Transforms
+# from ding.rl_utils.image_transform_muzero import Transforms
 
 # cpp mcts
 from ding.rl_utils.mcts.ctree import cytree
@@ -587,24 +587,24 @@ class EfficientZeroPolicy(Policy):
         self._eval_model.eval()
         stack_obs = data
         with torch.no_grad():
-            # stack_obs shape [B, S x C, W, H] e.g. {Tensor:(2,12,96,96)}
+            # stack_obs shape [B, S x C, W, H] e.g. {Tensor:(B,12,96,96)}
             network_output = self._eval_model.initial_inference(stack_obs)
-            hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
-            pred_values_pool = network_output.value  # {list: 2}
-            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
-            value_prefix_pool = network_output.value_prefix  # {list: 2} each element: (1,bs, dim)
-            policy_logits_pool = network_output.policy_logits  # {list: 2}  each element: {list: A}
+            hidden_state_roots = network_output.hidden_state  # for atari, shape（B, 64, 6, 6）
+            pred_values_pool = network_output.value  # for atari, shape（B, 601）
+            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} each element (1,2,512)
+            value_prefix_pool = network_output.value_prefix  # shape（B, 1）
+            policy_logits_pool = network_output.policy_logits  # shape（B, A）
 
             # TODO(pu)
             if not self._learn_model.training:
                 # if not in training, obtain the scalars of the value/reward
                 pred_values_pool = inverse_scalar_transform(pred_values_pool,
-                                                            self.game_config.support_size).detach().cpu().numpy()
+                                                            self.game_config.support_size).detach().cpu().numpy()  # shape（B, 1）
                 hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
                 reward_hidden_roots = (
                     reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy()
                 )
-                policy_logits_pool = policy_logits_pool.detach().cpu().numpy().tolist()
+                policy_logits_pool = policy_logits_pool.detach().cpu().numpy().tolist()  # list shape（B, A）
 
             # TODO(pu): for board games, when action_num is a list, adapt the Roots method
             # cpp mcts
@@ -624,7 +624,8 @@ class EfficientZeroPolicy(Policy):
             # # do MCTS for a policy (argmax in testing)
             # self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots, to_play)
 
-            roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
+            # root visit count
+            roots_distributions = roots.get_distributions()  # {list: 1} each element {list:6}
             roots_values = roots.get_values()  # {list: 1}
             data_id = [i for i in range(self.game_config.evaluator_env_num)]
             output = {i: None for i in data_id}
