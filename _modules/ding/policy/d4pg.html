@@ -359,6 +359,8 @@
         <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>  <span class="c1"># [&#39;continuous&#39;, &#39;hybrid&#39;]</span>
         <span class="c1"># (bool) Whether use batch normalization for reward</span>
         <span class="n">reward_batch_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (float) Value of the smallest atom in the support set.</span>
             <span class="c1"># Default to -10.0.</span>

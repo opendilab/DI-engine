@@ -355,6 +355,8 @@
         <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
         <span class="c1"># Default 25000 in DDPG/TD3.</span>
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (str) Action space type</span>
         <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>  <span class="c1"># [&#39;continuous&#39;, &#39;hybrid&#39;]</span>
         <span class="c1"># (bool) Whether use batch normalization for reward</span>
