@@ -71,39 +71,40 @@ class TestMCMC:
     action = torch.randn(B, N, A)
     ebm = EBM(O, A)
 
-    # def test_gradient_wrt_act(self):
-    #     ebm = EBM(O, A)
-    #     # inference mode
-    #     de_dact = MCMC._gradient_wrt_act(self.obs, self.action, ebm)
-    #     assert de_dact.shape == (B, N, A)
-    #     # train mode
-    #     de_dact = MCMC._gradient_wrt_act(self.obs, self.action, ebm, create_graph=True)
-    #     loss = de_dact.pow(2).sum()
-    #     loss.backward()
-    #     assert de_dact.shape == (B, N, A)
-    #     assert ebm.net[0].weight.grad is not None
+    def test_gradient_wrt_act(self):
+        ebm = EBM(O, A)
+        # inference mode
+        de_dact = MCMC._gradient_wrt_act(self.obs, self.action, ebm)
+        assert de_dact.shape == (B, N, A)
+        # train mode
+        de_dact = MCMC._gradient_wrt_act(self.obs, self.action, ebm, is_train=True)
+        loss = de_dact.pow(2).sum()
+        loss.backward()
+        assert de_dact.shape == (B, N, A)
+        assert ebm.net[0].weight.grad is not None
 
-    # def test_langevin_step(self):
-    #     stepsize = 1
-    #     action = self.opt._langevin_step(self.obs, self.action, stepsize, self.ebm)
-    #     assert action.shape == (B, N, A)
-    #     # TODO: new action should have lower energy
+    def test_langevin_step(self):
+        stepsize = 1
+        action = self.opt._langevin_step(self.obs, self.action, stepsize, self.ebm)
+        assert action.shape == (B, N, A)
+        # TODO: new action should have lower energy
 
-    # def test_langevin_action_gives_obs(self):
-    #     action = self.opt._langevin_action_gives_obs(self.obs, self.action, self.ebm)
-    #     assert action.shape == (B, N, A)
+    def test_langevin_action_gives_obs(self):
+        action = self.opt._langevin_action_gives_obs(self.obs, self.action, self.ebm)
+        assert action.shape == (B, N, A)
 
-    # def test_grad_penalty(self):
-    #     ebm = EBM(O, A)
-    #     loss = self.opt.grad_penalty(self.obs, self.action, ebm)
-    #     loss.backward()
-    #     assert ebm.net[0].weight.grad is not None
+    def test_grad_penalty(self):
+        ebm = EBM(O, A)
+        self.opt.add_grad_penalty = True
+        loss = self.opt.grad_penalty(self.obs, self.action, ebm)
+        loss.backward()
+        assert ebm.net[0].weight.grad is not None
 
-    # def test_sample(self):
-    #     obs = torch.randn(B, O)
-    #     tiled_obs, action_samples = self.opt.sample(obs, self.ebm)
-    #     assert tiled_obs.shape == (B, N, O)
-    #     assert action_samples.shape == (B, N, A)
+    def test_sample(self):
+        obs = torch.randn(B, O)
+        tiled_obs, action_samples = self.opt.sample(obs, self.ebm)
+        assert tiled_obs.shape == (B, N, O)
+        assert action_samples.shape == (B, N, A)
 
     def test_infer(self):
         obs = torch.randn(B, O)

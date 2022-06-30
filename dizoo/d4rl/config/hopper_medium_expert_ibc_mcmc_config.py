@@ -1,7 +1,9 @@
 from easydict import EasyDict
 
+cuda = True
+
 main_config = dict(
-    exp_name='hopper_medium_expert_ibc_seed0',
+    exp_name='hopper_medium_expert_ibc_mcmc_seed0',
     env=dict(
         env_id='hopper-medium-expert-v0',
         evaluator_env_num=8,
@@ -10,13 +12,13 @@ main_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        cuda=True,
+        cuda=cuda,
         model=dict(
             obs_shape=11,
             action_shape=3,
             hidden_size=256,
             hidden_layer_num=2,
-            stochastic_optim=dict(type='dfo', cuda=True,)
+            stochastic_optim=dict(type='mcmc', cuda=True,)
         ),
         learn=dict(
             holdout_ratio=0.1,

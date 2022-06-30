@@ -25,6 +25,7 @@ def create_stochastic_optimizer(stochastic_optimizer_config):
     )
 
 def no_ebm_grad():
+    """Wrapper that disables energy based model gradients"""
     def ebm_disable_grad_wrapper(func: Callable):
         def wrapper(*args, **kwargs):
             # make sure ebm is the last positional arguments
@@ -244,27 +245,31 @@ class MCMC(StochasticOptimizer):
         train_samples: int = 256,
         inference_samples: int = 512,
         stepsize_scheduler: dict = dict(
-            init=1e-1,
+            init=0.5,
             decay=0.8,
         ),
         optimize_again: bool = True,
         again_stepsize_scheduler: dict = dict(
-            init=1e-1,
+            init=1e-4,
             final=1e-5, 
             power=2.0,
             # num_steps,
         ),
         cuda: bool = False,
         ## langevin_step
-        noise_scale: float = 1.0,
+        noise_scale: float = 0.5,
         grad_clip = None,
         delta_action_clip: float = 0.1,
+        add_grad_penalty: bool = False,
         grad_norm_type: str = 'inf',
         grad_margin: float = 1.0,
         grad_loss_weight: float = 1.0,
+        **kwargs,
     ):
         self.iters = iters
         self.use_langevin_negative_samples = use_langevin_negative_samples
+        # TODO(zzh): multigpu pipeline, langevin negative sampling is slow on single gpu.
+        assert not self.use_langevin_negative_samples, "MULTIGPU NotImplemented"
         self.train_samples = train_samples
         self.inference_samples = inference_samples
         self.stepsize_scheduler = stepsize_scheduler
@@ -274,6 +279,7 @@ class MCMC(StochasticOptimizer):
         self.noise_scale = noise_scale
         self.grad_clip = grad_clip
         self.delta_action_clip = delta_action_clip
+        self.add_grad_penalty = add_grad_penalty
         self.grad_norm_type = grad_norm_type
         self.grad_margin = grad_margin
         self.grad_loss_weight = grad_loss_weight
@@ -284,7 +290,7 @@ class MCMC(StochasticOptimizer):
             obs: torch.Tensor, 
             action: torch.Tensor, 
             ebm: nn.Module,
-            create_graph: bool = False,
+            is_train: bool = False,
     ) -> torch.Tensor:
         """
         Calculate gradient w.r.t action.
@@ -293,8 +299,47 @@ class MCMC(StochasticOptimizer):
         """
         action = nn.Parameter(action)
         energy = ebm.forward(obs, action).sum()
-        return torch.autograd.grad(energy, action, create_graph=create_graph)[0]
+        return torch.autograd.grad(energy, action, create_graph=is_train)[0]
 
+    def grad_penalty(
+            self, 
+            obs: torch.Tensor, 
+            action: torch.Tensor, 
+            ebm: nn.Module
+    ) -> torch.Tensor:
+        """
+        Calculate grad_penalty.
+        Make sure `torch.is_grad_enabled()==True` to calculate second order derivatives.
+        obs: (B, N+1, O), action: (B, N+1, A)
+        return: loss
+        """
+        if not self.add_grad_penalty:
+            return torch.tensor(0.)
+        # (B, N+1, A), this gradient is differentiable w.r.t model parameters
+        de_dact = MCMC._gradient_wrt_act(obs, action, ebm, is_train=True)
+
+        def compute_grad_norm(grad_norm_type, de_dact) -> torch.Tensor:
+            # de_deact: B, N+1, A
+            # return:   B, N+1
+            grad_norm_type_to_ord = {
+                '1': 1,
+                '2': 2,
+                'inf': float('inf'),
+            }
+            ord = grad_norm_type_to_ord[grad_norm_type] 
+            return torch.linalg.norm(de_dact, ord, dim=-1)
+
+        # (B, N+1)
+        grad_norms = compute_grad_norm(self.grad_norm_type, de_dact)
+        grad_norms = grad_norms - self.grad_margin
+        grad_norms = grad_norms.clamp(min=0., max=1e10)
+        grad_norms = grad_norms.pow(2)
+
+        grad_loss = grad_norms.mean()
+        return grad_loss * self.grad_loss_weight
+
+    # can not use @torch.no_grad() even during the inference
+    # because we need to calculate gradient w.r.t inputs as MCMC updates.
     @no_ebm_grad()
     def _langevin_step(
             self, 
@@ -318,19 +363,16 @@ class MCMC(StochasticOptimizer):
         de_dact = (gradient_scale * l_lambda * de_dact +
              torch.randn_like(de_dact) * l_lambda * self.noise_scale)
         
-        
         delta_action = stepsize * de_dact
         delta_action_clip = self.delta_action_clip * 0.5 * (
             self.action_bounds[1] - self.action_bounds[0])
-        delta_action.clamp(min=-delta_action_clip, max=delta_action_clip)
+        delta_action = delta_action.clamp(min=-delta_action_clip, max=delta_action_clip)
 
         action = action - delta_action
-        action.clamp(min=self.action_bounds[0], max=self.action_bounds[1])
+        action = action.clamp(min=self.action_bounds[0], max=self.action_bounds[1])
         
         return action
 
-    # can not use @torch.no_grad() even during the inference
-    # because we need to calculate gradient w.r.t inputs as MCMC updates.
     @no_ebm_grad()
     def _langevin_action_gives_obs(
             self, 
@@ -352,48 +394,13 @@ class MCMC(StochasticOptimizer):
             stepsize = scheduler.get_rate(i)
         return action
 
-    def grad_penalty(
-            self, 
-            obs: torch.Tensor, 
-            action: torch.Tensor, 
-            ebm: nn.Module
-    ) -> torch.Tensor:
-        """
-        Calculate grad_penalty.
-        Make sure `torch.is_grad_enabled()==True` to calculate second order derivatives.
-        obs: (B, N+1, O), action: (B, N+1, A)
-        return: loss
-        """
-        # (B, N+1, A), this gradient is differentiable w.r.t model parameters
-        de_dact = MCMC._gradient_wrt_act(obs, action, ebm, create_graph=True)
-
-        def compute_grad_norm(grad_norm_type, de_dact):
-            # de_deact: B, N+1, A
-            # return:   B, N+1
-            grad_norm_type_to_ord = {
-                '1': 1,
-                '2': 2,
-                'inf': float('inf'),
-            }
-            ord = grad_norm_type_to_ord[grad_norm_type] 
-            return torch.linalg.norm(de_dact, ord, dim=-1)
-
-        # (B, N+1)
-        grad_norms = compute_grad_norm(self.grad_norm_type, de_dact)
-        grad_norms -= self.grad_margin
-        grad_norms.clamp(min=0., max=1e10)
-        grad_norms = grad_norms.pow(2)
-
-        grad_loss = grad_norms.mean()
-        return grad_loss * self.grad_loss_weight
-
     @no_ebm_grad()
     def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
         """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
         obs: (B, O)
         return: (B, N, O), (B, N, A)
         """
-        obs, uniform_action_samples = self._sample(obs, self.inference_samples)
+        obs, uniform_action_samples = self._sample(obs, self.train_samples)
         if not self.use_langevin_negative_samples:
             return obs, uniform_action_samples
         langevin_action_samples = self._langevin_action_gives_obs(obs, uniform_action_samples, ebm)
@@ -411,7 +418,6 @@ class MCMC(StochasticOptimizer):
             obs, 
             uniform_action_samples, 
             ebm,
-            # MCMC.ExponentialScheduler(**self.stepsize_scheduler),
         )
 
         # Run a second optimization, a trick for more precise inference

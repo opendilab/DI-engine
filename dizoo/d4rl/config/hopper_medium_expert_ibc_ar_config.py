@@ -1,5 +1,3 @@
-# You can conduct Experiments on D4RL with this config file through the following command:
-# cd ../entry && python d4rl_td3_bc_main.py
 from easydict import EasyDict
 
 cuda = True
@@ -20,20 +18,8 @@ main_config = dict(
             import_names=['ding.model.template.ebm'],
             obs_shape=11,
             action_shape=3,
-            d_model=64,
-            num_encoder_layers=1,
-            num_decoder_layers=1,
-            dim_feedforward=64,
             cuda=cuda,
-            stochastic_optim=dict(
-                type='ardfo',
-                noise_scale=0.33,
-                noise_shrink=0.5,
-                iters=3,
-                train_samples=256,
-                inference_samples=512,
-                cuda=cuda,
-            )
+            stochastic_optim=dict(type='ardfo', cuda=cuda,)
         ),
         learn=dict(
             holdout_ratio=0.1,

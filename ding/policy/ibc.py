@@ -12,7 +12,8 @@ from ding.torch_utils import to_device
 from ding.utils.data import default_collate, default_decollate
 from ding.utils import POLICY_REGISTRY
 from .bc import BehaviourCloningPolicy
-from ding.model.template.ebm import create_stochastic_optimizer, StochasticOptimizer
+from ding.model.template.ebm import create_stochastic_optimizer
+from ding.model.template.ebm import StochasticOptimizer, MCMC, AutoRegressiveDFO
 from ding.torch_utils import unsqueeze_repeat
 
 
@@ -24,19 +25,6 @@ class IBCPolicy(BehaviourCloningPolicy):
         cuda=False,
         on_policy=False,
         continuous=True,
-        model=dict(
-            # hidden_size=256,
-            # hidden_layer_num=2,
-            stochastic_optim=dict(
-                type='dfo',
-                noise_scale=0.33,
-                noise_shrink=0.5,
-                iters=3,
-                train_samples=256,
-                inference_samples=512,
-                cuda=False,
-            )
-        ),
         learn=dict(
             train_epoch=30000,
             batch_size=256,
@@ -75,6 +63,8 @@ class IBCPolicy(BehaviourCloningPolicy):
             data = to_device(data, self._device)
         self._learn_model.train()
 
+        loss_dict = dict()
+
         # obs: (B, O)
         # action: (B, A)
         obs, action = data['obs'], data['action']
@@ -97,35 +87,35 @@ class IBCPolicy(BehaviourCloningPolicy):
         energy = self._learn_model.forward(obs, targets)
 
         logits = -1.0 * energy
-        if len(logits.shape) == 3:
+        if isinstance(self._stochastic_optimizer, AutoRegressiveDFO):
             # autoregressive case
             # (B, A)
             ground_truth = unsqueeze_repeat(ground_truth, logits.shape[-1], -1)
         loss = F.cross_entropy(logits, ground_truth)
+        loss_dict['ebm_loss'] = loss.item()
 
-        if hasattr(self._stochastic_optimizer, 'grad_penalty'):
-            loss += self._stochastic_optimizer.grad_penalty(obs, targets, self._learn_model)
+        if isinstance(self._stochastic_optimizer, MCMC):
+            grad_penalty = self._stochastic_optimizer.grad_penalty(obs, targets, self._learn_model) 
+            loss += grad_penalty
+            loss_dict['grad_penalty'] = grad_penalty.item()
+        loss_dict['total_loss'] = loss.item()
 
-        self._optimizer.zero_grad(set_to_none=True)
+        self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
 
-        return {
-            # 'cur_lr': self._scheduler.get_last_lr()[0],
-            'total_loss': loss.item(),
-        }
+        return loss_dict
 
     def _monitor_vars_learn(self):
-        return [
-            # 'cur_lr', 
-            'total_loss'
-        ]
+        if isinstance(self._stochastic_optimizer, MCMC):
+            return ['total_loss', 'ebm_loss', 'grad_penalty']
+        else:
+            return ['total_loss', 'ebm_loss']
 
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()
 
-    @torch.no_grad()
     def _forward_eval(self, data: dict) -> dict:
         tensor_input = isinstance(data, torch.Tensor)
         if tensor_input:
@@ -140,9 +130,11 @@ class IBCPolicy(BehaviourCloningPolicy):
             data = to_device(data, self._device)
 
         self._eval_model.eval()
-        # output = self._eval_model.forward(data, mode='compute_actor')
-        output = self._stochastic_optimizer.infer(data, self._eval_model)
-        output = dict(action=output)
+        with torch.set_grad_enabled(isinstance(self._stochastic_optimizer, MCMC)):
+            # Gradient should be disabled except for MCMC optimizer,
+            # which follows gradient descent on the input space to find the best action.
+            output = self._stochastic_optimizer.infer(data, self._eval_model)
+            output = dict(action=output)
 
         if self._cuda:
             output = to_device(output, 'cpu')
