@@ -9,12 +9,13 @@ from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # collector_env_num=1
 # evaluator_env_num=1
 
-# TODO: cpp mcts only support env_num=1, because in MCTS root node, we must assign the one same action mask
-# but when env_num>1, the action mask for different env may be different
+# TODO: cpp mcts now only support env_num=1, because in MCTS root nodes,
+#  we must assign the one same action mask,
+#  but when env_num>1, the action mask for different env may be different.
 collector_env_num = 16
 evaluator_env_num = 5
 tictactoe_efficientzero_config = dict(
-    exp_name='data_ez_ptree/tictactoe_efficientzero_seed0',
+    exp_name='data_ez_ctree/tictactoe_efficientzero_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -22,7 +23,8 @@ tictactoe_efficientzero_config = dict(
         stop_value=2,
         # 'one_player_mode' when eval, 'two_player_mode' when collect
         # automatically assign in tictactoe env
-        battle_mode='two_player_mode',
+        # battle_mode='two_player_mode',
+        battle_mode='one_player_mode',
     ),
     policy=dict(
         env_name='tictactoe',

@@ -10,7 +10,7 @@ from ding.torch_utils.data_helper import to_ndarray
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 
 
-class MCTS(object):
+class MCTS_ctree(object):
 
     def __init__(self, config):
         self.config = config

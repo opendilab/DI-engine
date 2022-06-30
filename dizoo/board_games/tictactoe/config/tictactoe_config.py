@@ -3,7 +3,9 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
     env_name='tictactoe',
-    battle_mode='two_player_mode',
+    mcts_ctree=False,
+    # battle_mode='two_player_mode',
+    battle_mode='one_player_mode',
     image_based=False,
     # device='cuda',
     device='cpu',
@@ -22,7 +24,7 @@ game_config = EasyDict(dict(
     num_simulations=25,
     batch_size=64,
     game_history_max_length=9,
-    total_transitions=int(3e3),
+    total_transitions=int(1e6),
     num_unroll_steps=5,
     td_steps=5,
 
@@ -30,7 +32,7 @@ game_config = EasyDict(dict(
     revisit_policy_search_rate=1,
     # revisit_policy_search_rate=0.99,
 
-    clip_reward=False,
+    clip_reward=True,
     use_max_priority=True,
     use_priority=True,
     root_dirichlet_alpha=0.3,
@@ -54,7 +56,7 @@ game_config = EasyDict(dict(
     reward_support=DiscreteSupport(-10, 10, delta=1),
     max_grad_norm=10,
 
-    max_training_steps=int(1.2e5),  # TODO
+    max_training_steps=int(1e5),  # TODO
     change_temperature=True,
     test_interval=10000,
     log_interval=1000,
@@ -70,7 +72,6 @@ game_config = EasyDict(dict(
     episode_life=True,
     init_zero=True,
     state_norm=False,
-    # storage efficient
     cvt_string=False,
 
     # TODO(pu)
