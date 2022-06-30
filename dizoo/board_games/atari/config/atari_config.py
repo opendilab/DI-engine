@@ -24,7 +24,7 @@ game_config = EasyDict(dict(
     # num_simulations=6,
     # batch_size=4,
     # game_history_max_length=20,
-    # total_transitions=int(1e5),
+    # total_transitions=int(1e6),
     # num_unroll_steps=5,
     # td_steps=3,
 
@@ -36,7 +36,7 @@ game_config = EasyDict(dict(
     batch_size=256,
     game_history_max_length=400,
     # total_transitions=int(25e6),  # TODO(pu): 125K sequences * 200
-    total_transitions=int(1e5),  # TODO(pu)
+    total_transitions=int(1e6),  # TODO(pu)
     num_unroll_steps=5,
     td_steps=5,
 
@@ -54,7 +54,7 @@ game_config = EasyDict(dict(
     change_temperature=True,
     use_root_value=False,  # TODO
     mini_infer_size=2,
-    use_augmentation=False,   # TODO
+    use_augmentation=True,   # TODO
     # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
     # 'Style of augmentation'
     augmentation=['shift', 'intensity'],

@@ -50,7 +50,6 @@ class GameBuffer(Buffer):
         self._eps_collected = 0
         self.base_idx = 0
         self._alpha = config.priority_prob_alpha
-        # self.transition_top = int(config.transition_num * 10 ** 6)
         self.transition_top = config.total_transitions
         self.clear_time = 0
 
@@ -109,8 +108,9 @@ class GameBuffer(Buffer):
         # in EfficientZero replay_buffer.py
         # def save_game(self, game, end_tag, gap_steps, priorities=None):
 
-        if self.get_num_of_transitions() >= self.config.total_transitions:
-            return
+        # TODO(pu)
+        # if self.get_num_of_transitions() >= self.config.total_transitions:
+        #     return
 
         if meta['end_tag']:
             self._eps_collected += 1

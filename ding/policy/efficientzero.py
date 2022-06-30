@@ -10,7 +10,7 @@ import numpy as np
 from torch.nn import L1Loss
 import torch.nn.functional as F
 from ding.rl_utils import get_nstep_return_data, get_train_sample
-# from ding.rl_utils.image_transform_muzero import Transforms
+from ding.rl_utils.image_transform_muzero import Transforms
 
 # cpp mcts
 from ding.rl_utils.mcts.ctree import cytree
@@ -156,8 +156,9 @@ class EfficientZeroPolicy(Policy):
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # self.game_config = self._cfg.game_config
         self.game_config = game_config
-        self.transforms = Transforms(self.game_config.augmentation,
-                                image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2]))
+        if self.game_config.use_augmentation:
+            self.transforms = Transforms(self.game_config.augmentation,
+                                    image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2]))
 
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()

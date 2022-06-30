@@ -216,14 +216,14 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         # current pool size
         return len(self.trajectory_pool)
 
-    def free(self):
+    def free(self, end_tag):
         # save the game histories and clear the pool
         if self.len_pool() >= self.pool_size:
             # self.trajectory_pool: list of (game_history, priority)
             self.replay_buffer.push_games(
                 [self.trajectory_pool[i][0] for i in range(self.len_pool())], [
                     {
-                        'end_tag': True,
+                        'end_tag': end_tag,
                         'priorities': self.trajectory_pool[i][1],
                         'gap_steps': self.gap_step
                     } for i in range(self.len_pool())
@@ -243,7 +243,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         game_histories: list
             list of the current game histories
         """
-
+        """
+        last_game_histories[i].obs_history[-4:] == game_histories[i].obs_history[:4] True
+        """
         # pad over last block trajectory
         beg_index = self.game_config.stacked_observations
         end_index = beg_index + self.game_config.num_unroll_steps
@@ -281,7 +283,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
         # put the game history into the pool
         self.trajectory_pool.append((last_game_histories[i], last_game_priorities[i], done[i]))
-        self.free()
+        self.free(done[i])
 
         # reset last game_histories
         last_game_histories[i] = None
@@ -454,7 +456,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
                         # TODO(pu): return the one game history
-                        _ = self.put_last_trajectory(
+                        self.put_last_trajectory(
                             i, last_game_histories, last_game_priorities, game_histories, dones
                         )
 
@@ -465,7 +467,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     last_game_histories[i] = game_histories[i]
                     last_game_priorities[i] = priorities
 
-                    # new GameHistor
+                    # new GameHistory
                     game_histories[i] = GameHistory(
                         self._env.action_space,
                         max_length=self.game_config.game_history_max_length,
@@ -505,7 +507,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     game_histories[i].game_over()
                     self.trajectory_pool.append((game_histories[i], priorities, dones[i]))
                     # NOTE: this is very important to save the done data to replay_buffer
-                    self.free()
+                    self.free(end_tag=True)
 
                     # reset the finished env and init game_histories
                     init_obses = self._env.ready_obs
@@ -519,10 +521,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                         max_length=self.game_config.game_history_max_length,
                         config=self.game_config
                     )
-                    last_game_histories[i] = None
-                    last_game_priorities[i] = None
                     stack_obs_windows[i] = [init_obs for _ in range(self.game_config.stacked_observations)]
                     game_histories[i].init(stack_obs_windows[i])
+                    last_game_histories[i] = None
+                    last_game_priorities[i] = None
 
                     # log
                     self_play_rewards_max = max(self_play_rewards_max, eps_reward_lst[i])

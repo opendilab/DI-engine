@@ -114,6 +114,8 @@ def serial_pipeline_muzero(
 
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        # remove data if the replay buffer is full. (more data settings)
+        replay_buffer.remove_to_fit()
         # replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
