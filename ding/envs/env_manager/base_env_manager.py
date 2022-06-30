@@ -388,6 +388,7 @@ class BaseEnvManager(object):
         else:
             raise TypeError("invalid seed arguments type: {}".format(type(seed)))
         self._env_dynamic_seed = dynamic_seed
+        self._action_space.seed(seed[0])
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
         """

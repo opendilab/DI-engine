@@ -86,6 +86,8 @@ class D4PGPolicy(DDPGPolicy):
         action_space='continuous',  # ['continuous', 'hybrid']
         # (bool) Whether use batch normalization for reward
         reward_batch_norm=False,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=False,
         model=dict(
             # (float) Value of the smallest atom in the support set.
             # Default to -10.0.
