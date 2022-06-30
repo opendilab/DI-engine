@@ -1,11 +1,17 @@
 import os
+import timeit
 import pytest
 import tempfile
 import shutil
 import numpy as np
+import torch
+import treetensor.torch as ttorch
+from ding.data.shm_buffer import ShmBuffer
 from ding.data.storage_loader import FileStorageLoader
 from time import sleep, time
 from os import path
+
+from ding.framework.supervisor import RecvPayload
 
 
 @pytest.mark.unittest
@@ -82,3 +88,87 @@ def test_file_storage_loader_cleanup():
         if path.exists(tempdir):
             shutil.rmtree(tempdir)
         loader.shutdown()
+
+
+@pytest.mark.unittest
+def test_shared_object():
+    loader = FileStorageLoader(dirname="")
+
+    ######## Test array ########
+    obj = [{"obs": np.random.rand(100, 100)} for _ in range(10)]
+    buf = loader._create_shared_object(obj).buf
+    assert len(buf) == 10
+    assert isinstance(buf[0]["obs"], ShmBuffer)
+
+    # Callback
+    payload = RecvPayload(proc_id=0, data=obj)
+    loader._shm_callback(payload=payload, buf=buf)
+    assert len(payload.data) == 10
+    assert [d["obs"] is None for d in payload.data]
+
+    ## Putback
+    loader._shm_putback(payload=payload, buf=buf)
+    obj = payload.data
+    assert len(obj) == 10
+    for o in obj:
+        assert isinstance(o["obs"], np.ndarray)
+        assert o["obs"].shape == (100, 100)
+
+    ######## Test dict ########
+    obj = {"obs": torch.rand(100, 100, dtype=torch.float32)}
+    buf = loader._create_shared_object(obj).buf
+    assert isinstance(buf["obs"], ShmBuffer)
+
+    payload = RecvPayload(proc_id=0, data=obj)
+    loader._shm_callback(payload=payload, buf=buf)
+    assert payload.data["obs"] is None
+
+    loader._shm_putback(payload=payload, buf=buf)
+    assert isinstance(payload.data["obs"], np.ndarray)
+    assert payload.data["obs"].shape == (100, 100)
+
+    ######## Test treetensor ########
+    obj = {"trajectories": [ttorch.as_tensor({"obs": torch.rand(10, 10, dtype=torch.float32)}) for _ in range(10)]}
+    buf = loader._create_shared_object(obj).buf
+    assert len(buf["trajectories"]) == 10
+    assert isinstance(buf["trajectories"][0]["obs"], ShmBuffer)
+
+    payload = RecvPayload(proc_id=0, data=obj)
+    loader._shm_callback(payload=payload, buf=buf)
+    assert len(payload.data["trajectories"]) == 10
+    for traj in payload.data["trajectories"]:
+        assert traj["obs"] is None
+
+    loader._shm_putback(payload=payload, buf=buf)
+    for traj in payload.data["trajectories"]:
+        assert isinstance(traj["obs"], np.ndarray)
+        assert traj["obs"].shape == (10, 10)
+
+
+@pytest.mark.benchmark
+def test_shared_object_benchmark():
+    loader = FileStorageLoader(dirname="")
+    ######## Test treetensor ########
+    obj = {
+        "env_step": 0,
+        "trajectories": [
+            ttorch.as_tensor(
+                {
+                    "done": False,
+                    "reward": torch.tensor([1, 0], dtype=torch.int32),
+                    "obs": torch.rand(4, 84, 84, dtype=torch.float32),
+                    "next_obs": torch.rand(4, 84, 84, dtype=torch.float32),
+                    "action": torch.tensor([1], dtype=torch.int32),
+                    "collect_train_iter": torch.tensor([1], dtype=torch.int32),
+                    "env_data_id": torch.tensor([1], dtype=torch.int32),
+                }
+            ) for _ in range(10)
+        ]
+    }
+    buf = loader._create_shared_object(obj).buf
+    payload = RecvPayload(proc_id=0, data=obj)
+    loader._shm_callback(payload=payload, buf=buf)
+
+    res = timeit.repeat(lambda: loader._shm_putback(payload=payload, buf=buf), repeat=5, number=1000)
+    print("Mean: {:.4f}s, STD: {:.4f}s, Mean each call: {:.4f}ms".format(np.mean(res), np.std(res), np.mean(res)))
+    assert np.mean(res) < 1

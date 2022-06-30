@@ -1,15 +1,16 @@
-from abc import ABC, abstractmethod
 import os
 import queue
-from time import sleep, time
-from ditk import logging
+import torch
 import numpy as np
+import uuid
+import treetensor.torch as ttorch
+from abc import ABC, abstractmethod
+from ditk import logging
+from time import sleep, time
 from threading import Lock, Thread
 from typing import Any, Callable, Dict, List, Optional, Union
-
 from ding.data import FileStorage, Storage
 from os import path
-import uuid
 from ding.data.shm_buffer import ShmBuffer
 from ding.framework.supervisor import RecvPayload, Supervisor, ChildType, SendPayload, SharedObject
 
@@ -104,20 +105,33 @@ class StorageLoader(Supervisor, ABC):
         Overview:
             Create shared object (buf and callback) by walk through the data structure.
         """
+        max_level = 2
 
-        def to_shm(obj: Dict):
-            shm_buf = {}
-            for key, val in obj.items():
-                if isinstance(val, np.ndarray):
-                    shm_buf[key] = ShmBuffer(val.dtype, val.shape, copy_on_get=False)
+        def to_shm(obj: Dict, level: int = 0):
+            if level > max_level:
+                return
+            shm_buf = None
+            if isinstance(obj, Dict) or isinstance(obj, ttorch.Tensor):
+                shm_buf = {}
+                for key, val in obj.items():
+                    # Turn tensor into numpy
+                    if isinstance(val, torch.Tensor):
+                        val = val.cpu().data.numpy()
+                    # Only numpy array can fill into shm buffer
+                    if isinstance(val, np.ndarray):
+                        shm_buf[key] = ShmBuffer(val.dtype, val.shape, copy_on_get=False)
+                    # Recursive parsing structure
+                    elif isinstance(val, Dict) or isinstance(val, ttorch.Tensor) or isinstance(val, List):
+                        buf = to_shm(val, level=level + 1)
+                        if buf:
+                            shm_buf[key] = buf
+            elif isinstance(obj, List):
+                shm_buf = [to_shm(o, level=level + 1) for o in obj]
+                if all(s is None for s in shm_buf):
+                    shm_buf = []
             return shm_buf
 
-        if isinstance(obj, Dict):
-            shm_buf = to_shm(obj)
-        elif isinstance(obj, List):
-            shm_buf = [to_shm(o) for o in obj]
-        else:
-            raise ValueError("Invalid obj type ({})".format(type(obj)))
+        shm_buf = to_shm(obj, level=0)
         return SharedObject(buf=shm_buf, callback=self._shm_callback)
 
     def _shm_callback(self, payload: RecvPayload, buf: Union[Dict, List]):
@@ -128,15 +142,23 @@ class StorageLoader(Supervisor, ABC):
         assert type(
             payload.data
         ) is type(buf), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(buf))
-        if isinstance(buf, Dict):
-            for key, val in buf.items():
-                val.fill(payload.data[key])
-                payload.data[key] = None
-        elif isinstance(buf, List):
-            for i, buf_ in enumerate(buf):
-                for key, val in buf_.items():
-                    val.fill(payload.data[i][key])
-                    payload.data[i][key] = None
+
+        def shm_callback(data: Union[Dict, List], buf: Union[Dict, List]):
+            if isinstance(buf, Dict):
+                for key, val in buf.items():
+                    data_val = data[key]
+                    if isinstance(data_val, torch.Tensor):
+                        data_val = data_val.cpu().data.numpy()
+                    if isinstance(data_val, np.ndarray):
+                        val.fill(data_val)
+                        data[key] = None
+                    else:
+                        shm_callback(data_val, val)
+            elif isinstance(buf, List):
+                for i, buf_ in enumerate(buf):
+                    shm_callback(data[i], buf_)
+
+        shm_callback(payload.data, buf=buf)
 
     def _shm_putback(self, payload: RecvPayload, buf: Union[Dict, List]):
         """
@@ -146,13 +168,19 @@ class StorageLoader(Supervisor, ABC):
         assert type(
             payload.data
         ) is type(buf), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(buf))
-        if isinstance(buf, Dict):
-            for key, val in buf.items():
-                payload.data[key] = val.get()
-        elif isinstance(buf, List):
-            for i, buf_ in enumerate(buf):
-                for key, val in buf_.items():
-                    payload.data[i][key] = val.get()
+
+        def shm_putback(data: Union[Dict, List], buf: Union[Dict, List]):
+            if isinstance(buf, Dict):
+                for key, val in buf.items():
+                    if isinstance(val, ShmBuffer):
+                        data[key] = val.get()
+                    else:
+                        shm_putback(data[key], val)
+            elif isinstance(buf, List):
+                for i, buf_ in enumerate(buf):
+                    shm_putback(data[i], buf_)
+
+        shm_putback(payload.data, buf=buf)
 
 
 class FileStorageLoader(StorageLoader):
