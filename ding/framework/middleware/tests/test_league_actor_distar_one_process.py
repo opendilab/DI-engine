@@ -19,6 +19,7 @@ from ding.framework.supervisor import ChildType
 from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.framework.middleware.tests import DIStarMockPolicy
+from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
 
 env_cfg = dict(
