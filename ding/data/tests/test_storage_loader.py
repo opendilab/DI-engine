@@ -1,4 +1,5 @@
 import os
+import torch.multiprocessing as mp
 import timeit
 import pytest
 import tempfile
@@ -27,7 +28,9 @@ def test_file_storage_loader():
                 {
                     "s": "abc",
                     "obs": np.random.rand(4, 84, 84).astype(np.float32),
-                    "next_obs": np.random.rand(4, 84, 84).astype(np.float32)
+                    # "next_obs": np.random.rand(4, 84, 84).astype(np.float32),
+                    # "obs": torch.rand(4, 84, 84, dtype=torch.float32),
+                    "next_obs": torch.rand(4, 84, 84, dtype=torch.float32)
                 } for _ in range(96)
             ]
             storage = loader.to_storage(data)
@@ -117,31 +120,29 @@ def test_shared_object():
     ######## Test dict ########
     obj = {"obs": torch.rand(100, 100, dtype=torch.float32)}
     buf = loader._create_shared_object(obj).buf
-    assert isinstance(buf["obs"], ShmBuffer)
+    assert "obs" not in buf
 
     payload = RecvPayload(proc_id=0, data=obj)
     loader._shm_callback(payload=payload, buf=buf)
-    assert payload.data["obs"] is None
+    assert isinstance(payload.data["obs"], torch.Tensor)
 
     loader._shm_putback(payload=payload, buf=buf)
-    assert isinstance(payload.data["obs"], np.ndarray)
+    assert isinstance(payload.data["obs"], torch.Tensor)
     assert payload.data["obs"].shape == (100, 100)
 
     ######## Test treetensor ########
     obj = {"trajectories": [ttorch.as_tensor({"obs": torch.rand(10, 10, dtype=torch.float32)}) for _ in range(10)]}
     buf = loader._create_shared_object(obj).buf
-    assert len(buf["trajectories"]) == 10
-    assert isinstance(buf["trajectories"][0]["obs"], ShmBuffer)
 
     payload = RecvPayload(proc_id=0, data=obj)
     loader._shm_callback(payload=payload, buf=buf)
     assert len(payload.data["trajectories"]) == 10
     for traj in payload.data["trajectories"]:
-        assert traj["obs"] is None
+        assert isinstance(traj["obs"], torch.Tensor)
 
     loader._shm_putback(payload=payload, buf=buf)
     for traj in payload.data["trajectories"]:
-        assert isinstance(traj["obs"], np.ndarray)
+        assert isinstance(traj["obs"], torch.Tensor)
         assert traj["obs"].shape == (10, 10)
 
 

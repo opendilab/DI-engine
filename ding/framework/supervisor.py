@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import functools
-import multiprocessing as mp
+import torch.multiprocessing as mp
 from multiprocessing.context import BaseContext
 import threading
 import queue

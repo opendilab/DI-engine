@@ -24,10 +24,12 @@ class ContextExchanger:
         if not task.router.is_active:
             raise RuntimeError("ContextHandler should be used in parallel mode!")
         self._state = {}
-        self._event_name = "context_exchanger"
+        self._event_name = "context_exchanger_{role}"
         self._skip_n_iter = skip_n_iter
         self._storage_loader = storage_loader
-        task.on(self._event_name, self.put)
+        for role in task.role:  # Only subscribe to other roles
+            if not task.has_role(role):
+                task.on(self._event_name.format(role=role), self.put)
 
     def __new__(cls, *args, **kwargs):
         if not task.router.is_active:
@@ -36,6 +38,11 @@ class ContextExchanger:
         if len(task.roles) == 0:
             logging.warning("The task does not have any roles defined, the ContextExchanger will not work.")
             return task.void()
+
+        if len(task.roles) > 1:
+            logging.warning(
+                "Use multiple roles in one exchanger may lead to unexpected result, please check your code."
+            )
 
         return super(ContextExchanger, cls).__new__(cls)
 
@@ -46,7 +53,8 @@ class ContextExchanger:
         if payload:
             if self._storage_loader and task.has_role(task.role.COLLECTOR):
                 payload = self._storage_loader.to_storage(payload)
-            task.emit(self._event_name, payload, only_remote=True)
+            for role in task.roles:
+                task.emit(self._event_name.format(role=role), payload, only_remote=True)
 
     def __del__(self):
         if self._storage_loader:

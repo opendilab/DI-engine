@@ -107,16 +107,13 @@ class StorageLoader(Supervisor, ABC):
         """
         max_level = 2
 
-        def to_shm(obj: Dict, level: int = 0):
+        def to_shm(obj: Dict, level: int):
             if level > max_level:
                 return
             shm_buf = None
             if isinstance(obj, Dict) or isinstance(obj, ttorch.Tensor):
                 shm_buf = {}
                 for key, val in obj.items():
-                    # Turn tensor into numpy
-                    if isinstance(val, torch.Tensor):
-                        val = val.cpu().data.numpy()
                     # Only numpy array can fill into shm buffer
                     if isinstance(val, np.ndarray):
                         shm_buf[key] = ShmBuffer(val.dtype, val.shape, copy_on_get=False)
@@ -126,7 +123,7 @@ class StorageLoader(Supervisor, ABC):
                         if buf:
                             shm_buf[key] = buf
             elif isinstance(obj, List):
-                shm_buf = [to_shm(o, level=level + 1) for o in obj]
+                shm_buf = [to_shm(o, level=level) for o in obj]
                 if all(s is None for s in shm_buf):
                     shm_buf = []
             return shm_buf
@@ -143,22 +140,37 @@ class StorageLoader(Supervisor, ABC):
             payload.data
         ) is type(buf), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(buf))
 
-        def shm_callback(data: Union[Dict, List], buf: Union[Dict, List]):
-            if isinstance(buf, Dict):
-                for key, val in buf.items():
-                    data_val = data[key]
-                    if isinstance(data_val, torch.Tensor):
-                        data_val = data_val.cpu().data.numpy()
-                    if isinstance(data_val, np.ndarray):
-                        val.fill(data_val)
+        max_level = 2
+
+        def shm_callback(data: Union[Dict, List, ttorch.Tensor], buf: Union[Dict, List], level: int):
+            if level > max_level:
+                return
+
+            if isinstance(buf, List):
+                assert isinstance(data, List), "Data ({}) and buf ({}) type not match".format(type(data), type(buf))
+            elif isinstance(buf, Dict):
+                assert isinstance(data, ttorch.Tensor) or isinstance(
+                    data, Dict
+                ), "Data ({}) and buf ({}) type not match".format(type(data), type(buf))
+
+            if isinstance(data, Dict):
+                for key, val in data.items():
+                    if isinstance(val, torch.Tensor):
+                        val.share_memory_()
+                        continue
+                    buf_val = buf.get(key)
+                    if buf_val is None:
+                        continue
+                    if isinstance(buf_val, ShmBuffer) and isinstance(val, np.ndarray):
+                        buf_val.fill(val)
                         data[key] = None
                     else:
-                        shm_callback(data_val, val)
-            elif isinstance(buf, List):
-                for i, buf_ in enumerate(buf):
-                    shm_callback(data[i], buf_)
+                        shm_callback(val, buf_val, level=level + 1)
+            elif isinstance(data, List):
+                for i, data_ in enumerate(data):
+                    shm_callback(data_, buf[i], level=level)
 
-        shm_callback(payload.data, buf=buf)
+        shm_callback(payload.data, buf=buf, level=0)
 
     def _shm_putback(self, payload: RecvPayload, buf: Union[Dict, List]):
         """
