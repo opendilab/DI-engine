@@ -536,6 +536,8 @@
     <span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="p">:</span>
+                <span class="k">break</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
             <span class="c1"># msg is none means that the message queue is no longer being listened to,</span>
             <span class="c1"># especially if the message queue is already closed</span>

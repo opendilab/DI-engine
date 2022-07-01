@@ -273,15 +273,13 @@
   <h1>Source code for ding.framework.middleware.functional.data_processor</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">offline_data_save_type</span>
 <span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
-<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">OnlineRLContext</span><span class="p">,</span> <span class="n">OfflineRLContext</span>
+    <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span><span class="p">,</span> <span class="n">OfflineRLContext</span>
 
 
 <div class="viewcode-block" id="data_pusher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.data_pusher">[docs]</a><span class="k">def</span> <span class="nf">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">group_by_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -399,7 +397,7 @@
                 <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">buffered_data</span><span class="p">]</span>
                 <span class="n">meta</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">meta</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">buffered_data</span><span class="p">]</span>
                 <span class="c1"># such as priority</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_output</span><span class="p">,</span> <span class="n">deque</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_output</span><span class="p">,</span> <span class="n">List</span><span class="p">):</span>
                     <span class="n">priority</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_output</span><span class="o">.</span><span class="n">pop</span><span class="p">()[</span><span class="s1">&#39;priority&#39;</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">priority</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_output</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">]</span>

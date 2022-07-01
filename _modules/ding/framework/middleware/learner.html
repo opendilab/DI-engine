@@ -318,7 +318,7 @@
 <span class="sd">        Output of ctx:</span>
 <span class="sd">            - train_output (:obj:`Deque`): The training output in deque.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">train_output_queue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
+        <span class="n">train_output_queue</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_fetcher</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -361,7 +361,7 @@
 <span class="sd">        Output of ctx:</span>
 <span class="sd">            - train_output (:obj:`Deque`): The deque of training output.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">train_output_queue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
+        <span class="n">train_output_queue</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_fetcher</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
