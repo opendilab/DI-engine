@@ -1,14 +1,12 @@
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
-from collections import deque
 from ditk import logging
 import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay
-from ding.framework import task
 
 if TYPE_CHECKING:
-    from ding.framework import Context, OnlineRLContext, OfflineRLContext
+    from ding.framework import OnlineRLContext, OfflineRLContext
 
 
 def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = None):
@@ -126,7 +124,7 @@ def offpolicy_data_fetcher(
                 index = [d.index for d in buffered_data]
                 meta = [d.meta for d in buffered_data]
                 # such as priority
-                if isinstance(ctx.train_output, deque):
+                if isinstance(ctx.train_output, List):
                     priority = ctx.train_output.pop()['priority']
                 else:
                     priority = ctx.train_output['priority']
