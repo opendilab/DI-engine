@@ -19,6 +19,14 @@ from ding.torch_utils import unsqueeze_repeat
 
 @POLICY_REGISTRY.register('ibc')
 class IBCPolicy(BehaviourCloningPolicy):
+    r"""
+    Overview:
+        Implicit Behavior Cloning
+        https://arxiv.org/abs/2109.00137.pdf
+
+    Config:
+        TODO
+    """
 
     config = dict(
         type='ibc',
@@ -57,8 +65,7 @@ class IBCPolicy(BehaviourCloningPolicy):
         self._learn_model.reset()
     
     def _forward_learn(self, data):
-        if not isinstance(data, dict):
-            data = default_collate(data)
+        data = default_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
         self._learn_model.train()
@@ -118,9 +125,7 @@ class IBCPolicy(BehaviourCloningPolicy):
 
     def _forward_eval(self, data: dict) -> dict:
         tensor_input = isinstance(data, torch.Tensor)
-        if tensor_input:
-            data = default_collate(list(data))
-        else:
+        if not tensor_input:
             data_id = list(data.keys())
             data = default_collate(list(data.values()))
 

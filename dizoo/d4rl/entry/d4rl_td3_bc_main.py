@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def train(args):
-    # launch from everywhere
+    # launch from anywhere
     config = Path(__file__).absolute().parent.parent / 'config' / args.config 
     config = read_config(str(config))
     serial_pipeline_offline(config, seed=args.seed)
@@ -12,7 +12,6 @@ def train(args):
 
 if __name__ == "__main__":
     import argparse
-    from d4rl import set_dataset_path
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', '-s', type=int, default=10)

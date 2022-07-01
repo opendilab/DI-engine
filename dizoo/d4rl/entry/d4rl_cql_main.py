@@ -1,13 +1,12 @@
 from ding.entry import serial_pipeline_offline
 from ding.config import read_config
-import os
+from pathlib import Path
 
 
 def train(args):
-    if '../config' in args.config:
-        config = read_config(args.config)
-    else:
-        config = read_config(os.path.join('../config/', args.config))
+    # launch from anywhere
+    config = Path(__file__).absolute().parent.parent / 'config' / args.config 
+    config = read_config(str(config))
     serial_pipeline_offline(config, seed=args.seed)
 
 

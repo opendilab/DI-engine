@@ -4,6 +4,7 @@ import torch
 import numpy as np
 from ditk import logging
 from copy import deepcopy
+from dataclasses import dataclass
 
 from easydict import EasyDict
 from torch.utils.data import Dataset
@@ -11,6 +12,12 @@ from torch.utils.data import Dataset
 from ding.utils import DATASET_REGISTRY, import_module
 from ding.rl_utils import discount_cumsum
 
+
+@dataclass
+class DatasetStatistics:
+    mean: np.ndarray # obs
+    std: np.ndarray  # obs
+    action_bounds: np.ndarray
 
 @DATASET_REGISTRY.register('naive')
 class NaiveRLDataset(Dataset):
@@ -72,14 +79,15 @@ class D4RLDataset(Dataset):
             trans_data['done'] = dataset['terminals'][i]
             self._data.append(trans_data)
     
-    def _cal_statistics(self, dataset, env, eps=1e-3):
+    def _cal_statistics(self, dataset, env, eps=1e-3, add_action_buffer=True):
         self._mean = dataset['observations'].mean(0, keepdims=True)
         self._std = dataset['observations'].std(0, keepdims=True) + eps
         action_max = dataset['actions'].max(0)
         action_min = dataset['actions'].min(0)
-        buffer = 0.05 * (action_max - action_min)
-        action_max = (action_max + buffer).clip(max=env.action_space.high)
-        action_min = (action_min - buffer).clip(min=env.action_space.low)
+        if add_action_buffer:
+            action_buffer = 0.05 * (action_max - action_min)
+            action_max = (action_max + action_buffer).clip(max=env.action_space.high)
+            action_min = (action_min - action_buffer).clip(min=env.action_space.low)
         self._action_bounds = np.stack([action_min, action_max], axis=0)
 
     def _normalize_states(self, dataset):
@@ -94,18 +102,14 @@ class D4RLDataset(Dataset):
     @property
     def std(self):
         return self._std
-
+    
     @property
     def action_bounds(self) -> np.ndarray:
         return self._action_bounds
 
     @property
     def statistics(self) -> dict:
-        return EasyDict(
-            mean=self.mean,
-            std=self.std,
-            action_bounds=self.action_bounds,
-        )
+        return DatasetStatistics(mean=self.mean, std=self.std, action_bounds=self.action_bounds)
 
 
 @DATASET_REGISTRY.register('hdf5')
@@ -164,11 +168,7 @@ class HDF5Dataset(Dataset):
 
     @property
     def statistics(self) -> dict:
-        return EasyDict(
-            mean=self.mean,
-            std=self.std,
-            action_bounds=self.action_bounds,
-        )
+        return DatasetStatistics(mean=self.mean, std=self.std, action_bounds=self.action_bounds)
 
 
 @DATASET_REGISTRY.register('d4rl_trajectory')

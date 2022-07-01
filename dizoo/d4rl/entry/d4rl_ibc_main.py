@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def train(args):
-    # launch from everywhere
+    # launch from anywhere
     config = Path(__file__).absolute().parent.parent / 'config' / args.config 
     config = read_config(str(config))
     serial_pipeline_offline(config, seed=args.seed)

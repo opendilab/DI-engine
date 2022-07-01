@@ -25,12 +25,7 @@ main_config = dict(
             holdout_ratio=0.1,
             train_epoch=300,
             batch_size=256,
-            optim=dict(
-                learning_rate=1e-5,
-                weight_decay=0.0,
-                beta1=0.9,
-                beta2=0.999,
-            ),
+            optim=dict(learning_rate=1e-5,),
             learner=dict(hook=dict(log_show_after_iter=1000)),
         ),
         collect=dict(
@@ -38,7 +33,6 @@ main_config = dict(
             data_type='d4rl',
             data_path=None,
         ),
-        # eval=dict(evaluator=dict(eval_freq=10000, )),
     ),
 )
 main_config = EasyDict(main_config)
@@ -48,15 +42,11 @@ create_config = dict(
         type='d4rl',
         import_names=['dizoo.d4rl.envs.d4rl_env'],
     ),
-    env_manager=dict(
-        cfg_type='BaseEnvManagerDict',
-        type='base',
-    ),
+    env_manager=dict(type='base',),
     policy=dict(
         type='ibc',
         import_names=['ding.policy.ibc'],
     ),
-    # replay_buffer=dict(type='naive', ),
 )
 create_config = EasyDict(create_config)
 create_config = create_config

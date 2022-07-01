@@ -1,5 +1,7 @@
 from easydict import EasyDict
 
+cuda = True
+
 main_config = dict(
     exp_name='hopper_medium_expert_ibc_seed0',
     env=dict(
@@ -10,13 +12,13 @@ main_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        cuda=True,
+        cuda=cuda,
         model=dict(
             obs_shape=11,
             action_shape=3,
             hidden_size=256,
             hidden_layer_num=2,
-            stochastic_optim=dict(type='dfo', cuda=True,)
+            stochastic_optim=dict(type='dfo', cuda=cuda,)
         ),
         learn=dict(
             holdout_ratio=0.1,
@@ -30,7 +32,6 @@ main_config = dict(
             data_type='d4rl',
             data_path=None,
         ),
-        # eval=dict(evaluator=dict(eval_freq=10000, )),
     ),
 )
 main_config = EasyDict(main_config)
@@ -40,15 +41,11 @@ create_config = dict(
         type='d4rl',
         import_names=['dizoo.d4rl.envs.d4rl_env'],
     ),
-    env_manager=dict(
-        cfg_type='BaseEnvManagerDict',
-        type='base',
-    ),
+    env_manager=dict(type='base',),
     policy=dict(
         type='ibc',
         import_names=['ding.policy.ibc'],
     ),
-    # replay_buffer=dict(type='naive', ),
 )
 create_config = EasyDict(create_config)
 create_config = create_config
