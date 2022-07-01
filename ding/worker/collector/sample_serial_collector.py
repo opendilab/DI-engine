@@ -316,6 +316,135 @@ class SampleSerialCollector(ISerialCollector):
         else:
             return return_data
 
+
+    def collect_plr(
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            drop_extra: bool = True,
+            policy_kwargs: Optional[dict] = None,
+            level_seeds: list = None,
+    ) -> List[Any]:
+        """
+        Overview:
+            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations.
+        Arguments:
+            - n_sample (:obj:`int`): The number of collecting data sample.
+            - train_iter (:obj:`int`): The number of training iteration when calling collect method.
+            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.
+            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.
+        Returns:
+            - return_data (:obj:`List`): A list containing training samples.
+        """
+        if n_sample is None:
+            if self._default_n_sample is None:
+                raise RuntimeError("Please specify collect n_sample")
+            else:
+                n_sample = self._default_n_sample
+        if n_sample % self._env_num != 0:
+            one_time_warning(
+                "Please make sure env_num is divisible by n_sample: {}/{}, ".format(n_sample, self._env_num) +
+                "which may cause convergence problems in a few algorithms"
+            )
+        if policy_kwargs is None:
+            policy_kwargs = {}
+        collected_sample = 0
+        return_data = []
+
+        while collected_sample < n_sample:
+            with self._timer:
+                # Get current env obs.
+                obs = self._env.ready_obs
+                # Policy forward.
+                self._obs_pool.update(obs)
+                if self._transform_obs:
+                    obs = to_tensor(obs, dtype=torch.float32)
+                policy_output = self._policy.forward(obs, **policy_kwargs)
+                self._policy_output_pool.update(policy_output)
+                # Interact with env.
+                actions = {env_id: output['action'] for env_id, output in policy_output.items()}
+                actions = to_ndarray(actions)
+                timesteps = self._env.step(actions)
+
+            # TODO(nyz) this duration may be inaccurate in async env
+            interaction_duration = self._timer.value / len(timesteps)
+
+            # TODO(nyz) vectorize this for loop
+            for env_id, timestep in timesteps.items():
+                with self._timer:
+                    if timestep.info.get('abnormal', False):
+                        # If there is an abnormal timestep, reset all the related variables(including this env).
+                        # suppose there is no reset param, just reset this env
+                        self._env.reset({env_id: None})
+                        self._policy.reset([env_id])
+                        self._reset_stat(env_id)
+                        self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
+                        continue
+                    if 'type' in self._policy.get_attribute('cfg') and \
+                            self._policy.get_attribute('cfg').type == 'ngu_command':
+                        # for NGU policy
+                        transition = self._policy.process_transition(
+                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
+                        )
+                    else:
+                        transition = self._policy.process_transition(
+                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
+                        )
+                        transition['seed'] = level_seeds[env_id]
+                    # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
+                    transition['collect_iter'] = train_iter
+                    self._traj_buffer[env_id].append(transition)
+                    self._env_info[env_id]['step'] += 1
+                    self._total_envstep_count += 1
+                    # prepare data
+                    if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
+                        # If policy is r2d2:
+                        # 1. For each collect_env, we want to collect data of length self._traj_len=INF
+                        # unless the episode enters the 'done' state.
+                        # 2. The length of a train (sequence) sample in r2d2 is <burnin + learn_unroll_length>
+                        # (please refer to r2d2.py) and in each collect phase,
+                        # we collect a total of <n_sample> (sequence) samples.
+                        # 3. When timestep is done and we only collected very few transitions in self._traj_buffer,
+                        # by going through self._policy.get_train_sample, it will be padded automatically to get the
+                        # sequence sample of length <burnin + learn_unroll_len> (please refer to r2d2.py).
+
+                        # Episode is done or traj_buffer(maxlen=traj_len) is full.
+                        transitions = to_tensor_transitions(self._traj_buffer[env_id])
+                        train_sample = self._policy.get_train_sample(transitions)
+                        return_data.extend(train_sample)
+                        self._total_train_sample_count += len(train_sample)
+                        self._env_info[env_id]['train_sample'] += len(train_sample)
+                        collected_sample += len(train_sample)
+                        self._traj_buffer[env_id].clear()
+
+                self._env_info[env_id]['time'] += self._timer.value + interaction_duration
+
+                # If env is done, record episode info and reset
+                if timestep.done:
+                    self._total_episode_count += 1
+                    reward = timestep.info['final_eval_reward']
+                    info = {
+                        'reward': reward,
+                        'time': self._env_info[env_id]['time'],
+                        'step': self._env_info[env_id]['step'],
+                        'train_sample': self._env_info[env_id]['train_sample'],
+                    }
+                    self._episode_info.append(info)
+                    # Env reset is done by env_manager automatically
+                    self._policy.reset([env_id])
+                    self._reset_stat(env_id)
+        # log
+        self._output_log(train_iter)
+        # on-policy reset
+        if self._on_policy:
+            for env_id in range(self._env_num):
+                self._reset_stat(env_id)
+
+        if drop_extra:
+            return return_data[:n_sample]
+        else:
+            return return_data
+
     def _output_log(self, train_iter: int) -> None:
         """
         Overview:
