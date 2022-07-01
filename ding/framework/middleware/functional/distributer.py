@@ -42,7 +42,7 @@ def model_exchanger(model: "Module"):
                 start = time()
                 while True:
                     if time() - start > 60:
-                        logging.warning("Timeout when waiting for new model!")
+                        logging.warning("Timeout when waiting for new model! Node id: {}".format(task.router.node_id))
                         break
                     if state_dict_cache is None:
                         sleep(0.01)

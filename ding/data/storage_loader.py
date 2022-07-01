@@ -157,7 +157,7 @@ class StorageLoader(Supervisor, ABC):
             if isinstance(data, Dict):
                 for key, val in data.items():
                     if isinstance(val, torch.Tensor):
-                        val.share_memory_()
+                        val.cpu().share_memory_()
                         continue
                     buf_val = buf.get(key)
                     if buf_val is None:

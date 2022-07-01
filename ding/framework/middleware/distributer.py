@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, time
 from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 from ditk import logging
 from ding.framework import task
@@ -97,9 +97,19 @@ class ContextExchanger:
         return payload
 
     def merge(self, ctx: "Context"):
-        if ctx.total_step >= self._skip_n_iter or task.has_role(task.role.LEARNER):
+        if task.has_role(task.role.LEARNER):
+            # Learner should always wait for trajs.
+            # TODO: Automaticlly wait based on properties, not roles.
             while len(self._state) == 0:
                 sleep(0.01)
+        elif ctx.total_step >= self._skip_n_iter:
+            start = time()
+            while len(self._state) == 0:
+                if time() - start > 60:
+                    logging.warning("Timeout when waiting for new context! Node id: {}".format(task.router.node_id))
+                    break
+                sleep(0.01)
+
         for k, v in self._state.items():
             ctx[k] = v
         self._state = {}
