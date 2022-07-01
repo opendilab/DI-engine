@@ -100,7 +100,7 @@ def test_shared_object():
     ######## Test array ########
     obj = [{"obs": np.random.rand(100, 100)} for _ in range(10)]
     buf = loader._create_shared_object(obj).buf
-    assert len(buf) == 10
+    assert len(buf) == len(obj) * 2
     assert isinstance(buf[0]["obs"], ShmBuffer)
 
     # Callback

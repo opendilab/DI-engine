@@ -123,7 +123,8 @@ class StorageLoader(Supervisor, ABC):
                         if buf:
                             shm_buf[key] = buf
             elif isinstance(obj, List):
-                shm_buf = [to_shm(o, level=level) for o in obj]
+                # Double the size of buffer
+                shm_buf = [to_shm(o, level=level) for o in obj] * 2
                 if all(s is None for s in shm_buf):
                     shm_buf = []
             return shm_buf
@@ -182,15 +183,18 @@ class StorageLoader(Supervisor, ABC):
         ) is type(buf), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(buf))
 
         def shm_putback(data: Union[Dict, List], buf: Union[Dict, List]):
-            if isinstance(buf, Dict):
-                for key, val in buf.items():
-                    if isinstance(val, ShmBuffer):
-                        data[key] = val.get()
+            if isinstance(data, Dict):
+                for key, val in data.items():
+                    buf_val = buf.get(key)
+                    if buf_val is None:
+                        continue
+                    if val is None and isinstance(buf_val, ShmBuffer):
+                        data[key] = buf[key].get()
                     else:
-                        shm_putback(data[key], val)
-            elif isinstance(buf, List):
-                for i, buf_ in enumerate(buf):
-                    shm_putback(data[i], buf_)
+                        shm_putback(val, buf_val)
+            elif isinstance(data, List):
+                for i, data_ in enumerate(data):
+                    shm_putback(data_, buf[i])
 
         shm_putback(payload.data, buf=buf)
 
