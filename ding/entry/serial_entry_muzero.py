@@ -140,6 +140,9 @@ def serial_pipeline_muzero(
             #     )
             #     break
             learner.train(train_data, collector.envstep)
+            if learner.train_iter >= 1e5:
+                # learning rate decay manually
+                policy._optimizer.lr = 0.02
             # if learner.policy.get_attribute('priority'):
             #     replay_buffer.update(learner.priority_info)
             #     replay_buffer.batch_update(indices=learner.priority_info['priority']['indices'], metas={'make_time': \

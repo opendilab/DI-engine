@@ -201,8 +201,8 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
     def get_priorities(self, i, pred_values_lst, search_values_lst):
         # obtain the priorities at index i
         if self.game_config.use_priority and not self.game_config.use_max_priority:
-            pred_values = torch.from_numpy(np.array(pred_values_lst[i])).to(self.game_config.device).float()
-            search_values = torch.from_numpy(np.array(search_values_lst[i])).to(self.game_config.device).float()
+            pred_values = torch.from_numpy(np.array(pred_values_lst[i])).to(self.game_config.device).float().view(-1)
+            search_values = torch.from_numpy(np.array(search_values_lst[i])).to(self.game_config.device).float().view(-1)
             priorities = L1Loss(reduction='none'
                                 )(pred_values,
                                   search_values).detach().cpu().numpy() + self.game_config.prioritized_replay_eps
@@ -282,8 +282,12 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         last_game_histories[i].game_over()
 
         # put the game history into the pool
+        # try:
+        #     assert len(last_game_histories[i]) == len(last_game_priorities[i])
+        # except Exception as error:
+        #     print(error)
         self.trajectory_pool.append((last_game_histories[i], last_game_priorities[i], done[i]))
-        self.free(done[i])
+        # self.free(done[i])
 
         # reset last game_histories
         last_game_histories[i] = None
@@ -462,6 +466,8 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                     # calculate priority
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)
+                    pred_values_lst[i] = []
+                    search_values_lst[i] = []
 
                     #  the game_histories become last_game_history
                     last_game_histories[i] = game_histories[i]
@@ -490,6 +496,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     }
                     collected_episode += 1
                     self._episode_info.append(info)
+                    # Env reset is done by env_manager automatically
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
 
@@ -505,9 +512,11 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                     # NOTE: put the last game history in one episode into the trajectory_pool
                     game_histories[i].game_over()
+
+                    # assert len(game_histories[i]) == len(priorities)
                     self.trajectory_pool.append((game_histories[i], priorities, dones[i]))
                     # NOTE: this is very important to save the done data to replay_buffer
-                    self.free(end_tag=True)
+                    # self.free(end_tag=True)
 
                     # reset the finished env and init game_histories
                     init_obses = self._env.ready_obs
@@ -545,7 +554,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             if collected_episode >= n_episode:
                 # logs
                 visit_entropies = np.array(self_play_visit_entropy).mean()
-                visit_entropies /= max_visit_entropy
+                # visit_entropies /= max_visit_entropy
                 print('visit_entropies:', visit_entropies)
 
                 if self_play_episodes > 0:

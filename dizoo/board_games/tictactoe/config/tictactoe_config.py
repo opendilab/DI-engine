@@ -17,7 +17,7 @@ game_config = EasyDict(dict(
     gray_scale=False,
     downsample=False,
 
-    collector_env_num=16,
+    collector_env_num=32,
     evaluator_env_num=5,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),

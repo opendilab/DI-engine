@@ -8,7 +8,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 from ding.utils import MODEL_REGISTRY
-from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize
+from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize, mlp
 from ding.rl_utils.mcts.utils import mask_nan
 from ding.torch_utils.network.nn_module import MLP
 from ding.torch_utils.network.res_block import ResBlock
@@ -223,7 +223,9 @@ class DynamicsNetwork(nn.Module):
         self.block_output_size_reward = block_output_size_reward
         self.lstm = nn.LSTM(input_size=self.block_output_size_reward, hidden_size=self.lstm_hidden_size)
         self.bn_value_prefix = nn.BatchNorm1d(self.lstm_hidden_size, momentum=momentum)
-        self.fc = MLP(self.lstm_hidden_size, fc_reward_layers[0], full_support_size, len(fc_reward_layers))
+        self.fc = mlp(self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum)
+        # TODO(pu)
+        # self.fc = MLP(self.lstm_hidden_size, fc_reward_layers[0], full_support_size, len(fc_reward_layers))
         self.activation = nn.ReLU()
 
     def forward(self, x, reward_hidden):
@@ -326,16 +328,17 @@ class PredictionNetwork(nn.Module):
         self.bn_policy = nn.BatchNorm2d(reduced_channels_policy, momentum=momentum)
         self.block_output_size_value = block_output_size_value
         self.block_output_size_policy = block_output_size_policy
-        # self.fc_value = mlp(
-        #     self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
-        # )
-        # self.fc_policy = mlp(
-        #     self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
-        # )
-        self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers))
-        self.fc_policy = MLP(
-            self.block_output_size_policy, fc_policy_layers[0], action_space_size, len(fc_policy_layers)
+        self.fc_value = mlp(
+            self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
         )
+        self.fc_policy = mlp(
+            self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
+        )
+        # TODO(pu)
+        # self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers), activation=nn.ReLU(), init_zero=True)
+        # self.fc_policy = MLP(
+        #     self.block_output_size_policy, fc_policy_layers[0], action_space_size, len(fc_policy_layers), activation=nn.ReLU(), init_zero=True
+        # )
         self.activation = nn.ReLU()
 
     def forward(self, x):

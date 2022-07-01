@@ -127,7 +127,7 @@ class GameBuffer(Buffer):
         else:
             assert len(data) == len(meta['priorities']), " priorities should be of same length as the game steps"
             priorities = meta['priorities'].copy().reshape(-1)
-            # priorities[valid_len:len(game)] = 0.
+            priorities[valid_len:len(data)] = 0.
             self.priorities = np.concatenate((self.priorities, priorities))
 
         self.buffer.append(data)
@@ -161,7 +161,7 @@ class GameBuffer(Buffer):
         """
         # if size:
         #     if replace:
-        #         sampled_indices = np.random.randint(0, self.get_num_of_game_historys(), size)
+        #         sampled_indices = np.random.randint(0, self.get_num_of_game_histories(), size)
         #         return [self.buffer[game_history_idx] for game_history_idx in sampled_indices]
         # elif indices:
         #     return [self.buffer[game_history_idx] for game_history_idx in indices]
@@ -302,7 +302,7 @@ class GameBuffer(Buffer):
 
     def remove_to_fit(self):
         # remove some old data if the replay buffer is full.
-        nums_of_game_histoty = self.get_num_of_game_historys()
+        nums_of_game_histoty = self.get_num_of_game_histories()
         total_transition = self.get_num_of_transitions()
         if total_transition > self.transition_top:
             index = 0
@@ -347,7 +347,7 @@ class GameBuffer(Buffer):
         # number of collected episodes
         return self._eps_collected
 
-    def get_num_of_game_historys(self) -> int:
+    def get_num_of_game_histories(self) -> int:
         # number of games, i.e. num of game history blocks
         return len(self.buffer)
 
@@ -771,7 +771,7 @@ class GameBuffer(Buffer):
                             to_play=to_play
                         )
                         # do MCTS for a new policy with the recent target model
-                        MCTS(self.config).search(
+                        MCTS_ptree(self.config).search(
                             roots, self.model, hidden_state_roots, reward_hidden_roots, to_play=to_play
                         )
 
@@ -1009,7 +1009,7 @@ class GameBuffer(Buffer):
         if policy_non_re_context is None:
             return batch_policies_non_re
 
-        state_index_lst, child_visits, traj_lens = policy_non_re_context
+        state_index_lst, child_visits, traj_lens, action_mask_history, to_play_history  = policy_non_re_context
         with torch.no_grad():
             # for policy
             policy_mask = []  # 0 -> out of traj, 1 -> old policy

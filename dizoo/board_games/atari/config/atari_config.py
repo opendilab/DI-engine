@@ -22,7 +22,7 @@ game_config = EasyDict(dict(
     # evaluator_env_num=1,
     # max_episode_steps=int(1e4),
     # test_max_episode_steps=int(1e4),
-    # num_simulations=6,
+    # num_simulations=8,
     # batch_size=4,
     # game_history_max_length=20,
     # total_transitions=int(1e6),
@@ -41,11 +41,12 @@ game_config = EasyDict(dict(
     num_unroll_steps=5,
     td_steps=5,
 
-    revisit_policy_search_rate=1,    # TODO
-    # revisit_policy_search_rate=0.99,
+    # revisit_policy_search_rate=1,    # TODO
+    revisit_policy_search_rate=0.99,
 
     clip_reward=True,
     use_max_priority=True,
+    # use_max_priority=False,  # TODO
     use_priority=True,
     root_dirichlet_alpha=0.3,
     root_exploration_fraction=0.25,

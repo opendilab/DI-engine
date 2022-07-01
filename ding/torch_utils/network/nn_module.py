@@ -302,7 +302,8 @@ def MLP(
     activation: nn.Module = None,
     norm_type: str = None,
     use_dropout: bool = False,
-    dropout_probability: float = 0.5
+    dropout_probability: float = 0.5,
+    init_zero: bool=False,
 ):
     r"""
     Overview:

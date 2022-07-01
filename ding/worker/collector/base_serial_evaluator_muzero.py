@@ -240,7 +240,7 @@ class BaseSerialEvaluatorMuZero(object):
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 distributions_dict = {i: a['distributions'] for i, a in policy_output.items()}
                 value_dict = {i: a['value'] for i, a in policy_output.items()}
-
+                # print(actions)
                 timesteps = self._env.step(actions)
 
                 # timesteps = to_tensor(timesteps, dtype=torch.float32)

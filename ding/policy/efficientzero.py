@@ -151,6 +151,7 @@ class EfficientZeroPolicy(Policy):
             update_kwargs={'freq': self._cfg.learn.target_update_freq}
         )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
+        # self._learn_model = self._model
         self._learn_model.reset()
         self._target_model.reset()
         # TODO(pu): how to pass into game_config, which is class, not a dict
@@ -162,6 +163,8 @@ class EfficientZeroPolicy(Policy):
 
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()
+        self._target_model.train()
+
         # TODO(pu): priority
         inputs_batch, targets_batch, replay_buffer = data
 
@@ -456,8 +459,10 @@ class EfficientZeroPolicy(Policy):
 
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(self._model, 'base')
-        self._collect_model.eval()
+        # self._collect_model = model_wrap(self._model, 'base')
+        self._collect_model = self._learn_model
+
+        self._collect_model.reset()
         if self.game_config.mcts_ctree:
             self._mcts_collect = MCTS_ctree(self.game_config)
         else:
@@ -477,6 +482,7 @@ class EfficientZeroPolicy(Policy):
             obs: (B, S, C, H, W), where S is the stack num
             temperature: (N1, ), where N1 is the number of collect_env.
         """
+        self._collect_model.eval()
         # TODO priority
         stack_obs = data
         with torch.no_grad():
@@ -546,8 +552,11 @@ class EfficientZeroPolicy(Policy):
                     'distributions': distributions,
                     'visit_entropy': visit_entropy,
                     'value': value,
-                    'pred_value': pred_values_pool[i]
+                    'pred_value': pred_values_pool[i],
+                    'policy_logits':policy_logits_pool[i],
                 }
+                print('collect:', output[i])
+
 
         return output
 
@@ -575,7 +584,8 @@ class EfficientZeroPolicy(Policy):
         Overview:
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        # self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model = self._learn_model
         self._eval_model.reset()
         if self.game_config.mcts_ctree:
             self._mcts_eval = MCTS_ctree(self.game_config)
@@ -645,8 +655,8 @@ class EfficientZeroPolicy(Policy):
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
-                # actions.append(action)
                 output[i] = {'action': action, 'distributions': distributions, 'value': value}
+                print('eval:',output[i])
 
         return output
 

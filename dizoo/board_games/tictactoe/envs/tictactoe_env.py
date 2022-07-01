@@ -305,8 +305,6 @@ class TicTacToeEnv(BaseGameEnv):
     def create_collector_env_cfg(cfg: dict) -> List[dict]:
         collector_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
-        cfg.battle_mode = 'two_player_mode'
-        # cfg.battle_mode = 'one_player_mode'
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
