@@ -88,7 +88,7 @@ class HERLearner:
         Output of ctx:
             - train_output (:obj:`Deque`): The deque of training output.
         """
-        train_output_queue = deque()
+        train_output_queue = []
         for _ in range(self.cfg.policy.learn.update_per_collect):
             self._fetcher(ctx)
             if ctx.train_data is None:
