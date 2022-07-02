@@ -35,7 +35,7 @@ league_demo_ppo_config = dict(
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
-        eval=dict(argmax_eval=False),
+        eval=dict(argmax_eval=True),
         other=dict(
             league=dict(
                 player_category=['default'],
@@ -44,7 +44,7 @@ league_demo_ppo_config = dict(
                 path_policy="policy_path_placeholer",
                 active_players=dict(main_player=1, ),
                 main_player=dict(
-                    one_phase_step=50000,
+                    one_phase_step=20000,
                     branch_probs=dict(pfsp=0.5, sp=0.5),
                     strong_win_rate=0.55,
                 ),

@@ -12,7 +12,8 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, BattleEpisodeSerialCollector, NaiveReplayBuffer, InteractionSerialEvaluator
 from ding.envs import SyncSubprocessEnvManager
 from ding.policy import PPOPolicy, Botpolicy
-from ding.model import VAC, Bot
+from ding.model import VAC
+from dizoo.slime_volley.model import Bot
 from ding.utils import set_pkg_seed
 from ding.league import BaseLeague, ActivePlayer
 from dizoo.slime_volley.envs import SlimeVolleyEnv
@@ -43,6 +44,7 @@ class MyLeague(BaseLeague):
         assert isinstance(player, ActivePlayer)
         if 'learner_step' in player_info:
             player.total_agent_step = player_info['learner_step']
+        torch.save(player_info['state_dict'], player.checkpoint_path)
 
     # override
     @staticmethod
@@ -75,7 +77,7 @@ def main(cfg, seed=0):
     league = MyLeague(cfg.policy.other.league)
     policies, learners, collectors, evaluators = {}, {}, {}, {}
 
-    #state_dict = torch.load('/home/pi/DI-engine/slime_volley_ppo_seed0/ckpt_learner1/iteration_3000000.pth.tar')
+    #state_dict = torch.load('default_cate_pretrain.pth')
 
     for player_id in league.active_players_ids:
         model = VAC(**cfg.policy.model)
@@ -198,6 +200,7 @@ def main(cfg, seed=0):
 
             player_info = learner.learn_info
             player_info['player_id'] = player_id
+            player_info['state_dict'] = policies[player_id].learn_mode.state_dict()
             league.update_active_player(player_info)
             league.judge_snapshot(player_id)
             # set eval_flag=True to enable trueskill update

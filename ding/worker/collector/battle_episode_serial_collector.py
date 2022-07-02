@@ -231,12 +231,7 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                     obs = to_tensor(obs, dtype=torch.float32)
                 obs = dicts_to_lists(obs)
                 policy_output = [p.forward(obs[i], **policy_kwargs) for i, p in enumerate(self._policy)]
-                try:
-                    self._policy_output_pool.update(policy_output)
-                except Exception as err:
-                    #pass
-                    print(err)
-                    breakpoint()
+                self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {}
                 for env_id in ready_env_id:

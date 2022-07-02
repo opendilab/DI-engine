@@ -126,24 +126,19 @@ class CachePool(object):
             - data (:obj:`Dict[int, Any]`): A dict containing update index-value pairs. Key is index in cache pool, \
                 and value is the new element.
         """
-        try: 
-            if isinstance(data, dict):
-                data = [data]
-            for index in range(len(data)):
-                for i in data[index].keys():
-                    d = data[index][i]
-                    if self._deepcopy:
-                        copy_d = copy.deepcopy(d)
-                    else:
-                        copy_d = d
-                    if index == 0:
-                        self._pool[i] = [copy_d]
-                    else:
-                        self._pool[i].append(copy_d)
-        except Exception as err:
-            #pass
-            print(err)
-            breakpoint()
+        if isinstance(data, dict):
+            data = [data]
+        for index in range(len(data)):
+            for i in data[index].keys():
+                d = data[index][i]
+                if self._deepcopy:
+                    copy_d = copy.deepcopy(d)
+                else:
+                    copy_d = d
+                if index == 0:
+                    self._pool[i] = [copy_d]
+                else:
+                    self._pool[i].append(copy_d)
 
     def __getitem__(self, idx: int) -> Any:
         """
