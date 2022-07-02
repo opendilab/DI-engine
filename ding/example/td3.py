@@ -9,6 +9,7 @@ from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, CkptSaver
 from ding.utils import set_pkg_seed
+from dizoo.classic_control.pendulum.envs.pendulum_env import PendulumEnv
 from dizoo.classic_control.pendulum.config.pendulum_td3_config import main_config, create_config
 
 
@@ -17,12 +18,10 @@ def main():
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("Pendulum-v0")) for _ in range(cfg.env.collector_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("Pendulum-v0")) for _ in range(cfg.env.evaluator_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
