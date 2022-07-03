@@ -2,6 +2,7 @@ import pytest
 from dizoo.board_games.tictactoe.envs.tictactoe_env import TicTacToeEnv
 from easydict import EasyDict
 
+
 @pytest.mark.envtest
 class TestTicTacToeEnv:
     def test_two_player_mode(self):

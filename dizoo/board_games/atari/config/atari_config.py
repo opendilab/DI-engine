@@ -4,8 +4,11 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 game_config = EasyDict(dict(
     # NOTE
     env_name='PongNoFrameskip-v4',
+    # if mcts_ctree=True, using cpp mcts code
     mcts_ctree=True,
     image_based=True,
+    cvt_string=True,
+    clip_reward=True,
     # NOTE
     device='cuda',
     # device='cpu',
@@ -16,6 +19,11 @@ game_config = EasyDict(dict(
     image_channel=3,
     gray_scale=False,
     downsample=True,
+    vis_result=True,
+    use_augmentation=True,  # TODO(pu)
+    # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
+    # 'Style of augmentation'
+    augmentation=['shift', 'intensity'],
 
     # debug
     # collector_env_num=1,
@@ -33,38 +41,45 @@ game_config = EasyDict(dict(
     evaluator_env_num=5,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
-    num_simulations=50,
+    num_simulations=50,  # TODO(pu)
     batch_size=256,
     game_history_max_length=400,
-    # total_transitions=int(25e6),  # TODO(pu): 125K sequences * 200
-    total_transitions=int(1e6),  # TODO(pu)
+    total_transitions=int(1e6),
     num_unroll_steps=5,
     td_steps=5,
 
-    # revisit_policy_search_rate=1,    # TODO
+    # revisit_policy_search_rate=1,    # TODO(pu)
     revisit_policy_search_rate=0.99,
 
-    clip_reward=True,
+    # TODO(pu): use adam?
+    lr_manually=True,
+
+    # TODO(pu): if true, no priority to sample
     use_max_priority=True,
-    # use_max_priority=False,  # TODO
+    # use_max_priority=False,
     use_priority=True,
+
+    # TODO(pu): only used for adjust temperature manually
+    max_training_steps=int(1e5),
+    change_temperature=True,
+    # whether to use root value in reanalyzing
+    use_root_value=False,  # TODO(pu)
+
+    # TODO(pu): test the effect
+    init_zero=True,
+    state_norm=False,
+
+    mini_infer_size=2,
+    # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+    priority_prob_alpha=0.6,
+    # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+    priority_prob_beta=0.4,  # TODO(pu): 0.4->1
+    prioritized_replay_eps=1e-6,
+
     root_dirichlet_alpha=0.3,
     root_exploration_fraction=0.25,
     auto_td_steps=int(0.3 * 2e5),
-    # 'choose to use root value in reanalyzing')
-    max_training_steps=int(1e5),  # TODO(pu): 220K
-    change_temperature=True,
-    use_root_value=False,  # TODO
-    mini_infer_size=2,
-    use_augmentation=True,   # TODO
-    # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
-    # 'Style of augmentation'
-    augmentation=['shift', 'intensity'],
-    vis_result=True,
-
-    priority_prob_alpha=0.6,
-    priority_prob_beta=1,  # TODO(pu): 0.4->1
-    prioritized_replay_eps=1e-6,
+    auto_td_steps_ratio=0.3,
 
     # UCB formula
     pb_c_base=19652,
@@ -87,16 +102,6 @@ game_config = EasyDict(dict(
     num_actors=1,
     # network initialization/ & normalization
     episode_life=True,
-    init_zero=True,
-    state_norm=False,  # TODO(pu)
-    # storage efficient
-    cvt_string=True,
-    # lr scheduler     # TODO(pu)
-    lr_warm_up=0.01,
-    lr_init=0.2,
-    lr_decay_rate=0.1,
-    lr_decay_steps=100000,
-    auto_td_steps_ratio=0.3,
     # replay window
     start_transitions=8,
     transition_num=1,

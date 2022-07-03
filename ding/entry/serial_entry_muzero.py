@@ -13,7 +13,6 @@ from ding.worker.collector.base_serial_evaluator_muzero import BaseSerialEvaluat
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from .utils import random_collect
 from ding.data.buffer.game_buffer import GameBuffer
 from easydict import EasyDict
 
@@ -140,9 +139,12 @@ def serial_pipeline_muzero(
             #     )
             #     break
             learner.train(train_data, collector.envstep)
-            if learner.train_iter >= 1e5:
-                # learning rate decay manually
-                policy._optimizer.lr = 0.02
+            if game_config.lr_manually:
+                # learning rate decay manually like EfficientZero paper
+                if learner.train_iter > 1e5 and learner.train_iter <= 2e5:
+                    policy._optimizer.lr = 0.02
+                elif learner.train_iter > 2e5:
+                    policy._optimizer.lr = 0.002
             # if learner.policy.get_attribute('priority'):
             #     replay_buffer.update(learner.priority_info)
             #     replay_buffer.batch_update(indices=learner.priority_info['priority']['indices'], metas={'make_time': \

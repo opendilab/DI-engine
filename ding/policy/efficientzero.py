@@ -555,8 +555,7 @@ class EfficientZeroPolicy(Policy):
                     'pred_value': pred_values_pool[i],
                     'policy_logits':policy_logits_pool[i],
                 }
-                print('collect:', output[i])
-
+                # print('collect:', output[i])
 
         return output
 
@@ -655,7 +654,7 @@ class EfficientZeroPolicy(Policy):
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
-                output[i] = {'action': action, 'distributions': distributions, 'value': value}
+                output[i] = {'action': action, 'distributions': distributions, 'value': value, ' policy_logits_pool': policy_logits_pool}
                 print('eval:',output[i])
 
         return output

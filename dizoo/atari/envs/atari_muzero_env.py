@@ -56,7 +56,7 @@ class AtariMuZeroEnv(BaseEnv):
 
     def step(self, action):
         obs, reward, done, info = self._env.step(action)
-        self._env.render()
+        # self._env.render()
         self.obs = to_ndarray(obs)
         self.reward = np.array(reward).astype(np.float32)
         self._final_eval_reward += self.reward

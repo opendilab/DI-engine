@@ -19,7 +19,7 @@ class TestGoEnv:
             assert isinstance(obs, dict)
             assert isinstance(done, bool)
             assert isinstance(reward, float)
-            # env.render()
+            env.render()
             if done:
                 if reward > 0:
                     print('player 1 (black_0) win')
