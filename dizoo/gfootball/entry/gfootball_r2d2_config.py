@@ -2,13 +2,10 @@ from easydict import EasyDict
 
 collector_env_num = 8
 evaluator_env_num = 5
-# debug
-# collector_env_num = 1
-# evaluator_env_num = 1
 
 gfootball_r2d2_main_config = dict(
-    exp_name='data_gfootball/gfootball_easy_r2d2_seed0_e5',
-    # exp_name='data_gfootball/gfootball_medium_r2d2_seed0',
+    exp_name='data_gfootball/gfootball_easy_r2d2_seed0_rbs5e3_bs32',
+    # exp_name='data_gfootball/gfootball_medium_r2d2_seed0_rbs5e3_bs32',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -17,22 +14,22 @@ gfootball_r2d2_main_config = dict(
         # env_name="11_vs_11_hard_stochastic",
         # env_name="11_vs_11_stochastic",  # default: medium
         env_name="11_vs_11_easy_stochastic",
+        save_replay_gif=False,
     ),
     policy=dict(
+        il_model_path=None,
+        rl_model_path=None,
+        replay_path=None,
         env_name="football",
         cuda=True,
         priority=True,
         priority_IS_weight=True,
         nstep=5,
         discount_factor=0.997,
-        # debug
-        # burnin_step=2,
         burnin_step=20,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
-        # debug
-        # learn_unroll_len=8,
         learn_unroll_len=80,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
@@ -40,14 +37,8 @@ gfootball_r2d2_main_config = dict(
             # samples, the length of each sequence sample is <burnin_step> + <learn_unroll_len>,
             # e.g. if  n_sample=32, <sequence length> is 100, thus 32*100/400=8,
             # we will set update_per_collect=8 in most environments.
-            # update_per_collect=8,
-            # batch_size=64,
             update_per_collect=16,
             batch_size=32,
-            # debug
-            # update_per_collect=2,
-            # batch_size=2,
-
             learning_rate=0.0005,
             target_update_theta=0.001,
         ),
@@ -57,8 +48,6 @@ gfootball_r2d2_main_config = dict(
             # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
             # In each collect phase, we collect a total of <n_sample> sequence samples.
-            # debug
-            # n_sample=1,
             n_sample=32,
             traj_len_inf=True,
             env_num=collector_env_num,
@@ -72,7 +61,7 @@ gfootball_r2d2_main_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(1e3),
+                replay_buffer_size=int(5e3),
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
