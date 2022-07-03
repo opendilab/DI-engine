@@ -15,6 +15,7 @@ from .bc import BehaviourCloningPolicy
 from ding.model.template.ebm import create_stochastic_optimizer
 from ding.model.template.ebm import StochasticOptimizer, MCMC, AutoRegressiveDFO
 from ding.torch_utils import unsqueeze_repeat
+from ding.utils import EasyTimer
 
 
 @POLICY_REGISTRY.register('ibc')
@@ -52,6 +53,8 @@ class IBCPolicy(BehaviourCloningPolicy):
         return 'ebm', ['ding.model.template.ebm']
     
     def _init_learn(self):
+        self._timer = EasyTimer(cuda=self._cfg.cuda)
+        self._sync_timer = EasyTimer(cuda=self._cfg.cuda)
         optim_cfg = self._cfg.learn.optim
         self._optimizer = torch.optim.Adam(
             self._model.parameters(),
@@ -65,59 +68,70 @@ class IBCPolicy(BehaviourCloningPolicy):
         self._learn_model.reset()
     
     def _forward_learn(self, data):
-        data = default_collate(data)
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._learn_model.train()
+        with self._timer:
+            data = default_collate(data)
+            if self._cuda:
+                data = to_device(data, self._device)
+            self._learn_model.train()
 
-        loss_dict = dict()
+            loss_dict = dict()
 
-        # obs: (B, O)
-        # action: (B, A)
-        obs, action = data['obs'], data['action']
+            # obs: (B, O)
+            # action: (B, A)
+            obs, action = data['obs'], data['action']
 
-        # (B, N, O), (B, N, A)
-        obs, negatives = self._stochastic_optimizer.sample(obs, self._learn_model)
+            # (B, N, O), (B, N, A)
+            obs, negatives = self._stochastic_optimizer.sample(obs, self._learn_model)
 
-        # (B, N+1, A)
-        targets = torch.cat([action.unsqueeze(dim=1), negatives], dim=1)
-        # (B, N+1, O)
-        obs = torch.cat([obs[:, :1], obs], dim=1)
+            # (B, N+1, A)
+            targets = torch.cat([action.unsqueeze(dim=1), negatives], dim=1)
+            # (B, N+1, O)
+            obs = torch.cat([obs[:, :1], obs], dim=1)
 
-        permutation = torch.rand(targets.shape[0], targets.shape[1]).argsort(dim=1)
-        targets = targets[torch.arange(targets.shape[0]).unsqueeze(-1), permutation]
+            permutation = torch.rand(targets.shape[0], targets.shape[1]).argsort(dim=1)
+            targets = targets[torch.arange(targets.shape[0]).unsqueeze(-1), permutation]
 
-        ground_truth = (permutation == 0).nonzero()[:, 1].to(self._device)
+            ground_truth = (permutation == 0).nonzero()[:, 1].to(self._device)
 
-        # (B, N+1) for ebm
-        # (B, N+1, A) for autoregressive ebm
-        energy = self._learn_model.forward(obs, targets)
+            # (B, N+1) for ebm
+            # (B, N+1, A) for autoregressive ebm
+            energy = self._learn_model.forward(obs, targets)
 
-        logits = -1.0 * energy
-        if isinstance(self._stochastic_optimizer, AutoRegressiveDFO):
-            # autoregressive case
-            # (B, A)
-            ground_truth = unsqueeze_repeat(ground_truth, logits.shape[-1], -1)
-        loss = F.cross_entropy(logits, ground_truth)
-        loss_dict['ebm_loss'] = loss.item()
+            logits = -1.0 * energy
+            if isinstance(self._stochastic_optimizer, AutoRegressiveDFO):
+                # autoregressive case
+                # (B, A)
+                ground_truth = unsqueeze_repeat(ground_truth, logits.shape[-1], -1)
+            loss = F.cross_entropy(logits, ground_truth)
+            loss_dict['ebm_loss'] = loss.item()
 
-        if isinstance(self._stochastic_optimizer, MCMC):
-            grad_penalty = self._stochastic_optimizer.grad_penalty(obs, targets, self._learn_model) 
-            loss += grad_penalty
-            loss_dict['grad_penalty'] = grad_penalty.item()
-        loss_dict['total_loss'] = loss.item()
+            if isinstance(self._stochastic_optimizer, MCMC):
+                grad_penalty = self._stochastic_optimizer.grad_penalty(obs, targets, self._learn_model) 
+                loss += grad_penalty
+                loss_dict['grad_penalty'] = grad_penalty.item()
+            loss_dict['total_loss'] = loss.item()
 
-        self._optimizer.zero_grad()
-        loss.backward()
-        self._optimizer.step()
+            self._optimizer.zero_grad()
+            loss.backward()
+            with self._sync_timer:
+                if self._cfg.learn.multi_gpu:
+                    self.sync_gradients(self._learn_model)
+            sync_time = self._sync_timer.value
+            self._optimizer.step()
 
-        return loss_dict
+        total_time = self._timer.value
+
+        return {
+            'total_time': total_time,
+            'sync_time': sync_time,
+            **loss_dict,
+        }
 
     def _monitor_vars_learn(self):
         if isinstance(self._stochastic_optimizer, MCMC):
-            return ['total_loss', 'ebm_loss', 'grad_penalty']
+            return ['total_loss', 'ebm_loss', 'grad_penalty', 'total_time', 'sync_time']
         else:
-            return ['total_loss', 'ebm_loss']
+            return ['total_loss', 'ebm_loss', 'total_time', 'sync_time']
 
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='base')

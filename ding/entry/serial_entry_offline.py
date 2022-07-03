@@ -5,13 +5,14 @@ from tqdm import tqdm
 from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer
+from ding.worker import BaseLearner, InteractionSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from ding.utils.data import create_dataset, default_collate
+from ding.utils.data import create_dataset
 
 
 def serial_pipeline_offline(
@@ -45,32 +46,17 @@ def serial_pipeline_offline(
 
     # Dataset
     dataset = create_dataset(cfg)
-    if 'holdout_ratio' not in cfg.policy.learn:
-        dataloader = DataLoader(
-            dataset, 
-            cfg.policy.learn.batch_size, 
-            shuffle=True, 
-            collate_fn=lambda x: x,
-            pin_memory=cfg.policy.cuda,
-        )
-    else:
-        # holdout validation set applies in behavioral cloning
-        ratio = cfg.policy.learn.holdout_ratio
-        split = -int(len(dataset)*ratio)
-        dataloader = DataLoader(
-            dataset[:split], 
-            cfg.policy.learn.batch_size, 
-            shuffle=True, 
-            collate_fn=lambda x: x,
-            pin_memory=cfg.policy.cuda,
-        )
-        eval_dataloader = DataLoader(
-            dataset[split:], 
-            cfg.policy.learn.batch_size, 
-            shuffle=True, 
-            collate_fn=default_collate,
-            pin_memory=cfg.policy.cuda,
-        )
+    sampler, shuffle = None, True
+    if cfg.policy.learn.multi_gpu:
+        sampler, shuffle = DistributedSampler(dataset), False
+    dataloader = DataLoader(
+        dataset, 
+        cfg.policy.learn.batch_size, 
+        shuffle=shuffle,
+        sampler=sampler,
+        collate_fn=lambda x: x,
+        pin_memory=cfg.policy.cuda,
+    )
     # Env, Policy
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env, collect=False)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
@@ -98,15 +84,10 @@ def serial_pipeline_offline(
 
     for epoch in tqdm(range(cfg.policy.learn.train_epoch)):
         # Evaluate policy per epoch
+        if cfg.policy.learn.multi_gpu:
+            dataloader.sampler.set_epoch(epoch)
         for train_data in tqdm(dataloader):
             learner.train(train_data)
-
-        if 'holdout_ratio' in cfg.policy.learn:
-            loss_list = []
-            for eval_data in eval_dataloader:
-                res = policy._forward_eval(eval_data['obs'])
-                loss_list.append(torch.nn.MSELoss()(res['action'], eval_data['action'].squeeze(-1)).item())
-            tb_logger.add_scalar('validation_mse', sum(loss_list) / len(loss_list), epoch)
             
         stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
 

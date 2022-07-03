@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 cuda = True
+multi_gpu = True
 
 main_config = dict(
     exp_name='hopper_medium_expert_ibc_ar_seed0',
@@ -22,8 +23,9 @@ main_config = dict(
             stochastic_optim=dict(type='ardfo', cuda=cuda,)
         ),
         learn=dict(
+            multi_gpu=multi_gpu,
             holdout_ratio=0.1,
-            train_epoch=300,
+            train_epoch=30,
             batch_size=256,
             optim=dict(learning_rate=1e-5,),
             learner=dict(hook=dict(log_show_after_iter=1000)),
@@ -33,6 +35,7 @@ main_config = dict(
             data_type='d4rl',
             data_path=None,
         ),
+        eval=dict(evaluator=dict(multi_gpu=multi_gpu, )),
     ),
 )
 main_config = EasyDict(main_config)
