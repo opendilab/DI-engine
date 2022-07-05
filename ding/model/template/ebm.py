@@ -1,9 +1,7 @@
 """Vanilla DFO and EBM are adapted from https://github.com/kevinzakka/ibc.
    MCMC is adapted from https://github.com/google-research/ibc. 
 """
-
-from dataclasses import replace
-from typing import Callable, Union, Dict, Optional, Tuple
+from typing import Callable, Tuple
 
 import numpy as np
 import torch
@@ -15,6 +13,7 @@ from abc import ABC, abstractmethod
 from ding.utils import MODEL_REGISTRY, STOCHASTIC_OPTIMIZER_REGISTRY
 from ding.torch_utils import unsqueeze_repeat, fold_batch, unfold_batch
 from ding.torch_utils.network.gtrxl import PositionalEmbedding
+from ding.model.wrapper import IModelWrapper
 from ..common import RegressionHead
 
 
@@ -28,8 +27,10 @@ def no_ebm_grad():
     """Wrapper that disables energy based model gradients"""
     def ebm_disable_grad_wrapper(func: Callable):
         def wrapper(*args, **kwargs):
-            # make sure ebm is the last positional arguments
             ebm = args[-1]
+            assert isinstance(ebm, IModelWrapper) or\
+                   isinstance(ebm, nn.Module),\
+                   'Make sure ebm is the last positional arguments.'
             ebm.requires_grad_(False)
             result = func(*args, **kwargs)
             ebm.requires_grad_(True)
@@ -65,7 +66,7 @@ class StochasticOptimizer(ABC):
         probs = F.softmax(-1.0 * energies, dim=-1)
         # (B, )
         best_idxs = probs.argmax(dim=-1)
-        return action_samples[torch.arange(action_samples.size(0)), best_idxs, :]
+        return action_samples[torch.arange(action_samples.size(0)), best_idxs]
 
     def set_action_bounds(self, action_bounds: np.ndarray):
         self.action_bounds = torch.as_tensor(action_bounds, dtype=torch.float32).to(self.device)
@@ -91,15 +92,13 @@ class StochasticOptimizer(ABC):
 class DFO(StochasticOptimizer):
     def __init__(
         self,
-        # action_bounds: np.ndarray,
-        noise_scale: float = 0.1,
+        noise_scale: float = 0.33,
         noise_shrink: float = 0.5,
         iters: int = 3,
-        train_samples: int = 256,
-        inference_samples: int = 512,
+        train_samples: int = 8,
+        inference_samples: int = 16384,
         cuda: bool = False,
     ):
-        # set later by `set_action_bounds`
         self.action_bounds = None
         self.noise_scale = noise_scale
         self.noise_shrink = noise_shrink
@@ -150,12 +149,11 @@ class DFO(StochasticOptimizer):
 class AutoRegressiveDFO(DFO):
     def __init__(
         self,
-        # action_bounds: np.ndarray,
-        noise_scale: float = 0.1,
+        noise_scale: float = 0.33,
         noise_shrink: float = 0.5,
         iters: int = 3,
-        train_samples: int = 256,
-        inference_samples: int = 512,
+        train_samples: int = 8,
+        inference_samples: int = 4096,
         cuda: bool = False,
     ):
         super().__init__(noise_scale, noise_shrink, iters, train_samples, inference_samples, cuda)
@@ -168,34 +166,37 @@ class AutoRegressiveDFO(DFO):
         """
         noise_scale = self.noise_scale
 
+        # (B, N, O), (B, N, A)
         obs, action_samples = self._sample(obs, self.inference_samples)
 
         for i in range(self.iters):
 
-            # (B, N, A)
-            energies = ebm.forward(obs, action_samples)
-            probs = F.softmax(-1 * energies, dim=1)
+            # j: action_dim index
+            for j in range(action_samples.shape[-1]):
+                # (B, N)
+                energies = ebm.forward(obs, action_samples)[..., j]
+                probs = F.softmax(-1.0 * energies, dim=-1)
 
-            for j in range(energies.shape[-1]):
-                # TODO: move `energies = ebm.forward(obs, action_samples)` into inner loop?
-                _action_samples = action_samples[:, :, j]
-                _probs = probs[:, :, j]
-                _idxs = torch.multinomial(_probs, self.inference_samples, replacement=True)
-                _action_samples = _action_samples[torch.arange(_action_samples.size(0)).unsqueeze(-1), _idxs]
+                # Resample with replacement.
+                idxs = torch.multinomial(probs, self.inference_samples, replacement=True)
+                action_samples = action_samples[
+                    torch.arange(action_samples.size(0)).unsqueeze(-1), idxs]
 
-                _action_samples = _action_samples + torch.randn_like(_action_samples) * noise_scale
-                _action_samples = _action_samples.clamp(min=self.action_bounds[0, j], max=self.action_bounds[1, j])
+                # Add noise and clip to target bounds.
+                action_samples[..., j] = action_samples[..., j
+                    ] + torch.randn_like(action_samples[..., j]) * noise_scale
 
-                action_samples[:, :, j] = _action_samples
+                action_samples[..., j] = action_samples[..., j
+                    ].clamp(min=self.action_bounds[0, j], max=self.action_bounds[1, j])
 
             noise_scale *= self.noise_shrink
         
-        # (B, N, A)
-        energies = ebm.forward(obs, action_samples)
-        probs = F.softmax(-1 * energies, dim=1)
-        # (B)
-        best_idxs = probs[:, :, -1].argmax(dim=1)
-        return action_samples[torch.arange(action_samples.size(0)), best_idxs, :]
+        # (B, N)
+        energies = ebm.forward(obs, action_samples)[..., -1]
+        probs = F.softmax(-1.0 * energies, dim=-1)
+        # (B, )
+        best_idxs = probs.argmax(dim=-1)
+        return action_samples[torch.arange(action_samples.size(0)), best_idxs]
 
 
 @STOCHASTIC_OPTIMIZER_REGISTRY.register('mcmc')
@@ -239,10 +240,9 @@ class MCMC(StochasticOptimizer):
 
     def __init__(
         self,
-        # action_bounds: np.ndarray,
-        iters: int = 25,
+        iters: int = 50,
         use_langevin_negative_samples: bool = False,
-        train_samples: int = 256,
+        train_samples: int = 8,
         inference_samples: int = 512,
         stepsize_scheduler: dict = dict(
             init=0.5,
@@ -251,7 +251,7 @@ class MCMC(StochasticOptimizer):
         optimize_again: bool = True,
         again_stepsize_scheduler: dict = dict(
             init=1e-4,
-            final=1e-5, 
+            final=1e-5,
             power=2.0,
             # num_steps,
         ),
@@ -290,7 +290,7 @@ class MCMC(StochasticOptimizer):
             obs: torch.Tensor, 
             action: torch.Tensor, 
             ebm: nn.Module,
-            is_train: bool = False,
+            create_graph: bool = False,
     ) -> torch.Tensor:
         """
         Calculate gradient w.r.t action.
@@ -299,7 +299,9 @@ class MCMC(StochasticOptimizer):
         """
         action = nn.Parameter(action)
         energy = ebm.forward(obs, action).sum()
-        return torch.autograd.grad(energy, action, create_graph=is_train)[0]
+        # `create_graph` set to `True` when second order derivative 
+        #  is needed i.e, d(de/da)/d_param
+        return torch.autograd.grad(energy, action, create_graph=create_graph)[0]
 
     def grad_penalty(
             self, 
@@ -308,15 +310,14 @@ class MCMC(StochasticOptimizer):
             ebm: nn.Module
     ) -> torch.Tensor:
         """
-        Calculate grad_penalty.
-        Make sure `torch.is_grad_enabled()==True` to calculate second order derivatives.
+        Calculate gradient penalty.
         obs: (B, N+1, O), action: (B, N+1, A)
         return: loss
         """
         if not self.add_grad_penalty:
             return torch.tensor(0.)
         # (B, N+1, A), this gradient is differentiable w.r.t model parameters
-        de_dact = MCMC._gradient_wrt_act(obs, action, ebm, is_train=True)
+        de_dact = MCMC._gradient_wrt_act(obs, action, ebm, create_graph=True)
 
         def compute_grad_norm(grad_norm_type, de_dact) -> torch.Tensor:
             # de_deact: B, N+1, A
@@ -338,7 +339,7 @@ class MCMC(StochasticOptimizer):
         grad_loss = grad_norms.mean()
         return grad_loss * self.grad_loss_weight
 
-    # can not use @torch.no_grad() even during the inference
+    # can not use @torch.no_grad() during the inference
     # because we need to calculate gradient w.r.t inputs as MCMC updates.
     @no_ebm_grad()
     def _langevin_step(
@@ -442,8 +443,8 @@ class EBM(nn.Module):
         self,
         obs_shape: int,
         action_shape: int,
-        hidden_size: int = 64,
-        hidden_layer_num: int = 1,
+        hidden_size: int = 512,
+        hidden_layer_num: int = 4,
         **kwargs,
     ):
         super().__init__()
@@ -476,8 +477,8 @@ class AutoregressiveEBM(nn.Module):
         obs_shape: int,
         action_shape: int,
         d_model: int = 64,
-        num_encoder_layers: int = 1,
-        num_decoder_layers: int = 1,
+        num_encoder_layers: int = 2,
+        num_decoder_layers: int = 2,
         dim_feedforward: int = 64,
         cuda: bool = False,
         **kwargs,
@@ -502,13 +503,20 @@ class AutoregressiveEBM(nn.Module):
 
     def _generate_positional_encoding(self, d_model):
         positional_encoding_layer = PositionalEmbedding(d_model)
-        # batch_first
-        self.obs_pe = positional_encoding_layer(
-            PositionalEmbedding.generate_pos_seq(self.obs_shape)
-        ).permute(1, 0, 2).contiguous().to(self.device)
-        self.action_pe = positional_encoding_layer(
-            PositionalEmbedding.generate_pos_seq(self.action_shape)
-        ).permute(1, 0, 2).contiguous().to(self.device)
+        # batch_first=True
+        # note: wrap positional encoding as parameters for model sync in DDP
+        self.obs_pe = nn.Parameter(
+            positional_encoding_layer(
+                PositionalEmbedding.generate_pos_seq(self.obs_shape)
+            ).permute(1, 0, 2).contiguous().to(self.device)
+        )
+        self.action_pe = nn.Parameter(
+            positional_encoding_layer(
+                PositionalEmbedding.generate_pos_seq(self.action_shape)
+            ).permute(1, 0, 2).contiguous().to(self.device)
+        )
+        self.obs_pe.requires_grad_(False)
+        self.action_pe.requires_grad_(False)
 
     def forward(self, obs, action):
         # obs: (B, N, O)
@@ -522,12 +530,14 @@ class AutoregressiveEBM(nn.Module):
 
         # obs: (B*N, O, 1)
         # action: (B*N, A, 1)
-        # the second dimension (O, A) is now interpreted as sequence dimension
-        # so that `obs`, `action` can be used as `src` and `tgt` to `nn.Transformer` 
-        # block with `batch_first=False`
+        # the second dimension `O`,`A` are now interpreted as sequence dimensions
+        # so that `obs`, `action` can be used as `src` and `tgt` to `nn.Transformer`
+        # block with `batch_first=True`
         obs = self.obs_embed_layer(obs.unsqueeze(-1)) + self.obs_pe.to(obs.device)
         action = self.action_embed_layer(action.unsqueeze(-1)) + self.action_pe.to(obs.device)
 
+        # obs: (B*N, O, d_model)
+        # action: (B*N, A, d_model)
         output = self.transformer(src=obs, tgt=action, tgt_mask=self.action_mask)
 
         # output: (B*N, A)

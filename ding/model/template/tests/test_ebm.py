@@ -77,7 +77,7 @@ class TestMCMC:
         de_dact = MCMC._gradient_wrt_act(self.obs, self.action, ebm)
         assert de_dact.shape == (B, N, A)
         # train mode
-        de_dact = MCMC._gradient_wrt_act(self.obs, self.action, ebm, is_train=True)
+        de_dact = MCMC._gradient_wrt_act(self.obs, self.action, ebm, create_graph=True)
         loss = de_dact.pow(2).sum()
         loss.backward()
         assert de_dact.shape == (B, N, A)

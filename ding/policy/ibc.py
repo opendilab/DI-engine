@@ -35,7 +35,7 @@ class IBCPolicy(BehaviourCloningPolicy):
         on_policy=False,
         continuous=True,
         learn=dict(
-            train_epoch=30000,
+            train_epoch=30,
             batch_size=256,
             multi_gpu=False,
             optim=dict(
@@ -91,6 +91,7 @@ class IBCPolicy(BehaviourCloningPolicy):
             permutation = torch.rand(targets.shape[0], targets.shape[1]).argsort(dim=1)
             targets = targets[torch.arange(targets.shape[0]).unsqueeze(-1), permutation]
 
+            # (B, )
             ground_truth = (permutation == 0).nonzero()[:, 1].to(self._device)
 
             # (B, N+1) for ebm

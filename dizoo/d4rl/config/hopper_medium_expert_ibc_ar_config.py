@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cuda = True
-multi_gpu = True
+multi_gpu = False
 
 main_config = dict(
     exp_name='hopper_medium_expert_ibc_ar_seed0',
