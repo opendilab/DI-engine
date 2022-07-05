@@ -15,8 +15,6 @@ main_config = dict(
     policy=dict(
         cuda=cuda,
         model=dict(
-            type='arebm',
-            import_names=['ding.model.template.ebm'],
             obs_shape=11,
             action_shape=3,
             cuda=cuda,
@@ -49,6 +47,10 @@ create_config = dict(
     policy=dict(
         type='ibc',
         import_names=['ding.policy.ibc'],
+        model=dict(
+            type='arebm',
+            import_names=['ding.model.template.ebm'],
+        ),
     ),
 )
 create_config = EasyDict(create_config)

@@ -170,7 +170,6 @@ class AutoRegressiveDFO(DFO):
         obs, action_samples = self._sample(obs, self.inference_samples)
 
         for i in range(self.iters):
-
             # j: action_dim index
             for j in range(action_samples.shape[-1]):
                 # (B, N)
@@ -469,6 +468,86 @@ class EBM(nn.Module):
         return x['pred']
 
 
+# @MODEL_REGISTRY.register('arebm')
+# class AutoregressiveEBM(nn.Module):cuda
+
+#     def __init__(
+#         self,
+#         obs_shape: int,
+#         action_shape: int,
+#         d_model: int = 64,
+#         num_encoder_layers: int = 2,
+#         num_decoder_layers: int = 2,
+#         dim_feedforward: int = 64,
+#         cuda: bool = False,
+#         **kwargs,
+#     ):
+#         # treat obs_dim, and action_dim as sequence_dim
+#         super().__init__()
+#         self.obs_shape = obs_shape
+#         self.action_shape = action_shape
+#         self.device = torch.device('cuda' if cuda else "cpu")
+#         self.obs_embed_layer = nn.Linear(1, d_model)
+#         self.action_embed_layer = nn.Linear(1, d_model)
+#         self.transformer = nn.Transformer(
+#             d_model=d_model,
+#             num_encoder_layers=num_encoder_layers,
+#             num_decoder_layers=num_decoder_layers,
+#             dim_feedforward=dim_feedforward,
+#             batch_first=True,
+#         )
+#         self.action_mask = self.transformer.generate_square_subsequent_mask(action_shape).to(self.device)
+#         self.output_layer = nn.Linear(d_model, 1)
+#         self._generate_positional_encoding(d_model)
+
+#     def _generate_positional_encoding(self, d_model):
+#         positional_encoding_layer = PositionalEmbedding(d_model)
+#         # batch_first=True
+#         # note: wrap positional encoding as parameters for model sync in DDP
+#         self.obs_pe = nn.Parameter(
+#             positional_encoding_layer(
+#                 PositionalEmbedding.generate_pos_seq(self.obs_shape)
+#             ).permute(1, 0, 2).contiguous().to(self.device)
+#         )
+#         self.action_pe = nn.Parameter(
+#             positional_encoding_layer(
+#                 PositionalEmbedding.generate_pos_seq(self.action_shape)
+#             ).permute(1, 0, 2).contiguous().to(self.device)
+#         )
+#         self.obs_pe.requires_grad_(False)
+#         self.action_pe.requires_grad_(False)
+
+#     def forward(self, obs, action):
+#         # obs: (B, N, O)
+#         # action: (B, N, A)
+#         # return: (B, N, A)
+
+#         # obs: (B*N, O)
+#         # action: (B*N, A)
+#         obs, batch_dims = fold_batch(obs)
+#         action, _ = fold_batch(action)
+
+#         # obs: (B*N, O, 1)
+#         # action: (B*N, A, 1)
+#         # the second dimension `O`,`A` are now interpreted as sequence dimensions
+#         # so that `obs`, `action` can be used as `src` and `tgt` to `nn.Transformer`
+#         # block with `batch_first=True`
+#         obs = self.obs_embed_layer(obs.unsqueeze(-1)) + self.obs_pe.to(obs.device)
+#         action = self.action_embed_layer(action.unsqueeze(-1)) + self.action_pe.to(obs.device)
+
+#         # obs: (B*N, O, d_model)
+#         # action: (B*N, A, d_model)
+#         output = self.transformer(src=obs, tgt=action, tgt_mask=self.action_mask)
+
+#         # output: (B*N, A)
+#         output = self.output_layer(output).squeeze(-1)
+
+#         # output(energy): (B, N, A)
+#         output = unfold_batch(output, batch_dims)
+
+#         return output
+
+
 @MODEL_REGISTRY.register('arebm')
 class AutoregressiveEBM(nn.Module):
 
@@ -476,74 +555,22 @@ class AutoregressiveEBM(nn.Module):
         self,
         obs_shape: int,
         action_shape: int,
-        d_model: int = 64,
-        num_encoder_layers: int = 2,
-        num_decoder_layers: int = 2,
-        dim_feedforward: int = 64,
-        cuda: bool = False,
         **kwargs,
     ):
-        # treat obs_dim, and action_dim as sequence_dim
+        # TODO(zzh&others): fix the buggy transformer above
         super().__init__()
-        self.obs_shape = obs_shape
-        self.action_shape = action_shape
-        self.device = torch.device('cuda' if cuda else "cpu")
-        self.obs_embed_layer = nn.Linear(1, d_model)
-        self.action_embed_layer = nn.Linear(1, d_model)
-        self.transformer = nn.Transformer(
-            d_model=d_model,
-            num_encoder_layers=num_encoder_layers,
-            num_decoder_layers=num_decoder_layers,
-            dim_feedforward=dim_feedforward,
-            batch_first=True,
-        )
-        self.action_mask = self.transformer.generate_square_subsequent_mask(action_shape).to(self.device)
-        self.output_layer = nn.Linear(d_model, 1)
-        self._generate_positional_encoding(d_model)
-
-    def _generate_positional_encoding(self, d_model):
-        positional_encoding_layer = PositionalEmbedding(d_model)
-        # batch_first=True
-        # note: wrap positional encoding as parameters for model sync in DDP
-        self.obs_pe = nn.Parameter(
-            positional_encoding_layer(
-                PositionalEmbedding.generate_pos_seq(self.obs_shape)
-            ).permute(1, 0, 2).contiguous().to(self.device)
-        )
-        self.action_pe = nn.Parameter(
-            positional_encoding_layer(
-                PositionalEmbedding.generate_pos_seq(self.action_shape)
-            ).permute(1, 0, 2).contiguous().to(self.device)
-        )
-        self.obs_pe.requires_grad_(False)
-        self.action_pe.requires_grad_(False)
+        self.ebm_list = nn.ModuleList() 
+        for i in range(action_shape):
+            self.ebm_list.append(EBM(obs_shape, i+1))
 
     def forward(self, obs, action):
         # obs: (B, N, O)
         # action: (B, N, A)
         # return: (B, N, A)
 
-        # obs: (B*N, O)
-        # action: (B*N, A)
-        obs, batch_dims = fold_batch(obs)
-        action, _ = fold_batch(action)
-
-        # obs: (B*N, O, 1)
-        # action: (B*N, A, 1)
-        # the second dimension `O`,`A` are now interpreted as sequence dimensions
-        # so that `obs`, `action` can be used as `src` and `tgt` to `nn.Transformer`
-        # block with `batch_first=True`
-        obs = self.obs_embed_layer(obs.unsqueeze(-1)) + self.obs_pe.to(obs.device)
-        action = self.action_embed_layer(action.unsqueeze(-1)) + self.action_pe.to(obs.device)
-
-        # obs: (B*N, O, d_model)
-        # action: (B*N, A, d_model)
-        output = self.transformer(src=obs, tgt=action, tgt_mask=self.action_mask)
-
-        # output: (B*N, A)
-        output = self.output_layer(output).squeeze(-1)
-
-        # output(energy): (B, N, A)
-        output = unfold_batch(output, batch_dims)
-
-        return output
+        # (B, N)
+        output_list = []
+        for i, ebm in enumerate(self.ebm_list):
+            output_list.append(ebm(obs, action[..., :i+1]))
+        # (B, N, A(3))
+        return torch.stack(output_list, axis=-1)
