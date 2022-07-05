@@ -14,6 +14,7 @@ def train(args):
     # launch from anywhere
     config = Path(__file__).absolute().parent.parent / 'config' / args.config 
     config = read_config(str(config))
+    config[0].exp_name = config[0].exp_name.replace('0', str(args.seed))
     if not config[0].policy.learn.multi_gpu:
         serial_pipeline_offline(config, seed=args.seed)
     else:
