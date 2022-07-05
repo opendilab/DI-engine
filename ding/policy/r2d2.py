@@ -187,6 +187,7 @@ class R2D2Policy(Policy):
         # data preprocess
         if self._cfg.env_name=="football":
             data_deepcopy = copy.deepcopy(data)
+            
         data = timestep_collate(data)
 
         if self._cfg.env_name=="football":

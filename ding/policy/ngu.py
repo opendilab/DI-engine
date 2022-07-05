@@ -192,7 +192,47 @@ class NGUPolicy(Policy):
         """
 
         # data preprocess
+        if self._cfg.env_name=="football":
+            data_deepcopy = copy.deepcopy(data)
+            
         data = timestep_collate(data)
+
+        if self._cfg.env_name=="football":
+            # to handle the special data structure of football obs
+
+            # method 1: TODO(pu): how to use the collated data
+            # T = len(data['obs']['processed_obs'])
+            # B = data['obs']['processed_obs'][0]['ball_position'].shape[0]
+            # data_obs = [[ [] for bs in range(B)] for t in range(T)]
+            # for t in range(T):
+            #     for bs in range(B):
+            #         tmp_obs = {}
+            #         for k_obs in ['processed_obs', 'raw_obs']:
+            #             tmp={}
+            #             for k, v in data_deepcopy['obs'][k_obs][t].items():
+            #                 # data['obs']['processed_obs'][t]['ball_position'][bs] shape [B, dim]
+            #                 tmp.update({k: v[bs]})
+            #             tmp_obs.update({k_obs: tmp})
+            #         data_obs[t][bs] = tmp_obs
+            # data['obs'] = data_obs
+
+            # method 2: use the original data
+            T = data['action'].shape[0]
+            B = data['action'].shape[1]
+            data_obs = [[ [] for bs in range(B)] for t in range(T)]
+            for t in range(T):
+                for bs in range(B):
+                    tmp_obs = {}
+                    for k_obs in ['processed_obs', 'raw_obs']:
+                        # tmp={}
+                        # for k, v in data_deepcopy[bs]['obs'][k_obs][t].items():
+                        #     # data['obs']['processed_obs'][t]['ball_position'][bs] shape [B, dim]
+                        #     tmp.update({k: v})
+                        # tmp_obs.update({k_obs: tmp})
+                        tmp_obs.update({k_obs: data_deepcopy[bs]['obs'][k_obs][t]})
+                    data_obs[t][bs] = tmp_obs
+            data['obs'] = data_obs
+
         if self._cuda:
             data = to_device(data, self._device)
 

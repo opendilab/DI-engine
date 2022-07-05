@@ -4,7 +4,6 @@ import torch.nn as nn
 
 from ding.torch_utils import get_lstm, one_hot, to_tensor, to_ndarray
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
-# from ding.torch_utils.data_helper import one_hot_embedding, one_hot_embedding_none
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
     QuantileHead, QRDQNHead, DistributionHead
 

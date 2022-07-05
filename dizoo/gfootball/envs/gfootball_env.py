@@ -16,6 +16,7 @@ from ding.torch_utils import to_ndarray, to_list
 import os
 from matplotlib import animation
 import matplotlib.pyplot as plt
+from ding.envs import ObsPlusPrevActRewWrapper
 
 
 @ENV_REGISTRY.register('gfootball')
@@ -52,6 +53,11 @@ class GfootballEnv(BaseEnv):
         self._launch_env_flag = True
 
     def reset(self) -> dict:
+        if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+            # for NGU
+            self.prev_action = -1  # null action
+            self.prev_reward_extrinsic = 0  # null reward
+
         if self._save_replay_gif:
             self._frames = []
         if not self._launch_env_flag:
@@ -93,8 +99,11 @@ class GfootballEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-
-        return {'processed_obs': self.obs, 'raw_obs': self._football_obs}
+        if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+            # for NGU
+            return {'obs': {'processed_obs': self.obs, 'raw_obs': self._football_obs}, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
+        else:
+            return {'processed_obs': self.obs, 'raw_obs': self._football_obs}
 
     def step(self, action: np.array) -> 'GfootballEnv.timestep':
         assert self._launch_env_flag
@@ -108,6 +117,7 @@ class GfootballEnv(BaseEnv):
         self.action = self._action_helper.get(self)
         self.reward = self._reward_helper.get(self)
         self.obs = self._obs_helper.get(self)
+
         info = {'cum_reward': self._reward_helper.cum_reward}
         if self._is_done:
             info['final_eval_reward'] =  to_ndarray(self._reward_helper.cum_reward)
@@ -120,12 +130,17 @@ class GfootballEnv(BaseEnv):
                 print(f'save one episode replay_gif in {path}')
         # TODO(pu)
         self.reward = to_ndarray(self.reward)
+        
+        if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+            # for NGU
+            self.prev_action = action
+            self.prev_reward_extrinsic = self.reward
+            obs = {'obs': {'processed_obs': self.obs, 'raw_obs': self._football_obs}, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
+        else:
+            obs = {'processed_obs': self.obs, 'raw_obs': self._football_obs}
 
         return GfootballEnv.timestep(
-            obs={
-                'processed_obs': self.obs,
-                'raw_obs': self._football_obs
-            },
+            obs,
             reward=self.reward,
             done=self._is_done,
             info=info
