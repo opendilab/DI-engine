@@ -24,7 +24,6 @@ bipedalwalker_bco_config = dict(
             action_shape=4,
             action_space='regression',
             actor_head_hidden_size=128,
-            critic_head_hidden_size=128,
         ),
         learn=dict(
             train_epoch=200,  # If train_epoch is 1, the algorithm will be BCO(0)
