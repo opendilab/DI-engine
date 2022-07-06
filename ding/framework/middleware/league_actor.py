@@ -4,6 +4,7 @@ import queue
 from easydict import EasyDict
 import time
 from ditk import logging
+import torch
 
 from ding.policy import Policy
 from ding.framework import task, EventEnum
@@ -112,9 +113,11 @@ class StepLeagueActor:
         assert main_player, "[Actor {}] can not find active player.".format(task.router.node_id)
 
         if current_policies is not None:
-            assert len(current_policies) > 1, "[Actor {}] battle collector needs more than 1 policies".format(
-                task.router.node_id
-            )
+            #TODO(zms): make it more general, should we have the restriction of 1 policies
+            # assert len(current_policies) > 1, "[Actor {}] battle collector needs more than 1 policies".format(
+            #     task.router.node_id
+            # )
+            pass
         else:
             raise RuntimeError('[Actor {}] current_policies should not be None'.format(task.router.node_id))
 
@@ -135,6 +138,12 @@ class StepLeagueActor:
         collector = self._get_collector(job.launch_player)
 
         main_player, ctx.current_policies = self._get_current_policies(job)
+
+        #TODO(zms): only for test pretrained model
+        rl_model = torch.load('./rl_model.pth')
+        for policy in ctx.current_policies:
+            policy.load_state_dict(rl_model)
+            print('load state_dict okay')
 
         ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "[Actor {}] Please make sure n_episode >= env_num".format(
