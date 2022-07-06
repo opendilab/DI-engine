@@ -3,6 +3,7 @@ from easydict import EasyDict
 import os.path as osp
 import torch
 from torch.optim import Adam
+import random
 
 from ding.model import model_wrap
 from ding.policy import Policy
@@ -104,11 +105,12 @@ class DIStarPolicy(Policy):
         ),
         grad_clip=dict(threshold=1.0, ),
         # collect
-        use_value_feature=True,  # whether to use value feature, this must be False when play against bot
+        use_value_feature=True,  # TODO(zms): whether to use value feature, this must be False when play against bot
         zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
         zero_z_value=1,
         extra_units=True,  # selcet extra units if selected units exceed 64
-        z_path='7map_filter_spine.json'
+        z_path='7map_filter_spine.json',
+        use_upia_model=True
     )
 
     def _create_model(
@@ -156,6 +158,8 @@ class DIStarPolicy(Policy):
         inputs = collate_fn_learn(inputs)
         if self._cfg.cuda:
             inputs = to_device(inputs, self._device)
+
+        self._learn_model.train()
 
         # =============
         # model forward
@@ -352,11 +356,30 @@ class DIStarPolicy(Policy):
         self.optimizer.load_state_dict(_state_dict['optimizer'])
 
     def _load_state_dict_collect(self, _state_dict: Dict) -> None:
-        self._collect_model.load_state_dict(_state_dict['model'], strict=False)
+        #TODO(zms): need to load state_dict after collect, which is very dirty and need to rewrite
+    
+        if 'map_name' in _state_dict:
+            # map_names.append(_state_dict['map_name'])
+            self.fake_reward_prob = _state_dict['fake_reward_prob']
+            # agent._z_path = state_dict['z_path']
+            self.z_idx = _state_dict['z_idx']
+        _state_dict = {k: v for k, v in _state_dict['model'].items() if 'value_networks' not in k}
+
+        if self.use_upia_model:
+            for key in list(_state_dict.keys()):
+                new = key
+                if "transformer" in key:
+                    new = key.replace('layers', 'main').replace('mlp.1', 'mlp.2')
+                elif "location_head" in key:
+                    new = key.replace('GateWeightG', 'gate').replace('UpdateSP','update_sp')
+                _state_dict[new] = _state_dict.pop(key)
+        
+        self._collect_model.load_state_dict(_state_dict, strict=False)
 
     def _init_collect(self):
         self._collect_model = model_wrap(self._model, 'base')
         self.z_path = self._cfg.z_path
+        self.use_upia_model = self._cfg.use_upia_model
         # TODO(zms): in _setup_agents, load state_dict to set up z_idx
         self.z_idx = None
 
@@ -373,9 +396,21 @@ class DIStarPolicy(Policy):
         self.last_location = None  # [x, y]
         self.enemy_unit_type_bool = torch.zeros(NUM_UNIT_TYPES, dtype=torch.uint8)
 
-        race, requested_race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop = parse_new_game(
+        race, requested_race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type = parse_new_game(
             data, self.z_path, self.z_idx
         )
+        self.use_cum_reward = True
+        self.use_bo_reward = True
+        if z_type is not None:
+            if z_type == 2 or z_type == 3:
+                self.use_cum_reward = False
+            if z_type == 1 or z_type == 3:
+                self.use_bo_reward = False
+        if random.random() > self.fake_reward_prob:
+            self.use_cum_reward = False
+        if random.random() > self.fake_reward_prob:
+            self.use_bo_reward = False
+        
         self.race = race  # home_race
         self.requested_race = requested_race
         self.map_size = map_size
@@ -395,6 +430,7 @@ class DIStarPolicy(Policy):
         if self._cfg.cuda:
             obs = to_device(obs, self._device)
 
+        self._collect_model.eval()
         with torch.no_grad():
             policy_output = self._collect_model.compute_logp_action(**obs)
 
@@ -408,7 +444,7 @@ class DIStarPolicy(Policy):
         if self._cfg.use_value_feature:
             obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, padding_spatial=True, opponent_obs=data['opponent_obs'])
         else:
-            raise NotImplementedError
+            obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, padding_spatial=True)
 
         game_info = obs.pop('game_info')
         game_step = game_info['game_loop']
@@ -436,14 +472,14 @@ class DIStarPolicy(Policy):
         obs['scalar_info']['enemy_unit_type_bool'] = (
             self.enemy_unit_type_bool | obs['scalar_info']['enemy_unit_type_bool']
         ).to(torch.uint8)
-        if self.exceed_loop_flag:
-            obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat * 0 + self._cfg.zero_z_value
-            obs['scalar_info']['beginning_order'] = self.target_building_order * 0
-            obs['scalar_info']['bo_location'] = self.target_bo_location * 0
-        else:
+
+        obs['scalar_info']['beginning_order'] = self.target_building_order * (self.use_bo_reward & (not self.exceed_loop_flag))
+        obs['scalar_info']['bo_location'] = self.target_bo_location * (self.use_bo_reward & (not self.exceed_loop_flag))
+        
+        if self.use_cum_reward and not self.exceed_loop_flag:
             obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat
-            obs['scalar_info']['beginning_order'] = self.target_building_order
-            obs['scalar_info']['bo_location'] = self.target_bo_location
+        else:
+            obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat * 0 + self._cfg.zero_z_value
 
         # update stat
         self.stat.update(self.last_action_type, data['action_result'][0], obs, game_step)
