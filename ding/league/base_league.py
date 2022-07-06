@@ -146,7 +146,7 @@ class BaseLeague:
                     self.path_policy,
                     name,
                     0,
-                    self.metric_env.create_rating(),
+                    self.metric_env.create_rating(mu=100),
                     parent_id=parent_name
                 )
                 self.historical_players.append(hp)
@@ -271,9 +271,14 @@ class BaseLeague:
             job_info_result = job_info['result']
             if isinstance(job_info_result[0], list):
                 job_info_result = sum(job_info_result, [])
-            home_player.rating, away_player.rating = self.metric_env.rate_1vs1(
-                home_player.rating, away_player.rating, result=job_info_result
-            )
+            if 'bot' in away_id:
+                home_player.rating = self.metric_env.rate_1vsC(
+                    home_player.rating, self.metric_env.create_rating(mu=100, sigma=1e-8), result=job_info_result
+                )
+            else:
+                home_player.rating, away_player.rating = self.metric_env.rate_1vs1(
+                    home_player.rating, away_player.rating, result=job_info_result
+                )
 
     def get_player_by_id(self, player_id: str) -> 'Player':  # noqa
         if 'historical' in player_id or 'bot' in player_id:

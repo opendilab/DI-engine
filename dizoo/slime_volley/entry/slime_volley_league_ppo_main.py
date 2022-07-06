@@ -218,7 +218,7 @@ def main(cfg, seed=0):
             tb_logger.add_text('payoff_step', payoff_string, main_collector.envstep)
             tb_logger.add_text('rank_step', rank_string, main_collector.envstep)
         count += 1
-        if collector.envstep >= 50000000:
+        if collector.envstep >= 100000000:
             break
 
 
