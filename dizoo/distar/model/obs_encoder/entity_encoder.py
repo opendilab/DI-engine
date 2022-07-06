@@ -48,6 +48,7 @@ class EntityEncoder(nn.Module):
             layer_num=self.cfg.layer_num,
             dropout_ratio=self.cfg.dropout_ratio,
             activation=self.act,
+            ln_type=self.cfg.ln_type
         )
         self.entity_fc = fc_block(self.cfg.output_dim, self.cfg.output_dim, activation=self.act)
         self.embed_fc = fc_block(self.cfg.output_dim, self.cfg.output_dim, activation=self.act)

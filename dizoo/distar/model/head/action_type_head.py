@@ -9,8 +9,35 @@ from torch import Tensor
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ding.torch_utils import ResFCBlock, fc_block, build_activation
+from ding.torch_utils import ResFCBlock, fc_block, conv2d_block
 from dizoo.distar.envs import ACTION_RACE_MASK
+
+
+class GLU(nn.Module):
+    def __init__(self, input_dim, output_dim, context_dim, input_type='fc'):
+        super(GLU, self).__init__()
+        assert (input_type in ['fc', 'conv2d'])
+        if input_type == 'fc':
+            self.layer1 = fc_block(context_dim, input_dim)
+            self.layer2 = fc_block(input_dim, output_dim)
+        elif input_type == 'conv2d':
+            self.layer1 = conv2d_block(context_dim, input_dim, 1, 1, 0)
+            self.layer2 = conv2d_block(input_dim, output_dim, 1, 1, 0)
+
+    def forward(self, x, context):
+        gate = self.layer1(context)
+        gate = torch.sigmoid(gate)
+        x = gate * x
+        x = self.layer2(x)
+        return x
+
+
+def build_activation(activation):
+    act_func = {'relu': nn.ReLU(inplace=True), 'glu': GLU, 'prelu': nn.PReLU(init=0.0)}
+    if activation in act_func.keys():
+        return act_func[activation]
+    else:
+        raise KeyError("invalid key for activation: {}".format(activation))
 
 
 class ActionTypeHead(nn.Module):
