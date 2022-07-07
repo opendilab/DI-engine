@@ -12,7 +12,7 @@ from .td3_vae import TD3VAEPolicy
 
 from .td3_bc import TD3BCPolicy
 from .a2c import A2CPolicy
-from .ppo import PPOPolicy
+from .ppo import PPOPolicy, PPOPGPolicy, PPOOffPolicy
 from .sac import SACPolicy, SACDiscretePolicy, SQILSACPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 from .impala import IMPALAPolicy

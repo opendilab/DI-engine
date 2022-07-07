@@ -82,6 +82,8 @@ class DDPGPolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=False,
         # (str) Action space type
         action_space='continuous',  # ['continuous', 'hybrid']
         # (bool) Whether use batch normalization for reward

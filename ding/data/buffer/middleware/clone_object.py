@@ -5,9 +5,10 @@ from ding.utils import fastcopy
 
 def clone_object():
     """
-    This middleware freezes the objects saved in memory buffer as a copy,
-    try this middleware when you need to keep the object unchanged in buffer, and modify
-    the object after sampling it (usually in multiple threads)
+    Overview:
+        This middleware freezes the objects saved in memory buffer and return copies during sampling,
+        try this middleware when you need to keep the object unchanged in buffer, and modify\
+        the object after sampling it (usually in multiple threads)
     """
 
     def push(chain: Callable, data: Any, *args, **kwargs) -> BufferedData:
