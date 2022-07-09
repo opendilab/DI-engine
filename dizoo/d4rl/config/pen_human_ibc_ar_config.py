@@ -4,34 +4,36 @@ cuda = True
 multi_gpu = False
 
 main_config = dict(
-    exp_name='hopper_medium_expert_ibc_seed0',
+    exp_name='pen_human_ibc_ar_seed0',
     env=dict(
-        env_id='hopper-medium-expert-v0',
+        env_id='pen-human-v0',
         evaluator_env_num=8,
         n_evaluator_episode=8,
         use_act_scale=False,
-        stop_value=6000,
+        stop_value=1e10,
     ),
     policy=dict(
         cuda=cuda,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
-            stochastic_optim=dict(type='dfo', cuda=cuda,)
+            obs_shape=45,
+            action_shape=24,
+            hidden_size=128,
+            hidden_layer_num=4,
+            stochastic_optim=dict(type='ardfo', cuda=cuda,)
         ),
         learn=dict(
             multi_gpu=multi_gpu,
-            train_epoch=30,
+            train_epoch=2000,
             batch_size=256,
             optim=dict(learning_rate=1e-5,),
-            learner=dict(hook=dict(log_show_after_iter=1000)),
+            learner=dict(hook=dict(log_show_after_iter=100)),
         ),
         collect=dict(
             normalize_states=True,
             data_type='d4rl',
             data_path=None,
         ),
-        eval=dict(evaluator=dict(eval_freq=-1, multi_gpu=multi_gpu, )),
+        eval=dict(evaluator=dict(eval_freq=1000, multi_gpu=multi_gpu, )),
     ),
 )
 main_config = EasyDict(main_config)
@@ -45,6 +47,10 @@ create_config = dict(
     policy=dict(
         type='ibc',
         import_names=['ding.policy.ibc'],
+        model=dict(
+            type='arebm',
+            import_names=['ding.model.template.ebm'],
+        ),
     ),
 )
 create_config = EasyDict(create_config)

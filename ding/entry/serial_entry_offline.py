@@ -83,13 +83,14 @@ def serial_pipeline_offline(
     stop = False
 
     for epoch in tqdm(range(cfg.policy.learn.train_epoch)):
-        # Evaluate policy per epoch
         if cfg.policy.learn.multi_gpu:
             dataloader.sampler.set_epoch(epoch)
         for train_data in tqdm(dataloader):
             learner.train(train_data)
-            
-        stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
+
+        # Evaluate policy at most once per epoch
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
 
         if stop or learner.train_iter >= max_train_iter:
             stop = True

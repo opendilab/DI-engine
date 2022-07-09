@@ -8,8 +8,8 @@ main_config = dict(
     env=dict(
         env_id='hopper-medium-expert-v0',
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
+        use_act_scale=False,
         stop_value=6000,
     ),
     policy=dict(
@@ -17,8 +17,6 @@ main_config = dict(
         model=dict(
             obs_shape=11,
             action_shape=3,
-            hidden_size=256,
-            hidden_layer_num=2,
             stochastic_optim=dict(type='mcmc', cuda=True,)
         ),
         learn=dict(
@@ -33,7 +31,7 @@ main_config = dict(
             data_type='d4rl',
             data_path=None,
         ),
-        eval=dict(evaluator=dict(multi_gpu=multi_gpu, )),
+        eval=dict(evaluator=dict(eval_freq=-1, multi_gpu=multi_gpu, )),
     ),
 )
 main_config = EasyDict(main_config)

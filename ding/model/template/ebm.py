@@ -555,13 +555,15 @@ class AutoregressiveEBM(nn.Module):
         self,
         obs_shape: int,
         action_shape: int,
+        hidden_size: int = 512,
+        hidden_layer_num: int = 4,
         **kwargs,
     ):
         # TODO(zzh&others): fix the buggy transformer above
         super().__init__()
         self.ebm_list = nn.ModuleList() 
         for i in range(action_shape):
-            self.ebm_list.append(EBM(obs_shape, i+1))
+            self.ebm_list.append(EBM(obs_shape, i+1, hidden_size, hidden_layer_num))
 
     def forward(self, obs, action):
         # obs: (B, N, O)
@@ -572,5 +574,5 @@ class AutoregressiveEBM(nn.Module):
         output_list = []
         for i, ebm in enumerate(self.ebm_list):
             output_list.append(ebm(obs, action[..., :i+1]))
-        # (B, N, A(3))
+        # (B, N, A)
         return torch.stack(output_list, axis=-1)
