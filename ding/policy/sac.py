@@ -1071,7 +1071,6 @@ class SACPolicy(Policy):
         alpha_loss = ['alpha_loss'] if self._auto_alpha else []
         value_loss = ['value_loss'] if self._value_network else []
         return [
-            'alpha_loss',
             'policy_loss',
             'critic_loss',
             'cur_lr_q',

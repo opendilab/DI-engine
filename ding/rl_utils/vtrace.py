@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from torch.distributions import Categorical, Normal, Independent
 from collections import namedtuple
 from .isw import compute_importance_weights
 from ding.hpc_rl import hpc_wrapper
@@ -74,7 +75,8 @@ def vtrace_error(
     lambda_: float = 0.95,
     rho_clip_ratio: float = 1.0,
     c_clip_ratio: float = 1.0,
-    rho_pg_clip_ratio: float = 1.0
+    rho_pg_clip_ratio: float = 1.0,
+    action_space: str = 'discrete',
 ):
     """
     Overview:
@@ -109,7 +111,7 @@ def vtrace_error(
     """
     target_output, behaviour_output, action, value, reward, weight = data
     with torch.no_grad():
-        IS = compute_importance_weights(target_output, behaviour_output, action)
+        IS = compute_importance_weights(target_output, behaviour_output, action, action_space)
         rhos = torch.clamp(IS, max=rho_clip_ratio)
         cs = torch.clamp(IS, max=c_clip_ratio)
         return_ = vtrace_nstep_return(rhos, cs, reward, value, gamma, lambda_)
@@ -119,7 +121,10 @@ def vtrace_error(
 
     if weight is None:
         weight = torch.ones_like(reward)
-    dist_target = torch.distributions.Categorical(logits=target_output)
+    if action_space == 'discrete':
+        dist_target = Categorical(logits=target_output)
+    else:
+        dist_target = Independent(Normal(*target_output), 1)
     pg_loss = -(dist_target.log_prob(action) * adv * weight).mean()
     value_loss = (F.mse_loss(value[:-1], return_, reduction='none') * weight).mean()
     entropy_loss = (dist_target.entropy() * weight).mean()
