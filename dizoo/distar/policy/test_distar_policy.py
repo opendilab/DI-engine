@@ -27,6 +27,7 @@ class TestDIStarPolicy:
         data = get_fake_env_reset_data()
         policy.reset(data)
         output = policy.forward(data)
+        print(output)
 
 
 if __name__ == '__main__':

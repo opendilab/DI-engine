@@ -110,7 +110,6 @@ class DIStarPolicy(Policy):
         zero_z_value=1,
         extra_units=True,  # selcet extra units if selected units exceed 64
         z_path='7map_filter_spine.json',
-        use_upia_model=True
     )
 
     def _create_model(
@@ -357,7 +356,7 @@ class DIStarPolicy(Policy):
 
     def _load_state_dict_collect(self, _state_dict: Dict) -> None:
         #TODO(zms): need to load state_dict after collect, which is very dirty and need to rewrite
-    
+
         if 'map_name' in _state_dict:
             # map_names.append(_state_dict['map_name'])
             self.fake_reward_prob = _state_dict['fake_reward_prob']
@@ -365,21 +364,11 @@ class DIStarPolicy(Policy):
             self.z_idx = _state_dict['z_idx']
         _state_dict = {k: v for k, v in _state_dict['model'].items() if 'value_networks' not in k}
 
-        if self.use_upia_model:
-            for key in list(_state_dict.keys()):
-                new = key
-                if "transformer" in key:
-                    new = key.replace('layers', 'main').replace('mlp.1', 'mlp.2')
-                elif "location_head" in key:
-                    new = key.replace('GateWeightG', 'gate').replace('UpdateSP','update_sp')
-                _state_dict[new] = _state_dict.pop(key)
-        
         self._collect_model.load_state_dict(_state_dict, strict=False)
 
     def _init_collect(self):
         self._collect_model = model_wrap(self._model, 'base')
         self.z_path = self._cfg.z_path
-        self.use_upia_model = self._cfg.use_upia_model
         # TODO(zms): in _setup_agents, load state_dict to set up z_idx
         self.z_idx = None
 
@@ -410,7 +399,7 @@ class DIStarPolicy(Policy):
             self.use_cum_reward = False
         if random.random() > self.fake_reward_prob:
             self.use_bo_reward = False
-        
+
         self.race = race  # home_race
         self.requested_race = requested_race
         self.map_size = map_size
@@ -442,7 +431,13 @@ class DIStarPolicy(Policy):
 
     def _data_preprocess_collect(self, data):
         if self._cfg.use_value_feature:
-            obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, padding_spatial=True, opponent_obs=data['opponent_obs'])
+            obs = transform_obs(
+                data['raw_obs'],
+                self.map_size,
+                self.requested_race,
+                padding_spatial=True,
+                opponent_obs=data['opponent_obs']
+            )
         else:
             obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, padding_spatial=True)
 
@@ -473,9 +468,10 @@ class DIStarPolicy(Policy):
             self.enemy_unit_type_bool | obs['scalar_info']['enemy_unit_type_bool']
         ).to(torch.uint8)
 
-        obs['scalar_info']['beginning_order'] = self.target_building_order * (self.use_bo_reward & (not self.exceed_loop_flag))
+        obs['scalar_info']['beginning_order'
+                           ] = self.target_building_order * (self.use_bo_reward & (not self.exceed_loop_flag))
         obs['scalar_info']['bo_location'] = self.target_bo_location * (self.use_bo_reward & (not self.exceed_loop_flag))
-        
+
         if self.use_cum_reward and not self.exceed_loop_flag:
             obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat
         else:
