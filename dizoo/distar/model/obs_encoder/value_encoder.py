@@ -14,7 +14,7 @@ class ValueEncoder(nn.Module):
         super(ValueEncoder, self).__init__()
         self.whole_cfg = cfg
         self.cfg = cfg.model.value.encoder
-        self.act = build_activation('relu')
+        self.act = build_activation('relu', inplace=True)
         self.encode_modules = nn.ModuleDict()
         for k, item in self.cfg.modules.items():
             if item['arc'] == 'fc':

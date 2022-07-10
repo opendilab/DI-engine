@@ -86,8 +86,7 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     if inplace is not None:
         assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)
     else:
-        # TODO(nyz): influence dizoo/gfootball/model/iql/iql_network.py, and tests of this function
-        inplace = True
+        inplace = False
     act_func = {'relu': nn.ReLU(inplace=inplace), 'glu': GLU, 'prelu': nn.PReLU(), 'swish': Swish()}
     if activation in act_func.keys():
         return act_func[activation]
@@ -96,6 +95,7 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
 
 
 class GLU2(nn.Module):
+
     def __init__(self, input_dim, output_dim, context_dim, input_type='fc'):
         super(GLU2, self).__init__()
         assert (input_type in ['fc', 'conv2d'])

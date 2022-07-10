@@ -23,10 +23,11 @@ class TestDIStarPolicy:
 
         rl_model = torch.load('./rl_model.pth')
         policy.load_state_dict(rl_model)
-        
+
         data = get_fake_env_reset_data()
         policy.reset(data)
         output = policy.forward(data)
+
 
 if __name__ == '__main__':
     set_pkg_seed(0, use_cuda=False)
