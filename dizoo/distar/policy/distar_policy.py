@@ -1,19 +1,22 @@
+from logging.config import DEFAULT_LOGGING_CONFIG_PORT
 from typing import Dict, Optional, List
 from easydict import EasyDict
 import os.path as osp
 import torch
 from torch.optim import Adam
 import random
+from functools import partial
 
 from ding.model import model_wrap
 from ding.policy import Policy
-from ding.torch_utils import to_device
+from ding.torch_utils import to_device, levenshtein_distance, l2_distance, hamming_distance
 from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho, vtrace_error_with_rho, \
     upgo_data, upgo_error
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from dizoo.distar.model import Model
-from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, NUM_CUMULATIVE_STAT_ACTIONS, DEFAULT_SPATIAL_SIZE, Stat, parse_new_game, transform_obs
+from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, NUM_CUMULATIVE_STAT_ACTIONS, DEFAULT_SPATIAL_SIZE, BEGINNING_ORDER_LENGTH, BEGINNING_ORDER_ACTIONS, UNIT_TO_CUM, UPGRADE_TO_CUM, UNIT_ABILITY_TO_ACTION, QUEUE_ACTIONS, CUMULATIVE_STAT_ACTIONS,\
+    Stat, parse_new_game, transform_obs, compute_battle_score
 from .utils import collate_fn_learn, kl_error, entropy_error
 
 
@@ -107,9 +110,12 @@ class DIStarPolicy(Policy):
         # collect
         use_value_feature=True,  # TODO(zms): whether to use value feature, this must be False when play against bot
         zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
-        zero_z_value=1,
+        fake_reward_prob=0.0,  # probablity which set Z to 0
+        zero_z_value=1,  # value used for 0Z
         extra_units=True,  # selcet extra units if selected units exceed 64
+        clip_bo=False,  # clip the length of teacher's building order to agent's length
         z_path='7map_filter_spine.json',
+        realtime=False,  #TODO(zms): set from env, need to use only one cfg define policy and env
     )
 
     def _create_model(
@@ -174,7 +180,7 @@ class DIStarPolicy(Policy):
         # ===========
         target_policy_logits_dict = model_output['target_logit']  # shape (T,B)
         baseline_values_dict = model_output['value']  # shape (T+1,B)
-        behaviour_action_log_probs_dict = model_output['action_log_prob']  # shape (T,B)
+        behavior_action_log_probs_dict = model_output['action_log_prob']  # shape (T,B)
         teacher_policy_logits_dict = model_output['teacher_logit']  # shape (T,B)
         masks_dict = model_output['mask']  # shape (T,B)
         actions_dict = model_output['action']  # shape (T,B)
@@ -192,7 +198,7 @@ class DIStarPolicy(Policy):
         clipped_rhos_dict = {}
 
         # ============================================================
-        # get distribution info for behaviour policy and target policy
+        # get distribution info for behavior policy and target policy
         # ============================================================
         for head_type in self.head_types:
             # take info from correspondent input dict
@@ -203,10 +209,10 @@ class DIStarPolicy(Policy):
             target_policy_probs = pi_target.probs
             target_policy_log_probs = pi_target.logits
             target_action_log_probs = pi_target.log_prob(actions)
-            behaviour_action_log_probs = behaviour_action_log_probs_dict[head_type]
+            behavior_action_log_probs = behavior_action_log_probs_dict[head_type]
 
             with torch.no_grad():
-                log_rhos = target_action_log_probs - behaviour_action_log_probs
+                log_rhos = target_action_log_probs - behavior_action_log_probs
                 if head_type == 'selected_units':
                     log_rhos *= masks_dict['selected_units_mask']
                     log_rhos = log_rhos.sum(dim=-1)
@@ -369,8 +375,14 @@ class DIStarPolicy(Policy):
     def _init_collect(self):
         self._collect_model = model_wrap(self._model, 'base')
         self.z_path = self._cfg.z_path
-        # TODO(zms): in _setup_agents, load state_dict to set up z_idx
         self.z_idx = None
+        self.bo_norm = 20  #TODO(nyz): set from cfg
+        self.cum_norm = 30  #TODO(nyz): set from cfg
+        self.battle_norm = 30  #TODO(nyz): set from cfg
+        self.fake_reward_prob = self._cfg.fake_reward_prob
+        self.clip_bo = self._cfg.clip_bo
+        self.cum_type = 'action'  # observation or action
+        self.realtime = self._cfg.realtime
 
     def _reset_collect(self, data: Dict):
         self.exceed_loop_flag = False
@@ -384,10 +396,18 @@ class DIStarPolicy(Policy):
         self.last_targeted_unit_tag = None
         self.last_location = None  # [x, y]
         self.enemy_unit_type_bool = torch.zeros(NUM_UNIT_TYPES, dtype=torch.uint8)
+        self._observation = None  # TODO(zms): need to move to input and output of function
+        self._output = None  # TODO(zms): need to move to input and output of function
+        self.game_step = 0  # step * 10 is game duration time
+        self.behavior_building_order = []  # idx in BEGINNING_ORDER_ACTIONS
+        self.behavior_bo_location = []
+        self.bo_zergling_count = 0
+        self.behavior_cumulative_stat = [0] * NUM_CUMULATIVE_STAT_ACTIONS
 
-        race, requested_race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type = parse_new_game(
+        race, requested_race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type, _born_location = parse_new_game(
             data, self.z_path, self.z_idx
         )
+        self.born_location = _born_location
         self.use_cum_reward = True
         self.use_bo_reward = True
         if z_type is not None:
@@ -399,6 +419,9 @@ class DIStarPolicy(Policy):
             self.use_cum_reward = False
         if random.random() > self.fake_reward_prob:
             self.use_bo_reward = False
+
+        self.bo_norm = len(self.target_building_order)
+        self.cum_norm = len(target_cumulative_stat)
 
         self.race = race  # home_race
         self.requested_race = requested_race
@@ -412,6 +435,18 @@ class DIStarPolicy(Policy):
         self.target_cumulative_stat.scatter_(
             index=torch.tensor(target_cumulative_stat, dtype=torch.long), dim=0, value=1.
         )
+        if not self.realtime:
+            if not self.clip_bo:
+                self.old_bo_reward = -levenshtein_distance(
+                    torch.as_tensor(self.behavior_building_order, dtype=torch.long), self.target_building_order
+                ) / self.bo_norm
+            else:
+                self.old_bo_reward = torch.tensor(0.)
+            self.old_cum_reward = -hamming_distance(
+                torch.as_tensor(self.behavior_cumulative_stat, dtype=torch.float), self.target_cumulative_stat
+            ) / self.cum_norm
+            self.total_bo_reward = torch.zeros(size=(), dtype=torch.float)
+            self.total_cum_reward = torch.zeros(size=(), dtype=torch.float)
 
     def _forward_collect(self, data):
         obs, game_info = self._data_preprocess_collect(data)
@@ -442,8 +477,10 @@ class DIStarPolicy(Policy):
             obs = transform_obs(data['raw_obs'], self.map_size, self.requested_race, padding_spatial=True)
 
         game_info = obs.pop('game_info')
-        game_step = game_info['game_loop']
-        if self._cfg.zero_z_exceed_loop and game_step > self.target_z_loop:
+        self.battle_score = game_info['battle_score']
+        self.opponent_battle_score = game_info['opponent_battle_score']
+        self.game_step = game_info['game_loop']
+        if self._cfg.zero_z_exceed_loop and self.game_step > self.target_z_loop:
             self.exceed_loop_flag = True
 
         last_selected_units = torch.zeros(obs['entity_num'], dtype=torch.int8)
@@ -477,16 +514,20 @@ class DIStarPolicy(Policy):
         else:
             obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat * 0 + self._cfg.zero_z_value
 
+        self._observation = obs
+
         # update stat
-        self.stat.update(self.last_action_type, data['action_result'][0], obs, game_step)
+        self.stat.update(self.last_action_type, data['action_result'][0], obs, self.game_step)
         return obs, game_info
 
     def _data_postprocess_collect(self, data, game_info):
         self.hidden_state = data['hidden_state']
-
+        self.last_queued = data['action_info']['queued']
         self.last_action_type = data['action_info']['action_type']
         self.last_delay = data['action_info']['delay']
-        self.last_queued = data['action_info']['queued']
+        self.last_location = data['action_info']['target_location']
+        self._output = data
+
         action_type = self.last_action_type.item()
         action_attr = ACTIONS[action_type]
 
@@ -520,20 +561,143 @@ class DIStarPolicy(Policy):
         y = data['action_info']['target_location'].item() // DEFAULT_SPATIAL_SIZE[1]
         inverse_y = max(self.map_size.y - y, 0)
         raw_action['location'] = (x, inverse_y)
-        self.last_location = data['action_info']['target_location']
 
         data['action'] = [raw_action]
 
         return data
 
-    def _process_transition(self, obs, policy_output, timestep):
+    def _process_transition(self, next_obs, reward, done):
+        action_result = False if next_obs is None else ('Success' in next_obs['action_result'])
+
+        behavior_z = self.get_behavior_z()
+        bo_reward, cum_reward, battle_reward = self.update_fake_reward(next_obs)
+
+    def get_behavior_z(self):
+        bo = self.behavior_building_order + [0] * (BEGINNING_ORDER_LENGTH - len(self.behavior_building_order))
+        bo_location = self.behavior_bo_location + [0] * (BEGINNING_ORDER_LENGTH - len(self.behavior_bo_location))
         return {
-            'obs': obs,
-            'action': policy_output['action_info'],
+            'beginning_order': torch.as_tensor(bo, dtype=torch.long),
+            'bo_location': torch.as_tensor(bo_location, dtype=torch.long),
+            'cumulative_stat': torch.as_tensor(self.behavior_cumulative_stat, dtype=torch.bool).long()
         }
+
+    def update_fake_reward(self, next_obs):
+        bo_reward, cum_reward, battle_reward = self._update_fake_reward(
+            self.last_action_type, self.last_location, next_obs
+        )
+        return bo_reward, cum_reward, battle_reward
+
+    def _update_fake_reward(self, action_type, location, next_obs):
+        bo_reward = torch.zeros(size=(), dtype=torch.float)
+        cum_reward = torch.zeros(size=(), dtype=torch.float)
+
+        battle_score = compute_battle_score(next_obs['raw_obs'])
+        opponent_battle_score = compute_battle_score(next_obs['opponent_obs'])
+        battle_reward = battle_score - self.battle_score - (opponent_battle_score - self.opponent_battle_score)
+        battle_reward = torch.tensor(battle_reward, dtype=torch.float) / self.battle_norm
+
+        if self.exceed_loop_flag:
+            return bo_reward, cum_reward, battle_reward
+
+        if action_type in BEGINNING_ORDER_ACTIONS and next_obs['action_result'][0] == 1:
+            if action_type == 322:
+                self.bo_zergling_count += 1
+                if self.bo_zergling_count > 8:
+                    return bo_reward, cum_reward, battle_reward
+            order_index = BEGINNING_ORDER_ACTIONS.index(action_type)
+            if order_index == 39 and 39 not in self.target_building_order:  # ignore spinecrawler
+                return bo_reward, cum_reward, battle_reward
+            if len(self.behavior_building_order) < len(self.target_building_order):
+                # only consider bo_reward if behaviour size < target size
+                self.behavior_building_order.append(order_index)
+                if ACTIONS[action_type]['target_location']:
+                    self.behavior_bo_location.append(location.item())
+                else:
+                    self.behavior_bo_location.append(0)
+                if self.use_bo_reward:
+                    if self.clip_bo:
+                        tz = self.target_building_order[:len(self.behavior_building_order)]
+                        tz_lo = self.target_bo_location[:len(self.behavior_building_order)]
+                    else:
+                        tz = self.target_building_order
+                        tz_lo = self.target_bo_location
+                    new_bo_dist = -levenshtein_distance( #TODO(nyz): merge levenshtein_distance of DI-star and DI-engine to the same
+                        torch.as_tensor(self.behavior_building_order, dtype=torch.int),
+                        torch.as_tensor(tz, dtype=torch.int),
+                        torch.as_tensor(self.behavior_bo_location, dtype=torch.int),
+                        torch.as_tensor(tz_lo, dtype=torch.int),
+                        partial(l2_distance, spatial_x=DEFAULT_SPATIAL_SIZE[1])
+                    ) / self.bo_norm
+                    bo_reward = new_bo_dist - self.old_bo_reward
+                    self.old_bo_reward = new_bo_dist
+
+        if self.cum_type == 'observation':
+            cum_flag = True
+            for u in next_obs['raw_obs'].observation.raw_data.units:
+                if u.alliance == 1 and u.unit_type in [59, 18, 86]:  # ignore first base
+                    if u.pos.x == self.born_location[0] and u.pos.y == self.born_location[1]:
+                        continue
+                if u.alliance == 1 and u.build_progress == 1 and UNIT_TO_CUM[u.unit_type] != -1:
+                    self.behavior_cumulative_stat[UNIT_TO_CUM[u.unit_type]] = 1
+            for u in next_obs['raw_obs'].observation.raw_data.player.upgrade_ids:
+                if UPGRADE_TO_CUM[u] != -1:
+                    self.behavior_cumulative_stat[UPGRADE_TO_CUM[u]] = 1
+                    from distar.pysc2.lib.upgrades import Upgrades
+                    for up in Upgrades:
+                        if up.value == u:
+                            name = up.name
+                            break
+        elif self.cum_type == 'action':
+            action_name = ACTIONS[action_type]['name']
+            action_info = self._output['action_info']
+            cum_flag = False
+            if action_name == 'Cancel_quick' or action_name == 'Cancel_Last_quick':
+                unit_index = action_info['selected_units'][0].item()
+                order_len = self._observation['entity_info']['order_length'][unit_index]
+                if order_len == 0:
+                    action_index = 0
+                elif order_len == 1:
+                    action_index = UNIT_ABILITY_TO_ACTION[self._observation['entity_info']['order_id_0']
+                                                          [unit_index].item()]
+                elif order_len > 1:
+                    order_str = 'order_id_{}'.format(order_len - 1)
+                    action_index = QUEUE_ACTIONS[self._observation['entity_info'][order_str][unit_index].item() - 1]
+                if action_index in CUMULATIVE_STAT_ACTIONS:
+                    cum_flag = True
+                    cum_index = CUMULATIVE_STAT_ACTIONS.index(action_index)
+                    self.behavior_cumulative_stat[cum_index] = max(0, self.behavior_cumulative_stat[cum_index] - 1)
+
+            if action_type in CUMULATIVE_STAT_ACTIONS:
+                cum_flag = True
+                cum_index = CUMULATIVE_STAT_ACTIONS.index(action_type)
+                self.behavior_cumulative_stat[cum_index] += 1
+        else:
+            raise NotImplementedError
+
+        if self.use_cum_reward and cum_flag and (self.cum_type == 'observation' or next_obs['action_result'][0] == 1):
+            new_cum_reward = -hamming_distance(
+                torch.as_tensor(self.behavior_cumulative_stat, dtype=torch.bool),
+                torch.as_tensor(self.target_cumulative_stat, dtype=torch.bool)
+            ) / self.cum_norm
+            cum_reward = (new_cum_reward - self.old_cum_reward) * self._get_time_factor(self.game_step)
+            self.old_cum_reward = new_cum_reward
+        self.total_bo_reward += bo_reward
+        self.total_cum_reward += cum_reward
+        return bo_reward, cum_reward, battle_reward
 
     def _get_train_sample(self):
         pass
+
+    @staticmethod
+    def _get_time_factor(game_step):
+        if game_step < 1 * 10000:
+            return 1.0
+        elif game_step < 2 * 10000:
+            return 0.5
+        elif game_step < 3 * 10000:
+            return 0.25
+        else:
+            return 0
 
     _init_eval = _init_collect
     _forward_eval = _forward_collect
