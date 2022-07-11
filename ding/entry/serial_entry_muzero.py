@@ -96,7 +96,7 @@ def serial_pipeline_muzero(
 
     while True:
         collect_kwargs = commander.step()
-        # set temperature for distributions
+        # set temperature for visit count distributions
         collect_kwargs['temperature'] = np.array(
             [
                 game_config.visit_softmax_temperature_fn(trained_steps=learner.train_iter)
@@ -104,40 +104,34 @@ def serial_pipeline_muzero(
             ]
         )
         # Evaluate policy performance
-        # if evaluator.should_eval(learner.train_iter):
-        stop, reward = evaluator.eval(
-            learner.save_checkpoint, learner.train_iter, collector.envstep, config=game_config
-        )
-        if stop:
-            break
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(
+                learner.save_checkpoint, learner.train_iter, collector.envstep, config=game_config
+            )
+            if stop:
+                break
 
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        # remove data if the replay buffer is full. (more data settings)
+        # remove data if the replay buffer is full.
         replay_buffer.remove_to_fit()
+        # TODO(pu): collector return data
         # replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            # try:
-            train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
-            # except Exception as exception:
-            #     print(exception)
-            #     logging.warning(
-            #         f'The data in replay_buffer is not sufficient to sample a minibatch: \
-            #         batch_size: {replay_buffer.get_batch_size()} \
-            #     num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_historys()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
-            #         continue to collect now ....'
-            #     )
-            #     break
+            try:
+                train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
+            except Exception as exception:
+                print(exception)
+                logging.warning(
+                    f'The data in replay_buffer is not sufficient to sample a minibatch: \
+                    batch_size: {replay_buffer.get_batch_size()} \
+                num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_historys()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
+                    continue to collect now ....'
+                )
+                break
 
-            # if train_data is None:
-            #     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
-            #     logging.warning(
-            #         "Replay buffer's data can only train for {} steps. ".format(i) +
-            #         "You can modify data collect config, e.g. increasing n_sample, n_episode."
-            #     )
-            #     break
             learner.train(train_data, collector.envstep)
             if game_config.lr_manually:
                 # learning rate decay manually like EfficientZero paper
@@ -145,10 +139,7 @@ def serial_pipeline_muzero(
                     policy._optimizer.lr = 0.02
                 elif learner.train_iter > 2e5:
                     policy._optimizer.lr = 0.002
-            # if learner.policy.get_attribute('priority'):
-            #     replay_buffer.update(learner.priority_info)
-            #     replay_buffer.batch_update(indices=learner.priority_info['priority']['indices'], metas={'make_time': \
-            #     learner.priority_info['priority']['make_time'], 'batch_priorities': learner.priority_info['priority']['value_priority']})
+
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 

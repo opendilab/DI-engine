@@ -251,7 +251,6 @@ class EfficientZeroPolicy(Policy):
 
         if self.game_config.vis_result:
             state_lst = hidden_state.detach().cpu().numpy()
-            # state_lst = hidden_state
 
         predicted_value_prefixs = []
         # Note: Following line is just for logging.
@@ -265,8 +264,8 @@ class EfficientZeroPolicy(Policy):
         value_priority = value_priority.data.cpu().numpy() + self.game_config.prioritized_replay_eps
 
         # loss of the first step
-        value_loss = self.game_config.scalar_value_loss(value, target_value_phi[:, 0])
-        policy_loss = -(torch.log_softmax(policy_logits, dim=1) * target_policy[:, 0]).sum(1)
+        value_loss = self.game_config.modified_cross_entropy_loss(value, target_value_phi[:, 0])
+        policy_loss = self.game_config.modified_cross_entropy_loss(policy_logits, target_policy[:, 0])
         value_prefix_loss = torch.zeros(batch_size, device=self.game_config.device)
         consistency_loss = torch.zeros(batch_size, device=self.game_config.device)
 
@@ -312,9 +311,9 @@ class EfficientZeroPolicy(Policy):
                 other_loss['consist_' + str(step_i + 1)] = temp_loss.mean().item()
                 consistency_loss += temp_loss
 
-            policy_loss += -(torch.log_softmax(policy_logits, dim=1) * target_policy[:, step_i + 1]).sum(1)
-            value_loss += self.game_config.scalar_value_loss(value, target_value_phi[:, step_i + 1])
-            value_prefix_loss += self.game_config.scalar_reward_loss(value_prefix, target_value_prefix_phi[:, step_i])
+            policy_loss += self.game_config.modified_cross_entropy_loss(policy_logits, target_policy[:, step_i + 1])
+            value_loss += self.game_config.modified_cross_entropy_loss(value, target_value_phi[:, step_i + 1])
+            value_prefix_loss += self.game_config.modified_cross_entropy_loss(value_prefix, target_value_prefix_phi[:, step_i])
 
             # Follow MuZero, set half gradient
             # hidden_state.register_hook(lambda grad: grad * 0.5)
@@ -381,6 +380,11 @@ class EfficientZeroPolicy(Policy):
         total_loss.backward()
         torch.nn.utils.clip_grad_norm_(parameters, self.game_config.max_grad_norm)
         self._optimizer.step()
+
+        # =============
+        # target model update
+        # =============
+        self._target_model.update(self._learn_model.state_dict())
 
         # ----------------------------------------------------------------------------------
         # update priority
@@ -461,7 +465,6 @@ class EfficientZeroPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         # self._collect_model = model_wrap(self._model, 'base')
         self._collect_model = self._learn_model
-
         self._collect_model.reset()
         if self.game_config.mcts_ctree:
             self._mcts_collect = MCTS_ctree(self.game_config)
@@ -483,7 +486,6 @@ class EfficientZeroPolicy(Policy):
             temperature: (N1, ), where N1 is the number of collect_env.
         """
         self._collect_model.eval()
-        # TODO priority
         stack_obs = data
         with torch.no_grad():
             network_output = self._collect_model.initial_inference(stack_obs)
@@ -559,31 +561,11 @@ class EfficientZeroPolicy(Policy):
 
         return output
 
-    def _process_transition(
-            self, obs: ttorch.Tensor, policy_output: ttorch.Tensor, timestep: ttorch.Tensor
-    ) -> ttorch.Tensor:
-        return ttorch.as_tensor(
-            {
-                'obs': obs,
-                'action': policy_output.action,
-                'distribution': policy_output.distribution,
-                'value': policy_output.value,
-                'next_obs': timestep.obs,
-                'reward': timestep.reward,
-                'done': timestep.done,
-            }
-        )
-
-    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
-
     def _init_eval(self) -> None:
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
         """
-        # self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model = self._learn_model
         self._eval_model.reset()
         if self.game_config.mcts_ctree:
@@ -614,7 +596,7 @@ class EfficientZeroPolicy(Policy):
             policy_logits_pool = network_output.policy_logits  # shape（B, A）
 
             # TODO(pu)
-            if not self._learn_model.training:
+            if not self._eval_model.training:
                 # if not in training, obtain the scalars of the value/reward
                 pred_values_pool = inverse_scalar_transform(pred_values_pool,
                                                             self.game_config.support_size).detach().cpu().numpy()  # shape（B, 1）
@@ -655,7 +637,7 @@ class EfficientZeroPolicy(Policy):
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
                 output[i] = {'action': action, 'distributions': distributions, 'value': value, ' policy_logits_pool': policy_logits_pool}
-                print('eval:',output[i])
+                # print('eval:',output[i])
 
         return output
 
@@ -710,6 +692,25 @@ class EfficientZeroPolicy(Policy):
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
+    def _process_transition(
+            self, obs: ttorch.Tensor, policy_output: ttorch.Tensor, timestep: ttorch.Tensor
+    ) -> ttorch.Tensor:
+        return ttorch.as_tensor(
+            {
+                'obs': obs,
+                'action': policy_output.action,
+                'distribution': policy_output.distribution,
+                'value': policy_output.value,
+                'next_obs': timestep.obs,
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        )
+
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        return get_train_sample(data, self._unroll_len)
+
     def _data_preprocess_learn(self, data: ttorch.Tensor):
         # TODO data augmentation before learning
         data = data.cuda(self.game_config.device)
@@ -718,8 +719,8 @@ class EfficientZeroPolicy(Policy):
 
     @staticmethod
     def _consist_loss_func(f1, f2):
-        """Consistency loss function: similarity loss
-        Parameters
+        """
+        Consistency loss function: similarity loss
         """
         f1 = F.normalize(f1, p=2., dim=-1, eps=1e-5)
         f2 = F.normalize(f2, p=2., dim=-1, eps=1e-5)

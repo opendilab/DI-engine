@@ -36,15 +36,15 @@ class GameBaseConfig(object):
         else:
             return 1.0
 
-    def scalar_reward_loss(self, prediction, target):
-        return -(torch.log_softmax(prediction, dim=1) * target).sum(1)
-
-    def scalar_value_loss(self, prediction, target):
+    @staticmethod
+    def modified_cross_entropy_loss(prediction, target):
         return -(torch.log_softmax(prediction, dim=1) * target).sum(1)
 
     def scalar_transform(self, x):
-        """ Reference from MuZerp: Appendix F => Network Architecture
-        & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
+        """
+        Overview:
+            Reference from MuZerp: Appendix F => Network Architecture
+            & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
         """
         delta = self.value_support.delta
         assert delta == 1

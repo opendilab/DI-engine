@@ -199,7 +199,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
     """
 
     def get_priorities(self, i, pred_values_lst, search_values_lst):
-        # obtain the priorities at index i
+        """
+        Overview:
+            obtain the priorities at index i.
+        """
         if self.game_config.use_priority and not self.game_config.use_max_priority:
             pred_values = torch.from_numpy(np.array(pred_values_lst[i])).to(self.game_config.device).float().view(-1)
             search_values = torch.from_numpy(np.array(search_values_lst[i])).to(self.game_config.device).float().view(-1)
@@ -213,13 +216,19 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         return priorities
 
     def len_pool(self):
-        # current pool size
+        """
+        Overview:
+            current pool size
+        """
         return len(self.trajectory_pool)
 
     def free(self, end_tag):
-        # save the game histories and clear the pool
+        """
+        Overview:
+            save the game histories and clear the pool
+            self.trajectory_pool: list of (game_history, priority)
+        """
         if self.len_pool() >= self.pool_size:
-            # self.trajectory_pool: list of (game_history, priority)
             self.replay_buffer.push_games(
                 [self.trajectory_pool[i][0] for i in range(self.len_pool())], [
                     {
@@ -233,18 +242,15 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             del self.trajectory_pool[:]
 
     def put_last_trajectory(self, i, last_game_histories, last_game_priorities, game_histories, done):
-        """put the last game history into the pool if the current game is finished
-        Parameters
-        ----------
-        last_game_histories: list
-            list of the last game histories
-        last_game_priorities: list
-            list of the last game priorities
-        game_histories: list
-            list of the current game histories
         """
-        """
-        last_game_histories[i].obs_history[-4:] == game_histories[i].obs_history[:4] True
+        Overview:
+            put the last game history into the pool if the current game is finished
+        Arguments:
+            - last_game_histories (:obj:`list`): list of the last game histories
+            - last_game_priorities (:obj:`list`): list of the last game priorities
+            - game_histories (:obj:`list`): list of the current game histories
+        Note:
+            (last_game_histories[i].obs_history[-4:] == game_histories[i].obs_history[:4]) is True
         """
         # pad over last block trajectory
         beg_index = self.game_config.stacked_observations
@@ -267,8 +273,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
         # pad over and save
         last_game_histories[i].pad_over(pad_obs_lst, pad_reward_lst, pad_root_values_lst, pad_child_visits_lst)
+
         """
-        Overview:
+        Note:
             game_history element shape:
             obs: game_history_length + stack + num_unroll_steps, 20+4 +5  
             rew: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+3-1  
@@ -321,12 +328,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         temperature = policy_kwargs['temperature']
         collected_episode = 0
         return_data = []
-        ready_env_id = set()
-        remain_episode = n_episode
         env_nums = self._env_num
         # initializations
         init_obses = self._env.ready_obs
-        # init_obses = to_tensor(init_obses, dtype=torch.float32)
         action_mask = [to_ndarray(init_obses[i]['action_mask']) for i in range(env_nums)]
         if 'to_play' in init_obses[0]:
             two_plaer_game = True
@@ -347,9 +351,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 [to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.stacked_observations)]
             )
 
-        ep_ori_rewards = np.zeros(env_nums)
-        ep_clip_rewards = np.zeros(env_nums)
-
         last_game_histories = [None for _ in range(env_nums)]
         last_game_priorities = [None for _ in range(env_nums)]
 
@@ -369,7 +370,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         eps_ori_reward_lst, eps_reward_lst, eps_steps_lst, visit_entropies_lst = np.zeros(env_nums), np.zeros(
             env_nums
         ), np.zeros(env_nums), np.zeros(env_nums)
-        step_counter = 0
 
         self_play_rewards = 0.
         self_play_ori_rewards = 0.
@@ -380,7 +380,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         self_play_moves_max = 0
 
         self_play_visit_entropy = []
-        other_dist = {}
         total_transitions = 0
 
         def _get_max_entropy(action_space):
@@ -421,7 +420,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             interaction_duration = self._timer.value / len(timesteps)
 
             for env_id, timestep in timesteps.items():
-                # obs, ori_reward, done, info = env.step(action)
                 i = env_id
                 obs, ori_reward, done, info = timestep.obs, timestep.reward, timestep.done, timestep.info
                 if self.game_config.clip_reward:

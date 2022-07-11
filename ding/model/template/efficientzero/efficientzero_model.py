@@ -186,23 +186,17 @@ class DynamicsNetwork(nn.Module):
         momentum=0.1,
         init_zero=False,
     ):
-        """Dynamics network
-        Parameters
-        ----------
-        num_blocks: int
-            number of res blocks
-        num_channels: int
-            channels of hidden states
-        fc_reward_layers: list
-            hidden layers of the reward prediction head (MLP head)
-        full_support_size: int
-            dim of reward output
-        block_output_size_reward: int
-            dim of flatten hidden states
-        lstm_hidden_size: int
-            dim of lstm hidden
-        init_zero: bool
-            True -> zero initialization for the last layer of reward mlp
+        """
+        Overview:
+            Dynamics network
+        Arguments:
+            - num_blocks (:obj:int): number of res blocks
+            - num_channels (:obj:int): channels of hidden states
+            - fc_reward_layers (:obj:list):  hidden layers of the reward prediction head (MLP head)
+            - full_support_size (:obj:int): dim of reward output
+            - block_output_size_reward (:obj:int): dim of flatten hidden states
+            - lstm_hidden_size (:obj:int): dim of lstm hidden
+            - init_zero (:obj:bool): if True -> zero initialization for the last layer of reward mlp
         """
         super().__init__()
         self.num_channels = num_channels

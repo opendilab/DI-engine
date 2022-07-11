@@ -105,9 +105,6 @@ class GameBuffer(Buffer):
         Returns:
             - buffered_data (:obj:`BufferedData`): The pushed data.
         """
-        # in EfficientZero replay_buffer.py
-        # def save_game(self, game, end_tag, gap_steps, priorities=None):
-
         # TODO(pu)
         # if self.get_num_of_transitions() >= self.config.total_transitions:
         #     return
@@ -365,18 +362,17 @@ class GameBuffer(Buffer):
         return buffer
 
     def prepare_batch_context(self, batch_size, beta):
-        """Prepare a batch context that contains:
-        game_lst:               a list of game histories
-        game_history_pos_lst:           transition index in game (relative index)
-        indices_lst:            transition index in replay buffer
-        weights_lst:            the weight concerning the priority
-        make_time:              the time the batch is made (for correctly updating replay buffer when data is deleted)
-        Parameters
-        ----------
-        batch_size: int
-            batch size
-        beta: float
-            the parameter in PER for calculating the priority
+        """
+        Overview:
+            Prepare a batch context that contains:
+            game_lst:               a list of game histories
+            game_history_pos_lst:           transition index in game (relative index)
+            indices_lst:            transition index in replay buffer
+            weights_lst:            the weight concerning the priority
+            make_time:              the time the batch is made (for correctly updating replay buffer when data is deleted)
+        Arguments:
+            - batch_size: int batch size
+            - beta: float the parameter in PER for calculating the priority
         """
         assert beta > 0
 
@@ -386,7 +382,7 @@ class GameBuffer(Buffer):
         probs = self.priorities ** self._alpha
 
         probs /= probs.sum()
-        # TODO sample data in PER way
+        # TODO(pu): sample data in PER way
         # sample according to transition index
         indices_lst = np.random.choice(total, batch_size, p=probs, replace=False)
 

@@ -243,7 +243,6 @@ class BaseSerialEvaluatorMuZero(object):
                 # print(actions)
                 timesteps = self._env.step(actions)
 
-                # timesteps = to_tensor(timesteps, dtype=torch.float32)
                 action_mask = [timesteps[i].obs['action_mask'] for i in range(env_nums)]
 
                 if two_plaer_game:

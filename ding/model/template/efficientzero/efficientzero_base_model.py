@@ -81,7 +81,8 @@ class DiscreteSupport(object):
 
 
 def inverse_scalar_transform(logits, support_size):
-    """ Reference from MuZero: Appendix F => Network Architecture
+    """
+    Reference from MuZero: Appendix F => Network Architecture
     & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
     """
     scalar_support = DiscreteSupport(-support_size, support_size, delta=1)

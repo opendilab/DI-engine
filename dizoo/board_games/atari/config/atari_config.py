@@ -4,14 +4,13 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 game_config = EasyDict(dict(
     # NOTE
     env_name='PongNoFrameskip-v4',
+    device='cuda',
+    # device='cpu',
     # if mcts_ctree=True, using cpp mcts code
     mcts_ctree=True,
     image_based=True,
     cvt_string=True,
     clip_reward=True,
-    # NOTE
-    device='cuda',
-    # device='cpu',
     game_wrapper=True,
     action_space_size=6,
     amp_type='none',
@@ -20,9 +19,10 @@ game_config = EasyDict(dict(
     gray_scale=False,
     downsample=True,
     vis_result=True,
-    use_augmentation=True,  # TODO(pu)
-    # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity'],
-    # 'Style of augmentation'
+    # TODO(pu): test the effect of augmentation
+    use_augmentation=True,
+    # Style of augmentation
+    # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity']
     augmentation=['shift', 'intensity'],
 
     # debug
@@ -38,32 +38,33 @@ game_config = EasyDict(dict(
     # td_steps=3,
 
     collector_env_num=1,
-    evaluator_env_num=5,
+    evaluator_env_num=3,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
-    num_simulations=50,  # TODO(pu)
+    # TODO(pu): how to set proper num_simulations?
+    num_simulations=50,
     batch_size=256,
     game_history_max_length=400,
     total_transitions=int(1e6),
     num_unroll_steps=5,
     td_steps=5,
 
-    # revisit_policy_search_rate=1,    # TODO(pu)
+    # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
 
-    # TODO(pu): use adam?
+    # TODO(pu): why not use adam?
     lr_manually=True,
 
     # TODO(pu): if true, no priority to sample
-    use_max_priority=True,
+    use_max_priority=True,    # if true, sample without priority
     # use_max_priority=False,
     use_priority=True,
 
     # TODO(pu): only used for adjust temperature manually
     max_training_steps=int(1e5),
     change_temperature=True,
-    # whether to use root value in reanalyzing
-    use_root_value=False,  # TODO(pu)
+    # TODO(pu): whether to use root value in reanalyzing?
+    use_root_value=False,
 
     # TODO(pu): test the effect
     init_zero=True,
@@ -73,7 +74,8 @@ game_config = EasyDict(dict(
     # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
     priority_prob_alpha=0.6,
     # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-    priority_prob_beta=0.4,  # TODO(pu): 0.4->1
+    # TODO(pu): test effect of 0.4->1
+    priority_prob_beta=0.4,
     prioritized_replay_eps=1e-6,
 
     root_dirichlet_alpha=0.3,

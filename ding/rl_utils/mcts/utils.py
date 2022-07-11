@@ -128,8 +128,8 @@ def select_action(visit_counts, temperature=1, deterministic=True):
         False -> sample from the distribution
     """
     action_probs = [visit_count_i ** (1 / temperature) for visit_count_i in visit_counts]
-    total_count = sum(action_probs)
-    action_probs = [x / total_count for x in action_probs]
+    action_probs = [x / sum(action_probs) for x in action_probs]
+
     if deterministic:
         action_pos = np.argmax([v for v in visit_counts])
     else:

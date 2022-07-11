@@ -2,13 +2,13 @@ from easydict import EasyDict
 from dizoo.board_games.atari.config.atari_config import game_config
 
 # debug
-# collector_env_num=1
-# evaluator_env_num=1
+# collector_env_num = 1
+# evaluator_env_num = 1
 
 collector_env_num = 1
-evaluator_env_num = 5
+evaluator_env_num = 3
 atari_efficientzero_config = dict(
-    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_upc50',
+    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_upc200',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -31,7 +31,7 @@ atari_efficientzero_config = dict(
         cuda=True,
         model=dict(
             model_type='atari',
-            observation_shape=(12, 96, 96),  # 3,96,96 stack4
+            observation_shape=(12, 96, 96),  # 3,96,96 stack=4
             action_space_size=6,
             downsample=True,
             num_blocks=1,
@@ -59,11 +59,11 @@ atari_efficientzero_config = dict(
             # update_per_collect=8,
             # batch_size=4,
 
-            update_per_collect=50,  # TODO(pu): 500
+            update_per_collect=200,  # TODO(pu): 1000
             batch_size=256,
             learning_rate=0.2,
             # Frequency of target network update.
-            target_update_freq=200,
+            target_update_freq=400,
         ),
         # collect_mode config
         collect=dict(
@@ -71,6 +71,9 @@ atari_efficientzero_config = dict(
             # Get "n_sample" samples per collect.
             n_episode=collector_env_num,
         ),
+        # we only collect 100 episode * 2000 env step = 200K env step,
+        # the eval cost is expensive, so we set eval_freq larger
+        eval=dict(evaluator=dict(eval_freq=int(2e4), )),
         # command_mode config
         other=dict(
             # Epsilon greedy with decay.
