@@ -37,7 +37,7 @@ class EntityEncoder(nn.Module):
                 self.encode_modules[k] = torch.nn.Embedding.from_pretrained(
                     get_binary_embed_mat(item['num_embeddings']), freeze=True, padding_idx=None
                 )
-        self.act = build_activation(self.cfg.activation)
+        self.act = build_activation(self.cfg.activation, inplace=True)
         self.transformer = Transformer(
             input_dim=self.cfg.input_dim,
             head_dim=self.cfg.head_dim,
@@ -48,6 +48,7 @@ class EntityEncoder(nn.Module):
             layer_num=self.cfg.layer_num,
             dropout_ratio=self.cfg.dropout_ratio,
             activation=self.act,
+            ln_type=self.cfg.ln_type
         )
         self.entity_fc = fc_block(self.cfg.output_dim, self.cfg.output_dim, activation=self.act)
         self.embed_fc = fc_block(self.cfg.output_dim, self.cfg.output_dim, activation=self.act)

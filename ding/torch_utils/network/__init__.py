@@ -1,4 +1,4 @@
-from .activation import build_activation, Swish
+from .activation import build_activation, Swish, build_activation2
 from .res_block import ResBlock, ResFCBlock, GatedConvResBlock
 from .nn_module import fc_block, conv2d_block, one_hot, deconv2d_block, BilinearUpsample, NearestUpsample, \
     binary_encode, NoiseLinearLayer, noise_block, MLP, Flatten, normed_linear, normed_conv2d, AttentionPool

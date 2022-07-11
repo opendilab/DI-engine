@@ -15,7 +15,7 @@ class ValueBaseline(nn.Module):
 
     def __init__(self, cfg):
         super(ValueBaseline, self).__init__()
-        self.act = build_activation(cfg.activation)
+        self.act = build_activation(cfg.activation, inplace=True)
         if cfg.use_value_feature:
             input_dim = cfg.input_dim + 1056
         else:

@@ -12,7 +12,7 @@ class SpatialEncoder(nn.Module):
     def __init__(self, cfg):
         super(SpatialEncoder, self).__init__()
         self.cfg = cfg
-        self.act = build_activation(self.cfg.activation)
+        self.act = build_activation(self.cfg.activation, inplace=True)
         if self.cfg.norm_type == 'none':
             self.norm = None
         else:

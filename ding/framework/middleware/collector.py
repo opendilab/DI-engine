@@ -7,19 +7,20 @@ from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
 from ding.utils import log_every_sec
 from ding.framework import task
+from ding.framework.middleware.functional import PlayerModelInfo
 from .functional import inferencer, rolloutor, TransitionList, BattleTransitionList, \
     battle_inferencer, battle_rolloutor
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, BattleContext
 
-WAIT_MODEL_TIME = 60
+WAIT_MODEL_TIME = 600000
 
 
 class BattleStepCollector:
 
     def __init__(
-        self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, model_time_dict: Dict,
+        self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, model_info_dict: Dict,
         all_policies: Dict, agent_num: int
     ):
         self.cfg = cfg
@@ -31,7 +32,7 @@ class BattleStepCollector:
         self.total_envstep_count = 0
         self.unroll_len = unroll_len
         self.model_dict = model_dict
-        self.model_time_dict = model_time_dict
+        self.model_info_dict = model_info_dict
         self.all_policies = all_policies
         self.agent_num = agent_num
 
@@ -39,7 +40,9 @@ class BattleStepCollector:
         self._transitions_list = [
             BattleTransitionList(self.env.env_num, self.unroll_len) for _ in range(self.agent_num)
         ]
-        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self._transitions_list))
+        self._battle_rolloutor = task.wrap(
+            battle_rolloutor(self.cfg, self.env, self._transitions_list, self.model_info_dict)
+        )
 
     def __del__(self) -> None:
         """
@@ -54,21 +57,23 @@ class BattleStepCollector:
 
     def _update_policies(self, player_id_list) -> None:
         for player_id in player_id_list:
-            # for this player, actor didn't recieve any new model, use initial model instead.
-            if self.model_time_dict.get(player_id) is None:
-                self.model_time_dict[player_id] = time.time()
+            # for this player, in the beginning of actor's lifetime, actor didn't recieve any new model, use initial model instead.
+            if self.model_info_dict.get(player_id) is None:
+                self.model_info_dict[player_id] = PlayerModelInfo(
+                    get_new_model_time=time.time(), update_new_model_time=None
+                )
 
         while True:
             time_now = time.time()
-            time_list = [time_now - self.model_time_dict[player_id] for player_id in player_id_list]
+            time_list = [time_now - self.model_info_dict[player_id].get_new_model_time for player_id in player_id_list]
             if any(x >= WAIT_MODEL_TIME for x in time_list):
-                for player_id in player_id_list:
-                    if time_now - self.model_time_dict[player_id] >= WAIT_MODEL_TIME:
+                for index, player_id in enumerate(player_id_list):
+                    if time_list[index] >= WAIT_MODEL_TIME:
                         #TODO: log_every_sec can only print the first model that not updated
                         log_every_sec(
                             logging.WARNING, 5,
                             'In actor {}, model for {} is not updated for {} senconds, and need new model'.format(
-                                task.router.node_id, player_id, time_now - self.model_time_dict[player_id]
+                                task.router.node_id, player_id, time_list[index]
                             )
                         )
                 time.sleep(1)
@@ -84,6 +89,8 @@ class BattleStepCollector:
                 assert policy, "for player{}, policy should have been initialized already"
                 # update policy model
                 policy.load_state_dict(learner_model.state_dict)
+                self.model_info_dict[player_id].update_new_model_time = time.time()
+                self.model_info_dict[player_id].update_train_iter = learner_model.train_iter
                 self.model_dict[player_id] = None
 
     def __call__(self, ctx: "BattleContext") -> None:
@@ -103,6 +110,9 @@ class BattleStepCollector:
         while True:
             if self.env.closed:
                 self.env.launch()
+                # TODO(zms): only runnable when 1 actor has exactly one env, need to write more general
+                for policy_id, policy in enumerate(ctx.current_policies):
+                    policy.reset(self.env.ready_obs[0][policy_id])
             self._update_policies(ctx.player_id_list)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
@@ -156,7 +166,6 @@ class BattleStepCollector:
 #         self.env.close()
 
 #     def _update_policies(self, player_id_list) -> None:
-#         # TODO(zms): update train_iter, update train_iter and player_id inside policy is a good idea
 #         for player_id in player_id_list:
 #             if self.model_dict.get(player_id) is None:
 #                 continue

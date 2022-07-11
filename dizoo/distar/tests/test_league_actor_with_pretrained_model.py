@@ -20,13 +20,39 @@ from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.framework.middleware.tests import DIStarMockPolicy
 from ding.framework.middleware.league_learner import LearnerModel
-from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
+from ding.framework.middleware.functional.collector import battle_inferencer_for_distar
+
+
+def battle_rolloutor_for_distar(cfg, env, transitions_list, model_info_dict):
+
+    def _battle_rolloutor(ctx: "BattleContext"):
+        timesteps = env.step(ctx.actions)
+
+        ctx.total_envstep_count += len(timesteps)
+        ctx.env_step += len(timesteps)
+
+        for env_id, timestep in enumerate(timesteps):
+            if timestep.info.get('abnormal'):
+                for policy_id, policy in enumerate(ctx.current_policies):
+                    policy.reset(env.ready_obs[0][policy_id])
+                continue
+
+            for policy_id, policy in enumerate(ctx.current_policies):
+                if timestep.done:
+                    policy.reset(env.ready_obs[0][policy_id])
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
+
+            if timestep.done:
+                ctx.env_episode += 1
+
+    return _battle_rolloutor
+
 
 env_cfg = dict(
     actor=dict(job_type='train', ),
     env=dict(
         map_name='KingsCove',
-        player_ids=['agent1', 'agent2'],
+        player_ids=['agent1', 'bot10'],
         races=['zerg', 'zerg'],
         map_size_resolutions=[True, True],  # if True, ignore minimap_resolutions
         minimap_resolutions=[[160, 152], [160, 152]],
@@ -77,6 +103,12 @@ class PrepareTest():
         return policy
 
 
+total_games = 0
+win_games = 0
+draw_games = 0
+loss_games = 0
+
+
 @pytest.mark.unittest
 def test_league_actor():
     with task.start(async_mode=True, ctx=BattleContext()):
@@ -88,51 +120,47 @@ def test_league_actor():
                 players=[
                     PlayerMeta(
                         player_id='main_player_default_0', checkpoint=FileStorage(path=None), total_agent_step=0
-                    ),
-                    PlayerMeta(
-                        player_id='main_player_default_1', checkpoint=FileStorage(path=None), total_agent_step=0
                     )
                 ]
             )
-            testcases = {
-                "on_actor_greeting": False,
-                "on_actor_job": False,
-                "on_actor_data": False,
-            }
-
-            def on_actor_greeting(actor_id):
-                assert actor_id == task.router.node_id
-                testcases["on_actor_greeting"] = True
 
             def on_actor_job(job_: Job):
                 assert job_.launch_player == job.launch_player
                 print(job)
-                testcases["on_actor_job"] = True
+                global total_games
+                global win_games
+                global draw_games
+                global loss_games
+
+                for r in job_.result:
+                    total_games += 1
+                    if r == 'wins':
+                        win_games += 1
+                    elif r == 'draws':
+                        draw_games += 1
+                    elif r == 'losses':
+                        loss_games += 1
+                    else:
+                        raise NotImplementedError
+
+                print(
+                    'total games {}, win games {}, draw_games {}, loss_games {}'.format(
+                        total_games, win_games, draw_games, loss_games
+                    )
+                )
 
             def on_actor_data(actor_data):
                 print('got actor_data')
                 assert isinstance(actor_data, ActorData)
-                testcases["on_actor_data"] = True
 
-            task.on(EventEnum.ACTOR_GREETING, on_actor_greeting)
             task.on(EventEnum.ACTOR_FINISH_JOB, on_actor_job)
             task.on(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), on_actor_data)
 
             def _test_actor(ctx):
                 sleep(0.3)
-                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), job)
-                sleep(0.3)
-
-                task.emit(
-                    EventEnum.LEARNER_SEND_MODEL,
-                    LearnerModel(player_id='main_player_default_0', state_dict=policy.state_dict(), train_iter=0)
-                )
-                # sleep(100)
-                # try:
-                #     print(testcases)
-                #     assert all(testcases.values())
-                # finally:
-                #     task.finish = True
+                for _ in range(20):
+                    task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), job)
+                    sleep(0.3)
 
             return _test_actor
 

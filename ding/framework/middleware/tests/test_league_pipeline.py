@@ -45,13 +45,18 @@ class PrepareTest():
 
     @classmethod
     def get_env_supervisor(cls):
-        env = EnvSupervisor(
-            type_=ChildType.THREAD,
-            env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
-            **cfg.env.manager
-        )
-        env.seed(cfg.seed)
-        return env
+        for _ in range(10):
+            try:
+                env = EnvSupervisor(
+                    type_=ChildType.THREAD,
+                    env_fn=[cls.get_env_fn for _ in range(cfg.env.collector_env_num)],
+                    **cfg.env.manager
+                )
+                env.seed(cfg.seed)
+                return env
+            except Exception as e:
+                print(e)
+                continue
 
     @classmethod
     def policy_fn(cls):
@@ -95,8 +100,8 @@ def main():
 
 @pytest.mark.unittest
 def test_league_pipeline():
-    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)
 
 
 if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)

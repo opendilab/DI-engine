@@ -21,3 +21,10 @@ class ActorEnvTrajectories:
 class ActorData:
     meta: ActorDataMeta
     train_data: List[ActorEnvTrajectories] = field(default_factory=[])
+
+
+@dataclass
+class PlayerModelInfo:
+    get_new_model_time: float
+    update_new_model_time: float
+    update_train_iter: int = 0

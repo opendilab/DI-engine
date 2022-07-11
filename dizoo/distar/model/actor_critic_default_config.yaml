@@ -401,6 +401,7 @@ model:
                 activation: 'relu'
                 norm_type: 'LN'
                 ln_type: 'normal'
+                # TODO(zms): use_mask when common_type is play, i.e. evaluate. e.g. play against bot.
                 use_mask: False
                 race: 'zerg'
                 temperature: 1.0

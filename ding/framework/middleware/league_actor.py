@@ -4,11 +4,12 @@ import queue
 from easydict import EasyDict
 import time
 from ditk import logging
+import torch
 
 from ding.policy import Policy
 from ding.framework import task, EventEnum
 from ding.framework.middleware import BattleStepCollector
-from ding.framework.middleware.functional import ActorData, ActorDataMeta
+from ding.framework.middleware.functional import ActorData, ActorDataMeta, PlayerModelInfo
 from ding.league.player import PlayerMeta
 from ding.utils.sparse_logging import log_every_sec
 
@@ -33,7 +34,7 @@ class StepLeagueActor:
         self.job_queue = queue.Queue()
         self.model_dict = {}
         self.model_dict_lock = Lock()
-        self.model_time_dict = {}
+        self.model_info_dict = {}
 
         self.agent_num = 2
 
@@ -50,7 +51,13 @@ class StepLeagueActor:
         )
         with self.model_dict_lock:
             self.model_dict[learner_model.player_id] = learner_model
-            self.model_time_dict[learner_model.player_id] = time.time()
+            if self.model_info_dict.get(learner_model.player_id):
+                self.model_info_dict[learner_model.player_id].get_new_model_time = time.time()
+                self.model_info_dict[learner_model.player_id].update_new_model_time = None
+            else:
+                self.model_info_dict[learner_model.player_id] = PlayerModelInfo(
+                    get_new_model_time=time.time(), update_new_model_time=None
+                )
 
     def _on_league_job(self, job: "Job"):
         """
@@ -65,7 +72,7 @@ class StepLeagueActor:
         env = self.env_fn()
         collector = task.wrap(
             BattleStepCollector(
-                cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.model_time_dict,
+                cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.model_info_dict,
                 self.all_policies, self.agent_num
             )
         )
@@ -106,11 +113,11 @@ class StepLeagueActor:
         assert main_player, "[Actor {}] can not find active player.".format(task.router.node_id)
 
         if current_policies is not None:
-            assert len(current_policies) > 1, "[Actor {}] battle collector needs more than 1 policies".format(
-                task.router.node_id
-            )
-            for p in current_policies:
-                p.reset()
+            #TODO(zms): make it more general, should we have the restriction of 1 policies
+            # assert len(current_policies) > 1, "[Actor {}] battle collector needs more than 1 policies".format(
+            #     task.router.node_id
+            # )
+            pass
         else:
             raise RuntimeError('[Actor {}] current_policies should not be None'.format(task.router.node_id))
 
@@ -124,12 +131,19 @@ class StepLeagueActor:
         log_every_sec(
             logging.INFO, 5, '[Actor {}] job of player {} begins.'.format(task.router.node_id, job.launch_player)
         )
-
+        # TODO(zms): when get job, update the policies to the checkpoint in job
         ctx.player_id_list = [player.player_id for player in job.players]
+        main_player_idx = [idx for idx, player in enumerate(job.players) if player.player_id == job.launch_player]
         self.agent_num = len(job.players)
         collector = self._get_collector(job.launch_player)
 
         main_player, ctx.current_policies = self._get_current_policies(job)
+
+        #TODO(zms): only for test pretrained model
+        rl_model = torch.load('./rl_model.pth')
+        for policy in ctx.current_policies:
+            policy.load_state_dict(rl_model)
+            print('load state_dict okay')
 
         ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "[Actor {}] Please make sure n_episode >= env_num".format(
@@ -139,7 +153,6 @@ class StepLeagueActor:
         ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
-        ctx.train_iter = main_player.total_agent_step
         ctx.episode_info = [[] for _ in range(self.agent_num)]
 
         while True:
@@ -147,28 +160,24 @@ class StepLeagueActor:
             old_envstep = ctx.total_envstep_count
             collector(ctx)
 
-            # ctx.trajectories_list[0] for policy_id 0
-            # ctx.trajectories_list[0][0] for first env
-            if len(ctx.trajectories_list[0]) > 0:
-                for traj in ctx.trajectories_list[0][0].trajectories:
-                    assert len(traj) == self.unroll_len + 1
             if ctx.job_finish is True:
                 logging.info('[Actor {}] finish current job !'.format(task.router.node_id))
-                assert len(ctx.trajectories_list[0][0].trajectories) > 0
-            # TODO(zms): 判断是不是main_player
-            if not job.is_eval and len(ctx.trajectories_list[0]) > 0:
-                trajectories = ctx.trajectories_list[0]
-                log_every_sec(
-                    logging.INFO, 5, '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
-                )
-                meta_data = ActorDataMeta(
-                    player_total_env_step=ctx.total_envstep_count,
-                    actor_id=task.router.node_id,
-                    send_wall_time=time.time()
-                )
-                actor_data = ActorData(meta=meta_data, train_data=trajectories)
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
-                log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
+
+            for idx in main_player_idx:
+                if not job.is_eval and len(ctx.trajectories_list[idx]) > 0:
+                    trajectories = ctx.trajectories_list[idx]
+                    log_every_sec(
+                        logging.INFO, 5,
+                        '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
+                    )
+                    meta_data = ActorDataMeta(
+                        player_total_env_step=ctx.total_envstep_count,
+                        actor_id=task.router.node_id,
+                        send_wall_time=time.time()
+                    )
+                    actor_data = ActorData(meta=meta_data, train_data=trajectories)
+                    task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
+                    log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
 
             ctx.trajectories_list = []
             time_end = time.time()
@@ -186,7 +195,10 @@ class StepLeagueActor:
             )
 
             if ctx.job_finish is True:
-                job.result = [e['result'] for e in ctx.episode_info[0]]
+                job.result = []
+                for idx in main_player_idx:
+                    for e in ctx.episode_info[idx]:
+                        job.result.append(e['result'])
                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
@@ -299,7 +311,6 @@ class StepLeagueActor:
 #             task.router.node_id
 #         )
 
-#         ctx.train_iter = main_player.total_agent_step
 #         ctx.episode_info = [[] for _ in range(self.agent_num)]
 #         ctx.remain_episode = ctx.n_episode
 #         while True:

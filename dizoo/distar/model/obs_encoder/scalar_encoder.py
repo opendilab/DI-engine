@@ -22,7 +22,7 @@ class BeginningBuildOrderEncoder(nn.Module):
         self.cfg = cfg
         self.output_dim = self.cfg.output_dim
         self.input_dim = self.cfg.action_one_hot_dim + 20 + self.cfg.binary_dim * 2
-        self.act = build_activation(self.cfg.activation)
+        self.act = build_activation(self.cfg.activation, inplace=True)
         self.transformer = Transformer(
             input_dim=self.input_dim,
             head_dim=self.cfg.head_dim,
@@ -65,7 +65,7 @@ class ScalarEncoder(nn.Module):
     def __init__(self, cfg):
         super(ScalarEncoder, self).__init__()
         self.cfg = cfg
-        self.act = build_activation(self.cfg.activation)
+        self.act = build_activation(self.cfg.activation, inplace=True)
         self.keys = []
         self.scalar_context_keys = []
         self.baseline_feature_keys = []
