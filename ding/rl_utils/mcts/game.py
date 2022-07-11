@@ -91,20 +91,17 @@ class GameHistory:
             self.obs_history.append(copy.deepcopy(observation))
 
     def pad_over(self, next_block_observations, next_block_rewards, next_block_root_values, next_block_child_visits):
-        """To make sure the correction of value targets, we need to add (o_t, r_t, etc) from the next history block
-        , which is necessary for the bootstrapped values at the end states of this history block.
-        Eg: len = 100; target value v_100 = r_100 + gamma^1 r_101 + ... + gamma^4 r_104 + gamma^5 v_105,
+        """
+        Overview:
+            To make sure the correction of value targets, we need to add (o_t, r_t, etc) from the next history block
+            , which is necessary for the bootstrapped values at the end states of this history block.
+            Eg: len = 100; target value v_100 = r_100 + gamma^1 r_101 + ... + gamma^4 r_104 + gamma^5 v_105,
             but r_101, r_102, ... are from the next history block.
-        Parameters
-        ----------
-        next_block_observations: list
-            o_t from the next history block
-        next_block_rewards: list
-            r_t from the next history block
-        next_block_root_values: list
-            root values of MCTS from the next history block
-        next_block_child_visits: list
-            root visit count distributions of MCTS from the next history block
+        Arguments:
+            - next_block_observations: list o_t from the next history block
+            - next_block_rewards: list r_t from the next history block
+            - next_block_root_values: list root values of MCTS from the next history block
+            - next_block_child_visits: list root visit count distributions of MCTS from the next history block
         """
         assert len(next_block_observations) <= self.config.num_unroll_steps
         assert len(next_block_child_visits) <= self.config.num_unroll_steps
@@ -141,15 +138,13 @@ class GameHistory:
         self.to_play_history.append(to_play)
 
     def obs(self, i, extra_len=0, padding=False):
-        """To obtain an observation of correct format: o[t, t + stack frames + extra len]
-        Parameters
-        ----------
-        i: int
-            time step i
-        extra_len: int
-            extra len of the obs frames
-        padding: bool
-            True -> padding frames if (t + stack frames) are out of trajectory
+        """
+        Overview:
+            To obtain an observation of correct format: o[t, t + stack frames + extra len]
+        Arguments:
+            - i: int time step i
+            - extra_len: int extra len of the obs frames
+            - padding: bool True -> padding frames if (t + stack frames) are out of trajectory
         """
         # frames = self.obs_history[index:index + self.stacked_observations]
 
@@ -176,22 +171,47 @@ class GameHistory:
         return frames
 
     def get_targets(self, i):
-        # return the value/rewrad/policy targets at step i
+        # return the value/reward/policy targets at step i
         return self.target_values[i], self.target_rewards[i], self.target_policies[i]
 
     def game_over(self):
-        # post processing the data when a history block is full
-        # obs_history should be sent into the ray memory. Otherwise, it will cost large amounts of time in copying obs.
-        self.rewards = np.array(self.rewards)
-        # self.obs_history = ray.put(np.array(self.obs_history))
+        """
+        Overview:
+            post processing the data when a history block is full.
+        Note:
+        game_history element shape:
+            e.g. game_history_length=20, stack=4, num_unroll_steps=5, td_steps=5
+
+            obs: game_history_length + stack + num_unroll_steps, 20+4 +5
+            action: game_history_length -> 20
+            reward: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+5-1
+            root_values:  game_history_length + num_unroll_steps + td_steps -> 20 +5+5
+            child_visits： game_history_length + num_unroll_steps -> 20 +5
+            to_play: game_history_length -> 20
+            action_mask: game_history_length -> 20
+
+        game_history_t:
+            obs:  4       20        5
+                 ----|----...----|-----|
+        game_history_t+1:
+            obs:               4       20        5
+                             ----|----...----|-----|
+
+        game_history_t:
+            rew:     20        5      4
+                 ----...----|------|-----|
+        game_history_t+1:
+            rew:             20        5    4
+                        ----...----|-----|-----|
+        """
         self.obs_history = np.array(self.obs_history)
         self.actions = np.array(self.actions)
+        self.rewards = np.array(self.rewards)
+
         self.child_visits = np.array(self.child_visits)
         self.root_values = np.array(self.root_values)
 
         self.action_mask_history = np.array(self.action_mask_history)
-        # if self.to_play_history[0] is None:
-        #     self.to_play_history = self.to_play_history
         self.to_play_history = np.array(self.to_play_history)
 
     def store_search_stats(self, visit_counts, root_value, idx: int = None):

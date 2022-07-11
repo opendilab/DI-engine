@@ -297,7 +297,7 @@ class GameBuffer(Buffer):
                 self.priorities[idx] = prio
 
     def remove_to_fit(self):
-        # remove some old data if the replay buffer is full.
+        # remove some oldest data if the replay buffer is full.
         nums_of_game_histoty = self.get_num_of_game_histories()
         total_transition = self.get_num_of_transitions()
         if total_transition > self.transition_top:
@@ -679,10 +679,6 @@ class GameBuffer(Buffer):
                     m_obs = torch.from_numpy(value_obs_lst[beg_index:end_index]).to(device).float() / 255.0
                 else:
                     m_obs = torch.from_numpy(value_obs_lst[beg_index:end_index]).to(device).float()
-                # if self.config.amp_type == 'torch_amp':
-                #     with autocast():
-                #         m_output = self.model.initial_inference(m_obs)
-                # else:
                 m_output = self.model.initial_inference(m_obs)
                 # TODO(pu)
                 if not self.model.training:
@@ -1009,19 +1005,7 @@ class GameBuffer(Buffer):
         device = self.config.device
         if to_play_history[0][0] is not None:
             # for two_player board games
-            # to_play
-            to_play = []
             true_batch_size = max(1, batch_size // 6)
-            for bs in range(true_batch_size):
-                to_play_tmp = list(to_play_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
-                if len(to_play_tmp) < 6:
-                    to_play_tmp += [1 for i in range(6 - len(to_play_tmp))]
-                to_play.append(to_play_tmp)
-            # to_play = to_ndarray(to_play)
-            tmp = []
-            for i in to_play:
-                tmp += list(i)
-            to_play = tmp
             # action_mask
             action_mask = []
             for bs in range(true_batch_size):

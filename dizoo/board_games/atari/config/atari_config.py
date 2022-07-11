@@ -9,7 +9,8 @@ game_config = EasyDict(dict(
     # if mcts_ctree=True, using cpp mcts code
     mcts_ctree=True,
     image_based=True,
-    cvt_string=True,
+    # cvt_string=True,
+    cvt_string=False,
     clip_reward=True,
     game_wrapper=True,
     action_space_size=6,
@@ -33,9 +34,9 @@ game_config = EasyDict(dict(
     # num_simulations=8,
     # batch_size=4,
     # game_history_max_length=20,
-    # total_transitions=int(1e6),
+    # total_transitions=int(1e5),
     # num_unroll_steps=5,
-    # td_steps=3,
+    # td_steps=5,
 
     collector_env_num=1,
     evaluator_env_num=3,
@@ -62,7 +63,9 @@ game_config = EasyDict(dict(
 
     # TODO(pu): only used for adjust temperature manually
     max_training_steps=int(1e5),
-    change_temperature=True,
+    auto_temperature=True,
+    # only effective when auto_temperature=False
+    fixed_temperature_value=0.25,
     # TODO(pu): whether to use root value in reanalyzing?
     use_root_value=False,
 

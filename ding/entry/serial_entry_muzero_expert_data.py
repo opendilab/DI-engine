@@ -14,13 +14,15 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.data.buffer.game_buffer import GameBuffer
+from ding.model import model_wrap
 
 
-def serial_pipeline_muzero(
+def serial_pipeline_muzero_expert_data(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
+        collect_model: Optional[torch.nn.Module] = None,
         max_train_iter: Optional[int] = int(1e10),
         max_env_step: Optional[int] = int(1e10),
         game_config: Optional[dict] = None,
@@ -59,6 +61,14 @@ def serial_pipeline_muzero(
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
+
+    # load pretrained dqn model
+    if cfg.policy.collect_model_path is not None:
+        policy._collect_model = collect_model
+        policy._collect_model = model_wrap(policy._collect_model, wrapper_name='eps_greedy_sample')
+        policy._collect_model.reset()
+        policy._collect_model.load_state_dict(torch.load(cfg.policy.collect_model_path, map_location='cpu')['model'])
+
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -121,17 +131,17 @@ def serial_pipeline_muzero(
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            try:
-                train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
-            except Exception as exception:
-                print(exception)
-                logging.warning(
-                    f'The data in replay_buffer is not sufficient to sample a minibatch: \
-                    batch_size: {replay_buffer.get_batch_size()} \
-                num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_histories()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
-                    continue to collect now ....'
-                )
-                break
+            # try:
+            train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
+            # except Exception as exception:
+            #     print(exception)
+            #     logging.warning(
+            #         f'The data in replay_buffer is not sufficient to sample a minibatch: \
+            #         batch_size: {replay_buffer.get_batch_size()} \
+            #     num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_histories()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
+            #         continue to collect now ....'
+            #     )
+            #     break
 
             learner.train(train_data, collector.envstep)
             if game_config.lr_manually:

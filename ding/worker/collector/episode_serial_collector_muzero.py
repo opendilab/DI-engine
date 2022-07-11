@@ -575,6 +575,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                         } for i in range(self.len_pool())
                     ]
                 )
+                np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img',
+                        self.replay_buffer.buffer)
+                one_episode_replay_buffer_img = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img.npy',
+                        allow_pickle=True)
                 del self.trajectory_pool[:]
                 break
         # log

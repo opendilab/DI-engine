@@ -8,7 +8,7 @@ from dizoo.board_games.atari.config.atari_config import game_config
 collector_env_num = 1
 evaluator_env_num = 3
 atari_efficientzero_config = dict(
-    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_upc200',
+    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_upc200_dqnexpertdata',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -16,15 +16,19 @@ atari_efficientzero_config = dict(
         stop_value=20,
         env_name='PongNoFrameskip-v4',
         frame_skip=4,
-        obs_shape=(12, 96, 96),
+        # obs_shape=(12, 96, 96),
+        obs_shape=(12, 84, 84),
         max_episode_steps=int(1.08e5),
         episode_life=True,
         gray_scale=False,
-        # cvt_string=True,  # TODO(pu)
-        cvt_string=False,
+        cvt_string=True,
         game_wrapper=True,
+        dqn_expert_data=True,
     ),
     policy=dict(
+        collect_model_path='/Users/puyuan/code/DI-engine/pong_dqn_seed0/ckpt/ckpt_best.pth.tar',
+        # collect_model_path='/mnt/lustre/puyuan/DI-engine/pong_dqn_seed0/ckpt/ckpt_best.pth.tar',
+
         env_name='PongNoFrameskip-v4',
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
@@ -32,7 +36,8 @@ atari_efficientzero_config = dict(
         cuda=True,
         model=dict(
             model_type='atari',
-            observation_shape=(12, 96, 96),  # 3,96,96 stack=4
+            # observation_shape=(12, 96, 96),  # 3,96,96 stack=4
+            observation_shape=(12, 84, 84),  # 3,96,96 stack=4
             action_space_size=6,
             downsample=True,
             num_blocks=1,
@@ -101,13 +106,25 @@ atari_efficientzero_create_config = dict(
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
-    policy=dict(type='efficientzero'),
+    policy=dict(type='efficientzero_expert_data'),
     collector=dict(type='episode_muzero', get_train_sample=True)
 )
 atari_efficientzero_create_config = EasyDict(atari_efficientzero_create_config)
 create_config = atari_efficientzero_create_config
 
+collect_model_config = EasyDict(dict(
+    obs_shape=[4, 84, 84],
+    action_shape=6,
+    encoder_hidden_size_list=[128, 128, 512],
+))
+
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline_muzero
-    from dizoo.board_games.atari.config.atari_config import game_config
-    serial_pipeline_muzero([main_config, create_config], seed=0, max_env_step=int(5e6), game_config=game_config)
+    from ding.entry import serial_pipeline_muzero_expert_data
+    from dizoo.board_games.atari.config.atari_expert_data_config import game_config
+    from ding.model.template.q_learning import DQN
+
+    dqn_collect_model = DQN(obs_shape=[4, 84, 84],
+                            action_shape=6,
+                            encoder_hidden_size_list=[128, 128, 512], )
+    serial_pipeline_muzero_expert_data([main_config, create_config], seed=0, collect_model=dqn_collect_model,
+                                       max_env_step=int(5e6), game_config=game_config)

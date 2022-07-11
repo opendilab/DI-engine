@@ -43,6 +43,7 @@ from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 
 from .efficientzero import EfficientZeroPolicy
+from .efficientzero_expert_data import EfficientZeroExertDataPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -349,4 +350,9 @@ class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('efficientzero_command')
 class EfficientZeroCommandModePolicy(EfficientZeroPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('efficientzero_expert_data_command')
+class EfficientZeroExpertDataCommandModePolicy(EfficientZeroExertDataPolicy, DummyCommandModePolicy):
     pass

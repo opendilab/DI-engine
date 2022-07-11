@@ -10,7 +10,7 @@ import gym
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
-from dizoo.atari.envs.atari_wrappers import wrap_muzero
+from dizoo.atari.envs.atari_wrappers import wrap_muzero, wrap_muzero_dqn_expert_data
 
 
 @ENV_REGISTRY.register('atari-muzero')
@@ -20,7 +20,10 @@ class AtariMuZeroEnv(BaseEnv):
         self._init_flag = False
 
     def _make_env(self):
-        return wrap_muzero(self.cfg)
+        if self.cfg.dqn_expert_data:
+            return wrap_muzero_dqn_expert_data(self.cfg)
+        else:
+            return wrap_muzero(self.cfg)
 
     def reset(self):
         if not self._init_flag:
@@ -129,14 +132,33 @@ class AtariMuZeroEnv(BaseEnv):
     def __repr__(self) -> str:
         return "DI-engine Atari MuZero Env({})".format(self.cfg.env_name)
 
+    # @staticmethod
+    # def create_collector_envcfg(cfg: dict) -> List[dict]:
+    #     collector_env_num = cfg.pop('collector_env_num')
+    #     cfg = copy.deepcopy(cfg)
+    #     return [cfg for _ in range(collector_env_num)]
+
+    # @staticmethod
+    # def create_evaluator_envcfg(cfg: dict) -> List[dict]:
+    #     evaluator_env_num = cfg.pop('evaluator_env_num')
+    #     cfg = copy.deepcopy(cfg)
+    #     cfg.dqn_expert_data = False
+    #     return [cfg for _ in range(evaluator_env_num)]
+
+    # for dqn expert data
     @staticmethod
     def create_collector_envcfg(cfg: dict) -> List[dict]:
         collector_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
+        cfg.dqn_expert_data = True
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_envcfg(cfg: dict) -> List[dict]:
         evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
+        cfg.dqn_expert_data = True
         return [cfg for _ in range(evaluator_env_num)]
+
+
+

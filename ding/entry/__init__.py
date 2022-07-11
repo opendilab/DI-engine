@@ -2,6 +2,7 @@ from .cli import cli
 from .cli_ditask import cli_ditask
 from .serial_entry import serial_pipeline
 from .serial_entry_muzero import serial_pipeline_muzero
+from .serial_entry_muzero_expert_data import serial_pipeline_muzero_expert_data
 from .serial_entry_td3_vae import serial_pipeline_td3_vae
 from .serial_entry_onpolicy import serial_pipeline_onpolicy
 from .serial_entry_onpolicy_ppg import serial_pipeline_onpolicy_ppg

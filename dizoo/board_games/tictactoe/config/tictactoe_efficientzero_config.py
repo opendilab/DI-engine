@@ -5,17 +5,13 @@ cpp mcts python mcts
 from easydict import EasyDict
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
-# debug
-# collector_env_num=1
-# evaluator_env_num=1
-
 # TODO: cpp mcts now only support env_num=1, because in MCTS root nodes,
 #  we must assign the one same action mask,
 #  but when env_num>1, the action mask for different env may be different.
 collector_env_num = 8
 evaluator_env_num = 8
 tictactoe_efficientzero_config = dict(
-    exp_name='data_ez_ptree/tictactoe_efficientzero_seed0',
+    exp_name='data_ez_ptree/tictactoe_efficientzero_seed0_tp025',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -72,7 +68,7 @@ tictactoe_efficientzero_config = dict(
         ),
         # we only collect 10000 episode * 9 env step = 9e4 env step,
         # the eval cost is expensive, so we set eval_freq larger
-        eval=dict(evaluator=dict(eval_freq=int(2e3), )),
+        eval=dict(evaluator=dict(eval_freq=int(1e3), )),
         # command_mode config
         other=dict(
             # Epsilon greedy with decay.
@@ -83,6 +79,7 @@ tictactoe_efficientzero_config = dict(
                 end=0.1,
                 decay=int(5e4),
             ),
+            # the replay_buffer_size is ineffective, we specify it in game config
             replay_buffer=dict(replay_buffer_size=int(1e5), type='game')
         ),
     ),

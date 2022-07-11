@@ -25,16 +25,16 @@ class GameBaseConfig(object):
         for k, v in game_config.items():
             self.__dict__[k] = v
 
-    def visit_softmax_temperature_fn(self, trained_steps):
-        if self.change_temperature:
+    def visit_count_temperature(self, trained_steps):
+        if self.auto_temperature:
             if trained_steps < 0.5 * self.max_training_steps:
                 return 1.0
             elif trained_steps < 0.75 * self.max_training_steps:
-                return 0.5
+                return 0.5 
             else:
                 return 0.25
         else:
-            return 1.0
+            return self.fixed_temperature_value
 
     @staticmethod
     def modified_cross_entropy_loss(prediction, target):

@@ -11,6 +11,7 @@ from torch.nn import L1Loss
 import torch.nn.functional as F
 from ding.rl_utils import get_nstep_return_data, get_train_sample
 from ding.rl_utils.image_transform_muzero import Transforms
+from ding.torch_utils.data_helper import to_ndarray
 
 # cpp mcts
 from ding.rl_utils.mcts.ctree import cytree
@@ -22,20 +23,20 @@ from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
-from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.atari.config.atari_expert_data_config import game_config
 # from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
 
 
-@POLICY_REGISTRY.register('efficientzero')
-class EfficientZeroPolicy(Policy):
+@POLICY_REGISTRY.register('efficientzero_expert_data')
+class EfficientZeroExertDataPolicy(Policy):
     """
     Overview:
         MuZero
         EfficientZero
     """
     config = dict(
-        type='efficientzero',
+        type='efficientzero_expert_data',
         # (bool) Whether use cuda in policy
         cuda=False,
         # (bool) Whether learning policy is the same as collecting data policy(on-policy)
@@ -159,7 +160,7 @@ class EfficientZeroPolicy(Policy):
         self.game_config = game_config
         if self.game_config.use_augmentation:
             self.transforms = Transforms(self.game_config.augmentation,
-                                    image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2]))
+                                         image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2]))
 
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()
@@ -313,7 +314,8 @@ class EfficientZeroPolicy(Policy):
 
             policy_loss += self.game_config.modified_cross_entropy_loss(policy_logits, target_policy[:, step_i + 1])
             value_loss += self.game_config.modified_cross_entropy_loss(value, target_value_phi[:, step_i + 1])
-            value_prefix_loss += self.game_config.modified_cross_entropy_loss(value_prefix, target_value_prefix_phi[:, step_i])
+            value_prefix_loss += self.game_config.modified_cross_entropy_loss(value_prefix,
+                                                                              target_value_prefix_phi[:, step_i])
 
             # Follow MuZero, set half gradient
             # hidden_state.register_hook(lambda grad: grad * 0.5)
@@ -365,8 +367,8 @@ class EfficientZeroPolicy(Policy):
         # ----------------------------------------------------------------------------------
         # weighted loss with masks (some invalid states which are out of trajectory.)
         loss = (
-            self.game_config.consistency_coeff * consistency_loss + self.game_config.policy_loss_coeff * policy_loss +
-            self.game_config.value_loss_coeff * value_loss + self.game_config.reward_loss_coeff * value_prefix_loss
+                self.game_config.consistency_coeff * consistency_loss + self.game_config.policy_loss_coeff * policy_loss +
+                self.game_config.value_loss_coeff * value_loss + self.game_config.reward_loss_coeff * value_prefix_loss
         )
         weighted_loss = (weights * loss).mean()
 
@@ -400,17 +402,17 @@ class EfficientZeroPolicy(Policy):
 
             # reward l1 loss
             value_prefix_indices_0 = (
-                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 0
+                    target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 0
             )
             value_prefix_indices_n1 = (
-                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == -1
+                    target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == -1
             )
             value_prefix_indices_1 = (
-                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 1
+                    target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 1
             )
 
             target_value_prefix_base = target_value_prefix_cpu[:, :self.game_config.
-                                                               num_unroll_steps].reshape(-1).unsqueeze(-1)
+                num_unroll_steps].reshape(-1).unsqueeze(-1)
 
             predicted_value_prefixs = torch.stack(predicted_value_prefixs).transpose(1, 0).squeeze(-1)
             predicted_value_prefixs = predicted_value_prefixs.reshape(-1).unsqueeze(-1)
@@ -463,21 +465,10 @@ class EfficientZeroPolicy(Policy):
 
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
-        # self._collect_model = model_wrap(self._model, 'base')
-        self._collect_model = self._learn_model
+        self._gamma = self._cfg.discount_factor  # necessary for parallel
+        self._nstep = self._cfg.nstep  # necessary for parallel
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
-        if self.game_config.mcts_ctree:
-            self._mcts_collect = MCTS_ctree(self.game_config)
-        else:
-            self._mcts_collect = MCTS_ptree(self.game_config)
-
-        # set temperature for distributions
-        self.collect_temperature = np.array(
-            [
-                self.game_config.visit_count_temperature(trained_steps=0)
-                for _ in range(self.game_config.collector_env_num)
-            ]
-        )
 
     def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None, to_play=None):
         """
@@ -485,81 +476,31 @@ class EfficientZeroPolicy(Policy):
             obs: (B, S, C, H, W), where S is the stack num
             temperature: (N1, ), where N1 is the number of collect_env.
         """
+        eps = 0
+        # dqn use the current obs [
+        data = data[-1][-4:].unsqueeze(0)
+        data_id = [i for i in range(self.game_config.collector_env_num)]
+        output_augment = {i: {} for i in data_id}
+        if self._cuda:
+            data = to_device(data, self.game_config.device)
         self._collect_model.eval()
-        stack_obs = data
         with torch.no_grad():
-            network_output = self._collect_model.initial_inference(stack_obs)
-            hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
-            pred_values_pool = network_output.value  # {list: 2}
-            policy_logits_pool = network_output.policy_logits  # {list: 2} {list:6}
-            value_prefix_pool = network_output.value_prefix  # {list: 2}
-            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
-
-            # TODO(pu)
-            if not self._learn_model.training:
-                # if not in training, obtain the scalars of the value/reward
-                pred_values_pool = inverse_scalar_transform(pred_values_pool,
-                                                            self.game_config.support_size).detach().cpu().numpy()
-                hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
-                reward_hidden_roots = (
-                    reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy()
-                )
-                policy_logits_pool = policy_logits_pool.detach().cpu().numpy().tolist()
-
-            # TODO(pu): for board games, when action_num is a list, adapt the Roots method
-            # cpp mcts
-            if self.game_config.mcts_ctree:
-                action_num = int(action_mask[0].sum())
-                roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
-                noises = [
-                    np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(
-                        np.float32).tolist()
-                    for j in range(self.game_config.collector_env_num)
-                ]
-                roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
-                # do MCTS for a policy (argmax in testing)
-                self._mcts_collect.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots)
-            else:
-                # python mcts
-                legal_actions = [
-                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.collector_env_num)
-                ]
-                roots = tree.Roots(self.game_config.collector_env_num, legal_actions, self.game_config.num_simulations)
-                # the only difference between collect and eval is the dirichlet noise
-                noises = [
-                    np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))
-                                        ).astype(np.float32).tolist() for j in range(self.game_config.collector_env_num)
-                ]
-                roots.prepare(
-                    self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play
-                )
-                # do MCTS for a policy (argmax in testing)
-                self._mcts_collect.search(roots, self._collect_model, hidden_state_roots, reward_hidden_roots, to_play)
-
-            roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
-            roots_values = roots.get_values()  # {list: 1}
-            data_id = [i for i in range(self.game_config.collector_env_num)]
-            output = {i: None for i in data_id}
-            for i in range(self.game_config.collector_env_num):
-                distributions, value = roots_distributions[i], roots_values[i]
-                # select the argmax, not sampling
-                # TODO(pu):
-                # only legal actions have visit counts
-                action, visit_entropy = select_action(distributions, temperature=temperature[i], deterministic=False)
-                # action, _ = select_action(distributions, temperature=1, deterministic=True)
-                # TODO(pu): transform to the real action index in legal action set
-                action = np.where(action_mask[i] == 1.0)[0][action]
-                output[i] = {
-                    'action': action,
-                    'distributions': distributions,
-                    'visit_entropy': visit_entropy,
-                    'value': value,
-                    'pred_value': pred_values_pool[i],
-                    'policy_logits':policy_logits_pool[i],
-                }
-                # print('collect:', output[i])
-
-        return output
+            output = self._collect_model.forward(data, eps=eps)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        action_num = int(action_mask[0].sum())
+        distributions = np.ones(action_num, dtype=np.float32)
+        visit_entropy = np.ones(1, dtype=np.float32)
+        value = np.ones(1, dtype=np.float32)
+        pred_values_pool = np.ones(1, dtype=np.float32)
+        for k, v in output_augment.items():
+            v.update({'action': int(to_ndarray(output['action'])),
+                      'distributions': distributions,
+                      'visit_entropy': visit_entropy,
+                      'value': value,
+                      'pred_value': pred_values_pool,
+                      'policy_logits': output['logit'], })
+        return output_augment
 
     def _init_eval(self) -> None:
         r"""
@@ -617,7 +558,8 @@ class EfficientZeroPolicy(Policy):
             else:
                 # python mcts
                 legal_actions = [
-                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.evaluator_env_num)
+                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in
+                    range(self.game_config.evaluator_env_num)
                 ]
                 roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
 
@@ -636,7 +578,8 @@ class EfficientZeroPolicy(Policy):
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
-                output[i] = {'action': action, 'distributions': distributions, 'value': value, ' policy_logits_pool': policy_logits_pool}
+                output[i] = {'action': action, 'distributions': distributions, 'value': value,
+                             ' policy_logits_pool': policy_logits_pool}
                 # print('eval:',output[i])
 
         return output
