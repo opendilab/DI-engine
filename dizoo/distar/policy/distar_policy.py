@@ -6,6 +6,7 @@ import torch
 from torch.optim import Adam
 import random
 from functools import partial
+from copy import deepcopy
 
 from ding.model import model_wrap
 from ding.policy import Policy
@@ -24,7 +25,8 @@ class DIStarPolicy(Policy):
     config = dict(
         type='distar',
         on_policy=False,
-        cuda=True,
+        learn_cuda=True,
+        collect_cuda=False,
         learning_rate=1e-5,
         model=dict(),
         # learn
@@ -154,14 +156,14 @@ class DIStarPolicy(Policy):
             eps=1e-5,
         )
         # utils
-        self.timer = EasyTimer(cuda=self._cfg.cuda)
+        self.timer = EasyTimer(cuda=self._cfg.learn_cuda)
 
     def _forward_learn(self, inputs: Dict):
         # ===========
         # pre-process
         # ===========
         inputs = collate_fn_learn(inputs)
-        if self._cfg.cuda:
+        if self._cfg.learn_cuda:
             inputs = to_device(inputs, self._device)
 
         self._learn_model.train()
@@ -374,6 +376,7 @@ class DIStarPolicy(Policy):
 
     def _init_collect(self):
         self._collect_model = model_wrap(self._model, 'base')
+        self.only_cum_action_kl = False
         self.z_path = self._cfg.z_path
         self.z_idx = None
         self.bo_norm = 20  #TODO(nyz): set from cfg
@@ -383,9 +386,12 @@ class DIStarPolicy(Policy):
         self.clip_bo = self._cfg.clip_bo
         self.cum_type = 'action'  # observation or action
         self.realtime = self._cfg.realtime
+        self.teacher_model = Model(self._cfg.model
+                                   ).eval()  # TODO(zms): load teacher_model's state_dict when init policy.
 
     def _reset_collect(self, data: Dict):
         self.exceed_loop_flag = False
+        self.map_name = data['map_name']
         hidden_size = 384  # TODO(nyz) set from cfg
         num_layers = 3
         self.hidden_state = [(torch.zeros(hidden_size), torch.zeros(hidden_size)) for _ in range(num_layers)]
@@ -398,11 +404,15 @@ class DIStarPolicy(Policy):
         self.enemy_unit_type_bool = torch.zeros(NUM_UNIT_TYPES, dtype=torch.uint8)
         self._observation = None  # TODO(zms): need to move to input and output of function
         self._output = None  # TODO(zms): need to move to input and output of function
+        self.model_last_iter = 0
         self.game_step = 0  # step * 10 is game duration time
         self.behavior_building_order = []  # idx in BEGINNING_ORDER_ACTIONS
         self.behavior_bo_location = []
         self.bo_zergling_count = 0
         self.behavior_cumulative_stat = [0] * NUM_CUMULATIVE_STAT_ACTIONS
+
+        self.hidden_state_backup = [(torch.zeros(hidden_size), torch.zeros(hidden_size)) for _ in range(num_layers)]
+        self.teacher_hidden_state = [(torch.zeros(hidden_size), torch.zeros(hidden_size)) for _ in range(num_layers)]
 
         race, requested_race, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type, _born_location = parse_new_game(
             data, self.z_path, self.z_idx
@@ -451,14 +461,14 @@ class DIStarPolicy(Policy):
     def _forward_collect(self, data):
         obs, game_info = self._data_preprocess_collect(data)
         obs = default_collate([obs])
-        if self._cfg.cuda:
+        if self._cfg.collect_cuda:
             obs = to_device(obs, self._device)
 
         self._collect_model.eval()
         with torch.no_grad():
             policy_output = self._collect_model.compute_logp_action(**obs)
 
-        if self._cfg.cuda:
+        if self._cfg.collect_cuda:
             policy_output = to_device(policy_output, self._device)
         policy_output = default_decollate(policy_output)[0]
         policy_output = self._data_postprocess_collect(policy_output, game_info)
@@ -567,10 +577,81 @@ class DIStarPolicy(Policy):
         return data
 
     def _process_transition(self, next_obs, reward, done):
-        action_result = False if next_obs is None else ('Success' in next_obs['action_result'])
-
         behavior_z = self.get_behavior_z()
         bo_reward, cum_reward, battle_reward = self.update_fake_reward(next_obs)
+        agent_obs = self._observation
+        teacher_obs = {
+            'spatial_info': agent_obs['spatial_info'],
+            'entity_info': agent_obs['entity_info'],
+            'scalar_info': agent_obs['scalar_info'],
+            'entity_num': agent_obs['entity_num'],
+            'hidden_state': self.teacher_hidden_state,
+            'selected_units_num': self._output['selected_units_num'],
+            'action_info': self._output['action_info']
+        }
+        if self._cfg.collect_cuda:
+            teacher_obs = to_device(teacher_obs, 'cuda:0')
+
+        teacher_model_input = default_collate([teacher_obs])
+        teacher_output = self.teacher_model.compute_teacher_logit(**teacher_model_input)
+        teacher_output = self.decollate_output(teacher_output)
+        self.teacher_hidden_state = teacher_output['hidden_state']
+
+        # gather step data
+        action_info = deepcopy(self._output['action_info'])
+        mask = dict()
+        mask['actions_mask'] = deepcopy(
+            {
+                k: val
+                for k, val in ACTIONS[action_info['action_type'].item()].items()
+                if k not in ['name', 'goal', 'func_id', 'general_ability_id', 'game_id']
+            }
+        )
+        if self.only_cum_action_kl:
+            mask['cum_action_mask'] = torch.tensor(0.0, dtype=torch.float)
+        else:
+            mask['cum_action_mask'] = torch.tensor(1.0, dtype=torch.float)
+        if self.use_bo_reward:
+            mask['build_order_mask'] = torch.tensor(1.0, dtype=torch.float)
+        else:
+            mask['build_order_mask'] = torch.tensor(0.0, dtype=torch.float)
+        if self.use_cum_reward:
+            mask['built_unit_mask'] = torch.tensor(1.0, dtype=torch.float)
+            mask['cum_action_mask'] = torch.tensor(1.0, dtype=torch.float)
+        else:
+            mask['built_unit_mask'] = torch.tensor(0.0, dtype=torch.float)
+        selected_units_num = self._output['selected_units_num']
+        for k, v in mask['actions_mask'].items():
+            mask['actions_mask'][k] = torch.tensor(v, dtype=torch.long)
+        step_data = {
+            'map_name': self.map_name,
+            'spatial_info': agent_obs['spatial_info'],
+            'model_last_iter': torch.tensor(self.model_last_iter, dtype=torch.float),
+            # 'spatial_info_ref': spatial_info_ref,
+            'entity_info': agent_obs['entity_info'],
+            'scalar_info': agent_obs['scalar_info'],
+            'entity_num': agent_obs['entity_num'],
+            'selected_units_num': selected_units_num,
+            'hidden_state': self.hidden_state_backup,
+            'action_info': action_info,
+            'behaviour_logp': self._output['action_logp'],
+            'teacher_logit': teacher_output['logit'],
+            # 'successive_logit': deepcopy(teacher_output['logit']),
+            'reward': {
+                'winloss': torch.tensor(reward, dtype=torch.float),
+                'build_order': bo_reward,
+                'built_unit': cum_reward,
+                # 'upgrade': torch.randint(-1, 1, size=(), dtype=torch.float),
+                'battle': battle_reward,
+            },
+            'step': torch.tensor(self.game_step, dtype=torch.float),
+            'mask': mask,
+        }
+        ##TODO: add value feature
+        if self._cfg.use_value_feature:
+            step_data['value_feature'] = agent_obs['value_feature']
+            step_data['value_feature'].update(behavior_z)
+        self.hidden_state_backup = self.hidden_state
 
     def get_behavior_z(self):
         bo = self.behavior_building_order + [0] * (BEGINNING_ORDER_LENGTH - len(self.behavior_building_order))
@@ -684,6 +765,32 @@ class DIStarPolicy(Policy):
         self.total_bo_reward += bo_reward
         self.total_cum_reward += cum_reward
         return bo_reward, cum_reward, battle_reward
+
+    def decollate_output(self, output, k=None, batch_idx=None):
+        if isinstance(output, torch.Tensor):
+            if batch_idx is None:
+                return output.squeeze(dim=0)
+            else:
+                return output[batch_idx].clone().cpu()
+        elif k == 'hidden_state':
+            if batch_idx is None:
+                return [(output[l][0].squeeze(dim=0), output[l][1].squeeze(dim=0)) for l in range(len(output))]
+            else:
+                return [
+                    (output[l][0][batch_idx].clone().cpu(), output[l][1][batch_idx].clone().cpu())
+                    for l in range(len(output))
+                ]
+        elif isinstance(output, dict):
+            data = {k: self.decollate_output(v, k, batch_idx) for k, v in output.items()}
+            if batch_idx is not None and k is None:
+                entity_num = data['entity_num']
+                selected_units_num = data['selected_units_num']
+                data['logit']['selected_units'] = data['logit']['selected_units'][:selected_units_num, :entity_num + 1]
+                data['logit']['target_unit'] = data['logit']['target_unit'][:entity_num]
+                if 'action_info' in data.keys():
+                    data['action_info']['selected_units'] = data['action_info']['selected_units'][:selected_units_num]
+                    data['action_logp']['selected_units'] = data['action_logp']['selected_units'][:selected_units_num]
+            return data
 
     def _get_train_sample(self):
         pass
