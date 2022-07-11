@@ -12,8 +12,8 @@ from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # TODO: cpp mcts now only support env_num=1, because in MCTS root nodes,
 #  we must assign the one same action mask,
 #  but when env_num>1, the action mask for different env may be different.
-collector_env_num = 32
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 tictactoe_efficientzero_config = dict(
     exp_name='data_ez_ptree/tictactoe_efficientzero_seed0',
     env=dict(
@@ -34,7 +34,6 @@ tictactoe_efficientzero_config = dict(
         cuda=True,
         model=dict(
             model_type='tictactoe',
-            # observation_shape=(3, 3, 3),
             observation_shape=(12, 3, 3),  # if stacked_observations=4
             action_space_size=9,
             downsample=False,
@@ -59,9 +58,9 @@ tictactoe_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            update_per_collect=10,
+            update_per_collect=32,
             batch_size=64,
-            learning_rate=0.002,
+            learning_rate=0.2,
             # Frequency of target network update.
             target_update_freq=200,
         ),
@@ -71,6 +70,9 @@ tictactoe_efficientzero_config = dict(
             # Get "n_sample" samples per collect.
             n_episode=collector_env_num,
         ),
+        # we only collect 10000 episode * 9 env step = 9e4 env step,
+        # the eval cost is expensive, so we set eval_freq larger
+        eval=dict(evaluator=dict(eval_freq=int(2e3), )),
         # command_mode config
         other=dict(
             # Epsilon greedy with decay.
@@ -81,7 +83,7 @@ tictactoe_efficientzero_config = dict(
                 end=0.1,
                 decay=int(5e4),
             ),
-            replay_buffer=dict(replay_buffer_size=int(3e3), type='game')
+            replay_buffer=dict(replay_buffer_size=int(1e5), type='game')
         ),
     ),
 )

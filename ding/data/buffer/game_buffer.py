@@ -54,13 +54,12 @@ class GameBuffer(Buffer):
         self.clear_time = 0
 
     def sample_train_data(self, batch_size, policy):
-        target_weights = policy._target_model.state_dict()
+        policy._target_model.to(self.config.device)
+        policy._target_model.eval()
+
         batch_context = self.prepare_batch_context(batch_size, self.config.priority_prob_beta)
-        input_context = self.make_batch(batch_context, self.config.revisit_policy_search_rate, weights=target_weights)
-        reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, target_weights = input_context
-        if target_weights is not None:
-            policy._target_model.to(self.config.device)
-            policy._target_model.eval()
+        input_context = self.make_batch(batch_context, self.config.revisit_policy_search_rate)
+        reward_value_context, policy_re_context, policy_non_re_context, inputs_batch = input_context
 
         # target reward, value
         batch_value_prefixs, batch_values = self._prepare_reward_value(reward_value_context, policy._target_model)
@@ -549,7 +548,7 @@ class GameBuffer(Buffer):
         ]
         return policy_re_context
 
-    def make_batch(self, batch_context, ratio, weights=None):
+    def make_batch(self, batch_context, ratio):
         """
         Overview:
             prepare the context of a batch
@@ -557,11 +556,9 @@ class GameBuffer(Buffer):
             policy_re_context:           the context of reanalyzed policy targets
             policy_non_re_context:       the context of non-reanalyzed policy targets
             inputs_batch:                the inputs of batch
-            weights:                     the target model weights
         Arguments:
             batch_context: Any batch context from replay buffer
             ratio: float ratio of reanalyzed policy (value is 100% reanalyzed)
-            weights: Any the target model weights
         """
         # obtain the batch context from replay buffer
         game_lst, game_history_pos_lst, indices_lst, weights_lst, make_time_lst = batch_context
@@ -626,7 +623,7 @@ class GameBuffer(Buffer):
         else:
             policy_non_re_context = None
 
-        context = reward_value_context, policy_re_context, policy_non_re_context, inputs_batch, weights
+        context = reward_value_context, policy_re_context, policy_non_re_context, inputs_batch
         return context
 
     def _prepare_reward_value(self, reward_value_context, model):
@@ -832,6 +829,7 @@ class GameBuffer(Buffer):
 
         # for two_player board games
         policy_obs_lst, policy_mask, state_index_lst, indices, child_visits, traj_lens, action_mask_history, to_play_history = policy_re_context
+        # the batch size is
         batch_size = len(policy_obs_lst)
         device = self.config.device
 
@@ -982,7 +980,7 @@ class GameBuffer(Buffer):
                                 else:
                                     # for two_player board games
                                     policy_tmp = [0 for _ in range(self.config.action_space_size)]
-                                    # to make sure  target_policies have the same dimension
+                                    # to make sure target_policies have the same dimension
                                     # target_policy = torch.from_numpy(target_policy) be correct
                                     sum_visits = sum(distributions)
                                     policy = [visit_count / sum_visits for visit_count in distributions]
@@ -1005,8 +1003,46 @@ class GameBuffer(Buffer):
         if policy_non_re_context is None:
             return batch_policies_non_re
 
-        state_index_lst, child_visits, traj_lens, action_mask_history, to_play_history  = policy_non_re_context
+        state_index_lst, child_visits, traj_lens, action_mask_history, to_play_history = policy_non_re_context
+
+        batch_size = len(state_index_lst)
+        device = self.config.device
+        if to_play_history[0][0] is not None:
+            # for two_player board games
+            # to_play
+            to_play = []
+            true_batch_size = max(1, batch_size // 6)
+            for bs in range(true_batch_size):
+                to_play_tmp = list(to_play_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
+                if len(to_play_tmp) < 6:
+                    to_play_tmp += [1 for i in range(6 - len(to_play_tmp))]
+                to_play.append(to_play_tmp)
+            # to_play = to_ndarray(to_play)
+            tmp = []
+            for i in to_play:
+                tmp += list(i)
+            to_play = tmp
+            # action_mask
+            action_mask = []
+            for bs in range(true_batch_size):
+                action_mask_tmp = list(action_mask_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
+                if len(action_mask_tmp) < 6:
+                    action_mask_tmp += [
+                        list(np.ones(self.config.action_space_size, dtype=np.int8))
+                        for i in range(6 - len(action_mask_tmp))
+                    ]
+                action_mask.append(action_mask_tmp)
+            action_mask = to_ndarray(action_mask)
+            tmp = []
+            for i in action_mask:
+                tmp += i
+            action_mask = tmp
+
+            # the minimal size is 6
+            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(max(6, batch_size))]
+
         with torch.no_grad():
+            policy_index = 0
             # for policy
             policy_mask = []  # 0 -> out of traj, 1 -> old policy
             # for game, state_index in zip(games, state_index_lst):
@@ -1016,11 +1052,43 @@ class GameBuffer(Buffer):
 
                 for current_index in range(state_index, state_index + self.config.num_unroll_steps + 1):
                     if current_index < traj_len:
-                        target_policies.append(child_visit[current_index])
+                        # target_policies.append(child_visit[current_index])
                         policy_mask.append(1)
+
+                        distributions = child_visit[current_index]
+                        if self.config.mcts_ctree:
+                            """
+                            cpp mcts
+                            """
+                            # for one_player atari games
+                            sum_visits = sum(distributions)
+                            policy = [visit_count / sum_visits for visit_count in distributions]
+                            target_policies.append(policy)
+                        else:
+                            """
+                            python mcts
+                            """
+                            if to_play_history[0][0] is None:
+                                # for one_player atari games
+                                sum_visits = sum(distributions)
+                                policy = [visit_count / sum_visits for visit_count in distributions]
+                                target_policies.append(policy)
+                            else:
+                                # for two_player board games
+                                policy_tmp = [0 for _ in range(self.config.action_space_size)]
+                                # to make sure target_policies have the same dimension
+                                # target_policy = torch.from_numpy(target_policy) be correct
+                                sum_visits = sum(distributions)
+                                policy = [visit_count / sum_visits for visit_count in distributions]
+                                for index, legal_action in enumerate(legal_actions[policy_index]):
+                                    policy_tmp[legal_action] = policy[index]
+                                target_policies.append(policy_tmp)
+
                     else:
                         target_policies.append([0 for _ in range(self.config.action_space_size)])
                         policy_mask.append(0)
+
+                    policy_index += 1
 
                 batch_policies_non_re.append(target_policies)
         batch_policies_non_re = np.asarray(batch_policies_non_re)

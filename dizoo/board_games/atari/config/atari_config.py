@@ -45,7 +45,7 @@ game_config = EasyDict(dict(
     num_simulations=50,
     batch_size=256,
     game_history_max_length=400,
-    total_transitions=int(1e6),
+    total_transitions=int(1e5),
     num_unroll_steps=5,
     td_steps=5,
 

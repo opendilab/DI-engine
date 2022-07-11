@@ -3,49 +3,73 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
     env_name='tictactoe',
+    device='cuda',
+    # device='cpu',
     mcts_ctree=False,
     # battle_mode='two_player_mode',
     battle_mode='one_player_mode',
     image_based=False,
-    # device='cuda',
-    device='cpu',
+    cvt_string=False,
+    clip_reward=True,
+    game_wrapper=True,
     action_space_size=int(3 * 3),
     amp_type='none',
-    # obs_shape=(3, 3, 3),
     obs_shape=(12, 3, 3),  # if stacked_observations=4
     image_channel=3,
     gray_scale=False,
     downsample=False,
+    vis_result=True,
+    # TODO(pu): test the effect of augmentation
+    use_augmentation=True,
+    # Style of augmentation
+    # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity']
+    augmentation=['shift', 'intensity'],
 
-    collector_env_num=32,
-    evaluator_env_num=5,
+    collector_env_num=8,
+    evaluator_env_num=8,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=25,
     batch_size=64,
     game_history_max_length=9,
-    total_transitions=int(1e6),
+    total_transitions=int(1e5),
     num_unroll_steps=5,
     td_steps=5,
 
-    # TODO
-    revisit_policy_search_rate=1,
-    # revisit_policy_search_rate=0.99,
+    # TODO(pu): why 0.99?
+    revisit_policy_search_rate=0.99,
+    # revisit_policy_search_rate=1,
 
-    clip_reward=True,
-    use_max_priority=True,
+    # TODO(pu): why not use adam?
+    lr_manually=True,
+
+    # TODO(pu): if true, no priority to sample
+    use_max_priority=True,    # if true, sample without priority
+    # use_max_priority=False,
     use_priority=True,
+
+    # TODO(pu): only used for adjust temperature manually
+    max_training_steps=int(1e5),
+    change_temperature=True,
+    # TODO(pu): whether to use root value in reanalyzing?
+    use_root_value=False,
+
+    # TODO(pu): test the effect
+    init_zero=True,
+    state_norm=False,
+
+    mini_infer_size=2,
+    # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+    priority_prob_alpha=0.6,
+    # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+    # TODO(pu): test effect of 0.4->1
+    priority_prob_beta=0.4,
+    prioritized_replay_eps=1e-6,
+
     root_dirichlet_alpha=0.3,
     root_exploration_fraction=0.25,
     auto_td_steps=int(0.3 * 2e5),
-    use_root_value=False,  # TODO
-    mini_infer_size=2,
-    use_augmentation=False,
-    vis_result=True,
-
-    priority_prob_alpha=0.6,
-    priority_prob_beta=1,  # TODO(pu): 0.4->1
-    prioritized_replay_eps=1e-6,
+    auto_td_steps_ratio=0.3,
 
     # UCB formula
     pb_c_base=19652,
@@ -56,8 +80,7 @@ game_config = EasyDict(dict(
     reward_support=DiscreteSupport(-10, 10, delta=1),
     max_grad_norm=10,
 
-    max_training_steps=int(1e5),  # TODO
-    change_temperature=True,
+
     test_interval=10000,
     log_interval=1000,
     vis_interval=1000,
@@ -70,19 +93,6 @@ game_config = EasyDict(dict(
     num_actors=1,
     # network initialization/ & normalization
     episode_life=True,
-    init_zero=True,
-    state_norm=False,
-    cvt_string=False,
-
-    # TODO(pu)
-    # lr scheduler
-    lr_warm_up=0.01,
-    lr_init=0.2,
-    lr_decay_rate=0.1,
-    lr_decay_steps=100000,
-    auto_td_steps_ratio=0.3,
-
-    # replay window
     start_transitions=8,
     transition_num=1,
     # frame skip & stack observation

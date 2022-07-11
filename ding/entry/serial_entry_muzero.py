@@ -127,7 +127,7 @@ def serial_pipeline_muzero(
                 logging.warning(
                     f'The data in replay_buffer is not sufficient to sample a minibatch: \
                     batch_size: {replay_buffer.get_batch_size()} \
-                num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_historys()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
+                num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_histories()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
                     continue to collect now ....'
                 )
                 break
