@@ -12,7 +12,7 @@ from typing import Any
 
 from ding.model import model_wrap
 from ding.policy import Policy
-from ding.torch_utils import to_device, levenshtein_distance, l2_distance, hamming_distance2 as hamming_distance
+from ding.torch_utils import to_device, levenshtein_distance, l2_distance, hamming_distance
 from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho, vtrace_error_with_rho, \
     upgo_data, upgo_error
 from ding.utils import EasyTimer
@@ -464,8 +464,9 @@ class DIStarPolicy(Policy):
             else:
                 self.old_bo_reward = torch.tensor(0.)
             self.old_cum_reward = -hamming_distance(
-                torch.as_tensor(self.behavior_cumulative_stat, dtype=torch.float), self.target_cumulative_stat
-            ) / self.cum_norm
+                torch.unsqueeze(torch.as_tensor(self.behavior_cumulative_stat, dtype=torch.long), dim=0),
+                torch.unsqueeze(torch.as_tensor(self.target_cumulative_stat, dtype=torch.long), dim=0)
+            )[0] / self.cum_norm
             self.total_bo_reward = torch.zeros(size=(), dtype=torch.float)
             self.total_cum_reward = torch.zeros(size=(), dtype=torch.float)
 
@@ -775,9 +776,9 @@ class DIStarPolicy(Policy):
 
         if self.use_cum_reward and cum_flag and (self.cum_type == 'observation' or next_obs['action_result'][0] == 1):
             new_cum_reward = -hamming_distance(
-                torch.as_tensor(self.behavior_cumulative_stat, dtype=torch.bool),
-                torch.as_tensor(self.target_cumulative_stat, dtype=torch.bool)
-            ) / self.cum_norm
+                torch.unsqueeze(torch.as_tensor(self.behavior_cumulative_stat, dtype=torch.long), dim=0),
+                torch.unsqueeze(torch.as_tensor(self.target_cumulative_stat, dtype=torch.long), dim=0)
+            )[0] / self.cum_norm
             cum_reward = (new_cum_reward - self.old_cum_reward) * self._get_time_factor(self.game_step)
             self.old_cum_reward = new_cum_reward
         self.total_bo_reward += bo_reward

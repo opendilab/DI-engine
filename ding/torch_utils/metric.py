@@ -85,32 +85,3 @@ def hamming_distance(pred: torch.LongTensor, target: torch.LongTensor, weight=1.
     assert (pred.device == target.device)
     assert (pred.shape == target.shape)
     return pred.ne(target).sum(dim=1).float().mul_(weight)
-
-
-def hamming_distance2(behaviour, target):
-    r'''
-    Overview:
-        Hamming Distance
-
-    Arguments:
-        Note:
-            behaviour, target are also boolean vector(0 or 1)
-
-        - behaviour (:obj:`torch.LongTensor`): behaviour input, shape[B, N], while B is the batch size
-        - target (:obj:`torch.LongTensor`): target input, shape[B, N], while B is the batch size
-
-    Returns:
-        - distance(:obj:`torch.LongTensor`): distance(scalar), the shape[1]
-
-    Shapes:
-        - behaviour & target (:obj:`torch.LongTensor`): shape :math:`(B, N)`, \
-            while B is the batch size and N is the dimension
-
-    Test:
-        torch_utils/network/tests/test_metric.py
-    '''
-    assert (isinstance(behaviour, torch.Tensor) and isinstance(target, torch.Tensor))
-    assert behaviour.dtype == target.dtype, f'bahaviour_dtype: {behaviour.dtype}, target_dtype: {target.dtype}'
-    assert (behaviour.device == target.device)
-    assert (behaviour.shape == target.shape)
-    return behaviour.ne(target).sum(dim=-1).float()
