@@ -126,8 +126,14 @@ class BattleTransitionList:
 
         return return_episode  # list of trajectories
 
-    def clear_newest_episode(self, env_id: int) -> None:
-        # Use it when env.step raise some error
+    def clear_newest_episode(self, env_id: int, before_append=False) -> None:
+        # Call this method when env.step raise some error
+
+        # If call this method before append, and the last episode of this env is done,
+        # it means that the env had some error at the first step of the newest episode,
+        # and we should not delete the last episode because it is a normal episode.
+        if before_append == True and len(self._done_episode[env_id]) > 0 and self._done_episode[env_id][-1] == True:
+            return 0
         if len(self._transitions[env_id]) > 0:
             newest_episode = self._transitions[env_id].pop()
             len_newest_episode = len(newest_episode)
@@ -354,9 +360,9 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
                 # 1st case when env step has bug and need to reset.
 
-                # TODO(zms): if it is first step of the episode, do not delete the last episode in the TransitionList 
+                # TODO(zms): if it is first step of the episode, do not delete the last episode in the TransitionList
                 for policy_id, policy in enumerate(ctx.current_policies):
-                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    transitions_list[policy_id].clear_newest_episode(env_id, before_append=True)
                     policy.reset(env.ready_obs[0][policy_id])
                 continue
 
