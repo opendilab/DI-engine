@@ -4,13 +4,11 @@ The following code is adapted from https://github.com/YeWR/EfficientZero/core/mc
 
 import torch
 import numpy as np
-from torch.cuda.amp import autocast as autocast
 import ding.rl_utils.mcts.ctree.cytree as tree
-from ding.torch_utils.data_helper import to_ndarray
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 
 
-class MCTS_ctree(object):
+class MCTSCtree(object):
 
     def __init__(self, config):
         self.config = config
@@ -18,8 +16,8 @@ class MCTS_ctree(object):
     def search(self, roots, model, hidden_state_roots, reward_hidden_roots):
         """
         Overview:
-            Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference
-            Parameters
+            Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference.
+             Use the cpp tree.
         Arguments:
             - roots (:obj:`Any`): a batch of expanded root nodes
             - hidden_state_roots (:obj:`list`): the hidden states of the roots
@@ -38,6 +36,7 @@ class MCTS_ctree(object):
             # the data storage of value prefix hidden states in LSTM
             reward_hidden_c_pool = [reward_hidden_roots[0]]
             reward_hidden_h_pool = [reward_hidden_roots[1]]
+
             # the index of each layer in the tree
             hidden_state_index_x = 0
             # minimax value storage
@@ -52,6 +51,7 @@ class MCTS_ctree(object):
 
                 # prepare a result wrapper to transport results between python and c++ parts
                 results = tree.ResultsWrapper(num)
+
                 # traverse to select actions for each root
                 # hidden_state_index_x_lst: the first index of leaf node states in hidden_state_pool
                 # hidden_state_index_y_lst: the second index of leaf node states in hidden_state_pool
@@ -67,25 +67,16 @@ class MCTS_ctree(object):
                     hidden_states.append(hidden_state_pool[ix][iy])
                     hidden_states_c_reward.append(reward_hidden_c_pool[ix][0][iy])
                     hidden_states_h_reward.append(reward_hidden_h_pool[ix][0][iy])
-                try:
-                    hidden_states = torch.from_numpy(np.asarray(hidden_states)).to(device).float()
-                except Exception as error:
-                    print(error)
+
+                hidden_states = torch.from_numpy(np.asarray(hidden_states)).to(device).float()
                 hidden_states_c_reward = torch.from_numpy(np.asarray(hidden_states_c_reward)).to(device).unsqueeze(0)
                 hidden_states_h_reward = torch.from_numpy(np.asarray(hidden_states_h_reward)).to(device).unsqueeze(0)
-
                 last_actions = torch.from_numpy(np.asarray(last_actions)).to(device).unsqueeze(1).long()
 
                 # evaluation for leaf nodes
-                if self.config.amp_type == 'torch_amp':
-                    with autocast():
-                        network_output = model.recurrent_inference(
-                            hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
-                        )
-                else:
-                    network_output = model.recurrent_inference(
-                        hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
-                    )
+                network_output = model.recurrent_inference(
+                    hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
+                )
                 # TODO(pu)
                 if not model.training:
                     # if not in training, obtain the scalars of the value/reward

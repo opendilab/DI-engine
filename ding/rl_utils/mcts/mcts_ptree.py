@@ -9,7 +9,7 @@ import ding.rl_utils.mcts.ptree as tree
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 
 
-class EfficientZeroMCTS(object):
+class EfficientZeroMCTSPtree(object):
 
     def __init__(self, config):
         self.config = config
@@ -17,12 +17,13 @@ class EfficientZeroMCTS(object):
     def search(self, roots, model, hidden_state_roots, reward_hidden_roots, to_play=None):
         """
         Overview:
-            Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference
-            Parameters
+            Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference.
+            Use the python tree.
         Arguments:
             - roots (:obj:`Any`): a batch of expanded root nodes
             - hidden_state_roots (:obj:`list`): the hidden states of the roots
-            - reward_hidden_roots(:obj:`list`): the value prefix hidden states in LSTM of the roots
+            - reward_hidden_roots (:obj:`list`): the value prefix hidden states in LSTM of the roots
+            - to_play (:obj:`list`): the to_play list used in two_player mode board games
         """
         with torch.no_grad():
             model.eval()
@@ -54,6 +55,7 @@ class EfficientZeroMCTS(object):
 
                 # prepare a result wrapper to transport results between python and c++ parts
                 results = tree.SearchResults(num=num)
+
                 # traverse to select actions for each root
                 # hidden_state_index_x_lst: the first index of leaf node states in hidden_state_pool
                 # hidden_state_index_y_lst: the second index of leaf node states in hidden_state_pool
@@ -76,6 +78,7 @@ class EfficientZeroMCTS(object):
                 hidden_states_c_reward = torch.from_numpy(np.asarray(hidden_states_c_reward)).to(device).unsqueeze(0)
                 hidden_states_h_reward = torch.from_numpy(np.asarray(hidden_states_h_reward)).to(device).unsqueeze(0)
                 last_actions = torch.from_numpy(np.asarray(last_actions)).to(device).unsqueeze(1).long()
+
                 # evaluation for leaf nodes
                 network_output = model.recurrent_inference(
                     hidden_states, (hidden_states_c_reward, hidden_states_h_reward), last_actions
@@ -111,6 +114,7 @@ class EfficientZeroMCTS(object):
                 reward_hidden_nodes[0][:, reset_idx, :] = 0
                 reward_hidden_nodes[1][:, reset_idx, :] = 0
                 is_reset_lst = reset_idx.astype(np.int32).tolist()
+
                 reward_hidden_c_pool.append(reward_hidden_nodes[0])
                 reward_hidden_h_pool.append(reward_hidden_nodes[1])
                 hidden_state_index_x += 1

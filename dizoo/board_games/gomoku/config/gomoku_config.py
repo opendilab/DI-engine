@@ -2,32 +2,103 @@ from easydict import EasyDict
 from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
-    training_steps=100000,
-    last_steps=20000,
+    env_name='gomoku',
+    model_type='board_game',
+    # device='cuda',
+    device='cpu',
+    # TODO: mcts_ctree now only support env_num=1, because in cpp MCTS root node,
+    #  we must specify the one same action mask,
+    #  when env_num>1, the action mask for different env may be different.
+    mcts_ctree=False,
+    battle_mode='two_player_mode',
+    game_history_max_length=9,
+    # battle_mode='one_player_mode',
+    # game_history_max_length=5,
+    image_based=False,
+    cvt_string=False,
+    clip_reward=True,
+    game_wrapper=True,
+    action_space_size=int(15 * 15),
+    amp_type='none',
+    obs_shape=(12, 15, 15),  # if stacked_observations=4
+    image_channel=3,
+    gray_scale=False,
+    downsample=False,
+    vis_result=True,
+    # TODO(pu): test the effect of augmentation
+    use_augmentation=True,
+    # Style of augmentation
+    # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity']
+    augmentation=['shift', 'intensity'],
+
+    collector_env_num=32,
+    evaluator_env_num=5,
+    max_episode_steps=int(1.08e5),
+    test_max_episode_steps=int(1.08e5),
+    num_simulations=25,
+    batch_size=32,
+    total_transitions=int(1e5),
+    num_unroll_steps=3,
+    td_steps=2,
+
+    # TODO(pu): why 0.99?
+    revisit_policy_search_rate=0.99,
+
+    # TODO(pu): why not use adam?
+    lr_manually=True,
+
+    # TODO(pu): if true, no priority to sample
+    use_max_priority=True,    # if true, sample without priority
+    # use_max_priority=False,
+    use_priority=True,
+
+    # TODO(pu): only used for adjust temperature manually
+    max_training_steps=int(1e5),
+    auto_temperature=False,
+    # only effective when auto_temperature=False
+    fixed_temperature_value=0.25,
+    # TODO(pu): whether to use root value in reanalyzing?
+    use_root_value=False,
+
+    # TODO(pu): test the effect
+    init_zero=True,
+    state_norm=False,
+
+    mini_infer_size=2,
+    # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+    priority_prob_alpha=0.6,
+    # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+    # TODO(pu): test effect of 0.4->1
+    priority_prob_beta=0.4,
+    prioritized_replay_eps=1e-6,
+
+    root_dirichlet_alpha=0.3,
+    root_exploration_fraction=0.25,
+    auto_td_steps=int(0.3 * 2e5),
+    auto_td_steps_ratio=0.3,
+
+    # UCB formula
+    pb_c_base=19652,
+    pb_c_init=1.25,
+
+    support_size=10,
+    value_support=DiscreteSupport(-10, 10, delta=1),
+    reward_support=DiscreteSupport(-10, 10, delta=1),
+    max_grad_norm=10,
+
+
     test_interval=10000,
     log_interval=1000,
     vis_interval=1000,
     checkpoint_interval=100,
     target_model_interval=200,
     save_ckpt_interval=10000,
-    test_max_moves=100,
-    discount=0.997,
+    discount=1,
     dirichlet_alpha=0.3,
     value_delta_max=0.01,
     num_actors=1,
     # network initialization/ & normalization
     episode_life=True,
-    init_zero=True,
-    clip_reward=True,
-    # storage efficient
-    cvt_string=False,
-    # lr scheduler
-    lr_warm_up=0.01,
-    lr_init=0.2,
-    lr_decay_rate=0.1,
-    lr_decay_steps=100000,
-    auto_td_steps_ratio=0.3,
-    # replay window
     start_transitions=8,
     transition_num=1,
     # frame skip & stack observation
@@ -38,70 +109,26 @@ game_config = EasyDict(dict(
     value_loss_coeff=0.25,
     policy_loss_coeff=1,
     consistency_coeff=2,
+
     # reward sum
-    lstm_hidden_size=512,
+    lstm_hidden_size=64,
     lstm_horizon_len=5,
-    # siamese
-    proj_hid=1024,
-    proj_out=1024,
-    pred_hid=512,
-    pred_out=1024,
 
     bn_mt=0.1,
+    # siamese
+    proj_hid=128,
+    proj_out=128,
+    pred_hid=64,
+    pred_out=128,
+
     blocks=1,  # Number of blocks in the ResNet
-    channels=64,  # Number of channels in the ResNet
+    channels=16,  # Number of channels in the ResNet
     reduced_channels_reward=16,  # x36 Number of channels in reward head
     reduced_channels_value=16,  # x36 Number of channels in value head
     reduced_channels_policy=16,  # x36 Number of channels in policy head
-    resnet_fc_reward_layers=[32],  # Define the hidden layers in the reward head of the dynamic network
-    resnet_fc_value_layers=[32],  # Define the hidden layers in the value head of the prediction network
-    resnet_fc_policy_layers=[32],  # Define the hidden layers in the policy head of the prediction network
-
-    # TODO(pu):
-    env_name='gomoku',
-    # observation_shape=(3, 15, 15),
-    obs_shape=(12, 15, 15),  # if stacked_observations=4
-    action_space_size=int(15*15),
-    image_based=False,
-    gray_scale=False,
-    downsample=False,  # Downsample observations before representation network (See paper appendix Network Architecture)
-    test_episodes=2,
-    use_max_priority=True,
-    use_priority=True,
-    root_dirichlet_alpha=0.3,
-    root_exploration_fraction=0.25,
-    game_history_length=20,
-    history_length=20,
-    auto_td_steps=int(0.3 * 2e5),
-    device='cpu',
-    amp_type='none',
-    use_root_value=True,
-    mini_infer_size=2,
-    use_augmentation=False,
-    vis_result=True,
-    env_num=2,
-    image_channel=3,
-
-    # replay buffer, priority related
-    total_transitions=int(1e6),
-    priority_prob_alpha=0.6,
-    priority_prob_beta=0.4,
-    prioritized_replay_eps=1e-6,
-
-    max_moves=100,  # TODO
-    num_simulations=2,  # TODO
-    num_unroll_steps=5,
-    td_steps=5,
-    batch_size=4,  # TODO
-
-    # UCB formula
-    pb_c_base=19652,
-    pb_c_init=1.25,
-
-    value_support=DiscreteSupport(-300, 300, delta=1),
-    reward_support=DiscreteSupport(-300, 300, delta=1),
-    max_grad_norm=5,
-
+    resnet_fc_reward_layers=[8],  # Define the hidden layers in the reward head of the dynamic network
+    resnet_fc_value_layers=[8],  # Define the hidden layers in the value head of the prediction network
+    resnet_fc_policy_layers=[8],  # Define the hidden layers in the policy head of the prediction network
 ))
 
 game_config = GameBaseConfig(game_config)

@@ -13,10 +13,10 @@ from ding.utils import fastcopy
 from ding.rl_utils.mcts.utils import prepare_observation_lst, concat_output, concat_output_value
 # cpp mcts
 from ding.rl_utils.mcts.ctree import cytree
-from ding.rl_utils.mcts.mcts_ctree import MCTS_ctree
+from ding.rl_utils.mcts.mcts_ctree import MCTSCtree
 # python mcts
 import ding.rl_utils.mcts.ptree as tree
-from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS_ptree
+from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTS_ptree
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 from ding.torch_utils.data_helper import to_ndarray
 
@@ -383,6 +383,8 @@ class GameBuffer(Buffer):
         probs /= probs.sum()
         # TODO(pu): sample data in PER way
         # sample according to transition index
+        # TODO(pu): replace=True
+        # indices_lst = np.random.choice(total, batch_size, p=probs, replace=True)
         indices_lst = np.random.choice(total, batch_size, p=probs, replace=False)
 
         weights_lst = (total * probs[indices_lst]) ** (-beta)
@@ -634,15 +636,17 @@ class GameBuffer(Buffer):
         value_obs_lst, value_mask, state_index_lst, rewards_lst, traj_lens, td_steps_lst, action_mask_history, to_play_history = reward_value_context
         device = self.config.device
         batch_size = len(value_obs_lst)
+        game_history_batch_size = len(state_index_lst)
 
         if to_play_history[0][0] is not None:
             # for two_player board games
             # to_play
             to_play = []
-            for bs in range(batch_size // 6):
-                to_play_tmp = list(to_play_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
-                if len(to_play_tmp) < 6:
-                    to_play_tmp += [1 for i in range(6 - len(to_play_tmp))]
+            for bs in range(game_history_batch_size):
+                to_play_tmp = list(to_play_history[bs][state_index_lst[bs]:state_index_lst[bs] + self.config.num_unroll_steps + 1])
+                if len(to_play_tmp) < self.config.num_unroll_steps + 1:
+                    # effective play index is {1,2}
+                    to_play_tmp += [0 for i in range(self.config.num_unroll_steps + 1 - len(to_play_tmp))]
                 to_play.append(to_play_tmp)
             # to_play = to_ndarray(to_play)
             tmp = []
@@ -651,12 +655,12 @@ class GameBuffer(Buffer):
             to_play = tmp
             # action_mask
             action_mask = []
-            for bs in range(batch_size // 6):
-                action_mask_tmp = list(action_mask_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
-                if len(action_mask_tmp) < 6:
+            for bs in range(game_history_batch_size):
+                action_mask_tmp = list(action_mask_history[bs][state_index_lst[bs]:state_index_lst[bs] + self.config.num_unroll_steps + 1])
+                if len(action_mask_tmp) < self.config.num_unroll_steps + 1:
                     action_mask_tmp += [
                         list(np.ones(self.config.action_space_size, dtype=np.int8))
-                        for i in range(6 - len(action_mask_tmp))
+                        for i in range(self.config.num_unroll_steps + 1 - len(action_mask_tmp))
                     ]
                 action_mask.append(action_mask_tmp)
             action_mask = to_ndarray(action_mask)
@@ -720,7 +724,7 @@ class GameBuffer(Buffer):
                         policy_logits_pool,
                     )
                     # do MCTS for a new policy with the recent target model
-                    MCTS_ctree(self.config).search(
+                    MCTSCtree(self.config).search(
                         roots, self.model, hidden_state_roots, reward_hidden_roots
                     )
                 else:
@@ -816,7 +820,8 @@ class GameBuffer(Buffer):
         return batch_value_prefixs, batch_values
 
     def _prepare_policy_re(self, policy_re_context, model):
-        """prepare policy targets from the reanalyzed context of policies
+        """
+        prepare policy targets from the reanalyzed context of policies
         """
         self.model = model
         batch_policies_re = []
@@ -825,18 +830,20 @@ class GameBuffer(Buffer):
 
         # for two_player board games
         policy_obs_lst, policy_mask, state_index_lst, indices, child_visits, traj_lens, action_mask_history, to_play_history = policy_re_context
-        # the batch size is
         batch_size = len(policy_obs_lst)
+        game_history_batch_size = len(state_index_lst)
+
         device = self.config.device
 
-        if to_play_history[0][0] is not None:
+        if self.config.model_type == 'board_game':
             # for two_player board games
             # to_play
             to_play = []
-            for bs in range(batch_size // 6):
-                to_play_tmp = list(to_play_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
-                if len(to_play_tmp) < 6:
-                    to_play_tmp += [1 for i in range(6 - len(to_play_tmp))]
+            for bs in range(game_history_batch_size):
+                to_play_tmp = list(to_play_history[bs][state_index_lst[bs]:state_index_lst[bs] + self.config.num_unroll_steps + 1])
+                if len(to_play_tmp) < self.config.num_unroll_steps + 1:
+                    # effective play index is {1,2}
+                    to_play_tmp += [0 for i in range(self.config.num_unroll_steps + 1 - len(to_play_tmp))]
                 to_play.append(to_play_tmp)
             # to_play = to_ndarray(to_play)
             tmp = []
@@ -845,12 +852,12 @@ class GameBuffer(Buffer):
             to_play = tmp
             # action_mask
             action_mask = []
-            for bs in range(batch_size // 6):
-                action_mask_tmp = list(action_mask_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
-                if len(action_mask_tmp) < 6:
+            for bs in range(game_history_batch_size):
+                action_mask_tmp = list(action_mask_history[bs][state_index_lst[bs]:state_index_lst[bs] + self.config.num_unroll_steps + 1])
+                if len(action_mask_tmp) < self.config.num_unroll_steps+1:
                     action_mask_tmp += [
                         list(np.ones(self.config.action_space_size, dtype=np.int8))
-                        for i in range(6 - len(action_mask_tmp))
+                        for i in range(self.config.num_unroll_steps + 1 - len(action_mask_tmp))
                     ]
                 action_mask.append(action_mask_tmp)
             action_mask = to_ndarray(action_mask)
@@ -859,8 +866,10 @@ class GameBuffer(Buffer):
                 tmp += i
             action_mask = tmp
 
+            # the minimal size is <self.config. num_unroll_steps+1>
+            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(max(self.config.num_unroll_steps + 1, batch_size))]
+
         with torch.no_grad():
-            # TODO
             policy_obs_lst = prepare_observation_lst(policy_obs_lst)
             # split a full batch into slices of mini_infer_size: to save the GPU memory for more GPU actors
             m_batch = self.config.mini_infer_size
@@ -906,7 +915,7 @@ class GameBuffer(Buffer):
                     policy_logits_pool,
                 )
                 # do MCTS for a new policy with the recent target model
-                MCTS_ctree(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots)
+                MCTSCtree(self.config).search(roots, self.model, hidden_state_roots, reward_hidden_roots)
             else:
                 """
                 python mcts
@@ -914,7 +923,8 @@ class GameBuffer(Buffer):
                 if to_play_history[0][0] is None:
                     # for one_player atari games
                     action_mask = [list(np.ones(self.config.action_space_size, dtype=np.int8)) for i in range(batch_size)]
-                legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(batch_size)]
+                    legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(batch_size)]
+
                 roots = tree.Roots(batch_size, legal_actions, self.config.num_simulations)
                 noises = [
                     np.random.dirichlet([self.config.root_dirichlet_alpha] * int(sum(action_mask[j]))
@@ -951,7 +961,7 @@ class GameBuffer(Buffer):
                         target_policies.append([0 for _ in range(self.config.action_space_size)])
                     else:
                         if distributions is None:
-                            # if at obs, the legal_action is None, fake target_policy
+                            # if at some obs, the legal_action is None, add the fake target_policy
                             target_policies.append(
                                 list(np.ones(self.config.action_space_size) / self.config.action_space_size)
                             )
@@ -961,18 +971,17 @@ class GameBuffer(Buffer):
                                 cpp mcts
                                 """
                                 # for one_player atari games
-                                sum_visits = sum(distributions)
-                                policy = [visit_count / sum_visits for visit_count in distributions]
-                                target_policies.append(policy)
+                                # sum_visits = sum(distributions)
+                                # policy = [visit_count / sum_visits for visit_count in distributions]
+                                # target_policies.append(policy)
+                                target_policies.append(distributions)
                             else:
                                 """
                                 python mcts
                                 """
                                 if to_play_history[0][0] is None:
                                     # for one_player atari games
-                                    sum_visits = sum(distributions)
-                                    policy = [visit_count / sum_visits for visit_count in distributions]
-                                    target_policies.append(policy)
+                                    target_policies.append(distributions)
                                 else:
                                     # for two_player board games
                                     policy_tmp = [0 for _ in range(self.config.action_space_size)]
@@ -1001,18 +1010,18 @@ class GameBuffer(Buffer):
 
         state_index_lst, child_visits, traj_lens, action_mask_history, to_play_history = policy_non_re_context
 
-        batch_size = len(state_index_lst)
+        game_history_batch_size = len(state_index_lst)
+
         if self.config.model_type == 'board_game':
             # for two_player board games
-            true_batch_size = max(1, batch_size // 6)
             # action_mask
             action_mask = []
-            for bs in range(true_batch_size):
-                action_mask_tmp = list(action_mask_history[bs][state_index_lst[bs]:state_index_lst[bs] + 5])
-                if len(action_mask_tmp) < 6:
+            for bs in range(game_history_batch_size):
+                action_mask_tmp = list(action_mask_history[bs][state_index_lst[bs]:state_index_lst[bs] + self.config.num_unroll_steps + 1])
+                if len(action_mask_tmp) < self.config. num_unroll_steps+1:
                     action_mask_tmp += [
                         list(np.ones(self.config.action_space_size, dtype=np.int8))
-                        for i in range(6 - len(action_mask_tmp))
+                        for i in range(self.config.num_unroll_steps + 1 - len(action_mask_tmp))
                     ]
                 action_mask.append(action_mask_tmp)
             action_mask = to_ndarray(action_mask)
@@ -1021,8 +1030,8 @@ class GameBuffer(Buffer):
                 tmp += i
             action_mask = tmp
 
-            # the minimal size is 6
-            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(max(6, batch_size))]
+            # the minimal size is <self.config. num_unroll_steps+1>
+            legal_actions = [[i for i, x in enumerate(action_mask[j]) if x == 1] for j in range( game_history_batch_size * (self.config.num_unroll_steps + 1))]
 
         with torch.no_grad():
             policy_index = 0
@@ -1044,27 +1053,25 @@ class GameBuffer(Buffer):
                             cpp mcts
                             """
                             # for one_player atari games
-                            sum_visits = sum(distributions)
-                            policy = [visit_count / sum_visits for visit_count in distributions]
-                            target_policies.append(policy)
+                            target_policies.append(distributions)
                         else:
                             """
                             python mcts
                             """
                             if self.config.model_type == 'atari':
                                 # for one_player atari games
-                                sum_visits = sum(distributions)
-                                policy = [visit_count / sum_visits for visit_count in distributions]
-                                target_policies.append(policy)
+                                target_policies.append(distributions)
                             else:
                                 # for two_player board games
                                 policy_tmp = [0 for _ in range(self.config.action_space_size)]
-                                # to make sure target_policies have the same dimension
-                                # target_policy = torch.from_numpy(target_policy) be correct
-                                sum_visits = sum(distributions)
-                                policy = [visit_count / sum_visits for visit_count in distributions]
+                                # to make sure target_policies have the same dimension <self.config.action_space_size>
+                                # sum_visits = sum(distributions)
+                                # distributions = [visit_count / sum_visits for visit_count in distributions]
                                 for index, legal_action in enumerate(legal_actions[policy_index]):
-                                    policy_tmp[legal_action] = policy[index]
+                                    # try:
+                                    policy_tmp[legal_action] = distributions[index]
+                                    # except Exception as error:
+                                    #     print(error)
                                 target_policies.append(policy_tmp)
 
                     else:

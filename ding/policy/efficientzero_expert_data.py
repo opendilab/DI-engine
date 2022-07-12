@@ -15,10 +15,10 @@ from ding.torch_utils.data_helper import to_ndarray
 
 # cpp mcts
 from ding.rl_utils.mcts.ctree import cytree
-from ding.rl_utils.mcts.mcts_ctree import MCTS_ctree
+from ding.rl_utils.mcts.mcts_ctree import MCTSCtree
 # python mcts
 import ding.rl_utils.mcts.ptree as tree
-from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS_ptree
+from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTS_ptree
 from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
@@ -510,7 +510,7 @@ class EfficientZeroExertDataPolicy(Policy):
         self._eval_model = self._learn_model
         self._eval_model.reset()
         if self.game_config.mcts_ctree:
-            self._mcts_eval = MCTS_ctree(self.game_config)
+            self._mcts_eval = MCTSCtree(self.game_config)
         else:
             self._mcts_eval = MCTS_ptree(self.game_config)
 

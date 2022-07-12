@@ -121,17 +121,17 @@ def serial_pipeline_muzero(
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            # try:
-            train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
-            # except Exception as exception:
-            #     print(exception)
-            #     logging.warning(
-            #         f'The data in replay_buffer is not sufficient to sample a minibatch: \
-            #         batch_size: {replay_buffer.get_batch_size()} \
-            #     num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_histories()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
-            #         continue to collect now ....'
-            #     )
-            #     break
+            try:
+                train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
+            except Exception as exception:
+                print(exception)
+                logging.warning(
+                    f'The data in replay_buffer is not sufficient to sample a minibatch: \
+                    batch_size: {replay_buffer.get_batch_size()} \
+                num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_histories()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
+                    continue to collect now ....'
+                )
+                break
 
             learner.train(train_data, collector.envstep)
             if game_config.lr_manually:

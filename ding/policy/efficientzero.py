@@ -14,16 +14,16 @@ from ding.rl_utils.image_transform_muzero import Transforms
 
 # cpp mcts
 from ding.rl_utils.mcts.ctree import cytree
-from ding.rl_utils.mcts.mcts_ctree import MCTS_ctree
+from ding.rl_utils.mcts.mcts_ctree import MCTSCtree
 # python mcts
 import ding.rl_utils.mcts.ptree as tree
-from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTS as MCTS_ptree
+from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTSPtree
 from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
-from dizoo.board_games.atari.config.atari_config import game_config
-# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
 
 
@@ -467,9 +467,9 @@ class EfficientZeroPolicy(Policy):
         self._collect_model = self._learn_model
         self._collect_model.reset()
         if self.game_config.mcts_ctree:
-            self._mcts_collect = MCTS_ctree(self.game_config)
+            self._mcts_collect = MCTSCtree(self.game_config)
         else:
-            self._mcts_collect = MCTS_ptree(self.game_config)
+            self._mcts_collect = MCTSPtree(self.game_config)
 
         # set temperature for distributions
         self.collect_temperature = np.array(
@@ -555,7 +555,7 @@ class EfficientZeroPolicy(Policy):
                     'visit_entropy': visit_entropy,
                     'value': value,
                     'pred_value': pred_values_pool[i],
-                    'policy_logits':policy_logits_pool[i],
+                    'policy_logits': policy_logits_pool[i],
                 }
                 # print('collect:', output[i])
 
@@ -569,9 +569,9 @@ class EfficientZeroPolicy(Policy):
         self._eval_model = self._learn_model
         self._eval_model.reset()
         if self.game_config.mcts_ctree:
-            self._mcts_eval = MCTS_ctree(self.game_config)
+            self._mcts_eval = MCTSCtree(self.game_config)
         else:
-            self._mcts_eval = MCTS_ptree(self.game_config)
+            self._mcts_eval = MCTSPtree(self.game_config)
 
     def _forward_eval(self, data: ttorch.Tensor, action_mask: list, to_play: None):
         """

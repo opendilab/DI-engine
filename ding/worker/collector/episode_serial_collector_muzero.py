@@ -412,9 +412,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 visit_entropy_dict = {k: v['visit_entropy'] for k, v in policy_output.items()}
 
                 timesteps = self._env.step(actions)
-                if two_plaer_game:
-                    action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
-                    to_play = [to_ndarray(timesteps[i].obs['to_play']) for i in range(env_nums)]
+
+                # if two_plaer_game:
+                #     action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
+                #     to_play = [to_ndarray(timesteps[i].obs['to_play']) for i in range(env_nums)]
 
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
@@ -422,6 +423,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             for env_id, timestep in timesteps.items():
                 i = env_id
                 obs, ori_reward, done, info = timestep.obs, timestep.reward, timestep.done, timestep.info
+
                 if self.game_config.clip_reward:
                     clip_reward = np.sign(ori_reward)
                 else:
@@ -434,6 +436,11 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     )
                 else:
                     game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
+
+                # NOTE: the position is very important
+                if two_plaer_game:
+                    action_mask[i] = to_ndarray(obs['action_mask'])
+                    to_play[i] = to_ndarray(timesteps[i].obs['to_play'])
 
                 eps_reward_lst[i] += clip_reward
                 eps_ori_reward_lst[i] += ori_reward
@@ -554,15 +561,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 visit_entropies = np.array(self_play_visit_entropy).mean()
                 # visit_entropies /= max_visit_entropy
                 print('visit_entropies:', visit_entropies)
-
-                if self_play_episodes > 0:
-                    log_self_play_moves = self_play_moves / self_play_episodes
-                    log_self_play_rewards = self_play_rewards / self_play_episodes
-                    log_self_play_ori_rewards = self_play_ori_rewards / self_play_episodes
-                else:
-                    log_self_play_moves = 0
-                    log_self_play_rewards = 0
-                    log_self_play_ori_rewards = 0
 
                 # save the game histories and clear the pool
                 # self.trajectory_pool: list of (game_history, priority)

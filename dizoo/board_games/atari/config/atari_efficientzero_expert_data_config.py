@@ -80,7 +80,7 @@ atari_efficientzero_config = dict(
         ),
         # we only collect 100 episode * 2000 env step = 200K env step,
         # the eval cost is expensive, so we set eval_freq larger
-        eval=dict(evaluator=dict(eval_freq=int(1e4), )),
+        eval=dict(evaluator=dict(eval_freq=int(5e3), )),
         # command_mode config
         other=dict(
             # Epsilon greedy with decay.
