@@ -3,11 +3,14 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
 game_config = EasyDict(dict(
     env_name='tictactoe',
-    device='cuda',
-    # device='cpu',
+    model_type='board_game',
+    # device='cuda',
+    device='cpu',
     mcts_ctree=False,
     # battle_mode='two_player_mode',
+    # game_history_max_length=9,
     battle_mode='one_player_mode',
+    game_history_max_length=5,
     image_based=False,
     cvt_string=False,
     clip_reward=True,
@@ -25,16 +28,16 @@ game_config = EasyDict(dict(
     # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity']
     augmentation=['shift', 'intensity'],
 
-    collector_env_num=8,
-    evaluator_env_num=8,
+    collector_env_num=32,
+    evaluator_env_num=5,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=25,
-    batch_size=64,
-    game_history_max_length=9,
+    batch_size=32,
     total_transitions=int(1e5),
-    num_unroll_steps=5,
-    td_steps=5,
+    # if battle_mode='one_player_mode',
+    num_unroll_steps=3,
+    td_steps=2,
 
     # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
@@ -49,7 +52,7 @@ game_config = EasyDict(dict(
 
     # TODO(pu): only used for adjust temperature manually
     max_training_steps=int(1e5),
-    auto_temperature=True,
+    auto_temperature=False,
     # only effective when auto_temperature=False
     fixed_temperature_value=0.25,
     # TODO(pu): whether to use root value in reanalyzing?

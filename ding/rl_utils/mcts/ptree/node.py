@@ -1,5 +1,5 @@
 """
-The Node and Roots class for MCTS in board games in which we must consider legal_actions.
+The Node and Roots class for MCTS in board games in which we must consider legal_actions and to_play.
 """
 import math
 import random
@@ -36,8 +36,8 @@ class Node:
         self.hidden_state_index_y = 0
 
     def expand(
-        self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
-        policy_logits: List[float]
+            self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
+            policy_logits: List[float]
     ):
         self.to_play = to_play
         if self.legal_actions is None:
@@ -60,8 +60,6 @@ class Node:
         Arguments:
             - noises (:obj: list): length is len(self.legal_actions)
         """
-        # for a in self.legal_actions:
-        # for a in range(len(self.legal_actions)):
         for i, a in enumerate(self.legal_actions):
             """
             i in index, a is action, e.g. self.legal_actions = [0,1,2,4,6,8], i=[0,1,2,3,4,5], a=[0,1,2,4,6,8]
@@ -252,8 +250,8 @@ def update_tree_q(root: Node, min_max_stats, discount: float, players=1):
 
 
 def back_propagate(search_path, min_max_stats, to_play, value: float, discount: float):
-    if to_play is None:
-        # 1 player
+    if to_play is None or to_play == 0:
+        # for 1 player mode
         bootstrap_value = value
         path_len = len(search_path)
         for i in range(path_len - 1, -1, -1):
@@ -278,7 +276,7 @@ def back_propagate(search_path, min_max_stats, to_play, value: float, discount: 
         root = search_path[0]
         update_tree_q(root, min_max_stats, discount, 1)
     else:
-        # 2 player
+        # for 2 player mode
         bootstrap_value = value
         path_len = len(search_path)
         for i in range(path_len - 1, -1, -1):
@@ -299,7 +297,7 @@ def back_propagate(search_path, min_max_stats, to_play, value: float, discount: 
             if is_reset == 1:
                 true_reward = node.value_prefix
             # to_play related
-            bootstrap_value = (-true_reward if node.to_play == to_play else true_reward) + discount * bootstrap_value
+            bootstrap_value = (- true_reward if node.to_play == to_play else true_reward) + discount * bootstrap_value
 
         min_max_stats.clear()
         root = search_path[0]
@@ -321,6 +319,7 @@ def batch_back_propagate(
         #  to_play: int, hidden_state_index_x: int, hidden_state_index_y: int,
         # TODO(pu): why to_play=0, hidden_state_index_x=hidden_state_index_x, hidden_state_index_y=i
         if to_play is None:
+            # set to_play=0, because two_player mode to_play = {1,2}
             results.nodes[i].expand(0, hidden_state_index_x, i, value_prefixs[i], policies[i])
         else:
             results.nodes[i].expand(to_play[i], hidden_state_index_x, i, value_prefixs[i], policies[i])
@@ -347,7 +346,7 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
             max_index_lst.clear()
             max_index_lst.append(a)
         elif temp_score >= max_score - epsilon:
-            # TODO: if the difference is less than  epsilon = 0.000001, we random choice action from  max_index_lst
+            # TODO(pu): if the difference is less than  epsilon = 0.000001, we random choice action from  max_index_lst
             max_index_lst.append(a)
 
     action = 0
@@ -357,16 +356,16 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
 
 
 def ucb_score(
-    child: Node,
-    min_max_stats,
-    parent_mean_q,
-    is_reset: int,
-    total_children_visit_counts: float,
-    parent_value_prefix: float,
-    pb_c_base: float,
-    pb_c_init: float,
-    discount: float,
-    players=1
+        child: Node,
+        min_max_stats,
+        parent_mean_q,
+        is_reset: int,
+        total_children_visit_counts: float,
+        parent_value_prefix: float,
+        pb_c_base: float,
+        pb_c_init: float,
+        discount: float,
+        players=1
 ):
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))
@@ -393,7 +392,8 @@ def ucb_score(
 
 
 def batch_traverse(
-    roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults, virtual_to_play
+        roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults,
+        virtual_to_play
 ):
     parent_q = 0.0
     results.search_lens = [None for i in range(results.num)]

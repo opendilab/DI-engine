@@ -80,7 +80,7 @@ class DiscreteSupport(object):
         self.delta = delta
 
 
-def inverse_scalar_transform(logits, support_size):
+def inverse_scalar_transform(logits, support_size, epsilon=0.001):
     """
     Reference from MuZero: Appendix F => Network Architecture
     & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
@@ -92,9 +92,8 @@ def inverse_scalar_transform(logits, support_size):
     value_support[:, :] = torch.from_numpy(np.array([x for x in scalar_support.range]))
     value_support = value_support.to(device=value_probs.device)
     value = (value_support * value_probs).sum(1, keepdim=True) / delta
+    sign = torch.ones_like(value)
 
-    epsilon = 0.001
-    sign = torch.ones(value.shape).float().to(value.device)
     sign[value < 0] = -1.0
     output = (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
     output = sign * output * delta
@@ -109,9 +108,9 @@ def renormalize(tensor, first_dim=1):
     if first_dim < 0:
         first_dim = len(tensor.shape) + first_dim
     flat_tensor = tensor.view(*tensor.shape[:first_dim], -1)
-    max = torch.max(flat_tensor, first_dim, keepdim=True).values
-    min = torch.min(flat_tensor, first_dim, keepdim=True).values
-    flat_tensor = (flat_tensor - min) / (max - min)
+    max_val = torch.max(flat_tensor, first_dim, keepdim=True).values
+    min_val = torch.min(flat_tensor, first_dim, keepdim=True).values
+    flat_tensor = (flat_tensor - min_val) / (max_val - min_val)
 
     return flat_tensor.view(*tensor.shape)
 

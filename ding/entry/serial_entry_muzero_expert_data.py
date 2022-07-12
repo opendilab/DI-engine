@@ -30,6 +30,7 @@ def serial_pipeline_muzero_expert_data(
     """
     Overview:
         Serial pipeline entry for MuZero and its variants, such as EfficientZero.
+        collect expert data using dqn collect_model.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -64,11 +65,9 @@ def serial_pipeline_muzero_expert_data(
 
     # load pretrained dqn model
     if cfg.policy.collect_model_path is not None:
-        policy._collect_model = collect_model
-        policy._collect_model = model_wrap(policy._collect_model, wrapper_name='eps_greedy_sample')
+        policy._collect_model = model_wrap(collect_model.cuda(), wrapper_name='eps_greedy_sample')
         policy._collect_model.reset()
-        policy._collect_model.load_state_dict(torch.load(cfg.policy.collect_model_path, map_location='cpu')['model'])
-
+        policy._collect_model.load_state_dict(torch.load(cfg.policy.collect_model_path, map_location='cuda')['model'])
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))

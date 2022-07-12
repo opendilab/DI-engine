@@ -26,8 +26,8 @@ atari_efficientzero_config = dict(
         dqn_expert_data=True,
     ),
     policy=dict(
-        collect_model_path='/Users/puyuan/code/DI-engine/pong_dqn_seed0/ckpt/ckpt_best.pth.tar',
-        # collect_model_path='/mnt/lustre/puyuan/DI-engine/pong_dqn_seed0/ckpt/ckpt_best.pth.tar',
+        # collect_model_path='/Users/puyuan/code/DI-engine/pong_dqn_seed0/ckpt/ckpt_best.pth.tar',
+        collect_model_path='/mnt/lustre/puyuan/DI-engine/pong_dqn_seed0/ckpt/ckpt_best.pth.tar',
 
         env_name='PongNoFrameskip-v4',
         # TODO(pu): how to pass into game_config, which is class, not a dict

@@ -477,7 +477,7 @@ class EfficientZeroExertDataPolicy(Policy):
             temperature: (N1, ), where N1 is the number of collect_env.
         """
         eps = 0
-        # dqn use the current obs [
+        # dqn only use the current obs
         data = data[-1][-4:].unsqueeze(0)
         data_id = [i for i in range(self.game_config.collector_env_num)]
         output_augment = {i: {} for i in data_id}

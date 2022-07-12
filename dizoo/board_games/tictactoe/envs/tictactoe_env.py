@@ -47,7 +47,10 @@ class TicTacToeEnv(BaseGameEnv):
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
+        if self.battle_mode == 'two_player_mode':
+            obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
+        else:
+            obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': None}
         return obs
 
     def step(self, action):
@@ -61,6 +64,7 @@ class TicTacToeEnv(BaseGameEnv):
             timestep_player1 = self._player_step(action)
             # self.env.render()
             if timestep_player1.done:
+                timestep_player1.obs['to_play'] = None
                 return timestep_player1
 
             # player 2's turn
@@ -71,6 +75,7 @@ class TicTacToeEnv(BaseGameEnv):
             timestep_player2.info['final_eval_reward'] = - timestep_player2.reward
 
             timestep = timestep_player2
+            timestep.obs['to_play'] = None
             return timestep
 
     def _player_step(self, action):
@@ -111,7 +116,7 @@ class TicTacToeEnv(BaseGameEnv):
 
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
+        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.current_player}
         return BaseEnvTimestep(obs, reward, done, info)
 
     def current_state(self):

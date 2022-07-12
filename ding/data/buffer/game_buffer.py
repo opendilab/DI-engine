@@ -1002,8 +1002,7 @@ class GameBuffer(Buffer):
         state_index_lst, child_visits, traj_lens, action_mask_history, to_play_history = policy_non_re_context
 
         batch_size = len(state_index_lst)
-        device = self.config.device
-        if to_play_history[0][0] is not None:
+        if self.config.model_type == 'board_game':
             # for two_player board games
             true_batch_size = max(1, batch_size // 6)
             # action_mask
@@ -1052,7 +1051,7 @@ class GameBuffer(Buffer):
                             """
                             python mcts
                             """
-                            if to_play_history[0][0] is None:
+                            if self.config.model_type == 'atari':
                                 # for one_player atari games
                                 sum_visits = sum(distributions)
                                 policy = [visit_count / sum_visits for visit_count in distributions]

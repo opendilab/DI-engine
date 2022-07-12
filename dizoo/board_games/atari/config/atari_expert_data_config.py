@@ -4,6 +4,7 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 game_config = EasyDict(dict(
     # NOTE
     env_name='PongNoFrameskip-v4',
+    model_type='atari',
     device='cuda',
     # device='cpu',
     # if mcts_ctree=True, using cpp mcts code

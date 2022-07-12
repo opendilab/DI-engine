@@ -132,33 +132,14 @@ class AtariMuZeroEnv(BaseEnv):
     def __repr__(self) -> str:
         return "DI-engine Atari MuZero Env({})".format(self.cfg.env_name)
 
-    # @staticmethod
-    # def create_collector_envcfg(cfg: dict) -> List[dict]:
-    #     collector_env_num = cfg.pop('collector_env_num')
-    #     cfg = copy.deepcopy(cfg)
-    #     return [cfg for _ in range(collector_env_num)]
-
-    # @staticmethod
-    # def create_evaluator_envcfg(cfg: dict) -> List[dict]:
-    #     evaluator_env_num = cfg.pop('evaluator_env_num')
-    #     cfg = copy.deepcopy(cfg)
-    #     cfg.dqn_expert_data = False
-    #     return [cfg for _ in range(evaluator_env_num)]
-
-    # for dqn expert data
     @staticmethod
     def create_collector_envcfg(cfg: dict) -> List[dict]:
         collector_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
-        cfg.dqn_expert_data = True
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_envcfg(cfg: dict) -> List[dict]:
         evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
-        cfg.dqn_expert_data = True
         return [cfg for _ in range(evaluator_env_num)]
-
-
-
