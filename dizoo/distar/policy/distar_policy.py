@@ -8,6 +8,7 @@ import random
 from functools import partial
 from copy import deepcopy
 import os.path as osp
+from typing import Any
 
 from ding.model import model_wrap
 from ding.policy import Policy
@@ -16,6 +17,7 @@ from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho,
     upgo_data, upgo_error
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
+from ding.envs.env.base_env import BaseEnvTimestep
 from dizoo.distar.model import Model
 from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, NUM_CUMULATIVE_STAT_ACTIONS, DEFAULT_SPATIAL_SIZE, BEGINNING_ORDER_LENGTH, BEGINNING_ORDER_ACTIONS, UNIT_TO_CUM, UPGRADE_TO_CUM, UNIT_ABILITY_TO_ACTION, QUEUE_ACTIONS, CUMULATIVE_STAT_ACTIONS,\
     Stat, parse_new_game, transform_obs, compute_battle_score
@@ -110,7 +112,7 @@ class DIStarPolicy(Policy):
         ),
         grad_clip=dict(threshold=1.0, ),
         # collect
-        use_value_feature=True,  # TODO(zms): whether to use value feature, this must be False when play against bot
+        use_value_feature=False,  # TODO(zms): whether to use value feature, this must be False when play against bot
         zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
         fake_reward_prob=0.0,  # probablity which set Z to 0
         zero_z_value=1,  # value used for 0Z
@@ -387,9 +389,11 @@ class DIStarPolicy(Policy):
         self.clip_bo = self._cfg.clip_bo
         self.cum_type = 'action'  # observation or action
         self.realtime = self._cfg.realtime
-        self.teacher_model = Model(self._cfg.model).eval()
+        self.teacher_model = model_wrap(Model(self._cfg.model), 'base')
+        if self._cfg.cuda:
+            self.teacher_model = self.teacher_model.cuda()
         teacher_model_path = osp.join(osp.dirname(__file__), self._cfg.teacher_model_path)
-        t_state_dict = torch.load(teacher_model_path, map_location='cpu')
+        t_state_dict = torch.load(teacher_model_path)
         teacher_state_dict = {k: v for k, v in t_state_dict['model'].items() if 'value_networks' not in k}
         self.teacher_model.load_state_dict(teacher_state_dict)
         # TODO(zms): load teacher_model's state_dict when init policy.
@@ -407,8 +411,10 @@ class DIStarPolicy(Policy):
         self.last_targeted_unit_tag = None
         self.last_location = None  # [x, y]
         self.enemy_unit_type_bool = torch.zeros(NUM_UNIT_TYPES, dtype=torch.uint8)
-        self._observation = None  # TODO(zms): need to move to input and output of function
-        self._output = None  # TODO(zms): need to move to input and output of function
+        # TODO(zms): need to move obs and policy_output inside rolloutor, but for each step,
+        # it is possible that only one policy in the two has observation and output, so for now just leave it here.
+        self.obs = None
+        self.policy_output = None
         self.model_last_iter = 0
         self.game_step = 0  # step * 10 is game duration time
         self.behavior_building_order = []  # idx in BEGINNING_ORDER_ACTIONS
@@ -465,6 +471,7 @@ class DIStarPolicy(Policy):
 
     def _forward_collect(self, data):
         obs, game_info = self._data_preprocess_collect(data)
+        self.obs = obs
         obs = default_collate([obs])
         if self._cfg.cuda:
             obs = to_device(obs, self._device)
@@ -476,8 +483,8 @@ class DIStarPolicy(Policy):
         if self._cfg.cuda:
             policy_output = to_device(policy_output, self._device)
         policy_output = default_decollate(policy_output)[0]
-        policy_output = self._data_postprocess_collect(policy_output, game_info)
-        return policy_output
+        self.policy_output = self._data_postprocess_collect(policy_output, game_info)
+        return self.policy_output
 
     def _data_preprocess_collect(self, data):
         if self._cfg.use_value_feature:
@@ -529,8 +536,6 @@ class DIStarPolicy(Policy):
         else:
             obs['scalar_info']['cumulative_stat'] = self.target_cumulative_stat * 0 + self._cfg.zero_z_value
 
-        self._observation = obs
-
         # update stat
         self.stat.update(self.last_action_type, data['action_result'][0], obs, self.game_step)
         return obs, game_info
@@ -541,7 +546,6 @@ class DIStarPolicy(Policy):
         self.last_action_type = data['action_info']['action_type']
         self.last_delay = data['action_info']['delay']
         self.last_location = data['action_info']['target_location']
-        self._output = data
 
         action_type = self.last_action_type.item()
         action_attr = ACTIONS[action_type]
@@ -581,29 +585,39 @@ class DIStarPolicy(Policy):
 
         return data
 
-    def _process_transition(self, next_obs, reward, done):
+    def _process_transition(self, obs: Any, model_output: dict, timestep: BaseEnvTimestep):
+        next_obs = timestep.obs
+        reward = timestep.reward
+        done = timestep.done
         behavior_z = self.get_behavior_z()
         bo_reward, cum_reward, battle_reward = self.update_fake_reward(next_obs)
-        agent_obs = self._observation
+        agent_obs = self.obs
         teacher_obs = {
             'spatial_info': agent_obs['spatial_info'],
             'entity_info': agent_obs['entity_info'],
             'scalar_info': agent_obs['scalar_info'],
             'entity_num': agent_obs['entity_num'],
             'hidden_state': self.teacher_hidden_state,
-            'selected_units_num': self._output['selected_units_num'],
-            'action_info': self._output['action_info']
+            'selected_units_num': self.policy_output['selected_units_num'],
+            'action_info': self.policy_output['action_info']
         }
-        if self._cfg.cuda:
-            teacher_obs = to_device(teacher_obs, 'cuda:0')
 
         teacher_model_input = default_collate([teacher_obs])
-        teacher_output = self.teacher_model.compute_teacher_logit(**teacher_model_input)
+
+        if self._cfg.cuda:
+            teacher_model_input = to_device(teacher_model_input, self._device)
+
+        self.teacher_model.eval()
+        with torch.no_grad():
+            teacher_output = self.teacher_model.compute_teacher_logit(**teacher_model_input)
+
+        if self._cfg.cuda:
+            teacher_output = to_device(teacher_output, self._device)
         teacher_output = self.decollate_output(teacher_output)
         self.teacher_hidden_state = teacher_output['hidden_state']
 
         # gather step data
-        action_info = deepcopy(self._output['action_info'])
+        action_info = deepcopy(self.policy_output['action_info'])
         mask = dict()
         mask['actions_mask'] = deepcopy(
             {
@@ -625,7 +639,7 @@ class DIStarPolicy(Policy):
             mask['cum_action_mask'] = torch.tensor(1.0, dtype=torch.float)
         else:
             mask['built_unit_mask'] = torch.tensor(0.0, dtype=torch.float)
-        selected_units_num = self._output['selected_units_num']
+        selected_units_num = self.policy_output['selected_units_num']
         for k, v in mask['actions_mask'].items():
             mask['actions_mask'][k] = torch.tensor(v, dtype=torch.long)
         step_data = {
@@ -639,7 +653,7 @@ class DIStarPolicy(Policy):
             'selected_units_num': selected_units_num,
             'hidden_state': self.hidden_state_backup,
             'action_info': action_info,
-            'behaviour_logp': self._output['action_logp'],
+            'behaviour_logp': self.policy_output['action_logp'],
             'teacher_logit': teacher_output['logit'],
             # 'successive_logit': deepcopy(teacher_output['logit']),
             'reward': {
@@ -735,19 +749,18 @@ class DIStarPolicy(Policy):
                             break
         elif self.cum_type == 'action':
             action_name = ACTIONS[action_type]['name']
-            action_info = self._output['action_info']
+            action_info = self.policy_output['action_info']
             cum_flag = False
             if action_name == 'Cancel_quick' or action_name == 'Cancel_Last_quick':
                 unit_index = action_info['selected_units'][0].item()
-                order_len = self._observation['entity_info']['order_length'][unit_index]
+                order_len = self.obs['entity_info']['order_length'][unit_index]
                 if order_len == 0:
                     action_index = 0
                 elif order_len == 1:
-                    action_index = UNIT_ABILITY_TO_ACTION[self._observation['entity_info']['order_id_0']
-                                                          [unit_index].item()]
+                    action_index = UNIT_ABILITY_TO_ACTION[self.obs['entity_info']['order_id_0'][unit_index].item()]
                 elif order_len > 1:
                     order_str = 'order_id_{}'.format(order_len - 1)
-                    action_index = QUEUE_ACTIONS[self._observation['entity_info'][order_str][unit_index].item() - 1]
+                    action_index = QUEUE_ACTIONS[self.obs['entity_info'][order_str][unit_index].item() - 1]
                 if action_index in CUMULATIVE_STAT_ACTIONS:
                     cum_flag = True
                     cum_index = CUMULATIVE_STAT_ACTIONS.index(action_index)

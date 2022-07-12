@@ -20,10 +20,10 @@ from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.framework.middleware.tests import DIStarMockPolicy
 from ding.framework.middleware.league_learner import LearnerModel
-from ding.framework.middleware.functional.collector import battle_inferencer_for_distar
+from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
 
 
-def battle_rolloutor_for_distar(cfg, env, transitions_list, model_info_dict):
+def battle_rolloutor_for_distar2(cfg, env, transitions_list, model_info_dict):
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)

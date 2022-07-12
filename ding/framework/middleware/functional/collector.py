@@ -3,6 +3,7 @@ from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
+from ding.envs.env.base_env import BaseEnvTimestep
 from ding.policy import Policy
 import torch
 from ding.utils import dicts_to_lists
@@ -368,14 +369,22 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
             episode_long_enough = True
             for policy_id, policy in enumerate(ctx.current_policies):
-                transition = policy.process_transition(timestep)
-                transition = EasyDict(transition)
-                transition.collect_train_iter = ttorch.as_tensor(
-                    [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
-                )
+                if timestep.obs.get(policy_id):
+                    policy_timestep = BaseEnvTimestep(
+                        obs=timestep.obs.get(policy_id),
+                        reward=timestep.reward[policy_id],
+                        done=timestep.done,
+                        info=timestep.info[policy_id]
+                    )
+                    transition = policy.process_transition(obs=None, model_output=None, timestep=policy_timestep)
+                    transition = EasyDict(transition)
+                    transition.collect_train_iter = ttorch.as_tensor(
+                        [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
+                    )
 
-                # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
-                episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
+                    # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
+                    episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
+
                 if timestep.done:
                     policy.reset(env.ready_obs[0][policy_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
