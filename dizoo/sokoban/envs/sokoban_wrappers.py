@@ -9,9 +9,10 @@ try:
 except ImportError:
     logging.warning("not found sokoban env, please install it, refer to https://github.com/mpSchrader/gym-sokoban")
 
+
 def wrap_sokoban(
-    env_id,
-    norm_obs: Dict = dict(use_norm=False, ),
+        env_id,
+        norm_obs: Dict = dict(use_norm=False, ),
         norm_reward: Dict = dict(use_norm=False, ),
         only_info=False
 ) -> gym.Env:

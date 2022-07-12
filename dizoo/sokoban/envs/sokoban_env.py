@@ -18,37 +18,37 @@ from .sokoban_wrappers import wrap_sokoban
 class SokobanEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
-      self._cfg = cfg
-      self._env_id=cfg.env_id
-      self._init_flag = False
+        self._cfg = cfg
+        self._env_id = cfg.env_id
+        self._init_flag = False
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
-      self._seed = seed
-      self._dynamic_seed = dynamic_seed
-      np.random.seed(self._seed)
+        self._seed = seed
+        self._dynamic_seed = dynamic_seed
+        np.random.seed(self._seed)
 
     def reset(self) -> np.ndarray:
-      if not self._init_flag:
-        self._env = self._make_env(only_info=False)
-        self._init_flag = True
+        if not self._init_flag:
+            self._env = self._make_env(only_info=False)
+            self._init_flag = True
 
-        self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
-        self._observation_space = self._env.observation_space
-        self._action_space = self._env.action_space
-        self._reward_space = gym.spaces.Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
-        )
+            self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
 
-        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
-            np_seed = 100 * np.random.randint(1, 1000)
-            self._env.seed(self._seed + np_seed)
-        elif hasattr(self, '_seed'):
-            self._env.seed(self._seed)
-        obs = self._env.reset()
-        obs = to_ndarray(obs).astype('float32')
-        print("I add it in sokoban_env", obs)
-        self._final_eval_reward = 0.
-        return obs
+            if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+                np_seed = 100 * np.random.randint(1, 1000)
+                self._env.seed(self._seed + np_seed)
+            elif hasattr(self, '_seed'):
+                self._env.seed(self._seed)
+            obs = self._env.reset()
+            obs = to_ndarray(obs).astype('float32')
+            print("I add it in sokoban_env", obs)
+            self._final_eval_reward = 0.
+            return obs
 
     def step(self, action: np.array):
         action = to_ndarray(action)
@@ -59,7 +59,6 @@ class SokobanEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
-
 
     def _make_env(self, only_info=False):
         return wrap_sokoban(
