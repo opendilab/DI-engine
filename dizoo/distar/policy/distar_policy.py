@@ -460,7 +460,7 @@ class DIStarPolicy(Policy):
             if not self.clip_bo:
                 self.old_bo_reward = -levenshtein_distance(
                     torch.as_tensor(self.behavior_building_order, dtype=torch.long), self.target_building_order
-                ) / self.bo_norm
+                )[0] / self.bo_norm
             else:
                 self.old_bo_reward = torch.tensor(0.)
             self.old_cum_reward = -hamming_distance(
@@ -666,12 +666,14 @@ class DIStarPolicy(Policy):
             },
             'step': torch.tensor(self.game_step, dtype=torch.float),
             'mask': mask,
+            'done': done
         }
         ##TODO: add value feature
         if self._cfg.use_value_feature:
             step_data['value_feature'] = agent_obs['value_feature']
             step_data['value_feature'].update(behavior_z)
         self.hidden_state_backup = self.hidden_state
+        return step_data
 
     def get_behavior_z(self):
         bo = self.behavior_building_order + [0] * (BEGINNING_ORDER_LENGTH - len(self.behavior_building_order))
@@ -722,13 +724,13 @@ class DIStarPolicy(Policy):
                     else:
                         tz = self.target_building_order
                         tz_lo = self.target_bo_location
-                    new_bo_dist = -levenshtein_distance( #TODO(nyz): merge levenshtein_distance of DI-star and DI-engine to the same
-                        torch.as_tensor(self.behavior_building_order, dtype=torch.int),
-                        torch.as_tensor(tz, dtype=torch.int),
+                    new_bo_dist = -levenshtein_distance(
+                        torch.as_tensor(self.behavior_building_order, dtype=torch.long),
+                        torch.as_tensor(tz, dtype=torch.long),
                         torch.as_tensor(self.behavior_bo_location, dtype=torch.int),
                         torch.as_tensor(tz_lo, dtype=torch.int),
                         partial(l2_distance, spatial_x=DEFAULT_SPATIAL_SIZE[1])
-                    ) / self.bo_norm
+                    )[0] / self.bo_norm
                     bo_reward = new_bo_dist - self.old_bo_reward
                     self.old_bo_reward = new_bo_dist
 
