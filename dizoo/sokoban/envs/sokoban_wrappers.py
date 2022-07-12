@@ -1,6 +1,5 @@
 from typing import Dict
 import gym
-import numpy as np
 from ditk import logging
 from ding.envs import ObsNormWrapper, RewardNormWrapper
 
@@ -11,10 +10,7 @@ except ImportError:
 
 
 def wrap_sokoban(
-        env_id,
-        norm_obs: Dict = dict(use_norm=False, ),
-        norm_reward: Dict = dict(use_norm=False, ),
-        only_info=False
+        env_id, norm_obs: bool = False, norm_reward: Dict = dict(use_norm=False, ), only_info=False
 ) -> gym.Env:
     r"""
     Overview:

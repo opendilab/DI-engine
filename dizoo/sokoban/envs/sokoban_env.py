@@ -1,16 +1,11 @@
 import gym
-import random
-import marshal
 import copy
 import numpy as np
 from typing import List
 from easydict import EasyDict
-from collections import namedtuple
-from gym.spaces.discrete import Discrete
-from gym.spaces import Box
 from ding.utils import ENV_REGISTRY
-from ding.torch_utils import to_ndarray, to_list
-from ding.envs import ObsPlusPrevActRewWrapper, BaseEnv, BaseEnvTimestep
+from ding.torch_utils import to_ndarray
+from ding.envs import BaseEnv, BaseEnvTimestep
 from .sokoban_wrappers import wrap_sokoban
 
 
@@ -46,7 +41,6 @@ class SokobanEnv(BaseEnv):
                 self._env.seed(self._seed)
             obs = self._env.reset()
             obs = to_ndarray(obs).astype('float32')
-            print("I add it in sokoban_env", obs)
             self._final_eval_reward = 0.
             return obs
 
@@ -86,7 +80,7 @@ class SokobanEnv(BaseEnv):
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
         evaluator_cfg = copy.deepcopy(cfg)
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
-        evaluator_cfg.get('norm_reward', EasyDict(use_norm=False, )).use_norm = False
+        evaluator_cfg.norm_reward = EasyDict(use_norm=False, )
         return [evaluator_cfg for _ in range(evaluator_env_num)]
 
     @property

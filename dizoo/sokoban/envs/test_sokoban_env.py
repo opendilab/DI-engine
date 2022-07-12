@@ -10,7 +10,6 @@ class TestSokoban:
     def test_sokoban(self):
         env = SokobanEnv(EasyDict({'env_id': 'Sokoban-v0'}))
         env.reset()
-        action_dim = env.action_space.shape
         for i in range(100):
             action = np.random.randint(8)
             timestep = env.step(np.array(action))
