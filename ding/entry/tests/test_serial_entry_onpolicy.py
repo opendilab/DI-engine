@@ -50,6 +50,7 @@ def test_onpolicy_ppopg():
 def test_mappo():
     config = [deepcopy(ptz_simple_spread_mappo_config), deepcopy(ptz_simple_spread_mappo_create_config)]
     config[0].policy.learn.epoch_per_collect = 1
+    config[1].env_manager.type = 'base'
     try:
         serial_pipeline_onpolicy(config, seed=0, max_train_iter=1)
     except Exception:
