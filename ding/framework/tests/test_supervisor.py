@@ -81,7 +81,7 @@ class MockCrashEnv(MockEnv):
         return self._counter
 
 
-@pytest.mark.unittest()
+# @pytest.mark.unittest
 @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
 def test_crash_supervisor(type_):
     sv = Supervisor(type_=type_)
