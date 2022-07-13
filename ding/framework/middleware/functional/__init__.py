@@ -12,3 +12,5 @@ from .distributer import model_exchanger
 from .explorer import eps_greedy_handler, eps_greedy_masker
 from .advantage_estimator import gae_estimator
 from .enhancer import reward_estimator, her_data_enhancer, nstep_reward_enhancer
+
+from .timer import epoch_timer

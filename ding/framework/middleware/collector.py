@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 from easydict import EasyDict
-import torch
 
 from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
