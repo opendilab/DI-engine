@@ -29,6 +29,7 @@ class DingEnvWrapper(BaseEnv):
             self._wrap_env()
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
+            self._action_space.seed(0)  # default seed
             self._reward_space = gym.spaces.Box(
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
@@ -63,8 +64,10 @@ class DingEnvWrapper(BaseEnv):
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
+            self._action_space.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+            self._action_space.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         return obs

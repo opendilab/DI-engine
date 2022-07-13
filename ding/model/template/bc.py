@@ -114,9 +114,6 @@ class ContinuousBC(nn.Module):
             action_space: str,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            twin_critic: bool = False,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
@@ -132,9 +129,6 @@ class ContinuousBC(nn.Module):
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.
             - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
                 for actor head.
-            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.
-            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
-                for critic head.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \
                 after each FC layer, if ``None`` then default set to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
@@ -170,19 +164,6 @@ class ContinuousBC(nn.Module):
                     norm_type=norm_type
                 )
             )
-
-        critic_input_size = obs_shape + action_shape
-        self.critic = nn.Sequential(
-            nn.Linear(critic_input_size, critic_head_hidden_size), activation,
-            RegressionHead(
-                critic_head_hidden_size,
-                1,
-                critic_head_layer_num,
-                final_tanh=False,
-                activation=activation,
-                norm_type=norm_type
-            )
-        )
 
     def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
         """
