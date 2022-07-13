@@ -35,7 +35,7 @@ game_config = EasyDict(dict(
     # test_max_episode_steps=int(1e4),
     # num_simulations=8,
     # batch_size=4,
-    # game_history_max_length=20,
+    # game_history_length=20,
     # total_transitions=int(1e5),
     # num_unroll_steps=5,
     # td_steps=5,
@@ -47,7 +47,7 @@ game_config = EasyDict(dict(
     # TODO(pu): how to set proper num_simulations?
     num_simulations=50,
     batch_size=256,
-    game_history_max_length=400,
+    game_history_length=400,
     total_transitions=int(1e5),
     num_unroll_steps=5,
     td_steps=5,
@@ -114,7 +114,7 @@ game_config = EasyDict(dict(
     transition_num=1,
     # frame skip & stack observation
     frame_skip=4,
-    stacked_observations=4,
+    frame_stack_num=4,
     # coefficient
     reward_loss_coeff=1,
     value_loss_coeff=0.25,

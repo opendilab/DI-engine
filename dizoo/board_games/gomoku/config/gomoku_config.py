@@ -11,16 +11,16 @@ game_config = EasyDict(dict(
     #  when env_num>1, the action mask for different env may be different.
     mcts_ctree=False,
     battle_mode='two_player_mode',
-    game_history_max_length=9,
+    game_history_length=9,
     # battle_mode='one_player_mode',
-    # game_history_max_length=5,
+    # game_history_length=5,
     image_based=False,
     cvt_string=False,
     clip_reward=True,
     game_wrapper=True,
     action_space_size=int(15 * 15),
     amp_type='none',
-    obs_shape=(12, 15, 15),  # if stacked_observations=4
+    obs_shape=(12, 15, 15),  # if frame_stack_num=4
     image_channel=3,
     gray_scale=False,
     downsample=False,
@@ -103,7 +103,7 @@ game_config = EasyDict(dict(
     transition_num=1,
     # frame skip & stack observation
     frame_skip=4,
-    stacked_observations=4,
+    frame_stack_num=4,
     # coefficient
     reward_loss_coeff=1,
     value_loss_coeff=0.25,

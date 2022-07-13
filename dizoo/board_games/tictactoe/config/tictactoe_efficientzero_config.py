@@ -11,7 +11,7 @@ from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 collector_env_num = 32
 evaluator_env_num = 5
 tictactoe_efficientzero_config = dict(
-    exp_name='data_ez_ptree/tictactoe_2pl_efficientzero_seed0_tp025',
+    exp_name='data_ez_ptree/tictactoe_2pl_efficientzero_seed0_tp025_debug',
     # exp_name='data_ez_ptree/tictactoe_1pl_efficientzero_seed0_tp025',
     env=dict(
         collector_env_num=collector_env_num,
@@ -31,7 +31,7 @@ tictactoe_efficientzero_config = dict(
         cuda=True,
         model=dict(
             model_type='tictactoe',
-            observation_shape=(12, 3, 3),  # if stacked_observations=4
+            observation_shape=(12, 3, 3),  # if frame_stack_nums=4
             action_space_size=9,
             downsample=False,
             num_blocks=1,
@@ -56,14 +56,14 @@ tictactoe_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             # debug
-            # update_per_collect=2,
-            # batch_size=4,
+            update_per_collect=2,
+            batch_size=4,
 
             # update_per_collect=2,
             # batch_size=256,
 
-            update_per_collect=32,
-            batch_size=256,
+            # update_per_collect=32,
+            # batch_size=256,
 
             learning_rate=0.2,
             # Frequency of target network update.

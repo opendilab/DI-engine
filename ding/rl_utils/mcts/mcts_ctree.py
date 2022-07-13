@@ -1,7 +1,8 @@
 """
 The following code is adapted from https://github.com/YeWR/EfficientZero/core/mcts.py
 """
-
+from easydict import EasyDict
+import copy
 import torch
 import numpy as np
 import ding.rl_utils.mcts.ctree.cytree as tree
@@ -10,10 +11,28 @@ from ding.model.template.efficientzero.efficientzero_base_model import inverse_s
 
 class MCTSCtree(object):
 
-    def __init__(self, config):
+    config = dict(
+        device='cpu',
+        pb_c_base=19652,
+        pb_c_init=1.25,
+        support_size=300,
+        discount=0.997,
+        num_simulations=50,
+        lstm_horizon_len=5,
+    )
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
+    def __init__(self, config=None):
+        if config is None:
+            config = config
         self.config = config
 
-    def search(self, roots, model, hidden_state_roots, reward_hidden_roots):
+    def search(self, roots, model, hidden_state_roots, reward_hidden_state_roots):
         """
         Overview:
             Do MCTS for the roots (a batch of root nodes in parallel). Parallel in model inference.
@@ -21,7 +40,7 @@ class MCTSCtree(object):
         Arguments:
             - roots (:obj:`Any`): a batch of expanded root nodes
             - hidden_state_roots (:obj:`list`): the hidden states of the roots
-            - reward_hidden_roots(:obj:`list`): the value prefix hidden states in LSTM of the roots
+            - reward_hidden_state_roots(:obj:`list`): the value prefix hidden states in LSTM of the roots
         """
         with torch.no_grad():
             model.eval()
@@ -34,8 +53,8 @@ class MCTSCtree(object):
             hidden_state_pool = [hidden_state_roots]
             # 1 x batch x 64
             # the data storage of value prefix hidden states in LSTM
-            reward_hidden_c_pool = [reward_hidden_roots[0]]
-            reward_hidden_h_pool = [reward_hidden_roots[1]]
+            reward_hidden_state_c_pool = [reward_hidden_state_roots[0]]
+            reward_hidden_state_h_pool = [reward_hidden_state_roots[1]]
 
             # the index of each layer in the tree
             hidden_state_index_x = 0
@@ -65,8 +84,8 @@ class MCTSCtree(object):
                 # obtain the states for leaf nodes
                 for ix, iy in zip(hidden_state_index_x_lst, hidden_state_index_y_lst):
                     hidden_states.append(hidden_state_pool[ix][iy])
-                    hidden_states_c_reward.append(reward_hidden_c_pool[ix][0][iy])
-                    hidden_states_h_reward.append(reward_hidden_h_pool[ix][0][iy])
+                    hidden_states_c_reward.append(reward_hidden_state_c_pool[ix][0][iy])
+                    hidden_states_h_reward.append(reward_hidden_state_h_pool[ix][0][iy])
 
                 hidden_states = torch.from_numpy(np.asarray(hidden_states)).to(device).float()
                 hidden_states_c_reward = torch.from_numpy(np.asarray(hidden_states_c_reward)).to(device).unsqueeze(0)
@@ -86,9 +105,9 @@ class MCTSCtree(object):
                         network_output.value_prefix, self.config.support_size
                     ).detach().cpu().numpy()
                     network_output.hidden_state = network_output.hidden_state.detach().cpu().numpy()
-                    network_output.reward_hidden = (
-                        network_output.reward_hidden[0].detach().cpu().numpy(),
-                        network_output.reward_hidden[1].detach().cpu().numpy()
+                    network_output.reward_hidden_state = (
+                        network_output.reward_hidden_state[0].detach().cpu().numpy(),
+                        network_output.reward_hidden_state[1].detach().cpu().numpy()
                     )
                     network_output.policy_logits = network_output.policy_logits.detach().cpu().numpy()
 
@@ -96,7 +115,7 @@ class MCTSCtree(object):
                 value_prefix_pool = network_output.value_prefix.reshape(-1).tolist()
                 value_pool = network_output.value.reshape(-1).tolist()
                 policy_logits_pool = network_output.policy_logits.tolist()
-                reward_hidden_nodes = network_output.reward_hidden
+                reward_hidden_state_nodes = network_output.reward_hidden_state
 
                 hidden_state_pool.append(hidden_state_nodes)
                 # reset 0
@@ -105,12 +124,12 @@ class MCTSCtree(object):
                 assert horizons > 0
                 reset_idx = (np.array(search_lens) % horizons == 0)
                 assert len(reset_idx) == num
-                reward_hidden_nodes[0][:, reset_idx, :] = 0
-                reward_hidden_nodes[1][:, reset_idx, :] = 0
+                reward_hidden_state_nodes[0][:, reset_idx, :] = 0
+                reward_hidden_state_nodes[1][:, reset_idx, :] = 0
                 is_reset_lst = reset_idx.astype(np.int32).tolist()
 
-                reward_hidden_c_pool.append(reward_hidden_nodes[0])
-                reward_hidden_h_pool.append(reward_hidden_nodes[1])
+                reward_hidden_state_c_pool.append(reward_hidden_state_nodes[0])
+                reward_hidden_state_h_pool.append(reward_hidden_state_nodes[1])
                 hidden_state_index_x += 1
 
                 # backpropagation along the search path to update the attributes

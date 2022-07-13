@@ -222,7 +222,7 @@ class DynamicsNetwork(nn.Module):
         # self.fc = MLP(self.lstm_hidden_size, fc_reward_layers[0], full_support_size, len(fc_reward_layers))
         self.activation = nn.ReLU()
 
-    def forward(self, x, reward_hidden):
+    def forward(self, x, reward_hidden_state):
         state = x[:, :-1, :, :]
         x = self.conv(x)
         x = self.bn(x)
@@ -240,13 +240,13 @@ class DynamicsNetwork(nn.Module):
 
         # RuntimeError: view size is not compatible with input tensor size and stride (at least one dimension spans across two contiguous subspaces)
         x = x.contiguous().view(-1, self.block_output_size_reward).unsqueeze(0)
-        value_prefix, reward_hidden = self.lstm(x, reward_hidden)
+        value_prefix, reward_hidden_state = self.lstm(x, reward_hidden_state)
         value_prefix = value_prefix.squeeze(0)
         value_prefix = self.bn_value_prefix(value_prefix)
         value_prefix = self.activation(value_prefix)
         value_prefix = self.fc(value_prefix)
 
-        return state, reward_hidden, value_prefix
+        return state, reward_hidden_state, value_prefix
 
     def get_dynamic_mean(self):
         dynamic_mean = np.abs(self.conv.weight.detach().cpu().numpy().reshape(-1)).tolist()
@@ -529,7 +529,7 @@ class EfficientZeroNet(BaseNet):
             encoded_state_normalized = renormalize(encoded_state)
             return encoded_state_normalized
 
-    def dynamics(self, encoded_state, reward_hidden, action):
+    def dynamics(self, encoded_state, reward_hidden_state, action):
         # Stack encoded_state with a game specific one hot encoded action
         action_one_hot = (
             torch.ones((
@@ -542,12 +542,12 @@ class EfficientZeroNet(BaseNet):
         action_one_hot = (action[:, :, None, None] * action_one_hot / self.action_space_size)
 
         x = torch.cat((encoded_state, action_one_hot), dim=1)
-        next_encoded_state, reward_hidden, value_prefix = self.dynamics_network(x, reward_hidden)
+        next_encoded_state, reward_hidden_state, value_prefix = self.dynamics_network(x, reward_hidden_state)
         if not self.state_norm:
-            return next_encoded_state, reward_hidden, value_prefix
+            return next_encoded_state, reward_hidden_state, value_prefix
         else:
             next_encoded_state_normalized = renormalize(next_encoded_state)
-            return next_encoded_state_normalized, reward_hidden, value_prefix
+            return next_encoded_state_normalized, reward_hidden_state, value_prefix
 
     def get_params_mean(self):
         representation_mean = self.representation_network.get_param_mean()

@@ -253,23 +253,23 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             (last_game_histories[i].obs_history[-4:] == game_histories[i].obs_history[:4]) is True
         """
         # pad over last block trajectory
-        beg_index = self.game_config.stacked_observations
+        beg_index = self.game_config.frame_stack_num
         end_index = beg_index + self.game_config.num_unroll_steps
 
         # the start 4 obs is init zero obs, so we take the 4th -(4+5）th obs as the pad obs
         pad_obs_lst = game_histories[i].obs_history[beg_index:end_index]
-        pad_child_visits_lst = game_histories[i].child_visits[beg_index:end_index]
+        pad_child_visits_lst = game_histories[i].child_visit_history[beg_index:end_index]
 
         beg_index = 0
         # self.gap_step = self.game_config.num_unroll_steps + self.game_config.td_steps
         end_index = beg_index + self.gap_step - 1
 
-        pad_reward_lst = game_histories[i].rewards[beg_index:end_index]
+        pad_reward_lst = game_histories[i].reward_history[beg_index:end_index]
 
         beg_index = 0
         end_index = beg_index + self.gap_step
 
-        pad_root_values_lst = game_histories[i].root_values[beg_index:end_index]
+        pad_root_values_lst = game_histories[i].root_value_history[beg_index:end_index]
 
         # pad over and save
         last_game_histories[i].pad_over(pad_obs_lst, pad_reward_lst, pad_root_values_lst, pad_child_visits_lst)
@@ -286,15 +286,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
             action_mask: game_history_length -> 20 
         """
 
-        last_game_histories[i].game_over()
+        last_game_histories[i].game_history_to_array()
 
         # put the game history into the pool
-        # try:
-        #     assert len(last_game_histories[i]) == len(last_game_priorities[i])
-        # except Exception as error:
-        #     print(error)
         self.trajectory_pool.append((last_game_histories[i], last_game_priorities[i], done[i]))
-        # self.free(done[i])
 
         # reset last game_histories
         last_game_histories[i] = None
@@ -343,12 +338,12 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         dones = np.array([False for _ in range(env_nums)])
         game_histories = [
             GameHistory(
-                self._env.action_space, max_length=self.game_config.game_history_max_length, config=self.game_config
+                self._env.action_space, game_history_length=self.game_config.game_history_length, config=self.game_config
             ) for _ in range(env_nums)
         ]
         for i in range(env_nums):
             game_histories[i].init(
-                [to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.stacked_observations)]
+                [to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.frame_stack_num)]
             )
 
         last_game_histories = [None for _ in range(env_nums)]
@@ -358,7 +353,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         stack_obs_windows = [[] for _ in range(env_nums)]
         for i in range(env_nums):
             stack_obs_windows[i] = [
-                to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.stacked_observations)
+                to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.frame_stack_num)
             ]
             game_histories[i].init(stack_obs_windows[i])
 
@@ -413,11 +408,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                 timesteps = self._env.step(actions)
 
-                # wrong position
-                # if two_plaer_game:
-                #     action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
-                #     to_play = [to_ndarray(timesteps[i].obs['to_play']) for i in range(env_nums)]
-
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
 
@@ -438,10 +428,11 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 else:
                     game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
 
-                # NOTE: the position is very important
+                # NOTE: the position of code snippt is very important.
+                # the obs['action_mask'] and obs['to_play'] is corresponding to next action
                 if two_plaer_game:
                     action_mask[i] = to_ndarray(obs['action_mask'])
-                    to_play[i] = to_ndarray(timesteps[i].obs['to_play'])
+                    to_play[i] = to_ndarray(obs['to_play'])
 
                 eps_reward_lst[i] += clip_reward
                 eps_ori_reward_lst[i] += ori_reward
@@ -482,7 +473,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # new GameHistory
                     game_histories[i] = GameHistory(
                         self._env.action_space,
-                        max_length=self.game_config.game_history_max_length,
+                        game_history_length=self.game_config.game_history_length,
                         config=self.game_config
                     )
                     game_histories[i].init(stack_obs_windows[i])
@@ -517,7 +508,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)
 
                     # NOTE: put the last game history in one episode into the trajectory_pool
-                    game_histories[i].game_over()
+                    game_histories[i].game_history_to_array()
 
                     # assert len(game_histories[i]) == len(priorities)
                     self.trajectory_pool.append((game_histories[i], priorities, dones[i]))
@@ -533,10 +524,10 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                     game_histories[i] = GameHistory(
                         self._env.action_space,
-                        max_length=self.game_config.game_history_max_length,
+                        game_history_length=self.game_config.game_history_length,
                         config=self.game_config
                     )
-                    stack_obs_windows[i] = [init_obs for _ in range(self.game_config.stacked_observations)]
+                    stack_obs_windows[i] = [init_obs for _ in range(self.game_config.frame_stack_num)]
                     game_histories[i].init(stack_obs_windows[i])
                     last_game_histories[i] = None
                     last_game_priorities[i] = None

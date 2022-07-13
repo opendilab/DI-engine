@@ -64,6 +64,7 @@ class TicTacToeEnv(BaseGameEnv):
             timestep_player1 = self._player_step(action)
             # self.env.render()
             if timestep_player1.done:
+                # in one_player_mode, we set to_play as None, because we don't consider the alternation between players
                 timestep_player1.obs['to_play'] = None
                 return timestep_player1
 
@@ -75,6 +76,7 @@ class TicTacToeEnv(BaseGameEnv):
             timestep_player2.info['final_eval_reward'] = - timestep_player2.reward
 
             timestep = timestep_player2
+            # in one_player_mode, we set to_play as None, because we don't consider the alternation between players
             timestep.obs['to_play'] = None
             return timestep
 

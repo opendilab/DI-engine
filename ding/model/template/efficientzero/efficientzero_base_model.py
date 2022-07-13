@@ -17,7 +17,7 @@ class NetworkOutput:
     value_prefix: float
     policy_logits: List[float]
     hidden_state: List[float]
-    reward_hidden: object
+    reward_hidden_state: object
 
 
 class BaseNet(nn.Module):

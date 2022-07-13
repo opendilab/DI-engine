@@ -23,7 +23,7 @@ gomoku_efficientzero_config = dict(
         cuda=True,
         model=dict(
             model_type='gomoku',
-            observation_shape=(12, 15, 15),  # if stacked_observations=4
+            observation_shape=(12, 15, 15),  # if frame_stack_num=4
             action_space_size=int(15 * 15),
             num_blocks=1,
             num_channels=12,

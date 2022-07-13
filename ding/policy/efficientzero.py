@@ -171,7 +171,7 @@ class EfficientZeroPolicy(Policy):
         obs_batch_ori, action_batch, mask_batch, indices, weights_lst, make_time = inputs_batch
         target_value_prefix, target_value, target_policy = targets_batch
 
-        # [:, 0: config.stacked_observations * 3,:,:]
+        # [:, 0: config.frame_stack_num * 3,:,:]
         # obs_batch_ori is the original observations in a batch
         # obs_batch is the observation for hat s_t (predicted hidden states from dynamics function)
         # obs_target_batch is the observations for s_t (hidden states from representation function)
@@ -181,7 +181,7 @@ class EfficientZeroPolicy(Policy):
             obs_batch_ori = torch.from_numpy(obs_batch_ori / 255.0).to(self.game_config.device).float()
         else:
             obs_batch_ori = torch.from_numpy(obs_batch_ori).to(self.game_config.device).float()
-        obs_batch = obs_batch_ori[:, 0:self.game_config.stacked_observations * self.game_config.image_channel, :, :]
+        obs_batch = obs_batch_ori[:, 0:self.game_config.frame_stack_num * self.game_config.image_channel, :, :]
         obs_target_batch = obs_batch_ori[:, self.game_config.image_channel:, :, :]
 
         # do augmentations
@@ -233,10 +233,10 @@ class EfficientZeroPolicy(Policy):
         value = network_output.value
         value_prefix = network_output.value_prefix
         hidden_state = network_output.hidden_state  # （2, 64, 6, 6）
-        reward_hidden = network_output.reward_hidden  # {tuple:2} (1,2,512)
+        reward_hidden_state = network_output.reward_hidden_state  # {tuple:2} (1,2,512)
         policy_logits = network_output.policy_logits  # {list: 2} {list:6}
 
-        reward_hidden = to_device(reward_hidden, self.game_config.device)
+        reward_hidden_state = to_device(reward_hidden_state, self.game_config.device)
         scaled_value = inverse_scalar_transform(value, self.game_config.support_size)
 
         # TODO(pu)
@@ -246,7 +246,7 @@ class EfficientZeroPolicy(Policy):
             scaled_value_prefix = inverse_scalar_transform(value_prefix,
                                                            self.game_config.support_size).detach().cpu().numpy()
             hidden_state = hidden_state.detach().cpu().numpy()
-            reward_hidden = (reward_hidden[0].detach().cpu().numpy(), reward_hidden[1].detach().cpu().numpy())
+            reward_hidden_state = (reward_hidden_state[0].detach().cpu().numpy(), reward_hidden_state[1].detach().cpu().numpy())
             policy_logits = policy_logits.detach().cpu().numpy()
 
         if self.game_config.vis_result:
@@ -274,12 +274,12 @@ class EfficientZeroPolicy(Policy):
         # loss of the unrolled steps
         for step_i in range(self.game_config.num_unroll_steps):
             # unroll with the dynamics function
-            network_output = self._learn_model.recurrent_inference(hidden_state, reward_hidden, action_batch[:, step_i])
+            network_output = self._learn_model.recurrent_inference(hidden_state, reward_hidden_state, action_batch[:, step_i])
             value = network_output.value
             value_prefix = network_output.value_prefix
             policy_logits = network_output.policy_logits  # {list: 2} {list:6}
             hidden_state = network_output.hidden_state  # （2, 64, 6, 6）
-            reward_hidden = network_output.reward_hidden  # {tuple:2} (1,2,512)
+            reward_hidden_state = network_output.reward_hidden_state  # {tuple:2} (1,2,512)
 
             # TODO(pu)
             if not self._learn_model.training:
@@ -288,11 +288,11 @@ class EfficientZeroPolicy(Policy):
                 value_prefix = inverse_scalar_transform(value_prefix,
                                                         self.game_config.support_size).detach().cpu().numpy()
                 hidden_state = hidden_state.detach().cpu().numpy()
-                reward_hidden = (reward_hidden[0].detach().cpu().numpy(), reward_hidden[1].detach().cpu().numpy())
+                reward_hidden_state = (reward_hidden_state[0].detach().cpu().numpy(), reward_hidden_state[1].detach().cpu().numpy())
                 policy_logits = policy_logits.detach().cpu().numpy()
 
             beg_index = self.game_config.image_channel * step_i
-            end_index = self.game_config.image_channel * (step_i + self.game_config.stacked_observations)
+            end_index = self.game_config.image_channel * (step_i + self.game_config.frame_stack_num)
 
             # consistency loss
             if self.game_config.consistency_coeff > 0:
@@ -320,7 +320,7 @@ class EfficientZeroPolicy(Policy):
 
             # reset hidden states
             if (step_i + 1) % self.game_config.lstm_horizon_len == 0:
-                reward_hidden = (
+                reward_hidden_state = (
                     torch.zeros(1, self.game_config.batch_size,
                                 self.game_config.lstm_hidden_size).to(self.game_config.device),
                     torch.zeros(1, self.game_config.batch_size,
@@ -493,7 +493,7 @@ class EfficientZeroPolicy(Policy):
             pred_values_pool = network_output.value  # {list: 2}
             policy_logits_pool = network_output.policy_logits  # {list: 2} {list:6}
             value_prefix_pool = network_output.value_prefix  # {list: 2}
-            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
+            reward_hidden_roots = network_output.reward_hidden_state  # {tuple:2} (1,2,512)
 
             # TODO(pu)
             if not self._learn_model.training:
@@ -591,7 +591,7 @@ class EfficientZeroPolicy(Policy):
             network_output = self._eval_model.initial_inference(stack_obs)
             hidden_state_roots = network_output.hidden_state  # for atari, shape（B, 64, 6, 6）
             pred_values_pool = network_output.value  # for atari, shape（B, 601）
-            reward_hidden_roots = network_output.reward_hidden  # {tuple:2} each element (1,2,512)
+            reward_hidden_roots = network_output.reward_hidden_state  # {tuple:2} each element (1,2,512)
             value_prefix_pool = network_output.value_prefix  # shape（B, 1）
             policy_logits_pool = network_output.policy_logits  # shape（B, A）
 

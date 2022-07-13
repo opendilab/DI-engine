@@ -162,6 +162,6 @@ def test_buffer_view():
 
     for i in range(10):
         buf2.push(to_list(np.multiply(i, data)), meta)
-    assert len(buf1.middleware) == 0
+
     assert buf1.count() == 1
     assert buf2.count() == 10

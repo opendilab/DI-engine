@@ -2,17 +2,15 @@
 The following code is adapted from https://github.com/YeWR/EfficientZero/blob/main/core/test.py
 """
 import pytest
-from easydict import EasyDict
 import torch
 import numpy as np
-from tqdm.auto import tqdm
 from torch.cuda.amp import autocast as autocast
 
 import ding.rl_utils.mcts.ctree.cytree as cytree
 from ding.rl_utils.mcts.game import GameHistory
 from ding.rl_utils.mcts.utils import select_action, prepare_observation_lst
-# from ding.rl_utils.mcts.mcts_ptree import MCTS
-from ding.rl_utils.mcts.mcts_ctree import MCTS
+from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTS
+from ding.rl_utils.mcts.mcts_ctree import MCTSCtree as MCTS
 
 args = ['PongNoFrameskip-v4', 'tictactoe']
 

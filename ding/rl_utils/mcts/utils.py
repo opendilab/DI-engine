@@ -168,23 +168,23 @@ def concat_output_value(output_lst):
 def concat_output(output_lst):
     # concat the model output
     value_lst, reward_lst, policy_logits_lst, hidden_state_lst = [], [], [], []
-    reward_hidden_c_lst, reward_hidden_h_lst = [], []
+    reward_hidden_state_c_lst, reward_hidden_state_h_lst = [], []
     for output in output_lst:
         value_lst.append(output.value)
         reward_lst.append(output.value_prefix)
         policy_logits_lst.append(output.policy_logits)
         hidden_state_lst.append(output.hidden_state)
-        reward_hidden_c_lst.append(output.reward_hidden[0].squeeze(0))
-        reward_hidden_h_lst.append(output.reward_hidden[1].squeeze(0))
+        reward_hidden_state_c_lst.append(output.reward_hidden_state[0].squeeze(0))
+        reward_hidden_state_h_lst.append(output.reward_hidden_state[1].squeeze(0))
 
     value_lst = np.concatenate(value_lst)
     reward_lst = np.concatenate(reward_lst)
     policy_logits_lst = np.concatenate(policy_logits_lst)
     hidden_state_lst = np.concatenate(hidden_state_lst)
-    reward_hidden_c_lst = np.expand_dims(np.concatenate(reward_hidden_c_lst), axis=0)
-    reward_hidden_h_lst = np.expand_dims(np.concatenate(reward_hidden_h_lst), axis=0)
+    reward_hidden_state_c_lst = np.expand_dims(np.concatenate(reward_hidden_state_c_lst), axis=0)
+    reward_hidden_state_h_lst = np.expand_dims(np.concatenate(reward_hidden_state_h_lst), axis=0)
 
-    return value_lst, reward_lst, policy_logits_lst, hidden_state_lst, (reward_hidden_c_lst, reward_hidden_h_lst)
+    return value_lst, reward_lst, policy_logits_lst, hidden_state_lst, (reward_hidden_state_c_lst, reward_hidden_state_h_lst)
 
 
 def mask_nan(x: torch.Tensor) -> torch.Tensor:
