@@ -199,7 +199,6 @@ class AlphaZeroPolicy(Policy):
 
 
 if __name__ == '__main__':
-    from ding.config.config import read_config_yaml
     cfg_path = os.path.join(os.getcwd(), 'alphazero_config_ding.yaml')
     cfg = read_config_yaml(cfg_path)
     policy = AlphaZeroPolicy(cfg)

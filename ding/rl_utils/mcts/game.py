@@ -131,7 +131,8 @@ class GameHistory:
             - next_block_observations (:obj:`list`):  list o_t from the next history block
             - next_block_rewards (:obj:`list`): list r_t from the next history block
             - next_block_root_values (:obj:`list`): list root values of MCTS from the next history block
-            - next_block_child_visits (:obj:`list`): list root visit count distributions of MCTS from the next history block
+            - next_block_child_visits (:obj:`list`): list root visit count distributions of MCTS from
+            the next history block
         """
         assert len(next_block_observations) <= self.config.num_unroll_steps
         assert len(next_block_child_visits) <= self.config.num_unroll_steps

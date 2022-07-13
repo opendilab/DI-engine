@@ -107,7 +107,7 @@ def test_update():
     print(buffer.sample(indices=[0]))
     assert buffer.priorities[0] == 0.999
 
-    assert buffer.update(200, data, meta_new) == False
+    assert buffer.update(200, data, meta_new) is False
 
 
 @pytest.mark.unittest

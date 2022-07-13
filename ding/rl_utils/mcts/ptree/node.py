@@ -75,7 +75,7 @@ class Node:
     def get_mean_q(self, is_root: int, parent_q: float, discount: float):
         """
         Overview:
-            
+            get mean q
         """
         total_unsigned_q = 0.0
         total_visits = 0
@@ -442,7 +442,7 @@ def batch_traverse(
 
     # TODO(pu)
     if None in results.hidden_state_index_x_lst:
-        none_index = [i for i, v in enumerate(results.hidden_state_index_x_lst) if v == None]
+        none_index = [i for i, v in enumerate(results.hidden_state_index_x_lst) if v is None]
         for index in none_index:
             results.hidden_state_index_x_lst[index] = 0
             results.hidden_state_index_y_lst[index] = index

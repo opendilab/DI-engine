@@ -6,8 +6,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 import numpy as np
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
-    create_serial_collector
+from ding.worker import BaseLearner, BaseSerialCommander, create_serial_collector
 from ding.worker.collector.base_serial_evaluator_muzero import BaseSerialEvaluatorMuZero as BaseSerialEvaluator
 
 from ding.config import read_config, compile_config
@@ -126,10 +125,12 @@ def serial_pipeline_muzero(
             except Exception as exception:
                 print(exception)
                 logging.warning(
-                    f'The data in replay_buffer is not sufficient to sample a minibatch: \
-                    batch_size: {replay_buffer.get_batch_size()} \
-                num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_histories()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
-                    continue to collect now ....'
+                    f'The data in replay_buffer is not sufficient to sample a minibatch: '
+                    f'batch_size: {replay_buffer.get_batch_size()},'
+                    f'num_of_episodes: {replay_buffer.get_num_of_episodes()}, '
+                    f'num of game historys: {replay_buffer.get_num_of_game_histories()}, '
+                    f'number of transitions: {replay_buffer.get_num_of_transitions()}, '
+                    f'continue to collect now ....'
                 )
                 break
 

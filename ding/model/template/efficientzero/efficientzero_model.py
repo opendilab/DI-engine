@@ -9,7 +9,6 @@ import numpy as np
 import torch.nn as nn
 from ding.utils import MODEL_REGISTRY
 from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize, mlp
-from ding.rl_utils.mcts.utils import mask_nan
 from ding.torch_utils.network.nn_module import MLP
 from ding.torch_utils.network.res_block import ResBlock
 
@@ -240,7 +239,8 @@ class DynamicsNetwork(nn.Module):
         x = self.bn_reward(x)
         x = self.activation(x)
 
-        # RuntimeError: view size is not compatible with input tensor size and stride (at least one dimension spans across two contiguous subspaces)
+        # RuntimeError: view size is not compatible with input tensor size and stride (at least one dimension spans
+        # across two contiguous subspaces)
         x = x.contiguous().view(-1, self.block_output_size_reward).unsqueeze(0)
         value_prefix, reward_hidden_state = self.lstm(x, reward_hidden_state)
         value_prefix = value_prefix.squeeze(0)
@@ -331,10 +331,10 @@ class PredictionNetwork(nn.Module):
             self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
         )
         # TODO(pu)
-        # self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers), activation=nn.ReLU(), init_zero=True)
-        # self.fc_policy = MLP(
-        #     self.block_output_size_policy, fc_policy_layers[0], action_space_size, len(fc_policy_layers), activation=nn.ReLU(), init_zero=True
-        # )
+        # self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers),
+        #                     activation=nn.ReLU(), init_zero=True)
+        # self.fc_policy = MLP(self.block_output_size_policy, fc_policy_layers[0], action_space_size,
+        #                      len(fc_policy_layers), activation=nn.ReLU(), init_zero=True)
         self.activation = nn.ReLU()
 
     def forward(self, x):
@@ -412,10 +412,6 @@ class EfficientZeroNet(BaseNet):
             dim of value output
         downsample: bool
             True -> do downsampling for observations. (For board games, do not need)
-        inverse_value_transform: Any
-            A function that maps value supports into value scalars
-        inverse_reward_transform: Any
-            A function that maps reward supports into value scalars
         lstm_hidden_size: int
             dim of lstm hidden
         bn_mt: float

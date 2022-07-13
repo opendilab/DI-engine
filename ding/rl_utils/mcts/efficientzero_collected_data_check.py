@@ -23,7 +23,7 @@ game_history element shape:
     child_visits： game_history_length + num_unroll_steps -> 20 +5
     to_play: game_history_length -> 20
     action_mask: game_history_length -> 20
-    
+
 game_history_t:
     obs:  4       20        5
          ----|----...----|-----|

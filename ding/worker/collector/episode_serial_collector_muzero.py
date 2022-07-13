@@ -277,13 +277,13 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         """
         Note:
             game_history element shape:
-            obs: game_history_length + stack + num_unroll_steps, 20+4 +5  
-            rew: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+3-1  
-            action: game_history_length -> 20  
+            obs: game_history_length + stack + num_unroll_steps, 20+4 +5
+            rew: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+3-1
+            action: game_history_length -> 20
             root_values:  game_history_length + num_unroll_steps + td_steps -> 20 +5+3
             child_visits： game_history_length + num_unroll_steps -> 20 +5
-            to_play: game_history_length -> 20  
-            action_mask: game_history_length -> 20 
+            to_play: game_history_length -> 20
+            action_mask: game_history_length -> 20
         """
 
         last_game_histories[i].game_history_to_array()
@@ -567,7 +567,8 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 )
                 # np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img',
                 #         self.replay_buffer.buffer)
-                # one_episode_replay_buffer_img = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img.npy',
+                # one_episode_replay_buffer_img = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config
+                # /one_episode_replay_buffer_img.npy',
                 #         allow_pickle=True)
                 del self.trajectory_pool[:]
                 break

@@ -1,8 +1,9 @@
 import pytest
 from itertools import product
 import torch
-from ding.model.template.efficientzero import EfficientZeroNet
-from ding.model.template.efficientzero.efficientzero_model import RepresentationNetwork, DynamicsNetwork
+from ding.model.template.efficientzero.efficientzero_model import DynamicsNetwork
+from ding.model.template.efficientzero.efficientzero_model import RepresentationNetworkTictactoe as \
+    RepresentationNetwork
 from ding.torch_utils import is_differentiable
 
 bs_args = [10]
@@ -13,7 +14,6 @@ reduced_channels_reward = [2]
 fc_reward_layers = [[16, 8]]
 full_support_size = [2]
 block_output_size_reward = [180]
-# dyn_args = [num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size, block_output_size_reward]
 dyn_args = list(
     product(
         num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size, block_output_size_reward
@@ -42,7 +42,8 @@ class TestEfficientZero:
         assert state.size() == obs.size()
 
     @pytest.mark.parametrize(
-        'num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,block_output_size_reward',
+        'num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,'
+        'block_output_size_reward',
         dyn_args
     )
     def test_DynamicsNetwork(

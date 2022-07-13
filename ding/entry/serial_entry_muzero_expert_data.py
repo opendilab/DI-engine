@@ -6,7 +6,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 import numpy as np
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
+from ding.worker import BaseLearner, BaseSerialCommander, \
     create_serial_collector
 from ding.worker.collector.base_serial_evaluator_muzero import BaseSerialEvaluatorMuZero as BaseSerialEvaluator
 
@@ -139,17 +139,19 @@ def serial_pipeline_muzero_expert_data(
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            # try:
-            train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
-            # except Exception as exception:
-            #     print(exception)
-            #     logging.warning(
-            #         f'The data in replay_buffer is not sufficient to sample a minibatch: \
-            #         batch_size: {replay_buffer.get_batch_size()} \
-            #     num_of_episodes: {replay_buffer.get_num_of_episodes()}, num of game historys: {replay_buffer.get_num_of_game_histories()}, number of transitions: {replay_buffer.get_num_of_transitions()}, \
-            #         continue to collect now ....'
-            #     )
-            #     break
+            try:
+                train_data = replay_buffer.sample_train_data(learner.policy.get_attribute('batch_size'), policy)
+            except Exception as exception:
+                print(exception)
+                logging.warning(
+                    f'The data in replay_buffer is not sufficient to sample a minibatch: '
+                    f'batch_size: {replay_buffer.get_batch_size()},'
+                    f'num_of_episodes: {replay_buffer.get_num_of_episodes()}, '
+                    f'num of game historys: {replay_buffer.get_num_of_game_histories()}, '
+                    f'number of transitions: {replay_buffer.get_num_of_transitions()}, '
+                    f'continue to collect now ....'
+                )
+                break
 
             learner.train(train_data, collector.envstep)
             if game_config.lr_manually:
