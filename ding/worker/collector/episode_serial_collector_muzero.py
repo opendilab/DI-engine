@@ -205,7 +205,8 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         """
         if self.game_config.use_priority and not self.game_config.use_max_priority:
             pred_values = torch.from_numpy(np.array(pred_values_lst[i])).to(self.game_config.device).float().view(-1)
-            search_values = torch.from_numpy(np.array(search_values_lst[i])).to(self.game_config.device).float().view(-1)
+            search_values = torch.from_numpy(np.array(search_values_lst[i])).to(self.game_config.device
+                                                                                ).float().view(-1)
             priorities = L1Loss(reduction='none'
                                 )(pred_values,
                                   search_values).detach().cpu().numpy() + self.game_config.prioritized_replay_eps
@@ -273,7 +274,6 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
         # pad over and save
         last_game_histories[i].pad_over(pad_obs_lst, pad_reward_lst, pad_root_values_lst, pad_child_visits_lst)
-
         """
         Note:
             game_history element shape:
@@ -338,7 +338,9 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         dones = np.array([False for _ in range(env_nums)])
         game_histories = [
             GameHistory(
-                self._env.action_space, game_history_length=self.game_config.game_history_length, config=self.game_config
+                self._env.action_space,
+                game_history_length=self.game_config.game_history_length,
+                config=self.game_config
             ) for _ in range(env_nums)
         ]
         for i in range(env_nums):
@@ -457,9 +459,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                     # pad over last block trajectory
                     if last_game_histories[i] is not None:
                         # TODO(pu): return the one game history
-                        self.put_last_trajectory(
-                            i, last_game_histories, last_game_priorities, game_histories, dones
-                        )
+                        self.put_last_trajectory(i, last_game_histories, last_game_priorities, game_histories, dones)
 
                     # calculate priority
                     priorities = self.get_priorities(i, pred_values_lst, search_values_lst)

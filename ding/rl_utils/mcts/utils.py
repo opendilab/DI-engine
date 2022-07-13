@@ -184,7 +184,9 @@ def concat_output(output_lst):
     reward_hidden_state_c_lst = np.expand_dims(np.concatenate(reward_hidden_state_c_lst), axis=0)
     reward_hidden_state_h_lst = np.expand_dims(np.concatenate(reward_hidden_state_h_lst), axis=0)
 
-    return value_lst, reward_lst, policy_logits_lst, hidden_state_lst, (reward_hidden_state_c_lst, reward_hidden_state_h_lst)
+    return value_lst, reward_lst, policy_logits_lst, hidden_state_lst, (
+        reward_hidden_state_c_lst, reward_hidden_state_h_lst
+    )
 
 
 def mask_nan(x: torch.Tensor) -> torch.Tensor:

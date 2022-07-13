@@ -30,7 +30,7 @@ class GameBaseConfig(object):
             if trained_steps < 0.5 * self.max_training_steps:
                 return 1.0
             elif trained_steps < 0.75 * self.max_training_steps:
-                return 0.5 
+                return 0.5
             else:
                 return 0.25
         else:
@@ -137,4 +137,3 @@ class GameBaseConfig(object):
             init_zero=self.init_zero,
             state_norm=self.state_norm
         )
-

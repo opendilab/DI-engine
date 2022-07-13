@@ -158,8 +158,10 @@ class EfficientZeroPolicy(Policy):
         # self.game_config = self._cfg.game_config
         self.game_config = game_config
         if self.game_config.use_augmentation:
-            self.transforms = Transforms(self.game_config.augmentation,
-                                    image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2]))
+            self.transforms = Transforms(
+                self.game_config.augmentation,
+                image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2])
+            )
 
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()
@@ -246,7 +248,9 @@ class EfficientZeroPolicy(Policy):
             scaled_value_prefix = inverse_scalar_transform(value_prefix,
                                                            self.game_config.support_size).detach().cpu().numpy()
             hidden_state = hidden_state.detach().cpu().numpy()
-            reward_hidden_state = (reward_hidden_state[0].detach().cpu().numpy(), reward_hidden_state[1].detach().cpu().numpy())
+            reward_hidden_state = (
+                reward_hidden_state[0].detach().cpu().numpy(), reward_hidden_state[1].detach().cpu().numpy()
+            )
             policy_logits = policy_logits.detach().cpu().numpy()
 
         if self.game_config.vis_result:
@@ -274,7 +278,9 @@ class EfficientZeroPolicy(Policy):
         # loss of the unrolled steps
         for step_i in range(self.game_config.num_unroll_steps):
             # unroll with the dynamics function
-            network_output = self._learn_model.recurrent_inference(hidden_state, reward_hidden_state, action_batch[:, step_i])
+            network_output = self._learn_model.recurrent_inference(
+                hidden_state, reward_hidden_state, action_batch[:, step_i]
+            )
             value = network_output.value
             value_prefix = network_output.value_prefix
             policy_logits = network_output.policy_logits  # {list: 2} {list:6}
@@ -288,7 +294,9 @@ class EfficientZeroPolicy(Policy):
                 value_prefix = inverse_scalar_transform(value_prefix,
                                                         self.game_config.support_size).detach().cpu().numpy()
                 hidden_state = hidden_state.detach().cpu().numpy()
-                reward_hidden_state = (reward_hidden_state[0].detach().cpu().numpy(), reward_hidden_state[1].detach().cpu().numpy())
+                reward_hidden_state = (
+                    reward_hidden_state[0].detach().cpu().numpy(), reward_hidden_state[1].detach().cpu().numpy()
+                )
                 policy_logits = policy_logits.detach().cpu().numpy()
 
             beg_index = self.game_config.image_channel * step_i
@@ -313,7 +321,9 @@ class EfficientZeroPolicy(Policy):
 
             policy_loss += self.game_config.modified_cross_entropy_loss(policy_logits, target_policy[:, step_i + 1])
             value_loss += self.game_config.modified_cross_entropy_loss(value, target_value_phi[:, step_i + 1])
-            value_prefix_loss += self.game_config.modified_cross_entropy_loss(value_prefix, target_value_prefix_phi[:, step_i])
+            value_prefix_loss += self.game_config.modified_cross_entropy_loss(
+                value_prefix, target_value_prefix_phi[:, step_i]
+            )
 
             # Follow MuZero, set half gradient
             # hidden_state.register_hook(lambda grad: grad * 0.5)
@@ -512,8 +522,8 @@ class EfficientZeroPolicy(Policy):
                 action_num = int(action_mask[0].sum())
                 roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
                 noises = [
-                    np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(
-                        np.float32).tolist()
+                    np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(np.float32
+                                                                                                     ).tolist()
                     for j in range(self.game_config.collector_env_num)
                 ]
                 roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
@@ -522,13 +532,15 @@ class EfficientZeroPolicy(Policy):
             else:
                 # python mcts
                 legal_actions = [
-                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.collector_env_num)
+                    [i for i, x in enumerate(action_mask[j]) if x == 1]
+                    for j in range(self.game_config.collector_env_num)
                 ]
                 roots = tree.Roots(self.game_config.collector_env_num, legal_actions, self.game_config.num_simulations)
                 # the only difference between collect and eval is the dirichlet noise
                 noises = [
                     np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))
-                                        ).astype(np.float32).tolist() for j in range(self.game_config.collector_env_num)
+                                        ).astype(np.float32).tolist()
+                    for j in range(self.game_config.collector_env_num)
                 ]
                 roots.prepare(
                     self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play
@@ -598,8 +610,8 @@ class EfficientZeroPolicy(Policy):
             # TODO(pu)
             if not self._eval_model.training:
                 # if not in training, obtain the scalars of the value/reward
-                pred_values_pool = inverse_scalar_transform(pred_values_pool,
-                                                            self.game_config.support_size).detach().cpu().numpy()  # shape（B, 1）
+                pred_values_pool = inverse_scalar_transform(pred_values_pool, self.game_config.support_size
+                                                            ).detach().cpu().numpy()  # shape（B, 1）
                 hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
                 reward_hidden_roots = (
                     reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy()
@@ -617,7 +629,8 @@ class EfficientZeroPolicy(Policy):
             else:
                 # python mcts
                 legal_actions = [
-                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in range(self.game_config.evaluator_env_num)
+                    [i for i, x in enumerate(action_mask[j]) if x == 1]
+                    for j in range(self.game_config.evaluator_env_num)
                 ]
                 roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
 
@@ -636,7 +649,12 @@ class EfficientZeroPolicy(Policy):
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
-                output[i] = {'action': action, 'distributions': distributions, 'value': value, ' policy_logits_pool': policy_logits_pool}
+                output[i] = {
+                    'action': action,
+                    'distributions': distributions,
+                    'value': value,
+                    ' policy_logits_pool': policy_logits_pool
+                }
                 # print('eval:',output[i])
 
         return output

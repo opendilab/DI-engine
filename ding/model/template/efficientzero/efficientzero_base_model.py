@@ -97,7 +97,8 @@ def inverse_scalar_transform(logits, support_size, epsilon=0.001):
     sign[value < 0] = -1.0
     output = (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
     output = sign * output * delta
-    output = mask_nan(output)
+    # TODO(pu)
+    # output = mask_nan(output)
     output[torch.abs(output) < epsilon] = 0.
 
     return output
@@ -142,13 +143,10 @@ def mlp(
     for i in range(len(sizes) - 1):
         if i < len(sizes) - 2:
             act = activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]),
-                       nn.BatchNorm1d(sizes[i + 1], momentum=momentum),
-                       act()]
+            layers += [nn.Linear(sizes[i], sizes[i + 1]), nn.BatchNorm1d(sizes[i + 1], momentum=momentum), act()]
         else:
             act = output_activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]),
-                       act()]
+            layers += [nn.Linear(sizes[i], sizes[i + 1]), act()]
 
     if init_zero:
         layers[-2].weight.data.fill_(0)

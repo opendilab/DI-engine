@@ -303,7 +303,7 @@ def MLP(
     norm_type: str = None,
     use_dropout: bool = False,
     dropout_probability: float = 0.5,
-    init_zero: bool=False,
+    init_zero: bool = False,
 ):
     r"""
     Overview:

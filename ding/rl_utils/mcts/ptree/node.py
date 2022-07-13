@@ -36,8 +36,8 @@ class Node:
         self.hidden_state_index_y = 0
 
     def expand(
-            self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
-            policy_logits: List[float]
+        self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
+        policy_logits: List[float]
     ):
         self.to_play = to_play
         if self.legal_actions is None:
@@ -297,7 +297,7 @@ def back_propagate(search_path, min_max_stats, to_play, value: float, discount: 
             if is_reset == 1:
                 true_reward = node.value_prefix
             # to_play related
-            bootstrap_value = (- true_reward if node.to_play == to_play else true_reward) + discount * bootstrap_value
+            bootstrap_value = (-true_reward if node.to_play == to_play else true_reward) + discount * bootstrap_value
 
         min_max_stats.clear()
         root = search_path[0]
@@ -356,16 +356,16 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
 
 
 def ucb_score(
-        child: Node,
-        min_max_stats,
-        parent_mean_q,
-        is_reset: int,
-        total_children_visit_counts: float,
-        parent_value_prefix: float,
-        pb_c_base: float,
-        pb_c_init: float,
-        discount: float,
-        players=1
+    child: Node,
+    min_max_stats,
+    parent_mean_q,
+    is_reset: int,
+    total_children_visit_counts: float,
+    parent_value_prefix: float,
+    pb_c_base: float,
+    pb_c_init: float,
+    discount: float,
+    players=1
 ):
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))
@@ -392,8 +392,7 @@ def ucb_score(
 
 
 def batch_traverse(
-        roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults,
-        virtual_to_play
+    roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults, virtual_to_play
 ):
     parent_q = 0.0
     results.search_lens = [None for i in range(results.num)]

@@ -159,8 +159,10 @@ class EfficientZeroExertDataPolicy(Policy):
         # self.game_config = self._cfg.game_config
         self.game_config = game_config
         if self.game_config.use_augmentation:
-            self.transforms = Transforms(self.game_config.augmentation,
-                                         image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2]))
+            self.transforms = Transforms(
+                self.game_config.augmentation,
+                image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2])
+            )
 
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()
@@ -314,8 +316,9 @@ class EfficientZeroExertDataPolicy(Policy):
 
             policy_loss += self.game_config.modified_cross_entropy_loss(policy_logits, target_policy[:, step_i + 1])
             value_loss += self.game_config.modified_cross_entropy_loss(value, target_value_phi[:, step_i + 1])
-            value_prefix_loss += self.game_config.modified_cross_entropy_loss(value_prefix,
-                                                                              target_value_prefix_phi[:, step_i])
+            value_prefix_loss += self.game_config.modified_cross_entropy_loss(
+                value_prefix, target_value_prefix_phi[:, step_i]
+            )
 
             # Follow MuZero, set half gradient
             # hidden_state.register_hook(lambda grad: grad * 0.5)
@@ -367,8 +370,8 @@ class EfficientZeroExertDataPolicy(Policy):
         # ----------------------------------------------------------------------------------
         # weighted loss with masks (some invalid states which are out of trajectory.)
         loss = (
-                self.game_config.consistency_coeff * consistency_loss + self.game_config.policy_loss_coeff * policy_loss +
-                self.game_config.value_loss_coeff * value_loss + self.game_config.reward_loss_coeff * value_prefix_loss
+            self.game_config.consistency_coeff * consistency_loss + self.game_config.policy_loss_coeff * policy_loss +
+            self.game_config.value_loss_coeff * value_loss + self.game_config.reward_loss_coeff * value_prefix_loss
         )
         weighted_loss = (weights * loss).mean()
 
@@ -402,17 +405,17 @@ class EfficientZeroExertDataPolicy(Policy):
 
             # reward l1 loss
             value_prefix_indices_0 = (
-                    target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 0
+                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 0
             )
             value_prefix_indices_n1 = (
-                    target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == -1
+                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == -1
             )
             value_prefix_indices_1 = (
-                    target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 1
+                target_value_prefix_cpu[:, :self.game_config.num_unroll_steps].reshape(-1).unsqueeze(-1) == 1
             )
 
             target_value_prefix_base = target_value_prefix_cpu[:, :self.game_config.
-                num_unroll_steps].reshape(-1).unsqueeze(-1)
+                                                               num_unroll_steps].reshape(-1).unsqueeze(-1)
 
             predicted_value_prefixs = torch.stack(predicted_value_prefixs).transpose(1, 0).squeeze(-1)
             predicted_value_prefixs = predicted_value_prefixs.reshape(-1).unsqueeze(-1)
@@ -494,12 +497,16 @@ class EfficientZeroExertDataPolicy(Policy):
         value = np.ones(1, dtype=np.float32)
         pred_values_pool = np.ones(1, dtype=np.float32)
         for k, v in output_augment.items():
-            v.update({'action': int(to_ndarray(output['action'])),
-                      'distributions': distributions,
-                      'visit_entropy': visit_entropy,
-                      'value': value,
-                      'pred_value': pred_values_pool,
-                      'policy_logits': output['logit'], })
+            v.update(
+                {
+                    'action': int(to_ndarray(output['action'])),
+                    'distributions': distributions,
+                    'visit_entropy': visit_entropy,
+                    'value': value,
+                    'pred_value': pred_values_pool,
+                    'policy_logits': output['logit'],
+                }
+            )
         return output_augment
 
     def _init_eval(self) -> None:
@@ -539,8 +546,8 @@ class EfficientZeroExertDataPolicy(Policy):
             # TODO(pu)
             if not self._eval_model.training:
                 # if not in training, obtain the scalars of the value/reward
-                pred_values_pool = inverse_scalar_transform(pred_values_pool,
-                                                            self.game_config.support_size).detach().cpu().numpy()  # shape（B, 1）
+                pred_values_pool = inverse_scalar_transform(pred_values_pool, self.game_config.support_size
+                                                            ).detach().cpu().numpy()  # shape（B, 1）
                 hidden_state_roots = hidden_state_roots.detach().cpu().numpy()
                 reward_hidden_roots = (
                     reward_hidden_roots[0].detach().cpu().numpy(), reward_hidden_roots[1].detach().cpu().numpy()
@@ -558,8 +565,8 @@ class EfficientZeroExertDataPolicy(Policy):
             else:
                 # python mcts
                 legal_actions = [
-                    [i for i, x in enumerate(action_mask[j]) if x == 1] for j in
-                    range(self.game_config.evaluator_env_num)
+                    [i for i, x in enumerate(action_mask[j]) if x == 1]
+                    for j in range(self.game_config.evaluator_env_num)
                 ]
                 roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
 
@@ -578,8 +585,12 @@ class EfficientZeroExertDataPolicy(Policy):
                 action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
-                output[i] = {'action': action, 'distributions': distributions, 'value': value,
-                             ' policy_logits_pool': policy_logits_pool}
+                output[i] = {
+                    'action': action,
+                    'distributions': distributions,
+                    'value': value,
+                    ' policy_logits_pool': policy_logits_pool
+                }
                 # print('eval:',output[i])
 
         return output
