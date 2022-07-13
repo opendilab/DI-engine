@@ -604,6 +604,11 @@ class DIStarPolicy(Policy):
         }
 
         teacher_model_input = default_collate([teacher_obs])
+        if teacher_model_input['action_info'].get('selected_units') is not None and teacher_model_input['action_info'][
+                'selected_units'].shape == torch.Size([1]):
+            teacher_model_input['action_info']['selected_units'] = torch.unsqueeze(
+                teacher_model_input['action_info']['selected_units'], dim=0
+            )
 
         if self._cfg.cuda:
             teacher_model_input = to_device(teacher_model_input, self._device)
