@@ -6,6 +6,7 @@ import torch
 from torch import nn
 
 from scipy.spatial import KDTree
+from functools import partial
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.torch_utils import unsqueeze_repeat
@@ -14,7 +15,12 @@ from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 
 
 #======================= Helper functions =======================
-def get_neighbor_index(data, k):
+# tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
+def tree_query(datapoint, tree, k):
+    return tree.query(datapoint, k=k + 1)[1][1:]
+
+
+def get_neighbor_index(data, k, serial=False):
     """
         data: [B, N]
         k: int
@@ -23,16 +29,16 @@ def get_neighbor_index(data, k):
     """
     data = data.cpu().numpy()
     tree = KDTree(data)
-    global tree_query
 
-    # tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
-    def tree_query(datapoint):
-        return tree.query(datapoint, k=k + 1)[1][1:]
-
-    # TODO: multiprocessing
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-    nn_index = torch.from_numpy(np.array(list(pool.map(tree_query, data)), dtype=np.int32)).to(torch.long)
-    pool.close()
+    if serial:
+        nn_index = [torch.from_numpy(np.array(tree_query(d, tree, k))) for d in data]
+        nn_index = torch.stack(nn_index).long()
+    else:
+        # TODO: speed up multiprocessing
+        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+        fn = partial(tree_query, tree=tree, k=k)
+        nn_index = torch.from_numpy(np.array(list(pool.map(fn, data)), dtype=np.int32)).to(torch.long)
+        pool.close()
     return nn_index
 
 
@@ -138,6 +144,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         self.elite_model_idxes_gradient_model = []
 
         self.last_train_step_gradient_model = 0
+        self.serial_calc_nn = False
 
         if self._cuda:
             self.cuda()
@@ -151,7 +158,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             def forward(ctx, x):
                 ctx.save_for_backward(x)
                 mean, var = self.rollout_model(x, ret_log_var=False)
-                return torch.concat([mean, var], dim=-1)
+                return torch.cat([mean, var], dim=-1)
 
             @staticmethod
             def backward(ctx, grad_out):
@@ -160,7 +167,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
                     x = x.detach()
                     x.requires_grad_(True)
                     mean, var = self.gradient_model(x, ret_log_var=False)
-                    y = torch.concat([mean, var], dim=-1)
+                    y = torch.cat([mean, var], dim=-1)
                     return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
 
         if len(act.shape) == 1:
@@ -391,7 +398,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         #no split and normalization on regulation data
         train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
 
-        neighbor_index = get_neighbor_index(train_inputs_reg, self.k)
+        neighbor_index = get_neighbor_index(train_inputs_reg, self.k, serial=self.serial_calc_nn)
         neighbor_inputs = train_inputs_reg[neighbor_index]  # [N, k, state_size+action_size]
         neighbor_labels = train_labels_reg[neighbor_index]  # [N, k, state_size+reward_size]
         neighbor_inputs_distance = (neighbor_inputs - train_inputs_reg.unsqueeze(1))  # [N, k, state_size+action_size]
