@@ -8,7 +8,7 @@ from dizoo.board_games.atari.config.atari_config import game_config
 collector_env_num = 1
 evaluator_env_num = 3
 atari_efficientzero_config = dict(
-    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_upc200_dqnexpertdata',
+    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_upc200_tp025_dqnexpertdata',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -16,11 +16,12 @@ atari_efficientzero_config = dict(
         stop_value=20,
         env_name='PongNoFrameskip-v4',
         frame_skip=4,
-        # obs_shape=(12, 96, 96),
-        obs_shape=(12, 84, 84),
         max_episode_steps=int(1.08e5),
         episode_life=True,
-        gray_scale=False,
+        # gray_scale=False,
+        # obs_shape=(12, 84, 84),
+        gray_scale=True,
+        obs_shape=(4, 84, 84),
         cvt_string=True,
         game_wrapper=True,
         dqn_expert_data=True,
@@ -37,7 +38,7 @@ atari_efficientzero_config = dict(
         model=dict(
             model_type='atari',
             # observation_shape=(12, 96, 96),  # 3,96,96 stack=4
-            observation_shape=(12, 84, 84),  # 3,96,96 stack=4
+            observation_shape=(4, 84, 84),
             action_space_size=6,
             downsample=True,
             num_blocks=1,
@@ -62,7 +63,7 @@ atari_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             # debug
-            # update_per_collect=8,
+            # update_per_collect=1,
             # batch_size=4,
 
             update_per_collect=200,  # TODO(pu): 1000
@@ -112,11 +113,6 @@ atari_efficientzero_create_config = dict(
 atari_efficientzero_create_config = EasyDict(atari_efficientzero_create_config)
 create_config = atari_efficientzero_create_config
 
-collect_model_config = EasyDict(dict(
-    obs_shape=[4, 84, 84],
-    action_shape=6,
-    encoder_hidden_size_list=[128, 128, 512],
-))
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero_expert_data

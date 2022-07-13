@@ -15,10 +15,14 @@ game_config = EasyDict(dict(
     game_wrapper=True,
     action_space_size=6,
     amp_type='none',
+    # gray_scale=False,
     # obs_shape=(12, 96, 96),
-    obs_shape=(12, 84, 84),
-    image_channel=3,
-    gray_scale=False,
+    # obs_shape=(12, 84, 84),
+    # image_channel=3,
+    gray_scale=True,
+    image_channel=1,
+    obs_shape=(4, 84, 84),
+
     downsample=True,
     vis_result=True,
     # TODO(pu): test the effect of augmentation
@@ -30,9 +34,9 @@ game_config = EasyDict(dict(
     # debug
     # collector_env_num=1,
     # evaluator_env_num=1,
-    # max_episode_steps=int(1e4),
-    # test_max_episode_steps=int(1e4),
-    # num_simulations=8,
+    # max_episode_steps=int(100),
+    # test_max_episode_steps=int(100),
+    # num_simulations=2,
     # batch_size=4,
     # game_history_max_length=20,
     # total_transitions=int(1e5),
@@ -64,7 +68,7 @@ game_config = EasyDict(dict(
 
     # TODO(pu): only used for adjust temperature manually
     max_training_steps=int(1e5),
-    auto_temperature=True,
+    auto_temperature=False,
     # only effective when auto_temperature=False
     fixed_temperature_value=0.25,
     # TODO(pu): whether to use root value in reanalyzing?

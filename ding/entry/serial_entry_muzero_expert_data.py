@@ -65,9 +65,14 @@ def serial_pipeline_muzero_expert_data(
 
     # load pretrained dqn model
     if cfg.policy.collect_model_path is not None:
-        policy._collect_model = model_wrap(collect_model.cuda(), wrapper_name='eps_greedy_sample')
-        policy._collect_model.reset()
-        policy._collect_model.load_state_dict(torch.load(cfg.policy.collect_model_path, map_location='cuda')['model'])
+        if game_config.device == 'cuda':
+            policy._collect_model = model_wrap(collect_model.cuda(), wrapper_name='eps_greedy_sample')
+            policy._collect_model.reset()
+            policy._collect_model.load_state_dict(torch.load(cfg.policy.collect_model_path, map_location='cuda')['model'])
+        else:
+            policy._collect_model = model_wrap(collect_model, wrapper_name='eps_greedy_sample')
+            policy._collect_model.reset()
+            policy._collect_model.load_state_dict(torch.load(cfg.policy.collect_model_path, map_location='cpu')['model'])
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))

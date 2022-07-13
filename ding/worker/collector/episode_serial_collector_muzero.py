@@ -413,6 +413,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                 timesteps = self._env.step(actions)
 
+                # wrong position
                 # if two_plaer_game:
                 #     action_mask = [to_ndarray(timesteps[i].obs['action_mask']) for i in range(env_nums)]
                 #     to_play = [to_ndarray(timesteps[i].obs['to_play']) for i in range(env_nums)]
