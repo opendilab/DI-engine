@@ -960,7 +960,7 @@ class PPOOffPolicy(Policy):
 class PPOSTDIMPolicy(PPOPolicy):
     r"""
     Overview:
-        Policy class of on policy version PPO algorithm.
+        Policy class of on policy version PPO algorithm with ST-DIM auxiliary model.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
