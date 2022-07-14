@@ -167,7 +167,7 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('ppo_stdim_command')
-class PPOCommandModePolicy(PPOSTDIMPolicy, DummyCommandModePolicy):
+class PPOSTDIMCommandModePolicy(PPOSTDIMPolicy, DummyCommandModePolicy):
     pass
 
 

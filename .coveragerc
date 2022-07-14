@@ -10,6 +10,7 @@ omit =
   ding/utils/data/tests/test_dataloader.py
   ding/config/utils.py
   ding/entry/tests/test_serial_entry_algo.py
+  ding/entry/tests/test_serial_entry_onpolicy.py
   ding/entry/tests/test_serial_entry.py
   ding/entry/dist_entry.py
   ding/entry/cli.py
