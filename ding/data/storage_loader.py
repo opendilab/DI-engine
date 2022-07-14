@@ -30,24 +30,24 @@ class StorageLoader(Supervisor, ABC):
     def __init__(self, worker_num: int = 3) -> None:
         super().__init__(type_=ChildType.PROCESS)
         self._load_lock = Lock()  # Load (first meet) should be called one by one.
-        self._load_queue = queue.Queue()  # Queue to be sent to child processes.
         self._callback_map: Dict[str, Callable] = {}
         self._shm_obj_map: Dict[int, SharedObject] = {}
-        self._idle_proc_ids = set()
         self._worker_num = worker_num
+        self._req_count = 0
 
     def shutdown(self, timeout: Optional[float] = None) -> None:
         super().shutdown(timeout)
         self._recv_loop = None
-        self._send_loop = None
 
     def start_link(self) -> None:
         if not self._running:
             super().start_link()
             self._recv_loop = Thread(target=self._loop_recv, daemon=True)
             self._recv_loop.start()
-            self._send_loop = Thread(target=self._loop_send, daemon=True)
-            self._send_loop.start()
+
+    @property
+    def _next_proc_id(self):
+        return self._req_count % self._worker_num
 
     @abstractmethod
     def to_storage(self, obj: Union[Dict, List]) -> Storage:
@@ -58,7 +58,11 @@ class StorageLoader(Supervisor, ABC):
             if not self._running:
                 self._first_meet(storage, callback)
                 return
-        self._load_queue.put([storage, callback])
+
+        payload = SendPayload(proc_id=self._next_proc_id, method="load", args=[storage])
+        self._callback_map[payload.req_id] = callback
+        self.send(payload)
+        self._req_count += 1
 
     def _first_meet(self, storage: Storage, callback: Callable):
         """
@@ -72,7 +76,6 @@ class StorageLoader(Supervisor, ABC):
             shm_obj = self._create_shared_object(obj)
             self._shm_obj_map[i] = shm_obj
             self.register(StorageWorker, shared_object=shm_obj)
-        self._idle_proc_ids = set(range(self._worker_num))
         self.start_link()
         callback(obj)
 
@@ -88,17 +91,6 @@ class StorageLoader(Supervisor, ABC):
                 if payload.req_id in self._callback_map:
                     callback = self._callback_map.pop(payload.req_id)
                     callback(payload.data)
-            self._idle_proc_ids.add(payload.proc_id)
-
-    def _loop_send(self):
-        while True:
-            storage, callback = self._load_queue.get()
-            while not self._idle_proc_ids:
-                sleep(0.01)
-            proc_id = self._idle_proc_ids.pop()
-            payload = SendPayload(proc_id=proc_id, method="load", args=[storage])
-            self._callback_map[payload.req_id] = callback
-            self.send(payload)
 
     def _create_shared_object(self, obj: Union[Dict, List]) -> SharedObject:
         """
