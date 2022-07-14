@@ -208,3 +208,57 @@ def ppo_error_continuous(
         value_loss = 0.5 * ((return_ - value_new).pow(2) * weight).mean()
 
     return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
+
+
+def ppo_policy_error_continuous(
+        data: namedtuple,
+        clip_ratio: float = 0.2,
+        dual_clip: Optional[float] = None
+) -> Tuple[namedtuple, namedtuple]:
+    """
+    Overview:
+        Implementation of Proximal Policy Optimization (arXiv:1707.06347) with dual_clip
+    Arguments:
+        - data (:obj:`namedtuple`): the ppo input data with fieids shown in ``ppo_data``
+        - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
+        - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
+        defaults to 5.0, if you don't want to use it, set this parameter to None
+    Returns:
+        - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
+        - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
+    Shapes:
+        - mu_sigma_new (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
+        - mu_sigma_old (:obj:`tuple`): :math:`((B, N), (B, N))`, where B is batch size and N is action dim
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
+        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
+    """
+    assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
+        dual_clip
+    )
+    mu_sigma_new, mu_sigma_old, action, adv, weight = data
+    if weight is None:
+        weight = torch.ones_like(adv)
+
+    dist_new = Independent(Normal(mu_sigma_new['mu'], mu_sigma_new['sigma']), 1)
+    if len(mu_sigma_old['mu'].shape) == 1:
+        dist_old = Independent(Normal(mu_sigma_old['mu'].unsqueeze(-1), mu_sigma_old['sigma'].unsqueeze(-1)), 1)
+    else:
+        dist_old = Independent(Normal(mu_sigma_old['mu'], mu_sigma_old['sigma']), 1)
+    logp_new = dist_new.log_prob(action)
+    logp_old = dist_old.log_prob(action)
+    entropy_loss = (dist_new.entropy() * weight).mean()
+    # policy_loss
+    ratio = torch.exp(logp_new - logp_old)
+    surr1 = ratio * adv
+    surr2 = ratio.clamp(1 - clip_ratio, 1 + clip_ratio) * adv
+    if dual_clip is not None:
+        policy_loss = (-torch.max(torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
+    else:
+        policy_loss = (-torch.min(surr1, surr2) * weight).mean()
+    with torch.no_grad():
+        approx_kl = (logp_old - logp_new).mean().item()
+        clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
+        clipfrac = torch.as_tensor(clipped).float().mean().item()
+    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
