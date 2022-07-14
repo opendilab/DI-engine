@@ -32,6 +32,7 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
+from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
 
 from .dqfd import DQFDPolicy
@@ -348,4 +349,9 @@ class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ibc_command')
 class IBCCommandModePolicy(IBCPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('bc_command')
+class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
     pass

@@ -66,7 +66,7 @@ def serial_pipeline_offline(
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'eval'])
 
     # Normalization for state in offlineRL dataset.
-    if cfg.policy.collect.get('normalize_states', None):
+    if cfg.policy.collect.get('normalize_states', None) and hasattr(policy, 'set_norm_statistics'):
         policy.set_norm_statistics(dataset.statistics)
 
     # Main components
