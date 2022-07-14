@@ -111,7 +111,7 @@ class BattleTransitionList:
         for i in range(num_complele_trajectory):
             trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
             # TODO(zms): 测试专用，之后去掉
-            trajectory.append(rl_step_data(last=True))
+            # trajectory.append(rl_step_data(last=True))
             return_episode.append(trajectory)
 
         if num_tail_transitions > 0:
@@ -122,7 +122,7 @@ class BattleTransitionList:
                     initial_elements.append(trajectory[0])
                 trajectory = initial_elements + trajectory
             # TODO(zms): 测试专用，之后去掉
-            trajectory.append(rl_step_data(last=True))
+            # trajectory.append(rl_step_data(last=True))
             return_episode.append(trajectory)
 
         return return_episode  # list of trajectories

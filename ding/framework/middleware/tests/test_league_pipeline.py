@@ -65,7 +65,7 @@ class PrepareTest():
 
     @classmethod
     def collect_policy_fn(cls):
-        policy = DIStarMockPolicyCollect()
+        policy = DIStarMockPolicy(DIStarMockPolicy.default_config(), enable_field=['collect'])
         return policy
 
 

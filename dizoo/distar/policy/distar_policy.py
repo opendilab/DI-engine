@@ -120,6 +120,7 @@ class DIStarPolicy(Policy):
         clip_bo=False,  # clip the length of teacher's building order to agent's length
         z_path='7map_filter_spine.json',
         realtime=False,  #TODO(zms): set from env, need to use only one cfg define policy and env
+        model_path='sl_model.pth',
         teacher_model_path='sl_model.pth',
     )
 
@@ -141,6 +142,11 @@ class DIStarPolicy(Policy):
 
     def _init_learn(self):
         self._learn_model = model_wrap(self._model, 'base')
+        # TODO(zms): maybe initialize state_dict inside learner
+        learn_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
+        learn_state_dict = torch.load(learn_model_path)
+        self._load_state_dict_learn(learn_state_dict)
+
         self.head_types = ['action_type', 'delay', 'queued', 'target_unit', 'selected_units', 'target_location']
         # policy parameters
         self.gammas = self._cfg.gammas
@@ -362,8 +368,9 @@ class DIStarPolicy(Policy):
         }
 
     def _load_state_dict_learn(self, _state_dict: Dict) -> None:
-        self._learn_model.load_state_dict(_state_dict['model'])
-        self.optimizer.load_state_dict(_state_dict['optimizer'])
+        self._learn_model.load_state_dict(_state_dict['model'], strict=False)
+        if 'optimizer' in _state_dict:
+            self.optimizer.load_state_dict(_state_dict['optimizer'])
 
     def _load_state_dict_collect(self, _state_dict: Dict) -> None:
         #TODO(zms): need to load state_dict after collect, which is very dirty and need to rewrite
@@ -379,6 +386,11 @@ class DIStarPolicy(Policy):
 
     def _init_collect(self):
         self._collect_model = model_wrap(self._model, 'base')
+        # TODO(zms): maybe initialize state_dict inside actor
+        collect_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
+        collect_state_dict = torch.load(collect_model_path)
+        self._load_state_dict_collect(collect_state_dict)
+
         self.only_cum_action_kl = False
         self.z_path = self._cfg.z_path
         self.z_idx = None

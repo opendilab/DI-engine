@@ -139,12 +139,6 @@ class StepLeagueActor:
 
         main_player, ctx.current_policies = self._get_current_policies(job)
 
-        #TODO(zms): only for test pretrained model
-        rl_model = torch.load('./rl_model.pth')
-        for policy in ctx.current_policies:
-            policy.load_state_dict(rl_model)
-            print('load state_dict okay')
-
         ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "[Actor {}] Please make sure n_episode >= env_num".format(
             task.router.node_id
