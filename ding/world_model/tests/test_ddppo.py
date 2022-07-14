@@ -23,12 +23,14 @@ class TestDDPPO:
             cfg, dict(cuda=False, model=dict(state_size=state_size, action_size=action_size, reward_size=1))
         )
         fake_env = EasyDict(termination_fn=lambda obs: torch.zeros_like(obs.sum(-1)).bool())
-        return DDPPOWorldMode(cfg, fake_env, None)
+        model = DDPPOWorldMode(cfg, fake_env, None)
+        model.serial_calc_nn = True
+        return model
 
     def test_get_neighbor_index(self):
         k = 2
         data = torch.tensor([[0, 0, 0], [0, 0, 1], [0, 0, -1], [5, 0, 0], [5, 0, 1], [5, 0, -1]])
-        idx = get_neighbor_index(data, k)
+        idx = get_neighbor_index(data, k, serial=True)
         target_idx = torch.tensor([[2, 1], [0, 2], [0, 1], [5, 4], [3, 5], [3, 4]])
         assert (idx - target_idx).sum() == 0
 

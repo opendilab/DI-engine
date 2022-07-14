@@ -63,59 +63,53 @@ class PettingZooEnv(BaseEnv):
             # only for env 'simple_spread_v2', n_agent = 5
             # now only for the case that each agent in the team have the same obs structure and corresponding shape.
             if not self._cfg.agent_obs_only:
-                self._observation_space = gym.spaces.Dict({
-                    'agent_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
-                        dtype=np.float32
-                    ) ,
-                    'global_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(70,),
-                        dtype=np.float32
-                    ),
-                    'agent_alone_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, 22),
-                        dtype=np.float32
-                    ),
-                    'agent_alone_padding_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]), # (self._num_agents, 30)
-                        dtype=np.float32
-                    ),
-                    'action_mask':
-                        gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._action_dim[0]), # (self._num_agents, 5)
-                        dtype=np.float32
-                    )})
+                self._observation_space = gym.spaces.Dict(
+                    {
+                        'agent_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents,
+                                   self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
+                            dtype=np.float32
+                        ),
+                        'global_state': gym.spaces.Box(
+                            low=float("-inf"), high=float("inf"), shape=(70, ), dtype=np.float32
+                        ),
+                        'agent_alone_state': gym.spaces.Box(
+                            low=float("-inf"), high=float("inf"), shape=(self._num_agents, 22), dtype=np.float32
+                        ),
+                        'agent_alone_padding_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents,
+                                   self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
+                            dtype=np.float32
+                        ),
+                        'action_mask': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, self._action_dim[0]),  # (self._num_agents, 5)
+                            dtype=np.float32
+                        )
+                    }
+                )
                 # whether use agent_specific_global_state. It is usually used in AC multiagent algos, e.g., mappo, masac, etc.
                 if self._agent_specific_global_state:
                     agent_specifig_global_state = gym.spaces.Box(
-                        low = float("-inf"),
-                        high = float("inf"),
-                        shape = (self._num_agents, self._env.observation_space('agent_0').shape[0] + 70),
-                        dtype = np.float32
+                        low=float("-inf"),
+                        high=float("inf"),
+                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0] + 70),
+                        dtype=np.float32
                     )
                     self._observation_space['global_state'] = agent_specifig_global_state
             else:
                 # for case when env.agent_obs_only=True
                 self._observation_space = gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
-                        dtype=np.float32
-                    )
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
+                    dtype=np.float32
+                )
 
             self._reward_space = gym.spaces.Dict(
                 {
@@ -165,7 +159,7 @@ class PettingZooEnv(BaseEnv):
         # collide_penalty = self._cfg.get('collide_penal', self._num_agent)
         # rew_n += collide_sum * (1.0 - collide_penalty)
         # rew_n = rew_n / (self._cfg.get('max_cycles', 25) * self._num_agent)
-        self._final_eval_reward += rew_n
+        self._final_eval_reward += rew_n.item()
 
         # occupied_landmarks = info['n'][0][3]
         # if self._step_count >= self._max_step or occupied_landmarks >= self._n_agent \
@@ -221,11 +215,7 @@ class PettingZooEnv(BaseEnv):
         #               - global_state info
         if self._agent_specific_global_state:
             ret['global_state'] = np.concatenate(
-                [
-                    ret['agent_state'],
-                    np.expand_dims(ret['global_state'], axis=0).repeat(5, axis=0)
-                ],
-                axis=1
+                [ret['agent_state'], np.expand_dims(ret['global_state'], axis=0).repeat(5, axis=0)], axis=1
             )
         # agent_alone_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2).
         #                    Stacked observation. Exclude other agents' positions from agent_state. Contains

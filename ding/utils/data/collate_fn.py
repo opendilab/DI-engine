@@ -17,18 +17,20 @@ default_collate_err_msg_format = (
 )
 
 
-def ttorch_collate(x):
+def ttorch_collate(x, json=False):
 
     def inplace_fn(t):
-        for k in t:
-            if isinstance(t[k], dict):
-                inplace_fn(t[k])
-            else:
+        for k in t.keys():
+            if isinstance(t[k], torch.Tensor):
                 if len(t[k].shape) == 2 and t[k].shape[1] == 1:  # reshape (B, 1) -> (B)
                     t[k] = t[k].squeeze(-1)
+            else:
+                inplace_fn(t[k])
 
-    x = ttorch.stack(x).json()
+    x = ttorch.stack(x)
     inplace_fn(x)
+    if json:
+        x = x.json()
     return x
 
 
@@ -83,7 +85,7 @@ def default_collate(batch: Sequence,
         else:
             return torch.stack(batch, 0, out=out)
     elif isinstance(elem, ttorch.Tensor):
-        return ttorch_collate(batch)
+        return ttorch_collate(batch, json=True)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
             and elem_type.__name__ != 'string_':
         if elem_type.__name__ == 'ndarray':
@@ -145,7 +147,7 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
     assert isinstance(elem, (container_abcs.Mapping, list)), type(elem)
     if isinstance(batch[0], list):  # new pipeline + treetensor
         prev_state = [[b[i].get('prev_state') for b in batch] for i in range(len(batch[0]))]
-        batch_data = ttorch.stack([ttorch.as_tensor(ttorch_collate(b)) for b in batch])  # (B, T, *)
+        batch_data = ttorch.stack([ttorch_collate(b) for b in batch])  # (B, T, *)
         del batch_data.prev_state
         batch_data = batch_data.transpose(1, 0)
         batch_data.prev_state = prev_state

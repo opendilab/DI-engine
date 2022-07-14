@@ -118,7 +118,8 @@ class TestPettingZooEnv:
                 n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2
             )
             assert timestep.obs['global_state'].shape == (
-                n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2
+                n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
+                n_landmark * 2 + n_agent * (n_agent - 1) * 2
             )
             assert timestep.obs['agent_alone_state'].shape == (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2)
             assert timestep.obs['agent_alone_padding_state'].shape == (
