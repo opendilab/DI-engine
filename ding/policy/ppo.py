@@ -517,9 +517,9 @@ class PPOPGPolicy(Policy):
                     torch.nn.init.orthogonal_(m.weight)
                     torch.nn.init.zeros_(m.bias)
             if self._action_space == 'continuous':
-                if hasattr(self._model.actor_head, 'log_sigma_param'):
-                    torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
-                for m in self._model.actor.modules():
+                if hasattr(self._model.head, 'log_sigma_param'):
+                    torch.nn.init.constant_(self._model.head.log_sigma_param, -0.5)
+                for m in self._model.modules():
                     if isinstance(m, torch.nn.Linear):
                         torch.nn.init.zeros_(m.bias)
                         m.weight.data.copy_(0.01 * m.weight.data)
