@@ -662,7 +662,10 @@ class PPOPGPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'discrete_bc', ['ding.model.template.bc']
+        if self._cfg.action_space == 'continuous':
+            return 'continuous_bc', ['ding.model.template.bc']
+        elif self._cfg.action_space == 'discrete':
+            return 'discrete_bc', ['ding.model.template.bc']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
