@@ -7,9 +7,7 @@ from ding.torch_utils import is_differentiable
 T, B = 3, 4
 obs_shape = [4, (8, ), (4, 64, 64)]
 act_shape = [3, (6, ), [2, 3, 6]]
-act_shape_fqf = [3, (6, )]
 args = list(product(*[obs_shape, act_shape]))
-args_fqf = list(product(*[obs_shape, act_shape_fqf]))
 
 
 @pytest.mark.unittest
