@@ -75,6 +75,10 @@ class ConvEncoder(nn.Module):
         flatten_size = self._get_flatten_size()
         self.mid = nn.Linear(flatten_size, hidden_size_list[-1])
 
+    @property
+    def output_shape(self) -> int:
+        return self.hidden_size_list[-1]
+
     def _get_flatten_size(self) -> int:
         """
         Overview:
@@ -152,6 +156,10 @@ class FCEncoder(nn.Module):
                 layers.append(nn.Linear(hidden_size_list[i], hidden_size_list[i + 1]))
                 layers.append(self.act)
             self.main = nn.Sequential(*layers)
+
+    @property
+    def output_shape(self) -> int:
+        return self.hidden_size_list[-1]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -290,6 +298,10 @@ class IMPALAConvEncoder(nn.Module):
         self.dense = normed_linear(prod(curshape), outsize, scale=1.4)
         self.outsize = outsize
         self.final_relu = final_relu
+
+    @property
+    def output_shape(self) -> int:
+        return self.outsize
 
     def forward(self, x):
         x = x / self.scale_ob

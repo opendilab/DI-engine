@@ -4,7 +4,7 @@ from collections import deque
 
 from ding.framework import task
 from ding.data import Buffer
-from .functional import trainer, offpolicy_data_fetcher, reward_estimator, her_data_enhancer
+from .functional import trainer, offpolicy_data_fetcher, reward_estimator, obs_extractor, her_data_enhancer
 
 if TYPE_CHECKING:
     from ding.framework import Context, OnlineRLContext
@@ -22,19 +22,25 @@ class OffPolicyLearner:
             cfg: EasyDict,
             policy,
             buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
-            reward_model=None
+            obs_model=None,
+            reward_model=None,
     ) -> None:
         """
         Arguments:
             - cfg (:obj:`EasyDict`): Config.
             - policy (:obj:`Policy`): The policy to be trained.
             - buffer\_ (:obj:`Buffer`): The replay buffer to store the data for training.
-            - reward_model (:obj:`nn.Module`): Additional reward estimator likes RND, ICM, etc. \
-                default to None.
+            - obs_model (:obj:`Any`): Additional observation feature extractor like CURL, etc, default to None.
+            - reward_model (:obj:`Any`): Additional reward estimator likes RND, ICM, etc, default to None.
         """
         self.cfg = cfg
         self._fetcher = task.wrap(offpolicy_data_fetcher(cfg, buffer_))
         self._trainer = task.wrap(trainer(cfg, policy))
+
+        if obs_model is not None:
+            self._obs_extractor = task.wrap(obs_extractor(cfg, obs_model))
+        else:
+            self._obs_extractor = None
         if reward_model is not None:
             self._reward_estimator = task.wrap(reward_estimator(cfg, reward_model))
         else:
@@ -50,6 +56,8 @@ class OffPolicyLearner:
             self._fetcher(ctx)
             if ctx.train_data is None:
                 break
+            if self._obs_extractor:
+                self._obs_extractor(ctx)
             if self._reward_estimator:
                 self._reward_estimator(ctx)
             self._trainer(ctx)
