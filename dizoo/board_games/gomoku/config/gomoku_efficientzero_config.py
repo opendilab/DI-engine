@@ -1,10 +1,16 @@
 from easydict import EasyDict
 from dizoo.board_games.gomoku.config.gomoku_config import game_config
 
-collector_env_num = 5
-evaluator_env_num = 5
+# debug
+# collector_env_num = 1
+# evaluator_env_num = 1
+
+collector_env_num = 8
+evaluator_env_num = 3
+board_size = 6  # default_size is 15
+
 gomoku_efficientzero_config = dict(
-    exp_name='data_ez_ptree/gomoku_2pl_efficientzero_seed0',
+    exp_name='data_ez_ptree/gomoku_1pl_efficientzero_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -12,19 +18,20 @@ gomoku_efficientzero_config = dict(
         stop_value=2,
         # 'one_player_mode' when eval, 'two_player_mode' when collect
         # automatically assign in tictactoe env
-        battle_mode='two_player_mode',
-        # battle_mode='one_player_mode',
+        board_size=board_size,  # default_size is 15
+        # battle_mode='two_player_mode',
+        battle_mode='one_player_mode',
     ),
     policy=dict(
-        env_name='gomoku',
+        env_name='conv_res',
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            model_type='gomoku',
-            observation_shape=(12, 15, 15),  # if frame_stack_num=4
-            action_space_size=int(15 * 15),
+            model_type='conv_res',
+            observation_shape=(12, board_size, board_size),  # if frame_stack_num=4
+            action_space_size=int(1 * board_size * board_size),
             num_blocks=1,
             num_channels=12,
             reduced_channels_reward=16,
@@ -51,11 +58,14 @@ gomoku_efficientzero_config = dict(
             # update_per_collect=2,
             # batch_size=4,
 
-            update_per_collect=32,
-            batch_size=32,
+            # one_player_mode, board_size=6, episode_length=6**2/2=18
+            # collector_env_num=8,  update_per_collect=18*8=144
+            update_per_collect=(board_size**2/2*collector_env_num),
+            batch_size=256,
+
             learning_rate=0.2,
             # Frequency of target network update.
-            target_update_freq=200,
+            target_update_freq=400,
         ),
         # collect_mode config
         collect=dict(
@@ -65,7 +75,7 @@ gomoku_efficientzero_config = dict(
         ),
         # we only collect 10000 episode * 9 env step = 9e4 env step,
         # the eval cost is expensive, so we set eval_freq larger
-        eval=dict(evaluator=dict(eval_freq=int(1e3), )),
+        eval=dict(evaluator=dict(eval_freq=int(2e3), )),
         # command_mode config
         other=dict(
             # Epsilon greedy with decay.
@@ -91,7 +101,7 @@ gomoku_efficientzero_create_config = dict(
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
-    policy=dict(type='mcts'),
+    policy=dict(type='efficientzero'),
     collector=dict(type='episode_muzero', get_train_sample=True)
 )
 gomoku_efficientzero_create_config = EasyDict(gomoku_efficientzero_create_config)
@@ -99,5 +109,4 @@ create_config = gomoku_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
-
     serial_pipeline_muzero([main_config, create_config], game_config=game_config, seed=0, max_env_step=int(1e6))

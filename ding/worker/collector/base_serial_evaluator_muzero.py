@@ -213,12 +213,12 @@ class BaseSerialEvaluatorMuZero(object):
 
         game_histories = [
             GameHistory(
-                self._env.action_space, max_length=self.game_config.game_history_max_length, config=self.game_config
+                self._env.action_space, game_history_length=self.game_config.game_history_length, config=self.game_config
             ) for _ in range(env_nums)
         ]
         for i in range(env_nums):
             game_histories[i].init(
-                [to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.stacked_observations)]
+                [to_ndarray(init_obses[i]['observation']) for _ in range(self.game_config.frame_stack_num)]
             )
 
         ep_ori_rewards = np.zeros(env_nums)
@@ -243,11 +243,6 @@ class BaseSerialEvaluatorMuZero(object):
                 # print(actions)
                 timesteps = self._env.step(actions)
 
-                action_mask = [timesteps[i].obs['action_mask'] for i in range(env_nums)]
-
-                if two_plaer_game:
-                    to_play = [timesteps[i].obs['to_play'] for i in range(env_nums)]
-
                 for env_id, t in timesteps.items():
                     # obs, ori_reward, done, info = env.step(action)
                     i = env_id
@@ -264,6 +259,12 @@ class BaseSerialEvaluatorMuZero(object):
                         )
                     else:
                         game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
+
+                    # NOTE: the position of code snippt is very important.
+                    # the obs['action_mask'] and obs['to_play'] is corresponding to next action
+                    if two_plaer_game:
+                        action_mask[i] = to_ndarray(obs['action_mask'])
+                        to_play[i] = to_ndarray(obs['to_play'])
 
                     dones[i] = done
                     ep_ori_rewards[i] += ori_reward
@@ -291,11 +292,11 @@ class BaseSerialEvaluatorMuZero(object):
 
                         game_histories[i] = GameHistory(
                             self._env.action_space,
-                            max_length=self.game_config.game_history_max_length,
+                            game_history_length=self.game_config.game_history_length,
                             config=self.game_config
                         )
                         game_histories[i].init(
-                            [init_obses[i]['observation'] for _ in range(self.game_config.stacked_observations)]
+                            [init_obses[i]['observation'] for _ in range(self.game_config.frame_stack_num)]
                         )
 
                     envstep_count += 1

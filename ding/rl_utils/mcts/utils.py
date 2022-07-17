@@ -140,12 +140,15 @@ def select_action(visit_counts, temperature=1, deterministic=True):
 
 
 def prepare_observation_lst(observation_lst):
-    """Prepare the observations to satisfy the input fomat of torch
-    [B, S, W, H, C] -> [B, S x C, W, H]
-    batch, stack num, width, height, channel
+    """
+    Overview:
+        Prepare the observations to satisfy the input format of torch
+        [B, S, W, H, C] -> [B, S x C, W, H]
+        batch, stack num, width, height, channel
     """
     # B, S, W, H, C
-    observation_lst = np.array(observation_lst, dtype=np.uint8)
+    # observation_lst = np.array(observation_lst, dtype=np.uint8)
+    observation_lst = np.array(observation_lst)
     observation_lst = np.moveaxis(observation_lst, -1, 2)
 
     shape = observation_lst.shape

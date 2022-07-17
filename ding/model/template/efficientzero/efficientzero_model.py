@@ -104,7 +104,7 @@ class DownSample(nn.Module):
 
 
 # Encode the observations into hidden states
-class RepresentationNetworkTictactoe(nn.Module):
+class RepresentationNetworkIndIdentity(nn.Module):
 
     def __init__(self, ):
         """
@@ -118,7 +118,7 @@ class RepresentationNetworkTictactoe(nn.Module):
 
 
 # Encode the observations into hidden states
-class RepresentationNetworkAtari(nn.Module):
+class RepresentationNetwork(nn.Module):
 
     def __init__(
         self,
@@ -457,10 +457,10 @@ class EfficientZeroNet(BaseNet):
             (reduced_channels_policy * observation_shape[1] * observation_shape[2])
         )
 
-        if self.model_type == 'tictactoe':
-            self.representation_network = RepresentationNetworkTictactoe()
-        elif self.model_type == 'atari':
-            self.representation_network = RepresentationNetworkAtari(
+        if self.model_type == 'raw_obs':
+            self.representation_network = RepresentationNetworkIndIdentity()
+        elif self.model_type == 'conv_res':
+            self.representation_network = RepresentationNetwork(
                 observation_shape,
                 num_blocks,
                 num_channels,
@@ -497,10 +497,11 @@ class EfficientZeroNet(BaseNet):
 
         # projection
         # TODO(pu)
-        if self.model_type == 'tictactoe':
-            in_dim = observation_shape[0] * observation_shape[1] * observation_shape[2]
-        elif self.model_type == 'atari':
+        if self.model_type == 'atari':
             in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
+        else:
+            in_dim = observation_shape[0] * observation_shape[1] * observation_shape[2]
+
 
         self.porjection_in_dim = in_dim
         self.projection = nn.Sequential(
@@ -520,7 +521,10 @@ class EfficientZeroNet(BaseNet):
         return policy, value
 
     def representation(self, observation):
-        encoded_state = self.representation_network(observation)
+        try:
+            encoded_state = self.representation_network(observation)
+        except Exception as error:
+            print(error)
         if not self.state_norm:
             return encoded_state
         else:

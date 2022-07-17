@@ -33,7 +33,7 @@ atari_efficientzero_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            model_type='atari',
+            model_type='conv_res',
             observation_shape=(12, 96, 96),  # 3,96,96 stack=4
             action_space_size=6,
             downsample=True,
@@ -111,5 +111,4 @@ create_config = atari_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
-    from dizoo.board_games.atari.config.atari_config import game_config
     serial_pipeline_muzero([main_config, create_config], seed=0, max_env_step=int(5e6), game_config=game_config)

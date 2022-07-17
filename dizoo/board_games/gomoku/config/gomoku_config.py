@@ -1,6 +1,8 @@
 from easydict import EasyDict
 from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 
+board_size = 6  # default_size is 15
+
 game_config = EasyDict(dict(
     env_name='gomoku',
     model_type='board_game',
@@ -10,17 +12,16 @@ game_config = EasyDict(dict(
     #  we must specify the one same action mask,
     #  when env_num>1, the action mask for different env may be different.
     mcts_ctree=False,
-    battle_mode='two_player_mode',
-    game_history_length=9,
-    # battle_mode='one_player_mode',
-    # game_history_length=5,
+    # battle_mode='two_player_mode',
+    battle_mode='one_player_mode',
+    game_history_length=18,
     image_based=False,
     cvt_string=False,
     clip_reward=True,
     game_wrapper=True,
-    action_space_size=int(15 * 15),
+    action_space_size=int(board_size * board_size),
     amp_type='none',
-    obs_shape=(12, 15, 15),  # if frame_stack_num=4
+    obs_shape=(12, board_size, board_size),  # if frame_stack_num=4
     image_channel=3,
     gray_scale=False,
     downsample=False,
@@ -31,15 +32,26 @@ game_config = EasyDict(dict(
     # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity']
     augmentation=['shift', 'intensity'],
 
-    collector_env_num=32,
-    evaluator_env_num=5,
+    # debug
+    # collector_env_num=1,
+    # evaluator_env_num=1,
+    # max_episode_steps=int(1.08e5),
+    # test_max_episode_steps=int(1.08e5),
+    # num_simulations=2,
+    # batch_size=4,
+    # total_transitions=int(1e5),
+    # num_unroll_steps=5,
+    # td_steps=5,
+
+    collector_env_num=8,
+    evaluator_env_num=3,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
-    num_simulations=25,
-    batch_size=32,
+    num_simulations=50,
+    batch_size=256,
     total_transitions=int(1e5),
-    num_unroll_steps=3,
-    td_steps=2,
+    num_unroll_steps=5,
+    td_steps=5,
 
     # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
@@ -81,11 +93,10 @@ game_config = EasyDict(dict(
     pb_c_base=19652,
     pb_c_init=1.25,
 
-    support_size=10,
-    value_support=DiscreteSupport(-10, 10, delta=1),
-    reward_support=DiscreteSupport(-10, 10, delta=1),
+    support_size=300,
+    value_support=DiscreteSupport(-300, 300, delta=1),
+    reward_support=DiscreteSupport(-300, 300, delta=1),
     max_grad_norm=10,
-
 
     test_interval=10000,
     log_interval=1000,

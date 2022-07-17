@@ -23,8 +23,8 @@ from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
 # from dizoo.board_games.atari.config.atari_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
-# from dizoo.board_games.gomoku.config.gomoku_efficientzero_config import game_config
+# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+from dizoo.board_games.gomoku.config.gomoku_config import game_config
 
 
 @POLICY_REGISTRY.register('efficientzero')
@@ -125,11 +125,7 @@ class EfficientZeroPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
         """
-        # TODO(pu): atari or board_games
-        if self._cfg.env_name == 'tictactoe' or self._cfg.env_name == 'PongNoFrameskip-v4':
-            return 'EfficientZeroNet', ['ding.model.template.efficientzero.efficientzero_model']
-        elif self._cfg.env_name == 'gomoku':
-            return 'EfficientZeroNet_gomoku', ['ding.model.template.efficientzero.efficientzero_gomoku_model']
+        return 'EfficientZeroNet', ['ding.model.template.efficientzero.efficientzero_model']
 
     def _init_learn(self) -> None:
         self._optimizer = optim.SGD(

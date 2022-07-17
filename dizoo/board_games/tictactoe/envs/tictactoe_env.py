@@ -74,6 +74,7 @@ class TicTacToeEnv(BaseGameEnv):
             timestep_player2 = self._player_step(expert_action)
             # the final_eval_reward is calculated from Player 1's perspective
             timestep_player2.info['final_eval_reward'] = - timestep_player2.reward
+            timestep_player2 = timestep_player2._replace(reward=-timestep_player2.reward)
 
             timestep = timestep_player2
             # in one_player_mode, we set to_play as None, because we don't consider the alternation between players
