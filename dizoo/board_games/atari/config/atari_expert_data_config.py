@@ -71,8 +71,9 @@ game_config = EasyDict(dict(
     auto_temperature=False,
     # only effective when auto_temperature=False
     fixed_temperature_value=0.25,
-    # TODO(pu): whether to use root value in reanalyzing?
-    use_root_value=False,
+    # NOTE: we use dqn collect data, the value in data if fake 1, so we must need use_root_value
+    # when reanalyzing.
+    use_root_value=True,
 
     # TODO(pu): test the effect
     init_zero=True,

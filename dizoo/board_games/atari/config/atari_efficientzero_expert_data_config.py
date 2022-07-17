@@ -36,7 +36,8 @@ atari_efficientzero_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            model_type='atari',
+            env_type='atari',
+            representation_model_type='conv_res',
             # observation_shape=(12, 96, 96),  # 3,96,96 stack=4
             observation_shape=(4, 84, 84),
             action_space_size=6,

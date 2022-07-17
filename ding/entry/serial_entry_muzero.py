@@ -13,8 +13,10 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.data.buffer.game_buffer import GameBuffer
+from line_profiler import line_profiler
 
 
+@profile
 def serial_pipeline_muzero(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,

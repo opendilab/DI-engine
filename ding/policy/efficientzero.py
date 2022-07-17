@@ -22,9 +22,10 @@ from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 # TODO(pu): choose game config
-# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.atari.config.atari_config import game_config
 # from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
-from dizoo.board_games.gomoku.config.gomoku_config import game_config
+# from dizoo.board_games.gomoku.config.gomoku_config import game_config
+from line_profiler import line_profiler
 
 
 @POLICY_REGISTRY.register('efficientzero')
@@ -159,6 +160,7 @@ class EfficientZeroPolicy(Policy):
                 image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2])
             )
 
+    @profile
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()
         self._target_model.train()
@@ -485,6 +487,7 @@ class EfficientZeroPolicy(Policy):
             ]
         )
 
+    @profile
     def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None, to_play=None):
         """
         Shapes:
@@ -581,6 +584,7 @@ class EfficientZeroPolicy(Policy):
         else:
             self._mcts_eval = MCTSPtree(self.game_config)
 
+    @profile
     def _forward_eval(self, data: ttorch.Tensor, action_mask: list, to_play: None):
         """
         Overview:

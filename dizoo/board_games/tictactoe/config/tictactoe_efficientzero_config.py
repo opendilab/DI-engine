@@ -11,8 +11,7 @@ from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 collector_env_num = 32
 evaluator_env_num = 5
 tictactoe_efficientzero_config = dict(
-    # exp_name='data_ez_ptree/tictactoe_2pl_efficientzero_seed0_tp025_debug',
-    exp_name='data_ez_ptree/tictactoe_1pl_efficientzero_seed0_tp025',
+    exp_name='data_ez_ptree/tictactoe_2pl_efficientzero_seed0_tp025',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -20,8 +19,8 @@ tictactoe_efficientzero_config = dict(
         stop_value=2,
         # 'one_player_mode' when eval, 'two_player_mode' when collect
         # automatically assign in tictactoe env
-        # battle_mode='two_player_mode',
-        battle_mode='one_player_mode',
+        battle_mode='two_player_mode',
+        # battle_mode='one_player_mode',
     ),
     policy=dict(
         env_name='tictactoe',
@@ -30,7 +29,8 @@ tictactoe_efficientzero_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            model_type='raw_obs',
+            env_type='tictactoe',
+            representation_model_type='raw_obs',
             observation_shape=(12, 3, 3),  # if frame_stack_nums=4
             action_space_size=9,
             downsample=False,

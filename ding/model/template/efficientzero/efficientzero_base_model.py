@@ -82,8 +82,9 @@ class DiscreteSupport(object):
 
 def inverse_scalar_transform(logits, support_size, epsilon=0.001):
     """
-    Reference from MuZero: Appendix F => Network Architecture
-    & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
+    Overview:
+        Reference from MuZero: Appendix F => Network Architecture
+        & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
     """
     scalar_support = DiscreteSupport(-support_size, support_size, delta=1)
     delta = scalar_support.delta
@@ -125,7 +126,9 @@ def mlp(
     momentum=0.1,
     init_zero=False,
 ):
-    """MLP layers
+    """
+    Overview:
+        MLP layers
     Parameters
     ----------
     input_size: int

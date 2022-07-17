@@ -126,12 +126,14 @@ if __name__ == '__main__':
     cProfile.run(f"profile_mcts({run_num})", filename="result.out")
     # 把分析结果保存到文件中, 增加排序方式
     # cProfile.run(f"profile_mcts({run_num})", filename="result.out", sort="cumulative")
+
     """
     cProfile 结果分析
     """
 
     # 生成可视化分析图片
     # python gprof2dot.py - f pstats result.out | dot - Tpng - o result.png
+
     """
     import pstats
     # 创建Stats对象

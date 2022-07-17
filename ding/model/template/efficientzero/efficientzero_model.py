@@ -360,7 +360,8 @@ class EfficientZeroNet(BaseNet):
 
     def __init__(
         self,
-        model_type,
+        env_type,
+        representation_model_type,
         observation_shape,
         action_space_size,
         num_blocks,
@@ -436,7 +437,8 @@ class EfficientZeroNet(BaseNet):
         self.pred_out = pred_out
         self.init_zero = init_zero
         self.state_norm = state_norm
-        self.model_type = model_type
+        self.representation_model_type = representation_model_type
+        self.env_type = env_type
 
         self.action_space_size = action_space_size
         block_output_size_reward = (
@@ -457,9 +459,9 @@ class EfficientZeroNet(BaseNet):
             (reduced_channels_policy * observation_shape[1] * observation_shape[2])
         )
 
-        if self.model_type == 'raw_obs':
+        if self.representation_model_type == 'raw_obs':
             self.representation_network = RepresentationNetworkIndIdentity()
-        elif self.model_type == 'conv_res':
+        elif self.representation_model_type == 'conv_res':
             self.representation_network = RepresentationNetwork(
                 observation_shape,
                 num_blocks,
@@ -497,11 +499,10 @@ class EfficientZeroNet(BaseNet):
 
         # projection
         # TODO(pu)
-        if self.model_type == 'atari':
+        if self.env_type == 'atari':
             in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
         else:
             in_dim = observation_shape[0] * observation_shape[1] * observation_shape[2]
-
 
         self.porjection_in_dim = in_dim
         self.projection = nn.Sequential(
