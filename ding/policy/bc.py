@@ -114,6 +114,9 @@ class BehaviourCloningPolicy(Policy):
         else:
             data_id = list(data.keys())
             data = default_collate(list(data.values()))
+        if self.cfg.collect.normalize_states:
+            # normalize states when learn from offline dataset
+            data = (data - self._mean) / self._std
         if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
@@ -152,6 +155,9 @@ class BehaviourCloningPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
+        if self.cfg.collect.normalize_states:
+            # normalize states when learn from offline dataset
+            data = (data - self._mean) / self._std
         if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
@@ -205,3 +211,8 @@ class BehaviourCloningPolicy(Policy):
         """
         data = get_nstep_return_data(data, 1, 1)
         return get_train_sample(data, self._unroll_len)
+
+    def set_norm_statistics(self, statistics: EasyDict) -> None:
+        # normalize states when learn from offline dataset
+        self._mean = statistics.mean
+        self._std = statistics.std
