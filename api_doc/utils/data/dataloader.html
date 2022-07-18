@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>data.dataloader &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="cache" href="structure.html" />
+    <link rel="prev" title="data.collate_fn" href="collate_fn.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">Utils</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../time_helper.html">utils.time_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../collection_helper.html">utils.collection_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../compression_helper.html">utils.compression_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../default_helper.html">utils.default_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design_helper.html">utils.design_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pytorch_ddp_dist_helper.html">utils.pytorch_ddp_dist_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../file_helper.html">utils.file_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../import_helper.html">utils.import_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../k8s_helper.html">utils.k8s_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lock_helper.html">utils.lock_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../log_helper.html">utils.log_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../system_helper.html">utils.system_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../segment_tree.html">utils.segment_tree</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">utils.data</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="collate_fn.html">data.collate_fn</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">data.dataloader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structure.html">cache</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="../index.html">Utils</a> &raquo;</li>
+        
+          <li><a href="index.html">utils.data</a> &raquo;</li>
+        
+      <li>data.dataloader</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/api_doc/utils/data/dataloader.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="data-dataloader">
+<h1>data.dataloader<a class="headerlink" href="#data-dataloader" title="Permalink to this headline">¶</a></h1>
+<section id="async-dataloader">
+<h2>async dataloader<a class="headerlink" href="#async-dataloader" title="Permalink to this headline">¶</a></h2>
+<section id="asyncdataloader">
+<h3>AsyncDataLoader<a class="headerlink" href="#asyncdataloader" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.utils.data.dataloader.AsyncDataLoader">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.data.dataloader.</span></span><span class="sig-name descname"><span class="pre">AsyncDataLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">,</span> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collate_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/utils/data/dataloader.html#AsyncDataLoader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.data.dataloader.AsyncDataLoader" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>An asynchronous dataloader.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, __iter__, __next__, close</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.utils.data.dataloader.AsyncDataLoader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">,</span> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collate_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/utils/data/dataloader.html#AsyncDataLoader.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.data.dataloader.AsyncDataLoader.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Init dataloader with input parameters.
+If <code class="docutils literal notranslate"><span class="pre">data_source</span></code> is <code class="docutils literal notranslate"><span class="pre">dict</span></code>, data will only be processed in <code class="docutils literal notranslate"><span class="pre">get_data_thread</span></code> and put into
+<code class="docutils literal notranslate"><span class="pre">async_train_queue</span></code>.
+If <code class="docutils literal notranslate"><span class="pre">data_source</span></code> is <code class="docutils literal notranslate"><span class="pre">Callable</span></code>, data will be processed by implementing functions, and can be sorted
+in two types:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">num_workers</span></code> == 0 or 1: Only main worker will process it and put into <code class="docutils literal notranslate"><span class="pre">async_train_queue</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_workers</span></code> &gt;  1: Main worker will divide a job into several pieces, push every job into                     <code class="docutils literal notranslate"><span class="pre">job_queue</span></code>; Then slave workers get jobs and implement; Finally they will push procesed data                     into <code class="docutils literal notranslate"><span class="pre">async_train_queue</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<p>At the last step, if <code class="docutils literal notranslate"><span class="pre">device</span></code> contains “cuda”, data in <code class="docutils literal notranslate"><span class="pre">async_train_queue</span></code> will be transferred to
+<code class="docutils literal notranslate"><span class="pre">cuda_queue</span></code> for uer to access.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data_source (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Callable,</span> <span class="pre">dict]</span></code>): The data source, e.g. function to be implemented(Callable),                 replay buffer’s real data(dict), etc.</p></li>
+<li><p>batch_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Batch size.</p></li>
+<li><p>device (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Device.</p></li>
+<li><p>chunk_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The size of a chunked piece in a batch, should exactly divide <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>,                 only function when there are more than 1 worker.</p></li>
+<li><p>collate_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): The function which is used to collate batch size into each data field.</p></li>
+<li><p>num_workers (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of extra workers.                 0 or 1 means only 1 main worker and no extra ones, i.e. Multiprocessing is disabled.                 More than 1 means multiple workers implemented by multiprocessing are to processs data respectively.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.utils.data.dataloader.AsyncDataLoader.__iter__">
+<span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span></span></span><a class="reference internal" href="../../../_modules/ding/utils/data/dataloader.html#AsyncDataLoader.__iter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.data.dataloader.AsyncDataLoader.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the iterable self as an iterator.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>self (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Iterable</span></code>): Self as an iterator.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.utils.data.dataloader.AsyncDataLoader.__next__">
+<span class="sig-name descname"><span class="pre">__next__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../../../_modules/ding/utils/data/dataloader.html#AsyncDataLoader.__next__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.data.dataloader.AsyncDataLoader.__next__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return next data in the iterator. If use cuda, get from <code class="docutils literal notranslate"><span class="pre">self.cuda_queue</span></code>;
+Otherwise, get from <code class="docutils literal notranslate"><span class="pre">self.async_train_queue</span></code>.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Next data in the dataloader iterator.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.utils.data.dataloader.AsyncDataLoader.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/utils/data/dataloader.html#AsyncDataLoader.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.data.dataloader.AsyncDataLoader.close" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Delete this dataloader. First set <code class="docutils literal notranslate"><span class="pre">end_flag</span></code> to True, which means different processes/threads
+will clear and close all data queues; Then  all processes will be terminated and joined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="structure.html" class="btn btn-neutral float-right" title="cache" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="collate_fn.html" class="btn btn-neutral float-left" title="data.collate_fn" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

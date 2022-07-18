@@ -1,0 +1,453 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>interaction.slave.slave &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="interaction.slave.action" href="action.html" />
+    <link rel="prev" title="interaction.slave" href="index.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utils/index.html">Utils</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">Interaction</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../base/index.html">interaction.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../master/index.html">interaction.master</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">interaction.slave</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">interaction.slave.slave</a></li>
+<li class="toctree-l4"><a class="reference internal" href="action.html">interaction.slave.action</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../exception/index.html">interaction.exception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="../index.html">Interaction</a> &raquo;</li>
+        
+          <li><a href="index.html">interaction.slave</a> &raquo;</li>
+        
+      <li>interaction.slave.slave</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/api_doc/interaction/slave/slave.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="interaction-slave-slave">
+<h1>interaction.slave.slave<a class="headerlink" href="#interaction-slave-slave" title="Permalink to this headline">¶</a></h1>
+<section id="slave">
+<h2>Slave<a class="headerlink" href="#slave" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.interaction.slave.slave.</span></span><span class="sig-name descname"><span class="pre">Slave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heartbeat_span</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_retries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_retry_waiting</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Interaction slave client</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heartbeat_span</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_retries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_retry_waiting</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Constructor of Slave class</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>host (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Host of the slave server, based on flask (None means <cite>0.0.0.0</cite>)</p></li>
+<li><p>port (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): Port of the slave server, based on flask (None means <cite>7236</cite>)</p></li>
+<li><p>heartbeat_span (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[float]</span></code>): Time span of heartbeat packages in seconds                 (None means <cite>3.0</cite>, minimum is <cite>0.2</cite>)</p></li>
+<li><p>request_retries (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): Max times for request retries (None means <cite>5</cite>)</p></li>
+<li><p>request_retry_waiting (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[float]</span></code>): Sleep time before requests’ retrying (None means <cite>1.0</cite>)</p></li>
+<li><p>channel (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): Channel id for the slave client, please make sure that channel id is                 equal to the master client’s channel id, or the connection cannot be established. (None means <cite>0</cite>,                 but 0 channel is not recommended to be used in production)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave._before_connection">
+<span class="sig-name descname"><span class="pre">_before_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave._before_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave._before_connection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Behaviours that will be executed before connection is established.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Mapping[str,</span> <span class="pre">Any]</span></code>): Connection data when connect to this slave, sent from master.</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><ul class="simple">
+<li><p><cite>ConnectionRefuse</cite> After raise this, the connection from master end will be refused,                 no new connection will be established.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave._before_disconnection">
+<span class="sig-name descname"><span class="pre">_before_disconnection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave._before_disconnection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave._before_disconnection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Behaviours that will be executed before disconnection is executed.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Mapping[str,</span> <span class="pre">Any]</span></code>): Disconnection data when disconnect with this slave, sent from master.</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><ul class="simple">
+<li><p><cite>DisconnectionRefuse</cite> After raise this, the disconnection request will be refused,                 current connection will be still exist.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave._before_task">
+<span class="sig-name descname"><span class="pre">_before_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave._before_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave._before_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Behaviours that will be executed before task is executed.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Mapping[str,</span> <span class="pre">Any]</span></code>): Data of the task</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><ul class="simple">
+<li><p><cite>TaskRefuse</cite> After raise this, the new task will be refused.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave._lost_connection">
+<span class="sig-name descname"><span class="pre">_lost_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.RequestException</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave._lost_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave._lost_connection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Behaviours that will be executed after connection is lost.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>master_address (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): String address of master end</p></li>
+<li><p>err (<code class="xref py py-obj docutils literal notranslate"><span class="pre">request.exceptions.RequestException</span></code>): Http exception of this connection loss</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave._process_task">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">_process_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave._process_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave._process_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Execute the task, this protected method must be implement in the subclass.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Mapping[str,</span> <span class="pre">Any]</span></code>): Data of the task</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><ul class="simple">
+<li><p><cite>TaskFail</cite> After raise this, this task will be recognized as run failed,                 master will received the failure signal.</p></li>
+</ul>
+</dd>
+<dt>Example:</dt><dd><ul class="simple">
+<li><p>A success task with return value (the return value will be received in master end)</p></li>
+</ul>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;this is task data :&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>A failed task with data (the data will be received in master end)</p></li>
+</ul>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;this is task data :&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">raise</span> <span class="n">TaskFail</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>  <span class="c1"># this is a failed task</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>A failed task with data and message (both will be received in master end)</p></li>
+</ul>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;this is task data :&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">raise</span> <span class="n">TaskFail</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="s1">&#39;this is message&#39;</span><span class="p">)</span>  <span class="c1"># this is a failed task with message</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave.join">
+<span class="sig-name descname"><span class="pre">join</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave.join"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave.join" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Wait until current slave client is down completely.
+Here are the steps executed inside in order:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Wait until the http server thread down</p></li>
+<li><p>Wait until the heartbeat thread down</p></li>
+<li><p>Wait until the task-processing thread down</p></li>
+</ol>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave.ping">
+<span class="sig-name descname"><span class="pre">ping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave.ping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave.ping" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Ping the current http server, check if it still run properly.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): The http server run properly or not.                 <cite>True</cite> means run properly, otherwise return <cite>False</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave.shutdown">
+<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave.shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave.shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Shutdown current slave client.
+A shutdown request will be sent to the http server, and the shutdown signal will be apply into the             threads, the server will be down soon (You can use <cite>join</cite> method to wait until that time).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.interaction.slave.slave.Slave.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/slave/slave.html#Slave.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.slave.slave.Slave.start" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Start current slave client
+Here are the steps executed inside in order:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Start the task-processing thread</p></li>
+<li><p>Start the heartbeat thread</p></li>
+<li><p>Start the http server thread</p></li>
+<li><p>Wait until the http server is online (can be pinged)</p></li>
+</ol>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="action.html" class="btn btn-neutral float-right" title="interaction.slave.action" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="interaction.slave" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

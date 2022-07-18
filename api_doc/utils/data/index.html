@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utils.data &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="data.collate_fn" href="collate_fn.html" />
+    <link rel="prev" title="utils.segment_tree" href="../segment_tree.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">Utils</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../time_helper.html">utils.time_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../collection_helper.html">utils.collection_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../compression_helper.html">utils.compression_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../default_helper.html">utils.default_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../design_helper.html">utils.design_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pytorch_ddp_dist_helper.html">utils.pytorch_ddp_dist_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../file_helper.html">utils.file_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../import_helper.html">utils.import_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../k8s_helper.html">utils.k8s_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lock_helper.html">utils.lock_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../log_helper.html">utils.log_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../system_helper.html">utils.system_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../segment_tree.html">utils.segment_tree</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">utils.data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="collate_fn.html">data.collate_fn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dataloader.html">data.dataloader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structure.html">cache</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="../index.html">Utils</a> &raquo;</li>
+        
+      <li>utils.data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/api_doc/utils/data/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="utils-data">
+<h1>utils.data<a class="headerlink" href="#utils-data" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="collate_fn.html">data.collate_fn</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="collate_fn.html#collate-function">collate function</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="collate_fn.html#module-ding.utils.data.collate_fn.default_collate">default_collate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collate_fn.html#module-ding.utils.data.collate_fn.timestep_collate">timestep_collate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collate_fn.html#module-ding.utils.data.collate_fn.diff_shape_collate">diff_shape_collate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collate_fn.html#module-ding.utils.data.collate_fn.default_decollate">default_decollate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dataloader.html">data.dataloader</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dataloader.html#async-dataloader">async dataloader</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dataloader.html#asyncdataloader">AsyncDataLoader</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">cache</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#id1">Cache</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="collate_fn.html" class="btn btn-neutral float-right" title="data.collate_fn" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../segment_tree.html" class="btn btn-neutral float-left" title="utils.segment_tree" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

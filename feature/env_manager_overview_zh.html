@@ -1,0 +1,443 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Env Manager Overview &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Learner Overview" href="learner_overview_zh.html" />
+    <link rel="prev" title="Collector Overview" href="collector_overview_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">特性介绍</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview_zh.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview_zh.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview_zh.html">Collector Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Env Manager Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#env-manager">Env Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#baseenvmanager-ding-envs-env-manager-base-env-manager-py">BaseEnvManager (ding/envs/env_manager/base_env_manager.py)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subprocessenvmanager-ding-envs-env-manager-subprocess-env-manager-py">SubprocessEnvManager (ding/envs/env_manager/subprocess_env_manager.py)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview_zh.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview_zh.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html">HPC_RL Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html">Interaction模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autolog_overview_zh.html">Autolog模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview_zh.html">Loader模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataloader_overview_zh.html">DataLoader Overview</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index_zh.html">特性介绍</a> &raquo;</li>
+        
+      <li>Env Manager Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/feature/env_manager_overview_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="env-manager-overview">
+<h1>Env Manager Overview<a class="headerlink" href="#env-manager-overview" title="Permalink to this headline">¶</a></h1>
+<section id="env-manager">
+<h2>Env Manager<a class="headerlink" href="#env-manager" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>概述：</dt><dd><p>env manager 是一个环境管理器，可以管理多个相同类型不同配置的环境。env manager 可以实现多个 env 同时运行，同时获取环境中的信息，并且提供与 env 相似的接口，可以大大简化 code，加速运行。
+目前支持的类型有单进程串行和多进程并行两种模式。BaseEnvManager 通过循环串行（伪并行）来维护多个环境实例，Async(Sync)SubprocessEnvManager 通过子进程向量化的方式，即调用
+multiprocessing，通过在子进程中运行 env，以进程间通信的方式对环境进行管理和运行。DI-engine 的 env manager 需使用 DI-engine 格式的 env 定义（或者由 EnvWrapper装饰过的 Gym env)，
+其初始化时需提供每个 env 的实例化接口，通过 config 设定具体的运行细节。</p>
+<p>一般来说，<code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEnvManager</span></code> 用于一些简单环境的运行或 debug，复杂环境或大数量环境的运行推荐采用
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SyncSubProcessEnvManager</span></code> 和 <code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncSubProcessEnvManager</span></code> 进行加速。</p>
+<p>如果对 env 模块还不够了解，建议先查阅 DI-engine 的 <a class="reference external" href="./env_overview.html">Env Overview</a></p>
+</dd>
+<dt>用法：</dt><dd><ul>
+<li><dl>
+<dt>init</dt><dd><p>env manager 的初始化需要传入每个 env 的实例化调用接口和 config 字典，可通过 lambda 函数或者偏函数 <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code> 来对 env 的实例化函数进行包装，指定其运行参数。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">),</span>
+        <span class="o">...</span>
+    <span class="p">),</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+
+<span class="c1"># lambda function way</span>
+<span class="n">env_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">DI</span><span class="o">-</span><span class="n">engineEnv</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">env_manager</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">env_fn</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+<span class="c1"># partial function way</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="k">def</span> <span class="nf">env_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">DI</span><span class="o">-</span><span class="n">engineEnv</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">env_manager</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">partial</span><span class="p">(</span><span class="n">env_fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>launch/reset</dt><dd><p>env manager 初始化后并不会立即实例化每个环境，此时 env manager 会被标记为 <cite>closed</cite> 状态。首次初始化环境需调用 <code class="docutils literal notranslate"><span class="pre">launch</span></code> 方法，该方法会按照传入的 env 实例化调用接口
+构造每个 env 实例（对 SubprocessEnvManager 来说则是运行每个环境的子进程，建立通信管道），构造一些环境运行时的状态变量等，同时调用各子环境的 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法，将环境运行起来。</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>调用在 <cite>closed</cite> 状态的 env_manager 的 <code class="docutils literal notranslate"><span class="pre">step</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法会引发异常。</p>
+</div>
+<p>在调用过 <code class="docutils literal notranslate"><span class="pre">launch</span></code> 方法之后便可通过调用 env manager 的 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法来手动 reset 子环境。当不传入任何参数时，默认会 reset 所有子环境。当传入 <code class="docutils literal notranslate"><span class="pre">reset_param</span></code>
+参数时，会 reset <code class="docutils literal notranslate"><span class="pre">reset_param</span></code> 中的键对应的子环境，并将其键值作为子环境 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法的参数。由于不确定每个子环境 reset 需要的时间，env manager 不会返回子环境的 step
+运行结束后对应的 observation，而是会在 reset 结束时将返回值保存起来，通过调用 <code class="docutils literal notranslate"><span class="pre">ready_obs</span></code> 属性获得当前运行完成 step 或 reset 方法的子环境的
+observation，此举可以加快 SubprocessEnvManager 的运行效率。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>当 SubprocessEnvManager 需要 reset 正在进行 reset 的子环境时，该方法会等待这些子环境的上一次 reset 运行完毕再运行此次 reset。</p>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>step</dt><dd><p>step 方法会串行地（BaseEnvManager）或并行地（SubprocessEnvManager）调用 env manager 中子环境的 step 方法，并返回 step 的结果，将 observation 存入 <code class="docutils literal notranslate"><span class="pre">ready_obs</span></code>
+属性中。该方法传入的参数是一个 <code class="docutils literal notranslate"><span class="pre">actions</span></code> 字典，其键指定了需要运行 <code class="docutils literal notranslate"><span class="pre">step</span></code> 的 env_id，键值为该子环境的 <code class="docutils literal notranslate"><span class="pre">step</span></code> 运行的 action。依据不同的 env manager 类型和 config 设置，
+当有一定数量的子环境返回 step 结果后，该方法会检查运行结果，根据这些结果修改子环境的运行状态，并返回结果或抛出异常。</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><code class="docutils literal notranslate"><span class="pre">actions</span></code> 包含正在运行其他命令或已经完成 episode 的子环境 id 时会引发异常。</p>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>ready_obs</dt><dd><p><code class="docutils literal notranslate"><span class="pre">ready_obs</span></code> 属性返回一个字典，内容为环境的 env_id 和最新返回的 observation 的键值对。对 SubprocessEnvManager 来说 <code class="docutils literal notranslate"><span class="pre">ready_obs</span></code> 属性返回的环境 id 一定是完成了 reset
+或 step 方法，正在等待新命令的子环境，因此可以安全地继续调用这些子环境的 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 和 <code class="docutils literal notranslate"><span class="pre">step</span></code> 方法。当所有仍在运行（未运行至 done）的子环境都没有完成 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 和 <code class="docutils literal notranslate"><span class="pre">step</span></code>
+方法的运行时，调用 <code class="docutils literal notranslate"><span class="pre">ready_obs</span></code> 属性会等待至少一个子环境完成运行，并返回其 observation。</p>
+<p>在使用 SubprocessEnvManager 时，只要给 step 和 reset 方法传入参数的 env_id 均是来自 ready_obs 属性返回的 env_id ，就不会出现为子环境重复发送命令的情况。</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>done</dt><dd><p>该属性会判断所有子环境的完成情况（是否运行至 done），若是，返回 <code class="docutils literal notranslate"><span class="pre">True</span></code>，否则返回 <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>close</dt><dd><p>同 Gym env 的 <code class="docutils literal notranslate"><span class="pre">close</span></code> 方法一样，该方法会安全地关闭所有的子环境，销毁子环境开辟的进程，释放全部资源。调用该方法后，env manager 会被标记为 <code class="docutils literal notranslate"><span class="pre">closed</span></code>，除非重新 <code class="docutils literal notranslate"><span class="pre">launch</span></code>
+才能继续使用。</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>样例：</dt><dd><p>以下为一个 env manager 运行多个环境的实例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_env_manager</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">my_env_manager</span><span class="o">.</span><span class="n">ready_obs</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="o">...</span> <span class="c1"># get actions from policy or else.</span>
+    <span class="n">timesteps</span> <span class="o">=</span> <span class="n">my_env_manager</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="o">.</span><span class="n">item</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+            <span class="c1"># without auto_reset</span>
+            <span class="n">my_env_manager</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">reset_param</span><span class="o">=</span><span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="o">...</span><span class="p">})</span>
+            <span class="o">...</span>
+
+<span class="n">my_env_manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+<dt>高级特性：</dt><dd><ul>
+<li><p>auto_reset</p>
+<blockquote>
+<div><p>DI-engine 的 env manager 默认会进行自动 reset，即当某个环境运行至 done 之后会自动 reset 以继续运行，reset 时的参数为上次手动 reset 时为该子环境设置的参数，
+除非累计运行的 episode 数量达到 config 中指定的 episode_num。若要关闭该特性,可在 config 中指定 <code class="docutils literal notranslate"><span class="pre">auto_reset=False</span></code></p>
+</div></blockquote>
+</li>
+<li><p>env state</p>
+<blockquote>
+<div><p>为方便管理各子环境的状态并便于 debug，DI-engine 的 env manager 提供了环境状态的枚举类型来实时掌握所有子环境的运行状态，其具体含义如下：</p>
+<ul class="simple">
+<li><p>VOID: 初始化了 env manager，尚未实例化子环境</p></li>
+<li><p>INIT: 实例化了子环境，尚未进行 launch 或 reset</p></li>
+<li><p>RUN: 完成了 reset 或 step ，正在运行中的子环境</p></li>
+<li><p>RESET: 正在进行 reset 的子环境</p></li>
+<li><p>DONE: 运行至 done 的子环境</p></li>
+<li><p>ERROR: 发生异常的子环境</p></li>
+</ul>
+<p>各状态间的转换关系如图示：</p>
+<blockquote>
+<div><img alt="../_images/env_state.png" src="../_images/env_state.png" />
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p>max_retry 和 timeout</p>
+<blockquote>
+<div><p>为防止有些子环境因连接问题短暂地报错，或子进程卡死时程序不会正常退出，DI-engine 的 env manager 添加了 retry 保护和 timeout 检测机制。用户可在 config 中指定最大 retry 次数，
+和 reset、step、 子进程间通信的最大等待时间，当超过等待时间时会抛出异常，以便提前终止运行。config 中这些参数的设置和默认值如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">manager_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">max_retry</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="c1"># step 和 reset 的最大重试次数，默认为 1</span>
+    <span class="n">reset_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="c1"># reset 方法的等待时间，默认为 60s</span>
+    <span class="n">retry_waiting_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="c1"># reset 方法 retry 的间隔时间，默认为 0.1s</span>
+    <span class="n">step_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="c1"># step 方法的等待时间，默认为 60s</span>
+    <span class="n">step_wait_timeout</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="c1"># step 方法 retry 的间隔时间，默认为 0.01s</span>
+    <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="c1"># 子进程之间通信的等待时间，默认为 60s</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Sync 和 Async SubprocessEnvManager 的区别</p></li>
+<li><dl class="simple">
+<dt>shared_memory</dt><dd><p>shared_memory 可以加速传递环境返回的大向量数据，当环境返回的obs等变量大小超过100kB时，推荐设置为True。使用shared_memory时，需要在环境info函数中，用BaseEnvInfo和EnvElementInfo template来指定对应obs、act和rew的shape和value的dtype。</p>
+</dd>
+</dl>
+</li>
+<li><p>get_attribute</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="baseenvmanager-ding-envs-env-manager-base-env-manager-py">
+<h2>BaseEnvManager (ding/envs/env_manager/base_env_manager.py)<a class="headerlink" href="#baseenvmanager-ding-envs-env-manager-base-env-manager-py" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>概述：</dt><dd><p>使用循环串行的方式运行多个环境的管理器。</p>
+</dd>
+<dt>类接口方法：</dt><dd><ol class="arabic simple">
+<li><p>__init__: 初始化</p></li>
+<li><p>launch: 初始化所有子环境，初始化子环境状态管理所需的资源</p></li>
+<li><p>reset: 不传入参数时默认 reset 所有环境，传入 dict 结构的 env_id 和 reset_param 时，对 env_id 所指定的子环境按照 reset_param 进行 reset，并在运行结束时返回</p></li>
+<li><p>step: 环境执行输入的动作，完成一个时间步，同 reset 一样，可以传入 dict 结构的 env_id 和 action 对某几个环境进行操作，返回全部运行结果</p></li>
+<li><p>seed: 设置环境随机种子，可以传入 list 结构的 env_id 对 manager 持有的某几个环境设置特定的 seed</p></li>
+<li><p>close: 关闭环境，释放资源，close 所有环境</p></li>
+</ol>
+</dd>
+<dt>类属性方法：</dt><dd><ol class="arabic simple">
+<li><p>env_num: manager 中子环境的数量</p></li>
+<li><p>active_env: 所有未运行结束的环境 list</p></li>
+<li><p>ready_obs: 返回所有未运行结束的环境 env_id 和最新返回的 observation</p></li>
+<li><p>done: 是否所有持有的环境已经运行结束</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+<section id="subprocessenvmanager-ding-envs-env-manager-subprocess-env-manager-py">
+<h2>SubprocessEnvManager (ding/envs/env_manager/subprocess_env_manager.py)<a class="headerlink" href="#subprocessenvmanager-ding-envs-env-manager-subprocess-env-manager-py" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>概述：</dt><dd><p>继承了BaseEnvManager，通过 multiprocessing 模块为每个环境创建单独的进程，使用并行的方式运行多个环境的管理器。</p>
+</dd>
+<dt>类接口方法：</dt><dd><p>以下只列出与 BaseEnvManager 不同或新增的方法</p>
+<ol class="arabic simple">
+<li><p>launch: 初始化运行每个子环境的进程，初始化子环境状态管理所需的资源</p></li>
+<li><p>reset: 不传入参数时默认 reset 所有环境，传入 dict 结构的 env_id 和 reset_param 时，对 env_id 所指定的子环境进程按照 reset_param 发送 reset 命令</p></li>
+<li><p>step: 为环境进程发送动作命令，同 reset 一样，可以传入 dict 结构的 env_id 和 action 对某几个环境进行操作，待全部或部分环境运行结束时返回结果</p></li>
+<li><p>close: close 所有环境，销毁环境子进程，释放资源</p></li>
+</ol>
+</dd>
+<dt>类属性方法：</dt><dd><p>以下只列出与 BaseEnvManager 不同或新增的属性</p>
+<ol class="arabic simple">
+<li><p>ready_obs: 返回完成了上一个 step 或 reset 命令的子环境 env_id 和返回的 observation，若所有环境均在运行上一个命令，等待直到至少一个环境返回了运行结果</p></li>
+<li><p>active_env: 所有在运行状态的环境 list</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="learner_overview_zh.html" class="btn btn-neutral float-right" title="Learner Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="collector_overview_zh.html" class="btn btn-neutral float-left" title="Collector Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

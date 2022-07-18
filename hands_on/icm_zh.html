@@ -1,0 +1,1053 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ICM &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="强化学习环境示例手册" href="../env_tutorial/index_zh.html" />
+    <link rel="prev" title="AlphaGo" href="alphago.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法攻略合集</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#qrdqn">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#iqn">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqn.html">SQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqil.html">SQIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html">A2C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="acer.html">ACER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html">IMPALA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html">TD3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html">CollaQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnd.html">RND</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gail.html">GAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html">Guided Cost Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html">R2D3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html">MCTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html">AlphaGo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html#alphagozero">AlphaGoZero</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ICM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">概述</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">核心要点</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">关键方程或关键框图</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">重要实现细节</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">实现</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#icmnetwork">ICMNetwork</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">实验结果</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">参考资料</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index_zh.html">特性介绍</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index_zh.html">强化学习算法攻略合集</a> &raquo;</li>
+        
+      <li>ICM</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/icm_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="icm">
+<h1>ICM<a class="headerlink" href="#icm" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>ICM (Intrinsic Curiosity Module) 首次在论文
+<a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a> 中提出,
+用于研究在稀疏奖励的环境中，如何让agent探索更多没有经历过的状态，学到技能。它的主要想法是使用‘好奇心’作为内在奖励的信号，让agent更有效地探索环境。</p>
+<p>算法试图解决的困难：</p>
+<ol class="arabic">
+<li><p>高维度的连续状态空间(比如图像信息）很难建立直观的dynamic model，即  <img class="math" src="../_images/math/5533af8372c9ca6973b7a287c30546d635609fa2.svg" alt="p_\theta(s_{t+1}, a_t)"/> ;</p></li>
+<li><p>环境中的observation和agent自身行为的相关性有所区别，大致可以分为：</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>agent可以直接控制的元素（比如自动驾驶场景中自车的位置，速度）；</p></li>
+<li><p>虽然不受agent控制但是会对agent造成影响的元素（比如自动驾驶场景中他车的位置，速度）；</p></li>
+<li><p>既不受agent控制又不会对agent造成影响的元素（比如自动驾驶场景中太阳光的强弱，虽然会对传感器造成影响，但是本质上不会影响驾驶行为）。</p></li>
+</ol>
+</div></blockquote>
+</li>
+</ol>
+<p>对于以上的三种类型的observation元素，我们希望提取(a)(b)两种情境下的环境特征，（这两种环境特征与agent的动作相关），而忽略(c)情景下特征（这种环境特征与agent的动作无关）。</p>
+<p>特色：<strong>特征空间的描述</strong> 使用一个特征空间来表征环境，而并不是直接使用原始的observation来表征环境，这样可以提取出来只与agent动作相关的特征，并忽略与环境特征无关的特征。
+基于这个特征空间的表述，提出逆向模型 (reward module) 和前向模型 (forward module)。
+<strong>逆向模型</strong> 核心思想在于通过当前状态和下一个时刻的状态的表征，估计出当前状态采用的动作值。对于当前动作估计的越准确，说明对于agent可以控制的环境元素的表征就越好。
+<strong>前向模型</strong> 核心思想在于通过当前状态表征和当前动作，估计出下一个时刻的状态表征。 这个模型可以让学到的状态表征更加容易预测。</p>
+<p>ICM的agent有两个子系统： 一个子系统是 <strong>内在奖励生成器</strong>，它把前向模型的预测误差作为内在奖励（因此总奖励为内在奖励和稀疏的环境奖励之和）； 另一个子系统是一个 <strong>策略网络</strong>，用于输出一系列的动作。训练策略网络的优化目标就是总分数的期望，因此策略的优化既会考虑让稀疏的环境奖励得到更多，也会探索此前没有见过的动作，以求得到更多的内在奖励。</p>
+</section>
+<section id="id2">
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>ICM的基线强化学习算法是 <a class="reference external" href="http://proceedings.mlr.press/v48/mniha16.pdf">A3C</a> ,可以参考我们的实现 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/a2c.py">A2C</a> ，如果想实现A3C，可以使用多个环境同时训练。</p></li>
+<li><p>在后续的工作中 <a class="reference external" href="https://arxiv.org/pdf/1808.04355v1.pdf">Large-Scale Study of Curiosity-Driven Learning</a>, 使用的基线算法是PPO， 可以参考我们的实现 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">PPO</a>，通过PPO算法，只需要少量的超参数微调，就可以获得鲁棒的学习效果。</p></li>
+<li><p>虽然逆向模型和前向模型都会参与loss的计算，但是只有前向模型会当做intrinsic reward。前向模型的loss越大，说明依据当前状态特征和当前动作对下一时刻状态特征的估计越不准确，也就是这个状态以前没有遇到过，值得探索；逆向模型并不作为intrinsic reward,它（逆向模型）的作用主要是为了在特征空间提取的过程中，更好地帮助表征与agent动作相关的环境特征。</p></li>
+<li><p>奖励归一化。 由于奖励是不稳定的，因此需要把奖励归一化到[0,1]之间，让学习更稳定，在这里我们使用最大最小值归一化方法。</p></li>
+<li><p>特征归一化。 通过整合内在奖励和外在奖励的过程中，确保内在奖励在不同特征表述的缩放很重要，这一点可以通过batch normalization来实现。</p></li>
+<li><p>更多的actor（在DI-engine中为更多的collector)： 增加更多并行的actor可以使得训练更加稳定。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>ICM算法的整体训练与计算流程如下：</p>
+<a class="reference internal image-reference" href="../_images/ICM_illustraion.png"><img alt="../_images/ICM_illustraion.png" class="align-center" src="../_images/ICM_illustraion.png" style="width: 853.3px; height: 294.0px;" /></a>
+<p>1. 如左图所示，agent在状态 <img class="math" src="../_images/math/4aabbc49ec51d4fbf17ec43338f4592bda61837d.svg" alt="s_t"/> 通过当前的策略 <img class="math" src="../_images/math/62f4dddfd372f3c595ec5e86cbad69f811c94f15.svg" alt="\pi"/> 采样得到动作 a并执行，最终得到状态 <img class="math" src="../_images/math/df8e04b8ee0eee94491675c6d3345c3453358001.svg" alt="s_{t+1}"/>。 总的奖励为两个部分奖励之和，一部分是外部奖励 <img class="math" src="../_images/math/70f56f7571f776510ce22b63ee1526ab99969be0.svg" alt="r_t^e"/>，即环境中得到的，稀疏的奖励；另一部分是由ICM得到的内在奖励 <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">r_t^ｉ</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   \begingroup 
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ
+                                          $
+
+! Package inputenc Error: Unicode character ｉ (U+FF49)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ
+                                          $
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ$
+                                           
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 324 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ （具体计算过程由第4步给出），最终的策略的需要通过优化总的奖励来实现训练的目的。
+具体公式表现为：</p>
+<blockquote>
+<div><p><div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">ｒ_t=r_t^i + r_t^e</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+
+! Package inputenc Error: Unicode character ｒ (U+FF52)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $ｒ
+                                      _t=r_t^i + r_t^e$
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 428 bytes).
+Transcript written on math.log.
+</p>
+</div>
+</p>
+<p><img class="math" src="../_images/math/934ddad94b582b7f92df9180dc23496a9c964a4c.svg" alt="{\max}_{\theta_p}\mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t]"/></p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>在ICM的逆向模型中，它首先会把　<img class="math" src="../_images/math/4aabbc49ec51d4fbf17ec43338f4592bda61837d.svg" alt="s_t"/>　和 <img class="math" src="../_images/math/df8e04b8ee0eee94491675c6d3345c3453358001.svg" alt="s_{t+1}"/>　提取表征后的特征向量　<img class="math" src="../_images/math/a37d565a0ba1f9c941520d05d8c552437a9574e5.svg" alt="\Phi(s_t; \theta_E)"/>　和　<img class="math" src="../_images/math/2cf71dc8dbf6e54fb55f14a44fad1373e55df4bb.svg" alt="\Phi(s_{t+1}; \theta_E)"/> 作为输入（后面把它们简化为 <img class="math" src="../_images/math/ee8a436a0b8de397539879ad84be184df16cd65a.svg" alt="\Phi(s_t)"/> 和 <img class="math" src="../_images/math/aa746fec43f04f33c73c0a896216d537cfe22d99.svg" alt="\Phi(s_{t+1})"/>），并且输出预测的动作值　<img class="math" src="../_images/math/072de9503f54e335416338d3804a782de8214c38.svg" alt="a_t"/> 。</p></li>
+</ol>
+<blockquote>
+<div><p><img class="math" src="../_images/math/9d09fec30269f0ebc9ce86701a8839c3549d8463.svg" alt="\hat{a_t}=g(\Phi(s_t),\Phi(s_{t+1}) ; \theta_I)"/></p>
+<p><img class="math" src="../_images/math/f1e9651368147762976c20cf3899d3ec39b9fce7.svg" alt="{\min}_{\theta_I, \theta_E} L_i(\hat{a_t},a_t)"/></p>
+</div></blockquote>
+<p>在这里　<img class="math" src="../_images/math/d7f78ef44db87b4201bbf8f9b1ae1fa3da22ef4f.svg" alt="\hat{a_t}"/>　是　<img class="math" src="../_images/math/072de9503f54e335416338d3804a782de8214c38.svg" alt="a_t"/>　的预测值， <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">L_Ｉ</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   \begingroup 
+l.30 \fontsize{14}{17}\selectfont $L_Ｉ
+                                        $
+
+! Package inputenc Error: Unicode character Ｉ (U+FF29)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $L_Ｉ
+                                        $
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $L_Ｉ$
+                                         
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 272 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ 描述两者之间的差异 (cross entropy loss) 。差异越小，说明对于当前动作估计的越准确，说明对于agent可以控制的环境元素的表征就越好。</p>
+<p>３．ICM的前向模型会把　<img class="math" src="../_images/math/ee8a436a0b8de397539879ad84be184df16cd65a.svg" alt="\Phi(s_t)"/>　和动作值　<img class="math" src="../_images/math/072de9503f54e335416338d3804a782de8214c38.svg" alt="a_t"/>　作为输入，　输出下一个时刻状态的特征向量的预测数值　<img class="math" src="../_images/math/a7ba6e696ef8b8387b5681d1dc86461ceb5458f0.svg" alt="\hat{\Phi}(s_{t+1})"/> 。
+下一时刻预测的特征向量和真实的特征向量的误差被用来当做内在奖励。</p>
+<blockquote>
+<div><p><img class="math" src="../_images/math/03c24c680960c0b597a109f69f937b2faab4b5e8.svg" alt="\hat{\phi(s_{t+1})}=f(\Phi(s_t),a_t) ; \theta_F)"/></p>
+<p><img class="math" src="../_images/math/74f75a4a94aa53e2dcf34368c47eb10752569e8e.svg" alt="{\min}_{\theta_F, \theta_E} L_F(\hat{\phi(s_{t+1})},\phi(s_{t+1}))"/></p>
+</div></blockquote>
+<p>在这里， <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">L_Ｆ</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   \begingroup 
+l.30 \fontsize{14}{17}\selectfont $L_Ｆ
+                                        $
+
+! Package inputenc Error: Unicode character Ｆ (U+FF26)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $L_Ｆ
+                                        $
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $L_Ｆ$
+                                         
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 272 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ 描述了　<img class="math" src="../_images/math/3c651f6097198448c10365af33780771deeef517.svg" alt="\hat{\phi(s_{t+1})}"/> 和 <img class="math" src="../_images/math/72436c0a6fb7f7dd35e7344a1ea9eca50e9f25b6.svg" alt="\phi(s_{t+1})"/> 之间的差异 (L2 loss), 通过前向模型的学习，可以让学习的特征表征更加容易预测。</p>
+<p>４．内在奖励可以由　<img class="math" src="../_images/math/3c651f6097198448c10365af33780771deeef517.svg" alt="\hat{\phi(s_{t+1})}"/> 和 <img class="math" src="../_images/math/72436c0a6fb7f7dd35e7344a1ea9eca50e9f25b6.svg" alt="\phi(s_{t+1})"/> 之间的差异来表征：</p>
+<blockquote>
+<div><p><img class="math" src="../_images/math/84fd66258c74d9236a10f09df4746b46ced405f8.svg" alt="r_i^t = \frac{\eta}{2} (\| \hat{\phi(s_{t+1})} - \phi(s_{t+1}) \|)_2^2"/></p>
+</div></blockquote>
+<p><strong>总结</strong>：
+ICM通过前向模型和逆向模型，会提取更多会受到agent影响的环境元素特征；对于那些agent的动作无法影响的环境元素（比如噪声），将不会产生内在奖励，进而提高了探索策略的鲁棒性。
+同时，１－４也可以写作一个优化函数：</p>
+<blockquote>
+<div><p><div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">{\min}_{\theta_P,\theta_I,\theta_F，\theta_E} [- \lambda \mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t] + (1-\beta)L_I + \beta LF]</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+
+! Package inputenc Error: Unicode character ， (U+FF0C)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 ...ont ${\min}_{\theta_P,\theta_I,\theta_F，
+                                                  \theta_E} [- \lambda \math...
+
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 736 bytes).
+Transcript written on math.log.
+</p>
+</div>
+</p>
+</div></blockquote>
+<p>在这里 <img class="math" src="../_images/math/a502458c15df73fe14081e4643f2ffbed1ad3103.svg" alt="\beta \in [0,1]"/> 用来权衡正向模型误差和逆向模型误差的权重；　<img class="math" src="../_images/math/006eac24f1f0f5a77f50286d5c180fe68f4fe999.svg" alt="\lambda &gt;0"/> 用来表征策略梯度误差对于内在信号的重要程度。</p>
+</section>
+<section id="id4">
+<h2>重要实现细节<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>1. 奖励归一化。由于智能体在不同的阶段和环境下，奖励的幅度变化可能会很剧烈，如果直接用作后续的计算，很容易造成后续学习的不稳定。
+在我们的实现中，是按照下面的最大最小归一化公式，归一化到[0,1]之间:</p>
+<p><code class="docutils literal notranslate"><span class="pre">reward</span> <span class="pre">=</span> <span class="pre">(reward</span> <span class="pre">-</span> <span class="pre">reward.min())</span> <span class="pre">/</span> <span class="pre">(reward.max()</span> <span class="pre">-</span> <span class="pre">reward.min()</span> <span class="pre">+</span> <span class="pre">1e-8)</span></code></p>
+<p>2. 使用残差网络来拟合前向模型。由于observation的表征维度比较大，而动作值往往是一个离散的数值。
+因此在计算前向模型的时候，使用残差网络可以比较好的保留动作值的信息，从而的得到比较好的环境表征。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">encode_state</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_1</span><span class="p">(</span><span class="n">pred_next_state_feature_orig</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">+</span> <span class="n">pred_next_state_feature_orig</span>
+<span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_2</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>内在好奇心模型( <code class="docutils literal notranslate"><span class="pre">ICMRewardModel</span></code> )的接口定义如下：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.reward_model.icm_reward_model.</span></span><span class="sig-name descname"><span class="pre">ICMRewardModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/reward_model/icm_reward_model.html#ICMRewardModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The ICM reward model class (<a class="reference external" href="https://arxiv.org/pdf/1705.05363.pdf">https://arxiv.org/pdf/1705.05363.pdf</a>)</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">estimate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, <code class="docutils literal notranslate"><span class="pre">collect_data</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_data</span></code>,             <code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">_train</span></code>,</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">clear_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/icm_reward_model.html#ICMRewardModel.clear_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Clearing training data.             This can be a side effect function which clears the data attribute in <code class="docutils literal notranslate"><span class="pre">self</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">collect_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/icm_reward_model.html#ICMRewardModel.collect_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Collecting training data in designated formate or with designated transition.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Raw training data (e.g. some form of states, actions, obs, etc)</p></li>
+</ul>
+</dd>
+<dt>Returns / Effects:</dt><dd><ul class="simple">
+<li><p>This can be a side effect function which updates the data attribute in <code class="docutils literal notranslate"><span class="pre">self</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/icm_reward_model.html#ICMRewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>estimate reward</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): the list of data used for estimation</p></li>
+</ul>
+</dd>
+<dt>Returns / Effects:</dt><dd><ul class="simple">
+<li><p>This can be a side effect function which updates the reward value</p></li>
+<li><p>If this function returns, an example returned object can be reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the estimated reward</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/icm_reward_model.html#ICMRewardModel.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Training the reward model</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Data used for training</p></li>
+</ul>
+</dd>
+<dt>Effects:</dt><dd><ul class="simple">
+<li><p>This is mostly a side effect function which updates the reward model</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="icmnetwork">
+<h3>ICMNetwork<a class="headerlink" href="#icmnetwork" title="Permalink to this headline">¶</a></h3>
+<p>首先我们定义类　<code class="docutils literal notranslate"><span class="pre">ICMNetwork</span></code> 涉及四种神经网络：</p>
+<p>self.feature: 对observation的特征进行提取；</p>
+<p>self.inverse_net: ICM网络的逆向模型，通过将先后两帧feature特征作为输入，输出一个预测的动作</p>
+<p>self.residual: 参与ICM网络的前向模型，通过多次将action与中间层的输出做concat,使得特征更加明显</p>
+<p>self.forward_net: 参与ICM网络的前向模型，负责输出 <img class="math" src="../_images/math/df8e04b8ee0eee94491675c6d3345c3453358001.svg" alt="s_{t+1}"/> 时刻的feature</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ICMNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Intrinsic Curiosity Model (ICM Module)</span>
+<span class="sd">    Implementation of:</span>
+<span class="sd">    [1] Curiosity-driven Exploration by Self-supervised Prediction</span>
+<span class="sd">    Pathak, Agrawal, Efros, and Darrell - UC Berkeley - ICML 2017.</span>
+<span class="sd">    https://arxiv.org/pdf/1705.05363.pdf</span>
+<span class="sd">    [2] Code implementation reference:</span>
+<span class="sd">    https://github.com/pathak22/noreward-rl</span>
+<span class="sd">    https://github.com/jcwleo/curiosity-driven-exploration-pytorch</span>
+
+<span class="sd">    1) Embedding observations into a latent space</span>
+<span class="sd">    2) Predicting the action logit given two consecutive embedded observations</span>
+<span class="sd">    3) Predicting the next embedded obs, given the embeded former observation and action</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span> <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ICMNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own ICM model&quot;</span><span class="o">.</span>
+                <span class="nb">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span> <span class="o">=</span> <span class="n">action_shape</span>
+        <span class="n">feature_output</span> <span class="o">=</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inverse_net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">feature_output</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residual</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">action_shape</span> <span class="o">+</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">(),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+                <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">action_shape</span> <span class="o">+</span> <span class="n">feature_output</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">action_shape</span> <span class="o">+</span> <span class="mi">512</span><span class="p">,</span> <span class="n">feature_output</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">next_state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                <span class="n">action_long</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use observation, next_observation and action to genearte ICM module</span>
+<span class="sd">            Parameter updates with ICMNetwork forward setup.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state (:obj:`torch.Tensor`):</span>
+<span class="sd">                The current state batch</span>
+<span class="sd">            - next_state (:obj:`torch.Tensor`):</span>
+<span class="sd">                The next state batch</span>
+<span class="sd">            - action_long (:obj:`torch.Tensor`):</span>
+<span class="sd">                The action batch</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - real_next_state_feature (:obj:`torch.Tensor`):</span>
+<span class="sd">                Run with the encoder. Return the real next_state&#39;s embedded feature.</span>
+<span class="sd">            - pred_next_state_feature (:obj:`torch.Tensor`):</span>
+<span class="sd">                Run with the encoder and residual network. Return the predicted next_state&#39;s embedded feature.</span>
+<span class="sd">            - pred_action_logit (:obj:`torch.Tensor`):</span>
+<span class="sd">                Run with the encoder. Return the predicted action logit.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is &#39;&#39;obs_shape&#39;&#39;</span>
+<span class="sd">            - next_state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is &#39;&#39;obs_shape&#39;&#39;</span>
+<span class="sd">            - action_long (:obj:`torch.Tensor`): :math:`(B)`, where B is the batch size&#39;&#39;</span>
+<span class="sd">            - real_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size</span>
+<span class="sd">            and M is embedded feature size</span>
+<span class="sd">            - pred_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size</span>
+<span class="sd">            and M is embedded feature size</span>
+<span class="sd">            - pred_action_logit (:obj:`torch.Tensor`): :math:`(B, A)`, where B is the batch size</span>
+<span class="sd">            and A is the &#39;&#39;action_shape&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">one_hot</span><span class="p">(</span><span class="n">action_long</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span><span class="p">)</span>
+        <span class="n">encode_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">encode_next_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature</span><span class="p">(</span><span class="n">next_state</span><span class="p">)</span>
+        <span class="c1"># get pred action logit</span>
+        <span class="n">concat_state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">encode_state</span><span class="p">,</span> <span class="n">encode_next_state</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">pred_action_logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse_net</span><span class="p">(</span><span class="n">concat_state</span><span class="p">)</span>
+        <span class="c1"># ---------------------</span>
+
+        <span class="c1"># get pred next state</span>
+        <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">encode_state</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_1</span><span class="p">(</span><span class="n">pred_next_state_feature_orig</span><span class="p">)</span>
+
+        <span class="c1"># residual</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">](</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span> <span class="o">+</span> <span class="n">pred_next_state_feature_orig</span>
+        <span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_2</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">real_next_state_feature</span> <span class="o">=</span> <span class="n">encode_next_state</span>
+        <span class="k">return</span> <span class="n">real_next_state_feature</span><span class="p">,</span> <span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">pred_action_logit</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+<section id="id6">
+<h2>实验结果<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>环境：　MiniGrid-DoorKey-8x8-v0；
+基线算法: ppo_offpolicy，
+实验的三条线为三个种子，id 分别为: 0, 10, 20</p>
+<img alt="../_images/tb_icm_doorkey8.png" class="align-center" src="../_images/tb_icm_doorkey8.png" />
+<p>环境：　PongNoFrameskip-v4；
+基线算法: ppo_offpolicy，
+实验的三条线为三个种子，id 分别为: 0, 10, 20</p>
+<img alt="../_images/tb_icm_pong.png" class="align-center" src="../_images/tb_icm_pong.png" />
+<p>环境：　MiniGrid-FourRooms-v0；
+基线算法: ppo_offpolicy，
+实验的三条线为三个种子，id 分别为: 0, 10, 20</p>
+<img alt="../_images/tb_icm_fourroom.png" class="align-center" src="../_images/tb_icm_fourroom.png" />
+</section>
+<section id="id7">
+<h2>参考资料<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration by self-supervised prediction[C]//International conference on machine learning. PMLR, 2017: 2778-2787.</p></li>
+<li><p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network distillation[J]. <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">https://arxiv.org/abs/1810.12894v1</a>. arXiv:1810.12894, 2018.</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../env_tutorial/index_zh.html" class="btn btn-neutral float-right" title="强化学习环境示例手册" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="alphago.html" class="btn btn-neutral float-left" title="AlphaGo" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

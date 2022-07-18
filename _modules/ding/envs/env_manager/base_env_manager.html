@@ -1,12 +1,8 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en">
-<!--<![endif]-->
-
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -15,158 +11,62 @@
   <title>ding.envs.env_manager.base_env_manager &mdash; DI-engine 0.1.0 documentation</title>
   
 
-  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
   
-  
-
-  
-
   
   
   
 
   
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+    
+
+  
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="../../../../genindex.html" />
-  <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
     <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
-
-  
-  <script src="../../../../_static/js/modernizr.min.js"></script>
-  <script>
-    MathJax = {
-        chtml: {
-            scale: 1,
-            minScale: 1,
-        },
-        svg: {
-            scale: 1,
-            minScale: 1,
-        }
-    }
-</script>
-
-  <!-- Preload the theme fonts -->
-
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-<!-- Preload the katex fonts -->
-
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
-    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<div class="container-fluid header-holder tutorials-header" id="header-holder">
-  <div class="container">
-    <div class="header-container">
-      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
-        aria-label="OpenMMLab"></a>
-
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-          <li >
-            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
-              <a
-                class="resource-option with-down-arrow">
-                OpenDILab
-              </a>
-              <div class="resources-dropdown-menu">
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-engine" target="_blank">
-                  <span class="dropdown-title">DI-engine </span>
-                  <p>OpenDILab Decision AI Engine</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-star" target="_blank">
-                  <span class="dropdown-title">DI-star </span>
-                  <p>OpenDILab Decision AI in StarCraftII</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-drive" target="_blank">
-                  <span class="dropdown-title">DI-drive </span>
-                  <p>OpenDILab Auto-driving platform</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/GoBigger" target="_blank">
-                  <span class="dropdown-title">GoBigger </span>
-                  <p>OpenDILab Multi-Agent Environment</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
-                  <span class="dropdown-title">DI-smartcross </span>
-                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
-                  <span class="dropdown-title">DI-treetensor </span>
-                  <p>Tree Nested PyTorch Tensor Lib</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
-                  <span class="dropdown-title">awesome-model-based-RL </span>
-                  <p>A curated list of awesome model based RL resources (continually updated)</p>
-                </a>
-              </div>
-          </li>
-        </ul>
-      </div>
-
-      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
-    </div>
-  </div>
-</div>
-
-<body class="pytorch-body">
+<body class="wy-body-for-nav">
 
    
-
-  
-
-  <div class="table-of-contents-link-wrapper">
-    <span>Table of Contents</span>
-    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
-  </div>
-
-  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
-    <div class="pytorch-side-scroll">
-      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <div class="pytorch-left-menu-search">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
           
+            <a href="../../../../index.html" class="icon icon-home"> DI-engine
           
+
           
+          </a>
+
+          
+            
+            
           
 
           
-
-
-
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -175,47 +75,56 @@
           
         </div>
 
-        
-        
-        
-        
-        
-        
-        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../architecture/index.html">Architecture Design</a></li>
 </ul>
 
-        
-        
+            
+          
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="pytorch-container">
-    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
-      <div class="pytorch-breadcrumbs-wrapper">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
 
 
 
@@ -233,57 +142,43 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="pytorch-breadcrumbs">
+  <ul class="wy-breadcrumbs">
     
-      <li>
-        <a href="../../../../index.html">
-            Docs
-        </a> &gt;
-      </li>
-
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../../../index.html">Module code</a> &gt;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
       <li>ding.envs.env_manager.base_env_manager</li>
     
     
-      <li class="pytorch-breadcrumbs-aside">
+      <li class="wy-breadcrumbs-aside">
         
       </li>
     
   </ul>
 
   
+  <hr/>
 </div>
-      </div>
-
-      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
-        Shortcuts
-      </div>
-    </div>
-
-    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
-      <div class="pytorch-content-left">
-        
-          <div class="rst-content">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
-            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
-              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
-                
   <h1>Source code for ding.envs.env_manager.base_env_manager</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
-<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">treetensor.numpy</span> <span class="k">as</span> <span class="nn">tnp</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">one_time_warning</span><span class="p">,</span> <span class="n">make_key_as_identifier</span><span class="p">,</span> <span class="n">WatchDog</span>
-<span class="kn">from</span> <span class="nn">ding.envs.env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">one_time_warning</span>
+<span class="kn">from</span> <span class="nn">ding.envs.env.base_env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
+<span class="kn">from</span> <span class="nn">ding.utils.time_helper</span> <span class="kn">import</span> <span class="n">WatchDog</span>
 
 
 <span class="k">class</span> <span class="nc">EnvState</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">IntEnum</span><span class="p">):</span>
@@ -293,7 +188,6 @@
     <span class="n">RESET</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">DONE</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="n">ERROR</span> <span class="o">=</span> <span class="mi">5</span>
-    <span class="n">NEED_RESET</span> <span class="o">=</span> <span class="mi">6</span>
 
 
 <span class="k">def</span> <span class="nf">timeout_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
@@ -329,16 +223,15 @@
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
-<div class="viewcode-block" id="BaseEnvManager"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="BaseEnvManager"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BaseEnvManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a BaseEnvManager to manage multiple environments.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done</span>
+<span class="sd">        reset, step, seed, close, enable_save_replay, launch, env_info, default_config</span>
 <span class="sd">    Properties:</span>
-<span class="sd">        env_num, ready_obs, done, method_name_list</span>
-<span class="sd">        observation_space, action_space, reward_space</span>
+<span class="sd">        env_num, ready_obs, done, method_name_list，active_env</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
@@ -376,21 +269,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># env_ref is used to acquire some common attributes of env, like obs_shape and act_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_fn</span><span class="p">[</span><span class="mi">0</span><span class="p">]()</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">observation_space</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">action_space</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reward_space</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="c1"># For some environment,</span>
-            <span class="c1"># we have to reset before getting observation description.</span>
-            <span class="c1"># However, for dmc-mujoco, we should not reset the env at the main thread,</span>
-            <span class="c1"># when using in a subprocess mode, which would cause opengl rendering bugs,</span>
-            <span class="c1"># leading to no response subprocesses.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">observation_space</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">action_space</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">reward_space</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">VOID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)}</span>
 
@@ -408,54 +286,17 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">env_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">observation_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;gym.spaces.Space&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">action_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;gym.spaces.Space&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">reward_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;gym.spaces.Space&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ready_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Get the ready (next) observation, which is uniform for both aysnc/sync scenarios.</span>
+<span class="sd">            Get the next observations(in ``np.ndarray`` type) and corresponding env id.</span>
 <span class="sd">        Return:</span>
-<span class="sd">            - ready_obs (:obj:`Dict[int, Any]:`): Dict with env_id keys and observation values.</span>
+<span class="sd">            A dictionary with observations and their environment IDs.</span>
 <span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; obs = env_manager.ready_obs</span>
-<span class="sd">            &gt;&gt;&gt; stacked_obs = np.concatenate(list(obs.values()))</span>
-<span class="sd">            &gt;&gt;&gt; action = model(obs)  # model input np obs and output np action</span>
-<span class="sd">            &gt;&gt;&gt; action = {env_id: a for env_id, a in zip(obs.keys(), action)}</span>
-<span class="sd">            &gt;&gt;&gt; timesteps = env_manager.step(action)</span>
+<span class="sd">            &gt;&gt;&gt;     obs_dict = env_manager.ready_obs</span>
+<span class="sd">            &gt;&gt;&gt;     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">active_env</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">active_env</span><span class="p">}</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ready_obs_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="c1"># In BaseEnvManager, if env_episode_count equals episode_num, this env is done.</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span><span class="p">]</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ready_imgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">render_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;rgb_array&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get the next ready renderd frame and corresponding env id.</span>
-<span class="sd">        Return:</span>
-<span class="sd">            - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">render</span>
-        <span class="k">assert</span> <span class="n">render_mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;rgb_array&#39;</span><span class="p">,</span> <span class="s1">&#39;depth_array&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">render_mode</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_obs</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_num</span><span class="p">}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">done</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -463,10 +304,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">method_name_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;close&#39;</span><span class="p">,</span> <span class="s1">&#39;enable_save_replay&#39;</span><span class="p">,</span> <span class="s1">&#39;render&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;close&#39;</span><span class="p">,</span> <span class="s1">&#39;enable_save_replay&#39;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">env_state_done</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">active_env</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -489,7 +331,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">,</span> <span class="s2">&quot;env manager is closed, please use the alive env manager&quot;</span>
 
-<div class="viewcode-block" id="BaseEnvManager.launch"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.launch">[docs]</a>    <span class="k">def</span> <span class="nf">launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseEnvManager.launch"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.launch">[docs]</a>    <span class="k">def</span> <span class="nf">launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set up the environments and their parameters.</span>
@@ -507,6 +349,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_fn</span><span class="p">]</span>
+        <span class="c1"># env_ref is used to acquire some common attributes of env, like obs_shape and act_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">INIT</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
@@ -515,7 +359,7 @@
                 <span class="n">e</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="BaseEnvManager.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseEnvManager.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the environments their parameters.</span>
@@ -544,6 +388,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;please don&#39;t reset a unfinished env when you enable save replay, we just skip it&quot;</span><span class="p">)</span>
                 <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -560,7 +405,6 @@
         <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span>
                 <span class="n">obs</span> <span class="o">=</span> <span class="n">reset_fn</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span>
@@ -585,20 +429,25 @@
         <span class="n">runtime_error</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">__traceback__</span>
         <span class="k">raise</span> <span class="n">runtime_error</span>
 
-<div class="viewcode-block" id="BaseEnvManager.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">BaseEnvTimestep</span><span class="p">]]:</span>
+<div class="viewcode-block" id="BaseEnvManager.step"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Execute env step according to input actions. And reset an env if done.</span>
+<span class="sd">            Step all environments. Reset an env if done.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - actions (:obj:`Dict[int, Any]`): actions came from outer caller like policy</span>
+<span class="sd">            - actions (:obj:`Dict[int, Any]`): {env_id: action}</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - timesteps (:obj:`List[Dict[int, BaseEnvTimestep]]`): Each timestep is a BaseEnvTimestep object, \</span>
-<span class="sd">                usually including observation, reward, done, info.</span>
+<span class="sd">            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \</span>
+<span class="sd">                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.</span>
 <span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; timesteps = env_manager.step(action)</span>
-<span class="sd">            &gt;&gt;&gt; for i, timestep in enumerate(timesteps):</span>
-<span class="sd">            &gt;&gt;&gt;     if timestep.done:</span>
-<span class="sd">            &gt;&gt;&gt;         print(&#39;Env {} is done&#39;.format(timestep.env_id))</span>
+<span class="sd">            &gt;&gt;&gt;     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}</span>
+<span class="sd">            &gt;&gt;&gt;     timesteps = env_manager.step(actions_dict):</span>
+<span class="sd">            &gt;&gt;&gt;     for env_id, timestep in timesteps.items():</span>
+<span class="sd">            &gt;&gt;&gt;         pass</span>
+
+<span class="sd">        .. note:</span>
+
+<span class="sd">            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.</span>
+<span class="sd">            - Once an environment is done, it is reset immediately.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_closed</span><span class="p">()</span>
         <span class="n">timesteps</span> <span class="o">=</span> <span class="p">{}</span>
@@ -606,18 +455,16 @@
             <span class="n">timesteps</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">act</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">timesteps</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_num</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_reset</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">NEED_RESET</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_num</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_reset</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timesteps</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">obs</span>
         <span class="k">return</span> <span class="n">timesteps</span></div>
 
-    <span class="k">def</span> <span class="nf">_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">act</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvTimestep</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">act</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">namedtuple</span><span class="p">:</span>
 
         <span class="nd">@timeout_wrapper</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">step_fn</span><span class="p">():</span>
@@ -639,7 +486,7 @@
         <span class="n">runtime_error</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">__traceback__</span>
         <span class="k">raise</span> <span class="n">runtime_error</span>
 
-<div class="viewcode-block" id="BaseEnvManager.seed"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.seed">[docs]</a>    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span> <span class="n">dynamic_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseEnvManager.seed"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.seed">[docs]</a>    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span> <span class="n">dynamic_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set the seed for each environment.</span>
@@ -660,13 +507,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid seed arguments type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">seed</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_env_dynamic_seed</span> <span class="o">=</span> <span class="n">dynamic_seed</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># TODO(nyz) deal with nested action_space like SMAC</span>
-            <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_dynamic_seed</span> <span class="o">=</span> <span class="n">dynamic_seed</span></div>
 
-<div class="viewcode-block" id="BaseEnvManager.enable_save_replay"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseEnvManager.enable_save_replay"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set each env&#39;s replay save path.</span>
@@ -678,70 +521,31 @@
             <span class="n">replay_path</span> <span class="o">=</span> <span class="p">[</span><span class="n">replay_path</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_num</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span> <span class="o">=</span> <span class="n">replay_path</span></div>
 
-<div class="viewcode-block" id="BaseEnvManager.close"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseEnvManager.close"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Release the environment resources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>
             <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">:</span>
             <span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">VOID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">closed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span></div>
-
-
-<span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;base_v2&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">BaseEnvManagerV2</span><span class="p">(</span><span class="n">BaseEnvManager</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        BaseEnvManager for new task pipeline and interfaces coupled with treetensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ready_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseEnvManager.env_info"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.env_info">[docs]</a>    <span class="k">def</span> <span class="nf">env_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">namedtuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.</span>
-<span class="sd">        Return:</span>
-<span class="sd">            - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.</span>
-<span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; obs = env_manager.ready_obs</span>
-<span class="sd">            &gt;&gt;&gt; action = model(obs)  # model input np obs and output np action</span>
-<span class="sd">            &gt;&gt;&gt; timesteps = env_manager.step(action)</span>
+<span class="sd">            Get one env&#39;s info, for example, action space, observation space, reward space, etc.</span>
+<span class="sd">        Returnns:</span>
+<span class="sd">            - info (:obj:`namedtuple`): Usually a namedtuple ``BaseEnvInfo``, each element is ``EnvElementInfo``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">active_env</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span><span class="p">]</span>
-        <span class="n">obs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">active_env</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">tnp</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Execute env step according to input actions. And reset an env if done.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \</span>
-<span class="sd">                info, env_id.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">a</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ready_obs_id</span><span class="p">,</span> <span class="n">actions</span><span class="p">)}</span>
-        <span class="n">timesteps</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
-        <span class="n">new_data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">timestep</span>
-            <span class="c1"># make the type and content of key as similar as identifier,</span>
-            <span class="c1"># in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info</span>
-            <span class="n">info</span> <span class="o">=</span> <span class="n">make_key_as_identifier</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
-            <span class="n">new_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">({</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">reward</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">,</span> <span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="n">env_id</span><span class="p">}))</span>
-        <span class="k">return</span> <span class="n">new_data</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">info</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="create_env_manager"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.create_env_manager">[docs]</a><span class="k">def</span> <span class="nf">create_env_manager</span><span class="p">(</span><span class="n">manager_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">env_fn</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BaseEnvManager</span><span class="p">:</span>
+<div class="viewcode-block" id="create_env_manager"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.create_env_manager">[docs]</a><span class="k">def</span> <span class="nf">create_env_manager</span><span class="p">(</span><span class="n">manager_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">env_fn</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BaseEnvManager</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create an env manager according to manager cfg and env function.</span>
@@ -758,7 +562,7 @@
     <span class="k">return</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">manager_type</span><span class="p">,</span> <span class="n">env_fn</span><span class="o">=</span><span class="n">env_fn</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">manager_cfg</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_env_manager_cls"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.get_env_manager_cls">[docs]</a><span class="k">def</span> <span class="nf">get_env_manager_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
+<div class="viewcode-block" id="get_env_manager_cls"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.get_env_manager_cls">[docs]</a><span class="k">def</span> <span class="nf">get_env_manager_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get an env manager class according to cfg.</span>
@@ -771,119 +575,43 @@
     <span class="k">return</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
 </pre></div>
 
-              </article>
-              
-            </div>
-            <footer>
+           </div>
+           
+          </div>
+          <footer>
   
 
-  <hr>
+  <hr/>
 
   <div role="contentinfo">
     <p>
-      &copy; Copyright 2021, OpenDILab Contributors.
+        &copy; Copyright 2021, OpenDILab Contributors
 
     </p>
   </div>
-  
-  <div>
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
-      Docs</a>.
-  </div>
-   
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-          </div>
-        </div>
 
-        <div class="pytorch-content-right" id="pytorch-content-right">
-          <div class="pytorch-right-menu" id="pytorch-right-menu">
-            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              
-            </div>
-          </div>
         </div>
+      </div>
+
     </section>
+
   </div>
-
   
 
-
-  
-
-  
-  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
-    src="../../../../_static/documentation_options.js"></script>
-  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-  <script src="../../../../_static/jquery.js"></script>
-  <script src="../../../../_static/underscore.js"></script>
-  <script src="../../../../_static/doctools.js"></script>
-  
-
-  
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
-    jQuery(function () {
-      SphinxRtdTheme.Navigation.enable(true);
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
-
-  <!-- Begin Footer -->
-
-  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
-  </div>
-
-  <!-- End Footer -->
-
-  <!-- Begin Mobile Menu -->
-
-  <div class="mobile-main-menu">
-    <div class="container-fluid">
-      <div class="container">
-        <div class="mobile-main-menu-header-container">
-          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
-          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-main-menu-links-container">
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-      </div>
-    </div>
-  </div>
-
-  <!-- End Mobile Menu -->
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
-
-  <script type="text/javascript">
-    $(document).ready(function () {
-      mobileMenu.bind();
-      mobileTOC.bind();
-      pytorchAnchors.bind();
-      sideMenus.bind();
-      scrollToAnchor.bind();
-      highlightNavigation.bind();
-      mainMenuDropdown.bind();
-      filterTags.bind();
-
-      // Add class to links that have code blocks, since we cannot create links in code blocks
-      $("article.pytorch-article a span.pre").each(function (e) {
-        $(this).closest("a").addClass("has-code");
-      });
-    })
   </script>
-</body>
 
+  
+  
+    
+   
+
+</body>
 </html>

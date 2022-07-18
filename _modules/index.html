@@ -1,12 +1,8 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en">
-<!--<![endif]-->
-
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -15,158 +11,62 @@
   <title>Overview: module code &mdash; DI-engine 0.1.0 documentation</title>
   
 
-  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
   
-  
-
-  
-
   
   
   
 
   
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
+    
+
+  
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="../genindex.html" />
-  <link rel="search" title="Search" href="../search.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-  <script>
-    MathJax = {
-        chtml: {
-            scale: 1,
-            minScale: 1,
-        },
-        svg: {
-            scale: 1,
-            minScale: 1,
-        }
-    }
-</script>
-
-  <!-- Preload the theme fonts -->
-
-<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-<!-- Preload the katex fonts -->
-
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
-    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<div class="container-fluid header-holder tutorials-header" id="header-holder">
-  <div class="container">
-    <div class="header-container">
-      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
-        aria-label="OpenMMLab"></a>
-
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-          <li >
-            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
-              <a
-                class="resource-option with-down-arrow">
-                OpenDILab
-              </a>
-              <div class="resources-dropdown-menu">
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-engine" target="_blank">
-                  <span class="dropdown-title">DI-engine </span>
-                  <p>OpenDILab Decision AI Engine</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-star" target="_blank">
-                  <span class="dropdown-title">DI-star </span>
-                  <p>OpenDILab Decision AI in StarCraftII</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-drive" target="_blank">
-                  <span class="dropdown-title">DI-drive </span>
-                  <p>OpenDILab Auto-driving platform</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/GoBigger" target="_blank">
-                  <span class="dropdown-title">GoBigger </span>
-                  <p>OpenDILab Multi-Agent Environment</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
-                  <span class="dropdown-title">DI-smartcross </span>
-                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
-                  <span class="dropdown-title">DI-treetensor </span>
-                  <p>Tree Nested PyTorch Tensor Lib</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
-                  <span class="dropdown-title">awesome-model-based-RL </span>
-                  <p>A curated list of awesome model based RL resources (continually updated)</p>
-                </a>
-              </div>
-          </li>
-        </ul>
-      </div>
-
-      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
-    </div>
-  </div>
-</div>
-
-<body class="pytorch-body">
+<body class="wy-body-for-nav">
 
    
-
-  
-
-  <div class="table-of-contents-link-wrapper">
-    <span>Table of Contents</span>
-    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
-  </div>
-
-  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
-    <div class="pytorch-side-scroll">
-      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <div class="pytorch-left-menu-search">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
           
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
           
+
           
+          </a>
+
+          
+            
+            
           
 
           
-
-
-
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -175,48 +75,56 @@
           
         </div>
 
-        
-        
-        
-        
-        
-        
-        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index_zh.html">特性介绍</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
 </ul>
 
-        
-        
+            
+          
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="pytorch-container">
-    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
-      <div class="pytorch-breadcrumbs-wrapper">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
 
 
 
@@ -234,66 +142,32 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="pytorch-breadcrumbs">
+  <ul class="wy-breadcrumbs">
     
-      <li>
-        <a href="../index_zh.html">
-            Docs
-        </a> &gt;
-      </li>
-
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
         
       <li>Overview: module code</li>
     
     
-      <li class="pytorch-breadcrumbs-aside">
+      <li class="wy-breadcrumbs-aside">
         
       </li>
     
   </ul>
 
   
+  <hr/>
 </div>
-      </div>
-
-      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
-        Shortcuts
-      </div>
-    </div>
-
-    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
-      <div class="pytorch-content-left">
-        
-          <div class="rst-content">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
-            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
-              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
-                
   <h1>All modules for which code is available</h1>
 <ul><li><a href="ding/config/config.html">ding.config.config</a></li>
-<li><a href="ding/data/buffer/buffer.html">ding.data.buffer.buffer</a></li>
-<li><a href="ding/data/buffer/deque_buffer.html">ding.data.buffer.deque_buffer</a></li>
-<li><a href="ding/data/buffer/middleware/clone_object.html">ding.data.buffer.middleware.clone_object</a></li>
-<li><a href="ding/data/buffer/middleware/group_sample.html">ding.data.buffer.middleware.group_sample</a></li>
-<li><a href="ding/data/buffer/middleware/padding.html">ding.data.buffer.middleware.padding</a></li>
-<li><a href="ding/data/buffer/middleware/priority.html">ding.data.buffer.middleware.priority</a></li>
-<li><a href="ding/data/buffer/middleware/sample_range_view.html">ding.data.buffer.middleware.sample_range_view</a></li>
-<li><a href="ding/data/buffer/middleware/staleness_check.html">ding.data.buffer.middleware.staleness_check</a></li>
-<li><a href="ding/data/buffer/middleware/use_time_check.html">ding.data.buffer.middleware.use_time_check</a></li>
 <li><a href="ding/envs/env/base_env.html">ding.envs.env.base_env</a></li>
 <li><a href="ding/envs/env_manager/base_env_manager.html">ding.envs.env_manager.base_env_manager</a></li>
 <li><a href="ding/envs/env_manager/subprocess_env_manager.html">ding.envs.env_manager.subprocess_env_manager</a></li>
 <li><a href="ding/envs/env_wrappers/env_wrappers.html">ding.envs.env_wrappers.env_wrappers</a></li>
 <li><a href="ding/framework/context.html">ding.framework.context</a></li>
-<li><a href="ding/framework/middleware/ckpt_handler.html">ding.framework.middleware.ckpt_handler</a></li>
-<li><a href="ding/framework/middleware/collector.html">ding.framework.middleware.collector</a></li>
-<li><a href="ding/framework/middleware/functional/advantage_estimator.html">ding.framework.middleware.functional.advantage_estimator</a></li>
-<li><a href="ding/framework/middleware/functional/collector.html">ding.framework.middleware.functional.collector</a></li>
-<li><a href="ding/framework/middleware/functional/data_processor.html">ding.framework.middleware.functional.data_processor</a></li>
-<li><a href="ding/framework/middleware/functional/enhancer.html">ding.framework.middleware.functional.enhancer</a></li>
-<li><a href="ding/framework/middleware/functional/evaluator.html">ding.framework.middleware.functional.evaluator</a></li>
-<li><a href="ding/framework/middleware/functional/trainer.html">ding.framework.middleware.functional.trainer</a></li>
-<li><a href="ding/framework/middleware/learner.html">ding.framework.middleware.learner</a></li>
 <li><a href="ding/framework/parallel.html">ding.framework.parallel</a></li>
 <li><a href="ding/framework/task.html">ding.framework.task</a></li>
 <li><a href="ding/interaction/base/common.html">ding.interaction.base.common</a></li>
@@ -315,48 +189,33 @@
 <li><a href="ding/model/common/head.html">ding.model.common.head</a></li>
 <li><a href="ding/model/common/utils.html">ding.model.common.utils</a></li>
 <li><a href="ding/model/template/coma.html">ding.model.template.coma</a></li>
-<li><a href="ding/model/template/ppg.html">ding.model.template.ppg</a></li>
 <li><a href="ding/model/template/q_learning.html">ding.model.template.q_learning</a></li>
 <li><a href="ding/model/template/qac.html">ding.model.template.qac</a></li>
-<li><a href="ding/model/template/qac_dist.html">ding.model.template.qac_dist</a></li>
 <li><a href="ding/model/template/qmix.html">ding.model.template.qmix</a></li>
 <li><a href="ding/model/template/vac.html">ding.model.template.vac</a></li>
-<li><a href="ding/model/template/wqmix.html">ding.model.template.wqmix</a></li>
 <li><a href="ding/policy/a2c.html">ding.policy.a2c</a></li>
 <li><a href="ding/policy/acer.html">ding.policy.acer</a></li>
 <li><a href="ding/policy/atoc.html">ding.policy.atoc</a></li>
 <li><a href="ding/policy/c51.html">ding.policy.c51</a></li>
 <li><a href="ding/policy/collaq.html">ding.policy.collaq</a></li>
 <li><a href="ding/policy/coma.html">ding.policy.coma</a></li>
-<li><a href="ding/policy/cql.html">ding.policy.cql</a></li>
-<li><a href="ding/policy/d4pg.html">ding.policy.d4pg</a></li>
 <li><a href="ding/policy/ddpg.html">ding.policy.ddpg</a></li>
-<li><a href="ding/policy/dqfd.html">ding.policy.dqfd</a></li>
 <li><a href="ding/policy/dqn.html">ding.policy.dqn</a></li>
-<li><a href="ding/policy/fqf.html">ding.policy.fqf</a></li>
 <li><a href="ding/policy/impala.html">ding.policy.impala</a></li>
 <li><a href="ding/policy/iqn.html">ding.policy.iqn</a></li>
-<li><a href="ding/policy/ngu.html">ding.policy.ngu</a></li>
 <li><a href="ding/policy/ppg.html">ding.policy.ppg</a></li>
 <li><a href="ding/policy/ppo.html">ding.policy.ppo</a></li>
 <li><a href="ding/policy/qmix.html">ding.policy.qmix</a></li>
 <li><a href="ding/policy/qrdqn.html">ding.policy.qrdqn</a></li>
-<li><a href="ding/policy/qtran.html">ding.policy.qtran</a></li>
 <li><a href="ding/policy/r2d2.html">ding.policy.r2d2</a></li>
-<li><a href="ding/policy/r2d2_gtrxl.html">ding.policy.r2d2_gtrxl</a></li>
 <li><a href="ding/policy/r2d3.html">ding.policy.r2d3</a></li>
 <li><a href="ding/policy/rainbow.html">ding.policy.rainbow</a></li>
 <li><a href="ding/policy/sac.html">ding.policy.sac</a></li>
 <li><a href="ding/policy/sql.html">ding.policy.sql</a></li>
 <li><a href="ding/policy/td3.html">ding.policy.td3</a></li>
-<li><a href="ding/policy/td3_bc.html">ding.policy.td3_bc</a></li>
-<li><a href="ding/policy/wqmix.html">ding.policy.wqmix</a></li>
 <li><a href="ding/reward_model/base_reward_model.html">ding.reward_model.base_reward_model</a></li>
-<li><a href="ding/reward_model/gail_irl_model.html">ding.reward_model.gail_irl_model</a></li>
 <li><a href="ding/reward_model/guided_cost_reward_model.html">ding.reward_model.guided_cost_reward_model</a></li>
-<li><a href="ding/reward_model/her_reward_model.html">ding.reward_model.her_reward_model</a></li>
 <li><a href="ding/reward_model/icm_reward_model.html">ding.reward_model.icm_reward_model</a></li>
-<li><a href="ding/reward_model/ngu_reward_model.html">ding.reward_model.ngu_reward_model</a></li>
 <li><a href="ding/reward_model/pdeil_irl_model.html">ding.reward_model.pdeil_irl_model</a></li>
 <li><a href="ding/reward_model/pwil_irl_model.html">ding.reward_model.pwil_irl_model</a></li>
 <li><a href="ding/reward_model/red_irl_model.html">ding.reward_model.red_irl_model</a></li>
@@ -364,7 +223,6 @@
 <li><a href="ding/reward_model/trex_reward_model.html">ding.reward_model.trex_reward_model</a></li>
 <li><a href="ding/rl_utils/adder.html">ding.rl_utils.adder</a></li>
 <li><a href="ding/rl_utils/exploration.html">ding.rl_utils.exploration</a></li>
-<li><a href="ding/rl_utils/ppo.html">ding.rl_utils.ppo</a></li>
 <li><a href="ding/rl_utils/td.html">ding.rl_utils.td</a></li>
 <li><a href="ding/torch_utils/checkpoint_helper.html">ding.torch_utils.checkpoint_helper</a></li>
 <li><a href="ding/torch_utils/data_helper.html">ding.torch_utils.data_helper</a></li>
@@ -372,7 +230,6 @@
 <li><a href="ding/torch_utils/loss/cross_entropy_loss.html">ding.torch_utils.loss.cross_entropy_loss</a></li>
 <li><a href="ding/torch_utils/loss/multi_logits_loss.html">ding.torch_utils.loss.multi_logits_loss</a></li>
 <li><a href="ding/torch_utils/network/activation.html">ding.torch_utils.network.activation</a></li>
-<li><a href="ding/torch_utils/network/gtrxl.html">ding.torch_utils.network.gtrxl</a></li>
 <li><a href="ding/torch_utils/network/nn_module.html">ding.torch_utils.network.nn_module</a></li>
 <li><a href="ding/torch_utils/network/res_block.html">ding.torch_utils.network.res_block</a></li>
 <li><a href="ding/torch_utils/network/rnn.html">ding.torch_utils.network.rnn</a></li>
@@ -389,6 +246,9 @@
 <li><a href="ding/utils/system_helper.html">ding.utils.system_helper</a></li>
 <li><a href="ding/utils/time_helper.html">ding.utils.time_helper</a></li>
 <li><a href="ding/utils/time_helper_base.html">ding.utils.time_helper_base</a></li>
+<li><a href="ding/worker/buffer/buffer.html">ding.worker.buffer.buffer</a></li>
+<li><a href="ding/worker/buffer/deque_buffer.html">ding.worker.buffer.deque_buffer</a></li>
+<li><a href="ding/worker/buffer/deque_buffer_wrapper.html">ding.worker.buffer.deque_buffer_wrapper</a></li>
 <li><a href="ding/worker/collector/base_serial_collector.html">ding.worker.collector.base_serial_collector</a></li>
 <li><a href="ding/worker/collector/base_serial_evaluator.html">ding.worker.collector.base_serial_evaluator</a></li>
 <li><a href="ding/worker/collector/comm/base_comm_collector.html">ding.worker.collector.comm.base_comm_collector</a></li>
@@ -413,119 +273,43 @@
 <li><a href="ding/worker/replay_buffer/utils.html">ding.worker.replay_buffer.utils</a></li>
 </ul>
 
-              </article>
-              
-            </div>
-            <footer>
+           </div>
+           
+          </div>
+          <footer>
   
 
-  <hr>
+  <hr/>
 
   <div role="contentinfo">
     <p>
-      &copy; Copyright 2021, OpenDILab Contributors.
+        &copy; Copyright 2021, OpenDILab Contributors
 
     </p>
   </div>
-  
-  <div>
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
-      Docs</a>.
-  </div>
-   
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-          </div>
-        </div>
 
-        <div class="pytorch-content-right" id="pytorch-content-right">
-          <div class="pytorch-right-menu" id="pytorch-right-menu">
-            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              
-            </div>
-          </div>
         </div>
+      </div>
+
     </section>
+
   </div>
-
   
 
-
-  
-
-  
-  <script type="text/javascript" id="documentation_options" data-url_root="../"
-    src="../_static/documentation_options.js"></script>
-  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
-  <script src="../_static/doctools.js"></script>
-  
-
-  
-
-  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
-    jQuery(function () {
-      SphinxRtdTheme.Navigation.enable(true);
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
-
-  <!-- Begin Footer -->
-
-  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
-  </div>
-
-  <!-- End Footer -->
-
-  <!-- Begin Mobile Menu -->
-
-  <div class="mobile-main-menu">
-    <div class="container-fluid">
-      <div class="container">
-        <div class="mobile-main-menu-header-container">
-          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
-          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-main-menu-links-container">
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-      </div>
-    </div>
-  </div>
-
-  <!-- End Mobile Menu -->
-
-  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
-
-  <script type="text/javascript">
-    $(document).ready(function () {
-      mobileMenu.bind();
-      mobileTOC.bind();
-      pytorchAnchors.bind();
-      sideMenus.bind();
-      scrollToAnchor.bind();
-      highlightNavigation.bind();
-      mainMenuDropdown.bind();
-      filterTags.bind();
-
-      // Add class to links that have code blocks, since we cannot create links in code blocks
-      $("article.pytorch-article a span.pre").each(function (e) {
-        $(this).closest("a").addClass("has-code");
-      });
-    })
   </script>
-</body>
 
+  
+  
+    
+   
+
+</body>
 </html>

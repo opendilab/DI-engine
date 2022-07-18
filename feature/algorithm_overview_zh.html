@@ -1,0 +1,1031 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Algorithm Overview &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Env Overview" href="env_overview_zh.html" />
+    <link rel="prev" title="特性介绍" href="index_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">特性介绍</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Algorithm Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#atari-benchmark">Atari Benchmark</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mujoco-benchmark">Mujoco Benchmark</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smac-benchmark">SMAC Benchmark</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview_zh.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview_zh.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview_zh.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview_zh.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview_zh.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html">HPC_RL Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html">Interaction模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autolog_overview_zh.html">Autolog模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview_zh.html">Loader模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataloader_overview_zh.html">DataLoader Overview</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index_zh.html">特性介绍</a> &raquo;</li>
+        
+      <li>Algorithm Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/feature/algorithm_overview_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="algorithm-overview">
+<h1>Algorithm Overview<a class="headerlink" href="#algorithm-overview" title="Permalink to this headline">¶</a></h1>
+<p>Please refer to <a class="reference external" href="http://opendilab.org/">DI-zoo</a></p>
+<section id="atari-benchmark">
+<h2>Atari Benchmark<a class="headerlink" href="#atari-benchmark" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl>
+<dt>DQN</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>20</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>17866</p></td>
+<td><p>7307</p></td>
+<td><p>7968</p></td>
+<td><p>9496</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>1880</p></td>
+<td><p>812</p></td>
+<td><p>1001</p></td>
+<td><p>622</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>C51</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>19034</p></td>
+<td><p>16245</p></td>
+<td><p>15780</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>2396</p></td>
+<td><p>989</p></td>
+<td><p>1025</p></td>
+<td><p>n/a</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>QRDQN</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>18906</p></td>
+<td><p>14990</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>2082</p></td>
+<td><p>938</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>IQN</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>16331</p></td>
+<td><p>15520</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>1493</p></td>
+<td><p>1370</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Rainbow</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>20363</p></td>
+<td><p>n/a</p></td>
+<td><p>~20000</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>2229</p></td>
+<td><p>n/a</p></td>
+<td><p>~2000</p></td>
+<td><p>n/a</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>A2C</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>20</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>4388</p></td>
+<td><p>n/a</p></td>
+<td><p>3620</p></td>
+<td><p>3882</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>755</p></td>
+<td><p>n/a</p></td>
+<td><p>692</p></td>
+<td><p>627</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>PPO</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib(25M)</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>20</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>16775</p></td>
+<td><p>n/a</p></td>
+<td><p>14247</p></td>
+<td><p>15627</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>1459</p></td>
+<td><p>n/a</p></td>
+<td><p>944</p></td>
+<td><p>960</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>PPG</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 14%" />
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Rllib</p></th>
+<th class="head"><p>Sb3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p></td>
+<td><p>10M</p></td>
+<td><p>20</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p></td>
+<td><p>10M</p></td>
+<td><p>17013</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-even"><td><p>Space Invaders</p></td>
+<td><p>10M</p></td>
+<td><p>1200</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="mujoco-benchmark">
+<h2>Mujoco Benchmark<a class="headerlink" href="#mujoco-benchmark" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl>
+<dt>DDPG</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 16%" />
+<col style="width: 19%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Spiningup</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ant</p></td>
+<td><p>1M</p></td>
+<td><p>1700</p></td>
+<td><p>990</p></td>
+<td><p>840</p></td>
+</tr>
+<tr class="row-odd"><td><p>HalfCheetah</p></td>
+<td><p>1M</p></td>
+<td><p>10600</p></td>
+<td><p>11719</p></td>
+<td><p>11000</p></td>
+</tr>
+<tr class="row-even"><td><p>Hopper</p></td>
+<td><p>1M</p></td>
+<td><p>3700</p></td>
+<td><p>2197</p></td>
+<td><p>1800</p></td>
+</tr>
+<tr class="row-odd"><td><p>Walker2d</p></td>
+<td><p>1M</p></td>
+<td><p>3100</p></td>
+<td><p>1401</p></td>
+<td><p>1950</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>TD3</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 16%" />
+<col style="width: 19%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Spiningup</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ant</p></td>
+<td><p>1M</p></td>
+<td><p>4927</p></td>
+<td><p>5116</p></td>
+<td><p>3880</p></td>
+</tr>
+<tr class="row-odd"><td><p>HalfCheetah</p></td>
+<td><p>1M</p></td>
+<td><p>8200</p></td>
+<td><p>10201</p></td>
+<td><p>9750</p></td>
+</tr>
+<tr class="row-even"><td><p>Hopper</p></td>
+<td><p>1M</p></td>
+<td><p>3581</p></td>
+<td><p>3472</p></td>
+<td><p>2860</p></td>
+</tr>
+<tr class="row-odd"><td><p>Walker2d</p></td>
+<td><p>1M</p></td>
+<td><p>4570</p></td>
+<td><p>3982</p></td>
+<td><p>4000</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>SAC</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 16%" />
+<col style="width: 19%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Spiningup</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ant</p></td>
+<td><p>1M</p></td>
+<td><p>5700</p></td>
+<td><p>5850</p></td>
+<td><p>3980</p></td>
+</tr>
+<tr class="row-odd"><td><p>HalfCheetah</p></td>
+<td><p>1M</p></td>
+<td><p>12000</p></td>
+<td><p>12139</p></td>
+<td><p>11520</p></td>
+</tr>
+<tr class="row-even"><td><p>Humanoid</p></td>
+<td><p>1M</p></td>
+<td><p>5319</p></td>
+<td><p>5489</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-odd"><td><p>Walker2d</p></td>
+<td><p>1M</p></td>
+<td><p>5208</p></td>
+<td><p>5007</p></td>
+<td><p>4250</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>PPO</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 16%" />
+<col style="width: 19%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours</p></th>
+<th class="head"><p>Tianshou</p></th>
+<th class="head"><p>Spiningup</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HalfCheetah</p></td>
+<td><p>1M</p></td>
+<td><p>3120</p></td>
+<td><p>5784</p></td>
+<td><p>1670</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hopper</p></td>
+<td><p>1M</p></td>
+<td><p>2300</p></td>
+<td><p>2609</p></td>
+<td><p>1850</p></td>
+</tr>
+<tr class="row-even"><td><p>Walker2d</p></td>
+<td><p>1M</p></td>
+<td><p>4000</p></td>
+<td><p>3589</p></td>
+<td><p>1230</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="smac-benchmark">
+<h2>SMAC Benchmark<a class="headerlink" href="#smac-benchmark" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">setting:</span> <span class="pre">SC2</span> <span class="pre">version=4.6.2.69232,</span> <span class="pre">difficulty=7</span></code></p>
+</div></blockquote>
+<ul>
+<li><dl>
+<dt>QMIX</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 10%" />
+<col style="width: 20%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours(win rate)</p></th>
+<th class="head"><p>Ours(time)</p></th>
+<th class="head"><p>Pymarl(win rate)</p></th>
+<th class="head"><p>Pymarl(time)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3s5z</p></td>
+<td><p>2M</p></td>
+<td><p>1</p></td>
+<td><p>3.2h</p></td>
+<td><p>1</p></td>
+<td><p>9.5h</p></td>
+</tr>
+<tr class="row-odd"><td><p>5m vs. 6m</p></td>
+<td><p>2M</p></td>
+<td><p>0.6</p></td>
+<td><p>6.5h</p></td>
+<td><p>0.76</p></td>
+<td><p>7.5h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>1</p></td>
+<td><p>3.5h</p></td>
+<td><p>1</p></td>
+<td><p>9.5h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0.4</p></td>
+<td><p>5.5h</p></td>
+<td><p>0.7</p></td>
+<td><p>10h</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>CollaQ</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 10%" />
+<col style="width: 20%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours(win rate)</p></th>
+<th class="head"><p>Ours(time)</p></th>
+<th class="head"><p>Pymarl(win rate)</p></th>
+<th class="head"><p>Pymarl(time)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3s5z</p></td>
+<td><p>2M</p></td>
+<td><p>0.9</p></td>
+<td><p>8.5h</p></td>
+<td><p>1</p></td>
+<td><p>28h</p></td>
+</tr>
+<tr class="row-odd"><td><p>5m vs. 6m</p></td>
+<td><p>2M</p></td>
+<td><p>0.7</p></td>
+<td><p>9.5h</p></td>
+<td><p>0.8</p></td>
+<td><p>24h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>1</p></td>
+<td><p>6.7h</p></td>
+<td><p>1</p></td>
+<td><p>38h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0.6</p></td>
+<td><p>13h</p></td>
+<td><p>0.9</p></td>
+<td><p>24h</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>COMA</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 10%" />
+<col style="width: 20%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours(win rate)</p></th>
+<th class="head"><p>Ours(time)</p></th>
+<th class="head"><p>Pymarl(win rate)</p></th>
+<th class="head"><p>Pymarl(time)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3s5z</p></td>
+<td><p>2M</p></td>
+<td><p>0.9</p></td>
+<td><p>2.9h</p></td>
+<td><p>0</p></td>
+<td><p>2.7h</p></td>
+</tr>
+<tr class="row-odd"><td><p>5m vs. 6m</p></td>
+<td><p>2M</p></td>
+<td><p>0</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>0</p></td>
+<td><p>2.5h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>0.9</p></td>
+<td><p>2.6h</p></td>
+<td><p>0.1</p></td>
+<td><p>3h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0.2</p></td>
+<td><p>3.5h</p></td>
+<td><p>0</p></td>
+<td><p>3h</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>QTRAN</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 10%" />
+<col style="width: 20%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours(win rate)</p></th>
+<th class="head"><p>Ours(time)</p></th>
+<th class="head"><p>Pymarl(win rate)</p></th>
+<th class="head"><p>Pymarl(time)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3s5z</p></td>
+<td><p>2M</p></td>
+<td><p>0.9</p></td>
+<td><p>4h</p></td>
+<td><p>0.1</p></td>
+<td><p>11.5h</p></td>
+</tr>
+<tr class="row-odd"><td><p>5m vs. 6m</p></td>
+<td><p>2M</p></td>
+<td><p>0.55</p></td>
+<td><p>5.5h</p></td>
+<td><p>0.7</p></td>
+<td><p>7h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>1</p></td>
+<td><p>5.5h</p></td>
+<td><p>1</p></td>
+<td><p>8.5h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>0</p></td>
+<td><p>8.5h</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="env_overview_zh.html" class="btn btn-neutral float-right" title="Env Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index_zh.html" class="btn btn-neutral float-left" title="特性介绍" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

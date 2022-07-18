@@ -1,0 +1,571 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Multi-Agent Actor-Critic RL &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Customization 1: Dynamic Update Step" href="customization1_dynamic_update_step.html" />
+    <link rel="prev" title="Registry" href="registry.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Best Practice</a> &raquo;</li>
+        
+      <li>Multi-Agent Actor-Critic RL</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/best_practice/maac.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="multi-agent-actor-critic-rl">
+<h1>Multi-Agent Actor-Critic RL<a class="headerlink" href="#multi-agent-actor-critic-rl" title="Permalink to this headline">¶</a></h1>
+<p>MARL algorithms can be divided into two broad categories: centralized learning and decentralized learning. Recent work has developed two lines of research to bridge the gap between these two frameworks: centralized training and decentralized execution(CTDE) and value decomposition(VD).
+VD such as Qmix typically represents the joint Q-function as a function of agents’ local Q-functions, which has been considered as the gold standard for many MARL benchmarks.
+CTDE methods such as MADDPG, MAPPO and COMA improve upon decentralized RL by adopting an actor-critic structure and learning a centralized critic.
+In DI-engine, we introduce the multi-agent actor-critic framework to quickly convert a single-agent algorithm into a multi-agent algorithm.</p>
+<section id="for-users">
+<h2>For Users<a class="headerlink" href="#for-users" title="Permalink to this headline">¶</a></h2>
+<section id="environment">
+<h3>Environment<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h3>
+<p>Unlike single-agent environments that return a tensor-type observation, our multi-agent environments will return a dict-type observation, which includes <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">global_state</span></code> and <code class="docutils literal notranslate"><span class="pre">action_mask</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">agent_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">agent_obs_shape</span> <span class="o">=</span> <span class="mi">150</span>
+<span class="n">global_obs_shape</span> <span class="o">=</span> <span class="mi">295</span>
+<span class="n">action_shape</span> <span class="o">=</span> <span class="mi">14</span>
+<span class="k">return</span> <span class="p">{</span>
+      <span class="s1">&#39;agent_state&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">agent_obs_shape</span><span class="p">),</span>
+      <span class="s1">&#39;global_state&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">),</span>
+      <span class="s1">&#39;action_mask&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">))</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>agent state: An agent state comprises of each agent’s local observation.</p></li>
+<li><p>global state: A global state contains all global information that can’t be seen by each agent.</p></li>
+<li><p>action mask: In multi-agent games, it is often the case that some actions cannot be executed due to game constraints. For example, in SMAC, an agent may have skills that cannot be performed frequently. So, when computing the logits for the softmax action probability, we mask out the unavailable actions in both the forward and backward pass so that the probabilities for unavailable actions are always zero. We find that this substantially accelerates training. The data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>.</p></li>
+<li><p>death mask: In multi-agent games, an agent may die before the game terminates, such as SAMC environment. Note that we can always access the game state to compute the agent-specific global state for those dead agents. Therefore, even if an agent dies and becomes inactive in the middle of a rollout, value learning can still be performed in the following timesteps using inputs containing information of other live agents. This is typical in many existing multi-agent PG implementations. Our suggestion is to simply use a zero vector with the agent’s ID as the input to the value function after an agent dies. We call this approach “Death Masking”. The idea was proposed in <a class="reference external" href="https://arxiv.org/abs/2103.01955">The Surprising Effectiveness of PPO in Cooperative, Multi-Agent Games</a></p></li>
+</ul>
+<p>In our environments, it can return four different global states, they have different uses.</p>
+<ul class="simple">
+<li><p>global obs: It contains all global information, default to return it.</p></li>
+<li><p>agent specific global obs: Global observation that contains all global information and the necessary agent-specific features, such as agent id, available actions. If you want to use it, you have to set <code class="docutils literal notranslate"><span class="pre">special_global_state</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> in env config.</p></li>
+<li><p>collaq obs: It contains agent_alone_state and agent_alone_padding_state, you can use it in Collaq alg. Agents_obs_alone means the agent can’t observe the allies’ information, agent_alone_padding_state means the agent’s allies’ information is zero. If you want to use it, you have to set <code class="docutils literal notranslate"><span class="pre">obs_alone</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> in env config.</p></li>
+<li><p>independent obs: The global observation is as same as agent observation, we use it in independent PPO, independent SAC alg. If you want to use it, you have to set <code class="docutils literal notranslate"><span class="pre">independent_obs</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> in env config.</p></li>
+</ul>
+</section>
+<section id="model">
+<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Centralized training and decentralized executed: Unlike single-agent environments that feed the same observation information to actor and critic networks, in multi-agent environments, we feed agent_state and action_mask information to the actor network to get each actions’ logits and mask the invalid/inaccessible actions. At the same time, we feed global_state information to the critic network to gei the global critic value.</p></li>
+<li><p>Action mask: We need to mask the invalid/inaccessible actions when we train or collect data. So we use <code class="docutils literal notranslate"><span class="pre">logit[action_mask</span> <span class="pre">==</span> <span class="pre">0.0]</span> <span class="pre">=</span> <span class="pre">-99999999</span></code> to make the inaccessible actions’ probability to a very low value. So we can’t choose this action when we collect data or train the model. If you don’t want to use it, just delete <code class="docutils literal notranslate"><span class="pre">logit[action_mask</span> <span class="pre">==</span> <span class="pre">0.0]</span> <span class="pre">=</span> <span class="pre">-99999999</span></code>.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="n">action_mask</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;agent_state&#39;</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">logit</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+    <span class="c1"># action mask</span>
+    <span class="n">logit</span><span class="p">[</span><span class="n">action_mask</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">99999999</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;global_state&#39;</span><span class="p">])</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span>
+</pre></div>
+</div>
+</section>
+<section id="policy">
+<h3>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
+<p>When modifying the single-agent algorithm into a multi-agent algorithm, the policy part basically remains the same, the only thing to note is to add the multi_agent key in the config and it will call the multi-agent model when the multi_agent key is True.</p>
+<p>When you use the single-agent algorithm, <code class="docutils literal notranslate"><span class="pre">multi_agent</span></code> is default to <code class="docutils literal notranslate"><span class="pre">False</span></code>, you don’t need to do anything. And when you use the multi-agent algorithm, you have to add the <code class="docutils literal notranslate"><span class="pre">multi_agent</span></code> key and set it to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</section>
+<section id="config">
+<h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
+<p>Open the multi-agent key and just change the environment to the one you want to run.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">agent_num</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">collector_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">special_global_state</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+
+<span class="n">main_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+   <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;smac_5m6m_ppo&#39;</span><span class="p">,</span>
+   <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+      <span class="n">map_name</span><span class="o">=</span><span class="s1">&#39;5m_vs_6m&#39;</span><span class="p">,</span>
+      <span class="n">difficulty</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+      <span class="n">reward_only_positive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">mirror_opponent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+      <span class="n">agent_num</span><span class="o">=</span><span class="n">agent_num</span><span class="p">,</span>
+      <span class="n">collector_env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+      <span class="n">evaluator_env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+      <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+      <span class="n">stop_value</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+      <span class="n">death_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">special_global_state</span><span class="o">=</span><span class="n">special_global_state</span><span class="p">,</span>
+      <span class="n">manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">shared_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">reset_timeout</span><span class="o">=</span><span class="mi">6000</span><span class="p">,</span>
+      <span class="p">),</span>
+   <span class="p">),</span>
+   <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+      <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">multi_agent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">continuous</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+      <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) agent_num: The number of the agent.</span>
+            <span class="c1"># For SMAC 3s5z, agent_num=8; for 2c_vs_64zg, agent_num=2.</span>
+            <span class="n">agent_num</span><span class="o">=</span><span class="n">agent_num</span><span class="p">,</span>
+            <span class="c1"># (int) obs_shape: The shapeension of observation of each agent.</span>
+            <span class="c1"># For 3s5z, obs_shape=150; for 2c_vs_64zg, agent_num=404.</span>
+            <span class="c1"># (int) global_obs_shape: The shapeension of global observation.</span>
+            <span class="c1"># For 3s5z, obs_shape=216; for 2c_vs_64zg, agent_num=342.</span>
+            <span class="n">agent_obs_shape</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span>
+            <span class="c1">#global_obs_shape=216,</span>
+            <span class="n">global_obs_shape</span><span class="o">=</span><span class="mi">152</span><span class="p">,</span>
+            <span class="c1"># (int) action_shape: The number of action which each agent can take.</span>
+            <span class="c1"># action_shape= the number of common action (6) + the number of enemies.</span>
+            <span class="c1"># For 3s5z, obs_shape=14 (6+8); for 2c_vs_64zg, agent_num=70 (6+64).</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+            <span class="c1"># (List[int]) The size of hidden layer</span>
+            <span class="c1"># hidden_size_list=[64],</span>
+      <span class="p">),</span>
+      <span class="c1"># used in state_num of hidden_state</span>
+      <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (bool) Whether to use multi gpu</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">5e-4</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs is algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (float) The loss weight of value network, policy network weight is set to 1</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="c1"># (float) The loss weight of entropy regularization, policy network weight is set to 1</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="c1"># (float) PPO clip ratio, defaults to 0.2</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether to use advantage norm in a whole training batch</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">value_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ppo_param_init</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">grad_clip_type</span><span class="o">=</span><span class="s1">&#39;clip_norm&#39;</span><span class="p">,</span>
+            <span class="n">grad_clip_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+      <span class="p">),</span>
+      <span class="n">on_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span> <span class="n">n_sample</span><span class="o">=</span><span class="mi">3200</span><span class="p">),</span>
+      <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">),</span>
+   <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">main_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+   <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+      <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;smac&#39;</span><span class="p">,</span>
+      <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.smac.envs.smac_env&#39;</span><span class="p">],</span>
+   <span class="p">),</span>
+   <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+   <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ppo&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">create_config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following are the parameters for each map of the SMAC environment.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 19%" />
+<col style="width: 18%" />
+<col style="width: 29%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Map</p></th>
+<th class="head"><p>agent_obs_shape</p></th>
+<th class="head"><p>global_obs_shape</p></th>
+<th class="head"><p>agent_special_global_obs_shape</p></th>
+<th class="head"><p>action_shape</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3s5z</p></td>
+<td><p>150</p></td>
+<td><p>216</p></td>
+<td><p>295</p></td>
+<td><p>14</p></td>
+</tr>
+<tr class="row-odd"><td><p>5m_vs_6m</p></td>
+<td><p>72</p></td>
+<td><p>98</p></td>
+<td><p>152</p></td>
+<td><p>12</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>186</p></td>
+<td><p>290</p></td>
+<td><p>389</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>204</p></td>
+<td><p>322</p></td>
+<td><p>431</p></td>
+<td><p>18</p></td>
+</tr>
+<tr class="row-even"><td><p>2c_vs_64zg</p></td>
+<td><p>404</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>671</p></td>
+<td><p>70</p></td>
+</tr>
+<tr class="row-odd"><td><p>6h_vs_8z</p></td>
+<td><p>98</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>209</p></td>
+<td><p>14</p></td>
+</tr>
+<tr class="row-even"><td><p>3s5z_vs_3s6z</p></td>
+<td><p>159</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>314</p></td>
+<td><p>15</p></td>
+</tr>
+<tr class="row-odd"><td><p>27m_vs_30m</p></td>
+<td><p>348</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>1454</p></td>
+<td><p>36</p></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>SMAC environment 3s5z map training performance</p>
+<ul class="simple">
+<li><p>3s5z + MAPPO/IPPO</p></li>
+</ul>
+<img alt="../_images/3s5z_mappo.png" class="align-center" src="../_images/3s5z_mappo.png" />
+</li>
+</ul>
+</section>
+</section>
+<section id="for-developers">
+<h2>For Developers<a class="headerlink" href="#for-developers" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>Model<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>We need to change the single agent to the multi agent model. In single agent model, it only has a obs_shape key. In multi agent model, we need to divide the obs_shape key to agent_obs_shape and global_obs_shape, and in this way, we can train critic model by global obs and train actor model by agent obs.</p>
+</section>
+<section id="id2">
+<h3>Policy<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>We need to call the multi agent model in the following way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">MAPPO</span><span class="p">:</span>
+
+<span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;mappo&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.mappo&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;vac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.vac&#39;</span><span class="p">]</span>
+
+<span class="n">MASAC</span><span class="p">:</span>
+
+<span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;maqac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="rl-utils">
+<h3>rl_utils<a class="headerlink" href="#rl-utils" title="Permalink to this headline">¶</a></h3>
+<p>In the single agent algorithm, the data dimension is (B, N), the B means batch_size, and the N means the action nums. But in the multi agent algorithm, the data dimension is (B, A, N), the A means action nums. So when we calculate the loss function, we need to change our codes.
+For example, when we calculate the PPO advantage, we need to modify the codes. For most time, we use unsqueeze to change the (B, N) to (B, 1, N), and it can operate with (B, A, N) data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gae</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.99</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.97</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Implementation of Generalized Advantage Estimator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">value</span><span class="p">,</span> <span class="n">next_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">traj_flag</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="n">done</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">reward</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">reward</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># In Multi-agent RL, the value and next_value&#39;s dimension is (B, A), the reward and done&#39;s dimension is (B) not (B,N), we unsqueeze the reward and done to change their shape from (B) to (B, 1).</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">reward</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="n">done</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">reward</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">next_value</span> <span class="o">-</span> <span class="n">value</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">lambda_</span>
+    <span class="n">adv</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">gae_item</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">reward</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">traj_flag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gae_item</span> <span class="o">=</span> <span class="n">delta</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">gae_item</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gae_item</span> <span class="o">=</span> <span class="n">delta</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">gae_item</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">traj_flag</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">float</span><span class="p">())</span>
+        <span class="n">adv</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+=</span> <span class="n">gae_item</span>
+    <span class="k">return</span> <span class="n">adv</span>
+</pre></div>
+</div>
+<p>When we change the code, we need to test our codes by the following way.
+You can just input (B, N) data to test single agent rl utils codes and input (B, A, N) data to test multi agent rl utils codes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_ppo</span><span class="p">():</span>
+    <span class="n">B</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">32</span>
+    <span class="n">logit_new</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">logit_old</span> <span class="o">=</span> <span class="n">logit_new</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand_like</span><span class="p">(</span><span class="n">logit_new</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">value_new</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">value_old</span> <span class="o">=</span> <span class="n">value_new</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand_like</span><span class="p">(</span><span class="n">value_new</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>
+    <span class="n">adv</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+    <span class="n">return_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">ppo_data</span><span class="p">(</span><span class="n">logit_new</span><span class="p">,</span> <span class="n">logit_old</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">value_new</span><span class="p">,</span> <span class="n">value_old</span><span class="p">,</span> <span class="n">adv</span><span class="p">,</span> <span class="n">return_</span><span class="p">)</span>
+    <span class="n">loss</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">ppo_error</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">loss</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">info</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">logit_new</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">value_new</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="n">total_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+    <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logit_new</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value_new</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">test_mappo</span><span class="p">():</span>
+    <span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">32</span>
+    <span class="n">logit_new</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">logit_old</span> <span class="o">=</span> <span class="n">logit_new</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand_like</span><span class="p">(</span><span class="n">logit_new</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">))</span>
+    <span class="n">value_new</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">value_old</span> <span class="o">=</span> <span class="n">value_new</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand_like</span><span class="p">(</span><span class="n">value_new</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>
+    <span class="n">adv</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+    <span class="n">return_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">ppo_data</span><span class="p">(</span><span class="n">logit_new</span><span class="p">,</span> <span class="n">logit_old</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">value_new</span><span class="p">,</span> <span class="n">value_old</span><span class="p">,</span> <span class="n">adv</span><span class="p">,</span> <span class="n">return_</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">loss</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">ppo_error</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">loss</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">info</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">logit_new</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">value_new</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="n">total_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+    <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logit_new</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value_new</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="customization1_dynamic_update_step.html" class="btn btn-neutral float-right" title="Customization 1: Dynamic Update Step" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="registry.html" class="btn btn-neutral float-left" title="Registry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

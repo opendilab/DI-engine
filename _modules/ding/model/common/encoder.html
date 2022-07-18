@@ -1,12 +1,8 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en">
-<!--<![endif]-->
-
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -15,158 +11,62 @@
   <title>ding.model.common.encoder &mdash; DI-engine 0.1.0 documentation</title>
   
 
-  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
   
-  
-
-  
-
   
   
   
 
   
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+    
+
+  
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="../../../../genindex.html" />
-  <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
     <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
-
-  
-  <script src="../../../../_static/js/modernizr.min.js"></script>
-  <script>
-    MathJax = {
-        chtml: {
-            scale: 1,
-            minScale: 1,
-        },
-        svg: {
-            scale: 1,
-            minScale: 1,
-        }
-    }
-</script>
-
-  <!-- Preload the theme fonts -->
-
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-<!-- Preload the katex fonts -->
-
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
-    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<div class="container-fluid header-holder tutorials-header" id="header-holder">
-  <div class="container">
-    <div class="header-container">
-      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
-        aria-label="OpenMMLab"></a>
-
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-          <li >
-            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
-              <a
-                class="resource-option with-down-arrow">
-                OpenDILab
-              </a>
-              <div class="resources-dropdown-menu">
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-engine" target="_blank">
-                  <span class="dropdown-title">DI-engine </span>
-                  <p>OpenDILab Decision AI Engine</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-star" target="_blank">
-                  <span class="dropdown-title">DI-star </span>
-                  <p>OpenDILab Decision AI in StarCraftII</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-drive" target="_blank">
-                  <span class="dropdown-title">DI-drive </span>
-                  <p>OpenDILab Auto-driving platform</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/GoBigger" target="_blank">
-                  <span class="dropdown-title">GoBigger </span>
-                  <p>OpenDILab Multi-Agent Environment</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
-                  <span class="dropdown-title">DI-smartcross </span>
-                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
-                  <span class="dropdown-title">DI-treetensor </span>
-                  <p>Tree Nested PyTorch Tensor Lib</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
-                  <span class="dropdown-title">awesome-model-based-RL </span>
-                  <p>A curated list of awesome model based RL resources (continually updated)</p>
-                </a>
-              </div>
-          </li>
-        </ul>
-      </div>
-
-      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
-    </div>
-  </div>
-</div>
-
-<body class="pytorch-body">
+<body class="wy-body-for-nav">
 
    
-
-  
-
-  <div class="table-of-contents-link-wrapper">
-    <span>Table of Contents</span>
-    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
-  </div>
-
-  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
-    <div class="pytorch-side-scroll">
-      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <div class="pytorch-left-menu-search">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
           
+            <a href="../../../../index.html" class="icon icon-home"> DI-engine
           
+
           
+          </a>
+
+          
+            
+            
           
 
           
-
-
-
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -175,47 +75,56 @@
           
         </div>
 
-        
-        
-        
-        
-        
-        
-        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../architecture/index.html">Architecture Design</a></li>
 </ul>
 
-        
-        
+            
+          
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="pytorch-container">
-    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
-      <div class="pytorch-breadcrumbs-wrapper">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
 
 
 
@@ -233,110 +142,74 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="pytorch-breadcrumbs">
+  <ul class="wy-breadcrumbs">
     
-      <li>
-        <a href="../../../../index.html">
-            Docs
-        </a> &gt;
-      </li>
-
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../../../index.html">Module code</a> &gt;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
       <li>ding.model.common.encoder</li>
     
     
-      <li class="pytorch-breadcrumbs-aside">
+      <li class="wy-breadcrumbs-aside">
         
       </li>
     
   </ul>
 
   
+  <hr/>
 </div>
-      </div>
-
-      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
-        Shortcuts
-      </div>
-    </div>
-
-    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
-      <div class="pytorch-content-left">
-        
-          <div class="rst-content">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
-            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
-              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
-                
   <h1>Source code for ding.model.common.encoder</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
-<span class="kn">import</span> <span class="nn">operator</span>
-<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">from</span> <span class="nn">torch.nn</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
 
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">ResFCBlock</span><span class="p">,</span> <span class="n">ResBlock</span><span class="p">,</span> <span class="n">Flatten</span><span class="p">,</span> <span class="n">normed_linear</span><span class="p">,</span> <span class="n">normed_conv2d</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">ResFCBlock</span><span class="p">,</span> <span class="n">ResBlock</span><span class="p">,</span> <span class="n">Flatten</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SequenceType</span>
 
 
-<span class="k">def</span> <span class="nf">prod</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Product of all elements.(To be deprecated soon.)</span>
-<span class="sd">    This function denifition is for supporting python version that under 3.8.</span>
-<span class="sd">    In python3.8 and larger, &#39;math.prod()&#39; is recommended.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="ConvEncoder"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder">[docs]</a><span class="k">class</span> <span class="nc">ConvEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ConvEncoder"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder">[docs]</a><span class="k">class</span> <span class="nc">ConvEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``Convolution Encoder`` used to encode raw 2-dim observations.</span>
+<span class="sd">        The ``Convolution Encoder`` used in models. Used to encoder raw 2-dim observation.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``__init__``, ``_get_flatten_size``, ``forward``.</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ConvEncoder.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="ConvEncoder.__init__"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span>
             <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-            <span class="n">kernel_size</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-            <span class="n">stride</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-            <span class="n">padding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SequenceType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the ``Convolution Encoder`` according to the provided arguments.</span>
+<span class="sd">            Init the Convolution Encoder according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, plus one or more ``input size``.</span>
-<span class="sd">            - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent conv layers \</span>
-<span class="sd">                and the final dense layer.</span>
-<span class="sd">            - activation (:obj:`nn.Module`): Type of activation to use in the conv ``layers`` and ``ResBlock``. \</span>
-<span class="sd">                Default is ``nn.ReLU()``.</span>
-<span class="sd">            - kernel_size (:obj:`SequenceType`): Sequence of ``kernel_size`` of subsequent conv layers.</span>
-<span class="sd">            - stride (:obj:`SequenceType`): Sequence of ``stride`` of subsequent conv layers.</span>
-<span class="sd">            - padding (:obj:`SequenceType`): Padding added to all four sides of the input for each conv layer. \</span>
-<span class="sd">                See ``nn.Conv2d`` for more details. Default is ``None``.</span>
-<span class="sd">            - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResBlock`` \</span>
-<span class="sd">                for more details. Default is ``None``.</span>
+<span class="sd">            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, some ``output size``</span>
+<span class="sd">            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``</span>
+<span class="sd">            - activation (:obj:`nn.Module`):</span>
+<span class="sd">                The type of activation to use in the conv ``layers`` and ``ResBlock``,</span>
+<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">            - norm_type (:obj:`str`):</span>
+<span class="sd">                The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConvEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">activation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size_list</span> <span class="o">=</span> <span class="n">hidden_size_list</span>
-        <span class="k">if</span> <span class="n">padding</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">padding</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">))]</span>
 
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">kernel_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
         <span class="n">input_size</span> <span class="o">=</span> <span class="n">obs_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># in_channel</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)):</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">kernel_size</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">stride</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">padding</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">kernel_size</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">stride</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">)</span>
             <span class="n">input_size</span> <span class="o">=</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">hidden_size_list</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Please indicate the same hidden size for res block parts&quot;</span>
@@ -348,45 +221,43 @@
         <span class="n">flatten_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_flatten_size</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">flatten_size</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="ConvEncoder._get_flatten_size"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder._get_flatten_size">[docs]</a>    <span class="k">def</span> <span class="nf">_get_flatten_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ConvEncoder._get_flatten_size"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder._get_flatten_size">[docs]</a>    <span class="k">def</span> <span class="nf">_get_flatten_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the encoding size after ``self.main`` to get the number of ``in-features`` to feed to ``nn.Linear``.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Encoded Tensor after ``self.main``</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`torch.Tensor`): Size ``int`` Tensor representing the number of ``in-features``.</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - outputs: :math:`(1,)`.</span>
+<span class="sd">            - outputs (:obj:`torch.Tensor`): Size int, also number of in-feature</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">test_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="ConvEncoder.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ConvEncoder.forward"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return output embedding tensor of the env observation.</span>
+<span class="sd">            Return embedding tensor of the env observation</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation.</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`torch.Tensor`): Output embedding tensor.</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.</span>
+<span class="sd">            - outputs (:obj:`torch.Tensor`): Embedding tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="FCEncoder"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder">[docs]</a><span class="k">class</span> <span class="nc">FCEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FCEncoder"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder">[docs]</a><span class="k">class</span> <span class="nc">FCEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``FCEncoder`` used in models to encode raw 1-dim observations.</span>
+<span class="sd">        The ``FCEncoder`` used in models. Used to encoder raw 1-dim observation.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``__init__``, ``forward``.</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="FCEncoder.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="FCEncoder.__init__"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span>
@@ -394,16 +265,18 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the FC Encoder according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`int`): Observation shape.</span>
-<span class="sd">            - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent FC layers.</span>
-<span class="sd">            - res_block (:obj:`bool`): Whether use ``res_block``. Default is ``False``.</span>
-<span class="sd">            - activation (:obj:`nn.Module`): Type of activation to use in ``ResFCBlock``. Default is ``nn.ReLU()``.</span>
-<span class="sd">            - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResFCBlock`` \</span>
-<span class="sd">                for more details. Default is ``None``.</span>
+<span class="sd">            - obs_shape (:obj:`int`): Observation shape</span>
+<span class="sd">            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``</span>
+<span class="sd">            - res_block (:obj:`bool`): Whether use ``res_block``.</span>
+<span class="sd">            - activation (:obj:`nn.Module`):</span>
+<span class="sd">                The type of activation to use in the ``ResFCBlock``,</span>
+<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">            - norm_type (:obj:`str`):</span>
+<span class="sd">                The type of normalization to use, see ``ding.torch_utils.ResFCBlock`` for more details</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FCEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
@@ -426,270 +299,62 @@
                 <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">main</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="FCEncoder.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FCEncoder.forward"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return output embedding tensor of the env observation.</span>
+<span class="sd">            Return embedding tensor of the env observation</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation.</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`torch.Tensor`): Output embedding tensor.</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.</span>
+<span class="sd">            - outputs (:obj:`torch.Tensor`): Embedding tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="StructEncoder"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.StructEncoder">[docs]</a><span class="k">class</span> <span class="nc">StructEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="StructEncoder"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.StructEncoder">[docs]</a><span class="k">class</span> <span class="nc">StructEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="c1"># TODO(nyz)</span>
     <span class="k">pass</span></div>
-
-
-<span class="k">class</span> <span class="nc">IMPALACnnResidualBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Residual basic block (without batchnorm) in IMPALA cnn encoder.</span>
-<span class="sd">    Preserves channel number and shape</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channnel</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">batch_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Init every impala cnn residual block.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - in_channnel (:obj:`int`): Channel number of input features.</span>
-<span class="sd">            - scale (:obj:`float`): Scale of module.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span> <span class="o">=</span> <span class="n">in_channnel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span> <span class="o">=</span> <span class="n">batch_norm</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv0</span> <span class="o">=</span> <span class="n">normed_conv2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">normed_conv2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bn0</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="c1"># inplace should be False for the first relu, so that it does not change the input,</span>
-        <span class="c1"># which will be used for skip connection.</span>
-        <span class="c1"># getattr is for backwards compatibility with loaded models</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn0</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv0</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">IMPALACnnDownStack</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Downsampling stack from Impala CNN</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channnel</span><span class="p">,</span> <span class="n">nblock</span><span class="p">,</span> <span class="n">out_channel</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Init every impala cnn block of the Impala Cnn Encoder.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - in_channnel (:obj:`int`): Channel number of input features.</span>
-<span class="sd">            - nblock (:obj:`int`): Residual Block number in each block.</span>
-<span class="sd">            - out_channel (:obj:`int`): Channel number of output features.</span>
-<span class="sd">            - scale (:obj:`float`): Scale of the module.</span>
-<span class="sd">            - pool (:obj:`bool`): Whether to use maxing pooling after first conv layer.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span> <span class="o">=</span> <span class="n">in_channnel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">out_channel</span> <span class="o">=</span> <span class="n">out_channel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">pool</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">firstconv</span> <span class="o">=</span> <span class="n">normed_conv2d</span><span class="p">(</span><span class="n">in_channnel</span><span class="p">,</span> <span class="n">out_channel</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nblock</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">IMPALACnnResidualBlock</span><span class="p">(</span><span class="n">out_channel</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nblock</span><span class="p">)])</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstconv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">max_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
-
-    <span class="k">def</span> <span class="nf">output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inshape</span><span class="p">):</span>
-        <span class="n">c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">inshape</span>
-        <span class="k">assert</span> <span class="n">c</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">h</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_channel</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">IMPALAConvEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;IMPALAConvEncoder&quot;</span>  <span class="c1"># put it here to preserve pickle compat</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">outsize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">scale_ob</span><span class="o">=</span><span class="mf">255.0</span><span class="p">,</span> <span class="n">nblock</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">final_relu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Init the Encoder described in paper, \</span>
-<span class="sd">            IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures, \</span>
-<span class="sd">            https://arxiv.org/pdf/1802.01561.pdf,</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`int`): Observation shape.</span>
-<span class="sd">            - channels (:obj:`SequenceType`): Channel number of each impala cnn block. \</span>
-<span class="sd">                The size of it is the number of impala cnn blocks in the encoder</span>
-<span class="sd">            - outsize (:obj:`int`): Out feature of the encoder.</span>
-<span class="sd">            - scale_ob (:obj:`float`): Scale of each pixel.</span>
-<span class="sd">            - nblock (:obj:`int`): Residual Block number in each block.</span>
-<span class="sd">            - final_relu (:obj:`bool`): Whether to use Relu in the end of encoder.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scale_ob</span> <span class="o">=</span> <span class="n">scale_ob</span>
-        <span class="n">c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">obs_shape</span>
-        <span class="n">curshape</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">))</span>  <span class="c1"># per stack scale</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stacks</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">out_channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
-            <span class="n">stack</span> <span class="o">=</span> <span class="n">IMPALACnnDownStack</span><span class="p">(</span><span class="n">curshape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nblock</span><span class="o">=</span><span class="n">nblock</span><span class="p">,</span> <span class="n">out_channel</span><span class="o">=</span><span class="n">out_channel</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
-            <span class="n">curshape</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">output_shape</span><span class="p">(</span><span class="n">curshape</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dense</span> <span class="o">=</span> <span class="n">normed_linear</span><span class="p">(</span><span class="n">prod</span><span class="p">(</span><span class="n">curshape</span><span class="p">),</span> <span class="n">outsize</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.4</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">outsize</span> <span class="o">=</span> <span class="n">outsize</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">final_relu</span> <span class="o">=</span> <span class="n">final_relu</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_ob</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stacks</span><span class="p">):</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="o">*</span><span class="n">batch_shape</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">*</span><span class="n">batch_shape</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">w</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_relu</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
 </pre></div>
 
-              </article>
-              
-            </div>
-            <footer>
+           </div>
+           
+          </div>
+          <footer>
   
 
-  <hr>
+  <hr/>
 
   <div role="contentinfo">
     <p>
-      &copy; Copyright 2021, OpenDILab Contributors.
+        &copy; Copyright 2021, OpenDILab Contributors
 
     </p>
   </div>
-  
-  <div>
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
-      Docs</a>.
-  </div>
-   
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-          </div>
-        </div>
 
-        <div class="pytorch-content-right" id="pytorch-content-right">
-          <div class="pytorch-right-menu" id="pytorch-right-menu">
-            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              
-            </div>
-          </div>
         </div>
+      </div>
+
     </section>
+
   </div>
-
   
 
-
-  
-
-  
-  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
-    src="../../../../_static/documentation_options.js"></script>
-  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-  <script src="../../../../_static/jquery.js"></script>
-  <script src="../../../../_static/underscore.js"></script>
-  <script src="../../../../_static/doctools.js"></script>
-  
-
-  
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
-    jQuery(function () {
-      SphinxRtdTheme.Navigation.enable(true);
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
-
-  <!-- Begin Footer -->
-
-  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
-  </div>
-
-  <!-- End Footer -->
-
-  <!-- Begin Mobile Menu -->
-
-  <div class="mobile-main-menu">
-    <div class="container-fluid">
-      <div class="container">
-        <div class="mobile-main-menu-header-container">
-          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
-          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-main-menu-links-container">
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-      </div>
-    </div>
-  </div>
-
-  <!-- End Mobile Menu -->
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
-
-  <script type="text/javascript">
-    $(document).ready(function () {
-      mobileMenu.bind();
-      mobileTOC.bind();
-      pytorchAnchors.bind();
-      sideMenus.bind();
-      scrollToAnchor.bind();
-      highlightNavigation.bind();
-      mainMenuDropdown.bind();
-      filterTags.bind();
-
-      // Add class to links that have code blocks, since we cannot create links in code blocks
-      $("article.pytorch-article a span.pre").each(function (e) {
-        $(this).closest("a").addClass("has-code");
-      });
-    })
   </script>
-</body>
 
+  
+  
+    
+   
+
+</body>
 </html>

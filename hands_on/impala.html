@@ -1,0 +1,852 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>IMPALA &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DDPG" href="ddpg.html" />
+    <link rel="prev" title="PPG" href="ppg.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">RL Algorithm Cheat Sheet</a> &raquo;</li>
+        
+      <li>IMPALA</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/impala.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="impala">
+<h1>IMPALA<a class="headerlink" href="#impala" title="Permalink to this headline">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>IMPALA, or the Importance Weighted Actor Learner Architecture, is an off-policy actor-critic framework that
+decouples acting from learning and learns from experience trajectories using V-trace. This method is first
+introduced in <a class="reference external" href="https://arxiv.org/abs/1802.01561">IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures</a>.</p>
+</section>
+<section id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Impala  is a <strong>model-free</strong> and <strong>off-policy</strong> RL algorithm.</p></li>
+<li><p>Impala can support both <strong>discrete</strong> action spaces and <strong>continuous</strong> action spaces.</p></li>
+<li><p>Impala is a actor-critic RL algorithm, which optimizes actor network and critic network, respectively.</p></li>
+<li><p>Impala decouples acting from learning. Collectors in impala will not compute value or advantage.</p></li>
+</ol>
+</section>
+<section id="key-equations">
+<h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
+<p>Loss used in Impala is similar to that in PPO, A2C and other actor-critic model. All of them comes from policy_loss,value_loss and entropy_loss, with respect to some carefully chosen weights.</p>
+<div class="math">
+<p><img src="../_images/math/abb9148c14818141e670279d0777b6eabc15c687.svg" alt="Loss_total = Loss_policy + w_value * Loss_value + w_entropy * Loss_entropy"/></p>
+</div><p>where  w_value, w_entropy are loss weights for value and entropy.</p>
+<ul class="simple">
+<li><p>NOTATION AND CONVENTIONS:</p></li>
+</ul>
+<p><img class="math" src="../_images/math/d1b2c2cb43b0e9647991cd0ca3f063c0966da0f8.svg" alt="\pi_{\phi}"/>: current training policy parameterized by <img class="math" src="../_images/math/1bcf6094ad1ab1b78b138f2c2901bdd46e7e5944.svg" alt="\phi"/>.</p>
+<p><img class="math" src="../_images/math/1993cd8020bbafc53459f5deadf1100e6b839d85.svg" alt="V_\theta"/>: value function parameterized by <img class="math" src="../_images/math/ed3f405ee761daf64d8e5baedd2d7bb26c33b1a8.svg" alt="\theta"/>.</p>
+<p><img class="math" src="../_images/math/d53f85e57711cda553a4cb8ae5f52e0227ad49af.svg" alt="\mu"/>: older policy which generates trajectories in replay buffer.</p>
+<p>At the training time <img class="math" src="../_images/math/e48104dd66607eacbb7ecd176b7c5f4c1a44e75e.svg" alt="t"/>, given transition <img class="math" src="../_images/math/ebfdbc601d13aac41a4c85ae6aaee804a07b0f11.svg" alt="(x_t, a_t, x_{t+1}, r_t)"/>, the value function <img class="math" src="../_images/math/1993cd8020bbafc53459f5deadf1100e6b839d85.svg" alt="V_\theta"/>
+is learned through an <img class="math" src="../_images/math/bfa9d2a05b7337d8881de09ad862169665b6a860.svg" alt="L_2"/> loss between the current value and a V-trace target value. The n-step V-trace target
+at time s is defined as follows:</p>
+<div class="math">
+<p><img src="../_images/math/23ff1f3d05e0df1642771ded1387d8608e2978d3.svg" alt="v_s  \stackrel{def}{=} V(x_s) + \sum_{t=s}^{s+n-1} \gamma^{t-s} \big(\prod_{i=s}^{t-1} c_i\big)\delta_t V"/></p>
+</div><p>where <img class="math" src="../_images/math/4936c06c8f4143aed180e787f686d5cae3f6511d.svg" alt="\delta_t V \stackrel{def}{=}  \rho_t (r_t + \gamma V(x_{t+1}) - V(x_t))"/> is a temporal difference for <img class="math" src="../_images/math/ebe56ed07b26ec3f8aa626f15e4ae39971dca1a7.svg" alt="V"/>.</p>
+<p><img class="math" src="../_images/math/01249d7d24f82fb8cc6fc2427fd7fb762d98e828.svg" alt="\rho_t \stackrel{def}{=} \min\big(\bar{\rho}, \frac{\pi(a_t \vert x_t)}{\mu(a_t \vert x_t)}\big)"/> and <img class="math" src="../_images/math/3dcf23a8294bf5c425be25941d8424700efb03fe.svg" alt="c_i \stackrel{def}{=}
+\min\big(\bar{c}, \frac{\pi(a_i \vert s_i)}{\mu(a_i \vert s_i)}\big)"/> are truncated importance sampling (IS) weights,
+where <img class="math" src="../_images/math/9e69d6276c9179d86eb6a8a33289bdf2d986391b.svg" alt="\bar{\rho}"/> and <img class="math" src="../_images/math/01317c9b3b522f4bb7b954513cf026790b575652.svg" alt="\bar{c}"/> are two truncation constants with <img class="math" src="../_images/math/45b485d8e475cb409dc2add697e572aefb9e3fbc.svg" alt="\bar{\rho} \geq \bar{c}"/>.</p>
+<p>The product of <img class="math" src="../_images/math/f2672acbeb2f45d53fc0e94f134d20771f67192b.svg" alt="c_s, \dots, c_{t-1}"/> measures how much a temporal difference <img class="math" src="../_images/math/adfda659a22adf4368c6df380eb260f8991d9449.svg" alt="\delta_t V"/> observed at time
+<img class="math" src="../_images/math/e48104dd66607eacbb7ecd176b7c5f4c1a44e75e.svg" alt="t"/> impacts the update of the value function at a previous time <img class="math" src="../_images/math/6ca1d8558037c00a979b111265e9fd2de5069055.svg" alt="s"/> . In the on-policy case, we have <img class="math" src="../_images/math/af0eb73a4b007995bc3db3567de381c6bd7e1a73.svg" alt="\rho_t=1"/>
+and <img class="math" src="../_images/math/8d627cfdc59a1b24338c57331b28bd796de9404d.svg" alt="c_i=1"/> (assuming <img class="math" src="../_images/math/02a5fa2f7e31216001510b69b0fd2984d923968f.svg" alt="\bar{c} \geq 1)"/> and therefore the V-trace target becomes on-policy n-step Bellman
+target.</p>
+<p><img class="math" src="../_images/math/9e69d6276c9179d86eb6a8a33289bdf2d986391b.svg" alt="\bar{\rho}"/> impacts the fixed-point of the value function we converge to,and <img class="math" src="../_images/math/01317c9b3b522f4bb7b954513cf026790b575652.svg" alt="\bar{c}"/> impacts the speed
+of convergence. When <img class="math" src="../_images/math/ca4abc9da622bebc830aa6a5188efad43e2f8c7d.svg" alt="\bar{\rho} =\infty"/> (untruncated), v-trace value function will converge to the value
+function of the target policy <img class="math" src="../_images/math/f1ae730cec1a62cc7eaec5492652ea9ac98dd406.svg" alt="V_\pi"/>; when <img class="math" src="../_images/math/9e69d6276c9179d86eb6a8a33289bdf2d986391b.svg" alt="\bar{\rho}"/> is close to 0, we evaluate the value function
+of the behavior policy <img class="math" src="../_images/math/80b2b07b58a69c6945f8a99b32f6bfafda0b22e0.svg" alt="V_\mu"/>; when in-between, we evaluate a policy between <img class="math" src="../_images/math/62f4dddfd372f3c595ec5e86cbad69f811c94f15.svg" alt="\pi"/> and <img class="math" src="../_images/math/d53f85e57711cda553a4cb8ae5f52e0227ad49af.svg" alt="\mu"/>.</p>
+<p>Therefore, loss functions are</p>
+<div class="math">
+<p><img src="../_images/math/56b618bc8df7f7e74cd31f729d63683e06e67659.svg" alt="Loss_value &amp;= (v_s - V_\theta(x_s))^2 \\
+Loss_policy &amp;= -\rho_s \log \pi_\phi(a_s \vert x_s)  \big(r_s + \gamma v_{s+1} - V_\theta(x_s)\big) \\
+Loss_entropy &amp;= -H(\pi_\phi) = \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)"/></p>
+</div><p>where <img class="math" src="../_images/math/7316ee41c1043eb40193c0505fd719d1b0143a0b.svg" alt="H(\pi_{\phi})"/>, entropy of policy <img class="math" src="../_images/math/1bcf6094ad1ab1b78b138f2c2901bdd46e7e5944.svg" alt="\phi"/>, is an bonus to encourage exploration.</p>
+<p>Value function parameter is updated in the direction of:</p>
+<div class="math">
+<p><img src="../_images/math/3d2832676373360523caf87386cbe22af63f50b0.svg" alt="\Delta\theta = w_value (v_s - V_\theta(x_s))\nabla_\theta V_\theta(x_s)"/></p>
+</div><p>Policy parameter <img class="math" src="../_images/math/1bcf6094ad1ab1b78b138f2c2901bdd46e7e5944.svg" alt="\phi"/> is updated through policy gradient,</p>
+<div class="math">
+<p><img src="../_images/math/5b55ec0354f21ff618a87232c3cbc3b585f9a6f6.svg" alt="\Delta \phi &amp;= \rho_s \nabla_\phi \log \pi_\phi(a_s \vert x_s) \big(r_s + \gamma v_{s+1}- V_\theta(x_s)\big)\\
+            &amp;- w_entropy \nabla_\phi \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)"/></p>
+</div><p>where <img class="math" src="../_images/math/5abca0dbfdc8c36756b75746af5e23dabac29913.svg" alt="r_s + \gamma v_{s+1}"/> is the v-trace advantage, which is estimated Q value subtracted by a state-dependent baseline <img class="math" src="../_images/math/d2618c294838b25bd98aa5043487716a2844698b.svg" alt="V_\theta(x_s)"/>.</p>
+</section>
+<section id="key-graphs">
+<h2>Key Graphs<a class="headerlink" href="#key-graphs" title="Permalink to this headline">¶</a></h2>
+<p>The following graph describes the process in IMPALA original paper. However, our implication is a little different from
+that in original paper.</p>
+<a class="reference internal image-reference" href="../_images/IMPALA.png"><img alt="../_images/IMPALA.png" class="align-center" src="../_images/IMPALA.png" style="width: 503.29999999999995px; height: 375.2px;" /></a>
+<p>For single learner, they use multiple actors/collectors to generate training data. While in our
+setting, we use one collector which has multiple environments to increase data diversity.</p>
+<p>For multiple learner, in original paper, different learners will have different actors with them. In other word, they
+will have different ReplayBuffer. While in our setting, all of the learners, will share the same ReplayBuffer, and will
+synchronize after each iteration.</p>
+</section>
+<section id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<p>The default config is defined as follows:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.policy.impala.IMPALAPolicy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.impala.</span></span><span class="sig-name descname"><span class="pre">IMPALAPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/impala.html#IMPALAPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.impala.IMPALAPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of IMPALA algorithm.</p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 19%" />
+<col style="width: 7%" />
+<col style="width: 13%" />
+<col style="width: 37%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>impala</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer to</div>
+<div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg can be diff-</div>
+<div class="line">erent from modes</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on_policy</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether the RL algorithm is on-policy</div>
+<div class="line">or off-policy</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><ol class="arabic simple" start="4">
+<li></li>
+</ol>
+</td>
+<td><p><code class="docutils literal notranslate"><span class="pre">priority</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use priority(PER)</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">priority sample,</div>
+<div class="line">update priority</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">priority_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IS_weight</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use Importance Sampling Weight</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">If True, priority</div>
+<div class="line">must be True</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">unroll_len</span></code></p></td>
+<td><p>int</p></td>
+<td><p>32</p></td>
+<td><div class="line-block">
+<div class="line">trajectory length to calculate v-trace</div>
+<div class="line">target</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>4</p></td>
+<td><div class="line-block">
+<div class="line">How many updates(iterations) to train</div>
+<div class="line">after collector’s one collection. Only</div>
+<div class="line">valid in serial training</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this args can be vary</div>
+<div class="line">from envs. Bigger val</div>
+<div class="line">means more off-policy</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Usually, we hope to compute everything as a batch to improve efficiency. Especially, when computing vtrace, we
+need all training sample (sequences of training data) have the same length. This is done in <code class="docutils literal notranslate"><span class="pre">policy._get_train_sample</span></code>.
+Once we execute this function in collector, the length of samples will equal to unroll-len in config. For details, please
+refer to doc of <code class="docutils literal notranslate"><span class="pre">ding.rl_utils.adder</span></code>.</p>
+<div class="highlight-python notranslate" id="ref2other"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_train_sample</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">unroll_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">last_fn_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;last&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Process raw traj data by updating keys [&#39;next_obs&#39;, &#39;reward&#39;, &#39;done&#39;] in data&#39;s dict element.</span>
+<span class="sd">        If ``unroll_len`` equals to 1, which means no process is needed, can directly return ``data``.</span>
+<span class="sd">        Otherwise, ``data`` will be split according to ``self._unroll_len``, process residual part according to</span>
+<span class="sd">        ``last_fn_type`` and call ``lists_to_dicts`` to form sampled training data.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - data (:obj:`List[Dict[str, Any]]`): transitions list processed after unrolling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">unroll_len</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># cut data into pieces whose length is unroll_len</span>
+        <span class="n">split_data</span><span class="p">,</span> <span class="n">residual</span> <span class="o">=</span> <span class="n">list_split</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">null_padding</span><span class="p">():</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">residual</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">template</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">template</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s1">&#39;value_gamma&#39;</span> <span class="ow">in</span> <span class="n">template</span><span class="p">:</span>
+                <span class="n">template</span><span class="p">[</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">null_data</span> <span class="o">=</span> <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">_get_null_transition</span><span class="p">(</span><span class="n">template</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">miss_num</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">null_data</span>
+
+        <span class="k">if</span> <span class="n">residual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">miss_num</span> <span class="o">=</span> <span class="n">unroll_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">last_fn_type</span> <span class="o">==</span> <span class="s1">&#39;drop&#39;</span><span class="p">:</span>
+                <span class="c1"># drop the residual part</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">last_fn_type</span> <span class="o">==</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># copy last datas from split_data&#39;s last element, and insert in front of residual</span>
+                    <span class="n">last_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">split_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="n">miss_num</span><span class="p">:])</span>
+                    <span class="n">split_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">last_data</span> <span class="o">+</span> <span class="n">residual</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># get null transitions using ``null_padding``, and insert behind residual</span>
+                    <span class="n">null_data</span> <span class="o">=</span> <span class="n">null_padding</span><span class="p">()</span>
+                    <span class="n">split_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">residual</span> <span class="o">+</span> <span class="n">null_data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">last_fn_type</span> <span class="o">==</span> <span class="s1">&#39;null_padding&#39;</span><span class="p">:</span>
+                <span class="c1"># same to the case of &#39;last&#39; type and split_data is empty</span>
+                <span class="n">null_data</span> <span class="o">=</span> <span class="n">null_padding</span><span class="p">()</span>
+                <span class="n">split_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">residual</span> <span class="o">+</span> <span class="n">null_data</span><span class="p">)</span>
+        <span class="c1"># collate unroll_len dicts according to keys</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">split_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">lists_to_dicts</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">split_data</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">split_data</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">get_train_sample</span></code>, we introduce three ways to cut trajectory data into same-length pieces (length equal
+to <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code>).</p>
+<p>The first one is <code class="docutils literal notranslate"><span class="pre">drop</span></code>, this means after splitting trajectory data into small pieces, we simply throw away those
+with length smaller than <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code>. This method is kind of naive and usually is not a good choice. Since in
+Reinforcement Learning, the last few data in an episode is usually very important, we can’t just throw away them.</p>
+<p>The second method is <code class="docutils literal notranslate"><span class="pre">last</span></code>, which means if the total length trajectory is smaller than <code class="docutils literal notranslate"><span class="pre">unrollen_len</span></code>,
+we will use zero padding. Else, we will use data from previous piece to pad residual piece. This method is set as
+default and recommended.</p>
+<p>The last method <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> is just zero padding, which is not vert efficient since many data will be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+</div>
+<p>Now, we introduce the computation of vtrace-value.
+First, we use the following functions to compute importance_weights.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_importance_weights</span><span class="p">(</span><span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\</span>
+<span class="sd">            N is action dim</span>
+<span class="sd">        - behaviour_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`</span>
+<span class="sd">        - action (:obj:`torch.LongTensor`): :math:`(T, B)`</span>
+<span class="sd">        - rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">grad_context</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">enable_grad</span><span class="p">()</span> <span class="k">if</span> <span class="n">requires_grad</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">device</span>
+
+    <span class="k">with</span> <span class="n">grad_context</span><span class="p">:</span>
+        <span class="n">dist_target</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">target_output</span><span class="p">)</span>
+        <span class="n">dist_behaviour</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">behaviour_output</span><span class="p">)</span>
+        <span class="n">rhos</span> <span class="o">=</span> <span class="n">dist_target</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="o">-</span> <span class="n">dist_behaviour</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="n">rhos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">rhos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rhos</span>
+</pre></div>
+</div>
+<p>After that, we clip importance weights based on constant <img class="math" src="../_images/math/29543a9fc60b0873f3096b6e224441b6c17995bb.svg" alt="\rho"/> and <img class="math" src="../_images/math/17382fd1840ee3ef20b06f68326592d9b961cc58.svg" alt="c"/> to get clipped_rhos, clipped_cs.
+Then we can compute vtrace value according to the following function. Notice, here bootstrap_values are just
+value function <img class="math" src="../_images/math/8971461a90002bc5985b4e61a2a0669da489735e.svg" alt="V(x_s)"/> in vtrace definition.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">vtrace_nstep_return</span><span class="p">(</span><span class="n">clipped_rhos</span><span class="p">,</span> <span class="n">clipped_cs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size</span>
+<span class="sd">        - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
+<span class="sd">        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
+<span class="sd">        - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`</span>
+<span class="sd">        - vtrace_return (:obj:`torch.FloatTensor`):  :math:`(T, B)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">deltas</span> <span class="o">=</span> <span class="n">clipped_rhos</span> <span class="o">*</span> <span class="p">(</span><span class="n">reward</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">bootstrap_values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">bootstrap_values</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">lambda_</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">bootstrap_values</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">vtrace_item</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">reward</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="n">vtrace_item</span> <span class="o">=</span> <span class="n">deltas</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">clipped_cs</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">vtrace_item</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vtrace_item</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>1. Bootstrap_values in this part need to have size (T+1,B),where T is timestep, B is batch size. The reason is that
+we need a sequence of training data with same-length vtrace value (this length is just the unroll_len in config).
+And in order to compute the last vtrace value in the sequence, we need at least one more target value. This is
+done using the next_obs of the last transition in training data sequence.</p>
+<p>2. Here we introduce a parameter <code class="docutils literal notranslate"><span class="pre">lambda_</span></code>, following the implementation in AlphaStar. The parameter, between 0
+and 1,can give a subtle control on vtrace off-policy correction. Usually, we will choose this parameter close to 1.</p>
+</div>
+<p>Once we get vtrace value, or <code class="docutils literal notranslate"><span class="pre">vtrace_nstep_return</span></code>, the computation of loss functions are straightforward. The whole
+process is as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">vtrace_advantage</span><span class="p">(</span><span class="n">clipped_pg_rhos</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">return_</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - clipped_pg_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size</span>
+<span class="sd">        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
+<span class="sd">        - return_ (:obj:`torch.FloatTensor`):  :math:`(T, B)`</span>
+<span class="sd">        - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
+<span class="sd">        - vtrace_advantage (:obj:`torch.FloatTensor`):  :math:`(T, B)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">clipped_pg_rhos</span> <span class="o">*</span> <span class="p">(</span><span class="n">reward</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">return_</span> <span class="o">-</span> <span class="n">bootstrap_values</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">vtrace_error</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
+        <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.99</span><span class="p">,</span>
+        <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">,</span>
+        <span class="n">rho_clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">c_clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">rho_pg_clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\</span>
+<span class="sd">            N is action dim</span>
+<span class="sd">        - behaviour_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`</span>
+<span class="sd">        - action (:obj:`torch.LongTensor`): :math:`(T, B)`</span>
+<span class="sd">        - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`</span>
+<span class="sd">        - reward (:obj:`torch.LongTensor`): :math:`(T, B)`</span>
+<span class="sd">        - weight (:obj:`torch.LongTensor`): :math:`(T, B)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">IS</span> <span class="o">=</span> <span class="n">compute_importance_weights</span><span class="p">(</span><span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+        <span class="n">rhos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">IS</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="n">rho_clip_ratio</span><span class="p">)</span>
+        <span class="n">cs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">IS</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="n">c_clip_ratio</span><span class="p">)</span>
+        <span class="n">return_</span> <span class="o">=</span> <span class="n">vtrace_nstep_return</span><span class="p">(</span><span class="n">rhos</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">)</span>
+        <span class="n">pg_rhos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">IS</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="n">rho_pg_clip_ratio</span><span class="p">)</span>
+        <span class="n">return_t_plus_1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">return_</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]],</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">adv</span> <span class="o">=</span> <span class="n">vtrace_advantage</span><span class="p">(</span><span class="n">pg_rhos</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">return_t_plus_1</span><span class="p">,</span> <span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">gamma</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
+    <span class="n">dist_target</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">target_output</span><span class="p">)</span>
+    <span class="n">pg_loss</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">dist_target</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="o">*</span> <span class="n">adv</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">value_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">return_</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">entropy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist_target</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">vtrace_loss</span><span class="p">(</span><span class="n">pg_loss</span><span class="p">,</span> <span class="n">value_loss</span><span class="p">,</span> <span class="n">entropy_loss</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ol class="arabic simple">
+<li><p>The shape of value in input data should be (T+1, B), the reason is same as above Note.</p></li>
+<li><p>Here we introduce a parameter <code class="docutils literal notranslate"><span class="pre">rho_pg_clip_ratio</span></code>, following the implementation in AlphaStar. This parameter, can give a subtle control on vtrace advantage. Usually, we will choose this parameter just same as rho_clip_ratio.</p></li>
+</ol>
+</div>
+<p>The default config of IMPALAPolicy is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.impala.</span></span><span class="sig-name descname"><span class="pre">IMPALAPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/impala.html#IMPALAPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of IMPALA algorithm.</p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 19%" />
+<col style="width: 7%" />
+<col style="width: 13%" />
+<col style="width: 37%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>impala</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer to</div>
+<div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg can be diff-</div>
+<div class="line">erent from modes</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on_policy</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether the RL algorithm is on-policy</div>
+<div class="line">or off-policy</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><ol class="arabic simple" start="4">
+<li></li>
+</ol>
+</td>
+<td><p><code class="docutils literal notranslate"><span class="pre">priority</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use priority(PER)</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">priority sample,</div>
+<div class="line">update priority</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">priority_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IS_weight</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use Importance Sampling Weight</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">If True, priority</div>
+<div class="line">must be True</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">unroll_len</span></code></p></td>
+<td><p>int</p></td>
+<td><p>32</p></td>
+<td><div class="line-block">
+<div class="line">trajectory length to calculate v-trace</div>
+<div class="line">target</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>4</p></td>
+<td><div class="line-block">
+<div class="line">How many updates(iterations) to train</div>
+<div class="line">after collector’s one collection. Only</div>
+<div class="line">valid in serial training</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this args can be vary</div>
+<div class="line">from envs. Bigger val</div>
+<div class="line">means more off-policy</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+<p>The network interface IMPALA used is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.vac.</span></span><span class="sig-name descname"><span class="pre">VAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">,</span> </span><span class="pre">easydict.EasyDict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_space</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'discrete'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_encoder</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'independent'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_sigma_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The VAC model.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict output.
+Parameter updates with VAC’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code> or <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.
+Whether <code class="docutils literal notranslate"><span class="pre">actor_head_hidden_size</span></code> or <code class="docutils literal notranslate"><span class="pre">critic_head_hidden_size</span></code> depend on <code class="docutils literal notranslate"><span class="pre">mode</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+<dl class="simple">
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code>, Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit encoding tensor, with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code>, Necessary Keys:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/68f074d632f8241eadb0341998fe5b22f3c5c0e5.svg" alt="(B, N)"/>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/68f074d632f8241eadb0341998fe5b22f3c5c0e5.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/ba87d0d64690e3aa2d6607cd42f9225718f0a213.svg" alt="(B, )"/>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">128</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+<dt>Critic Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Actor-Critic Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+<p>The Benchmark result of IMPALA implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview.html">Benchmark</a></p>
+</section>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<p>Lasse Espeholt, Hubert Soyer, Remi Munos, Karen Simonyan, Volodymir Mnih, Tom Ward, Yotam Doron, Vlad Firoiu, Tim Harley, Iain Dunning, Shane Legg, Koray Kavukcuoglu: “IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures”, 2018; arXiv:1802.01561.  https://arxiv.org/abs/1802.01561</p>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ddpg.html" class="btn btn-neutral float-right" title="DDPG" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ppg.html" class="btn btn-neutral float-left" title="PPG" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

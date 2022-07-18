@@ -1,0 +1,626 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>template.qmix &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="template.coma" href="coma.html" />
+    <link rel="prev" title="template.VAC" href="VAC.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../policy/index.html">Policy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../common/index.html">Common</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">Template</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="q_learning.html">template.q_learning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QAC.html">template.QAC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="VAC.html">template.VAC</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">template.qmix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="coma.html">template.coma</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="../index.html">Model</a> &raquo;</li>
+        
+          <li><a href="index.html">Template</a> &raquo;</li>
+        
+      <li>template.qmix</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/api_doc/model/template/qmix.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="template-qmix">
+<h1>template.qmix<a class="headerlink" href="#template-qmix" title="Permalink to this headline">¶</a></h1>
+<p>Please Reference ding/model/template/qmix.py for usage</p>
+<section id="mixer">
+<h2>Mixer<a class="headerlink" href="#mixer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.qmix.Mixer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qmix.</span></span><span class="sig-name descname"><span class="pre">Mixer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixing_embed_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hypernet_embed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#Mixer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.Mixer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>mixer network in QMIX, which mix up the independent q_value of each agent to a total q_value</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.Mixer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixing_embed_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hypernet_embed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#Mixer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.Mixer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize pymarl mixer network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>agent_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of agent</p></li>
+<li><p>state_dim(<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of global observation state</p></li>
+<li><p>mixing_embed_dim (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of mixing state emdedding</p></li>
+<li><p>hypernet_embed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of hypernet emdedding, default to 64</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.Mixer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_qs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#Mixer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.Mixer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation graph of pymarl mixer network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>agent_qs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): the independent q_value of each agent</p></li>
+<li><p>states (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): the emdedding vector of global state</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>q_tot (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): the total mixed q_value</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>agent_qs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../../_images/math/68f074d632f8241eadb0341998fe5b22f3c5c0e5.svg" alt="(B, N)"/>, where B is batch size and N is agent_num</p></li>
+<li><p>states (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../../_images/math/17f3a91fca88d3e4ff03e2278f83308ebfe36df5.svg" alt="(B, M)"/>, where M is embedding_size</p></li>
+<li><p>q_tot (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../../_images/math/ba87d0d64690e3aa2d6607cd42f9225718f0a213.svg" alt="(B, )"/></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="qmix">
+<h2>QMix<a class="headerlink" href="#qmix" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.qmix.QMix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qmix.</span></span><span class="sig-name descname"><span class="pre">QMix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#QMix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.QMix" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>QMIX network</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward, _setup_global_encoder</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.QMix.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#QMix.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.QMix.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize Qmix network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>agent_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of agent</p></li>
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of each agent’s observation state</p></li>
+<li><p>global_obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of global observation state</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of action shape</p></li>
+<li><p>hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list of hidden size</p></li>
+<li><p>mixer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): use mixer net or not, default to True</p></li>
+<li><p>lstm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): use lstm or gru, default to gru</p></li>
+<li><p>dueling (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): use dueling head or not, default to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.QMix._setup_global_encoder">
+<span class="sig-name descname"><span class="pre">_setup_global_encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#QMix._setup_global_encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.QMix._setup_global_encoder" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Used to encoder global observation.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>global_obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of global observation state</p></li>
+<li><p>embedding_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of state emdedding</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>): Global observation encoding network</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.QMix.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#QMix.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.QMix.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation graph of qmix network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): input data dict with keys [‘obs’, ‘prev_state’, ‘action’]</dt><dd><ul>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent local state(obs)</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): global state(obs)</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): previous rnn state</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or None): if action is None, use argmax q_value index as action to                    calculate <code class="docutils literal notranslate"><span class="pre">agent_q_act</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>single_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether single_step forward, if so, add timestep dim before forward and                remove it after forward</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): output data dict with keys [<code class="docutils literal notranslate"><span class="pre">total_q</span></code>, <code class="docutils literal notranslate"><span class="pre">logit</span></code>, <code class="docutils literal notranslate"><span class="pre">next_state</span></code>]</p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): total q_value, which is the result of mixer network</p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent q_value</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): next rnn state</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/04865e28f7a10686f0a774544f8c308910cbaabe.svg" alt="(T, B, A, N)"/>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/e79d3b808b5ef498fde9c4e321d0cc7e042c3f97.svg" alt="(T, B, M)"/>, where M is global_obs_shape</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/6f015e989b4114769bc74c1803f2e51c0494470e.svg" alt="(T, B, A)"/></p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/ab6847117da3a7a1a1f72be4cfeae4b3c2c6aa8a.svg" alt="(T, B)"/></p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/4ba32f20e6dcf82c67447530363ea95ffdf1d071.svg" alt="(T, B, A, P)"/>, where P is action_shape</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="collaqmultiheadattention">
+<h2>CollaQMultiHeadAttention<a class="headerlink" href="#collaqmultiheadattention" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQMultiHeadAttention">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qmix.</span></span><span class="sig-name descname"><span class="pre">CollaQMultiHeadAttention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_head</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model_q</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model_v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_k</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_out</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQMultiHeadAttention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQMultiHeadAttention" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The head of collaq attention module.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQMultiHeadAttention.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_head</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model_q</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model_v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_k</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_out</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQMultiHeadAttention.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQMultiHeadAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize the head of collaq attention module</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>n_head (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the num of head</p></li>
+<li><p>d_model_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of input q</p></li>
+<li><p>d_model_v (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of input v</p></li>
+<li><p>d_k (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of k, used by Scaled Dot Product Attention</p></li>
+<li><p>d_v (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of v, used by Scaled Dot Product Attention</p></li>
+<li><p>d_out (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of output q</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQMultiHeadAttention.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQMultiHeadAttention.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQMultiHeadAttention.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation graph of collaQ multi head attention net.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Sequential</span></code>): the transformer information q</p></li>
+<li><p>k (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Sequential</span></code>): the transformer information k</p></li>
+<li><p>v (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Sequential</span></code>): the transformer information v</p></li>
+</ul>
+</dd>
+<dt>Output:</dt><dd><ul class="simple">
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Sequential</span></code>): the transformer output q</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="collaqsmacattentionmodule">
+<h2>CollaQSMACAttentionModule<a class="headerlink" href="#collaqsmacattentionmodule" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQSMACAttentionModule">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qmix.</span></span><span class="sig-name descname"><span class="pre">CollaQSMACAttentionModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ally_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQSMACAttentionModule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQSMACAttentionModule" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Collaq attention module. Used to get agent’s attention observation. It includes agent’s observation            and agent’s part of the observation information of the agent’s concerned allies</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, _cut_obs, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQSMACAttentionModule.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ally_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQSMACAttentionModule.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQSMACAttentionModule.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize collaq attention module</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>q_dim (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of transformer output q</p></li>
+<li><p>v_dim (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of transformer output v</p></li>
+<li><p>self_features (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): output self agent’s attention observation</p></li>
+<li><p>ally_features (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): output ally agent’s attention observation</p></li>
+<li><p>attention_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of attention net layer</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQSMACAttentionModule._cut_obs">
+<span class="sig-name descname"><span class="pre">_cut_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQSMACAttentionModule._cut_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQSMACAttentionModule._cut_obs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>cut the observed information into self’s observation and allay’s observation</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input each agent’s observation</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>self_features (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): output self agent’s attention observation</p></li>
+<li><p>ally_features (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): output ally agent’s attention observation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQSMACAttentionModule.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQSMACAttentionModule.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQSMACAttentionModule.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation to get agent’s attention observation information</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input each agent’s observation</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): output agent’s attention observation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="collaq">
+<h2>CollaQ<a class="headerlink" href="#collaq" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQ">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qmix.</span></span><span class="sig-name descname"><span class="pre">CollaQ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alone_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ally_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQ" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>CollaQ network</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward, _setup_global_encoder</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQ.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alone_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ally_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQ.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQ.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize Collaq network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>agent_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of agent</p></li>
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of each agent’s observation state</p></li>
+<li><p>alone_obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of each agent’s observation state without                other agents</p></li>
+<li><p>global_obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of global observation state</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of action shape</p></li>
+<li><p>hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list of hidden size</p></li>
+<li><p>attention (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): use attention module or not, default to False</p></li>
+<li><p>self_feature_range (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[List[int],</span> <span class="pre">None]</span></code>): the agent’s feature range</p></li>
+<li><p>ally_feature_range (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[List[int],</span> <span class="pre">None]</span></code>): the agent ally’s feature range</p></li>
+<li><p>attention_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of attention net layer</p></li>
+<li><p>mixer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): use mixer net or not, default to True</p></li>
+<li><p>lstm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): use lstm or gru, default to gru</p></li>
+<li><p>dueling (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): use dueling head or not, default to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQ._setup_global_encoder">
+<span class="sig-name descname"><span class="pre">_setup_global_encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQ._setup_global_encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQ._setup_global_encoder" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Used to encoder global observation.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>global_obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of global observation state</p></li>
+<li><p>embedding_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of state emdedding</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>): Global observation encoding network</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.qmix.CollaQ.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/qmix.html#CollaQ.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.qmix.CollaQ.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation graph of collaQ network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): input data dict with keys [‘obs’, ‘prev_state’, ‘action’]</dt><dd><ul>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent local state(obs)</p></li>
+<li><p>agent_alone_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent’s local state alone,                     in smac setting is without ally feature(obs_along)</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): global state(obs)</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): previous rnn state, should include 3 parts:                     one hidden state of q_network, and two hidden state if q_alone_network for obs and obs_alone inputs</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or None): if action is None, use argmax q_value index as action to                    calculate <code class="docutils literal notranslate"><span class="pre">agent_q_act</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>single_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether single_step forward, if so, add timestep dim before forward and                remove it after forward</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): output data dict with keys [‘total_q’, ‘logit’, ‘next_state’]</dt><dd><ul>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): total q_value, which is the result of mixer network</p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent q_value</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): next rnn state</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/04865e28f7a10686f0a774544f8c308910cbaabe.svg" alt="(T, B, A, N)"/>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/e79d3b808b5ef498fde9c4e321d0cc7e042c3f97.svg" alt="(T, B, M)"/>, where M is global_obs_shape</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/6f015e989b4114769bc74c1803f2e51c0494470e.svg" alt="(T, B, A)"/></p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/ab6847117da3a7a1a1f72be4cfeae4b3c2c6aa8a.svg" alt="(T, B)"/></p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../../../_images/math/4ba32f20e6dcf82c67447530363ea95ffdf1d071.svg" alt="(T, B, A, P)"/>, where P is action_shape</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="coma.html" class="btn btn-neutral float-right" title="template.coma" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="VAC.html" class="btn btn-neutral float-left" title="template.VAC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

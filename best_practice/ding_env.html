@@ -1,0 +1,551 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>How to migrate your environment to DI-engine &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="N-step TD" href="nstep_td.html" />
+    <link rel="prev" title="Best Practice" href="index.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to migrate your environment to DI-engine</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic">Basic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced">Advanced</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dingenvwrapper">DingEnvWrapper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#q-a">Q &amp; A</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nstep_td.html">N-step TD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="priority.html">How to Use PER(Prioritized Experience Replay)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IL.html">Imitation Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IRL.html">Inverse RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnn.html">How to use RNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="random_seed.html">Random seed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_discrete.html">Multi-Discrete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_gpu_example.html">How to Use Multi-GPUs to Train Your Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="random_collect_size.html">How to randomly collect some data sample at the beginning?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="training_generated_folders.html">How to understand training generated folders?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_log.html">Learner log</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_wrapper.html">How to Customize Model Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_wrapper.html">How to Customize an Env Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="episode_buffer.html">How to use Episode Replay Buffer?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_buffer.html">How to use multiple buffers?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="registry.html">Registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maac.html">Multi-Agent Actor-Critic RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization1_dynamic_update_step.html">Customization 1: Dynamic Update Step</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Best Practice</a> &raquo;</li>
+        
+      <li>How to migrate your environment to DI-engine</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/best_practice/ding_env.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="how-to-migrate-your-environment-to-di-engine">
+<h1>How to migrate your environment to DI-engine<a class="headerlink" href="#how-to-migrate-your-environment-to-di-engine" title="Permalink to this headline">¶</a></h1>
+<p>Although a large number of commonly used Reinforcement Learning environments have been provided in <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> (<a class="reference external" href="https://github.com/opendilab/DI-engine#environment-versatility">DI-engine supported environments</a> ), you may still need to migrate your environment to <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code>. Therefore, in this section, we will introduce how to perform the above migration step by step to meet the specifications of the <code class="docutils literal notranslate"><span class="pre">DI-engine''</span> <span class="pre">basic</span> <span class="pre">environment</span> <span class="pre">base</span> <span class="pre">class</span> <span class="pre">``BaseEnv</span></code>, so that it can be easily applied in the training pipeline.</p>
+<p>The following introduction will be divided into two parts: <strong>Basic</strong> and <strong>Advanced</strong>. <strong>Basic</strong> indicates the functions that must be implemented and details that must be noticed if you want to run the pipeline correctly; <strong>Advanced</strong> indicates some expanded functions.</p>
+<section id="basic">
+<h2>Basic<a class="headerlink" href="#basic" title="Permalink to this headline">¶</a></h2>
+<p>This section will introduce the specification constraints that users must obey and the functions that must be implemented when migrating the environment.</p>
+<p>If you want to use the environment in DI-engine, you need to implement a subclass environment derived from <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>, such as <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code>. The relationship between <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> and your own environment is a <a class="reference external" href="https://www.cnblogs.com/chinxi/p/7349768.html">combination</a> relationship, that is, a <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> instance will hold an instance of your own original environment.</p>
+<p>The Reinforcement Learning environment has some major interfaces commonly implemented by most environments, such as <code class="docutils literal notranslate"><span class="pre">reset()</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code>, <code class="docutils literal notranslate"><span class="pre">seed()</span></code>, etc. In DI-engine, <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> will further encapsulate these interfaces. In following cases, Atari will be used as an example for description. Please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_env.py">Atari Env</a> and <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_wrappers.py">Atari Env Wrapper</a> for code.</p>
+<ol class="arabic">
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__()</span></code></p>
+<p>Under normal circumstances, the environment may be instantiated in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, but in DI-engine, in order to facilitate parallel operations such as “environment vectorization” in <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code>, the environment instance generally adopts <strong>Lazy Init</strong> pattern, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method does not initialize the real original environment instance, but only sets the relevant <strong>parameter &amp; configuration</strong>. The actual environment will not be initialized until the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method is called <strong>for the first time</strong>.</p>
+<p>Take Atari as an example. <code class="docutils literal notranslate"><span class="pre">__init__</span></code> does not instantiate the environment, but only sets the configuration <code class="docutils literal notranslate"><span class="pre">self._cfg</span></code>, and initialize member attribute <code class="docutils literal notranslate"><span class="pre">self._init_flag</span></code> which is used to record whether the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method is called for the first time (i.e. Whether the environment has not been initialized).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_init_flag</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed()</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">seed</span></code> is used to set the random seed in the environment. There are two types of random seeds in the environment needed to be set. One is the random seed in the <strong>original environment</strong>, and the other is the random seed used in various <strong>environment transformations</strong> (Often random seed of the libraries, e.g. <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>). If your environment does not have any randomness at all (including “original environment” and “environmental transformation”), then you don’t need to implement this method.</p>
+<p>The setting of the seed of the random library is relatively simple. You can set it directly in <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment.</p>
+<p>However, the seed of the original environment is only assigned in the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method, but not really set. The actual setting is when calling environment’s <code class="docutils literal notranslate"><span class="pre">reset</span></code> method, and right before the specific original environment’s <code class="docutils literal notranslate"><span class="pre">reset</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="n">seed</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dynamic_seed</span> <span class="o">=</span> <span class="n">dynamic_seed</span>
+      <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seed</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the seeds in original environment, DI-engine defines <strong>static seed</strong> and <strong>dynamic seed</strong>.</p>
+<p><strong>Static seed</strong> is used in the evaluation environment to ensure that the random seed of all episodes are the same, that is, only the fixed static seed value of <code class="docutils literal notranslate"><span class="pre">self._seed</span></code> will be used when <code class="docutils literal notranslate"><span class="pre">reset</span></code>. You need to manually pass in the <code class="docutils literal notranslate"><span class="pre">dynamic_seed</span></code> parameter as <code class="docutils literal notranslate"><span class="pre">False</span></code> in the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p>
+<p><strong>Dynamic seed</strong> is used in the training environment, trying to make the random seed of each episode different, they are all generated in the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method by a random generator <code class="docutils literal notranslate"><span class="pre">100</span> <span class="pre">*</span> <span class="pre">np.random.randint(1</span> <span class="pre">,</span> <span class="pre">1000)</span></code> (but the seed of this random number generator is fixed by the environmental <code class="docutils literal notranslate"><span class="pre">seed</span></code> method, guranteeing the reproducibility of the experiment). You need not pass the <code class="docutils literal notranslate"><span class="pre">dynamic_seed</span></code> parameter in the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method, or pass the parameter as <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reset()</span></code></p>
+<p>In <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, we have already introduced DI-engine’s <strong>Lazy Init</strong> pattern, that is, the actual environment is not initialized untl <code class="docutils literal notranslate"><span class="pre">reset</span></code> method is called <strong>for the first time</strong>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">reset</span></code> method will judge whether the actual environment needs to be instantiated according to <code class="docutils literal notranslate"><span class="pre">self._init_flag</span></code>, and set random seeds. Then call original environment’s <code class="docutils literal notranslate"><span class="pre">reset</span></code> method to get the initial observation and convert to <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> (will be explained in detail in 5.). Then initialize the value of <code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code> (will be explained in detail in 4.). In Atari <code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code> refers to the cumulative sum of the true rewards obtained in the entire episode. It is used to evaluate the agent’s performance in the environment, not used for training.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_init_flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+   <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_flag</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_env</span><span class="p">(</span><span class="n">only_info</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_init_flag</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;_seed&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;_dynamic_seed&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dynamic_seed</span><span class="p">:</span>
+         <span class="n">np_seed</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">+</span> <span class="n">np_seed</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;_seed&#39;</span><span class="p">):</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seed</span><span class="p">)</span>
+      <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+      <span class="n">obs</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span> <span class="o">=</span> <span class="mf">0.</span>
+      <span class="k">return</span> <span class="n">obs</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step()</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">step</span></code> method is responsible for receiving this time <code class="docutils literal notranslate"><span class="pre">action</span></code>, then giving this time <code class="docutils literal notranslate"><span class="pre">reward</span></code> and next time <code class="docutils literal notranslate"><span class="pre">obs</span></code>. In DI-engine, you also need to give: The flag of whether current episode is finished <code class="docutils literal notranslate"><span class="pre">done</span></code>, and other information in the form of a dictionary <code class="docutils literal notranslate"><span class="pre">info</span></code> (such as <code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code>).</p>
+<p>After getting <code class="docutils literal notranslate"><span class="pre">reward</span></code> <code class="docutils literal notranslate"><span class="pre">obs</span></code> <code class="docutils literal notranslate"><span class="pre">done</span></code> <code class="docutils literal notranslate"><span class="pre">info</span></code>, you need to convert them into <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> format to ensure compliance with DI-engine specifications. In each time step <code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code> will accumulate the current real reward, and return the accumulated value when the episode ends (<code class="docutils literal notranslate"><span class="pre">done</span> <span class="pre">==</span> <span class="pre">True</span></code> ).</p>
+<p>Finally, you should put the above four data into <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep</span></code> defined as <code class="docutils literal notranslate"><span class="pre">namedtuple</span></code> and return (defined as: <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep</span> <span class="pre">=</span> <span class="pre">namedtuple('BaseEnvTimestep',</span> <span class="pre">['obs','reward','done</span> <span class="pre">','info'])</span></code>)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
+
+<span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvTimestep</span><span class="p">:</span>
+      <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+      <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+      <span class="n">obs</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span> <span class="o">+=</span> <span class="n">rew</span>
+      <span class="n">obs</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+      <span class="n">rew</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">([</span><span class="n">rew</span><span class="p">])</span> <span class="c1"># Transformed to an array with shape (1,)</span>
+      <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+         <span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span>
+      <span class="k">return</span> <span class="n">BaseEnvTimestep</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code></p>
+<p>In the Atari environment, <code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code> refers to the cumulative sum of all rewards in an episode.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method, set the current <code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code> to 0;</p></li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">step</span></code> method, add the reward obtained at each time step to <code class="docutils literal notranslate"><span class="pre">self._final_eval_reward</span></code>.</p></li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">step</span></code> method, if the current episode has ended (<code class="docutils literal notranslate"><span class="pre">done</span> <span class="pre">==</span> <span class="pre">True</span></code>, here it is required that <code class="docutils literal notranslate"><span class="pre">done</span></code> must be of type <code class="docutils literal notranslate"><span class="pre">bool</span></code>, not <code class="docutils literal notranslate"><span class="pre">np.bool</span></code> ), then add it to the <code class="docutils literal notranslate"><span class="pre">info</span></code> dictionary and return: <code class="docutils literal notranslate"><span class="pre">info['final_eval_reward']</span> <span class="pre">=</span> <span class="pre">self._final_eval_reward</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>However, in other environments, what may be needed is not the sum of the rewards in an episode. For example, in smac, the win rate is needed, so you need to modify the accumulation in <code class="docutils literal notranslate"><span class="pre">step</span></code> method, to recording the games’ result, and finally return the calculated win rate at the end of the episode.</p>
+</li>
+<li><p>Data Specification</p>
+<p>In DI-engine’s environment, all methods’ input and output data must be <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code>, and the dtype needs to be <code class="docutils literal notranslate"><span class="pre">np.int64</span></code> (integer) or <code class="docutils literal notranslate"><span class="pre">np.float32</span></code> ( Floating point number). Includes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">obs</span></code> returned in <code class="docutils literal notranslate"><span class="pre">reset</span></code> method</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">action</span></code> received in <code class="docutils literal notranslate"><span class="pre">step</span></code> method</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">obs</span></code> returned in <code class="docutils literal notranslate"><span class="pre">step</span></code> method</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reward</span></code> returned in <code class="docutils literal notranslate"><span class="pre">step</span></code> method. Here also requires that <code class="docutils literal notranslate"><span class="pre">reward</span></code> must be <strong>one-dimensional</strong>, not zero-dimensional, such as the code in Atari <code class="docutils literal notranslate"><span class="pre">rew</span> <span class="pre">=</span> <span class="pre">to_ndarray(</span> <span class="pre">[rew])</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">done</span></code> returned in <code class="docutils literal notranslate"><span class="pre">step</span></code> method. Must be <code class="docutils literal notranslate"><span class="pre">bool</span></code> type, rather than <code class="docutils literal notranslate"><span class="pre">np.bool</span></code> type.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</section>
+<section id="advanced">
+<h2>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p>Environment preprocessing wrapper</p>
+<p>If an environment is to be used in Reinforcement Learning training, some preprocessing is required to increase randomness, normalize data, and make training easier. These preprocessing are implemented in the form of wrapper (for the introduction of wrapper, please refer to <a class="reference external" href="../feature/wrapper_hook_overview_zh.html#wrapper">this</a> ).</p>
+<p>Each preprocessing wrapper is a subclass of <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code>. For example, <code class="docutils literal notranslate"><span class="pre">NoopResetEnv</span></code> is to perform a random number of No-Operation actions at the very beginning of an episode. It is a means to increase randomness. THe code is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;PongNoFrameskip-v4&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Since the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method is implemented in <code class="docutils literal notranslate"><span class="pre">NoopResetEnv</span></code>, the corresponding code in <code class="docutils literal notranslate"><span class="pre">NoopResetEnv</span></code> will be executed when calling <code class="docutils literal notranslate"><span class="pre">env.reset()</span></code>.</p>
+<p>The following env wrappers has been implemented in DI-engine: (in <code class="docutils literal notranslate"><span class="pre">ding/envs/env_wrappers/env_wrappers.py</span></code>)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NoopResetEnv</span></code>: At the beginning of the episode, performs a random number of No-Operation actions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MaxAndSkipEnv</span></code>: Returns the maximum value in a few frames, which can be considered as a kind of max pooling over timestep</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WarpFrame</span></code>: Uses the <code class="docutils literal notranslate"><span class="pre">cvtColor</span></code> in <code class="docutils literal notranslate"><span class="pre">cv2</span></code> library to convert the original image’s color, then resizes the image to certain length and width (usually 84x84)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ScaledFloatFrame</span></code>: Normalizes observation to the interval [0, 1] (keeps dtype as <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ClipRewardEnv</span></code>: Passes reward through a sign function to become <code class="docutils literal notranslate"><span class="pre">{+1,</span> <span class="pre">0,</span> <span class="pre">-1}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FrameStack</span></code>: Stack a certain number (usually 4) of frames together as a new observation, which can be used to handle POMDP situations, for example, a single frame of information cannot know the speed direction of the movement</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ObsTransposeWrapper</span></code>: Convert the image of <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">C)</span></code> to the image of <code class="docutils literal notranslate"><span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ObsNormEnv</span></code>: Uses <code class="docutils literal notranslate"><span class="pre">RunningMeanStd</span></code> to normalize the sliding window of observation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RewardNormEnv</span></code>: Uses <code class="docutils literal notranslate"><span class="pre">RunningMeanStd</span></code> to normalize the sliding window of reward</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RamWrapper</span></code>: Converts the observation shape of the Ram type environment to a similar image (128, 1, 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EpisodicLifeEnv</span></code>: Used in environments with multiple lives (such as Qbert; Regards each life as an episode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FireResetEnv</span></code>: Executes action 1 (fire) immediately after the environment is reset</p></li>
+</ul>
+</div></blockquote>
+<p>If the above wrapper does not meet your needs, you can also customize the wrapper yourself.</p>
+<p>It is worth mentioning that each wrapper also implements a static method <code class="docutils literal notranslate"><span class="pre">new_shape</span></code>. The input parameters are the shape of observation, action, and reward before using the wrapper, and the output is the shape of the three after using the wrapper. This method will be used in the next section <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RamWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Overview:</span>
+<span class="sd">         Get new shape of observation, acton, and reward; in this case only observation \</span>
+<span class="sd">         space wrapped to (128,1,1); others unchanged.</span>
+<span class="sd">      Arguments:</span>
+<span class="sd">         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
+<span class="sd">      Returns:</span>
+<span class="sd">         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">info()</span></code></p>
+<p>If you want to automatically create a neural network according to the dimensions of the environment, or use the <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> feature in <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code> to speed up the transmission of environment’s large tensor data, you need to specify  <strong>shape</strong> and <strong>dtype</strong> of <code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">reward</span></code> in <code class="docutils literal notranslate"><span class="pre">info</span></code> method.</p>
+<p>For example, this is cartpole’s <code class="docutils literal notranslate"><span class="pre">info</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvInfo</span>
+<span class="kn">from</span> <span class="nn">ding.envs.common.env_element</span> <span class="kn">import</span> <span class="n">EnvElementInfo</span>
+
+<span class="k">class</span> <span class="nc">CartpoleEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvInfo</span><span class="p">:</span>
+      <span class="n">obs_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">observation_space</span>
+      <span class="n">act_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">action_space</span>
+      <span class="k">return</span> <span class="n">BaseEnvInfo</span><span class="p">(</span>
+         <span class="n">agent_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+         <span class="n">obs_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
+               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">low</span><span class="p">,</span>
+               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
+               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">},</span>
+         <span class="p">),</span>
+         <span class="n">act_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">act_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="p">),</span>
+            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
+               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">act_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">},</span>
+         <span class="p">),</span>
+         <span class="n">rew_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
+               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">},</span>
+         <span class="p">),</span>
+         <span class="n">use_wrappers</span><span class="o">=</span><span class="kc">None</span>
+      <span class="p">)</span>
+</pre></div>
+</div>
+<p>The definition of <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> is: <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span> <span class="pre">=</span> <span class="pre">namedlist('BaseEnvInfo',</span> <span class="pre">['agent_num','obs_space','act_space','rew_space','use_wrappers'])</span></code>. It is used to specify data’s several fields (agent number, observation, action, reward, wrapper, etc.). <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code> is defined as: <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span> <span class="pre">=</span> <span class="pre">namedlist('EnvElementInfo',</span> <span class="pre">['shape','value'])</span></code>. It is used to indicate the shape and dtype of observation, action, reward etc</p>
+<p>Since cartpole does not use any wrappers, <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> is easire to specify. However, if an environment like Atari is decorated with multiple wrappers, you need to know what changes each wrapper has made to <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code>. That is why we must implement <code class="docutils literal notranslate"><span class="pre">new_shape</span></code> method in each wrapper in the previous section. Its usage is as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvInfo</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span> <span class="ow">in</span> <span class="n">ATARIENV_INFO_DICT</span><span class="p">:</span>
+         <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">ATARIENV_INFO_DICT</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span><span class="p">])</span>
+         <span class="n">info</span><span class="o">.</span><span class="n">use_wrappers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_env</span><span class="p">(</span><span class="n">only_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+         <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span> <span class="o">=</span> <span class="n">update_shape</span><span class="p">(</span>
+               <span class="n">info</span><span class="o">.</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">act_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">rew_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">use_wrappers</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+         <span class="p">)</span>
+         <span class="n">info</span><span class="o">.</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
+         <span class="n">info</span><span class="o">.</span><span class="n">act_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">act_shape</span>
+         <span class="n">info</span><span class="o">.</span><span class="n">rew_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">rew_shape</span>
+         <span class="k">return</span> <span class="n">info</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> not found in ATARIENV_INFO_DICT [</span><span class="si">{}</span><span class="s1">]&#39;</span>\
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span><span class="p">,</span> <span class="n">ATARIENV_INFO_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">update_shape</span></code> function is as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">,</span> <span class="n">wrapper_names</span><span class="p">):</span>
+   <span class="k">for</span> <span class="n">wrapper_name</span> <span class="ow">in</span> <span class="n">wrapper_names</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">wrapper_name</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">wrapper_name</span><span class="p">)</span><span class="o">.</span><span class="n">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">continue</span>
+   <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enable_save_replay()</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> does not mandate the implementation of the <code class="docutils literal notranslate"><span class="pre">render</span></code> method. If you want visualization, we recommend implementing <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method.</p>
+<p>This method is called before the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method and after the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method. This method specifies the storage path of the video. It should be noted that this method does <strong>not directly store the video</strong>, but only sets a flag whether to save the video or not. The code of actually storing the video needs to be implemented by yourself. (Since multiple environments may be run at a time, and each environment runs multiple episodes, we recommend using episode_id and env_id in the file name to distinguish them)</p>
+<p>Here, an example in DI-engine is given, which uses the decorator provided by <code class="docutils literal notranslate"><span class="pre">gym</span></code> to encapsulate the environment, as shown in the code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">replay_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">replay_path</span> <span class="o">=</span><span class="s1">&#39;./video&#39;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_replay_path</span> <span class="o">=</span> <span class="n">replay_path</span>
+      <span class="c1"># this function can lead to the meaningless result</span>
+      <span class="c1"># disable_gym_view_window()</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">wrappers</span><span class="o">.</span><span class="n">Monitor</span><span class="p">(</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_path</span><span class="p">,</span> <span class="n">video_callable</span><span class="o">=</span><span class="k">lambda</span> <span class="n">episode_id</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span>
+      <span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Use different configs for training environment and evaluation environment</p>
+<p>The environment used for training (collector_env) and the environment used for evaluation (evaluator_env) may use different configurations. A static method can be implemented in the environment to implement custom configuration for different environments’ configuration. Take Atari as an example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">create_collector_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+      <span class="n">collector_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;collector_env_num&#39;</span><span class="p">)</span>
+      <span class="n">cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+      <span class="n">cfg</span><span class="o">.</span><span class="n">is_train</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">return</span> <span class="p">[</span><span class="n">cfg</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)]</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">create_evaluator_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+      <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;evaluator_env_num&#39;</span><span class="p">)</span>
+      <span class="n">cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+      <span class="n">cfg</span><span class="o">.</span><span class="n">is_train</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="p">[</span><span class="n">cfg</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>The original configuration item <code class="docutils literal notranslate"><span class="pre">cfg</span></code> can be converted:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># env_fn is an env class</span>
+<span class="n">collector_env_cfg</span> <span class="o">=</span> <span class="n">env_fn</span><span class="o">.</span><span class="n">create_collector_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">evaluator_env_cfg</span> <span class="o">=</span> <span class="n">env_fn</span><span class="o">.</span><span class="n">create_evaluator_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Setting the item <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span></code> will use different decoration methods in the wrapper accordingly. For example, if <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span> <span class="pre">==</span> <span class="pre">True</span></code>, reward will be applied a sign function to map to <code class="docutils literal notranslate"><span class="pre">{+1,</span> <span class="pre">0,</span> <span class="pre">-1}</span></code> for better training, if <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span> <span class="pre">==</span> <span class="pre">False</span></code> The original reward value will be retained to facilitate the evaluation of the agent’s performance during testing.</p>
+</li>
+</ol>
+</section>
+<section id="dingenvwrapper">
+<h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this headline">¶</a></h2>
+<p>(in <code class="docutils literal notranslate"><span class="pre">ding/envs/env/ding_env_wrapper.py</span></code>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> can quickly convert simple environments such as cartpole, pendulum, etc. into environments that conform to <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>. However, more complex environments are not supported for the time being.</p>
+<p>TBD</p>
+</section>
+<section id="q-a">
+<h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p>How should the MARL environment be migrated?</p>
+<p>You can refer to <a class="reference external" href="../env_tutorial/competitive_rl_zh.html">Competitive RL</a></p>
+<ul class="simple">
+<li><p>If the environment supports both single-agent, double-agent or even multi-agent, you should fully consider those different modes</p></li>
+<li><p>In a multi-agent environment, action and observation would match the number of agents, but reward and done are not always match. You need to figure out the definition of reward</p></li>
+<li><p>Pay attention to how the original environment requires action and observation to be combined (tuples, lists, dictionaries, stacked arrays…)</p></li>
+</ul>
+</li>
+<li><p>How should the environment of the mixed action space be migrated?</p>
+<p>You can refer to <a class="reference external" href="../env_tutorial/gym_hybrid_zh.html">Gym-Hybrid</a></p>
+<ul class="simple">
+<li><p>Some discrete actions (Accelerate, Turn) in Gym-Hybrid need to be given corresponding 1-dimensional continuous parameters to represent acceleration and rotation angle. Similar environments need to well define the action space</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nstep_td.html" class="btn btn-neutral float-right" title="N-step TD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Best Practice" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

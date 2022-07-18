@@ -1,174 +1,74 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en">
-<!--<![endif]-->
-
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>欢迎来到 DI-engine 中文文档 &mdash; DI-engine 0.1.0 documentation</title>
-  
-
-  <link rel="shortcut icon" href="_static/images/favicon.ico" />
-  
-  
-
+  <title>欢迎来到DI-engine中文文档 &mdash; DI-engine 0.1.0 documentation</title>
   
 
   
   
   
-
   
 
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="genindex.html" />
-  <link rel="search" title="Search" href="search.html" />
-  <link rel="next" title="DI-engine 简介" href="00_intro/index_zh.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="安装说明" href="installation/index_zh.html" />
     <link href="_static/css/style.css" rel="stylesheet" type="text/css">
 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-  <script>
-    MathJax = {
-        chtml: {
-            scale: 1,
-            minScale: 1,
-        },
-        svg: {
-            scale: 1,
-            minScale: 1,
-        }
-    }
-</script>
-
-  <!-- Preload the theme fonts -->
-
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-<!-- Preload the katex fonts -->
-
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
-    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<div class="container-fluid header-holder tutorials-header" id="header-holder">
-  <div class="container">
-    <div class="header-container">
-      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
-        aria-label="OpenMMLab"></a>
-
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-          <li >
-            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
-              <a
-                class="resource-option with-down-arrow">
-                OpenDILab
-              </a>
-              <div class="resources-dropdown-menu">
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-engine" target="_blank">
-                  <span class="dropdown-title">DI-engine </span>
-                  <p>OpenDILab Decision AI Engine</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-star" target="_blank">
-                  <span class="dropdown-title">DI-star </span>
-                  <p>OpenDILab Decision AI in StarCraftII</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-drive" target="_blank">
-                  <span class="dropdown-title">DI-drive </span>
-                  <p>OpenDILab Auto-driving platform</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/GoBigger" target="_blank">
-                  <span class="dropdown-title">GoBigger </span>
-                  <p>OpenDILab Multi-Agent Environment</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
-                  <span class="dropdown-title">DI-smartcross </span>
-                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
-                  <span class="dropdown-title">DI-treetensor </span>
-                  <p>Tree Nested PyTorch Tensor Lib</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
-                  <span class="dropdown-title">awesome-model-based-RL </span>
-                  <p>A curated list of awesome model based RL resources (continually updated)</p>
-                </a>
-              </div>
-          </li>
-        </ul>
-      </div>
-
-      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
-    </div>
-  </div>
-</div>
-
-<body class="pytorch-body">
+<body class="wy-body-for-nav">
 
    
-
-  
-
-  <div class="table-of-contents-link-wrapper">
-    <span>Table of Contents</span>
-    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
-  </div>
-
-  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
-    <div class="pytorch-side-scroll">
-      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <div class="pytorch-left-menu-search">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
           
+            <a href="#" class="icon icon-home"> DI-engine
           
+
           
+          </a>
+
+          
+            
+            
           
 
           
-
-
-
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -177,48 +77,56 @@
           
         </div>
 
-        
-        
-        
-        
-        
-        
-        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="00_intro/index_zh.html">DI-engine 简介</a></li>
-<li class="toctree-l1"><a class="reference internal" href="01_quickstart/index_zh.html">快速开始</a></li>
-<li class="toctree-l1"><a class="reference internal" href="02_algo/index_zh.html">强化学习算法分类</a></li>
-<li class="toctree-l1"><a class="reference internal" href="03_system/index_zh.html">系统设计</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_best_practice/index_zh.html">最佳实践</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1"><a class="reference internal" href="env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature/index_zh.html">特性介绍</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
-<li class="toctree-l1"><a class="reference internal" href="11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
-<li class="toctree-l1"><a class="reference internal" href="12_policies/index_zh.html">强化学习算法</a></li>
-<li class="toctree-l1"><a class="reference internal" href="13_envs/index_zh.html">强化学习环境示例</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="20_spec/index_zh.html">代码规范</a></li>
-<li class="toctree-l1"><a class="reference internal" href="21_code_style/index_zh.html">代码风格指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="22_test/index_zh.html">单元测试指南</a></li>
-<li class="toctree-l1"><a class="reference internal" href="23_visual/index_zh.html">图像与可视化</a></li>
-<li class="toctree-l1"><a class="reference internal" href="24_cooperation/index_zh.html">Github 合作模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture/index.html">Architecture Design</a></li>
 </ul>
 
-        
-        
+            
+          
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="pytorch-container">
-    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
-      <div class="pytorch-breadcrumbs-wrapper">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
 
 
 
@@ -236,22 +144,17 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="pytorch-breadcrumbs">
+  <ul class="wy-breadcrumbs">
     
-      <li>
-        <a href="#">
-            Docs
-        </a> &gt;
-      </li>
-
+      <li><a href="#">Docs</a> &raquo;</li>
         
-      <li>欢迎来到 DI-engine 中文文档</li>
+      <li>欢迎来到DI-engine中文文档</li>
     
     
-      <li class="pytorch-breadcrumbs-aside">
+      <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/index_zh.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="_sources/index_zh.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -259,308 +162,281 @@
   </ul>
 
   
+  <hr/>
 </div>
-      </div>
-
-      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
-        Shortcuts
-      </div>
-    </div>
-
-    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
-      <div class="pytorch-content-left">
-        
-          <div class="rst-content">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
-            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
-              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
-                
   <section id="di-engine">
-<h1>欢迎来到 DI-engine 中文文档<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h1>
-<a class="reference internal image-reference" href="_images/head_image.png"><img alt="_images/head_image.png" class="align-center" src="_images/head_image.png" style="width: 1096px;" /></a>
-<p><a class="reference external" href="/en/latest/index.html">English</a></p>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<h1>欢迎来到DI-engine中文文档<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="./index.html">English</a></p>
+<a class="reference internal image-reference" href="_images/di_engine_logo.svg"><img alt="_images/di_engine_logo.svg" class="align-center" src="_images/di_engine_logo.svg" width="300" /></a>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>DI-engine是一个通用决策智能平台。它支持大多数常用的深度强化学习算法，例如DQN，PPO，SAC以及许多研究子领域的相关算法——多智能体强化学习
+中的QMIX，逆强化学习中的GAIL，探索问题中的RND。所有现已支持的算法和相关算法性能介绍可以查看 <a class="reference external" href="./feature/algorithm_overview.html">算法概述</a></p>
+<p>为了在各种计算尺度上的通用性和扩展性，DI-engine支持3种不同的训练模式：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">单机串行</span></code></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="00_intro/index_zh.html">DI-engine 简介</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="00_intro/index_zh.html#id1">了解 DI-engine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="00_intro/index_zh.html#id2">核心概念</a></li>
+<li><p>特点：单台机器，学习器(learner)和数据收集器(collector)串行交替执行</p></li>
+<li><p>用途：学术研究和算法验证</p></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="01_quickstart/index_zh.html">快速开始</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="01_quickstart/installation_zh.html">安装说明</a></li>
-<li class="toctree-l2"><a class="reference internal" href="01_quickstart/first_rl_program_zh.html">第一个强化学习程序</a></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">单机并行</span></code></p>
+<ul>
+<li><p>特点：单台机器，学习器(learner)和数据收集器(collector)异步并行执行</p></li>
+<li><p>用途：加速串行训练，并作为分布式训练的介绍和过渡</p></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="02_algo/index_zh.html">强化学习算法分类</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="02_algo/model_based_rl_zh.html">基于模型的强化学习</a></li>
-<li class="toctree-l2"><a class="reference internal" href="02_algo/imitation_learning_zh.html">模仿学习</a></li>
-<li class="toctree-l2"><a class="reference internal" href="02_algo/exploration_rl_zh.html">强化学习中的探索机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="02_algo/multi_agent_cooperation_rl_zh.html">多智能体强化学习</a></li>
-<li class="toctree-l2"><a class="reference internal" href="02_algo/offline_rl_zh.html">离线强化学习</a></li>
-<li class="toctree-l2"><a class="reference internal" href="02_algo/distributed_rl_zh.html">分布式强化学习</a></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">分布式并行</span></code></p>
+<ul>
+<li><p>特点：GPU和CPU混合计算集群，学习器(learner)和数据收集器(collector)异步并行执行</p></li>
+<li><p>用途：大规模决策AI训练系统，例如针对星际争霸2的智能体训练 <code class="docutils literal notranslate"><span class="pre">DI-star</span></code></p></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="03_system/index_zh.html">系统设计</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="03_system/middleware_zh.html">中间件</a></li>
-<li class="toctree-l2"><a class="reference internal" href="03_system/distributed_zh.html">分布式</a></li>
+</ul>
+</div></blockquote>
+<img alt="_images/system_layer.png" src="_images/system_layer.png" />
+</section>
+<section id="id3">
+<h2>核心特点<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>DI-zoo：高性能深度强化学习算法库，具体信息可以参考 <a class="reference external" href="feature/algorithm_overview.html">传送门</a></p></li>
+<li><p>最全最广的决策AI算法实现：深度强化学习算法族，逆强化学习算法族，多智能体强化学习算法族，基于搜索的算法（例如蒙特卡洛树搜索）等等</p></li>
+<li><p>支持各种定制化算法实现，例如强化学习/逆强化学习混合训练；多数据队列训练；联盟自对战博弈训练</p></li>
+<li><p>支持大规模深度强化学习训练和评测</p></li>
+<li><p>多种效率优化组件：<code class="docutils literal notranslate"><span class="pre">DI-hpc</span></code> 高性能算子库，<code class="docutils literal notranslate"><span class="pre">DI-store</span></code> 多机共享内存商店，并行环境管理器，数据加载器</p></li>
+<li><p>支持k8s容器虚拟化，<code class="docutils literal notranslate"><span class="pre">DI-orchestrator</span></code> 提供了一整套强化学习训练的相关支持服务，支持资源管理和动态调度</p></li>
+</ul>
+</div></blockquote>
+<p>作为初学者，可以首先参考 <a class="reference external" href="./quick_start/index.html">快速开始</a> 来完成第一个决策AI智能体的训练入门，并可查阅 <a class="reference external" href="./api_doc/index.html">API documentation</a> 了解具体模块信息。
+对于想了解强化学习算法原理和实现的使用者，建议详细阅读 <a class="reference external" href="hands_on/index.html">动手学RL</a> 部分了解更多细节。
+如果你想深度定制化自己的算法和应用，可以查看 <a class="reference external" href="./key_concept/index.html">核心概念</a> 和 <a class="reference external" href="./feature/index.html">特性介绍</a> 两个部分的文档。</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation/index_zh.html">安装说明</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation/index_zh.html#id2">前置条件</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index_zh.html#id3">发布版本</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index_zh.html#id4">开发版本</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index_zh.html#id5">检查安装情况</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="04_best_practice/index_zh.html">最佳实践</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/ding_env_zh.html">如何将自己的环境迁移到DI-engine中</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/env_wrapper_zh.html">如何自定义一个 Env Wrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/model_wrapper_zh.html">如何自定义模型 Wrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/multi_discrete_zh.html">多重离散动作空间示例</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/random_seed_zh.html">随机种子</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/registry_zh.html">注册器（registry）</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/rnn_zh.html">如何使用 RNN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/training_generated_folders_zh.html">如何理解训练过程中生成的文件夹？</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_best_practice/buffer_zh.html">Buffer 使用指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start/index_zh.html">快速上手</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick_start/index_zh.html#id2">构建运行时配置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start/index_zh.html#id5">初始化环境</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start/index_zh.html#id7">设置策略和神经网络模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start/index_zh.html#id8">定义执行模块</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start/index_zh.html#id9">训练主循环</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start/index_zh.html#id10">其他工具</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="05_api_doc/index.html">API Doc</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/config/index.html">Config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/env/index.html">Env</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/policy/index.html">Policy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/model/index.html">Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/reward_model/index.html">Reward Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/league/index.html">League</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/framework/index.html">Framework</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/data/index.html">Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/learner/index.html">Learner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/collector/index.html">Collector</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/replay_buffer/index.html">Replay Buffer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/coordinator/index.html">Coordinator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/rl_utils/index.html">RL Utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/torch_utils/index.html">Torch Utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/utils/index.html">Utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_api_doc/interaction/index.html">Interaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="key_concept/index.html">Key Concept</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="key_concept/index.html#concept">Concept</a></li>
+<li class="toctree-l2"><a class="reference internal" href="key_concept/index.html#computation-pattern">Computation Pattern</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="06_faq/index_zh.html">FAQ</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="06_faq/index_zh.html#q1-warning">Q1: 关于使用时出现的warning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_faq/index_zh.html#q2-di-engine-cli">Q2: 安装之后无法使用DI-engine命令行工具(CLI)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_faq/index_zh.html#q3">Q3: 安装时出现”没有权限”相关错误</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_faq/index_zh.html#q4-syncsubprocessenvmanager">Q4: 如何设置SyncSubprocessEnvManager的相关运行参数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_faq/index_zh.html#q5">Q5: 如何调整学习率</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_rl/index_zh.html">强化学习基础概念介绍</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_rl/basic_zh.html">基本概念</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hands_on/index_zh.html">强化学习算法攻略合集</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/dqn_zh.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/c51_qrdqn_iqn.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/c51_qrdqn_iqn.html#qrdqn">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/c51_qrdqn_iqn.html#iqn">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/sqn.html">SQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/sqil.html">SQIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/a2c.html">A2C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/acer.html">ACER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/impala.html">IMPALA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/td3.html">TD3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/collaq.html">CollaQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/rnd.html">RND</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/gail.html">GAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/guided_cost_zh.html">Guided Cost Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/r2d3_zh.html">R2D3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/vpn.html">VPN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/mcts.html">MCTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/alphago.html">AlphaGo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/alphago.html#alphagozero">AlphaGoZero</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hands_on/icm_zh.html">ICM</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_tutorial/index_zh.html">强化学习环境示例手册</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/atari_zh.html">Atari</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/mujoco_zh.html">Mujoco</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/cartpole_zh.html">Cartpole</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/pendulum_zh.html">Pendulum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/lunarlander_zh.html">LunarLander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/bipedalwalker_zh.html">BipedalWalker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/bit_flip_zh.html">Bit-flip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/minigrid_zh.html">MiniGrid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/slime_volleyball_zh.html">Slime Volleyball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/competitive_rl_zh.html">Competitive RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/procgen_zh.html">Procgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/smac_zh.html">SMAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/d4rl_zh.html">D4RL (Mujoco)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/gfootball_zh.html">Google Research Football (Gfootball)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/multiagent_particle_zh.html">Multi-Agent Particle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/pybullet_zh.html">PyBullet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/gym_hybrid_zh.html">Gym-Hybrid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/gym_soccer_zh.html">Gym-Soccer (HFO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/pybullet_zh.html">PyBullet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_tutorial/image_cls_zh.html">Image Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="distributed/index_zh.html">分布式</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="distributed/index_zh.html#task">Task 对象</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributed/index_zh.html#id3">魔法时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributed/index_zh.html#id4">异步与并行</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="best_practice/index_zh.html">最佳实践</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/ding_env_zh.html">如何将自己的环境迁移到DI-engine中</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/nstep_td.html">N-step TD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/priority.html">How to Use PER(Prioritized Experience Replay)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/IL.html">Imitation Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/IRL.html">Inverse RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/rnn.html">How to use RNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/random_seed.html">Random seed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/multi_discrete.html">Multi-Discrete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/multi_gpu_example.html">How to Use Multi-GPUs to Train Your Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/random_collect_size.html">How to randomly collect some data sample at the beginning?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/training_generated_folders.html">How to understand training generated folders?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/learner_log.html">Learner log</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/model_wrapper.html">How to Customize Model Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/env_wrapper.html">How to Customize an Env Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/episode_buffer.html">How to use Episode Replay Buffer?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/multi_buffer.html">How to use multiple buffers?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/registry.html">Registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/maac.html">Multi-Agent Actor-Critic RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/customization1_dynamic_update_step.html">Customization 1: Dynamic Update Step</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_doc/index.html">API Doc</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_doc/interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq/index_zh.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq/index_zh.html#q1-warning">Q1: 关于使用时出现的warning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq/index_zh.html#q2-di-engine-cli">Q2: 安装之后无法使用DI-engine命令行工具(CLI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq/index_zh.html#q3">Q3: 安装时出现”没有权限”相关错误</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq/index_zh.html#q4-syncsubprocessenvmanager">Q4: 如何设置SyncSubprocessEnvManager的相关运行参数</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="feature/index_zh.html">特性介绍</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature/algorithm_overview_zh.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/env_overview_zh.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/collector_overview_zh.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/env_manager_overview_zh.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/learner_overview_zh.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/wrapper_hook_overview_zh.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/hpc_rl_overview_zh.html">HPC_RL Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/interaction_overview_zh.html">Interaction模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/autolog_overview_zh.html">Autolog模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/loader_overview_zh.html">Loader模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/dataloader_overview_zh.html">DataLoader Overview</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="10_concepts/index_zh.html">强化学习基础概念介绍</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="10_concepts/basic_rl_zh.html">基本概念</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/index_zh.html">开发者指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/warmup_zh.html">DI-engine入门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/git_guide_zh.html">Git 协作指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/doc_contribution.html">Documentation Contribution Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/code_comment.html">Code Comment</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="11_dizoo/index_zh.html">从 DI-zoo 开始学习</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index_zh.html#id1">什么是 DI-zoo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index_zh.html#id2">DI-zoo 的结构</a></li>
-<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index_zh.html#id3">DI-zoo 的用法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index_zh.html#id4">DI-zoo 的自定义</a></li>
-<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index_zh.html#id6">DI-zoo 已支持的算法和环境列表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_dev/index.html">Tutorial-Developer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_dev/index.html#code-structure">Code Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_dev/index.html#data-flow">Data Flow</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="12_policies/index_zh.html">强化学习算法</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="12_policies/dqn_zh.html">DQN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="12_policies/icm_zh.html">ICM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="12_policies/ngu_zh.html">NGU</a></li>
-<li class="toctree-l2"><a class="reference internal" href="12_policies/diayn_zh.html">DIAYN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="12_policies/guided_cost_zh.html">Guided Cost Learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="12_policies/r2d3_zh.html">R2D3</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="13_envs/index_zh.html">强化学习环境示例</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/atari_zh.html">Atari</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/mujoco_zh.html">Mujoco</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/cartpole_zh.html">Cartpole</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/pendulum_zh.html">Pendulum</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/bitflip_zh.html">BitFlip</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/lunarlander_zh.html">LunarLander</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/bipedalwalker_zh.html">BipedalWalker</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/minigrid_zh.html">MiniGrid</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/slime_volleyball_zh.html">Slime Volleyball</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/competitive_rl_zh.html">Competitive RL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/procgen_zh.html">Procgen</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/smac_zh.html">SMAC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/d4rl_zh.html">D4RL (Mujoco)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/gfootball_zh.html">Google Research Football (Gfootball)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/multiagent_particle_zh.html">Multi-Agent Particle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/pybullet_zh.html">PyBullet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/gym_hybrid_zh.html">Gym-Hybrid</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/gym_soccer_zh.html">Gym-Soccer (HFO)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="13_envs/image_cls_zh.html">Image Classification</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="20_spec/index_zh.html">代码规范</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="20_spec/middleware_zh.html">中间件编写规范</a></li>
-<li class="toctree-l2"><a class="reference internal" href="20_spec/middleware_zh.html#id6">事件命名规范</a></li>
-<li class="toctree-l2"><a class="reference internal" href="20_spec/config_spec_zh.html">DI-engine Config规范</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="21_code_style/index_zh.html">代码风格指南</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="21_code_style/index_zh.html#id2">代码风格</a></li>
-<li class="toctree-l2"><a class="reference internal" href="21_code_style/index_zh.html#yapf">yapf</a></li>
-<li class="toctree-l2"><a class="reference internal" href="21_code_style/index_zh.html#flake8">flake8</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="22_test/index_zh.html">单元测试指南</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="22_test/index_zh.html#id2">单元测试的意义</a></li>
-<li class="toctree-l2"><a class="reference internal" href="22_test/index_zh.html#ref-test-types-zh">测试类型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="22_test/index_zh.html#id4">如何编写单元测试</a></li>
-<li class="toctree-l2"><a class="reference internal" href="22_test/index_zh.html#id11">如何进行单元测试</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="23_visual/index_zh.html">图像与可视化</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="23_visual/index_zh.html#plantuml">PlantUML</a></li>
-<li class="toctree-l2"><a class="reference internal" href="23_visual/index_zh.html#graphviz">graphviz</a></li>
-<li class="toctree-l2"><a class="reference internal" href="23_visual/index_zh.html#draw-io">draw.io</a></li>
-<li class="toctree-l2"><a class="reference internal" href="23_visual/index_zh.html#snakeviz">snakeviz</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="24_cooperation/index_zh.html">Github 合作模式</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="24_cooperation/git_guide_zh.html">Git 使用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="24_cooperation/issue_pr_zh.html">Github 的使用</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture/index.html">Architecture Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture/interaction/index.html">Interaction Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/loader/index.html">Loader Framework</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </section>
+</section>
 
 
-              </article>
-              
-            </div>
-            <footer>
+           </div>
+           
+          </div>
+          <footer>
   
-  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-    
-    <a href="00_intro/index_zh.html" class="btn btn-neutral float-right" title="DI-engine 简介" accesskey="n"
-      rel="next">Next <img src="_static/images/chevron-right-blue.svg"
-        class="next-page"></a>
-    
-    
-  </div>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installation/index_zh.html" class="btn btn-neutral float-right" title="安装说明" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
   
 
-  <hr>
+  <hr/>
 
   <div role="contentinfo">
     <p>
-      &copy; Copyright 2021, OpenDILab Contributors.
+        &copy; Copyright 2021, OpenDILab Contributors
 
     </p>
   </div>
-  
-  <div>
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
-      Docs</a>.
-  </div>
-   
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-          </div>
-        </div>
 
-        <div class="pytorch-content-right" id="pytorch-content-right">
-          <div class="pytorch-right-menu" id="pytorch-right-menu">
-            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              <ul>
-<li><a class="reference internal" href="#">欢迎来到 DI-engine 中文文档</a><ul>
-</ul>
-</li>
-</ul>
-
-            </div>
-          </div>
         </div>
+      </div>
+
     </section>
+
   </div>
-
   
 
-
-  
-
-  
-  <script type="text/javascript" id="documentation_options" data-url_root="./"
-    src="_static/documentation_options.js"></script>
-  <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-  <script src="_static/jquery.js"></script>
-  <script src="_static/underscore.js"></script>
-  <script src="_static/doctools.js"></script>
-  
-
-  
-
-  <script type="text/javascript" src="_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="_static/js/vendor/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="_static/js/theme.js"></script>
 
   <script type="text/javascript">
-    jQuery(function () {
-      SphinxRtdTheme.Navigation.enable(true);
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
-
-  <!-- Begin Footer -->
-
-  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
-  </div>
-
-  <!-- End Footer -->
-
-  <!-- Begin Mobile Menu -->
-
-  <div class="mobile-main-menu">
-    <div class="container-fluid">
-      <div class="container">
-        <div class="mobile-main-menu-header-container">
-          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
-          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-main-menu-links-container">
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-      </div>
-    </div>
-  </div>
-
-  <!-- End Mobile Menu -->
-
-  <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
-
-  <script type="text/javascript">
-    $(document).ready(function () {
-      mobileMenu.bind();
-      mobileTOC.bind();
-      pytorchAnchors.bind();
-      sideMenus.bind();
-      scrollToAnchor.bind();
-      highlightNavigation.bind();
-      mainMenuDropdown.bind();
-      filterTags.bind();
-
-      // Add class to links that have code blocks, since we cannot create links in code blocks
-      $("article.pytorch-article a span.pre").each(function (e) {
-        $(this).closest("a").addClass("has-code");
-      });
-    })
   </script>
-</body>
 
+  
+  
+    
+   
+
+</body>
 </html>

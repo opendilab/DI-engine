@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Replay Buffer Overview &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Learner Overview" href="learner_overview.html" />
+    <link rel="prev" title="Env Manager Overview" href="env_manager_overview.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Feature</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="policy_overview.html">Policy Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview.html">Env Manager Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Replay Buffer Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ibuffer">IBuffer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#naivereplaybuffer">NaiveReplayBuffer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#full-data-meta-data">Full data &amp; Meta data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#advancedreplaybuffer">AdvancedReplayBuffer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#feature1-prioritized-sampling">Feature1: Prioritized Sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#feature2-data-quality-monitor">Feature2: Data Quality Monitor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#feature3-throughput-control">Feature3: Throughput Control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#feature4-logger">Feature4: Logger</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#episodereplaybuffer">EpisodeReplayBuffer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="league_overview.html">League Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview.html">DI-hpc Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="orchestrator_overview.html">DI-orchestrator Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview.html">Interaction Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview.html">Loader Overview</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Feature</a> &raquo;</li>
+        
+      <li>Replay Buffer Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/feature/replay_buffer_overview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="replay-buffer-overview">
+<h1>Replay Buffer Overview<a class="headerlink" href="#replay-buffer-overview" title="Permalink to this headline">¶</a></h1>
+<section id="ibuffer">
+<h2>IBuffer<a class="headerlink" href="#ibuffer" title="Permalink to this headline">¶</a></h2>
+<p>(ding/worker/replay_buffer/base_buffer.py)</p>
+<dl class="simple">
+<dt>Overview:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">IBuffer</span></code> is an abstract interface. All types of replay buffers should implement all abstract methods of <code class="docutils literal notranslate"><span class="pre">IBuffer</span></code>.</p>
+</dd>
+<dt>Variables:</dt><dd><p>None</p>
+</dd>
+<dt>Abstract class interface method: (All but <code class="docutils literal notranslate"><span class="pre">default_config</span></code> should be overroidden by subclasses)</dt><dd><ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">default_config</span></code> (classmethod): Default config of this buffer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">push</span></code>: Push data into this buffer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: Update some info of this buffer, e.g. some data’s priority.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample</span></code>: Sample given size datas.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear</span></code>: Clear all data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code>: Count valid data number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_dict</span></code>: Save state dict of this buffer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_state_dict</span></code>: Load state dict to this buffer.</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+<section id="naivereplaybuffer">
+<h2>NaiveReplayBuffer<a class="headerlink" href="#naivereplaybuffer" title="Permalink to this headline">¶</a></h2>
+<p>(ding/worker/replay_buffer/naive_buffer.py)</p>
+<dl class="simple">
+<dt>Overview:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">NaiveReplayBuffer</span></code> is a naive implementation. It is a First-In-First-Out cicular queue with random sampling. And it does not have any monitor or logger either.</p>
+</dd>
+<dt>Variables:</dt><dd><p>replay_buffer_size, push_count</p>
+</dd>
+<dt>Class interface method: (All should be overroidden by subclasses)</dt><dd><ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>: Initialize with config.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">push</span></code>: Push data at the tail of the circular queue</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: No info to update, but this method is preserved for compatibility.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample</span></code>: <strong>Randomly</strong> sample some datas.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear</span></code>: Clear all data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code>: Count valid data number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_dict</span></code>: Save state dict of this buffer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_state_dict</span></code>: Load state dict to this buffer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start</span></code>: Start <cite>UsedDataRemover</cite>. Details can be found in <strong>Full data &amp; Meta data</strong></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">close</span></code>: Close <cite>UsedDataRemover</cite>. Details can be found in <strong>Full data &amp; Meta data</strong></p></li>
+</ol>
+</dd>
+</dl>
+<section id="full-data-meta-data">
+<h3>Full data &amp; Meta data<a class="headerlink" href="#full-data-meta-data" title="Permalink to this headline">¶</a></h3>
+<p>In DI-engine, we define <strong>full data</strong> and <strong>meta data</strong>.</p>
+<p><strong>Full data</strong> is often a dict, with keys <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> and some optional keys like <code class="docutils literal notranslate"><span class="pre">['priority',</span> <span class="pre">'use_count',</span> <span class="pre">'collect_iter',</span> <span class="pre">...]</span></code>. However, in some complex environments(Usually we run them in parallel mode), full data can be too big to store in memory. Therefore, we divide full data into <strong>file data</strong> and <strong>meta data</strong>.</p>
+<p><strong>File data</strong> is usually too big to store in memory, therefore is stored in file system. <strong>meta data</strong> includes <code class="docutils literal notranslate"><span class="pre">'file_path'</span></code> and some keys which can be used in sampling. <strong>meta data</strong> is usually small, so it can easily be stored in replay buffer(in memory).</p>
+<p>Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory, but also remove corresponding file data in the file system as well. DI-engine uses <code class="docutils literal notranslate"><span class="pre">UsedDataRemover</span></code> (ding/worker/replay_buffer/utils.py) to track and remove used file data.</p>
+<p>This mechanism is adopted in <strong>all buffers</strong>.</p>
+</section>
+</section>
+<section id="advancedreplaybuffer">
+<h2>AdvancedReplayBuffer<a class="headerlink" href="#advancedreplaybuffer" title="Permalink to this headline">¶</a></h2>
+<p>(ding/worker/replay_buffer/advanced_buffer.py)</p>
+<dl class="simple">
+<dt>Overview:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">AdvancedReplayBuffer</span></code> is a buffer with more advanced features, e.g. Prioritized Sampling, Data Quality Monitor, Thruput Control, Logger. It is generally a First-In-First-Out cicular queue, but due to advanced features, its remove, sample, update are more complicated.</p>
+</dd>
+<dt>Variables:</dt><dd><p>beta, replay_buffer_size, push_count</p>
+</dd>
+<dt>Class interface method: (All should be overroidden by subclasses)</dt><dd><ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>: Initialize with config.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">push</span></code>: Push data at the tail of the circular queue</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: Update datas’ <strong>priorities</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample</span></code>: Sample some datas according to <strong>priority</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear</span></code>: Clear all data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code>: Count valid data number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_dict</span></code>: Save state dict of this buffer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_state_dict</span></code>: Load state dict to this buffer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start</span></code>: Start <cite>UsedDataRemover</cite>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">close</span></code>: Close <cite>UsedDataRemover</cite>, <strong>monitor</strong> and <strong>logger</strong>.</p></li>
+</ol>
+</dd>
+</dl>
+<p>Here is an image demonstrating “push”, “remove”, “sample” procedures of <code class="docutils literal notranslate"><span class="pre">AdvancedReplayBuffer</span></code>, including all advance features. Then we will introduce these features one by one.</p>
+<a class="reference internal image-reference" href="../_images/advanced_buffer.png"><img alt="../_images/advanced_buffer.png" class="align-center" src="../_images/advanced_buffer.png" style="width: 767.0px; height: 441.35px;" /></a>
+<section id="feature1-prioritized-sampling">
+<h3>Feature1: Prioritized Sampling<a class="headerlink" href="#feature1-prioritized-sampling" title="Permalink to this headline">¶</a></h3>
+<p>Implement <a class="reference external" href="https://arxiv.org/abs/1511.05952">Prioritized Experience Replay</a>.
+Use segment tree to</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Store each data’s priority (sample propability)</p></li>
+<li><p>Sample according to priority</p></li>
+<li><p>Support priority update</p></li>
+</ul>
+</div></blockquote>
+<p>DI-engine also uses <strong>numba</strong> to optimize profile.</p>
+</section>
+<section id="feature2-data-quality-monitor">
+<h3>Feature2: Data Quality Monitor<a class="headerlink" href="#feature2-data-quality-monitor" title="Permalink to this headline">¶</a></h3>
+<p>Monitor two data quality attributes: staleness and use_count. They both function during sampling to control sampled data quality.</p>
+<p><strong>staleness</strong> measures model iteration gap between the time when it is collected and the time when it is sampled. If the gap is too big, it means the data is too stale to use, so the data will be removed in <code class="docutils literal notranslate"><span class="pre">sample_check</span></code>.</p>
+<p><strong>use_count</strong> count how many times a piece of data is sampled. If when a data is sampled and this time it reaches the max limit, the data will be removed so it will not be sampled again, but this time it can be used. This mechanism affects “UsedDataRemover”: This time it can be sampled and used, but after that it should be removed out of buffer. However, if we remove it at once, learner might not be able to find the file data when training. As a result, we set its priority to 0 instead, and it will be removed when the circular queue’s head points to it.</p>
+</section>
+<section id="feature3-throughput-control">
+<h3>Feature3: Throughput Control<a class="headerlink" href="#feature3-throughput-control" title="Permalink to this headline">¶</a></h3>
+<p>In serial mode, we can modify <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> or <code class="docutils literal notranslate"><span class="pre">n_episode</span></code> to control how many samples or episodes to collect in collector’s turn; And modify <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">update_per_collect</span></code> to control how many samples are used in learner’s turn.</p>
+<p>However, in parallel mode, it is more complicated to balance the data speed in collector end and learner end. Therefore, we use <code class="docutils literal notranslate"><span class="pre">ThruputController</span></code> (ding/worker/replay_buffer/utils.py) to limit the “push” / “sample” rate in a [min, max] range.</p>
+<p>Also, user can set parameter <code class="docutils literal notranslate"><span class="pre">sample_min_limit_ratio</span></code> to control the min ratio of “valid count” / “batch_size”. If there are not enough valid datas, buffer can refuse to sample.</p>
+</section>
+<section id="feature4-logger">
+<h3>Feature4: Logger<a class="headerlink" href="#feature4-logger" title="Permalink to this headline">¶</a></h3>
+<p>Create tensorboard logger and text logger, to record data quality attributes(Feature2) and throughput statistics(Feature3). This feature is very useful in debugging and tuning.</p>
+</section>
+</section>
+<section id="episodereplaybuffer">
+<h2>EpisodeReplayBuffer<a class="headerlink" href="#episodereplaybuffer" title="Permalink to this headline">¶</a></h2>
+<p>(ding/worker/replay_buffer/episode_buffer.py)</p>
+<p>In some scenarios, a whole episode is of bigger use than separated samples, such as chess, card games or some specific algorithms like <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a>. Therefore, we need a buffer, where each element is no longer a training sample, but an episode. Currently, DI-engine <code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code> is derived from <code class="docutils literal notranslate"><span class="pre">NaiveReplayBuffer</span></code>, because they two share so many common features.
+However, they two have two main differences.</p>
+<p>The <strong>first</strong> one is: Each element is a whole episode, rather than a sample.</p>
+<p>In addition, when sampling out episodes, sometimes an algorithm does not require a whole episode, but a fixed length within several episodes. As a result:</p>
+<p>The <strong>second</strong> one is: (Maybe) Do not sample <cite>batch_size</cite> elements(episodes). Instead, first do some operations, then return some chruncated train samples.</p>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="learner_overview.html" class="btn btn-neutral float-right" title="Learner Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="env_manager_overview.html" class="btn btn-neutral float-left" title="Env Manager Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

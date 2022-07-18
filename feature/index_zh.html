@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>特性介绍 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Algorithm Overview" href="algorithm_overview_zh.html" />
+    <link rel="prev" title="FAQ" href="../faq/index_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">特性介绍</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview_zh.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview_zh.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview_zh.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview_zh.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview_zh.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview_zh.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html">HPC_RL Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html">Interaction模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autolog_overview_zh.html">Autolog模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview_zh.html">Loader模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataloader_overview_zh.html">DataLoader Overview</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+      <li>特性介绍</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/feature/index_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="id1">
+<h1>特性介绍<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="algorithm_overview_zh.html">Algorithm Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview_zh.html#atari-benchmark">Atari Benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview_zh.html#mujoco-benchmark">Mujoco Benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview_zh.html#smac-benchmark">SMAC Benchmark</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_overview_zh.html">Env Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env_overview_zh.html#baseenv">BaseEnv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview_zh.html#envelement">EnvElement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview_zh.html#envelementrunner">EnvElementRunner</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="collector_overview_zh.html">Collector Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview_zh.html#profile-experiment">Profile Experiment 测速实验</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_manager_overview_zh.html">Env Manager Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview_zh.html#env-manager">Env Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview_zh.html#baseenvmanager-ding-envs-env-manager-base-env-manager-py">BaseEnvManager (ding/envs/env_manager/base_env_manager.py)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview_zh.html#subprocessenvmanager-ding-envs-env-manager-subprocess-env-manager-py">SubprocessEnvManager (ding/envs/env_manager/subprocess_env_manager.py)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="learner_overview_zh.html">Learner Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview_zh.html#learner">Learner</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="wrapper_hook_overview_zh.html">Wrapper &amp; Hook Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview_zh.html#wrapper">Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview_zh.html#hook">Hook</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hpc_rl_overview_zh.html">HPC_RL Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html#id1">概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html#id2">如何使用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html#id3">目前支持的算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html#id4">性能对比</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html#id5">其他</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="interaction_overview_zh.html">Interaction模块介绍</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html#header-n2">概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html#slave">Slave端</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html#master">Master端</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html#header-n54">常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="interaction_overview_zh.html#q">Q：何为非阻塞单线程任务？以及何故作此设计？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interaction_overview_zh.html#q-interaction">Q：Interaction模块适合使用的问题有哪些？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interaction_overview_zh.html#q-masterslave">Q：Master和Slave在发送网络请求时出现错误，抛出异常，应该如何处理？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interaction_overview_zh.html#header-n110">Q：如何正确将Master和Slave整合进现有业务服务中？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="autolog_overview_zh.html">Autolog模块介绍</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autolog_overview_zh.html#time">Time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autolog_overview_zh.html#loggedmodel">LoggedModel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="loader_overview_zh.html">Loader模块介绍</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview_zh.html#header-n52">概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview_zh.html#header-n55">示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview_zh.html#header-n98">常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="loader_overview_zh.html#q-loadernorm">Q：loader和norm的区别和关系是什么？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="loader_overview_zh.html#q-loader">Q：感觉loader有些时候写起来太长了，而且都是重复的，有没有更好的解决方案？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dataloader_overview_zh.html">DataLoader Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dataloader_overview_zh.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataloader_overview_zh.html#profile-experiment">Profile Experiment 测速实验</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="algorithm_overview_zh.html" class="btn btn-neutral float-right" title="Algorithm Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../faq/index_zh.html" class="btn btn-neutral float-left" title="FAQ" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

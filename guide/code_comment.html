@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Code Comment &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorial-Developer" href="../tutorial_dev/index.html" />
+    <link rel="prev" title="Documentation Contribution Guide" href="doc_contribution.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Developer Guide</a> &raquo;</li>
+        
+      <li>Code Comment</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/guide/code_comment.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="code-comment">
+<h1>Code Comment<a class="headerlink" href="#code-comment" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<section id="code-comment-template">
+<h2>Code Comment Template<a class="headerlink" href="#code-comment-template" title="Permalink to this headline">¶</a></h2>
+<p>We have the following comment format:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><dl class="simple">
+<dt>File head</dt><dd><ul class="simple">
+<li><p>Goal: Copyright, license and the file’s main function.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Line comment</dt><dd><ul class="simple">
+<li><p>Goal: Explain the implementation or emphasize the code detail.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Class and function comment</dt><dd><ul class="simple">
+<li><p>Goal: Explain the main function, input and output type and effect.</p></li>
+<li><p>Format: Overview, Arguments, Returns, Shapes, Notes, etc.
+(If it doesn’t have the corresponding attribute, you can omit it)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>TODO</dt><dd><ul class="simple">
+<li><p>Goal: Set a todo task.</p></li>
+<li><p>Format: <cite># TODO(assignee name) task statement</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>ISSUE</dt><dd><ul class="simple">
+<li><p>Goal: Issue some doubt about the code.</p></li>
+<li><p>Format: <cite># ISSUE(questioner name) issue statement</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>According to the formatted class and function comment, we can automatically generate the corresponding doc,
+a example result is <a class="reference external" href="../package_ref/model/alphastar.html">link</a></p>
+</div>
+<p>We recommend that you should use English in code line comment. And you should obey these rules:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Capitalize the first letter in a sentence.</p></li>
+<li><p>Use period “.” to correctly end a sentence, which is widely adopted in English grammar. Do not always use comma “,” to separate different sentences, which is quite common in Chinese grammar.</p></li>
+</ol>
+</div></blockquote>
+<p>You can know about the specific format from the following code example.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseLearner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Base class for model learning.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint</span>
+<span class="sd">    Property:</span>
+<span class="sd">        learn_info, priority_info, last_iter, name, rank, policy</span>
+<span class="sd">        tick_time, monitor, log_buffer, logger, tb_logger, load_path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;BaseLearner&quot;</span>  <span class="c1"># override this variable for sub-class learner</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init method. Load config and use ``self._cfg`` setting to build common learner components,</span>
+<span class="sd">            e.g. logger helper, checkpoint helper, hooks.</span>
+<span class="sd">            Policy is not initialized here, but set afterwards through policy setter.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - cfg (:obj:`EasyDict`): Learner config, you can view `cfg &lt;../../../configuration/index.html&gt;`_ for ref.</span>
+<span class="sd">        Notes:</span>
+<span class="sd">            If you want to debug in sync CUDA mode, please add the following code at the beginning of ``__init__``.</span>
+
+<span class="sd">            .. code:: python</span>
+
+<span class="sd">                os.environ[&#39;CUDA_LAUNCH_BLOCKING&#39;] = &quot;1&quot;  # for debug async CUDA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">base_learner_default_config</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learner_uid</span> <span class="o">=</span> <span class="n">get_task_uid</span><span class="p">()</span>  <span class="c1"># ISSUE(Tony) Is _learner_uid used? Can it be deleted?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">load_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_cuda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_cuda&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_distributed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">use_distributed</span>
+
+        <span class="c1"># Learner rank. Used to discriminate which GPU it uses.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="n">get_rank</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="s1">&#39;cuda:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_cuda</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+
+        <span class="c1"># Logger (Monitor is initialized in policy setter)</span>
+        <span class="c1"># Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
+        <span class="n">rank0</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span><span class="s1">&#39;./log/learner&#39;</span><span class="p">,</span> <span class="s1">&#39;learner&#39;</span><span class="p">,</span> <span class="n">rank0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_buffer</span> <span class="o">=</span> <span class="n">build_log_buffer</span><span class="p">()</span>
+
+        <span class="c1"># Checkpoint helper. Used to save model checkpoint.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkpointer_manager</span> <span class="o">=</span> <span class="n">build_checkpoint_helper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">)</span>
+        <span class="c1"># Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;before_run&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;before_iter&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;after_iter&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;after_run&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="c1"># Priority info. Used to update replay buffer according to data&#39;s priority.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_priority_info</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Last iteration. Used to record current iter.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_iter</span> <span class="o">=</span> <span class="n">CountVar</span><span class="p">(</span><span class="n">init_val</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">pretty_print</span><span class="p">({</span>
+            <span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">,</span>
+        <span class="p">},</span> <span class="n">direct_print</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+        <span class="c1"># Setup wrapper and hook.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_wrapper</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_hook</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_time_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Wrap a function and measure the time it used.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - fn (:obj:`Callable`): Function to be time_wrapped.</span>
+<span class="sd">            - name (:obj:`str`): Name to be registered in ``_log_buffer``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - wrapper (:obj:`Callable`): The wrapper to acquire a function&#39;s time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrapper_timer</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log_buffer</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrapper_timer</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">return</span> <span class="n">ret</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span>
+
+    <span class="c1"># TODO(Lisa) Not finished.</span>
+
+
+    <span class="n">learner_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+    <span class="k">def</span> <span class="nf">register_learner</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">learner</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Add a new Learner class with its name to dict learner_mapping, any subclass derived from BaseLearner must</span>
+<span class="sd">            use this function to register in DI-engine system before instantiate.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): Name of the new Learner.</span>
+<span class="sd">            - learner (:obj:`type`): The new Learner class, should be subclass of ``BaseLearner``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">learner</span><span class="p">,</span> <span class="n">BaseLearner</span><span class="p">)</span>
+        <span class="n">learner_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">learner</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Sometimes, we add line comment behind the corresponding code line, but sometimes it will surpass the max-line-length(default 120),
+and you can solve this problem by adding <strong># noqa</strong> at the end of this line, which is the ignore sign of the codestyle checker.
+And of course you can insert the line comment in front of the code line as a new line.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../tutorial_dev/index.html" class="btn btn-neutral float-right" title="Tutorial-Developer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="doc_contribution.html" class="btn btn-neutral float-left" title="Documentation Contribution Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

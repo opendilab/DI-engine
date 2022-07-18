@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Env &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="envs.env" href="env.html" />
+    <link rel="prev" title="config.config" href="../config/config.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Config</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Env</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="env.html">envs.env</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html">envs.env_wrappers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html">envs.env_manager</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">API Doc</a> &raquo;</li>
+        
+      <li>Env</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api_doc/env/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="env">
+<h1>Env<a class="headerlink" href="#env" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="env.html">envs.env</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env.html#base-env">base_env</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="env.html#baseenv">BaseEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env.html#get-vec-env-setting">get_vec_env_setting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env.html#get-env-cls">get_env_cls</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_wrappers.html">envs.env_wrappers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env_wrappers.html#env-env-wrappers">env.env_wrappers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#noopresetenv">NoopResetEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#maxandskipenv">MaxAndSkipEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#warpframe">WarpFrame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#scaledfloatframe">ScaledFloatFrame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#cliprewardenv">ClipRewardEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#framestack">FrameStack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#obstransposewrapper">ObsTransposeWrapper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#runningmeanstd">RunningMeanStd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#obsnormenv">ObsNormEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#rewardnormenv">RewardNormEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#ramwrapper">RamWrapper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#episodiclifeenv">EpisodicLifeEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#fireresetenv">FireResetEnv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_wrappers.html#module-ding.envs.env_wrappers.update_shape">update_shape</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_manager.html">envs.env_manager</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env_manager.html#base-env-manager">base_env_manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html#baseenvmanager">BaseEnvManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html#create-env-manager">create_env_manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html#get-env-manager-cls">get_env_manager_cls</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager.html#subprocess-env-manager">subprocess_env_manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html#shmbuffer">ShmBuffer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html#shmbuffercontainer">ShmBufferContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html#syncsubprocessenvmanager">SyncSubprocessEnvManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="env_manager.html#asyncsubprocessenvmanager">AsyncSubprocessEnvManager</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="env.html" class="btn btn-neutral float-right" title="envs.env" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../config/config.html" class="btn btn-neutral float-left" title="config.config" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

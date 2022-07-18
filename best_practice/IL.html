@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Imitation Learning &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Inverse RL" href="IRL.html" />
+    <link rel="prev" title="How to Use PER(Prioritized Experience Replay)" href="priority.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Best Practice</a> &raquo;</li>
+        
+      <li>Imitation Learning</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/best_practice/IL.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="imitation-learning">
+<h1>Imitation Learning<a class="headerlink" href="#imitation-learning" title="Permalink to this headline">¶</a></h1>
+<section id="guideline">
+<h2>Guideline<a class="headerlink" href="#guideline" title="Permalink to this headline">¶</a></h2>
+<p>In some environments where the rewards are sparse (e.g. a game where we
+only receive a reward when the game is won or lost), the normal RL
+approach can be very struggle. A feasible solution to this problem is
+imitation learning (IL). In IL instead of trying to learn from the
+sparse rewards or manually specifying a reward function, an expert
+(typically a human) provides us with a set of demonstrations. The agent
+then tries to learn the optimal policy by following, imitating the
+expert’s decisions.</p>
+<p>The simplest idea of imitation learning is behavioral cloning(BC). BC
+can be described as the following steps:</p>
+<ul class="simple">
+<li><p>Collect demonstrations (<img class="math" src="../_images/math/a679e1740b6b9cff0c223de4f713ca6e44dcfbdd.svg" alt="\tau^{*}"/> trajectories) from expert</p></li>
+<li><p>Treat the demonstrations as i.i.d state-action pairs:
+<img class="math" src="../_images/math/c170323538be020f739ca8996d60f9ce0a017c3c.svg" alt="(s_0^*,a_0^*),(s_1^*,a_1^*),..."/></p></li>
+<li><p>Learn <img class="math" src="../_images/math/9051eb994865d6c6bb37ee5a9ed9799840a72a81.svg" alt="\pi_{\theta}"/> policy using supervised learning by
+minimizing the loss function <img class="math" src="../_images/math/a0e03dfebd997616d7377f304b0670986eabdee0.svg" alt="L(a^*,\pi_{\theta}(s))"/></p></li>
+</ul>
+<p>Behavioral cloning can be quite problematic. The main reason for this is
+the i.i.d. assumption: while supervised learning assumes that the
+state-action pairs are distributed i.i.d., in MDP an action in a given
+state induces the next state, which breaks the previous assumption. This
+also means, that errors made in different states add up, therefore a
+mistake made by the agent can easily put it into a state that the expert
+has never visited and the agent has never trained on. In such states,
+the behavior is undefined and this can lead to catastrophic failures.</p>
+<p>For the majority of the cases, behavioral cloning can be quite
+problematic. But due to the clarity of behavioral cloning, our demo of
+imitation learning will be given in BC.</p>
+</section>
+<section id="demo">
+<h2>Demo<a class="headerlink" href="#demo" title="Permalink to this headline">¶</a></h2>
+<p>You can use either expert model or demonstrations to perform imitation
+learning. Usually you need to define an imitation learning policy. For
+policy registration, you can refer to
+<a class="reference external" href="../feature/policy_overview.html">policy Overview</a></p>
+<p><strong>Use Demonstrations to IL</strong></p>
+<p>DI-engine provides serial entry for IL implementation. By specify the
+prepared expert data <code class="docutils literal notranslate"><span class="pre">expert_data_path</span></code>, you can deploy IL by the
+following codes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_</span><span class="p">,</span> <span class="n">converge_stop_flag</span> <span class="o">=</span> <span class="n">serial_pipeline_il</span><span class="p">(</span><span class="n">il_config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">314</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="n">expert_data_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Use Expert Model to IL</strong></p>
+<p>DI-engine provides data collector functions in
+<code class="docutils literal notranslate"><span class="pre">ding/entry/application_entry.py</span></code>. You can give a policy configure
+to train an RL model from scratch(or load an existing model), then use
+the model to generate data for IL. This pipline can be describe as the
+following codes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">expert_policy</span> <span class="o">=</span> <span class="n">serial_pipeline</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># collect expert demo data</span>
+<span class="n">collect_count</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">expert_data_path</span> <span class="o">=</span> <span class="s1">&#39;expert_data.pkl&#39;</span>
+<span class="n">state_dict</span> <span class="o">=</span> <span class="n">expert_policy</span><span class="o">.</span><span class="n">collect_mode</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+<span class="n">collect_config</span> <span class="o">=</span> <span class="p">[</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_ppo_config</span><span class="p">),</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_ppo_create_config</span><span class="p">)]</span>
+<span class="n">collect_demo_data</span><span class="p">(</span>
+    <span class="n">collect_config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">state_dict</span><span class="o">=</span><span class="n">state_dict</span><span class="p">,</span> <span class="n">expert_data_path</span><span class="o">=</span><span class="n">expert_data_path</span><span class="p">,</span> <span class="n">collect_count</span><span class="o">=</span><span class="n">collect_count</span>
+<span class="p">)</span>
+<span class="c1"># il training</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">converge_stop_flag</span> <span class="o">=</span> <span class="n">serial_pipeline_il</span><span class="p">(</span><span class="n">il_config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">314</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="n">expert_data_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Online IL through Seiral Pipline</strong></p>
+<p>DI-engine’s <cite>serial_entry_il</cite> provides a sub-implementation of serial pipline,
+in which there is no collectors (or use collectors only to collect data at the beginning
+of training). However, many IL algorithms (Dagger, SQIL, etc.) need to collect demonstration
+as well as training IL model. In this case, DI-engine can use <cite>serial_entry</cite> to perform this
+pipline. Users can define a new IL policy, the collect model of this policy is the expert
+policy, and the learn model can be any supervised learning model or other IL learn model.
+More details about the policy defination of DI-engine can be found in
+<a class="reference external" href="../feature/policy_overview.html">policy Overview</a>
+DI-engine also provide a demo of this policy in <cite>ding/policy/il.py</cite>. It provides a supervised
+learning pipline to imitate from an expert model online on Google Research football environments.</p>
+<p>DI-engine provide a full demo of using PPO as both the expert policy to
+generate data and the IL policy to implement behavioral cloning. You can
+refer to <code class="docutils literal notranslate"><span class="pre">ding/entry/tests/test_serial_entry_il.py</span></code> for more
+details.</p>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="IRL.html" class="btn btn-neutral float-right" title="Inverse RL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="priority.html" class="btn btn-neutral float-left" title="How to Use PER(Prioritized Experience Replay)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,749 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>DI-hpc Overview &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DI-orchestrator Overview" href="orchestrator_overview.html" />
+    <link rel="prev" title="League Overview" href="league_overview.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Feature</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="policy_overview.html">Policy Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replay_buffer_overview.html">Replay Buffer Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="league_overview.html">League Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DI-hpc Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-use">How to use</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#currently-supported-operators">Currently supported operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-comparison">Performance comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="orchestrator_overview.html">DI-orchestrator Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview.html">Interaction Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview.html">Loader Overview</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Feature</a> &raquo;</li>
+        
+      <li>DI-hpc Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/feature/hpc_rl_overview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="di-hpc-overview">
+<h1>DI-hpc Overview<a class="headerlink" href="#di-hpc-overview" title="Permalink to this headline">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The HPC_RL component (High Performance Computation) is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as <code class="docutils literal notranslate"><span class="pre">GAE</span></code>, <code class="docutils literal notranslate"><span class="pre">n-step</span> <span class="pre">TD</span></code> and <code class="docutils literal notranslate"><span class="pre">LSTM</span></code>, etc., mainly for the operators in ding <code class="docutils literal notranslate"><span class="pre">rl_utils</span></code>, <code class="docutils literal notranslate"><span class="pre">torch_utils/network</span></code> and <code class="docutils literal notranslate"><span class="pre">torch_utils/loss</span></code>. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.</p>
+</section>
+<section id="how-to-use">
+<h2>How to use<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ol class="arabic">
+<li><p>Installation</p>
+<blockquote>
+<div><p>The environment version currently supported by HPC_RL is:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>System: linux</p></li>
+<li><p>CUDA: CUDA9.2</p></li>
+<li><p>Python: py3.6</p></li>
+</ul>
+</div></blockquote>
+<p>Since HPC_RL currently depends on a specific environment version, we will now provide the .whl file of the HPC_RL component under the corresponding version separately, which can be installed through <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&lt;whl_name&gt;</span></code>. In the PROJECT_PATH/ding/hpc_rl directory, there is a whl file that we have provided for installation.</p>
+<p>If you can successfully <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">hpc_rl</span></code> in the python terminal, the installation is successful</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>When using the new version, some mismatch problems may occur. It is recommended to delete the old version and reinstall the new version. If the installation directory is under <code class="docutils literal notranslate"><span class="pre">~/.local/lib/python3.6/site-packages</span></code>, execute The following command can be deleted:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm ~/.local/lib/python3.6/site-packages/hpc_*.so
+rm ~/.local/lib/python3.6/site-packages/hpc_rl* -rf
+</pre></div>
+</div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Verification</p>
+<blockquote>
+<div><p>After the installation, users can verify the accuracy and efficiency through the unit tests under ding/hpc_rl/tests. These tests will run the original version based on the pytorch api implementation and the HPC_RL optimized implementation. For example, run the <code class="docutils literal notranslate"><span class="pre">test_gae.py</span></code> in this directory, the results of running on <code class="docutils literal notranslate"><span class="pre">Tesla</span> <span class="pre">V100</span> <span class="pre">32G</span></code> are as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>target problem: <span class="nv">T</span> <span class="o">=</span> <span class="m">1024</span>, <span class="nv">B</span> <span class="o">=</span> <span class="m">64</span>
+gae mean_relative_error: -1.0645836e-07
+<span class="o">================</span>run gae performance <span class="nv">test</span><span class="o">================</span>
+epoch: <span class="m">0</span>, original gae cost time: <span class="m">0</span>.06686019897460938
+epoch: <span class="m">1</span>, original gae cost time: <span class="m">0</span>.06580924987792969
+epoch: <span class="m">2</span>, original gae cost time: <span class="m">0</span>.0658106803894043
+epoch: <span class="m">3</span>, original gae cost time: <span class="m">0</span>.06581401824951172
+epoch: <span class="m">4</span>, original gae cost time: <span class="m">0</span>.06805300712585449
+epoch: <span class="m">5</span>, original gae cost time: <span class="m">0</span>.06583261489868164
+epoch: <span class="m">0</span>, hpc gae cost time: <span class="m">0</span>.0024187564849853516
+epoch: <span class="m">1</span>, hpc gae cost time: <span class="m">0</span>.0024328231811523438
+epoch: <span class="m">2</span>, hpc gae cost time: <span class="m">0</span>.0034339427947998047
+epoch: <span class="m">3</span>, hpc gae cost time: <span class="m">0</span>.0014312267303466797
+epoch: <span class="m">4</span>, hpc gae cost time: <span class="m">0</span>.0024368762969970703
+epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002432107925415039
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Usage</p>
+<blockquote>
+<div><p>The usage of HPC_RL is disabled by default in ding (because only part of the operating environment is currently supported). After installation, you can add a line of code <code class="docutils literal notranslate"><span class="pre">ding.enable_hpc_rl</span> <span class="pre">=</span> <span class="pre">True</span></code> at the beginning of the entry program, and HPC_RL related calculations will be automatically enabled. The demo is as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ding</span>
+<span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+<span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_a2c_config</span> <span class="kn">import</span> <span class="n">cartpole_a2c_config</span><span class="p">,</span> <span class="n">cartpole_a2c_create_config</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">ding</span><span class="o">.</span><span class="n">enable_hpc_rl</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">cartpole_a2c_config</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">cartpole_a2c_config</span><span class="p">,</span> <span class="n">cartpole_a2c_create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Demo</p>
+<blockquote>
+<div><p>We provide a demo on qbert using dqn algorithm. With setting <code class="docutils literal notranslate"><span class="pre">ding.enable_hpc_rl</span> <span class="pre">=</span> <span class="pre">True</span></code> in <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, the training time will drop from 9.7ms to 8.8ms on 16GV100 with CUDA9.2.</p>
+<p>Pytorch:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 31%" />
+<col style="width: 24%" />
+<col style="width: 31%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Name</p></td>
+<td><p>train_time_val</p></td>
+<td><p>cur_lr_val</p></td>
+<td><p>total_loss_val</p></td>
+</tr>
+<tr class="row-even"><td><p>Value</p></td>
+<td><p>0.008813</p></td>
+<td><p>0.000100</p></td>
+<td><p>0.008758</p></td>
+</tr>
+</tbody>
+</table>
+<p>HPC_RL:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 31%" />
+<col style="width: 24%" />
+<col style="width: 31%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Name</p></td>
+<td><p>train_time_val</p></td>
+<td><p>cur_lr_val</p></td>
+<td><p>total_loss_val</p></td>
+</tr>
+<tr class="row-even"><td><p>Value</p></td>
+<td><p>0.009722</p></td>
+<td><p>0.000100</p></td>
+<td><p>0.426298</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+</ol>
+</div></blockquote>
+</section>
+<section id="currently-supported-operators">
+<h2>Currently supported operators<a class="headerlink" href="#currently-supported-operators" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">rl_utils</span></code> : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO</p>
+<p><code class="docutils literal notranslate"><span class="pre">torch_utils/network</span></code> : LSTM，scatter_connection</p>
+</div></blockquote>
+</section>
+<section id="performance-comparison">
+<h2>Performance comparison<a class="headerlink" href="#performance-comparison" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Performance between Pytorch and HPC_RL</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 32%" />
+<col style="width: 24%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>operator</p></th>
+<th class="head"><p>shape</p></th>
+<th class="head"><p>test environment</p></th>
+<th class="head"><p>pytorch</p></th>
+<th class="head"><p>HPC_RL</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TD-lambda</p></td>
+<td><p>T=16, B=16</p></td>
+<td><p>32GV100, CUDA9.2</p></td>
+<td><p>900us</p></td>
+<td><p>95us</p></td>
+</tr>
+<tr class="row-odd"><td><p>TD-lambda</p></td>
+<td><p>T=256, B=64</p></td>
+<td><p>32GV100, CUDA9.2</p></td>
+<td><p>13.1ms</p></td>
+<td><p>105us</p></td>
+</tr>
+<tr class="row-even"><td><p>TD-lambda</p></td>
+<td><p>T=256, B=512</p></td>
+<td><p>32GV100, CUDA9.2</p></td>
+<td><p>18.8ms</p></td>
+<td><p>130us</p></td>
+</tr>
+<tr class="row-odd"><td><p>dntd</p></td>
+<td><p>T=16, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2000us</p></td>
+<td><p>424us</p></td>
+</tr>
+<tr class="row-even"><td><p>dntd</p></td>
+<td><p>T=128, B=16, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5860us</p></td>
+<td><p>420us</p></td>
+</tr>
+<tr class="row-odd"><td><p>dntd</p></td>
+<td><p>T=128, B=128, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5930us</p></td>
+<td><p>422us</p></td>
+</tr>
+<tr class="row-even"><td><p>dntd</p></td>
+<td><p>T=128, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5890us</p></td>
+<td><p>420us</p></td>
+</tr>
+<tr class="row-odd"><td><p>dntd</p></td>
+<td><p>T=512, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>19120us</p></td>
+<td><p>423us</p></td>
+</tr>
+<tr class="row-even"><td><p>dntd</p></td>
+<td><p>T=128, B=128, N=512</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5940us</p></td>
+<td><p>463us</p></td>
+</tr>
+<tr class="row-odd"><td><p>gae</p></td>
+<td><p>T=16, B=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>1110us</p></td>
+<td><p>36us</p></td>
+</tr>
+<tr class="row-even"><td><p>gae</p></td>
+<td><p>T=16, B=64</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>1150us</p></td>
+<td><p>36us</p></td>
+</tr>
+<tr class="row-odd"><td><p>gae</p></td>
+<td><p>T=256, B=64</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>15510us</p></td>
+<td><p>82us</p></td>
+</tr>
+<tr class="row-even"><td><p>gae</p></td>
+<td><p>T=256, B=256</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>15730us</p></td>
+<td><p>83us</p></td>
+</tr>
+<tr class="row-odd"><td><p>gae</p></td>
+<td><p>T=1024, B=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>62810us</p></td>
+<td><p>235us</p></td>
+</tr>
+<tr class="row-even"><td><p>gae</p></td>
+<td><p>T=1024, B=64</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>65850us</p></td>
+<td><p>240us</p></td>
+</tr>
+<tr class="row-odd"><td><p>lstm</p></td>
+<td><p>seq_len=16, B=4</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>50969us</p></td>
+<td><p>8311us</p></td>
+</tr>
+<tr class="row-even"><td><p>lstm</p></td>
+<td><p>seq_len=64, B=4</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>204976us</p></td>
+<td><p>29383us</p></td>
+</tr>
+<tr class="row-odd"><td><p>lstm</p></td>
+<td><p>seq_len=64, B=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>204073us</p></td>
+<td><p>25769 us</p></td>
+</tr>
+<tr class="row-even"><td><p>lstm</p></td>
+<td><p>seq_len=256, B=4</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>845367us</p></td>
+<td><p>113733us</p></td>
+</tr>
+<tr class="row-odd"><td><p>lstm</p></td>
+<td><p>seq_len=256, B=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>861429us</p></td>
+<td><p>98873us</p></td>
+</tr>
+<tr class="row-even"><td><p>ppo</p></td>
+<td><p>B=16, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2037us</p></td>
+<td><p>388us</p></td>
+</tr>
+<tr class="row-odd"><td><p>ppo</p></td>
+<td><p>B=16, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2047us</p></td>
+<td><p>389us</p></td>
+</tr>
+<tr class="row-even"><td><p>ppo</p></td>
+<td><p>B=128, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2032us</p></td>
+<td><p>389us</p></td>
+</tr>
+<tr class="row-odd"><td><p>ppo</p></td>
+<td><p>B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2153us</p></td>
+<td><p>394us</p></td>
+</tr>
+<tr class="row-even"><td><p>ppo</p></td>
+<td><p>B=512, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2143us</p></td>
+<td><p>393us</p></td>
+</tr>
+<tr class="row-odd"><td><p>ppo</p></td>
+<td><p>B=512, N=512</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2047us</p></td>
+<td><p>3898us</p></td>
+</tr>
+<tr class="row-even"><td><p>qntd</p></td>
+<td><p>T=16, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>1248us</p></td>
+<td><p>254us</p></td>
+</tr>
+<tr class="row-odd"><td><p>qntd</p></td>
+<td><p>T=128, B=16, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5429us</p></td>
+<td><p>261us</p></td>
+</tr>
+<tr class="row-even"><td><p>qntd</p></td>
+<td><p>T=128, B=128, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5214us</p></td>
+<td><p>253us</p></td>
+</tr>
+<tr class="row-odd"><td><p>qntd</p></td>
+<td><p>T=128, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5179us</p></td>
+<td><p>257us</p></td>
+</tr>
+<tr class="row-even"><td><p>qntd</p></td>
+<td><p>T=512, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>18355us</p></td>
+<td><p>254us</p></td>
+</tr>
+<tr class="row-odd"><td><p>qntd</p></td>
+<td><p>T=128, B=128, N=512</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5198us</p></td>
+<td><p>254us</p></td>
+</tr>
+<tr class="row-even"><td><p>qntd_rescale</p></td>
+<td><p>T=16, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>1655us</p></td>
+<td><p>266us</p></td>
+</tr>
+<tr class="row-odd"><td><p>qntd_rescale</p></td>
+<td><p>T=128, B=16, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5652us</p></td>
+<td><p>264us</p></td>
+</tr>
+<tr class="row-even"><td><p>qntd_rescale</p></td>
+<td><p>T=128, B=128, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5653us</p></td>
+<td><p>265us</p></td>
+</tr>
+<tr class="row-odd"><td><p>qntd_rescale</p></td>
+<td><p>T=128, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5653us</p></td>
+<td><p>265us</p></td>
+</tr>
+<tr class="row-even"><td><p>qntd_rescale</p></td>
+<td><p>T=512, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>19286us</p></td>
+<td><p>264us</p></td>
+</tr>
+<tr class="row-odd"><td><p>qntd_rescale</p></td>
+<td><p>T=128, B=128, N=512</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>5677us</p></td>
+<td><p>265us</p></td>
+</tr>
+<tr class="row-even"><td><p>scatter</p></td>
+<td><p>B=16, M=64, N=64</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>559us</p></td>
+<td><p>311us</p></td>
+</tr>
+<tr class="row-odd"><td><p>scatter</p></td>
+<td><p>B=64, M=16, N=64</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>561us</p></td>
+<td><p>309us</p></td>
+</tr>
+<tr class="row-even"><td><p>scatter</p></td>
+<td><p>B=64, M=64, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>567us</p></td>
+<td><p>310us</p></td>
+</tr>
+<tr class="row-odd"><td><p>scatter</p></td>
+<td><p>B=64, M=64, N=64</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>571us</p></td>
+<td><p>309us</p></td>
+</tr>
+<tr class="row-even"><td><p>scatter</p></td>
+<td><p>B=256, M=64, N=64</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>852us</p></td>
+<td><p>480us</p></td>
+</tr>
+<tr class="row-odd"><td><p>scatter</p></td>
+<td><p>B=256, M=64, N=256</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2399us</p></td>
+<td><p>1620us</p></td>
+</tr>
+<tr class="row-even"><td><p>upgo</p></td>
+<td><p>T=16, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2274us</p></td>
+<td><p>247us</p></td>
+</tr>
+<tr class="row-odd"><td><p>upgo</p></td>
+<td><p>T=128, B=16, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>13350us</p></td>
+<td><p>246us</p></td>
+</tr>
+<tr class="row-even"><td><p>upgo</p></td>
+<td><p>T=128, B=128, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>13367us</p></td>
+<td><p>246us</p></td>
+</tr>
+<tr class="row-odd"><td><p>upgo</p></td>
+<td><p>T=128, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>13421us</p></td>
+<td><p>269us</p></td>
+</tr>
+<tr class="row-even"><td><p>upgo</p></td>
+<td><p>T=512, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>51923us</p></td>
+<td><p>749us</p></td>
+</tr>
+<tr class="row-odd"><td><p>upgo</p></td>
+<td><p>T=128, B=128, N=512</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>13705us</p></td>
+<td><p>474us</p></td>
+</tr>
+<tr class="row-even"><td><p>vtrace</p></td>
+<td><p>T=16, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>2906us</p></td>
+<td><p>325us</p></td>
+</tr>
+<tr class="row-odd"><td><p>vtrace</p></td>
+<td><p>T=128, B=16, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>10979us</p></td>
+<td><p>328us</p></td>
+</tr>
+<tr class="row-even"><td><p>vtrace</p></td>
+<td><p>T=128, B=128, N=16</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>10906us</p></td>
+<td><p>368us</p></td>
+</tr>
+<tr class="row-odd"><td><p>vtrace</p></td>
+<td><p>T=128, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>11095us</p></td>
+<td><p>459us</p></td>
+</tr>
+<tr class="row-even"><td><p>vtrace</p></td>
+<td><p>T=512, B=128, N=128</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>39693us</p></td>
+<td><p>1364us</p></td>
+</tr>
+<tr class="row-odd"><td><p>vtrace</p></td>
+<td><p>T=128, B=128, N=512</p></td>
+<td><p>32GV100, CUDA10.1</p></td>
+<td><p>12230us</p></td>
+<td><p>776us</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+<section id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>In order to improve performance, HPC_RL will pre-allocate the memory required by the operator internally by default, so you need to know the specific size of the data. The relevant wrapper of ding will automatically adjust according to the data size, but note that if it is a variable input size , Repeated reallocation of memory will cause a certain amount of time loss, thereby reducing the speedup.</p></li>
+<li><p>For some operators, for example, when the mapping relationship overlaps, they are executed in parallel on the GPU, and the mapping result is uncertain, and there will be certain numerical accuracy fluctuations, but it basically does not affect conventional training.</p></li>
+<li><p>For some operators, HPC_RL only supports some common parameter combinations, as follows:</p>
+<ul class="simple">
+<li><p>q_value n-step TD criterion only supports MSE</p></li>
+<li><p>The criterion of q_value n-step TD with rescale only supports MSE, trans_fn, inv_trans_fn only support the relevant transformation form in R2D2</p></li>
+<li><p>Normalization in LSTM only supports LN</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="orchestrator_overview.html" class="btn btn-neutral float-right" title="DI-orchestrator Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="league_overview.html" class="btn btn-neutral float-left" title="League Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

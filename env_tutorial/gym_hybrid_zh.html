@@ -1,0 +1,449 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Gym-Hybrid &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Gym-Soccer (HFO)" href="gym_soccer_zh.html" />
+    <link rel="prev" title="PyBullet" href="pybullet_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习环境示例手册</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="atari_zh.html">Atari</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco_zh.html">Mujoco</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cartpole_zh.html">Cartpole</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pendulum_zh.html">Pendulum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lunarlander_zh.html">LunarLander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipedalwalker_zh.html">BipedalWalker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bit_flip_zh.html">Bit-flip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minigrid_zh.html">MiniGrid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="slime_volleyball_zh.html">Slime Volleyball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="competitive_rl_zh.html">Competitive RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procgen_zh.html">Procgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smac_zh.html">SMAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="d4rl_zh.html">D4RL (Mujoco)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gfootball_zh.html">Google Research Football (Gfootball)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multiagent_particle_zh.html">Multi-Agent Particle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybullet_zh.html">PyBullet</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Gym-Hybrid</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">概述</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">安装</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">安装方法</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">验证安装</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">环境介绍</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id6">动作空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id7">状态空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">奖励空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">终止条件</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10">内置环境</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">其他</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id12">存储录像</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">参考资料</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gym_soccer_zh.html">Gym-Soccer (HFO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybullet_zh.html">PyBullet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="image_cls_zh.html">Image Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index_zh.html">特性介绍</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index_zh.html">强化学习环境示例手册</a> &raquo;</li>
+        
+      <li>Gym-Hybrid</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/env_tutorial/gym_hybrid_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="gym-hybrid">
+<h1>Gym-Hybrid<a class="headerlink" href="#gym-hybrid" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>在gym-hybrid任务中, agent的任务很简单：在边长为2的正方形框内加速（Accelerate）、转向（Turn）或刹车（Break），以停留在红色目标区域。目标区域是一个半径为0.1的圆。如下图所示。</p>
+<img alt="../_images/hybrid.gif" class="align-center" src="../_images/hybrid.gif" />
+</section>
+<section id="id2">
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/thomashirtz/gym-hybrid@master#egg<span class="o">=</span>gym-hybrid
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>方法一: 运行如下命令, 如果能正常显示版本信息，即顺利安装完成。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip show gym-hybrid
+</pre></div>
+</div>
+<p>方法二: 运行如下Python程序，如果没有报错则证明安装成功。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">gym_hybrid</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Moving-v0&#39;</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id5">
+<h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<section id="id6">
+<h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>Gym-hybrid 的动作空间属于离散连续动作混合空间，有3个离散动作：Accelerate，Turn，Break，其中动作Accelerate，Turn需要给出对应的1维连续参数。</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Accelerate</span> <span class="pre">(Acceleration</span> <span class="pre">value)</span></code> : 表示让agent以 <code class="docutils literal notranslate"><span class="pre">acceleration</span> <span class="pre">value</span></code> 的大小加速。 <code class="docutils literal notranslate"><span class="pre">Acceleration</span> <span class="pre">value</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[0,1]</span></code> 。数值类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Turn</span> <span class="pre">(Rotation</span> <span class="pre">value)</span></code> : 表示让agent朝 <code class="docutils literal notranslate"><span class="pre">rotation</span> <span class="pre">value</span></code> 的方向转身。 <code class="docutils literal notranslate"><span class="pre">Rotation</span> <span class="pre">value</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[-1,1]</span></code> 。数值类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Break</span> <span class="pre">()</span></code> : 表示停止。</p></li>
+</ul>
+<p>使用gym环境空间定义则可表示为：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">gym</span> <span class="kn">import</span> <span class="n">spaces</span>
+
+<span class="n">action_space</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">Tuple</span><span class="p">((</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+                                <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+                                <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))))</span>
+</pre></div>
+</div>
+</section>
+<section id="id7">
+<h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>Gym-hybrid 的状态空间由一个有10个元素的list表示，描述了当前agent的状态，包含agent当前的坐标，速度，朝向角度的正余弦值，目标的坐标，agent距离目标的距离，与目标距离相关的bool值，当前相对步数。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">agent</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">agent</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+            <span class="n">agent</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">theta</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">theta</span><span class="p">),</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+            <span class="n">distance</span><span class="p">,</span>
+            <span class="mi">0</span> <span class="k">if</span> <span class="n">distance</span> <span class="o">&gt;</span> <span class="n">target_radius</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">current_step</span> <span class="o">/</span> <span class="n">max_step</span>
+        <span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>每一步的奖励设置为agent上一个step执行动作后距离目标的长度减去当前step执行动作后距离目标的长度，即<code class="docutils literal notranslate"><span class="pre">dist_t-1</span> <span class="pre">-</span> <span class="pre">dist_t</span></code> 。算法内置了一个<code class="docutils literal notranslate"><span class="pre">penalty</span></code> 来激励agent更快的
+达到目标。当episode结束时，如果agent在目标区域停下来，就会获得额外的reward，值为1；如果agent出界或是超过episode最大step次数，则不会获得额外奖励。用公式表示当前时刻的reward如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reward</span> <span class="o">=</span> <span class="n">last_distance</span> <span class="o">-</span> <span class="n">distance</span> <span class="o">-</span> <span class="n">penalty</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">goal</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>Gym-hybrid 环境每个episode的终止条件是遇到以下任何一种情况：</p>
+<ul class="simple">
+<li><p>agent 成功进入目标区域</p></li>
+<li><p>agant 出界</p></li>
+<li><p>达到episode的最大step</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>内置环境<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>内置有两个环境，<code class="docutils literal notranslate"><span class="pre">&quot;Moving-v0&quot;</span></code> 和<code class="docutils literal notranslate"><span class="pre">&quot;Sliding-v0&quot;</span></code> 。前者不考虑惯性守恒，而后者考虑（所以更切合实际）。两个环境在状态空间、动作空间、奖励空间上都保持一致。</p>
+</section>
+</section>
+<section id="id11">
+<h2>其他<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<section id="id12">
+<h3>存储录像<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>有些环境有自己的渲染插件，但是DI-engine不支持环境自带的渲染插件，而是通过保存训练时的log日志来生成视频录像。具体方式可参考DI-engine <a class="reference external" href="https://opendilab.github.io/DI-engine/quick_start/index.html">官方文档</a> Quick start 章节下的 Visualization &amp; Logging 部分。</p>
+</section>
+</section>
+<section id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>下面提供一个完整的gym hybrid环境config，采用DDPG作为基线算法。请在<code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/gym_hybrid</span></code> 目录下运行<code class="docutils literal notranslate"><span class="pre">gym_hybrid_ddpg_config.py</span></code> 文件，如下。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+
+<span class="n">gym_hybrid_ddpg_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;gym_hybrid_ddpg_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="c1"># (bool) Scale output action into legal range [-1, 1].</span>
+        <span class="n">act_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;Moving-v0&#39;</span><span class="p">,</span>  <span class="c1"># [&#39;Sliding-v0&#39;, &#39;Moving-v0&#39;]</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># 1.85 for hybrid_ddpg</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># hybrid action space not support random collect now</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">action_type_shape</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="n">action_args_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">twin_critic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">actor_head_type</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>  <span class="c1"># [5, 10]</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="n">learning_rate_actor</span><span class="o">=</span><span class="mf">0.0003</span><span class="p">,</span>  <span class="c1"># [0.001, 0.0003]</span>
+            <span class="n">learning_rate_critic</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+            <span class="n">actor_update_freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">noise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">collector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">collect_print_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>  <span class="c1"># [50000, 100000]</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">gym_hybrid_ddpg_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">gym_hybrid_ddpg_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">gym_hybrid_ddpg_config</span>
+
+<span class="n">gym_hybrid_ddpg_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;gym_hybrid&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.gym_hybrid.envs.gym_hybrid_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ddpg&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">gym_hybrid_ddpg_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">gym_hybrid_ddpg_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">gym_hybrid_ddpg_create_config</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id13">
+<h2>参考资料<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Gym-hybrid <a class="reference external" href="https://github.com/thomashirtz/gym-hybrid">源码</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gym_soccer_zh.html" class="btn btn-neutral float-right" title="Gym-Soccer (HFO)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pybullet_zh.html" class="btn btn-neutral float-left" title="PyBullet" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

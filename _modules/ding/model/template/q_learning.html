@@ -1,12 +1,8 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en">
-<!--<![endif]-->
-
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -15,158 +11,62 @@
   <title>ding.model.template.q_learning &mdash; DI-engine 0.1.0 documentation</title>
   
 
-  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
   
-  
-
-  
-
   
   
   
 
   
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+    
+
+  
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="../../../../genindex.html" />
-  <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
     <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
-
-  
-  <script src="../../../../_static/js/modernizr.min.js"></script>
-  <script>
-    MathJax = {
-        chtml: {
-            scale: 1,
-            minScale: 1,
-        },
-        svg: {
-            scale: 1,
-            minScale: 1,
-        }
-    }
-</script>
-
-  <!-- Preload the theme fonts -->
-
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-<!-- Preload the katex fonts -->
-
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
-    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<div class="container-fluid header-holder tutorials-header" id="header-holder">
-  <div class="container">
-    <div class="header-container">
-      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
-        aria-label="OpenMMLab"></a>
-
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-          <li >
-            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
-              <a
-                class="resource-option with-down-arrow">
-                OpenDILab
-              </a>
-              <div class="resources-dropdown-menu">
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-engine" target="_blank">
-                  <span class="dropdown-title">DI-engine </span>
-                  <p>OpenDILab Decision AI Engine</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-star" target="_blank">
-                  <span class="dropdown-title">DI-star </span>
-                  <p>OpenDILab Decision AI in StarCraftII</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-drive" target="_blank">
-                  <span class="dropdown-title">DI-drive </span>
-                  <p>OpenDILab Auto-driving platform</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/GoBigger" target="_blank">
-                  <span class="dropdown-title">GoBigger </span>
-                  <p>OpenDILab Multi-Agent Environment</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
-                  <span class="dropdown-title">DI-smartcross </span>
-                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
-                  <span class="dropdown-title">DI-treetensor </span>
-                  <p>Tree Nested PyTorch Tensor Lib</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
-                  <span class="dropdown-title">awesome-model-based-RL </span>
-                  <p>A curated list of awesome model based RL resources (continually updated)</p>
-                </a>
-              </div>
-          </li>
-        </ul>
-      </div>
-
-      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
-    </div>
-  </div>
-</div>
-
-<body class="pytorch-body">
+<body class="wy-body-for-nav">
 
    
-
-  
-
-  <div class="table-of-contents-link-wrapper">
-    <span>Table of Contents</span>
-    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
-  </div>
-
-  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
-    <div class="pytorch-side-scroll">
-      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <div class="pytorch-left-menu-search">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
           
+            <a href="../../../../index.html" class="icon icon-home"> DI-engine
           
+
           
+          </a>
+
+          
+            
+            
           
 
           
-
-
-
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -175,47 +75,56 @@
           
         </div>
 
-        
-        
-        
-        
-        
-        
-        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../architecture/index.html">Architecture Design</a></li>
 </ul>
 
-        
-        
+            
+          
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="pytorch-container">
-    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
-      <div class="pytorch-breadcrumbs-wrapper">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
 
 
 
@@ -233,43 +142,27 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="pytorch-breadcrumbs">
+  <ul class="wy-breadcrumbs">
     
-      <li>
-        <a href="../../../../index.html">
-            Docs
-        </a> &gt;
-      </li>
-
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../../../index.html">Module code</a> &gt;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
       <li>ding.model.template.q_learning</li>
     
     
-      <li class="pytorch-breadcrumbs-aside">
+      <li class="wy-breadcrumbs-aside">
         
       </li>
     
   </ul>
 
   
+  <hr/>
 </div>
-      </div>
-
-      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
-        Shortcuts
-      </div>
-    </div>
-
-    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
-      <div class="pytorch-content-left">
-        
-          <div class="rst-content">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
-            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
-              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
-                
   <h1>Source code for ding.model.template.q_learning</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">torch</span>
@@ -278,14 +171,13 @@
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">get_lstm</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">MODEL_REGISTRY</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">squeeze</span>
 <span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">FCEncoder</span><span class="p">,</span> <span class="n">ConvEncoder</span><span class="p">,</span> <span class="n">DiscreteHead</span><span class="p">,</span> <span class="n">DuelingHead</span><span class="p">,</span> <span class="n">MultiHead</span><span class="p">,</span> <span class="n">RainbowHead</span><span class="p">,</span> \
-    <span class="n">QuantileHead</span><span class="p">,</span> <span class="n">FQFHead</span><span class="p">,</span> <span class="n">QRDQNHead</span><span class="p">,</span> <span class="n">DistributionHead</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils.network.gtrxl</span> <span class="kn">import</span> <span class="n">GTrXL</span>
+    <span class="n">QuantileHead</span><span class="p">,</span> <span class="n">QRDQNHead</span><span class="p">,</span> <span class="n">DistributionHead</span>
 
 
-<div class="viewcode-block" id="DQN"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.template.q_learning.DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="DQN"><a class="viewcode-back" href="../../../../hands_on/dqn_zh.html#ding.model.template.q_learning.DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
-<div class="viewcode-block" id="DQN.__init__"><a class="viewcode-back" href="../../../../12_policies/dqfd.html#ding.model.template.q_learning.DQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -345,9 +237,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
                 <span class="n">head_hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
-            <span class="p">)</span></div>
+            <span class="p">)</span>
 
-<div class="viewcode-block" id="DQN.forward"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.template.q_learning.DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="DQN.forward"><a class="viewcode-back" href="../../../../hands_on/dqn_zh.html#ding.model.template.q_learning.DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            DQN forward computation graph, input observation tensor to predict q_value.</span>
@@ -371,7 +263,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="C51DQN"><a class="viewcode-back" href="../../../../12_policies/c51.html#ding.model.template.q_learning.C51DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;c51dqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="C51DQN"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.C51DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;c51dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">C51DQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -444,7 +336,7 @@
                 <span class="n">v_max</span><span class="o">=</span><span class="n">v_max</span><span class="p">,</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../12_policies/c51.html#ding.model.template.q_learning.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict C51DQN&#39;s output.</span>
@@ -479,7 +371,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="QRDQN"><a class="viewcode-back" href="../../../../12_policies/qrdqn.html#ding.model.template.q_learning.QRDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qrdqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="QRDQN"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.QRDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qrdqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QRDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -546,7 +438,7 @@
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="QRDQN.forward"><a class="viewcode-back" href="../../../../12_policies/qrdqn.html#ding.model.template.q_learning.QRDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QRDQN.forward"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.QRDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict QRDQN&#39;s output.</span>
@@ -582,7 +474,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="IQN"><a class="viewcode-back" href="../../../../12_policies/iqn.html#ding.model.template.q_learning.IQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;iqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="IQN"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.IQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;iqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">IQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -653,7 +545,7 @@
                 <span class="n">quantile_embedding_size</span><span class="o">=</span><span class="n">quantile_embedding_size</span><span class="p">,</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="IQN.forward"><a class="viewcode-back" href="../../../../12_policies/iqn.html#ding.model.template.q_learning.IQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="IQN.forward"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.IQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict IQN&#39;s output.</span>
@@ -689,117 +581,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="FQF"><a class="viewcode-back" href="../../../../12_policies/fqf.html#ding.model.template.q_learning.FQF">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;fqf&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">FQF</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
-            <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
-            <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
-            <span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="n">num_quantiles</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
-            <span class="n">quantile_embedding_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
-            <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-            <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Init the FQF Model according to input arguments.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.</span>
-<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.</span>
-<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``</span>
-<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.</span>
-<span class="sd">            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
-<span class="sd">            - num_quantiles (:obj:`int`): Number of quantiles in the prediction distribution.</span>
-<span class="sd">            - activation (:obj:`Optional[nn.Module]`):</span>
-<span class="sd">                The type of activation function to use in ``MLP`` the after ``layer_fn``,</span>
-<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`):</span>
-<span class="sd">                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">FQF</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="c1"># For compatibility: 1, (1, ), [4, 32, 32]</span>
-        <span class="n">obs_shape</span><span class="p">,</span> <span class="n">action_shape</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">),</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">head_hidden_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">head_hidden_size</span> <span class="o">=</span> <span class="n">encoder_hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c1"># FC Encoder</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
-        <span class="c1"># Conv Encoder</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own FQF&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="c1"># Head Type</span>
-        <span class="n">head_cls</span> <span class="o">=</span> <span class="n">FQFHead</span>
-        <span class="n">multi_head</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">multi_head</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">MultiHead</span><span class="p">(</span>
-                <span class="n">head_cls</span><span class="p">,</span>
-                <span class="n">head_hidden_size</span><span class="p">,</span>
-                <span class="n">action_shape</span><span class="p">,</span>
-                <span class="n">layer_num</span><span class="o">=</span><span class="n">head_layer_num</span><span class="p">,</span>
-                <span class="n">num_quantiles</span><span class="o">=</span><span class="n">num_quantiles</span><span class="p">,</span>
-                <span class="n">quantile_embedding_size</span><span class="o">=</span><span class="n">quantile_embedding_size</span><span class="p">,</span>
-                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
-                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
-                <span class="n">head_hidden_size</span><span class="p">,</span>
-                <span class="n">action_shape</span><span class="p">,</span>
-                <span class="n">head_layer_num</span><span class="p">,</span>
-                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
-                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
-                <span class="n">num_quantiles</span><span class="o">=</span><span class="n">num_quantiles</span><span class="p">,</span>
-                <span class="n">quantile_embedding_size</span><span class="o">=</span><span class="n">quantile_embedding_size</span><span class="p">,</span>
-            <span class="p">)</span>
-
-<div class="viewcode-block" id="FQF.forward"><a class="viewcode-back" href="../../../../12_policies/fqf.html#ding.model.template.q_learning.FQF.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Use encoded embedding tensor to predict FQF&#39;s output.</span>
-<span class="sd">            Parameter updates with FQF&#39;s MLPs forward setup.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`):</span>
-<span class="sd">                The encoded embedding tensor with ``(B, N=hidden_size)``.</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \</span>
-<span class="sd">                    ``q`` (:obj:`torch.Tensor`), ``quantiles`` (:obj:`torch.Tensor`), \</span>
-<span class="sd">                    ``quantiles_hats`` (:obj:`torch.Tensor`), \</span>
-<span class="sd">                    ``q_tau_i`` (:obj:`torch.Tensor`), ``entropies`` (:obj:`torch.Tensor`).</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - x: :math:`(B, N)`, where B is batch size and N is head_hidden_size.</span>
-<span class="sd">            - logit: :math:`(B, M)`, where M is action_shape.</span>
-<span class="sd">            - q: :math:`(B, num_quantiles, M)`.</span>
-<span class="sd">            - quantiles: :math:`(B, num_quantiles + 1)`.</span>
-<span class="sd">            - quantiles_hats: :math:`(B, num_quantiles)`.</span>
-<span class="sd">            - q_tau_i: :math:`(B, num_quantiles - 1, M)`.</span>
-<span class="sd">            - entropies: :math:`(B, 1)`.</span>
-<span class="sd">        Examples:</span>
-<span class="sd">            &gt;&gt;&gt; model = FQF(64, 64) # arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; outputs = model(inputs)</span>
-<span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
-<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;logit&#39;].shape == torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; # default num_quantiles: int = 32</span>
-<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;q&#39;].shape == torch.Size([4, 32, 64])</span>
-<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;quantiles&#39;].shape == torch.Size([4, 33])</span>
-<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;quantiles_hats&#39;].shape == torch.Size([4, 32])</span>
-<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;q_tau_i&#39;].shape == torch.Size([4, 31, 64])</span>
-<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;quantiles&#39;].shape == torch.Size([4, 1])</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span></div></div>
-
-
-<div class="viewcode-block" id="RainbowDQN"><a class="viewcode-back" href="../../../../12_policies/rainbow.html#ding.model.template.q_learning.RainbowDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;rainbowdqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="RainbowDQN"><a class="viewcode-back" href="../../../../hands_on/rainbow.html#ding.model.template.q_learning.RainbowDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;rainbowdqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RainbowDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -879,7 +661,7 @@
                 <span class="n">v_max</span><span class="o">=</span><span class="n">v_max</span><span class="p">,</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="RainbowDQN.forward"><a class="viewcode-back" href="../../../../12_policies/rainbow.html#ding.model.template.q_learning.RainbowDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="RainbowDQN.forward"><a class="viewcode-back" href="../../../../hands_on/rainbow.html#ding.model.template.q_learning.RainbowDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict Rainbow output.</span>
@@ -944,7 +726,7 @@
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
-<div class="viewcode-block" id="DRQN"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.template.q_learning.DRQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;drqn&#39;</span><span class="p">)</span>
+<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;drqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DRQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -1018,7 +800,9 @@
                 <span class="n">head_hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="DRQN.forward"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.template.q_learning.DRQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saved_state_timesteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saved_hidden_state_timesteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict DRQN output.</span>
@@ -1027,9 +811,9 @@
 <span class="sd">            - inputs (:obj:`Dict`):</span>
 <span class="sd">            - inference: (:obj:&#39;bool&#39;): if inference is True, we unroll the one timestep transition,</span>
 <span class="sd">                if inference is False, we unroll the sequence transitions.</span>
-<span class="sd">            - saved_state_timesteps: (:obj:&#39;Optional[list]&#39;): when inference is False,</span>
+<span class="sd">            - saved_hidden_state_timesteps: (:obj:&#39;Optional[list]&#39;): when inference is False,</span>
 <span class="sd">                we unroll the sequence transitions, then we would save rnn hidden states at timesteps</span>
-<span class="sd">                that are listed in list saved_state_timesteps.</span>
+<span class="sd">                that are listed in list saved_hidden_state_timesteps.</span>
 
 <span class="sd">       ArgumentsKeys:</span>
 <span class="sd">            - obs (:obj:`torch.Tensor`): Encoded observation</span>
@@ -1086,308 +870,71 @@
             <span class="n">lstm_embedding</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="c1"># TODO(nyz) how to deal with hidden_size key-value</span>
             <span class="n">hidden_state_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">saved_state</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">saved_hidden_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">saved_hidden_state</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># T timesteps</span>
                 <span class="n">output</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">:</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">prev_state</span><span class="p">)</span>  <span class="c1"># output: (1,B, head_hidden_size)</span>
-                <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span> <span class="ow">in</span> <span class="n">saved_state_timesteps</span><span class="p">:</span>
-                    <span class="n">saved_state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prev_state</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">saved_hidden_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span> <span class="ow">in</span> <span class="n">saved_hidden_state_timesteps</span><span class="p">:</span>
+                    <span class="n">saved_hidden_state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prev_state</span><span class="p">)</span>
                 <span class="n">lstm_embedding</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-                <span class="n">hidden_state</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prev_state</span><span class="p">]</span>
+                <span class="n">hidden_state</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">prev_state</span><span class="p">))</span>  <span class="c1"># {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}</span>
                 <span class="c1"># only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}</span>
-                <span class="n">hidden_state_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">hidden_state</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">hidden_state_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">hidden_state</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">lstm_embedding</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># (T, B, head_hidden_size)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span><span class="p">:</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">a</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">parallel_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (T, B, action_shape)</span>
-            <span class="c1"># the last timestep state including the hidden state (h) and the cell state (c)</span>
-            <span class="c1"># shape: {list: B{dict: 2{Tensor:(1, 1, head_hidden_size}}}</span>
+            <span class="c1"># the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}</span>
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_state</span>
             <span class="c1"># all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size</span>
             <span class="c1"># This key is used in qtran, the algorithm requires to retain all h_{t} during training</span>
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">hidden_state_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># the selected saved hidden states, including the hidden state (h) and the cell state (c)</span>
-                <span class="n">x</span><span class="p">[</span><span class="s1">&#39;saved_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved_state</span>
-            <span class="k">return</span> <span class="n">x</span></div></div>
-
-
-<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gtrxl_discrete&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">GTrXLDiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Add a discrete head on top of the GTrXL module.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
-        <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
-        <span class="n">head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">att_head_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-        <span class="n">att_head_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="n">att_mlp_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="n">att_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-        <span class="n">memory_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
-        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-        <span class="n">head_norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
-        <span class="n">gru_gating</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">gru_bias</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.</span><span class="p">,</span>
-        <span class="n">dueling</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
-        <span class="n">encoder_norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Init the model according to arguments.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            Refer to GTrXl class in `ding.torch_utils.network.gtrxl` for more details about the input arguments.</span>
-<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Used by Transformer. Observation&#39;s space.</span>
-<span class="sd">            - action_shape (:obj:Union[int, SequenceType]): Used by Head. Action&#39;s space.</span>
-<span class="sd">            - head_layer_num (:obj:`int`): Used by Head. Number of layers.</span>
-<span class="sd">            - att_head_dim (:obj:`int`): Used by Transformer.</span>
-<span class="sd">            - hidden_size (:obj:`int`): Used by Transformer and Head.</span>
-<span class="sd">            - att_head_num (:obj:`int`): Used by Transformer.</span>
-<span class="sd">            - att_mlp_num (:obj:`int`): Used by Transformer.</span>
-<span class="sd">            - att_layer_num (:obj:`int`): Used by Transformer.</span>
-<span class="sd">            - memory_len (:obj:`int`): Used by Transformer.</span>
-<span class="sd">            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to</span>
-<span class="sd">             ``nn.ReLU()``.</span>
-<span class="sd">            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see</span>
-<span class="sd">             ``ding.torch_utils.fc_block`` for more details`.</span>
-<span class="sd">            - dropout (:obj:`bool`): Used by Transformer.</span>
-<span class="sd">            - gru_gating (:obj:`bool`): Used by Transformer.</span>
-<span class="sd">            - gru_bias (:obj:`float`): Used by Transformer.</span>
-<span class="sd">            - dueling (:obj:`bool`): Used by Head. Make the head dueling.</span>
-<span class="sd">            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if using</span>
-<span class="sd">              a custom convolutional encoder.</span>
-<span class="sd">            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see</span>
-<span class="sd">             ``ding.torch_utils.fc_block`` for more details`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">GTrXLDiscreteHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">GTrXL</span><span class="p">(</span>
-            <span class="n">input_dim</span><span class="o">=</span><span class="n">obs_shape</span><span class="p">,</span>
-            <span class="n">head_dim</span><span class="o">=</span><span class="n">att_head_dim</span><span class="p">,</span>
-            <span class="n">embedding_dim</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
-            <span class="n">head_num</span><span class="o">=</span><span class="n">att_head_num</span><span class="p">,</span>
-            <span class="n">mlp_num</span><span class="o">=</span><span class="n">att_mlp_num</span><span class="p">,</span>
-            <span class="n">layer_num</span><span class="o">=</span><span class="n">att_layer_num</span><span class="p">,</span>
-            <span class="n">memory_len</span><span class="o">=</span><span class="n">memory_len</span><span class="p">,</span>
-            <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
-            <span class="n">dropout_ratio</span><span class="o">=</span><span class="n">dropout</span><span class="p">,</span>
-            <span class="n">gru_gating</span><span class="o">=</span><span class="n">gru_gating</span><span class="p">,</span>
-            <span class="n">gru_bias</span><span class="o">=</span><span class="n">gru_bias</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="c1"># replace the embedding layer of Transformer with Conv Encoder</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">encoder_hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">hidden_size</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span>
-                <span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">encoder_norm_type</span>
-            <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">use_embedding_layer</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own GTrXL&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="c1"># Head Type</span>
-        <span class="k">if</span> <span class="n">dueling</span><span class="p">:</span>
-            <span class="n">head_cls</span> <span class="o">=</span> <span class="n">DuelingHead</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">head_cls</span> <span class="o">=</span> <span class="n">DiscreteHead</span>
-        <span class="n">multi_head</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">multi_head</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">MultiHead</span><span class="p">(</span>
-                <span class="n">head_cls</span><span class="p">,</span>
-                <span class="n">hidden_size</span><span class="p">,</span>
-                <span class="n">action_shape</span><span class="p">,</span>
-                <span class="n">layer_num</span><span class="o">=</span><span class="n">head_layer_num</span><span class="p">,</span>
-                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
-                <span class="n">norm_type</span><span class="o">=</span><span class="n">head_norm_type</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
-                <span class="n">hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">head_norm_type</span>
-            <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Let input tensor go through GTrXl and the Head sequentially.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.</span>
-<span class="sd">            Necessary Keys:</span>
-<span class="sd">                - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension.</span>
-<span class="sd">                 Shape is (bs, action_space)</span>
-<span class="sd">                - memory (:obj:`torch.Tensor`):</span>
-<span class="sd">                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``</span>
-<span class="sd">                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.</span>
-<span class="sd">        Examples:</span>
-<span class="sd">            &gt;&gt;&gt; # Init input&#39;s Keys:</span>
-<span class="sd">            &gt;&gt;&gt; obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4</span>
-<span class="sd">            &gt;&gt;&gt; obs = torch.rand(seq_len, bs, obs_dim)</span>
-<span class="sd">            &gt;&gt;&gt; model = GTrXLDiscreteHead(obs_dim, action_dim)</span>
-<span class="sd">            &gt;&gt;&gt; outputs = model(obs)</span>
-<span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-            <span class="c1"># 3d obs: cur_seq, bs, ch, h, w</span>
-            <span class="n">x_</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]))</span>
-            <span class="n">x_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="p">(</span><span class="n">x_</span><span class="p">))</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">x_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">o1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">o1</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">])</span>
-        <span class="c1"># layer_num+1 x memory_len x bs embedding_dim -&gt; bs x layer_num+1 x memory_len x embedding_dim</span>
-        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">o1</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">permute</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
-        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;transformer_out&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">o1</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>  <span class="c1"># output of gtrxl, out[&#39;logit&#39;] is final output</span>
-        <span class="k">return</span> <span class="n">out</span>
-
-    <span class="k">def</span> <span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Clear or set the memory of GTrXL.</span>
-<span class="sd">         Arguments:</span>
-<span class="sd">            - batch_size (:obj:`Optional[int]`): batch size</span>
-<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): input memory.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">reset_memory</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">get_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Return the memory of GTrXL.</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_memory</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">saved_hidden_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved_hidden_state</span>  <span class="c1"># the selected saved hidden states, including h and c</span>
+            <span class="k">return</span> <span class="n">x</span>
 
 
 <span class="k">class</span> <span class="nc">GeneralQNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">pass</span>
 </pre></div>
 
-              </article>
-              
-            </div>
-            <footer>
+           </div>
+           
+          </div>
+          <footer>
   
 
-  <hr>
+  <hr/>
 
   <div role="contentinfo">
     <p>
-      &copy; Copyright 2021, OpenDILab Contributors.
+        &copy; Copyright 2021, OpenDILab Contributors
 
     </p>
   </div>
-  
-  <div>
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
-      Docs</a>.
-  </div>
-   
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-          </div>
-        </div>
 
-        <div class="pytorch-content-right" id="pytorch-content-right">
-          <div class="pytorch-right-menu" id="pytorch-right-menu">
-            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              
-            </div>
-          </div>
         </div>
+      </div>
+
     </section>
+
   </div>
-
   
 
-
-  
-
-  
-  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
-    src="../../../../_static/documentation_options.js"></script>
-  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-  <script src="../../../../_static/jquery.js"></script>
-  <script src="../../../../_static/underscore.js"></script>
-  <script src="../../../../_static/doctools.js"></script>
-  
-
-  
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
-    jQuery(function () {
-      SphinxRtdTheme.Navigation.enable(true);
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
-
-  <!-- Begin Footer -->
-
-  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
-  </div>
-
-  <!-- End Footer -->
-
-  <!-- Begin Mobile Menu -->
-
-  <div class="mobile-main-menu">
-    <div class="container-fluid">
-      <div class="container">
-        <div class="mobile-main-menu-header-container">
-          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
-          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-main-menu-links-container">
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-      </div>
-    </div>
-  </div>
-
-  <!-- End Mobile Menu -->
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
-
-  <script type="text/javascript">
-    $(document).ready(function () {
-      mobileMenu.bind();
-      mobileTOC.bind();
-      pytorchAnchors.bind();
-      sideMenus.bind();
-      scrollToAnchor.bind();
-      highlightNavigation.bind();
-      mainMenuDropdown.bind();
-      filterTags.bind();
-
-      // Add class to links that have code blocks, since we cannot create links in code blocks
-      $("article.pytorch-article a span.pre").each(function (e) {
-        $(this).closest("a").addClass("has-code");
-      });
-    })
   </script>
-</body>
 
+  
+  
+    
+   
+
+</body>
 </html>

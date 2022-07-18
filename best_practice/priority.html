@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>How to Use PER(Prioritized Experience Replay) &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Imitation Learning" href="IL.html" />
+    <link rel="prev" title="N-step TD" href="nstep_td.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Best Practice</a> &raquo;</li>
+        
+      <li>How to Use PER(Prioritized Experience Replay)</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/best_practice/priority.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="how-to-use-per-prioritized-experience-replay">
+<h1>How to Use PER(Prioritized Experience Replay)<a class="headerlink" href="#how-to-use-per-prioritized-experience-replay" title="Permalink to this headline">¶</a></h1>
+<section id="guideline">
+<h2>Guideline<a class="headerlink" href="#guideline" title="Permalink to this headline">¶</a></h2>
+<p>Prioritized Sample is an important mechanism in some algorithms, for example, Rainbow.
+It inclues:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Sample according to priority, instead of traditional uniform sample.</p></li>
+<li><p>Calculate Importance Sampling Weight as each data’s loss weight.</p></li>
+<li><p>After a train iteration, update priority in buffer</p></li>
+</ol>
+</div></blockquote>
+</section>
+<section id="procedures">
+<h2>Procedures<a class="headerlink" href="#procedures" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p>Open priority mechanism and set corresponding hyper-parameters in config</p>
+<p><code class="docutils literal notranslate"><span class="pre">priority</span></code> must be set to <code class="docutils literal notranslate"><span class="pre">True</span></code>. <code class="docutils literal notranslate"><span class="pre">priority_IS_weight</span></code> means whether to use IS weight to correct the bias. It is recommended to set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, but you can feel free not to use it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">alpha</span></code>, <code class="docutils literal notranslate"><span class="pre">beta</span></code>, <code class="docutils literal notranslate"><span class="pre">anneal_step</span></code> are hyper-parameters in priority mechanism.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">priority</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+      <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+         <span class="o">...</span><span class="p">,</span>
+         <span class="c1"># How much priority is used.</span>
+         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+         <span class="c1"># How much correction is used.</span>
+         <span class="n">beta</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+         <span class="c1"># Beta annealing. Sample step count.</span>
+         <span class="n">anneal_step</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+      <span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Use Importance Sampling as loss weight</p>
+<p><code class="docutils literal notranslate"><span class="pre">PrioritizedBufferr</span></code> would sample data with probabilities proportional to their priorities. And it would also add a key-value pair <code class="docutils literal notranslate"><span class="pre">IS</span></code> into data dict. <code class="docutils literal notranslate"><span class="pre">IS</span></code> is “Importance Sampling Weight”, which is used to correct the biased optimization process caused by prioritized sampling. Each sampled data’s loss will multiply corresponding weight respctively if <code class="docutils literal notranslate"><span class="pre">priority_IS_weight</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+
+<span class="c1"># tensor shape: output (B, ), target (B, )</span>
+<span class="c1"># not use IS</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+<span class="c1"># use IS (recommended)</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;IS&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="c1"># DI-engine td error(data[&#39;weight&#39;] = data[&#39;IS&#39;], assigned in policy._forward_learn method)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Update priority in buffer</p>
+<p>Since priority is a by-product of error calculation, you can directly get new priority in method <code class="docutils literal notranslate"><span class="pre">policy._forward_learn</span></code>. Then you can add the key-value pair to the return dict. Make sure that its key is <code class="docutils literal notranslate"><span class="pre">&quot;priority&quot;</span></code>, its value is a <code class="docutils literal notranslate"><span class="pre">list</span></code> with length “batch_size”.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_n</span> <span class="o">=</span> <span class="n">q_nstep_td_data</span><span class="p">(</span>
+    <span class="n">q_value</span><span class="p">,</span> <span class="n">target_q_value</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">target_q_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">loss</span><span class="p">,</span> <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">q_nstep_td_error</span><span class="p">(</span><span class="n">data_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">)</span>
+<span class="k">return</span> <span class="p">{</span>
+    <span class="s1">&#39;total_loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+    <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p>Calculate initial priority in collectors</p>
+<blockquote>
+<div><p>Usually, priority is initialized when this data is inserted into replay buffer with default value or the maximum history priority value, DI-engine also supports priority calculation and initialization in collector:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Method <code class="docutils literal notranslate"><span class="pre">policy._forward_collect</span></code> will calculate priority as well，and return the key-value pair.</p></li>
+<li><p>Method <code class="docutils literal notranslate"><span class="pre">policy._process_transition</span></code> will put <code class="docutils literal notranslate"><span class="pre">model_output['priority']</span></code> into returned data, as its initial priority.</p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+        <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
+        <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">],</span>  <span class="c1"># add this one</span>
+        <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+        <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">transition</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Different exploration strategies</p>
+<p>In Ape-X, different collectors can use different exploration strategies(e.g.: different epsilon values for different collectors). Now DI-engine also supports this mechanism. In serial pipeline, you need to implement your own main entry function to control when to change exploration strategies,
+and override <code class="docutils literal notranslate"><span class="pre">policy._forward_colleect</span></code> method to receive control arguments and execute the corresponding strategy. In parallel entry, you should set different parameters in commander for different collectors.</p>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="IL.html" class="btn btn-neutral float-right" title="Imitation Learning" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nstep_td.html" class="btn btn-neutral float-left" title="N-step TD" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

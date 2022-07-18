@@ -1,12 +1,8 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en">
-<!--<![endif]-->
-
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -15,158 +11,62 @@
   <title>ding.model.template.qac &mdash; DI-engine 0.1.0 documentation</title>
   
 
-  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
   
-  
-
-  
-
   
   
   
 
   
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
+    
+
+  
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
-  <link rel="index" title="Index" href="../../../../genindex.html" />
-  <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
     <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
-
-  
-  <script src="../../../../_static/js/modernizr.min.js"></script>
-  <script>
-    MathJax = {
-        chtml: {
-            scale: 1,
-            minScale: 1,
-        },
-        svg: {
-            scale: 1,
-            minScale: 1,
-        }
-    }
-</script>
-
-  <!-- Preload the theme fonts -->
-
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-<!-- Preload the katex fonts -->
-
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
-    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<div class="container-fluid header-holder tutorials-header" id="header-holder">
-  <div class="container">
-    <div class="header-container">
-      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
-        aria-label="OpenMMLab"></a>
-
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-          <li >
-            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
-              <a
-                class="resource-option with-down-arrow">
-                OpenDILab
-              </a>
-              <div class="resources-dropdown-menu">
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-engine" target="_blank">
-                  <span class="dropdown-title">DI-engine </span>
-                  <p>OpenDILab Decision AI Engine</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-star" target="_blank">
-                  <span class="dropdown-title">DI-star </span>
-                  <p>OpenDILab Decision AI in StarCraftII</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-drive" target="_blank">
-                  <span class="dropdown-title">DI-drive </span>
-                  <p>OpenDILab Auto-driving platform</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/GoBigger" target="_blank">
-                  <span class="dropdown-title">GoBigger </span>
-                  <p>OpenDILab Multi-Agent Environment</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
-                  <span class="dropdown-title">DI-smartcross </span>
-                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
-                  <span class="dropdown-title">DI-treetensor </span>
-                  <p>Tree Nested PyTorch Tensor Lib</p>
-                </a>
-                <a class="doc-dropdown-option nav-dropdown-item"
-                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
-                  <span class="dropdown-title">awesome-model-based-RL </span>
-                  <p>A curated list of awesome model based RL resources (continually updated)</p>
-                </a>
-              </div>
-          </li>
-        </ul>
-      </div>
-
-      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
-    </div>
-  </div>
-</div>
-
-<body class="pytorch-body">
+<body class="wy-body-for-nav">
 
    
-
-  
-
-  <div class="table-of-contents-link-wrapper">
-    <span>Table of Contents</span>
-    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
-  </div>
-
-  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
-    <div class="pytorch-side-scroll">
-      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <div class="pytorch-left-menu-search">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
           
+            <a href="../../../../index.html" class="icon icon-home"> DI-engine
           
+
           
+          </a>
+
+          
+            
+            
           
 
           
-
-
-
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -175,47 +75,56 @@
           
         </div>
 
-        
-        
-        
-        
-        
-        
-        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../architecture/index.html">Architecture Design</a></li>
 </ul>
 
-        
-        
+            
+          
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="pytorch-container">
-    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
-      <div class="pytorch-breadcrumbs-wrapper">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
 
 
 
@@ -233,43 +142,27 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="pytorch-breadcrumbs">
+  <ul class="wy-breadcrumbs">
     
-      <li>
-        <a href="../../../../index.html">
-            Docs
-        </a> &gt;
-      </li>
-
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../../../index.html">Module code</a> &gt;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
       <li>ding.model.template.qac</li>
     
     
-      <li class="pytorch-breadcrumbs-aside">
+      <li class="wy-breadcrumbs-aside">
         
       </li>
     
   </ul>
 
   
+  <hr/>
 </div>
-      </div>
-
-      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
-        Shortcuts
-      </div>
-    </div>
-
-    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
-      <div class="pytorch-content-left">
-        
-          <div class="rst-content">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
-            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
-              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
-                
   <h1>Source code for ding.model.template.qac</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -282,7 +175,7 @@
     <span class="n">FCEncoder</span><span class="p">,</span> <span class="n">ConvEncoder</span>
 
 
-<div class="viewcode-block" id="QAC"><a class="viewcode-back" href="../../../../12_policies/td3_bc.html#ding.model.template.QAC">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="QAC"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -292,7 +185,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="QAC.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/template/QAC.html#ding.model.template.QAC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="QAC.__init__"><a class="viewcode-back" href="../../../../api_doc/model/template/QAC.html#ding.model.template.QAC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">EasyDict</span><span class="p">],</span>
@@ -313,7 +206,7 @@
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s shape, such as 4, (3, ), \</span>
 <span class="sd">                EasyDict({&#39;action_type_shape&#39;: 3, &#39;action_args_shape&#39;: 4}).</span>
 <span class="sd">            - action_space (:obj:`str`): The type of action space, \</span>
-<span class="sd">                including [``regression``, ``reparameterization``, ``hybrid``].</span>
+<span class="sd">                including [``regression``, ``reparameterization``, ``hybrid``]</span>
 <span class="sd">            - twin_critic (:obj:`bool`): Whether to use twin critic, one of tricks in TD3.</span>
 <span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.</span>
 <span class="sd">            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
@@ -322,8 +215,8 @@
 <span class="sd">            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
 <span class="sd">                for critic head.</span>
 <span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \</span>
-<span class="sd">                after each FC layer, if ``None`` then default set to ``nn.ReLU()``.</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \</span>
+<span class="sd">                after each FC layer, if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer(FC, Conv), \</span>
 <span class="sd">                see ``ding.torch_utils.network`` for more details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QAC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -383,7 +276,6 @@
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">actor_action_type</span><span class="p">,</span> <span class="n">actor_action_args</span><span class="p">])</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span> <span class="o">=</span> <span class="n">twin_critic</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
             <span class="n">critic_input_size</span> <span class="o">=</span> <span class="n">obs_shape</span> <span class="o">+</span> <span class="n">action_shape</span><span class="o">.</span><span class="n">action_type_shape</span> <span class="o">+</span> <span class="n">action_shape</span><span class="o">.</span><span class="n">action_args_shape</span>
@@ -418,116 +310,150 @@
                 <span class="p">)</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="QAC.forward"><a class="viewcode-back" href="../../../../12_policies/td3_bc.html#ding.model.template.QAC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<div class="viewcode-block" id="QAC.forward"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            The unique execution (forward) method of QAC method, and one can indicate different modes to implement \</span>
-<span class="sd">            different computation graph, including ``compute_actor`` and ``compute_critic`` in QAC.</span>
-<span class="sd">        Mode compute_actor:</span>
-<span class="sd">            Arguments:</span>
-<span class="sd">                - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.</span>
-<span class="sd">            Returns:</span>
-<span class="sd">                - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.</span>
-<span class="sd">        Mode compute_critic:</span>
-<span class="sd">            Arguments:</span>
-<span class="sd">                - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.</span>
-<span class="sd">            Returns:</span>
-<span class="sd">                - output (:obj:`Dict`): Output dict data, including q_value tensor.</span>
+<span class="sd">            Use observation and action tensor to predict output.</span>
+<span class="sd">            Parameter updates with QAC&#39;s MLPs forward setup.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            Forward with ``compute_actor``:</span>
+<span class="sd">                - inputs (:obj:`torch.Tensor`): The encoded embedding tensor, determined with given ``hidden_size``, \</span>
+<span class="sd">                    i.e. ``(B, N=hidden_size)``.</span>
 
-<span class="sd">        .. note::</span>
-<span class="sd">            For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.</span>
+<span class="sd">            Forward with ``compute_critic``:</span>
+<span class="sd">                - inputs (:obj:`Dict`)</span>
+
+<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
+
+<span class="sd">                Forward with ``compute_actor``</span>
+<span class="sd">                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.</span>
+<span class="sd">                    - logit (:obj:`torch.Tensor`): Logit tensor encoding ``mu`` and ``sigma``, both with same size \</span>
+<span class="sd">                        as input ``x``.</span>
+
+<span class="sd">                Forward with ``compute_critic``</span>
+<span class="sd">                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
+<span class="sd">        Actor Shapes:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
+<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
+
+<span class="sd">        Critic Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
+<span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``</span>
+
+<span class="sd">        Actor Examples:</span>
+<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
+<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
+<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+
+<span class="sd">        Critic Examples:</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4,N), &#39;action&#39;: torch.randn(4,1)}</span>
+<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(N, ),action_shape=1,action_space=&#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model(inputs, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;] # q value</span>
+<span class="sd">            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QAC.compute_actor"><a class="viewcode-back" href="../../../../12_policies/td3_bc.html#ding.model.template.QAC.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
+<div class="viewcode-block" id="QAC.compute_actor"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            The forward computation graph of compute_actor mode, uses observation tensor to produce actor output,</span>
-<span class="sd">            such as ``action``, ``logit`` and so on.</span>
+<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            Execute parameter updates with ``compute_actor`` mode</span>
+<span class="sd">            Use encoded embedding tensor to predict output.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data, \</span>
-<span class="sd">                i.e. ``(B, obs_shape)``.</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`):</span>
+<span class="sd">                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``. \</span>
+<span class="sd">                ``hidden_size = actor_head_hidden_size``</span>
+<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]`): Actor output varying \</span>
-<span class="sd">                from action_space: ``regression``, ``reparameterization``, ``hybrid``.</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.</span>
 
 <span class="sd">        ReturnsKeys (either):</span>
-<span class="sd">            - regression action_space</span>
-<span class="sd">                - action (:obj:`torch.Tensor`): Continuous action with same size as ``action_shape``, usually in DDPG.</span>
-<span class="sd">            - reparameterization action_space</span>
-<span class="sd">                - logit (:obj:`Dict[str, torch.Tensor]`): Reparameterization logit, usually in SAC.</span>
-
-<span class="sd">                    - mu (:obj:`torch.Tensor`): Mean of parameterization gaussion distribution.</span>
-<span class="sd">                    - sigma (:obj:`torch.Tensor`): Standard variation of parameterization gaussion distribution.</span>
-<span class="sd">            - hybrid action_space</span>
-<span class="sd">                - logit (:obj:`torch.Tensor`): Discrete action type logit.</span>
-<span class="sd">                - action_args (:obj:`torch.Tensor`): Continuous action arguments.</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor encoding ``mu`` and ``sigma``, both with same size \</span>
+<span class="sd">                as input ``x``.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``obs_shape``.</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.</span>
-<span class="sd">            - logit.mu (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.</span>
-<span class="sd">            - logit.sigma (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size.</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \</span>
-<span class="sd">                ``action_shape.action_type_shape``.</span>
-<span class="sd">            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \</span>
-<span class="sd">                ``action_shape.action_args_shape``.</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
+<span class="sd">            - logit (:obj:`Union[list, torch.Tensor]`):</span>
+
+<span class="sd">              - case1(continuous space, list): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.</span>
+<span class="sd">              - case2(hybrid space, torch.Tensor): :math:`(B, N1)`, where N1 is action_type_shape</span>
+<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.</span>
+<span class="sd">            - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape \</span>
+<span class="sd">                (action_args are continuous real value)</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Regression mode</span>
 <span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;regression&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
 <span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
 <span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;reparameterization&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;logit&#39;][0].shape == torch.Size([4, 64])  # mu</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape == torch.Size([4, 64]) # sigma</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]]}</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
-            <span class="n">logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">obs</span><span class="p">)</span>
-            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">inputs</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">action_args</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span></div>
 
-<div class="viewcode-block" id="QAC.compute_critic"><a class="viewcode-back" href="../../../../12_policies/td3_bc.html#ding.model.template.QAC.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="QAC.compute_critic"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            The forward computation graph of compute_critic mode, uses observation and action tensor to produce critic</span>
-<span class="sd">            output, such as ``q_value``.</span>
+<span class="sd">            Execute parameter updates with ``compute_critic`` mode</span>
+<span class="sd">            Use encoded embedding tensor to predict output.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): Dict strcture of input data, including ``obs`` and ``action`` \</span>
-<span class="sd">                tensor, also contains ``logit`` tensor in hybrid action_space.</span>
+<span class="sd">            - inputs (:obj:`Dict`): ``obs``, ``action`` and ``logit`` tensors.</span>
+<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict[str, torch.Tensor]`): Critic output, such as ``q_value``.</span>
+<span class="sd">            - outputs (:obj:`Dict`): Q-value output.</span>
 
 <span class="sd">        ArgumentsKeys:</span>
-<span class="sd">            - obs: (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data.</span>
-<span class="sd">            - action (:obj:`Union[torch.Tensor, Dict]`): Continuous action with same size as ``action_shape``.</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete action logit, only in hybrid action_space.</span>
-<span class="sd">            - action_args (:obj:`torch.Tensor`): Continuous action arguments, only in hybrid action_space.</span>
+<span class="sd">            - necessary:</span>
+
+<span class="sd">              - obs: (:obj:`torch.Tensor`): 2-dim vector observation</span>
+<span class="sd">              - action (:obj:`Union[torch.Tensor, Dict]`): action from actor</span>
+<span class="sd">            - optional:</span>
+
+<span class="sd">              - logit (:obj:`torch.Tensor`): discrete action logit</span>
 <span class="sd">        ReturnKeys:</span>
 <span class="sd">            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``.</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \</span>
-<span class="sd">                ``action_shape.action_type_shape``.</span>
-<span class="sd">            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \</span>
-<span class="sd">                ``action_shape.action_args_shape``.</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N4)`, where B is batch size and N4 is ``action_shape``.</span>
-<span class="sd">            - q_value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size.</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
+<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
 
 <span class="sd">        Examples:</span>
-<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 8), &#39;action&#39;: torch.randn(4, 1)}</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(8, ),action_shape=1, action_space=&#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, N), &#39;action&#39;: torch.randn(4, 1)}</span>
+<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(N, ),action_shape=1,action_space=&#39;regression&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; model(inputs, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;]  # q value</span>
-<span class="sd">            ... tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+<span class="sd">            &gt;&gt;&gt; tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=&lt;SqueezeBackward1&gt;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">obs</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
@@ -554,7 +480,7 @@
 <span class="k">class</span> <span class="nc">DiscreteQAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The Discrete QAC model, used in DiscreteSAC.</span>
+<span class="sd">        The Discrete QAC model.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -789,119 +715,43 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span>
 </pre></div>
 
-              </article>
-              
-            </div>
-            <footer>
+           </div>
+           
+          </div>
+          <footer>
   
 
-  <hr>
+  <hr/>
 
   <div role="contentinfo">
     <p>
-      &copy; Copyright 2021, OpenDILab Contributors.
+        &copy; Copyright 2021, OpenDILab Contributors
 
     </p>
   </div>
-  
-  <div>
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
-      Docs</a>.
-  </div>
-   
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-          </div>
-        </div>
 
-        <div class="pytorch-content-right" id="pytorch-content-right">
-          <div class="pytorch-right-menu" id="pytorch-right-menu">
-            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              
-            </div>
-          </div>
         </div>
+      </div>
+
     </section>
+
   </div>
-
   
 
-
-  
-
-  
-  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
-    src="../../../../_static/documentation_options.js"></script>
-  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-  <script src="../../../../_static/jquery.js"></script>
-  <script src="../../../../_static/underscore.js"></script>
-  <script src="../../../../_static/doctools.js"></script>
-  
-
-  
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
-    jQuery(function () {
-      SphinxRtdTheme.Navigation.enable(true);
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
-
-  <!-- Begin Footer -->
-
-  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
-  </div>
-
-  <!-- End Footer -->
-
-  <!-- Begin Mobile Menu -->
-
-  <div class="mobile-main-menu">
-    <div class="container-fluid">
-      <div class="container">
-        <div class="mobile-main-menu-header-container">
-          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
-          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-main-menu-links-container">
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
-          </li>
-      </div>
-    </div>
-  </div>
-
-  <!-- End Mobile Menu -->
-
-  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
-
-  <script type="text/javascript">
-    $(document).ready(function () {
-      mobileMenu.bind();
-      mobileTOC.bind();
-      pytorchAnchors.bind();
-      sideMenus.bind();
-      scrollToAnchor.bind();
-      highlightNavigation.bind();
-      mainMenuDropdown.bind();
-      filterTags.bind();
-
-      // Add class to links that have code blocks, since we cannot create links in code blocks
-      $("article.pytorch-article a span.pre").each(function (e) {
-        $(this).closest("a").addClass("has-code");
-      });
-    })
   </script>
-</body>
 
+  
+  
+    
+   
+
+</body>
 </html>

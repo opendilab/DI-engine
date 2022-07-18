@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>rl_tuils.vtrace &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="rl_tuils.value_rescale" href="value_rescale.html" />
+    <link rel="prev" title="rl_utils.isw" href="isw.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">RL Utils</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="td.html">rl_tuils.td</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gae.html">rl_utils.gae</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppo.html">rl_utils.ppo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="adder.html">rl_utils.adder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exploration.html">rl_utils.exploration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="a2c.html">rl_utils.a2c</a></li>
+<li class="toctree-l3"><a class="reference internal" href="isw.html">rl_utils.isw</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">rl_tuils.vtrace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vtrace">vtrace</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="value_rescale.html">rl_tuils.value_rescale</a></li>
+<li class="toctree-l3"><a class="reference internal" href="coma.html">rl_utils.coma</a></li>
+<li class="toctree-l3"><a class="reference internal" href="upgo.html">rl_tuils.upgo</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="index.html">RL Utils</a> &raquo;</li>
+        
+      <li>rl_tuils.vtrace</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api_doc/rl_utils/vtrace.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="rl-tuils-vtrace">
+<h1>rl_tuils.vtrace<a class="headerlink" href="#rl-tuils-vtrace" title="Permalink to this headline">¶</a></h1>
+<section id="vtrace">
+<h2>vtrace<a class="headerlink" href="#vtrace" title="Permalink to this headline">¶</a></h2>
+<section id="module-ding.rl_utils.vtrace.vtrace_error">
+<span id="vtrace-error"></span><h3>vtrace_error<a class="headerlink" href="#module-ding.rl_utils.vtrace.vtrace_error" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Implementation of vtrace(IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner        Architectures), (arXiv:1802.01561)</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): input data with fields shown in <code class="docutils literal notranslate"><span class="pre">vtrace_data</span></code></dt><dd><ul>
+<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the current policy network,                usually this output is network output logit</p></li>
+<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the behaviour policy network,                usually this output is network output logit, which is used to produce the trajectory(collector)</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the chosen action(index for the discrete action space) in trajectory,                i.e.: behaviour_action</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>gamma: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the future discount factor, defaults to 0.95</p></li>
+<li><p>lambda: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): mix factor between 1-step (lambda_=0) and n-step, defaults to 1.0</p></li>
+<li><p>rho_clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the clipping threshold for importance weights (rho) when calculating            the baseline targets (vs)</p></li>
+<li><p>c_clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the clipping threshold for importance weights (c) when calculating            the baseline targets (vs)</p></li>
+<li><p>rho_pg_clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the clipping threshold for importance weights (rho) when calculating            the policy gradient advantage</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>trace_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): the vtrace loss item, all of them are the differentiable 0-dim tensor</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/a95e75c6f59ef2d99bb98f3e1f4581c67eea8cb9.svg" alt="(T, B, N)"/>, where T is timestep, B is batch size and            N is action dim</p></li>
+<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/a95e75c6f59ef2d99bb98f3e1f4581c67eea8cb9.svg" alt="(T, B, N)"/></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <img class="math" src="../../_images/math/ab6847117da3a7a1a1f72be4cfeae4b3c2c6aa8a.svg" alt="(T, B)"/></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/278c9a534b8bff759ebc8b1ef7924788d40f04a4.svg" alt="(T+1, B)"/></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <img class="math" src="../../_images/math/ab6847117da3a7a1a1f72be4cfeae4b3c2c6aa8a.svg" alt="(T, B)"/></p></li>
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <img class="math" src="../../_images/math/ab6847117da3a7a1a1f72be4cfeae4b3c2c6aa8a.svg" alt="(T, B)"/></p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="value_rescale.html" class="btn btn-neutral float-right" title="rl_tuils.value_rescale" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="isw.html" class="btn btn-neutral float-left" title="rl_utils.isw" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,386 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>loss.cross_entropy_loss &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="network.activation" href="torch_utils_network.html" />
+    <link rel="prev" title="optimizer_helper" href="optimizer_helper.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Torch Utils</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="checkpoint_helper.html">checkpoint_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_helper.html">data_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="distribution.html">distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metric.html">metric</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nn_test_helper.html">nn_test_helper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimizer_helper.html">optimizer_helper</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">loss.cross_entropy_loss</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#labelsmoothceloss">LabelSmoothCELoss</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#softfocalloss">SoftFocalLoss</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.loss.cross_entropy_loss.build_ce_criterion">build_ce_criterion</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#loss-multi-logits-loss">loss.multi_logits_loss</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#multilogitsloss">MultiLogitsLoss</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html">network.activation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html#network-nn-module">network.nn_module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html#network-normalization">network.normalization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html#network-res-block">network.res_block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html#network-rnn">network.rnn</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html#network-scatter-connection">network.scatter_connection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html#network-soft-argmax">network.soft_argmax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="torch_utils_network.html#network-transformer">network.transformer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="index.html">Torch Utils</a> &raquo;</li>
+        
+      <li>loss.cross_entropy_loss</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api_doc/torch_utils/torch_utils_loss.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="loss-cross-entropy-loss">
+<h1>loss.cross_entropy_loss<a class="headerlink" href="#loss-cross-entropy-loss" title="Permalink to this headline">¶</a></h1>
+<section id="labelsmoothceloss">
+<h2>LabelSmoothCELoss<a class="headerlink" href="#labelsmoothceloss" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.loss.cross_entropy_loss.</span></span><span class="sig-name descname"><span class="pre">LabelSmoothCELoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#LabelSmoothCELoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Label smooth cross entropy loss.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.LongTensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#LabelSmoothCELoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate label smooth cross entropy loss.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Predicted logits.</p></li>
+<li><p>labels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Ground truth.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Calculated loss.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="softfocalloss">
+<h2>SoftFocalLoss<a class="headerlink" href="#softfocalloss" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.loss.cross_entropy_loss.</span></span><span class="sig-name descname"><span class="pre">SoftFocalLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_average</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#SoftFocalLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Soft focal loss.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.LongTensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#SoftFocalLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate soft focal loss.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Predicted logits.</p></li>
+<li><p>labels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Ground truth.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Calculated loss.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ding.torch_utils.loss.cross_entropy_loss.build_ce_criterion">
+<span id="build-ce-criterion"></span><h2>build_ce_criterion<a class="headerlink" href="#module-ding.torch_utils.loss.cross_entropy_loss.build_ce_criterion" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get a cross enntropy loss instance according to given config.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): loss function instance</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="loss-multi-logits-loss">
+<h1>loss.multi_logits_loss<a class="headerlink" href="#loss-multi-logits-loss" title="Permalink to this headline">¶</a></h1>
+<section id="multilogitsloss">
+<h2>MultiLogitsLoss<a class="headerlink" href="#multilogitsloss" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.loss.multi_logits_loss.</span></span><span class="sig-name descname"><span class="pre">MultiLogitsLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">criterion</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/multi_logits_loss.html#MultiLogitsLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base class for supervised learning on linklink, including basic processes.</p>
+</dd>
+<dt>Interface:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.LongTensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/multi_logits_loss.html#MultiLogitsLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate multiple logits loss.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Predicted logits, whose shape must be 2-dim, like (B, N).</p></li>
+<li><p>labels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Ground truth.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Calculated loss.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="torch_utils_network.html" class="btn btn-neutral float-right" title="network.activation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="optimizer_helper.html" class="btn btn-neutral float-left" title="optimizer_helper" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

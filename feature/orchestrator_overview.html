@@ -1,0 +1,458 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>DI-orchestrator Overview &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interaction Overview" href="interaction_overview.html" />
+    <link rel="prev" title="DI-hpc Overview" href="hpc_rl_overview.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Feature</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="policy_overview.html">Policy Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replay_buffer_overview.html">Replay Buffer Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="league_overview.html">League Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview.html">DI-hpc Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DI-orchestrator Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submit-view-modify-and-delete-dijob">1. Submit, View, Modify and Delete DIJob</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#check-the-status-of-dijob">2. Check the status of DIJob</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-storage-middleware">3. Set storage middleware</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hostpath-configuration-example">hostPath configuration example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#insert-experimental-config-in-dijob-config">4. Insert experimental config in DIJob config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#define-environment-variables-for-a-worker">5. Define environment variables for a worker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assign-cpu-memory-and-gpu-resources-to-workers">6. Assign CPU, memory, and GPU resources to workers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview.html">Interaction Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview.html">Loader Overview</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Feature</a> &raquo;</li>
+        
+      <li>DI-orchestrator Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/feature/orchestrator_overview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="di-orchestrator-overview">
+<h1>DI-orchestrator Overview<a class="headerlink" href="#di-orchestrator-overview" title="Permalink to this headline">¶</a></h1>
+<p>In order to provide running support for DI-engine in Kubernetes (K8s), we designed DI-orchestrator, which aims to manager all the modules in the distributed training of DI-engine. DI-orchestrator offers many micro
+services for more stable and efficient training. The detailed architecture design is shown in <a class="reference external" href="https://github.com/opendilab/DI-orchestrator/blob/master/docs/architecture.md">DI-orchestrator Guide</a>. And here is a
+specific example about how to launch a DI-engine training job(<code class="docutils literal notranslate"><span class="pre">DIJob</span></code>), and first you should deploy a k8s cluster first:</p>
+<section id="submit-view-modify-and-delete-dijob">
+<span id="id1"></span><h2>1. Submit, View, Modify and Delete DIJob<a class="headerlink" href="#submit-view-modify-and-delete-dijob" title="Permalink to this headline">¶</a></h2>
+<p>A simple example is stored in
+<code class="docutils literal notranslate"><span class="pre">{DING_ROOT}/ding/scripts/dijob-qbert.yaml</span></code>, you can use this example
+to learn how to submit a <code class="docutils literal notranslate"><span class="pre">DIJob</span></code> on Kubenetes cluster.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># submit DIJob</span>
+kubectl create -f dijob-qbert.yaml
+diengine.opendilab.org/qbert-dqn created
+
+<span class="c1"># get pod and you will see coordinator are created</span>
+NAME                              READY   STATUS    RESTARTS   AGE
+qbert-dqn-coordinator                                        <span class="m">1</span>/1     Running   <span class="m">0</span>          8s
+
+<span class="c1"># few seconds later, you will see collectors and learners (and aggregator if need) created by di-server</span>
+$ kubectl get pod
+NAME                                  READY   STATUS    RESTARTS   AGE
+qbert-dqn-aggregator                                         <span class="m">1</span>/1     Running   <span class="m">0</span>          80s
+qbert-dqn-collector-pm5gv                                    <span class="m">1</span>/1     Running   <span class="m">0</span>          66s
+qbert-dqn-coordinator                                        <span class="m">1</span>/1     Running   <span class="m">0</span>          80s
+qbert-dqn-learner-rcwmc                                      <span class="m">1</span>/1     Running   <span class="m">0</span>          66s
+qbert-dqn-learner-txjks                                      <span class="m">1</span>/1     Running   <span class="m">0</span>          66s
+
+<span class="c1"># get logs</span>
+$ kubectl logs qbert-dqn-coordinator
+* Serving Flask app <span class="s2">&quot;interaction.master.master&quot;</span> <span class="o">(</span>lazy loading<span class="o">)</span>
+ * Environment: production
+   WARNING: This is a development server. Do not use it <span class="k">in</span> a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+...
+
+<span class="c1"># delete DIJob</span>
+$ kubectl delete dijob qbert-dqn
+<span class="c1"># or</span>
+$ kubectl delete -f qbert-dqn.yaml
+</pre></div>
+</div>
+</section>
+<section id="check-the-status-of-dijob">
+<span id="id2"></span><h2>2. Check the status of DIJob<a class="headerlink" href="#check-the-status-of-dijob" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># get the dijob qbert-dqn to display</span>
+$ kubectl get dijob dijob-example
+NAME            PHASE       AGE
+qbert-dqn   Succeeded   22h
+
+<span class="c1"># show details of a specific resource or group of resource</span>
+$ kubectl describe dijob qbert-dqn
+Name:         qbert-dqn
+Namespace:    default
+Labels:       &lt;none&gt;
+...
+  Phase:                   Succeeded
+  Replica Status:
+    Aggregator:
+    Collector:
+      Succeeded:  <span class="m">2</span>
+    Coordinator:
+      Succeeded:  <span class="m">1</span>
+    Learner:
+      Succeeded:  <span class="m">1</span>
+Events:           &lt;none&gt;
+</pre></div>
+</div>
+</section>
+<section id="set-storage-middleware">
+<span id="id3"></span><h2>3. Set storage middleware<a class="headerlink" href="#set-storage-middleware" title="Permalink to this headline">¶</a></h2>
+<p>As <code class="docutils literal notranslate"><span class="pre">DIJob</span></code> needs storage middleware during training, it must be
+provided in <code class="docutils literal notranslate"><span class="pre">.yaml</span></code>. Here’s an example that shows the required fields
+for setting a storage middleware.</p>
+<section id="hostpath-configuration-example">
+<h3>hostPath configuration example<a class="headerlink" href="#hostpath-configuration-example" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Supply a directory from the host node’s filesystem in the field
+<code class="docutils literal notranslate"><span class="pre">volumes</span></code> in the outermost <code class="docutils literal notranslate"><span class="pre">spec</span></code>. The field <code class="docutils literal notranslate"><span class="pre">name</span></code> (here is
+<code class="docutils literal notranslate"><span class="pre">work-dir</span></code>) and the field <code class="docutils literal notranslate"><span class="pre">path</span></code> (directory location on host)
+must be provided are required.</p></li>
+</ol>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">volumes</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">work-dir</span><span class="w"></span>
+<span class="w">    </span><span class="nt">hostPath</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/data/nfs/ding/qbert</span><span class="w"></span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>In the field <code class="docutils literal notranslate"><span class="pre">volumeMounts</span></code> field of worker, fill the field
+<code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">mountPath</span></code> to specify that the destination inside the
+pod a volume gets mounted to. Note that the name of <code class="docutils literal notranslate"><span class="pre">volumeMounts</span></code>
+must be the same as the name defined in <code class="docutils literal notranslate"><span class="pre">hostPath</span></code>.</p></li>
+</ol>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">coordinator</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">          </span><span class="l l-Scalar l-Scalar-Plain">volumeMounts</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">work-dir</span><span class="w"></span>
+<span class="w">            </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/ding</span><span class="w"></span>
+<span class="nn">...</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="insert-experimental-config-in-dijob-config">
+<span id="id4"></span><h2>4. Insert experimental config in DIJob config<a class="headerlink" href="#insert-experimental-config-in-dijob-config" title="Permalink to this headline">¶</a></h2>
+<p>Generally, the experimental config (e.g. <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">DIJob</span></code> config are stored in two different files. You can use the
+following two methods to launch your experiment:</p>
+<ol class="arabic simple">
+<li><p>Place the experimental config file in the mounted volume in advance,
+as in the above-mentioned <code class="docutils literal notranslate"><span class="pre">/data/nfs/ding/qbert</span></code>;</p></li>
+<li><p>Insert experimental config in the <code class="docutils literal notranslate"><span class="pre">DIJob</span></code> config;</p></li>
+</ol>
+<p>Here’s an example of Inserting experimental config in the <code class="docutils literal notranslate"><span class="pre">DIJob</span></code>
+config:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">coordinator</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordinator</span><span class="w"></span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;/bin/bash&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;-c&quot;</span><span class="p p-Indicator">,]</span><span class="w"></span>
+<span class="w">        </span><span class="nt">args</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="w"></span>
+<span class="w">          </span><span class="no">cat &lt;&lt;EOF &gt; qbert_dqn_config_k8s.py</span><span class="w"></span>
+<span class="w">          </span><span class="no">from easydict import EasyDict</span><span class="w"></span>
+
+<span class="w">          </span><span class="no">qbert_dqn_config = dict(</span><span class="w"></span>
+<span class="w">              </span><span class="no">env=dict(</span><span class="w"></span>
+<span class="w">                  </span><span class="no">collector_env_num=16,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">collector_episode_num=2,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">evaluator_env_num=8,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">evaluator_episode_num=1,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">stop_value=30000,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">env_id=&#39;QbertNoFrameskip-v4&#39;,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">frame_stack=4,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">manager=dict(</span><span class="w"></span>
+<span class="w">                      </span><span class="no">shared_memory=False,</span><span class="w"></span>
+<span class="w">          </span><span class="no">...</span><span class="w"></span>
+<span class="w">          </span><span class="no">...</span><span class="w"></span>
+<span class="w">          </span><span class="no">qbert_dqn_system_config = EasyDict(qbert_dqn_system_config)</span><span class="w"></span>
+<span class="w">          </span><span class="no">system_config = qbert_dqn_system_config</span><span class="w"></span>
+<span class="w">          </span><span class="no">EOF</span><span class="w"></span>
+
+<span class="w">          </span><span class="no">ding -m dist --module config -p k8s -c qbert_dqn_config_k8s.py -s 0;</span><span class="w"></span>
+<span class="w">          </span><span class="no">ding -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0</span><span class="w"></span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="define-environment-variables-for-a-worker">
+<span id="id5"></span><h2>5. Define environment variables for a worker<a class="headerlink" href="#define-environment-variables-for-a-worker" title="Permalink to this headline">¶</a></h2>
+<p>To set environment variables, include the <code class="docutils literal notranslate"><span class="pre">env</span></code> field in the
+configuration file. Here’s an example of defining an environment
+variable with name <code class="docutils literal notranslate"><span class="pre">PYTHONUNBUFFERED</span></code> and value <code class="docutils literal notranslate"><span class="pre">1</span></code>：</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span><span class="w"></span>
+<span class="nt">coordinator</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordinator</span><span class="w"></span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">..</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">        </span><span class="nt">env</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PYTHONUNBUFFERED</span><span class="w"></span>
+<span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w w-Error"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="assign-cpu-memory-and-gpu-resources-to-workers">
+<span id="id6"></span><h2>6. Assign CPU, memory, and GPU resources to workers<a class="headerlink" href="#assign-cpu-memory-and-gpu-resources-to-workers" title="Permalink to this headline">¶</a></h2>
+<p>The CPU, memory, and GPU required by each worker may be different. You
+need to specify requests in the field <code class="docutils literal notranslate"><span class="pre">resources:requests</span></code> of each
+worker. To specify a resource limit, include <code class="docutils literal notranslate"><span class="pre">resources:limits</span></code>.</p>
+<p>Here’s an example of the configuration file for the learner which has a
+request of 6 CPU, 1 GPU, 10Gi memory and a limit of 6 CPU, 1 GPU, 10Gi
+memory:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span><span class="w"></span>
+<span class="w">  </span><span class="nt">learner</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">learner</span><span class="w"></span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">          </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">          </span><span class="nt">resources</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">requests</span><span class="p">:</span><span class="w"></span>
+<span class="w">              </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;6&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">nvidia.com/gpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10Gi&quot;</span><span class="w"></span>
+<span class="w">            </span><span class="nt">limits</span><span class="p">:</span><span class="w"></span>
+<span class="w">              </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;6&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">nvidia.com/gpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10Gi&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="interaction_overview.html" class="btn btn-neutral float-right" title="Interaction Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="hpc_rl_overview.html" class="btn btn-neutral float-left" title="DI-hpc Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,761 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>league.player &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="league.payoff" href="payoff.html" />
+    <link rel="prev" title="league.league" href="league.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">League</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="league.html">league.league</a></li>
+<li class="toctree-l3"><a class="reference internal" href="league.html#league-one-vs-one-league">league.one_vs_one_league</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">league.player</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#player">player</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="payoff.html">league.payoff</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="index.html">League</a> &raquo;</li>
+        
+      <li>league.player</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api_doc/league/player.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="league-player">
+<h1>league.player<a class="headerlink" href="#league-player" title="Permalink to this headline">¶</a></h1>
+<section id="player">
+<h2>player<a class="headerlink" href="#player" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>Player<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.player.Player">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.player.</span></span><span class="sig-name descname"><span class="pre">Player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_payoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BattleSharedPayoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_agent_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rating</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">PlayerRating</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/player.html#Player"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.Player" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base player class, player is the basic member of a league</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>__init__</p>
+</dd>
+<dt>Property:</dt><dd><p>race, payoff, checkpoint_path, player_id, total_agent_step</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.Player.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_payoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BattleSharedPayoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_agent_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rating</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">PlayerRating</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/league/player.html#Player.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.Player.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize base player metadata</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Player config dict.</p></li>
+<li><p>category (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Player category, depending on the game,                 e.g. StarCraft has 3 races [‘terran’, ‘protoss’, ‘zerg’].</p></li>
+<li><p>init_payoff (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[BattleSharedPayoff,</span> <span class="pre">SoloSharedPayoff]</span></code>): Payoff shared by all players.</p></li>
+<li><p>checkpoint_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The path to load player checkpoint.</p></li>
+<li><p>player_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Player id in string format.</p></li>
+<li><p>total_agent_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): For active player, it should be 0;                 For historical player, it should be parent player’s <code class="docutils literal notranslate"><span class="pre">_total_agent_step</span></code> when <code class="docutils literal notranslate"><span class="pre">snapshot</span></code>.</p></li>
+<li><p>rating (<code class="xref py py-obj docutils literal notranslate"><span class="pre">PlayerRating</span></code>): player rating information in total league</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="historicalplayer">
+<h3>HistoricalPlayer<a class="headerlink" href="#historicalplayer" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.player.HistoricalPlayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.player.</span></span><span class="sig-name descname"><span class="pre">HistoricalPlayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/player.html#HistoricalPlayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.HistoricalPlayer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Historical player which is snapshotted from an active player, and is fixed with the checkpoint.
+Have a unique attribute <code class="docutils literal notranslate"><span class="pre">parent_id</span></code>.</p>
+</dd>
+<dt>Property:</dt><dd><p>race, payoff, checkpoint_path, player_id, total_agent_step, parent_id</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.HistoricalPlayer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/league/player.html#HistoricalPlayer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.HistoricalPlayer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">_parent_id</span></code> additionally</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>parent_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): id of historical player’s parent, should be an active player</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="activeplayer">
+<h3>ActivePlayer<a class="headerlink" href="#activeplayer" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.player.ActivePlayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.player.</span></span><span class="sig-name descname"><span class="pre">ActivePlayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/player.html#ActivePlayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.ActivePlayer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Active player can be updated, or snapshotted to a historical player in the league training.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, is_trained_enough, snapshot, mutate, get_job</p>
+</dd>
+<dt>Property:</dt><dd><p>race, payoff, checkpoint_path, player_id, total_agent_step</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.ActivePlayer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/league/player.html#ActivePlayer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.ActivePlayer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize player metadata, depending on the game</p>
+</dd>
+<dt>Note:</dt><dd><ul class="simple">
+<li><p>one_phase_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): An active player will be considered trained enough for snapshot                 after two phase steps.</p></li>
+<li><p>last_enough_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Player’s last step number that satisfies <code class="docutils literal notranslate"><span class="pre">_is_trained_enough</span></code>.</p></li>
+<li><dl class="simple">
+<dt>strong_win_rate (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): If win rates between this player and all the opponents are greater than</dt><dd><p>this value, this player can be regarded as strong enough to these opponents.                 If also already trained for one phase step, this player can be regarded as trained enough for snapshot.</p>
+</dd>
+</dl>
+</li>
+<li><p>branch_probs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): A namedtuple of probabilities of selecting different opponent branch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.ActivePlayer.increment_eval_difficulty">
+<span class="sig-name descname"><span class="pre">increment_eval_difficulty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/ding/league/player.html#ActivePlayer.increment_eval_difficulty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.ActivePlayer.increment_eval_difficulty" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>When evaluating, active player will choose a specific builtin opponent difficulty.
+This method is used to increment the difficulty.
+It is usually called after the easier builtin bot is already been beaten by this player.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>increment_or_not (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): True means difficulty is incremented;                 False means difficulty is already the hardest.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="naivespplayer">
+<h3>NaiveSpPlayer<a class="headerlink" href="#naivespplayer" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.player.NaiveSpPlayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.player.</span></span><span class="sig-name descname"><span class="pre">NaiveSpPlayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/player.html#NaiveSpPlayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.player.NaiveSpPlayer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.NaiveSpPlayer.get_job">
+<span class="sig-name descname"><span class="pre">get_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#ding.league.player.NaiveSpPlayer.get_job" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get a dict containing some info about the job to be launched, e.g. the selected opponent.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>eval_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to select an opponent for evaluator task.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): The returned dict. Should contain key [‘opponent’].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.NaiveSpPlayer.increment_eval_difficulty">
+<span class="sig-name descname"><span class="pre">increment_eval_difficulty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ding.league.player.NaiveSpPlayer.increment_eval_difficulty" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>When evaluating, active player will choose a specific builtin opponent difficulty.
+This method is used to increment the difficulty.
+It is usually called after the easier builtin bot is already been beaten by this player.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>increment_or_not (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): True means difficulty is incremented;                 False means difficulty is already the hardest.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.NaiveSpPlayer.is_trained_enough">
+<span class="sig-name descname"><span class="pre">is_trained_enough</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">select_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ding.league.player.NaiveSpPlayer.is_trained_enough" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether this player is trained enough for further operations(e.g. snapshot, mutate…)
+according to past step count and overall win rates against opponents.
+If yes, set <code class="docutils literal notranslate"><span class="pre">self._last_agent_step</span></code> to <code class="docutils literal notranslate"><span class="pre">self._total_agent_step</span></code> and return True; otherwise return False.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>select_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">function</span></code>): The function to select opponent players.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this player is trained enough</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.NaiveSpPlayer.mutate">
+<span class="sig-name descname"><span class="pre">mutate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ding.league.player.NaiveSpPlayer.mutate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Mutate the current player, called in league’s <code class="docutils literal notranslate"><span class="pre">_mutate_player</span></code>.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): related information for the mutation</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>mutation_result (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): if the player does the mutation operation then returns the</dt><dd><p>corresponding model path, otherwise returns None</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.player.NaiveSpPlayer.snapshot">
+<span class="sig-name descname"><span class="pre">snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">LeagueMetricEnv</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.league.player.HistoricalPlayer" title="ding.league.player.HistoricalPlayer"><span class="pre">ding.league.player.HistoricalPlayer</span></a></span></span><a class="headerlink" href="#ding.league.player.NaiveSpPlayer.snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Generate a snapshot historical player from the current player, called in league’s <code class="docutils literal notranslate"><span class="pre">_snapshot</span></code>.</p>
+</dd>
+<dt>Argument:</dt><dd><ul class="simple">
+<li><p>metric_env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">LeagueMetricEnv</span></code>): player rating environment, one league one env</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>snapshot_player (<a class="reference internal" href="#ding.league.player.HistoricalPlayer" title="ding.league.player.HistoricalPlayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HistoricalPlayer</span></code></a>): new instantiated historical player</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method only generates a historical player object, but without saving the checkpoint, which should be
+done by league.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ding.league.player.create_player">
+<span id="create-player"></span><h3>create_player<a class="headerlink" href="#module-ding.league.player.create_player" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Given the key (player_type), create a new player instance if in player_mapping’s values,
+or raise an KeyError. In other words, a derived player must first register then call <code class="docutils literal notranslate"><span class="pre">create_player</span></code>
+to get the instance object.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): player config, necessary keys: [import_names]</p></li>
+<li><p>player_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the type of player to be created</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>player (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Player</span></code>): the created new player, should be an instance of one of             player_mapping’s values</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="mainplayer">
+<h3>MainPlayer<a class="headerlink" href="#mainplayer" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainPlayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.starcraft_player.</span></span><span class="sig-name descname"><span class="pre">MainPlayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#MainPlayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.MainPlayer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Main player in league training.
+Default branch (0.5 pfsp, 0.35 sp, 0.15 veri).
+Default snapshot every 2e9 steps.
+Default mutate prob = 0 (never mutate).</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, is_trained_enough, snapshot, mutate, get_job</p>
+</dd>
+<dt>Property:</dt><dd><p>race, payoff, checkpoint_path, player_id, train_iteration</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainPlayer.get_job">
+<span class="sig-name descname"><span class="pre">get_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#ding.league.starcraft_player.MainPlayer.get_job" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get a dict containing some info about the job to be launched, e.g. the selected opponent.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>eval_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to select an opponent for evaluator task.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): The returned dict. Should contain key [‘opponent’].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainPlayer.is_trained_enough">
+<span class="sig-name descname"><span class="pre">is_trained_enough</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#MainPlayer.is_trained_enough"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.MainPlayer.is_trained_enough" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether this player is trained enough for further operations(e.g. snapshot, mutate…)
+according to past step count and overall win rates against opponents.
+If yes, set <code class="docutils literal notranslate"><span class="pre">self._last_agent_step</span></code> to <code class="docutils literal notranslate"><span class="pre">self._total_agent_step</span></code> and return True; otherwise return False.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>select_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">function</span></code>): The function to select opponent players.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this player is trained enough</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainPlayer.mutate">
+<span class="sig-name descname"><span class="pre">mutate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#MainPlayer.mutate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.MainPlayer.mutate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>MainPlayer does not mutate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainPlayer.snapshot">
+<span class="sig-name descname"><span class="pre">snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">LeagueMetricEnv</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.league.player.HistoricalPlayer" title="ding.league.player.HistoricalPlayer"><span class="pre">ding.league.player.HistoricalPlayer</span></a></span></span><a class="headerlink" href="#ding.league.starcraft_player.MainPlayer.snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Generate a snapshot historical player from the current player, called in league’s <code class="docutils literal notranslate"><span class="pre">_snapshot</span></code>.</p>
+</dd>
+<dt>Argument:</dt><dd><ul class="simple">
+<li><p>metric_env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">LeagueMetricEnv</span></code>): player rating environment, one league one env</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>snapshot_player (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HistoricalPlayer</span></code>): new instantiated historical player</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method only generates a historical player object, but without saving the checkpoint, which should be
+done by league.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="mainexploiter">
+<h3>MainExploiter<a class="headerlink" href="#mainexploiter" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainExploiter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.starcraft_player.</span></span><span class="sig-name descname"><span class="pre">MainExploiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#MainExploiter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.MainExploiter" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Main exploiter in league training. Can identify weaknesses of main agents, and consequently make them
+more robust.
+Default branch (1.0 main_players).
+Default snapshot when defeating all 3 main players in the league in more than 70% of games,
+or timeout of 4e9 steps.
+Default mutate prob = 1 (must mutate).</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, is_trained_enough, snapshot, mutate, get_job</p>
+</dd>
+<dt>Property:</dt><dd><p>race, payoff, checkpoint_path, player_id, train_iteration</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainExploiter.get_job">
+<span class="sig-name descname"><span class="pre">get_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#ding.league.starcraft_player.MainExploiter.get_job" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get a dict containing some info about the job to be launched, e.g. the selected opponent.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>eval_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to select an opponent for evaluator task.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): The returned dict. Should contain key [‘opponent’].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainExploiter.is_trained_enough">
+<span class="sig-name descname"><span class="pre">is_trained_enough</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#MainExploiter.is_trained_enough"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.MainExploiter.is_trained_enough" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether this player is trained enough for further operations(e.g. snapshot, mutate…)
+according to past step count and overall win rates against opponents.
+If yes, set <code class="docutils literal notranslate"><span class="pre">self._last_agent_step</span></code> to <code class="docutils literal notranslate"><span class="pre">self._total_agent_step</span></code> and return True; otherwise return False.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>select_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">function</span></code>): The function to select opponent players.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this player is trained enough</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainExploiter.mutate">
+<span class="sig-name descname"><span class="pre">mutate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#MainExploiter.mutate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.MainExploiter.mutate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Main exploiter is sure to mutate(reset) to the supervised learning player</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>mutate_ckpt_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): mutation target checkpoint path</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.MainExploiter.snapshot">
+<span class="sig-name descname"><span class="pre">snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">LeagueMetricEnv</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.league.player.HistoricalPlayer" title="ding.league.player.HistoricalPlayer"><span class="pre">ding.league.player.HistoricalPlayer</span></a></span></span><a class="headerlink" href="#ding.league.starcraft_player.MainExploiter.snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Generate a snapshot historical player from the current player, called in league’s <code class="docutils literal notranslate"><span class="pre">_snapshot</span></code>.</p>
+</dd>
+<dt>Argument:</dt><dd><ul class="simple">
+<li><p>metric_env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">LeagueMetricEnv</span></code>): player rating environment, one league one env</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>snapshot_player (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HistoricalPlayer</span></code>): new instantiated historical player</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method only generates a historical player object, but without saving the checkpoint, which should be
+done by league.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="leagueexploiter">
+<h3>LeagueExploiter<a class="headerlink" href="#leagueexploiter" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.LeagueExploiter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.starcraft_player.</span></span><span class="sig-name descname"><span class="pre">LeagueExploiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#LeagueExploiter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.LeagueExploiter" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>League exploiter in league training. Can identify global blind spots in the league (strategies that no player
+in the league can beat, but that are not necessarily robust themselves).
+Default branch (1.0 pfsp).
+Default snapshot when defeating all players in the league in more than 70% of games, or timeout of 2e9 steps.
+Default mutate prob = 0.25.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, is_trained_enough, snapshot, mutate, get_job</p>
+</dd>
+<dt>Property:</dt><dd><p>race, payoff, checkpoint_path, player_id, train_iteration</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.LeagueExploiter.get_job">
+<span class="sig-name descname"><span class="pre">get_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#ding.league.starcraft_player.LeagueExploiter.get_job" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get a dict containing some info about the job to be launched, e.g. the selected opponent.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>eval_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to select an opponent for evaluator task.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): The returned dict. Should contain key [‘opponent’].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.LeagueExploiter.is_trained_enough">
+<span class="sig-name descname"><span class="pre">is_trained_enough</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#LeagueExploiter.is_trained_enough"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.LeagueExploiter.is_trained_enough" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether this player is trained enough for further operations(e.g. snapshot, mutate…)
+according to past step count and overall win rates against opponents.
+If yes, set <code class="docutils literal notranslate"><span class="pre">self._last_agent_step</span></code> to <code class="docutils literal notranslate"><span class="pre">self._total_agent_step</span></code> and return True; otherwise return False.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>select_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">function</span></code>): The function to select opponent players.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this player is trained enough</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.LeagueExploiter.mutate">
+<span class="sig-name descname"><span class="pre">mutate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/league/starcraft_player.html#LeagueExploiter.mutate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.starcraft_player.LeagueExploiter.mutate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>League exploiter can mutate to the supervised learning player with 0.25 prob</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ckpt_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[str,</span> <span class="pre">None]</span></code>): with <code class="docutils literal notranslate"><span class="pre">mutate_prob</span></code> prob returns the pretrained model’s ckpt path,                 with left 1 - <code class="docutils literal notranslate"><span class="pre">mutate_prob</span></code> prob returns None, which means no mutation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.starcraft_player.LeagueExploiter.snapshot">
+<span class="sig-name descname"><span class="pre">snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">LeagueMetricEnv</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.league.player.HistoricalPlayer" title="ding.league.player.HistoricalPlayer"><span class="pre">ding.league.player.HistoricalPlayer</span></a></span></span><a class="headerlink" href="#ding.league.starcraft_player.LeagueExploiter.snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Generate a snapshot historical player from the current player, called in league’s <code class="docutils literal notranslate"><span class="pre">_snapshot</span></code>.</p>
+</dd>
+<dt>Argument:</dt><dd><ul class="simple">
+<li><p>metric_env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">LeagueMetricEnv</span></code>): player rating environment, one league one env</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>snapshot_player (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HistoricalPlayer</span></code>): new instantiated historical player</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method only generates a historical player object, but without saving the checkpoint, which should be
+done by league.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="payoff.html" class="btn btn-neutral float-right" title="league.payoff" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="league.html" class="btn btn-neutral float-left" title="league.league" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
