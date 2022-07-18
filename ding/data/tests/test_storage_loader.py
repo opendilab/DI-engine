@@ -1,5 +1,4 @@
 import os
-import torch.multiprocessing as mp
 import timeit
 import pytest
 import tempfile
@@ -120,11 +119,11 @@ def test_shared_object():
     ######## Test dict ########
     obj = {"obs": torch.rand(100, 100, dtype=torch.float32)}
     buf = loader._create_shared_object(obj).buf
-    assert "obs" not in buf
+    assert isinstance(buf["obs"], ShmBuffer)
 
     payload = RecvPayload(proc_id=0, data=obj)
     loader._shm_callback(payload=payload, buf=buf)
-    assert isinstance(payload.data["obs"], torch.Tensor)
+    assert payload.data["obs"] is None
 
     loader._shm_putback(payload=payload, buf=buf)
     assert isinstance(payload.data["obs"], torch.Tensor)
@@ -138,7 +137,7 @@ def test_shared_object():
     loader._shm_callback(payload=payload, buf=buf)
     assert len(payload.data["trajectories"]) == 10
     for traj in payload.data["trajectories"]:
-        assert isinstance(traj["obs"], torch.Tensor)
+        assert traj["obs"] is None
 
     loader._shm_putback(payload=payload, buf=buf)
     for traj in payload.data["trajectories"]:

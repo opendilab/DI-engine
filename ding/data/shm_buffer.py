@@ -1,7 +1,8 @@
-from typing import Any, Union, Tuple, Dict
+from typing import Any, Optional, Union, Tuple, Dict
 from multiprocessing import Array
 import ctypes
 import numpy as np
+import torch
 
 _NTYPE_TO_CTYPE = {
     np.bool_: ctypes.c_bool,
@@ -24,7 +25,13 @@ class ShmBuffer():
         Shared memory buffer to store numpy array.
     """
 
-    def __init__(self, dtype: Union[type, np.dtype], shape: Tuple[int], copy_on_get: bool = True) -> None:
+    def __init__(
+            self,
+            dtype: Union[type, np.dtype],
+            shape: Tuple[int],
+            copy_on_get: bool = True,
+            ctype: Optional[type] = None
+    ) -> None:
         """
         Overview:
             Initialize the buffer.
@@ -32,6 +39,7 @@ class ShmBuffer():
             - dtype (:obj:`Union[type, np.dtype]`): The dtype of the data to limit the size of the buffer.
             - shape (:obj:`Tuple[int]`): The shape of the data to limit the size of the buffer.
             - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.
+            - ctype (:obj:`Optional[type]`): Origin class type, e.g. np.ndarray, torch.Tensor.
         """
         if isinstance(dtype, np.dtype):  # it is type of gym.spaces.dtype
             dtype = dtype.type
@@ -39,6 +47,7 @@ class ShmBuffer():
         self.dtype = dtype
         self.shape = shape
         self.copy_on_get = copy_on_get
+        self.ctype = ctype
 
     def fill(self, src_arr: np.ndarray) -> None:
         """
@@ -64,6 +73,8 @@ class ShmBuffer():
         data = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
         if self.copy_on_get:
             data = data.copy()  # must use np.copy, torch.from_numpy and torch.as_tensor still use the same memory
+        if self.ctype is torch.Tensor:
+            data = torch.from_numpy(data)
         return data
 
 

@@ -1,5 +1,4 @@
 import os
-import queue
 import torch
 import numpy as np
 import uuid
@@ -38,6 +37,9 @@ class StorageLoader(Supervisor, ABC):
     def shutdown(self, timeout: Optional[float] = None) -> None:
         super().shutdown(timeout)
         self._recv_loop = None
+        self._callback_map = {}
+        self._shm_obj_map = {}
+        self._req_count = 0
 
     def start_link(self) -> None:
         if not self._running:
@@ -109,6 +111,10 @@ class StorageLoader(Supervisor, ABC):
                     # Only numpy array can fill into shm buffer
                     if isinstance(val, np.ndarray):
                         shm_buf[key] = ShmBuffer(val.dtype, val.shape, copy_on_get=False)
+                    elif isinstance(val, torch.Tensor):
+                        shm_buf[key] = ShmBuffer(
+                            val.numpy().dtype, val.numpy().shape, copy_on_get=False, ctype=torch.Tensor
+                        )
                     # Recursive parsing structure
                     elif isinstance(val, Dict) or isinstance(val, ttorch.Tensor) or isinstance(val, List):
                         buf = to_shm(val, level=level + 1)
@@ -146,11 +152,10 @@ class StorageLoader(Supervisor, ABC):
                     data, Dict
                 ), "Data ({}) and buf ({}) type not match".format(type(data), type(buf))
 
-            if isinstance(data, Dict):
+            if isinstance(data, Dict) or isinstance(data, ttorch.Tensor):
                 for key, val in data.items():
                     if isinstance(val, torch.Tensor):
-                        val.share_memory_()
-                        continue
+                        val = val.numpy()
                     buf_val = buf.get(key)
                     if buf_val is None:
                         continue
@@ -175,7 +180,7 @@ class StorageLoader(Supervisor, ABC):
         ) is type(buf), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(buf))
 
         def shm_putback(data: Union[Dict, List], buf: Union[Dict, List]):
-            if isinstance(data, Dict):
+            if isinstance(data, Dict) or isinstance(data, ttorch.Tensor):
                 for key, val in data.items():
                     buf_val = buf.get(key)
                     if buf_val is None:
