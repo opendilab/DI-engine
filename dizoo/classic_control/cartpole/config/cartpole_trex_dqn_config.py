@@ -20,9 +20,11 @@ cartpole_trex_dqn_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
+        num_trajs=6,
+        num_snippets=6000,
         expert_model_path='abs model path',
         reward_model_path='abs data path + ./cartpole.params',
-        offline_data_path='abs data path',
+        data_path='abs data path',
     ),
     policy=dict(
         load_path='',

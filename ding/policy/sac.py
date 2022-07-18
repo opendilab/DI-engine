@@ -1345,15 +1345,6 @@ class SQILSACPolicy(SACPolicy):
                 running information.
         """
         loss_dict = {}
-        data = default_preprocess_learn(
-            data,
-            use_priority=self._priority,
-            use_priority_IS_weight=self._cfg.priority_IS_weight,
-            ignore_done=self._cfg.learn.ignore_done,
-            use_nstep=False
-        )
-        if self._cuda:
-            data = to_device(data, self._device)
         if self._monitor_cos:
             agent_data = default_preprocess_learn(
                 data[0:len(data) // 2],
@@ -1373,6 +1364,16 @@ class SQILSACPolicy(SACPolicy):
             if self._cuda:
                 agent_data = to_device(agent_data, self._device)
                 expert_data = to_device(expert_data, self._device)
+
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
+        )
+        if self._cuda:
+            data = to_device(data, self._device)
 
         self._learn_model.train()
         self._target_model.train()
