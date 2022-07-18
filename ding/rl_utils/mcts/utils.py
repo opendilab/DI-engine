@@ -128,8 +128,8 @@ def select_action(visit_counts, temperature=1, deterministic=True):
         False -> sample from the distribution
     """
     action_probs = [visit_count_i ** (1 / temperature) for visit_count_i in visit_counts]
-    total_count = sum(action_probs)
-    action_probs = [x / total_count for x in action_probs]
+    action_probs = [x / sum(action_probs) for x in action_probs]
+
     if deterministic:
         action_pos = np.argmax([v for v in visit_counts])
     else:
@@ -140,12 +140,15 @@ def select_action(visit_counts, temperature=1, deterministic=True):
 
 
 def prepare_observation_lst(observation_lst):
-    """Prepare the observations to satisfy the input fomat of torch
-    [B, S, W, H, C] -> [B, S x C, W, H]
-    batch, stack num, width, height, channel
+    """
+    Overview:
+        Prepare the observations to satisfy the input format of torch
+        [B, S, W, H, C] -> [B, S x C, W, H]
+        batch, stack num, width, height, channel
     """
     # B, S, W, H, C
-    observation_lst = np.array(observation_lst, dtype=np.uint8)
+    # observation_lst = np.array(observation_lst, dtype=np.uint8)
+    observation_lst = np.array(observation_lst)
     observation_lst = np.moveaxis(observation_lst, -1, 2)
 
     shape = observation_lst.shape
@@ -168,21 +171,28 @@ def concat_output_value(output_lst):
 def concat_output(output_lst):
     # concat the model output
     value_lst, reward_lst, policy_logits_lst, hidden_state_lst = [], [], [], []
-    reward_hidden_c_lst, reward_hidden_h_lst = [], []
+    reward_hidden_state_c_lst, reward_hidden_state_h_lst = [], []
     for output in output_lst:
         value_lst.append(output.value)
         reward_lst.append(output.value_prefix)
         policy_logits_lst.append(output.policy_logits)
         hidden_state_lst.append(output.hidden_state)
-        reward_hidden_c_lst.append(output.reward_hidden[0].squeeze(0))
-        reward_hidden_h_lst.append(output.reward_hidden[1].squeeze(0))
+        reward_hidden_state_c_lst.append(output.reward_hidden_state[0].squeeze(0))
+        reward_hidden_state_h_lst.append(output.reward_hidden_state[1].squeeze(0))
 
     value_lst = np.concatenate(value_lst)
     reward_lst = np.concatenate(reward_lst)
     policy_logits_lst = np.concatenate(policy_logits_lst)
-    # hidden_state_lst = torch.cat(hidden_state_lst, 0)
     hidden_state_lst = np.concatenate(hidden_state_lst)
-    reward_hidden_c_lst = np.expand_dims(np.concatenate(reward_hidden_c_lst), axis=0)
-    reward_hidden_h_lst = np.expand_dims(np.concatenate(reward_hidden_h_lst), axis=0)
+    reward_hidden_state_c_lst = np.expand_dims(np.concatenate(reward_hidden_state_c_lst), axis=0)
+    reward_hidden_state_h_lst = np.expand_dims(np.concatenate(reward_hidden_state_h_lst), axis=0)
 
-    return value_lst, reward_lst, policy_logits_lst, hidden_state_lst, (reward_hidden_c_lst, reward_hidden_h_lst)
+    return value_lst, reward_lst, policy_logits_lst, hidden_state_lst, (
+        reward_hidden_state_c_lst, reward_hidden_state_h_lst
+    )
+
+
+def mask_nan(x: torch.Tensor) -> torch.Tensor:
+    nan_part = torch.isnan(x)
+    x[nan_part] = 0.
+    return x

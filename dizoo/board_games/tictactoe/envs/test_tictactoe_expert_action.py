@@ -27,4 +27,3 @@ class TestExpertAction:
         env.board = np.array([[1, 2, 1], [1, 0, 2], [0, 0, 0]])
         env.current_player = 2
         assert 6 == env.expert_action()
-

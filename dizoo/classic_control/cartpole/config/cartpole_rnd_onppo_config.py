@@ -61,7 +61,7 @@ cartpole_ppo_rnd_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppo_offpolicy'),
+    policy=dict(type='ppo'),
     reward_model=dict(type='rnd'),
 )
 cartpole_ppo_rnd_create_config = EasyDict(cartpole_ppo_rnd_create_config)

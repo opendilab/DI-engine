@@ -52,7 +52,7 @@ def enable_async(func: Callable) -> Callable:
 
 class Task:
     """
-    Tash will manage the execution order of the entire pipeline, register new middleware,
+    Task will manage the execution order of the entire pipeline, register new middleware,
     and generate new context objects.
     """
 
@@ -218,7 +218,7 @@ class Task:
     def forward(self, fn: Callable, ctx: Optional[Context] = None) -> Optional[Generator]:
         """
         Overview:
-            This function will execute the middleware until the first yield statment,
+            This function will execute the middleware until the first yield statement,
             or the end of the middleware.
         Arguments:
             - fn (:obj:`Callable`): Function with contain the ctx argument in middleware.

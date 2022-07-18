@@ -7,7 +7,6 @@ from ding.envs import NoopResetWrapper, MaxAndSkipWrapper, EpisodicLifeWrapper, 
     ScaledFloatFrameWrapper, \
     ClipRewardWrapper, FrameStackWrapper
 import numpy as np
-from ding.rl_utils.efficientzero.game import Game
 from ding.utils.compression_helper import jpeg_data_compressor
 from gym.wrappers import Monitor
 import cv2
@@ -101,6 +100,37 @@ def wrap_muzero(config, warp_frame=True, save_video=False, save_path=None, video
     env = TimeLimit(env, max_episode_steps=config.max_episode_steps)
     if warp_frame:
         env = WarpFrame(env, width=config.obs_shape[1], height=config.obs_shape[2], grayscale=config.gray_scale)
+    if save_video:
+        env = Monitor(env, directory=save_path, force=True, video_callable=video_callable, uid=uid)
+    env = JpegWrapper(env, cvt_string=config.cvt_string)
+    if config.game_wrapper:
+        env = GameWrapper(env)
+
+    return env
+
+
+def wrap_muzero_dqn_expert_data(config, warp_frame=True, save_video=False, save_path=None, video_callable=None, uid=None):
+    """
+    Overview:
+        Configure environment for MuZero-style Atari. The observation is
+        channel-first: (c, h, w) instead of (h, w, c).
+    Arguments:
+        - config (:obj:`Dict`): Dict containing configuration.
+    :param str env_id: the atari environment id.
+    :param bool config.episode_life: wrap the episode life wrapper.
+    :param bool warp_frame: wrap the grayscale + resize observation wrapper.
+    :return: the wrapped atari environment.
+    """
+    env = gym.make(config.env_name)
+    assert 'NoFrameskip' in env.spec.id
+    env = NoopResetWrapper(env, noop_max=30)
+    env = MaxAndSkipWrapper(env, skip=4)
+    if config.episode_life:
+        env = EpisodicLifeWrapper(env)
+    env = TimeLimit(env, max_episode_steps=config.max_episode_steps)
+    if warp_frame:
+        # for collecting dqn expert data
+        env = WarpFrame(env, width=84, height=84, grayscale=False)
     if save_video:
         env = Monitor(env, directory=save_path, force=True, video_callable=video_callable, uid=uid)
     env = JpegWrapper(env, cvt_string=config.cvt_string)
@@ -220,4 +250,3 @@ class GameWrapper(gym.Wrapper):
 
     def legal_actions(self):
         return [_ for _ in range(self.env.action_space.n)]
-

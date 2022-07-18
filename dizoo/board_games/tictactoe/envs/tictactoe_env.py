@@ -3,6 +3,7 @@ Adapt TicTacToe to BaseGameEnv interface from https://github.com/werner-duvaud/m
 """
 from ditk import logging
 import sys
+from typing import Any, List, Union, Sequence
 import gym
 import copy
 import numpy as np
@@ -14,7 +15,8 @@ from dizoo.board_games.base_game_env import BaseGameEnv
 
 @ENV_REGISTRY.register('tictactoe')
 class TicTacToeEnv(BaseGameEnv):
-    def __init__(self):
+    def __init__(self, cfg=None):
+        self.battle_mode = cfg.battle_mode
         self.board_size = 3
         self.players = [1, 2]
         self.total_num_actions = 9
@@ -45,10 +47,41 @@ class TicTacToeEnv(BaseGameEnv):
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask}
+        if self.battle_mode == 'two_player_mode':
+            obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
+        else:
+            obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': None}
         return obs
 
     def step(self, action):
+        if self.battle_mode == 'two_player_mode':
+            timestep = self._player_step(action)
+            return timestep
+        elif self.battle_mode == 'one_player_mode':
+            # player 1 battle with expert player 2
+
+            # player 1's turn
+            timestep_player1 = self._player_step(action)
+            # self.env.render()
+            if timestep_player1.done:
+                # in one_player_mode, we set to_play as None, because we don't consider the alternation between players
+                timestep_player1.obs['to_play'] = None
+                return timestep_player1
+
+            # player 2's turn
+            expert_action = self.expert_action()
+            # print('player 2 (computer player): ' + self.action_to_string(expert_action))
+            timestep_player2 = self._player_step(expert_action)
+            # the final_eval_reward is calculated from Player 1's perspective
+            timestep_player2.info['final_eval_reward'] = - timestep_player2.reward
+            timestep_player2 = timestep_player2._replace(reward=-timestep_player2.reward)
+
+            timestep = timestep_player2
+            # in one_player_mode, we set to_play as None, because we don't consider the alternation between players
+            timestep.obs['to_play'] = None
+            return timestep
+
+    def _player_step(self, action):
         if action in self.legal_actions:
             row, col = self.action_to_coord(action)
             self.board[row, col] = self.current_player
@@ -75,7 +108,9 @@ class TicTacToeEnv(BaseGameEnv):
 
         reward = np.array(float(winner == self.current_player)).astype(np.float32)
         info = {'next player to play': self.to_play}
-        # NOTE: exchange the player
+        """
+        NOTE: here exchange the player
+        """
         self.current_player = self.to_play
 
         if done:
@@ -84,7 +119,7 @@ class TicTacToeEnv(BaseGameEnv):
 
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask}
+        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.current_player}
         return BaseEnvTimestep(obs, reward, done, info)
 
     def current_state(self):
@@ -273,6 +308,19 @@ class TicTacToeEnv(BaseGameEnv):
     @current_player.setter
     def current_player(self, value):
         self._current_player = value
+
+    @staticmethod
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num')
+        cfg = copy.deepcopy(cfg)
+        return [cfg for _ in range(collector_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.battle_mode = 'one_player_mode'
+        return [cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self) -> str:
         return "DI-engine TicTacToe Env"

@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import pytest
-from ding.rl_utils.efficientzero.utils import get_augmented_data
+from ding.rl_utils.mcts.utils import get_augmented_data
 
 
 @pytest.mark.unittest

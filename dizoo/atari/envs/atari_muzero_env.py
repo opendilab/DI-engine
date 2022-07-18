@@ -10,7 +10,7 @@ import gym
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
-from dizoo.atari.envs.atari_wrappers import wrap_muzero
+from dizoo.atari.envs.atari_wrappers import wrap_muzero, wrap_muzero_dqn_expert_data
 
 
 @ENV_REGISTRY.register('atari-muzero')
@@ -20,7 +20,10 @@ class AtariMuZeroEnv(BaseEnv):
         self._init_flag = False
 
     def _make_env(self):
-        return wrap_muzero(self.cfg)
+        if self.cfg.dqn_expert_data:
+            return wrap_muzero_dqn_expert_data(self.cfg)
+        else:
+            return wrap_muzero(self.cfg)
 
     def reset(self):
         if not self._init_flag:
@@ -52,7 +55,7 @@ class AtariMuZeroEnv(BaseEnv):
         """
         observation = self.obs
         action_mask = np.ones(self._action_space.n, 'int8')
-        return {'observation': observation, 'action_mask': action_mask}
+        return {'observation': observation, 'action_mask': action_mask, 'to_play': None}
 
     def step(self, action):
         obs, reward, done, info = self._env.step(action)
