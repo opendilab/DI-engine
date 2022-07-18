@@ -1,7 +1,6 @@
-from time import sleep
+from ditk import logging
 from queue import Empty
 from typing import TYPE_CHECKING, List, Dict
-from ditk import logging
 from ding.framework import task
 from ding.utils.data.structure.lifo_deque import LifoDeque
 if TYPE_CHECKING:
