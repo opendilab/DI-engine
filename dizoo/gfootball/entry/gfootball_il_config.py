@@ -16,6 +16,7 @@ gfootball_il_main_config = dict(
         save_replay_gif=False,
     ),
     policy=dict(
+        env_name='gfootball',
         continuous=False,
         test_accuracy=False,
         # Note, only if test_accuracy=True, we will test accuracy in train dataset and validation dataset
@@ -27,14 +28,15 @@ gfootball_il_main_config = dict(
         model=dict(),
         learn=dict(
             update_per_collect=20,
-            # batch_size=512,
-            batch_size=5,
+            batch_size=512,
             learning_rate=0.0001,
             target_update_freq=500,
-            weight_decay=1e-4,
+            weight_decay=None,
+            ce_label_smooth=False,
+            show_accuracy=False,
         ),
         collect=dict(n_sample=4096, ),
-        eval=dict(evaluator=dict(eval_freq=1000, n_episode=evaluator_env_num)),
+        eval=dict(evaluator=dict(eval_freq=1000)),
         other=dict(
             eps=dict(
                 type='exp',
@@ -54,9 +56,8 @@ gfootball_il_create_config = dict(
         type='gfootball',
         import_names=['dizoo.gfootball.envs.gfootball_env'],
     ),
-    # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
-    policy=dict(type='football_bc'),
+    policy=dict(type='bc'),
 )
 gfootball_il_create_config = EasyDict(gfootball_il_create_config)
 create_config = gfootball_il_create_config

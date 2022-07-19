@@ -1,4 +1,4 @@
-model = dict(
+model_config = dict(
     # ===== Encoder =====
     encoder=dict(
         match_scalar=dict(
@@ -37,7 +37,8 @@ model = dict(
                 output_dim=128),
         ),
         player=dict(
-            encoder_type='transformer',  # ['transformer', 'spatial']
+            # choices: ['transformer', 'spatial']
+            encoder_type='transformer',
             transformer=dict(
                 player_num=22,
                 player_attr_dim=dict(
@@ -88,3 +89,6 @@ model = dict(
         action_dim=19,
     )
 )
+
+from easydict import EasyDict
+default_model_config = EasyDict(model_config)

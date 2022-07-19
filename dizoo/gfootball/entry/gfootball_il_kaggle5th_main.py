@@ -28,8 +28,7 @@ if isinstance(input_cfg, str):
 else:
     cfg, create_cfg = input_cfg
 create_cfg.policy.type = create_cfg.policy.type + '_command'
-env_fn = None
-cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
 
 football_kaggle_5th_place_model = FootballKaggle5thPlaceModel()
 expert_policy = create_policy(cfg.policy, model=football_kaggle_5th_place_model,

@@ -27,7 +27,7 @@ gfootball_dqn_main_config = dict(
             target_update_freq=500,
         ),
         collect=dict(n_sample=256),
-        eval=dict(evaluator=dict(eval_freq=5000, n_episode=evaluator_env_num)),
+        eval=dict(evaluator=dict(eval_freq=5000)),
         other=dict(
             eps=dict(
                 type='exp',
@@ -47,7 +47,6 @@ gfootball_dqn_create_config = dict(
         type='gfootball',
         import_names=['dizoo.gfootball.envs.gfootball_env'],
     ),
-    # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )

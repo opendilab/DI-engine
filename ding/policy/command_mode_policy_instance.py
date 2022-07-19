@@ -350,8 +350,3 @@ class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
 @POLICY_REGISTRY.register('bc_command')
 class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
     pass
-
-from .football_bc import  FootballBCPolicy
-@POLICY_REGISTRY.register('football_bc_command')
-class FootballBCCommandModePolicy(FootballBCPolicy, DummyCommandModePolicy):
-    pass

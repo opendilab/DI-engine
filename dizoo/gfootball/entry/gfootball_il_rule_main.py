@@ -15,8 +15,7 @@ from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseMode
 # 3e5 transitions = 100 episode, The memory needs about 180G
 seed = 0
 gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_epc1000_bs512'
-# demo_transitions = int(3e5)  # key hyper-parameter
-demo_transitions = int(10)  # key hyper-parameter #debug
+demo_transitions = int(3e5)  # key hyper-parameter
 data_path_transitions = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
 
 
@@ -62,9 +61,6 @@ il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epo
 il_config[0].policy.eval.evaluator.multi_gpu = False
 football_naive_q = FootballNaiveQ()
 
-il_config[0].policy.learn.show_accuracy = False
-il_config[0].policy.learn.ce_label_smooth = False
-
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions,
                                            model=football_naive_q)
 
@@ -78,7 +74,7 @@ if il_config[0].policy.test_accuracy:
     il_config[0].policy.learn.batch_size = int(3000)
     il_config[0].policy.learn.train_epoch = 1
     il_config[0].policy.learn.show_accuracy = True
-    state_dict = torch.load(il_model_path, map_location='cpu')
+    state_dict = torch.load(il_model_path)
     football_naive_q.load_state_dict(state_dict['model'])
 
     # calculate accuracy in train dataset

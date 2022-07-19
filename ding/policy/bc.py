@@ -40,7 +40,6 @@ class BehaviourCloningPolicy(Policy):
             batch_size=32,
             learning_rate=1e-5,
             weight_decay=None,
-            ce_class_weight=False,
             ce_label_smooth=False,
             show_accuracy=False,
         ),
@@ -143,11 +142,17 @@ class BehaviourCloningPolicy(Policy):
         self._eval_model.reset()
 
     def _forward_eval(self, data):
+        gfootball_flag = False
         tensor_input = isinstance(data, torch.Tensor)
         if tensor_input:
             data = default_collate(list(data))
         else:
             data_id = list(data.keys())
+            if data_id == ['processed_obs', 'raw_obs']:
+                # for gfootball
+                gfootball_flag = True
+                data = {0: data}
+                data_id = list(data.keys())
             data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
@@ -156,7 +161,7 @@ class BehaviourCloningPolicy(Policy):
             output = self._eval_model.forward(data)
         if self._cuda:
             output = to_device(output, 'cpu')
-        if tensor_input:
+        if tensor_input or gfootball_flag:
             return output
         else:
             output = default_decollate(output)
