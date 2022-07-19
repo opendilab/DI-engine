@@ -1,28 +1,36 @@
 from functools import partial
-import os.path as osp
-
-import torch
-import torch.nn as nn
-
-from ding.model import DuelingHead
-from ding.config import read_config
 from ding.utils import deep_merge_dicts, MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.torch_utils import fc_block, Transformer, ResFCBlock, \
     conv2d_block, ResBlock, build_activation, ScatterConnection
+import os
+import yaml
+from easydict import EasyDict
+from typing import Union, Optional, Dict, Callable, List
+import torch
+import torch.nn as nn
 
-iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.yaml"))
+from ding.torch_utils import get_lstm, one_hot, to_tensor, to_ndarray
+from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
+from ding.model.common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead
+from ding.model.template.q_learning import parallel_wrapper
+from .football_q_network_default_config import default_model_config
 
-
-@MODEL_REGISTRY.register('football_iql')
-class FootballIQL(nn.Module):
+@MODEL_REGISTRY.register('football_naive_q')
+class FootballNaiveQ(nn.Module):
+    """
+        Overview:
+            Q model for gfootball.
+            utilize the special football obs encoder ``self.football_obs_encoder``: containing
+            ``ScalarEncoder``, ``PlayerEncoder`` or ``SpatialEncoder``.
+    """
 
     def __init__(
             self,
             cfg: dict = {},
     ) -> None:
-        super(FootballIQL, self).__init__()
-        self.cfg = deep_merge_dicts(iql_default_config.model, cfg)
+        super(FootballNaiveQ, self).__init__()
+        self.cfg = deep_merge_dicts(default_model_config, cfg)
         scalar_encoder_arch = self.cfg.encoder.match_scalar
         player_encoder_arch = self.cfg.encoder.player
         self.scalar_encoder = ScalarEncoder(cfg=scalar_encoder_arch)
@@ -37,12 +45,21 @@ class FootballIQL(nn.Module):
         head_input_dim = scalar_dim + player_dim
         self.pred_head = FootballHead(input_dim=head_input_dim, cfg=self.cfg.policy)
 
-    def forward(self, x: dict) -> torch.Tensor:
+    def forward(self, x: dict) -> dict:
         """
-        Shape:
-            - input: dict{obs_name: obs_tensor(:math: `(B, obs_dim)`)}
-            - output: :math: `(B, action_dim)`
+        Overview:
+            Use obs to run MLP or transformer with ``FootballNaiveQ`` and return the prediction dictionary.
+        Arguments:
+            - x (:obj:`Dict`): Dict containing keyword ``processed_obs`` (:obj:`Dict`) and ``raw_obs`` (:obj:`Dict`).
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keyword ``logit`` (:obj:`torch.Tensor`) and ``action`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, A)`, where ``A = action_dim``.
+            - action: :math:`(B, )`.
         """
+        if isinstance(x, dict) and len(x) == 2:
+            x = x['processed_obs']
         scalar_encodings = self.scalar_encoder(x)
         if self.player_type == 'transformer':
             player_encodings = self.player_encoder(x['players'], x['active_player'])
@@ -50,8 +67,9 @@ class FootballIQL(nn.Module):
             player_encodings = self.player_encoder(x['players'])
         encoding_list = list(scalar_encodings.values()) + [player_encodings]
         x = torch.cat(encoding_list, dim=1)
+
         x = self.pred_head(x)
-        return x
+        return {'logit': x, 'action': torch.argmax(x, dim=-1)}
 
 
 class ScalarEncoder(nn.Module):
@@ -81,23 +99,36 @@ class ScalarEncoder(nn.Module):
             data = x[k]
             # print(k, ' -- shape:{}, tensor:{}'.format(data.shape, data))
             encodings[k] = getattr(self, k)(data)
+            if len(encodings[k].shape) == 1:
+                encodings[k].unsqueeze_(0)
+            elif len(encodings[k].shape) == 3:
+                encodings[k].squeeze_(1)
         return encodings
 
 
 def cat_player_attr(player_data: dict) -> torch.Tensor:
-    '''
+    """
     Arguments:
         player_data: {this_attr_name: [B, this_attr_dim]}
     Returns:
         attr: [B, total_attr_dim]
-    '''
+    """
     fixed_player_attr_sequence = [
         'team', 'index', 'position', 'direction', 'tired_factor', 'yellow_card', 'active', 'role'
     ]
     attr = []
     for k in fixed_player_attr_sequence:
+        if len(player_data[k].shape) == 1 and k != 'tired_factor':
+            player_data[k].unsqueeze_(0)  # TODO(pu): expand batch_dim
+        elif len(player_data[k].shape) == 1 and k == 'tired_factor':
+            player_data[k].unsqueeze_(-1)  # TODO(pu): expand data_dim
+        
+        if len(player_data[k].shape) == 3:
+            # TODO(pu): to be compatiable with serial_entry_bc
+            # ``res = policy._forward_eval(bat['obs'])`` 
+             player_data[k].squeeze_(1) 
         attr.append(player_data[k])
-    attr = torch.cat(attr, dim=1)
+    attr = torch.cat(attr, dim=-1)
     return attr
 
 
@@ -262,4 +293,4 @@ class FootballHead(nn.Module):
         x = self.pre_fc(x)
         x = self.res_blocks(x)
         x = self.pred(x)
-        return {'logit': x}
+        return x['logit']
