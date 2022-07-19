@@ -3,6 +3,7 @@ from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
+from ding.envs.env.base_env import BaseEnvTimestep
 from ding.policy import Policy
 import torch
 from ding.utils import dicts_to_lists
@@ -14,6 +15,7 @@ from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
 from dizoo.distar.envs.fake_data import rl_step_data
+from copy import deepcopy
 
 from ditk import logging
 
@@ -110,7 +112,10 @@ class BattleTransitionList:
         for i in range(num_complele_trajectory):
             trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
             # TODO(zms): 测试专用，之后去掉
-            trajectory.append(rl_step_data(last=True))
+            last_step = deepcopy(trajectory[-1])
+            for k in ['mask', 'action_info', 'teacher_logit', 'behaviour_logp', 'selected_units_num', 'reward', 'step']:
+                last_step.pop(k)
+            trajectory.append(last_step)
             return_episode.append(trajectory)
 
         if num_tail_transitions > 0:
@@ -121,13 +126,22 @@ class BattleTransitionList:
                     initial_elements.append(trajectory[0])
                 trajectory = initial_elements + trajectory
             # TODO(zms): 测试专用，之后去掉
-            trajectory.append(rl_step_data(last=True))
+            last_step = deepcopy(trajectory[-1])
+            for k in ['mask', 'action_info', 'teacher_logit', 'behaviour_logp', 'selected_units_num', 'reward', 'step']:
+                last_step.pop(k)
+            trajectory.append(last_step)
             return_episode.append(trajectory)
 
         return return_episode  # list of trajectories
 
-    def clear_newest_episode(self, env_id: int) -> None:
-        # Use it when env.step raise some error
+    def clear_newest_episode(self, env_id: int, before_append=False) -> None:
+        # Call this method when env.step raise some error
+
+        # If call this method before append, and the last episode of this env is done,
+        # it means that the env had some error at the first step of the newest episode,
+        # and we should not delete the last episode because it is a normal episode.
+        if before_append == True and len(self._done_episode[env_id]) > 0 and self._done_episode[env_id][-1] == True:
+            return 0
         if len(self._transitions[env_id]) > 0:
             newest_episode = self._transitions[env_id].pop()
             len_newest_episode = len(newest_episode)
@@ -354,23 +368,32 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
 
                 # 1st case when env step has bug and need to reset.
 
-                # TODO(zms): if it is first step of the episode, do not delete the last episode in the TransitionList 
+                # TODO(zms): if it is first step of the episode, do not delete the last episode in the TransitionList
                 for policy_id, policy in enumerate(ctx.current_policies):
-                    transitions_list[policy_id].clear_newest_episode(env_id)
+                    transitions_list[policy_id].clear_newest_episode(env_id, before_append=True)
                     policy.reset(env.ready_obs[0][policy_id])
                 continue
 
             episode_long_enough = True
             for policy_id, policy in enumerate(ctx.current_policies):
-                transition = policy.process_transition(timestep)
-                transition = EasyDict(transition)
-                transition.collect_train_iter = ttorch.as_tensor(
-                    [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
-                )
+                if timestep.obs.get(policy_id):
+                    policy_timestep = BaseEnvTimestep(
+                        obs=timestep.obs.get(policy_id),
+                        reward=timestep.reward[policy_id],
+                        done=timestep.done,
+                        info=timestep.info[policy_id]
+                    )
+                    transition = policy.process_transition(obs=None, model_output=None, timestep=policy_timestep)
+                    transition = EasyDict(transition)
+                    transition.collect_train_iter = ttorch.as_tensor(
+                        [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
+                    )
 
-                # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
-                episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
-                if timestep.done:
+                    # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
+                    episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
+
+            if timestep.done:
+                for policy_id, policy in enumerate(ctx.current_policies):
                     policy.reset(env.ready_obs[0][policy_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 

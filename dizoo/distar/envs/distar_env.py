@@ -200,7 +200,7 @@ def parse_new_game(data, z_path: str, z_idx: Optional[None] = List):
         if i.unit_type == 59 or i.unit_type == 18 or i.unit_type == 86:
             location.append([i.pos.x, i.pos.y])
     assert len(location) == 1, 'no fog of war, check game version!'
-    born_location = deepcopy(location[0])
+    _born_location = deepcopy(location[0])
     born_location = location[0]
     born_location[0] = int(born_location[0])
     born_location[1] = int(map_size.y - born_location[1])
@@ -225,7 +225,7 @@ def parse_new_game(data, z_path: str, z_idx: Optional[None] = List):
         target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type = z
     else:
         target_building_order, target_cumulative_stat, bo_location, target_z_loop = z
-    return race, requested_races, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type
+    return race, requested_races, map_size, target_building_order, target_cumulative_stat, bo_location, target_z_loop, z_type, _born_location
 
 
 class FeatureUnit(enum.IntEnum):
@@ -599,7 +599,7 @@ def transform_obs(obs, map_size, requested_races, padding_spatial=False, opponen
         index=enemy_unit_types.long(),
         src=torch.ones_like(enemy_unit_types, dtype=torch.uint8)
     )
-    
+
     # game info
     game_info['action_result'] = [o.result for o in obs.action_errors]
     game_info['game_loop'] = obs.observation.game_loop

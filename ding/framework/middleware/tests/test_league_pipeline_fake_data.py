@@ -66,7 +66,7 @@ class PrepareTest():
 
     @classmethod
     def collect_policy_fn(cls):
-        policy = DIStarPolicy(DIStarPolicy.default_config(), enable_field=['collect'])
+        policy = DIStarMockPolicyCollect()
         return policy
 
 
@@ -101,8 +101,8 @@ def main():
 
 @pytest.mark.unittest
 def test_league_pipeline():
-    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=5, protocol="tcp", topology="mesh")(main)
 
 
 if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=5, protocol="tcp", topology="mesh")(main)

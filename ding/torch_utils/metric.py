@@ -2,6 +2,16 @@ import torch
 from typing import Optional, Callable
 
 
+def l2_distance(a, b, min=0, max=0.8, threshold=5, spatial_x=160):
+    x0 = a % spatial_x
+    y0 = a // spatial_x
+    x1 = b % spatial_x
+    y1 = b // spatial_x
+    l2 = torch.sqrt((torch.square(x1 - x0) + torch.square(y1 - y0)).float())
+    cost = (l2 / threshold).clamp_(min=min, max=max)
+    return cost
+
+
 def levenshtein_distance(
         pred: torch.LongTensor,
         target: torch.LongTensor,
