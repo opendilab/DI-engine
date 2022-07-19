@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from ding.data import FileStorage, Storage
 from os import path
 from ding.data.shm_buffer import ShmBuffer
-from ding.framework.supervisor import RecvPayload, Supervisor, ChildType, SendPayload, SharedObject
+from ding.framework.supervisor import RecvPayload, Supervisor, ChildType, SendPayload
 
 
 class StorageWorker:
@@ -30,7 +30,7 @@ class StorageLoader(Supervisor, ABC):
         super().__init__(type_=ChildType.PROCESS)
         self._load_lock = Lock()  # Load (first meet) should be called one by one.
         self._callback_map: Dict[str, Callable] = {}
-        self._shm_obj_map: Dict[int, SharedObject] = {}
+        self._shm_obj_map: Dict[int, Any] = {}
         self._worker_num = worker_num
         self._req_count = 0
 
@@ -75,9 +75,9 @@ class StorageLoader(Supervisor, ABC):
         obj = storage.load()
         # Create three workers for each usage type.
         for i in range(self._worker_num):
-            shm_obj = self._create_shared_object(obj)
-            self._shm_obj_map[i] = shm_obj
-            self.register(StorageWorker, shared_object=shm_obj)
+            shm_buffer = self._create_shm_buffer(obj)
+            self._shm_obj_map[i] = shm_buffer
+            self.register(StorageWorker, shm_buffer=shm_buffer, shm_callback=self._shm_callback)
         self.start_link()
         callback(obj)
 
@@ -89,12 +89,12 @@ class StorageLoader(Supervisor, ABC):
                 if payload.req_id in self._callback_map:
                     del self._callback_map[payload.req_id]
             else:
-                self._shm_putback(payload, self._shm_obj_map[payload.proc_id].buf)
+                self._shm_putback(payload, self._shm_obj_map[payload.proc_id])
                 if payload.req_id in self._callback_map:
                     callback = self._callback_map.pop(payload.req_id)
                     callback(payload.data)
 
-    def _create_shared_object(self, obj: Union[Dict, List]) -> SharedObject:
+    def _create_shm_buffer(self, obj: Union[Dict, List]) -> Any:
         """
         Overview:
             Create shared object (buf and callback) by walk through the data structure.
@@ -128,7 +128,7 @@ class StorageLoader(Supervisor, ABC):
             return shm_buf
 
         shm_buf = to_shm(obj, level=0)
-        return SharedObject(buf=shm_buf, callback=self._shm_callback)
+        return shm_buf
 
     def _shm_callback(self, payload: RecvPayload, buf: Union[Dict, List]):
         """

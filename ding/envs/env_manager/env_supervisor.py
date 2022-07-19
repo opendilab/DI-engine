@@ -5,10 +5,10 @@ from time import sleep, time
 import gym
 from ding.framework import Supervisor
 from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
-from ding.framework.supervisor import ChildType, RecvPayload, SendPayload, SharedObject
+from ding.framework.supervisor import ChildType, RecvPayload, SendPayload
 from ding.utils import make_key_as_identifier
 from ditk import logging
-from ding.data import ShmBufferContainer
+from ding.data import ShmBufferContainer, shm_buffer
 import enum
 import treetensor.numpy as tnp
 import numbers
@@ -106,9 +106,7 @@ class EnvSupervisor(Supervisor):
                     for env_id in range(len(self._env_fn))
                 }
                 for env_init in env_fn:
-                    self.register(
-                        env_init, shared_object=SharedObject(buf=self._obs_buffers, callback=self._shm_callback)
-                    )
+                    self.register(env_init, shm_buffer=self._obs_buffers, shm_callback=self._shm_callback)
             else:
                 for env_init in env_fn:
                     self.register(env_init)

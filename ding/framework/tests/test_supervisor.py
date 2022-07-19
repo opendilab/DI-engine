@@ -2,9 +2,8 @@ import multiprocessing as mp
 import ctypes
 from time import sleep, time
 from typing import Any, Dict, List
-from aiohttp import payload_type
 import pytest
-from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType, SharedObject
+from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType
 
 
 class MockEnv():
@@ -253,7 +252,7 @@ def test_shared_memory():
 
     shm = mp.Array(ctypes.c_uint8, 3)
     for i in range(3):
-        sv.register(MockEnv, "AnyArgs", shared_object=SharedObject(buf=shm, callback=shm_callback))
+        sv.register(MockEnv, "AnyArgs", shm_buffer=shm, shm_callback=shm_callback)
     sv.start_link()
 
     # Send init request

@@ -98,7 +98,7 @@ def test_shared_object():
 
     ######## Test array ########
     obj = [{"obs": np.random.rand(100, 100)} for _ in range(10)]
-    buf = loader._create_shared_object(obj).buf
+    buf = loader._create_shm_buffer(obj)
     assert len(buf) == len(obj) * 2
     assert isinstance(buf[0]["obs"], ShmBuffer)
 
@@ -118,7 +118,7 @@ def test_shared_object():
 
     ######## Test dict ########
     obj = {"obs": torch.rand(100, 100, dtype=torch.float32)}
-    buf = loader._create_shared_object(obj).buf
+    buf = loader._create_shm_buffer(obj)
     assert isinstance(buf["obs"], ShmBuffer)
 
     payload = RecvPayload(proc_id=0, data=obj)
@@ -131,7 +131,7 @@ def test_shared_object():
 
     ######## Test treetensor ########
     obj = {"trajectories": [ttorch.as_tensor({"obs": torch.rand(10, 10, dtype=torch.float32)}) for _ in range(10)]}
-    buf = loader._create_shared_object(obj).buf
+    buf = loader._create_shm_buffer(obj)
 
     payload = RecvPayload(proc_id=0, data=obj)
     loader._shm_callback(payload=payload, buf=buf)
@@ -165,7 +165,7 @@ def test_shared_object_benchmark():
             ) for _ in range(10)
         ]
     }
-    buf = loader._create_shared_object(obj).buf
+    buf = loader._create_shm_buffer(obj)
     payload = RecvPayload(proc_id=0, data=obj)
     loader._shm_callback(payload=payload, buf=buf)
 

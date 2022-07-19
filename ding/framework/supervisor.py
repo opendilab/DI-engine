@@ -50,19 +50,19 @@ class ChildType(Enum):
     THREAD = "thread"
 
 
-@dataclass
-class SharedObject:
-    buf: Any
-    callback: Callable
-
-
 class Child(ABC):
     """
     Abstract class of child process/thread.
     """
 
     def __init__(
-            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
+            self,
+            proc_id: int,
+            init: Callable,
+            *args,
+            shm_buffer: Optional[Any] = None,
+            shm_callback: Optional[Callable] = None,
+            **kwargs
     ) -> None:
         self._proc_id = proc_id
         self._init = init
@@ -70,7 +70,8 @@ class Child(ABC):
         self._kwargs = kwargs
         self._recv_queue = None
         self._send_queue = None
-        self._shared_object = shared_object
+        self._shm_buffer = shm_buffer
+        self._shm_callback = shm_callback
 
     @abstractmethod
     def start(self, recv_queue: Union[mp.Queue, queue.Queue]):
@@ -96,7 +97,8 @@ class Child(ABC):
         kwargs: Dict[str, Any],
         send_queue: Union[mp.Queue, queue.Queue],
         recv_queue: Union[mp.Queue, queue.Queue],
-        shared_object: Optional[SharedObject] = None
+        shm_buffer: Optional[Any] = None,
+        shm_callback: Optional[Callable] = None
     ):
         send_payload = SendPayload(proc_id=proc_id)
         child_ins = init(*args, **kwargs)
@@ -112,8 +114,8 @@ class Child(ABC):
                 recv_payload = RecvPayload(
                     proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, data=data
                 )
-                if shared_object:
-                    shared_object.callback(recv_payload, shared_object.buf)
+                if shm_callback is not None and shm_buffer is not None:
+                    shm_callback(recv_payload, shm_buffer)
                 recv_queue.put(recv_payload)
             except Exception as e:
                 logging.warning(traceback.format_exc())
@@ -130,9 +132,15 @@ class Child(ABC):
 class ChildProcess(Child):
 
     def __init__(
-            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
+            self,
+            proc_id: int,
+            init: Callable,
+            *args,
+            shm_buffer: Optional[Any] = None,
+            shm_callback: Optional[Callable] = None,
+            **kwargs
     ) -> None:
-        super().__init__(proc_id, init, *args, shared_object=shared_object, **kwargs)
+        super().__init__(proc_id, init, *args, shm_buffer=shm_buffer, shm_callback=shm_callback, **kwargs)
         self._proc = None
 
     def start(self, recv_queue: mp.Queue):
@@ -144,7 +152,7 @@ class ChildProcess(Child):
                 target=self._target,
                 args=(
                     self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue,
-                    self._shared_object
+                    self._shm_buffer, self._shm_callback
                 ),
                 name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
                 daemon=True
@@ -170,10 +178,8 @@ class ChildProcess(Child):
 
 class ChildThread(Child):
 
-    def __init__(
-            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
-    ) -> None:
-        super().__init__(proc_id, init, *args, shared_object=shared_object, **kwargs)
+    def __init__(self, proc_id: int, init: Callable, *args, **kwargs) -> None:
+        super().__init__(proc_id, init, *args, **kwargs)
         self._thread = None
 
     def start(self, recv_queue: queue.Queue):
@@ -213,9 +219,18 @@ class Supervisor:
         self._running = False
         self.__queue = None
 
-    def register(self, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs) -> None:
+    def register(
+            self,
+            init: Callable,
+            *args,
+            shm_buffer: Optional[Any] = None,
+            shm_callback: Optional[Callable] = None,
+            **kwargs
+    ) -> None:
         proc_id = len(self._children)
-        self._children.append(self._child_class(proc_id, init, *args, shared_object=shared_object, **kwargs))
+        self._children.append(
+            self._child_class(proc_id, init, *args, shm_buffer=shm_buffer, shm_callback=shm_callback, **kwargs)
+        )
 
     @property
     def _recv_queue(self) -> Union[queue.Queue, mp.Queue]:
