@@ -11,9 +11,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .handyrl_core.model import BaseModel, Dense
-
-from .football.util import *
+from dizoo.gfootball.model.bots.TamakEriFever.handyrl_core.model import BaseModel, Dense
+from dizoo.gfootball.model.bots.TamakEriFever.football.util import *
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseA as rulebaseA
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseB as rulebaseB
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseC as rulebaseC
@@ -248,8 +247,9 @@ class FootballNet(BaseModel):
 
             p = F.relu(torch.cat([p_self, p_opp], dim=1))
             s_concat = s.view(bs, 1, -1).repeat(1, p.size(1), 1)
-            p = torch.cat([p, x['distance']['p2bo'].view(bs, p.size(1), -1), s_concat], dim=2)
-
+            # p = torch.cat([p, x['distance']['p2bo'].view(bs, p.size(1), -1), s_concat], dim=2)
+            # TODO(pu)
+            p = torch.cat([p, x['distance']['p2bo'].repeat(1,2,1).view(bs, p.size(1), -1), s_concat], dim=2)
             h = F.relu(self.fc(p))
 
             # relation

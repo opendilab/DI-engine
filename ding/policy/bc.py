@@ -1,20 +1,22 @@
 import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import copy
-from torch.optim import Adam
+from torch.optim import Adam, AdamW
 from torch.optim.lr_scheduler import LambdaLR
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 from easydict import EasyDict
 from ding.policy import Policy
 from ding.model import model_wrap
-from ding.torch_utils import to_device
+from ding.torch_utils import to_device, to_list
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from ding.rl_utils import q_nstep_td_data, q_nstep_sql_td_error, get_nstep_return_data, get_train_sample
 from ding.worker.collector.interaction_serial_evaluator import InteractionSerialEvaluator
 from ding.utils import POLICY_REGISTRY
+from ding.torch_utils.loss.cross_entropy_loss import LabelSmoothCELoss
 
 
 @POLICY_REGISTRY.register('bc')
@@ -36,6 +38,9 @@ class BehaviourCloningPolicy(Policy):
             update_per_collect=1,
             batch_size=32,
             learning_rate=1e-5,
+            weight_decay=None,
+            ce_class_weight=False,
+            ce_label_smooth=False,
         ),
         collect=dict(unroll_len=1, ),
         eval=dict(),
@@ -43,13 +48,20 @@ class BehaviourCloningPolicy(Policy):
     )
 
     def _init_learn(self):
-        self._optimizer = Adam(
-            self._model.parameters(),
-            lr=self._cfg.learn.learning_rate,
-        )
+        if self._cfg.policy.weight_decay is None:
+            self._optimizer = Adam(
+                self._model.parameters(),
+                lr=self._cfg.learn.learning_rate,
+            )
+        else:
+            self._optimizer = AdamW(
+                self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
+            )
+
         self._timer = EasyTimer(cuda=True)
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
+
         if self._cfg.continuous:
             if self._cfg.loss_type == 'l1_loss':
                 self._loss = nn.L1Loss()
@@ -58,7 +70,14 @@ class BehaviourCloningPolicy(Policy):
             else:
                 raise KeyError
         else:
-            self._loss = nn.CrossEntropyLoss()
+            if self._cfg.learn.ce_label_smooth:
+                self._loss = LabelSmoothCELoss(0.1)
+            else:
+                self._loss = nn.CrossEntropyLoss()
+
+            # accuracy statistics for debugging in discrete action space env, e.g. for gfootball
+            self.total_accuracy_in_dataset = []
+            self.action_accuracy_in_dataset = {k: [] for k in range(19)}
 
     def _forward_learn(self, data):
         if not isinstance(data, dict):
@@ -76,7 +95,36 @@ class BehaviourCloningPolicy(Policy):
                 loss = self._loss(mu, action)
             else:
                 a_logit = self._learn_model.forward(obs)
-                loss = self._loss(a_logit['logit'], action)
+                if self._cfg.learn.ce_class_weight:
+                    # to tackle with unbalanced training set.
+                    # to tackle with the case that the num of some actions is zero
+                    # TODO(pu): the total num of class
+                    self.action_num = [1 for _ in range(19)]
+                    for action_int in to_list(torch.unique(action)):
+                        action_index = (action == action_int).nonzero(as_tuple=True)[0]
+                        self.action_num[action_int] = action_index.shape[0]
+                    self.action_num = torch.tensor(self.action_num)
+                    weight = self.action_num.sum(
+                    ) / self.action_num  # the larger the action_num , the smaller the weight
+                    weight = weight / weight.sum()  # normalization
+                    if self._cuda:
+                        weight = to_device(weight, self._device)
+                    loss = F.cross_entropy(a_logit['logit'], action, weight=weight)
+                else:
+                    loss = self._loss(a_logit['logit'], action)
+
+                if self._cfg.learn.show_accuracy:
+                    # Calculate the overall accuracy and the accuracy of each class
+                    total_accuracy = (a_logit['action'] == action.view(-1)).float().mean()
+                    self.total_accuracy_in_dataset.append(total_accuracy)
+                    print('the total accuracy in current mini-batch: ', total_accuracy)
+                    for action_int in to_list(torch.unique(action)):
+                        action_index = (action == action_int).nonzero(as_tuple=True)[0]
+                        action_accuracy = (a_logit['action'][action_index] == action.view(-1)[action_index]
+                                           ).float().mean()
+                        self.action_accuracy_in_dataset[action_int].append(action_accuracy)
+                        print(f'the accuracy of action {action_int} in current mini-batch: ', action_accuracy)
+
         forward_time = self._timer.value
         with self._timer:
             self._optimizer.zero_grad()
