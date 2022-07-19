@@ -226,7 +226,7 @@ class DIstarCollectMode:
 
         return return_data
 
-    def process_transition(self, timestep) -> dict:
+    def process_transition(self, obs, model_output, timestep) -> dict:
         step_data = rl_step_data()
         step_data['done'] = timestep.done
         return step_data

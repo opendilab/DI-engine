@@ -15,6 +15,7 @@ from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
 from dizoo.distar.envs.fake_data import rl_step_data
+from copy import deepcopy
 
 from ditk import logging
 
@@ -111,7 +112,10 @@ class BattleTransitionList:
         for i in range(num_complele_trajectory):
             trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
             # TODO(zms): 测试专用，之后去掉
-            # trajectory.append(rl_step_data(last=True))
+            last_step = deepcopy(trajectory[-1])
+            for k in ['mask', 'action_info', 'teacher_logit', 'behaviour_logp', 'selected_units_num', 'reward', 'step']:
+                last_step.pop(k)
+            trajectory.append(last_step)
             return_episode.append(trajectory)
 
         if num_tail_transitions > 0:
@@ -122,7 +126,10 @@ class BattleTransitionList:
                     initial_elements.append(trajectory[0])
                 trajectory = initial_elements + trajectory
             # TODO(zms): 测试专用，之后去掉
-            # trajectory.append(rl_step_data(last=True))
+            last_step = deepcopy(trajectory[-1])
+            for k in ['mask', 'action_info', 'teacher_logit', 'behaviour_logp', 'selected_units_num', 'reward', 'step']:
+                last_step.pop(k)
+            trajectory.append(last_step)
             return_episode.append(trajectory)
 
         return return_episode  # list of trajectories
@@ -385,7 +392,8 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                     # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
                     episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
 
-                if timestep.done:
+            if timestep.done:
+                for policy_id, policy in enumerate(ctx.current_policies):
                     policy.reset(env.ready_obs[0][policy_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 

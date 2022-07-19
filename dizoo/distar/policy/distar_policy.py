@@ -555,9 +555,12 @@ class DIStarPolicy(Policy):
 
     def _data_postprocess_collect(self, data, game_info):
         self.hidden_state = data['hidden_state']
-        self.last_queued = data['action_info']['queued']
-        self.last_action_type = data['action_info']['action_type']
-        self.last_delay = data['action_info']['delay']
+        assert data['action_info']['queued'].shape == torch.Size([1]), data['action_info']['queued']
+        self.last_queued = data['action_info']['queued'][0]
+        assert data['action_info']['action_type'].shape == torch.Size([1]), data['action_info']['action_type']
+        self.last_action_type = data['action_info']['action_type'][0]
+        assert data['action_info']['action_type'].shape == torch.Size([1]), data['action_info']['delay']
+        self.last_delay = data['action_info']['delay'][0]
         self.last_location = data['action_info']['target_location']
 
         action_type = self.last_action_type.item()
@@ -678,6 +681,8 @@ class DIStarPolicy(Policy):
                 'winloss': torch.tensor(reward, dtype=torch.float),
                 'build_order': bo_reward,
                 'built_unit': cum_reward,
+                'effect': torch.randint(-1, 1, size=(), dtype=torch.float),
+                'upgrade': torch.randint(-1, 1, size=(), dtype=torch.float),
                 # 'upgrade': torch.randint(-1, 1, size=(), dtype=torch.float),
                 'battle': battle_reward,
             },
