@@ -25,7 +25,8 @@ from ding.model.template.efficientzero.efficientzero_base_model import inverse_s
 from dizoo.board_games.atari.config.atari_config import game_config
 # from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_config import game_config
-from line_profiler import line_profiler
+import line_profiler
+profile = line_profiler.LineProfiler()
 
 
 @POLICY_REGISTRY.register('efficientzero')

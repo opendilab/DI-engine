@@ -17,7 +17,8 @@ import ding.rl_utils.mcts.ptree as tree
 from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTS_ptree
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 from ding.torch_utils.data_helper import to_ndarray
-from line_profiler import line_profiler
+import line_profiler
+profile = line_profiler.LineProfiler()
 
 
 @dataclass

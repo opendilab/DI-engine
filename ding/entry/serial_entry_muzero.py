@@ -13,7 +13,8 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.data.buffer.game_buffer import GameBuffer
-from line_profiler import line_profiler
+import line_profiler
+profile = line_profiler.LineProfiler()
 
 
 @profile
