@@ -1,6 +1,8 @@
 from easydict import EasyDict
+
 collector_env_num = 8
 evaluator_env_num = 5
+
 gfootball_il_main_config = dict(
     exp_name='data_gfootball/gfootball_il_seed0',
     env=dict(
@@ -14,11 +16,10 @@ gfootball_il_main_config = dict(
     ),
     policy=dict(
         test_accuracy=False,
-        # Users should add their own il model path here. Model path should lead to a model.
-        # Absolute path is recommended.
-        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         # Note, only if test_accuracy=True, we will test accuracy in train dataset and validation dataset
         # use the il model in the path <il_model_path>.
+        # Users should add their own il model path here. Model path should lead to a model.
+        # Absolute path is recommended. In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         il_model_path='il_model_path_placeholder',
         cuda=True,
         nstep=1,
