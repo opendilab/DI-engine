@@ -10,11 +10,10 @@ from ding.envs import BaseEnvManager
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
-from ding.torch_utils import tensor_to_list
+from ding.torch_utils import tensor_to_list, to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
 
-if TYPE_CHECKING:
-    from ding.framework import Context, OnlineRLContext
+from ding.framework import Context, OnlineRLContext, OfflineRLContext
 
 
 class IMetric(ABC):
@@ -157,7 +156,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
 
     env.seed(cfg.seed, dynamic_seed=False)
 
-    def _evaluate(ctx: "OnlineRLContext"):
+    def _evaluate(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Overview:
             - The evaluation will be executed if the task begins and enough train_iter passed \
@@ -169,7 +168,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             - eval_value (:obj:`float`): The average reward in the current evaluation.
         """
 
-        if ctx.last_eval_iter != -1 and \
+        # evaluation will be executed if the task begins or enough train_iter after last evaluation
+        if ctx.last_eval_iter is not None and \
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
             return
 
@@ -182,9 +182,9 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
-            obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
+            obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
             inference_output = policy.forward(obs)
-            action = [v['action'].numpy() for v in inference_output.values()]  # TBD
+            action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
             timesteps = env.step(action)
             for timestep in timesteps:
                 env_id = timestep.env_id.item()
@@ -195,11 +195,16 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
         episode_reward = eval_monitor.get_episode_reward()
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
-        logging.info(
-            'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
-                ctx.train_iter, ctx.env_step, eval_reward
+        if isinstance(ctx, OnlineRLContext):
+            logging.info(
+                'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
+                    ctx.train_iter, ctx.env_step, eval_reward
+                )
             )
-        )
+        elif isinstance(ctx, OfflineRLContext):
+            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
+        else:
+            raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
 
@@ -214,7 +219,7 @@ def metric_evaluator(cfg: EasyDict, policy: Policy, dataset: Dataset, metric: IM
 
     def _evaluate(ctx: "Context"):
         # evaluation will be executed if the task begins or enough train_iter after last evaluation
-        if ctx.last_eval_iter != -1 and \
+        if ctx.last_eval_iter is not None and \
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
             return
 

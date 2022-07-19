@@ -34,6 +34,7 @@ class Parallel(metaclass=SingletonMetaclass):
     def _run(
             self,
             node_id: int,
+            n_parallel_workers: int,
             labels: Optional[Set[str]] = None,
             auto_recover: bool = False,
             max_retries: int = float("inf"),
@@ -41,6 +42,7 @@ class Parallel(metaclass=SingletonMetaclass):
             **kwargs
     ) -> None:
         self.node_id = node_id
+        self.n_parallel_workers = n_parallel_workers
         self.labels = labels or set()
         self.auto_recover = auto_recover
         self.max_retries = max_retries
@@ -128,7 +130,6 @@ class Parallel(metaclass=SingletonMetaclass):
     ) -> Dict[str, dict]:
         attach_to = attach_to or []
         nodes = cls.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
-        logging.info("Bind subprocesses on these addresses: {}".format(nodes))
 
         def cleanup_nodes():
             for node in nodes:
@@ -156,6 +157,7 @@ class Parallel(metaclass=SingletonMetaclass):
                 "node_id": candidate_node_ids[i],
                 "listen_to": nodes[i],
                 "attach_to": topology_network(i),
+                "n_parallel_workers": n_parallel_workers,
             }
             runner_params.append(runner_kwargs)
 
@@ -166,7 +168,7 @@ class Parallel(metaclass=SingletonMetaclass):
         runner_params = []
         candidate_node_ids = cls.padding_param(node_ids, n_parallel_workers, 0)
         for i in range(n_parallel_workers):
-            runner_kwargs = {**kwargs, "node_id": candidate_node_ids[i]}
+            runner_kwargs = {**kwargs, "n_parallel_workers": n_parallel_workers, "node_id": candidate_node_ids[i]}
             runner_params.append(runner_kwargs)
         return runner_params
 
@@ -263,6 +265,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def listen(self):
         self._mq.listen()
         while True:
+            if not self._mq:
+                break
             msg = self._mq.recv()
             # msg is none means that the message queue is no longer being listened to,
             # especially if the message queue is already closed

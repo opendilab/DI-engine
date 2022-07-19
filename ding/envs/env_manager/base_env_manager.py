@@ -103,11 +103,21 @@ class BaseEnvManager(object):
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn[0]()
-        self._env_ref.reset()
-        self._observation_space = self._env_ref.observation_space
-        self._action_space = self._env_ref.action_space
-        self._reward_space = self._env_ref.reward_space
-        self._env_ref.close()
+        try:
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+        except:
+            # For some environment,
+            # we have to reset before getting observation description.
+            # However, for dmc-mujoco, we should not reset the env at the main thread,
+            # when using in a subprocess mode, which would cause opengl rendering bugs,
+            # leading to no response subprocesses.
+            self._env_ref.reset()
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+            self._env_ref.close()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
 
@@ -378,6 +388,10 @@ class BaseEnvManager(object):
         else:
             raise TypeError("invalid seed arguments type: {}".format(type(seed)))
         self._env_dynamic_seed = dynamic_seed
+        try:
+            self._action_space.seed(seed[0])
+        except Exception:  # TODO(nyz) deal with nested action_space like SMAC
+            pass
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
         """
@@ -430,6 +444,8 @@ class BaseEnvManagerV2(BaseEnvManager):
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
         obs = [self._ready_obs[i] for i in active_env]
+        if isinstance(obs[0], dict):
+            obs = [tnp.array(o) for o in obs]
         return tnp.stack(obs)
 
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:

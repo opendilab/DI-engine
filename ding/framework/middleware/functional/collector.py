@@ -7,7 +7,7 @@ from ding.envs.env.base_env import BaseEnvTimestep
 from ding.policy import Policy
 import torch
 from ding.utils import dicts_to_lists
-from ding.torch_utils import to_tensor, to_ndarray
+from ding.torch_utils import get_shape0, to_tensor, to_ndarray
 from ding.framework import task
 
 # if TYPE_CHECKING:
@@ -203,9 +203,9 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
         ctx.obs = obs
         # TODO mask necessary rollout
 
-        obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
+        obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
         inference_output = policy.forward(obs, **ctx.collect_kwargs)
-        ctx.action = [v['action'].numpy() for v in inference_output.values()]  # TBD
+        ctx.action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
         ctx.inference_output = inference_output
 
     return _inference

@@ -8,7 +8,7 @@ from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver, nstep_reward_enhancer
+    eps_greedy_handler, CkptSaver, nstep_reward_enhancer, final_ctx_saver
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
 
@@ -41,6 +41,7 @@ def main():
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(final_ctx_saver(cfg.exp_name))
         task.run()
 
 

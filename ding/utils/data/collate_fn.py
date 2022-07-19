@@ -17,11 +17,20 @@ default_collate_err_msg_format = (
 )
 
 
-def ttorch_collate(x):
+def ttorch_collate(x, json=False):
+
+    def inplace_fn(t):
+        for k in t.keys():
+            if isinstance(t[k], torch.Tensor):
+                if len(t[k].shape) == 2 and t[k].shape[1] == 1:  # reshape (B, 1) -> (B)
+                    t[k] = t[k].squeeze(-1)
+            else:
+                inplace_fn(t[k])
+
     x = ttorch.stack(x)
-    for k in x.keys():
-        if len(x[k].shape) >= 2 and x[k].shape[-1] == 1:
-            x[k] = x[k].squeeze(-1)
+    inplace_fn(x)
+    if json:
+        x = x.json()
     return x
 
 
@@ -60,11 +69,12 @@ def default_collate(
         - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data field.\
             the return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
     """
-    elem = batch[0]
 
-    elem_type = type(elem)
     if isinstance(batch, ttorch.Tensor):
         return batch.json()
+
+    elem = batch[0]
+    elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
         out = None
         if torch_ge_131() and torch.utils.data.get_worker_info() is not None:
@@ -80,11 +90,7 @@ def default_collate(
         else:
             return torch.stack(batch, dim, out=out)
     elif isinstance(elem, ttorch.Tensor):
-        ret = ttorch.stack(batch).json()
-        for k in ret:
-            if len(ret[k].shape) == 2 and ret[k].shape[1] == 1:  # reshape (B, 1) -> (B)
-                ret[k] = ret[k].squeeze(1)
-        return ret
+        return ttorch_collate(batch, json=True)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
             and elem_type.__name__ != 'string_':
         if elem_type.__name__ == 'ndarray':

@@ -8,6 +8,7 @@ from queue import Queue
 
 import numpy as np
 import torch
+import treetensor.torch as ttorch
 
 
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
@@ -398,7 +399,6 @@ def get_null_data(template: Any, num: int) -> List[Any]:
         ret.append(data)
     return ret
 
-
 def detach_grad(data):
     if isinstance(data, Sequence):
         for i in range(len(data)):
@@ -426,3 +426,19 @@ def flatten(data):
         return new_data
     else:
         raise TypeError("not support data type: {}".format(type(data)))
+
+def get_shape0(data):
+    if isinstance(data, torch.Tensor):
+        return data.shape[0]
+    elif isinstance(data, ttorch.Tensor):
+
+        def fn(t):
+            item = list(t.values())[0]
+            if np.isscalar(item[0]):
+                return item[0]
+            else:
+                return fn(item)
+
+        return fn(data.shape)
+    else:
+        raise TypeError("not support type: {}".format(data))
