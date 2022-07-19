@@ -1,7 +1,7 @@
 from typing import Tuple, List, Dict, Any
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import get_train_sample, get_nstep_return_data
-from ding.policy import BehaviourCloningPolicy
+from ding.policy.bc import BehaviourCloningPolicy
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 import torch

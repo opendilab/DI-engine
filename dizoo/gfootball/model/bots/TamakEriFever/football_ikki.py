@@ -13,6 +13,8 @@ import torch.nn.functional as F
 
 from dizoo.gfootball.model.bots.TamakEriFever.handyrl_core.model import BaseModel, Dense
 from dizoo.gfootball.model.bots.TamakEriFever.football.util import *
+
+
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseA as rulebaseA
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseB as rulebaseB
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseC as rulebaseC
@@ -214,7 +216,6 @@ class ResNetBasicBlock(ResNetResidualBlock):
 
 
 class FootballNet(BaseModel):
-
     class FootballEncoder(nn.Module):
 
         def __init__(self, filters):
@@ -249,12 +250,12 @@ class FootballNet(BaseModel):
             s_concat = s.view(bs, 1, -1).repeat(1, p.size(1), 1)
             # p = torch.cat([p, x['distance']['p2bo'].view(bs, p.size(1), -1), s_concat], dim=2)
             # TODO(pu)
-            p = torch.cat([p, x['distance']['p2bo'].repeat(1,2,1).view(bs, p.size(1), -1), s_concat], dim=2)
+            p = torch.cat([p, x['distance']['p2bo'].repeat(1, 2, 1).view(bs, p.size(1), -1), s_concat], dim=2)
             h = F.relu(self.fc(p))
 
             # relation
-            rel = None  #x['distance']['p2p']
-            distance = None  #x['distance']['p2p']
+            rel = None  # x['distance']['p2p']
+            distance = None  # x['distance']['p2p']
 
             return h, rel, distance
 
@@ -400,7 +401,7 @@ class FootballNet(BaseModel):
         self.control = self.FootballControll(filters, final_filters)  # to head
 
         self.cnn = self.CNNModel(final_filters)  # to control
-        #self.smm = self.SMMEncoder(smm_filters)  # to control
+        # self.smm = self.SMMEncoder(smm_filters)  # to control
         rnn_hidden = 64
         self.rnn = self.ActionHistoryEncoder(19, rnn_hidden, 2)
 
@@ -416,8 +417,8 @@ class FootballNet(BaseModel):
         for block in self.blocks:
             h = block(h, rel, distance)
         cnn_h = self.cnn(x)
-        #smm_h = self.smm(x)
-        #h = self.control(h, e, x['control_flag'], cnn_h, smm_h)
+        # smm_h = self.smm(x)
+        # h = self.control(h, e, x['control_flag'], cnn_h, smm_h)
         h = self.control(h, e, x['control_flag'])
         rnn_h = self.rnn(x)
 
@@ -796,13 +797,13 @@ def feature_from_states(states, info, player):
     p2p_distance = get_distance(both_team[:, np.newaxis, :], both_team[np.newaxis, :, :])
 
     # apply Multiscale to distances
-    #def concat_multiscale(x, scale):
+    # def concat_multiscale(x, scale):
     #    return np.concatenate([x[...,np.newaxis], 1 - multi_scale(x, scale)], axis=-1)
 
-    #distance_scales = [.01, .05, .25, 1.25]
-    #b2o_distance = 1 - multi_scale(b2o_distance, distance_scales).reshape(-1)
-    #p2bo_distance = 1 - multi_scale(p2bo_distance, distance_scales).reshape(len(both_team), -1)
-    #p2p_distance = 1 - multi_scale(p2p_distance, distance_scales).reshape(len(both_team), len(both_team), -1)
+    # distance_scales = [.01, .05, .25, 1.25]
+    # b2o_distance = 1 - multi_scale(b2o_distance, distance_scales).reshape(-1)
+    # p2bo_distance = 1 - multi_scale(p2bo_distance, distance_scales).reshape(len(both_team), -1)
+    # p2p_distance = 1 - multi_scale(p2p_distance, distance_scales).reshape(len(both_team), len(both_team), -1)
 
     # controlled player information
     control_flag_ = np.array(PLAYER_1HOT[obs['active']], dtype=np.float32)
@@ -933,7 +934,7 @@ def feature_from_states(states, info, player):
         # CNN
         'cnn_feature': cnn_feature,
         # SuperMiniMap
-        #'smm': smm,
+        # 'smm': smm,
         'action_history': action_history
     }
 
@@ -991,15 +992,14 @@ class Environment:
 
         # decide limit steps
 
-
-#         if args.get('role', {}) == 'e':
-#             self.env = self.env_map[1000]
-#         else:
-#             limit_rate = args.get('limit_rate', 1.0)
-#             if limit_rate > 0.9:
-#                 self.env = self.env_map[3000]
-#             elif limit_rate >= 0:
-#                 self.env = self.env_map[99999]
+        #         if args.get('role', {}) == 'e':
+        #             self.env = self.env_map[1000]
+        #         else:
+        #             limit_rate = args.get('limit_rate', 1.0)
+        #             if limit_rate > 0.9:
+        #                 self.env = self.env_map[3000]
+        #             elif limit_rate >= 0:
+        #                 self.env = self.env_map[99999]
 
         role = args.get('role', '')
         limit_rate = args.get('limit_rate', 1)
@@ -1226,19 +1226,20 @@ class Environment:
         o = player_state['observation']['players_raw'][0]
         mode = o['game_mode']
         if mode == GameMode.FreeKick or \
-            mode == GameMode.Corner or \
-            mode == GameMode.Penalty or \
-            mode == GameMode.GoalKick:
+                mode == GameMode.Corner or \
+                mode == GameMode.Penalty or \
+                mode == GameMode.GoalKick:
             # find nearest player and team
             def dist(xy1, xy2):
                 return ((xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2) ** 0.5
+
             team_player_position = [(0, i, p) for i, p in enumerate(o['left_team'])] + \
-                [(1, i, p) for i, p in enumerate(o['right_team'])]
+                                   [(1, i, p) for i, p in enumerate(o['right_team'])]
             distances = [(t[0], t[1], dist(t[2], o['ball'][:2])) for t in team_player_position]
             distances = sorted(distances, key=lambda x: x[2])
-            #print(mode, [t[2] for t in distances])
-            #print(o['ball_owned_team'], o['ball_owned_player'], '->', distances[0][0], distances[0][1])
-            #input()
+            # print(mode, [t[2] for t in distances])
+            # print(o['ball_owned_team'], o['ball_owned_player'], '->', distances[0][0], distances[0][1])
+            # input()
             o['ball_owned_team'] = distances[0][0]
             o['ball_owned_player'] = distances[0][1]
 
@@ -1297,6 +1298,7 @@ class Environment:
 
     # def rule_based_action_F(self, player):
     #     return rulebaseF._agent(self.states[-1][player]['observation'])
+
 
 if __name__ == '__main__':
     e = Environment()

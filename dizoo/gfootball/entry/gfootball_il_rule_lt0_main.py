@@ -68,8 +68,7 @@ il_config[0].policy.eval.evaluator.multi_gpu = False
 football_naive_q = FootballNaiveQ()
 
 il_config[0].policy.learn.show_accuracy = False
-il_config[0].policy.learn.ce_class_weight = True
-il_config[0].policy.learn.lsce = True
+il_config[0].policy.learn.ce_label_smooth = False
 
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0,
                                            model=football_naive_q)

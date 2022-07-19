@@ -13,24 +13,23 @@ gfootball_il_main_config = dict(
         env_name="11_vs_11_easy_stochastic",
         # env_name="11_vs_11_stochastic",  # default: medium
         # env_name="11_vs_11_hard_stochastic",
+        save_replay_gif=False,
     ),
     policy=dict(
+        continuous=False,
         test_accuracy=False,
         # Note, only if test_accuracy=True, we will test accuracy in train dataset and validation dataset
-        # use the il model in the path <il_model_path>.
+        # use the pre-trained il model in the path <il_model_path>.
         # Users should add their own il model path here. Model path should lead to a model.
         # Absolute path is recommended. In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         il_model_path='il_model_path_placeholder',
         cuda=True,
-        nstep=1,
-        discount_factor=0.97,
         model=dict(),
         learn=dict(
             update_per_collect=20,
             batch_size=512,
             learning_rate=0.0001,
             target_update_freq=500,
-            learner=dict(load_path=None),
             weight_decay=1e-4,
         ),
         collect=dict(n_sample=4096, ),

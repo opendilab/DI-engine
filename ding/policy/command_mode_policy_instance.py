@@ -42,6 +42,8 @@ from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 
+from .bc import BehaviourCloningPolicy
+
 
 class EpsCommandModePolicy(CommandModePolicy):
 
@@ -342,4 +344,14 @@ class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('sqil_sac_command')
 class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('bc_command')
+class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
+    pass
+
+from .football_bc import  FootballBCPolicy
+@POLICY_REGISTRY.register('football_bc_command')
+class FootballBCCommandModePolicy(FootballBCPolicy, DummyCommandModePolicy):
     pass

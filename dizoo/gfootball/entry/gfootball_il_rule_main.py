@@ -13,10 +13,11 @@ from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseMode
 
 # in gfootball env: 3000 transitions = one episode
 # 3e5 transitions = 100 episode, The memory needs about 180G
-demo_transitions = int(3e5)  # key hyper-parameter
 seed = 0
-expert_data_path = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
 gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_epc1000_bs512'
+# demo_transitions = int(3e5)  # key hyper-parameter
+demo_transitions = int(100)  # key hyper-parameter #debug
+data_path_transitions = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
 
 
 """
@@ -28,8 +29,7 @@ if isinstance(input_cfg, str):
 else:
     cfg, create_cfg = input_cfg
 create_cfg.policy.type = create_cfg.policy.type + '_command'
-env_fn = None
-cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
 
 football_rule_base_model = FootballRuleBaseModel()
 expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
@@ -38,19 +38,19 @@ expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
 # collect expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
 collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
-eval_config = deepcopy(collect_config)
 
 # eval demo model
-# if save replay
+# eval_config = deepcopy(collect_config)
+# # if save replay
 # eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
-# if not save replay
+# # if not save replay
 # eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
 
 # collect demo data
-collect_demo_data(
-    collect_config, seed=seed, expert_data_path=expert_data_path, collect_count=demo_transitions,
-    model=football_rule_base_model, state_dict=state_dict,
-)
+# collect_demo_data(
+#     collect_config, seed=seed, expert_data_path=data_path_transitions, collect_count=demo_transitions,
+#     model=football_rule_base_model, state_dict=state_dict,
+# )
 
 """
 phase 2: il training
@@ -61,6 +61,12 @@ il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
 il_config[0].policy.eval.evaluator.multi_gpu = False
 football_naive_q = FootballNaiveQ()
+
+il_config[0].policy.learn.show_accuracy = False
+il_config[0].policy.learn.ce_label_smooth = False
+
+_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions,
+                                           model=football_naive_q)
 
 if il_config[0].policy.test_accuracy:
     """
