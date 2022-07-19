@@ -6,6 +6,7 @@ from easydict import EasyDict
 
 from dizoo.distar.config import distar_cfg
 from dizoo.distar.envs.distar_env import DIStarEnv
+from dizoo.distar.policy.distar_policy import DIStarPolicy
 
 from ding.envs import EnvSupervisor
 from ding.league.player import PlayerMeta
@@ -18,7 +19,6 @@ from ding.framework.context import BattleContext
 from ding.framework.supervisor import ChildType
 from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
-from ding.framework.middleware.tests import DIStarMockPolicy
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.functional.collector import battle_inferencer_for_distar, battle_rolloutor_for_distar
 
@@ -51,8 +51,8 @@ def battle_rolloutor_for_distar2(cfg, env, transitions_list, model_info_dict):
 env_cfg = dict(
     actor=dict(job_type='train', ),
     env=dict(
-        map_name='KingsCove',
-        player_ids=['agent1', 'bot10'],
+        map_name='random',
+        player_ids=['agent1', 'bot7'],
         races=['zerg', 'zerg'],
         map_size_resolutions=[True, True],  # if True, ignore minimap_resolutions
         minimap_resolutions=[[160, 152], [160, 152]],
@@ -93,13 +93,13 @@ class PrepareTest():
 
     @classmethod
     def learn_policy_fn(cls):
-        policy = DIStarMockPolicy(DIStarMockPolicy.default_config(), enable_field=['learn'])
+        policy = DIStarPolicy(DIStarPolicy.default_config(), enable_field=['learn'])
         return policy
 
     @classmethod
     def collect_policy_fn(cls):
         # policy = DIStarMockPolicyCollect()
-        policy = DIStarMockPolicy(DIStarMockPolicy.default_config(), enable_field=['collect'])
+        policy = DIStarPolicy(DIStarPolicy.default_config(), enable_field=['collect'])
         return policy
 
 
@@ -112,7 +112,6 @@ loss_games = 0
 @pytest.mark.unittest
 def test_league_actor():
     with task.start(async_mode=True, ctx=BattleContext()):
-        policy = PrepareTest.learn_policy_fn().learn_mode
 
         def test_actor():
             job = Job(
@@ -148,6 +147,9 @@ def test_league_actor():
                         total_games, win_games, draw_games, loss_games
                     )
                 )
+                if total_games >= 100:
+                    task.finish = True
+                    exit(0)
 
             def on_actor_data(actor_data):
                 print('got actor_data')
