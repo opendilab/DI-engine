@@ -16,7 +16,7 @@ from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseMode
 seed = 0
 gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_epc1000_bs512'
 # demo_transitions = int(3e5)  # key hyper-parameter
-demo_transitions = int(100)  # key hyper-parameter #debug
+demo_transitions = int(10)  # key hyper-parameter #debug
 data_path_transitions = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
 
 
@@ -47,10 +47,10 @@ collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_crea
 # eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
 
 # collect demo data
-# collect_demo_data(
-#     collect_config, seed=seed, expert_data_path=data_path_transitions, collect_count=demo_transitions,
-#     model=football_rule_base_model, state_dict=state_dict,
-# )
+collect_demo_data(
+    collect_config, seed=seed, expert_data_path=data_path_transitions, collect_count=demo_transitions,
+    model=football_rule_base_model, state_dict=state_dict,
+)
 
 """
 phase 2: il training

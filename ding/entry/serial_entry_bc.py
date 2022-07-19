@@ -72,9 +72,10 @@ def serial_pipeline_bc(
         # Evaluate policy performance
         loss_list = []
         for _, bat in enumerate(eval_loader):
-            print(bat.keys())
-            print(bat['obs'].keys())
-            res = policy._forward_eval(bat['obs'])
+            # print(bat.keys())
+            # print(bat['obs'].keys())
+            res = policy._forward_eval({'obs': bat['obs']})
+            # res = policy._forward_eval(bat['obs'])
             if cont:
                 loss_list.append(torch.nn.L1Loss()(res['action'], bat['action'].squeeze(-1)).item())
             else:
