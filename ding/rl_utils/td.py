@@ -1,5 +1,4 @@
 import copy
-import numpy as np
 from collections import namedtuple
 from typing import Union, Optional, Callable
 
@@ -12,15 +11,6 @@ from ding.rl_utils.value_rescale import value_transform, value_inv_transform
 from ding.torch_utils import to_tensor
 
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
-
-
-def discount_cumsum(x, gamma: float = 1.0) -> np.ndarray:
-    assert abs(gamma - 1.) < 1e-5, "gamma equals to 1.0 in original decision transformer paper"
-    disc_cumsum = np.zeros_like(x)
-    disc_cumsum[-1] = x[-1]
-    for t in reversed(range(x.shape[0] - 1)):
-        disc_cumsum[t] = x[t] + gamma * disc_cumsum[t + 1]
-    return disc_cumsum
 
 
 def q_1step_td_error(
@@ -81,7 +71,7 @@ nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'do
 
 def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_gamma: Optional[torch.Tensor] = None):
     reward, next_value, done = data
-    assert reward.shape[0] == nstep
+    #assert reward.shape[0] == nstep
     device = reward.device
 
     if isinstance(gamma, float):
@@ -452,6 +442,62 @@ def q_nstep_td_error(
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
+# @hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
+# def q_nstep_td_error_consgrad(
+#         data: namedtuple,
+#         gamma: Union[float, list],
+#         nstep: int = 1,
+#         cum_reward: bool = False,
+#         value_gamma: Optional[torch.Tensor] = None,
+#         criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+# ) -> torch.Tensor:
+#     """
+#     Overview:
+#         Multistep (1 step or n step) td_error for q-learning based algorithm
+#     Arguments:
+#         - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
+#         - gamma (:obj:`float`): discount factor
+#         - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
+#         - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
+#         - criterion (:obj:`torch.nn.modules`): loss function criterion
+#         - nstep (:obj:`int`): nstep num, default set to 1
+#     Returns:
+#         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+#         - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
+#     Shapes:
+#         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+#             ['q', 'next_n_q', 'action', 'reward', 'done']
+#         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+#         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
+#         - action (:obj:`torch.LongTensor`): :math:`(B, )`
+#         - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+#         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+#         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+#         - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+#     """
+#     q, next_n_q, action, next_n_action, reward, done, weight = data
+#     if weight is None:
+#         weight = torch.ones_like(reward)
+#     if len(action.shape) > 1:  # MARL case
+#         reward = reward.unsqueeze(-1)
+#         weight = weight.unsqueeze(-1)
+#         done = done.unsqueeze(-1)
+#         if value_gamma is not None:
+#             value_gamma = value_gamma.unsqueeze(-1)
+
+#     q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
+#     target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
+
+#     if cum_reward:
+#         if value_gamma is None:
+#             target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+#         else:
+#             target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
+#     else:
+#         target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+#     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+#     return (td_error_per_sample * weight).mean(), td_error_per_sample
+
 
 def shape_fn_qntd_rescale(args, kwargs):
     r"""
@@ -616,6 +662,64 @@ def dqfd_nstep_td_error(
         lambda_one_step_td * td_error_one_step_per_sample.abs() + lambda_supervised_loss * JE.abs(),
         (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
     )
+
+
+@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
+def q_nstep_td_error_with_error_rescale(
+        data: namedtuple,
+        gamma: Union[float, list],
+        nstep: int = 1,
+        cum_reward: bool = False,
+        value_gamma: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep (1 step or n step) td_error for q-learning based algorithm
+    Arguments:
+        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - nstep (:obj:`int`): nstep num, default set to 1
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+        - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+            ['q', 'next_n_q', 'action', 'reward', 'done']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+    """
+    q, next_n_q, action, next_n_action, reward, done, weight = data
+    if weight is None:
+        weight = torch.ones_like(reward)
+    if len(action.shape) > 1:  # MARL case
+        reward = reward.unsqueeze(-1)
+        weight = weight.unsqueeze(-1)
+        done = done.unsqueeze(-1)
+        if value_gamma is not None:
+            value_gamma = value_gamma.unsqueeze(-1)
+
+    q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
+    target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
+
+    if cum_reward:
+        if value_gamma is None:
+            target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+        else:
+            target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
+    else:
+        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+    td_error_per_sample.clamp_(-1, 1)
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
 def dqfd_nstep_td_error_with_rescale(
@@ -953,151 +1057,6 @@ def iqn_nstep_td_error(
     loss = quantile_huber_loss.sum(dim=2).mean(dim=1)[:, 0]
 
     return (loss * weight).mean(), loss
-
-
-fqf_nstep_td_data = namedtuple(
-    'fqf_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'quantiles_hats', 'weight']
-)
-
-
-def fqf_nstep_td_error(
-        data: namedtuple,
-        gamma: float,
-        nstep: int = 1,
-        kappa: float = 1.0,
-        value_gamma: Optional[torch.Tensor] = None,
-) -> torch.Tensor:
-    """
-    Overview:
-        Multistep (1 step or n step) td_error with in FQF, \
-            referenced paper Fully Parameterized Quantile Function for Distributional Reinforcement Learning \
-            <https://arxiv.org/pdf/1911.02140.pdf>
-    Arguments:
-        - data (:obj:`fqf_nstep_td_data`): the input data, fqf_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - nstep (:obj:`int`): nstep num, default set to 1
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - beta_function (:obj:`Callable`): the risk function
-    Returns:
-        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
-    Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
-        ['q', 'next_n_q', 'action', 'reward', 'done']
-        - q (:obj:`torch.FloatTensor`): :math:`(B, tau, N)` i.e. [batch_size, tau, action_dim]
-        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, tau', N)`
-        - action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
-        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
-        - quantiles_hats (:obj:`torch.FloatTensor`): :math:`(B, tau)`
-    """
-    q, next_n_q, action, next_n_action, reward, done, quantiles_hats, weight = data
-
-    assert len(action.shape) == 1, action.shape
-    assert len(next_n_action.shape) == 1, next_n_action.shape
-    assert len(done.shape) == 1, done.shape
-    assert len(q.shape) == 3, q.shape
-    assert len(next_n_q.shape) == 3, next_n_q.shape
-    assert len(reward.shape) == 2, reward.shape
-
-    if weight is None:
-        weight = torch.ones_like(action)
-
-    batch_size = done.shape[0]
-    tau = q.shape[1]
-    tau_prime = next_n_q.shape[1]
-
-    # shape: batch_size x tau x 1
-    q_s_a = evaluate_quantile_at_action(q, action)
-    # shape: batch_size x tau_prime x 1
-    target_q_s_a = evaluate_quantile_at_action(next_n_q, next_n_action)
-
-    assert reward.shape[0] == nstep
-    reward_factor = torch.ones(nstep).to(reward.device)
-    for i in range(1, nstep):
-        reward_factor[i] = gamma * reward_factor[i - 1]
-    reward = torch.matmul(reward_factor, reward)  # [batch_size]
-    if value_gamma is None:
-        target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
-    else:
-        target_q_s_a = reward.unsqueeze(-1) + value_gamma.unsqueeze(-1) * target_q_s_a.squeeze(-1) * (1 - done
-                                                                                                      ).unsqueeze(-1)
-    target_q_s_a = target_q_s_a.unsqueeze(-1)
-
-    # shape: batch_size x tau' x tau x 1.
-    bellman_errors = (target_q_s_a.unsqueeze(2) - q_s_a.unsqueeze(1))
-
-    # shape: batch_size x tau' x tau x 1
-    huber_loss = F.smooth_l1_loss(target_q_s_a.unsqueeze(2), q_s_a.unsqueeze(1), reduction="none")
-
-    # shape: batch_size x num_tau_prime_samples x num_tau_samples x 1.
-    quantiles_hats = quantiles_hats[:, None, :, None].repeat([1, tau_prime, 1, 1])
-
-    # shape: batch_size x tau_prime x tau x 1.
-    quantile_huber_loss = (torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach()) * huber_loss) / kappa
-
-    # shape: batch_size
-    loss = quantile_huber_loss.sum(dim=2).mean(dim=1)[:, 0]
-
-    return (loss * weight).mean(), loss
-
-
-def evaluate_quantile_at_action(q_s, actions):
-    assert q_s.shape[0] == actions.shape[0]
-
-    batch_size, num_quantiles = q_s.shape[:2]
-
-    # Expand actions into (batch_size, num_quantiles, 1).
-    action_index = actions[:, None, None].expand(batch_size, num_quantiles, 1)
-
-    # Calculate quantile values at specified actions.
-    q_s_a = q_s.gather(dim=2, index=action_index)
-
-    return q_s_a
-
-
-def fqf_calculate_fraction_loss(q_tau_i, q_value, quantiles, actions):
-    """
-    Shapes:
-       - q_tau_i (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles-1, action_dim)`
-       - q_value (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles, action_dim)`
-       - quantiles (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles+1)`
-       - actions (:obj:`torch.LongTensor`) :math:`(batch_size, )`
-    """
-    assert q_value.requires_grad
-
-    batch_size = q_value.shape[0]
-    num_quantiles = q_value.shape[1]
-
-    with torch.no_grad():
-        sa_quantiles = evaluate_quantile_at_action(q_tau_i, actions)
-        assert sa_quantiles.shape == (batch_size, num_quantiles - 1, 1)
-        q_s_a_hats = evaluate_quantile_at_action(q_value, actions)  # [batch_size, num_quantiles, 1]
-        assert q_s_a_hats.shape == (batch_size, num_quantiles, 1)
-        assert not q_s_a_hats.requires_grad
-
-    # NOTE: Proposition 1 in the paper requires F^{-1} is non-decreasing.
-    # I relax this requirements and calculate gradients of quantiles even when
-    # F^{-1} is not non-decreasing.
-
-    values_1 = sa_quantiles - q_s_a_hats[:, :-1]
-    signs_1 = sa_quantiles > torch.cat([q_s_a_hats[:, :1], sa_quantiles[:, :-1]], dim=1)
-    assert values_1.shape == signs_1.shape
-
-    values_2 = sa_quantiles - q_s_a_hats[:, 1:]
-    signs_2 = sa_quantiles < torch.cat([sa_quantiles[:, 1:], q_s_a_hats[:, -1:]], dim=1)
-    assert values_2.shape == signs_2.shape
-
-    gradient_of_taus = (torch.where(signs_1, values_1, -values_1) +
-                        torch.where(signs_2, values_2, -values_2)).view(batch_size, num_quantiles - 1)
-    assert not gradient_of_taus.requires_grad
-    assert gradient_of_taus.shape == quantiles[:, 1:-1].shape
-
-    # Gradients of the network parameters and corresponding loss
-    # are calculated using chain rule.
-    fraction_loss = (gradient_of_taus * quantiles[:, 1:-1]).sum(dim=1).mean()
-
-    return fraction_loss
 
 
 td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])

@@ -1,7 +1,9 @@
 from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import copy
+from ding.rl_utils.td import q_nstep_td_error_with_rescale, q_nstep_td_error_with_error_rescale
 import torch
+import numpy as np
 
 from ding.torch_utils import Adam, to_device, ContrastiveLoss
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, get_nstep_return_data, get_train_sample
@@ -153,6 +155,7 @@ class DQNPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
+        self._popart_update = PopartUpdate(shape=6)
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -186,7 +189,21 @@ class DQNPolicy(Policy):
         self._learn_model.train()
         self._target_model.train()
         # Current q value (main model)
+        
         q_value = self._learn_model.forward(data['obs'])['logit']
+        q_next_value = self._learn_model.forward(data['next_obs'])['logit']
+        if self._cfg.other.reward_scale.reward_scale_function == 'popart':
+            #W
+            # for i in range(len(list(self._learn_model.parameters()))):
+            #     print(list(self._learn_model.parameters())[i].size())
+            W = list(self._learn_model.parameters())[10]
+            b = list(self._learn_model.parameters())[11]
+            # print(W.size(), b.size())
+            # print("=======data obs=========", data['obs'].size())
+            # print("=======q value==========", q_value.size())
+            # print(self._model)
+            W.data, b.data = self._popart_update.update(q_value, W.data, b.data)
+            
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
@@ -197,15 +214,31 @@ class DQNPolicy(Policy):
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         value_gamma = data.get('value_gamma')
-        loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        if self._cfg.other.reward_scale.reward_scale_function == 'normal':
+            loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        elif self._cfg.other.reward_scale.reward_scale_function == 'apex':
+            loss, td_error_per_sample = q_nstep_td_error_with_rescale(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        elif self._cfg.other.reward_scale.reward_scale_function == 'errorclip':
+            loss, td_error_per_sample = q_nstep_td_error_with_error_rescale(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        else:
+            loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+            
 
         # ====================
         # Q-learning update
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        if self._cfg.other.reward_scale.reward_scale_function == 'consgrad':
+            grad_v_norm = self.g_v(data['next_obs'])
+            for i, p in enumerate(self._learn_model.parameters()):
+                # print(p.grad)
+                # print(grad_v_norm[i])
+                p.grad -= torch.mul(p.grad, grad_v_norm[i]) * grad_v_norm[i]
+
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
+
         self._optimizer.step()
 
         # =============
@@ -220,6 +253,14 @@ class DQNPolicy(Policy):
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
+
+    def g_v(self, state):
+        value = self._learn_model.forward(state)['logit'].sum()
+        value.backward()
+
+        direction = [param.grad / torch.norm(param.grad, p=2)
+                     for param in self._learn_model.parameters()]
+        return direction
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'total_loss', 'q_value']
@@ -652,3 +693,21 @@ class DQNSTDIMPolicy(DQNPolicy):
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
         self._aux_optimizer.load_state_dict(state_dict['aux_optimizer'])
+
+class PopartUpdate(object):
+    def __init__(self, shape):
+        self._shape = shape
+        self._mean = torch.zeros(self._shape)
+        self._var = torch.ones(self._shape)
+
+    def update(self, value, W, b):
+        batch_mean = torch.mean(value, axis=0) # dim = 6
+        batch_var = torch.var(value, axis=0)
+        W_new = torch.reshape(1/batch_var * self._var, (self._shape, 1))
+        W_new = W * W_new
+
+        b_new = 1/batch_var *(self._var*b + self._mean - batch_mean)
+        self._var = batch_var
+        self._mean = batch_mean
+
+        return W_new, b_new
