@@ -235,6 +235,11 @@ class FileStorageLoader(StorageLoader):
 
     def shutdown(self, timeout: Optional[float] = None) -> None:
         super().shutdown(timeout)
+        while len(self._files) > 0:
+            _, file_path = self._files.pop(0)
+            if path.exists(file_path):
+                os.remove(file_path)
+
         self._cleanup_thread = None
 
     def _loop_cleanup(self):
