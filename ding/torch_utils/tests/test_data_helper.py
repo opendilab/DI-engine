@@ -4,9 +4,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import treetensor.torch as ttorch
 
 from ding.torch_utils import CudaFetcher, to_device, to_dtype, to_tensor, to_ndarray, to_list, \
-    tensor_to_list, same_shape, build_log_buffer, get_tensor_data
+    tensor_to_list, same_shape, build_log_buffer, get_tensor_data, get_shape0
 from ding.utils import EasyTimer
 
 
@@ -131,6 +132,18 @@ class TestDataFunction:
             assert not t.requires_grad
         with pytest.raises(TypeError):
             get_tensor_data(EasyTimer())
+
+    def test_get_shape0(self):
+        a = {
+            'a': {
+                'b': torch.randn(4, 3)
+            },
+            'c': {
+                'd': torch.randn(4)
+            },
+        }
+        a = ttorch.as_tensor(a)
+        assert get_shape0(a) == 4
 
 
 @pytest.mark.unittest

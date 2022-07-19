@@ -361,8 +361,6 @@ class SACDiscretePolicy(Policy):
                                                torch.zeros_like(self._alpha)).requires_grad_()
         loss_dict['total_loss'] = sum(loss_dict.values())
 
-        info_dict = {}
-
         # =============
         # after update
         # =============
@@ -379,8 +377,7 @@ class SACDiscretePolicy(Policy):
             'q_value_2': target_q_value[1].detach().mean().item(),
             'target_value': target_value.detach().mean().item(),
             'entropy': entropy.item(),
-            **info_dict,
-            **loss_dict
+            #**loss_dict
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:

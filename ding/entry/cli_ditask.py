@@ -62,6 +62,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option("--redis-host", type=str, help="Redis host.")
 @click.option("--redis-port", type=int, help="Redis port.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
+@click.option("--local_rank", type=int, default=0, help="Compatibility with PyTorch DDP")
 def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
 
@@ -105,6 +106,7 @@ def _cli_ditask(
     mq_type: str,
     redis_host: str,
     redis_port: int,
+    local_rank: int = 0,
     platform: str = None,
     platform_spec: str = None,
 ):

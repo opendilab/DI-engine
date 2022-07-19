@@ -114,7 +114,9 @@ def dist_finalize() -> None:
     Overview:
         Finalize distributed training resources
     """
-    dist.destroy_process_group()
+    # This operation usually hangs out so we ignore it temporally.
+    # dist.destroy_process_group()
+    pass
 
 
 class DistContext:

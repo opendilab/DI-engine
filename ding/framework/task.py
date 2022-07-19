@@ -330,6 +330,8 @@ class Task:
         Overview:
             Stop and cleanup every thing in the runtime of task.
         """
+        if self.router.is_active:
+            self.emit("finish", True)
         if self._thread_pool:
             self._thread_pool.shutdown()
         self._event_loop.stop()
@@ -472,8 +474,6 @@ class Task:
     @finish.setter
     def finish(self, value: bool):
         self._finish = value
-        if self.router.is_active and value is True:
-            self.emit("finish", value)
 
     def _wrap_event_name(self, event: str) -> str:
         """

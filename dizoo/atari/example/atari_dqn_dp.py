@@ -5,6 +5,7 @@ from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
+from ding.torch_utils import DataParallel
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
@@ -16,6 +17,7 @@ from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_c
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
+    main_config.exp_name = 'pong_dqn_seed0_dp'
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_cfg = deepcopy(cfg.env)
@@ -32,6 +34,7 @@ def main():
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         model = DQN(**cfg.policy.model)
+        model = DataParallel(model)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = DQNPolicy(cfg.policy, model=model)
 
