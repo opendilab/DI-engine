@@ -193,15 +193,8 @@ class DQNPolicy(Policy):
         q_value = self._learn_model.forward(data['obs'])['logit']
         q_next_value = self._learn_model.forward(data['next_obs'])['logit']
         if self._cfg.other.reward_scale.reward_scale_function == 'popart':
-            #W
-            # for i in range(len(list(self._learn_model.parameters()))):
-            #     print(list(self._learn_model.parameters())[i].size())
             W = list(self._learn_model.parameters())[10]
             b = list(self._learn_model.parameters())[11]
-            # print(W.size(), b.size())
-            # print("=======data obs=========", data['obs'].size())
-            # print("=======q value==========", q_value.size())
-            # print(self._model)
             W.data, b.data = self._popart_update.update(q_value, W.data, b.data)
             
         # Target q value
@@ -232,8 +225,6 @@ class DQNPolicy(Policy):
         if self._cfg.other.reward_scale.reward_scale_function == 'consgrad':
             grad_v_norm = self.g_v(data['next_obs'])
             for i, p in enumerate(self._learn_model.parameters()):
-                # print(p.grad)
-                # print(grad_v_norm[i])
                 p.grad -= torch.mul(p.grad, grad_v_norm[i]) * grad_v_norm[i]
 
         if self._cfg.learn.multi_gpu:
