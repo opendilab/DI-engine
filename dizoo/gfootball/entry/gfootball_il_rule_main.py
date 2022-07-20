@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
 seed = 0
 gfootball_il_main_config.exp_name = 'gfootball_il_rule_seed0_100eps_epc1000_bs512'
 demo_transitions = int(3e5)  # key hyper-parameter
+
 data_path_transitions = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
 
 """
@@ -30,12 +31,11 @@ if isinstance(input_cfg, str):
     cfg, create_cfg = read_config(input_cfg)
 else:
     cfg, create_cfg = input_cfg
-create_cfg.policy.type = create_cfg.policy.type + '_command'
-cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
+cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
 football_rule_base_model = FootballRuleBaseModel()
 expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
-                              enable_field=['learn', 'collect', 'eval', 'command'])
+                              enable_field=['learn', 'collect', 'eval'])
 
 # collect rule/expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
@@ -72,8 +72,6 @@ if il_config[0].policy.show_train_test_accuracy:
 
     # load trained il model
     il_config[0].policy.learn.batch_size = int(3000)
-    il_config[0].policy.learn.train_epoch = 1
-    il_config[0].policy.learn.show_accuracy = True
     state_dict = torch.load(il_model_path)
     football_naive_q.load_state_dict(state_dict['model'])
     policy = create_policy(cfg.policy, model=football_naive_q, enable_field=['eval'])
@@ -83,7 +81,7 @@ if il_config[0].policy.show_train_test_accuracy:
     print('calculate accuracy in train dataset')
     print('==' * 10)
     # Users should add their own il train_data_path here. Absolute path is recommended.
-    train_data_path = dir_path + f'/gfootball_rule_300000-demo-transitions.pkl'
+    train_data_path = dir_path + f'/gfootball_rule_300000-demo-transitions_train.pkl'
     test_accuracy.test_accuracy_in_dataset(train_data_path, cfg.policy.learn.batch_size, policy)
 
     # calculate accuracy in test dataset

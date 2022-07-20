@@ -105,15 +105,15 @@ class BehaviourCloningPolicy(Policy):
                     total_accuracy = (a_logit['action'] == action.view(-1)).float().mean()
                     self.total_accuracy_in_dataset.append(total_accuracy)
                     logging.info(f'the total accuracy in current train mini-batch is: {total_accuracy}')
-                    for action_int in to_list(torch.unique(action)):
-                        action_index = (action == action_int).nonzero(as_tuple=True)[0]
+                    for action_unique in to_list(torch.unique(action)):
+                        action_index = (action == action_unique).nonzero(as_tuple=True)[0]
                         action_accuracy = (a_logit['action'][action_index] == action.view(-1)[action_index]
                                            ).float().mean()
                         if math.isnan(action_accuracy):
                             action_accuracy = 0.0
-                        self.action_accuracy_in_dataset[action_int].append(action_accuracy)
+                        self.action_accuracy_in_dataset[action_unique].append(action_accuracy)
                         logging.info(
-                            f'the accuracy of action {action_int} in current train mini-batch is: {action_accuracy}'
+                            f'the accuracy of action {action_unique} in current train mini-batch is: {action_accuracy}'
                         )
 
         forward_time = self._timer.value

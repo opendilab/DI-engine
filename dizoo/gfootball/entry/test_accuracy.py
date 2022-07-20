@@ -20,21 +20,21 @@ def test_accuracy_in_dataset(data_path, batch_size, policy):
     total_accuracy_in_dataset = []
     action_accuracy_in_dataset = {k: [] for k in range(19)}
     for _, minibatch in enumerate(dataloader):
-        res = policy._forward_eval(minibatch['obs'])
-        pred_action = torch.argmax(res['logit'], dim=1)
-        total_accuracy = torch.sum(pred_action == minibatch['action'].squeeze(-1)).item() / minibatch['action'].shape[0]
+        policy_output = policy._forward_eval(minibatch['obs'])
+        pred_action = policy_output['action']
+        total_accuracy = (pred_action == minibatch['action'].view(-1)).float().mean()
         total_accuracy_in_dataset.append(total_accuracy)
 
-        for action_int in to_list(torch.unique(minibatch['action'])):
-            action_index = (pred_action == action_int).nonzero(as_tuple=True)[0]
-            action_accuracy = (pred_action[action_index] == pred_action.view(-1)[action_index]
+        for action_unique in to_list(torch.unique(minibatch['action'])):
+            # find the index where action is `action_unique` in `pred_action`
+            action_index = (pred_action == action_unique).nonzero(as_tuple=True)[0]
+            action_accuracy = (pred_action[action_index] == minibatch['action'].view(-1)[action_index]
                                ).float().mean()
             if math.isnan(action_accuracy):
                 action_accuracy = 0.0
-            action_accuracy_in_dataset[action_int].append(action_accuracy)
-            logging.info(f'the accuracy of action {action_int} in current train mini-batch is: {action_accuracy}')
+            action_accuracy_in_dataset[action_unique].append(action_accuracy)
+            # logging.info(f'the accuracy of action {action_unique} in current train mini-batch is: {action_accuracy}')
 
-    # accuracy statistics for debugging in discrete action space env, e.g. for gfootball
-    logging.info(f'total accuracy in dataset: {torch.tensor(total_accuracy_in_dataset).mean()}')
-    logging.info(
-        f'accuracy of each action in dataset: { {k: torch.tensor(action_accuracy_in_dataset[k]).mean() for k in range(19)} }')
+    logging.info(f'total accuracy in dataset is: {torch.tensor(total_accuracy_in_dataset).mean()}')
+    logging.info(f'accuracy of each action in dataset is (nan means the action does not appear in the dataset): '
+                 f'{ {k: torch.tensor(action_accuracy_in_dataset[k]).mean().item() for k in range(19)} }')
