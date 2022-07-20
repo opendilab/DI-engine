@@ -165,10 +165,10 @@ class StepLeagueActor:
                 if not job.is_eval and len(ctx.trajectories_list[idx]) > 0:
                     trajectories = ctx.trajectories_list[idx]
                     self.traj_num += len(trajectories)
-                    log_every_sec(
-                        logging.INFO, 5,
-                        '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
-                    )
+                    # log_every_sec(
+                    #     logging.INFO, 5,
+                    #     '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
+                    # )
                     meta_data = ActorDataMeta(
                         player_total_env_step=ctx.total_envstep_count,
                         actor_id=task.router.node_id,
@@ -176,7 +176,7 @@ class StepLeagueActor:
                     )
                     actor_data = ActorData(meta=meta_data, train_data=trajectories)
                     task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
-                    log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
+                    # log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
 
             ctx.trajectories_list = []
             
