@@ -96,15 +96,6 @@ def serial_pipeline_bc(
         if stop:
             break
 
-    if not cont and cfg.policy.learn.show_accuracy:
-        # accuracy statistics for debugging in discrete action space env, e.g. for gfootball
-        print('total accuracy in dataset: ', torch.tensor(policy.total_accuracy_in_dataset).mean())
-        print(
-            'accuracy of each action in dataset: ',
-            {k: torch.tensor(policy.action_accuracy_in_dataset[k]).mean()
-             for k in range(19)}
-        )
-
     learner.call_hook('after_run')
-    print('final reward is: {}'.format(reward))
+    # print('final reward is: {}'.format(reward))
     return policy, stop

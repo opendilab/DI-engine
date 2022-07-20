@@ -19,7 +19,7 @@ demo_transitions = int(3e5)  # key hyper-parameter
 data_path_transitions = dir_path + f'/gfootball_kaggle5th_{demo_transitions}-demo-transitions.pkl'
 
 """
-phase 1: train/obtain expert policy
+phase 1: collect demo data utilizing rule/expert model
 """
 train_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 input_cfg = train_config

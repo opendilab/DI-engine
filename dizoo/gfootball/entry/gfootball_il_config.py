@@ -18,8 +18,8 @@ gfootball_il_main_config = dict(
     policy=dict(
         env_name='gfootball',
         continuous=False,
-        test_accuracy=False,
-        # Note, only if test_accuracy=True, we will test accuracy in train dataset and validation dataset
+        show_train_test_accuracy=False,
+        # Note, only if show_train_test_accuracy=True, we will test accuracy in train dataset and validation dataset
         # use the pre-trained il model in the path <il_model_path>.
         # Users should add their own il model path here. Model path should lead to a model.
         # Absolute path is recommended. In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.

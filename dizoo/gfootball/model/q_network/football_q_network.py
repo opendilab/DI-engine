@@ -16,6 +16,7 @@ from ding.model.common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead,
 from ding.model.template.q_learning import parallel_wrapper
 from .football_q_network_default_config import default_model_config
 
+
 @MODEL_REGISTRY.register('football_naive_q')
 class FootballNaiveQ(nn.Module):
     """
@@ -97,12 +98,11 @@ class ScalarEncoder(nn.Module):
         encodings = {}
         for k in fixed_scalar_sequence:
             data = x[k]
-            # print(k, ' -- shape:{}, tensor:{}'.format(data.shape, data))
             encodings[k] = getattr(self, k)(data)
             if len(encodings[k].shape) == 1:
                 encodings[k].unsqueeze_(0)
             elif len(encodings[k].shape) == 3:
-                encodings[k].squeeze_(1)
+                encodings[k].squeeze_(0)
         return encodings
 
 
@@ -122,11 +122,11 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
             player_data[k].unsqueeze_(0)  # TODO(pu): expand batch_dim
         elif len(player_data[k].shape) == 1 and k == 'tired_factor':
             player_data[k].unsqueeze_(-1)  # TODO(pu): expand data_dim
-        
+
         if len(player_data[k].shape) == 3:
-            # TODO(pu): to be compatiable with serial_entry_bc
+            # TODO(pu): to be compatible with serial_entry_bc
             # ``res = policy._forward_eval(bat['obs'])`` 
-             player_data[k].squeeze_(1) 
+            player_data[k].squeeze_(0)
         attr.append(player_data[k])
     attr = torch.cat(attr, dim=-1)
     return attr

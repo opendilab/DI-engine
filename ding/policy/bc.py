@@ -49,7 +49,7 @@ class BehaviourCloningPolicy(Policy):
     )
 
     def _init_learn(self):
-        if self._cfg.learn.weight_decay is None:
+        if not hasattr(self._cfg.learn, 'weight_decay') or self._cfg.learn.weight_decay is None:
             self._optimizer = Adam(
                 self._model.parameters(),
                 lr=self._cfg.learn.learning_rate,
@@ -71,12 +71,12 @@ class BehaviourCloningPolicy(Policy):
             else:
                 raise KeyError
         else:
-            if self._cfg.learn.ce_label_smooth:
-                self._loss = LabelSmoothCELoss(0.1)
-            else:
+            if not hasattr(self._cfg.learn, 'ce_label_smooth') or not self._cfg.learn.ce_label_smooth:
                 self._loss = nn.CrossEntropyLoss()
+            else:
+                self._loss = LabelSmoothCELoss(0.1)
 
-            if self._cfg.learn.show_accuracy:
+            if hasattr(self._cfg.learn, 'show_accuracy') and self._cfg.learn.show_accuracy:
                 # accuracy statistics for debugging in discrete action space env, e.g. for gfootball
                 self.total_accuracy_in_dataset = []
                 self.action_accuracy_in_dataset = {k: [] for k in range(19)}
@@ -99,17 +99,20 @@ class BehaviourCloningPolicy(Policy):
                 a_logit = self._learn_model.forward(obs)
                 loss = self._loss(a_logit['logit'], action)
 
-                if self._cfg.learn.show_accuracy:
+                if hasattr(self._cfg.learn, 'show_accuracy') and self._cfg.learn.show_accuracy:
                     # Calculate the overall accuracy and the accuracy of each class
                     total_accuracy = (a_logit['action'] == action.view(-1)).float().mean()
                     self.total_accuracy_in_dataset.append(total_accuracy)
-                    logging.info('the total accuracy in current mini-batch is: ', total_accuracy)
+                    logging.info(f'the total accuracy in current train mini-batch is: {total_accuracy}')
                     for action_int in to_list(torch.unique(action)):
                         action_index = (action == action_int).nonzero(as_tuple=True)[0]
                         action_accuracy = (a_logit['action'][action_index] == action.view(-1)[action_index]
                                            ).float().mean()
+                        if math.isnan(action_accuracy):
+                            action_accuracy = 0.0
                         self.action_accuracy_in_dataset[action_int].append(action_accuracy)
-                        logging.info(f'the accuracy of action {action_int} in current mini-batch is: ', action_accuracy)
+                        logging.info(
+                            f'the accuracy of action {action_int} in current train mini-batch is: {action_accuracy}')
 
         forward_time = self._timer.value
         with self._timer:

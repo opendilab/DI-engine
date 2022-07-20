@@ -1,6 +1,8 @@
 from copy import deepcopy
 import os
 import torch
+import logging
+import test_accuracy
 
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)
@@ -11,6 +13,8 @@ from dizoo.gfootball.entry.gfootball_il_config import gfootball_il_main_config, 
 from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
 from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseModel
 
+logging.basicConfig(level=logging.INFO)
+
 # in gfootball env: 3000 transitions = one episode
 # 3e5 transitions = 100 episode, The memory needs about 180G
 seed = 0
@@ -18,9 +22,8 @@ gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100e
 demo_transitions = int(3e5)  # key hyper-parameter
 data_path_transitions = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
 
-
 """
-phase 1: train/obtain expert policy
+phase 1: collect demo data utilizing rule/expert model
 """
 input_cfg = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 if isinstance(input_cfg, str):
@@ -34,7 +37,7 @@ football_rule_base_model = FootballRuleBaseModel()
 expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
                               enable_field=['learn', 'collect', 'eval', 'command'])
 
-# collect expert demo data
+# collect rule/expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
 collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 
@@ -64,9 +67,9 @@ football_naive_q = FootballNaiveQ()
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions,
                                            model=football_naive_q)
 
-if il_config[0].policy.test_accuracy:
+if il_config[0].policy.show_train_test_accuracy:
     """
-    phase 3: test accuracy in train dataset and validation dataset
+    phase 3: test accuracy in train dataset and test dataset
     """
     il_model_path = il_config[0].policy.il_model_path
 
@@ -76,17 +79,20 @@ if il_config[0].policy.test_accuracy:
     il_config[0].policy.learn.show_accuracy = True
     state_dict = torch.load(il_model_path)
     football_naive_q.load_state_dict(state_dict['model'])
+    policy = create_policy(cfg.policy, model=football_naive_q, enable_field=['eval'])
 
     # calculate accuracy in train dataset
     print('==' * 10)
-    print('calculate accuracy in train dataset' * 10)
+    print('calculate accuracy in train dataset')
     print('==' * 10)
-    train_data_path = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
-    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=train_data_path, model=football_naive_q)
+    # Users should add their own il train_data_path here. Absolute path is recommended.
+    train_data_path = dir_path + f'/gfootball_rule_300000-demo-transitions.pkl'
+    test_accuracy.test_accuracy_in_dataset(train_data_path, cfg.policy.learn.batch_size, policy)
 
-    # calculate accuracy in validation dataset
+    # calculate accuracy in test dataset
     print('==' * 10)
-    print('calculate accuracy in validation dataset' * 10)
+    print('calculate accuracy in test dataset')
     print('==' * 10)
-    validation_data_path = dir_path + f'/gfootball_rule_150000-demo-transitions_test.pkl'
-    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=validation_data_path, model=football_naive_q)
+    # Users should add their own il test_data_path here. Absolute path is recommended.
+    test_data_path = dir_path + f'/gfootball_rule_150000-demo-transitions_test.pkl'
+    test_accuracy.test_accuracy_in_dataset(test_data_path, cfg.policy.learn.batch_size, policy)
