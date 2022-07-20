@@ -35,6 +35,10 @@ class StepLeagueActor:
         self.model_dict = {}
         self.model_dict_lock = Lock()
         self.model_info_dict = {}
+        
+        self.traj_num = 0
+        self.total_time = 0
+        self.total_episode_num = 0
 
         self.agent_num = 2
 
@@ -160,6 +164,7 @@ class StepLeagueActor:
             for idx in main_player_idx:
                 if not job.is_eval and len(ctx.trajectories_list[idx]) > 0:
                     trajectories = ctx.trajectories_list[idx]
+                    self.traj_num += len(trajectories)
                     log_every_sec(
                         logging.INFO, 5,
                         '[Actor {}] send {} trajectories.'.format(task.router.node_id, len(trajectories))
@@ -174,19 +179,29 @@ class StepLeagueActor:
                     log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
 
             ctx.trajectories_list = []
+            
             time_end = time.time()
+            self.total_time += time_end - time_begin
+            log_every_sec(
+                logging.INFO, 5,
+                '[Actor {}] sent {} trajectories till now, total trajectory send speed is {}'
+                .format(
+                    task.router.node_id, self.traj_num, self.traj_num / self.total_time, 
+                )
+            )
+
             self.collect_time[job.launch_player] += time_end - time_begin
             total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[
                 job.launch_player] != 0 else 0
             envstep_passed = ctx.total_envstep_count - old_envstep
             real_time_speed = envstep_passed / (time_end - time_begin)
-            log_every_sec(
-                logging.INFO, 5,
-                '[Actor {}] total_env_step: {}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
-                .format(
-                    task.router.node_id, ctx.total_envstep_count, ctx.env_step, total_collect_speed, real_time_speed
-                )
-            )
+            # log_every_sec(
+            #     logging.INFO, 5,
+            #     '[Actor {}] total_env_step: {}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
+            #     .format(
+            #         task.router.node_id, ctx.total_envstep_count, ctx.env_step, total_collect_speed, real_time_speed
+            #     )
+            # )
 
             if ctx.job_finish is True:
                 job.result = []
@@ -197,6 +212,8 @@ class StepLeagueActor:
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
                 break
+        self.total_episode_num += ctx.env_episode
+        logging.info('[Actor {}] finish {} episodes till now'.format(task.router.node_id, self.total_episode_num))
 
 
 # class LeagueActor:

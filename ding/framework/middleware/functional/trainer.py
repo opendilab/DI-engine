@@ -4,8 +4,9 @@ from ditk import logging
 import numpy as np
 from ding.policy import Policy
 from ding.framework import task
+from ding.utils import DistributedWriter
 
-from ding.framework import OnlineRLContext, OfflineRLContext
+from ding.framework import OnlineRLContext, OfflineRLContext, BattleContext
 
 
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:
@@ -16,8 +17,9 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be trained in step-by-step mode.
     """
+    writer = DistributedWriter.get_instance()
 
-    def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
+    def _train(ctx: Union["OnlineRLContext", "OfflineRLContext", "BattleContext"]):
         """
         Input of ctx:
             - train_data (:obj:`Dict`): The data used to update the network. It will train only if \
@@ -42,10 +44,14 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
                 logging.info(
                     'Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, train_output['total_loss'])
                 )
+            elif isinstance(ctx, BattleContext):
+                pass
             else:
                 raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.train_iter += 1
         ctx.train_output = train_output
+        for key in ctx.train_output.keys():
+            writer.add_scalar(key+'-train_iter', ctx.train_output[key],ctx.train_iter)
 
     return _train
 

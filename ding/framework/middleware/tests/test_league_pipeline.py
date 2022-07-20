@@ -15,6 +15,7 @@ from dizoo.distar.config import distar_cfg
 from dizoo.distar.envs.distar_env import DIStarEnv
 from unittest.mock import patch
 from dizoo.distar.policy.distar_policy import DIStarPolicy
+from ding.utils import DistributedWriter
 
 env_cfg = dict(
     actor=dict(job_type='train', ),
@@ -86,6 +87,8 @@ def main():
             cfg.policy.collect.unroll_len = 1
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             player = league.active_players[task.router.node_id % N_PLAYERS]
+            
+            DistributedWriter.get_instance(cfg.exp_name + '_' + player.player_id)
 
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             policy = PrepareTest.policy_fn()

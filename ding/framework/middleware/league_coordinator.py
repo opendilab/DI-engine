@@ -22,6 +22,7 @@ class LeagueCoordinator:
         self.league = league
         self._lock = Lock()
         self._total_send_jobs = 0
+        self._total_recv_jobs = 0
         self._eval_frequency = 10
         self._running_jobs = dict()
 
@@ -52,8 +53,9 @@ class LeagueCoordinator:
         self.league.create_historical_player(player_meta)
 
     def _on_actor_job(self, job: "Job"):
+        self._total_recv_jobs += 1
         logging.info(
-            "[Coordinator {}] recieve actor finished job, player {}".format(task.router.node_id, job.launch_player)
+            "[Coordinator {}] recieve actor finished job, player {}, recieve {} jobs in total".format(task.router.node_id, job.launch_player, self._total_recv_jobs)
         )
         self.league.update_payoff(job)
 
