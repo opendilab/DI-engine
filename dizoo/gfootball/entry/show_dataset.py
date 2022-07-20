@@ -1,9 +1,13 @@
-from dizoo.gfootball.entry.gfootball_bc_config import main_config, create_config
+"""
+Overview:
+    The following is to show some statistics of the dataset in gfootball env.
+"""
 import torch
-from ding.config import read_config, compile_config
-from ding.utils.data import create_dataset
 import numpy as np
 import os
+from ding.config import read_config, compile_config
+from ding.utils.data import create_dataset
+from dizoo.gfootball.entry.gfootball_bc_config import main_config, create_config
 
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)
@@ -15,12 +19,11 @@ if __name__ == "__main__":
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=0, auto=True, create_cfg=create_cfg)
     cfg.policy.collect.data_type = 'naive'
 
     """episode data"""
-    # Users should add their own il data path here.
+    # Users should add their own BC data path here.
     cfg.policy.collect.data_path = dir_path + '/gfootball_rule_100eps.pkl'
     dataset = create_dataset(cfg)
 
@@ -35,7 +38,7 @@ if __name__ == "__main__":
     print(return_of_episode.mean(), return_of_episode.max(), return_of_episode.min())
 
     """transition data"""
-    # Users should add their own il data path here.
+    # Users should add their own BC data path here.
     cfg.policy.collect.data_path = dir_path + '/gfootball_rule_100eps_transitions_lt0.pkl'
     dataset = create_dataset(cfg)
 

@@ -108,9 +108,11 @@ class BehaviourCloningPolicy(Policy):
                         if math.isnan(action_accuracy):
                             action_accuracy = 0.0
                         self.action_accuracy_in_dataset[action_unique].append(action_accuracy)
-                        logging.info(f'the accuracy of action {action_unique} in current train mini-batch is: '
-                                     f'{action_accuracy.item()}, '
-                                     f'(nan means the action does not appear in the mini-batch)')
+                        logging.info(
+                            f'the accuracy of action {action_unique} in current train mini-batch is: '
+                            f'{action_accuracy.item()}, '
+                            f'(nan means the action does not appear in the mini-batch)'
+                        )
 
         forward_time = self._timer.value
         with self._timer:
