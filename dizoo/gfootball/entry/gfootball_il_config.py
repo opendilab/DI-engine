@@ -14,6 +14,7 @@ gfootball_il_main_config = dict(
         # env_name="11_vs_11_stochastic",  # default: medium
         # env_name="11_vs_11_hard_stochastic",
         save_replay_gif=False,
+        manager=dict(shared_memory=False,),
     ),
     policy=dict(
         env_name='gfootball',
@@ -58,7 +59,7 @@ gfootball_il_create_config = dict(
         type='gfootball',
         import_names=['dizoo.gfootball.envs.gfootball_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='bc'),
 )
 gfootball_il_create_config = EasyDict(gfootball_il_create_config)
