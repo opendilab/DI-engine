@@ -4,9 +4,6 @@ import torch
 import logging
 import test_accuracy
 
-path = os.path.abspath(__file__)
-dir_path = os.path.dirname(path)
-
 from ding.entry import serial_pipeline_bc, collect_episodic_demo_data, episode_to_transitions_filter, eval
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
@@ -14,10 +11,12 @@ from dizoo.gfootball.entry.gfootball_il_config import gfootball_il_main_config, 
 from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
 from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseModel
 
+path = os.path.abspath(__file__)
+dir_path = os.path.dirname(path)
 logging.basicConfig(level=logging.INFO)
 
-# in gfootball env: 3000 transitions = one episode
-# 3e5 transitions = 200 episode, The memory needs about 350G
+# Note: in gfootball env, 3000 transitions = one episode,
+# 3e5 transitions = 200 episode, the memory needs about 350G.
 seed = 0
 gfootball_il_main_config.exp_name = 'gfootball_il_rule_200ep_lt0_seed0'
 demo_episodes = 200  # key hyper-parameter
@@ -55,7 +54,7 @@ collect_episodic_demo_data(
     collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,
     model=football_rule_base_model, state_dict=state_dict
 )
-# only use the episode whose return is larger than 0 as demo data
+# Note: only use the episode whose return is larger than 0 as demo data
 episode_to_transitions_filter(data_path=data_path_episode, expert_data_path=data_path_transitions_lt0, nstep=1,
                               min_episode_return=1)
 

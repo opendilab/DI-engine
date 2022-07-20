@@ -4,8 +4,6 @@ import torch
 import logging
 import test_accuracy
 
-path = os.path.abspath(__file__)
-dir_path = os.path.dirname(path)
 from ding.entry import serial_pipeline_bc, collect_demo_data
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
@@ -13,10 +11,12 @@ from dizoo.gfootball.entry.gfootball_il_config import gfootball_il_main_config, 
 from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
 from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseModel
 
+path = os.path.abspath(__file__)
+dir_path = os.path.dirname(path)
 logging.basicConfig(level=logging.INFO)
 
-# in gfootball env: 3000 transitions = one episode
-# 3e5 transitions = 100 episode, The memory needs about 180G
+# Note: in gfootball env, 3000 transitions = one episode
+# 3e5 transitions = 100 episode, the memory needs about 180G
 seed = 0
 gfootball_il_main_config.exp_name = 'gfootball_il_rule_seed0_100eps_epc1000_bs512'
 demo_transitions = int(3e5)  # key hyper-parameter
