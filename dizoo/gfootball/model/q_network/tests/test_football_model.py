@@ -8,25 +8,21 @@ from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
 from ding.torch_utils import to_tensor, to_dtype
 from dizoo.gfootball.envs.fake_dataset import FakeGfootballDataset
 import pprint
-
-with open(os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))),
-                       'football_q_network_default_config.yaml')) as f:
-    cfg = yaml.safe_load(f)
-football_q_network_default_config = EasyDict(cfg)
+from dizoo.gfootball.model.q_network.football_q_network_default_config import default_model_config
 
 
 @pytest.mark.envtest
 class TestModel:
 
-    def test_encoder(self, setup_config=football_q_network_default_config):
+    def test_encoder(self, config=default_model_config):
         B = 4
-        scalar_encoder_arch = setup_config.model.encoder.match_scalar
-        player_attr_dim = setup_config.model.encoder.player.transformer.player_attr_dim
-        action_dim = setup_config.model.policy.action_dim
-        cfg = copy.deepcopy(setup_config)
+        scalar_encoder_arch = config.encoder.match_scalar
+        player_attr_dim = config.encoder.player.transformer.player_attr_dim
+        action_dim = config.policy.action_dim
+        cfg = copy.deepcopy(config)
 
         for t in ['transformer', 'spatial']:
-            cfg.model.encoder.player.encoder_type = t
+            cfg.encoder.player.encoder_type = t
 
             inputs = {}
             for k, v in scalar_encoder_arch.items():

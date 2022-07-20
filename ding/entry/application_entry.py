@@ -44,7 +44,6 @@ def eval(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, save_path='eval_config.py'
@@ -108,7 +107,6 @@ def collect_demo_data(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg,
@@ -193,7 +191,6 @@ def collect_episodic_demo_data(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg,

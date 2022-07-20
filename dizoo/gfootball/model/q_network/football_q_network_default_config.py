@@ -1,3 +1,5 @@
+from easydict import EasyDict
+
 model_config = dict(
     # ===== Encoder =====
     encoder=dict(
@@ -65,6 +67,7 @@ model_config = dict(
                 down_channels=[64, 128],
                 activation='relu',
                 norm_type='BN',
+                scatter_type='add',
                 player_attr_dim=dict(
                     team=2,
                     index=11,
@@ -90,5 +93,5 @@ model_config = dict(
     )
 )
 
-from easydict import EasyDict
 default_model_config = EasyDict(model_config)
+

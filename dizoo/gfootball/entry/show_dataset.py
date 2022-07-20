@@ -1,4 +1,4 @@
-from dizoo.gfootball.entry.gfootball_il_config import main_config, create_config
+from dizoo.gfootball.entry.gfootball_bc_config import main_config, create_config
 import torch
 from ding.config import read_config, compile_config
 from ding.utils.data import create_dataset

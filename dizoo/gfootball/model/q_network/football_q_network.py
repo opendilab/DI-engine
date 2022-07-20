@@ -3,17 +3,10 @@ from ding.utils import deep_merge_dicts, MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.torch_utils import fc_block, Transformer, ResFCBlock, \
     conv2d_block, ResBlock, build_activation, ScatterConnection
-import os
-import yaml
-from easydict import EasyDict
-from typing import Union, Optional, Dict, Callable, List
 import torch
 import torch.nn as nn
-
-from ding.torch_utils import get_lstm, one_hot, to_tensor, to_ndarray
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ding.model.common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead
-from ding.model.template.q_learning import parallel_wrapper
 from .football_q_network_default_config import default_model_config
 
 
@@ -207,7 +200,7 @@ class SpatialEncoder(nn.Module):
         super(SpatialEncoder, self).__init__()
         self.act = build_activation(cfg.activation)
         self.norm = cfg.norm_type
-        self.scatter = ScatterConnection()
+        self.scatter = ScatterConnection(cfg.scatter_type)
         input_dim = sum([dim for k, dim in cfg.player_attr_dim.items()])  # player_attr total dim
         self.project = conv2d_block(input_dim, cfg.project_dim, 1, 1, 0, activation=self.act, norm_type=self.norm)
         down_layers = []
@@ -221,7 +214,7 @@ class SpatialEncoder(nn.Module):
         dim = dims[-1]
         self.resblock_num = cfg.resblock_num
         for i in range(cfg.resblock_num):
-            self.res.append(ResBlock(dim, dim, 3, 1, 1, activation=self.act, norm_type=self.norm))
+            self.res.append(ResBlock(dim, activation=self.act, norm_type=self.norm))
 
         self.gap = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = fc_block(dim, cfg.fc_dim, activation=self.act)
