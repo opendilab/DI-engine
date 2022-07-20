@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 # in gfootball env: 3000 transitions = one episode
 # 3e5 transitions = 100 episode, The memory needs about 180G
 seed = 0
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0_100eps_epc1000_bs512'
+gfootball_il_main_config.exp_name = 'gfootball_il_rule_seed0_100eps_epc1000_bs512'
 demo_transitions = int(3e5)  # key hyper-parameter
 data_path_transitions = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
 
@@ -59,9 +59,6 @@ phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
-
-il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
-il_config[0].policy.eval.evaluator.multi_gpu = False
 football_naive_q = FootballNaiveQ()
 
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions,

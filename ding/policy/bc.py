@@ -34,6 +34,7 @@ class BehaviourCloningPolicy(Policy):
         cuda=False,
         on_policy=False,
         continuous=False,
+        action_shape=19,
         learn=dict(
             multi_gpu=False,
             update_per_collect=1,
@@ -79,7 +80,7 @@ class BehaviourCloningPolicy(Policy):
             if hasattr(self._cfg.learn, 'show_accuracy') and self._cfg.learn.show_accuracy:
                 # accuracy statistics for debugging in discrete action space env, e.g. for gfootball
                 self.total_accuracy_in_dataset = []
-                self.action_accuracy_in_dataset = {k: [] for k in range(19)}
+                self.action_accuracy_in_dataset = {k: [] for k in range(self._cfg.action_shape)}
 
     def _forward_learn(self, data):
         if not isinstance(data, dict):

@@ -13,15 +13,13 @@ from ding.policy import create_policy
 from dizoo.gfootball.entry.gfootball_il_config import gfootball_il_main_config, gfootball_il_create_config
 from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
 from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseModel
-from ding.utils.data import NaiveRLDataset
-from torch.utils.data import DataLoader
 
 logging.basicConfig(level=logging.INFO)
 
 # in gfootball env: 3000 transitions = one episode
 # 3e5 transitions = 200 episode, The memory needs about 350G
 seed = 0
-gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_200ep_lt0_seed0'
+gfootball_il_main_config.exp_name = 'gfootball_il_rule_200ep_lt0_seed0'
 demo_episodes = 200  # key hyper-parameter
 data_path_episode = dir_path + f'/gfootball_rule_{demo_episodes}eps.pkl'
 data_path_transitions_lt0 = dir_path + f'/gfootball_rule_{demo_episodes}eps_transitions_lt0.pkl'
@@ -66,13 +64,7 @@ phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 il_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
-
-il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
-il_config[0].policy.eval.evaluator.multi_gpu = False
 football_naive_q = FootballNaiveQ()
-
-il_config[0].policy.learn.show_accuracy = False
-il_config[0].policy.learn.ce_label_smooth = False
 
 _, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions_lt0,
                                            model=football_naive_q)

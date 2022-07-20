@@ -97,5 +97,5 @@ def serial_pipeline_bc(
             break
 
     learner.call_hook('after_run')
-    # print('final reward is: {}'.format(reward))
+    print('final reward is: {}'.format(reward))
     return policy, stop

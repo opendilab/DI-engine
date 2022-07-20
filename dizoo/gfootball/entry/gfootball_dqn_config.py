@@ -4,7 +4,7 @@ collector_env_num = 8
 evaluator_env_num = 5
 
 gfootball_dqn_main_config = dict(
-    exp_name='data_gfootball/gfootball_easy_dqn_seed0',
+    exp_name='gfootball_dqn_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,

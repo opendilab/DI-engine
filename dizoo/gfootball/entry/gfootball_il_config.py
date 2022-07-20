@@ -4,12 +4,12 @@ collector_env_num = 8
 evaluator_env_num = 5
 
 gfootball_il_main_config = dict(
-    exp_name='data_gfootball/gfootball_il_seed0',
+    exp_name='gfootball_il_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
-        stop_value=999,
+        stop_value=999,  # Don't stop until training <train_epoch> epochs
         env_name="11_vs_11_easy_stochastic",
         # env_name="11_vs_11_stochastic",  # default: medium
         # env_name="11_vs_11_hard_stochastic",
@@ -18,6 +18,8 @@ gfootball_il_main_config = dict(
     policy=dict(
         env_name='gfootball',
         continuous=False,
+        # action_shape is effective only when continuous=False
+        action_shape=19,
         show_train_test_accuracy=False,
         # Note, only if show_train_test_accuracy=True, we will test accuracy in train dataset and validation dataset
         # use the pre-trained il model in the path <il_model_path>.
