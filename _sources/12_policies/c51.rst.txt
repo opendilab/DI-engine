@@ -1,0 +1,99 @@
+C51
+^^^^^^^
+
+Overview
+---------
+C51 was first proposed in `A Distributional Perspective on Reinforcement Learning <https://arxiv.org/abs/1707.06887>`_, different from previous works, C51 evaluates the complete distribution of a q-value rather than only the expectation. The authors designed a distributional Bellman operator, which preserves multimodality in value distributions and is believed to achieve more stable learning and mitigates the negative effects of learning from a non-stationary policy.
+
+Quick Facts
+-----------
+1. C51 is a **model-free** and **value-based** RL algorithm.
+
+2. C51 only **support discrete action spaces**.
+
+3. C51 is an **off-policy** algorithm.
+
+4. Usually, C51 use **eps-greedy** or **multinomial sample** for exploration.
+
+5. C51 can be equipped with RNN.
+
+Pseudo-code
+------------
+.. image:: images/C51.png
+   :align: center
+   :scale: 30%
+
+.. note::
+   C51 models the value distribution using a discrete distribution, whose support set are N atoms: :math:`z_i = V_\min + i * delta, i = 0,1,...,N-1` and :math:`delta = (V_\max - V_\min) / N`. Each atom :math:`z_i` has a parameterized probability :math:`p_i`. The Bellman update of C51 projects the distribution of :math:`r + \gamma * z_j^{\left(t+1\right)}` onto the distribution :math:`z_i^t`.
+
+Key Equations or Key Graphs
+----------------------------
+The Bellman target of C51 is derived by projecting the returned distribution :math:`r + \gamma * z_j` onto the current distribution :math:`z_i`. Given a sample transition :math:`(x, a, r, x')`, we compute the Bellman update :math:`Tˆz_j := r + \gamma z_j` for each atom :math:`z_j`, then distribute its probability :math:`p_{j}(x', \pi(x'))` to the immediate neighbors :math:`p_{i}(x, \pi(x))`:
+
+.. math::
+
+   \left(\Phi \hat{T} Z_{\theta}(x, a)\right)_{i}=\sum_{j=0}^{N-1}\left[1-\frac{\left|\left[\hat{\mathcal{T}} z_{j}\right]_{V_{\mathrm{MIN}}}^{V_{\mathrm{MAX}}}-z_{i}\right|}{\Delta z}\right]_{0}^{1} p_{j}\left(x^{\prime}, \pi\left(x^{\prime}\right)\right)
+
+Extensions
+-----------
+- C51s can be combined with:
+   - PER (Prioritized Experience Replay)
+   - Multi-step TD-loss
+   - Double (target) network
+   - Dueling head
+   - RNN
+
+Implementation
+-----------------
+
+.. tip::
+      Our benchmark result of C51 uses the same hyper-parameters as DQN except the exclusive `n_atom` of C51, which is empirically set as 51.
+
+
+The default config of C51 is defined as follows:
+
+.. autoclass:: ding.policy.c51.C51Policy
+   :noindex:
+
+The network interface C51 used is defined as follows:
+
+.. autoclass:: ding.model.template.q_learning.C51DQN
+   :members: forward
+   :noindex:
+
+
+Benchmark
+---------------------
+
+.. list-table:: Benchmark and comparison of c51 algorithm
+   :widths: 25 15 30 15 15
+   :header-rows: 1
+
+   * - environment
+     - best mean reward
+     - evaluation results
+     - config link
+     - comparison
+   * - | Pong
+       | (PongNoFrameskip-v4)
+     - 20.6
+     - .. image:: images/benchmark/c51_pong.png
+     - `config_link_p <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_c51_config.py>`_
+     - | Tianshou(20)
+   * - | Qbert
+       | (QbertNoFrameskip-v4)
+     - 20006
+     - .. image:: images/benchmark/c51_qbert.png
+     - `config_link_q <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_c51_config.py>`_
+     - | Tianshou(16245)
+   * - | SpaceInvaders
+       | (SpaceInvadersNoFrame skip-v4)
+     - 2766
+     - .. image:: images/benchmark/c51_spaceinvaders.png
+     - `config_link_s <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_c51_config.py>`_
+     - | Tianshou(988.5)
+
+
+Other Public Implementations
+-----------------------------
+ - `Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/c51.py>`_

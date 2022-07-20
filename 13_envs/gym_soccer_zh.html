@@ -1,0 +1,534 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Gym-Soccer (HFO) &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Image Classification" href="image_cls_zh.html" />
+  <link rel="prev" title="Gym-Hybrid" href="gym_hybrid_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习环境示例</a> &gt;</li>
+        
+      <li>Gym-Soccer (HFO)</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/gym_soccer_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="gym-soccer-hfo">
+<h1>Gym-Soccer (HFO)<a class="headerlink" href="#gym-soccer-hfo" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>HFO (Half-field Offense, 半场进攻) 是机器人世界杯2D足球比赛中的一个子任务。DI-engine 中的 Gym-Soccer 环境是HFO的简化版本，用来验证应用于混合动作空间的RL算法的性能。
+如下图所示, 白色小圆点即足球，黄黑色圆圈是进攻球员，紫黑色圆圈是守门员。进攻球员的目标是在守门员的防守下完成射门。</p>
+<a class="reference internal image-reference" href="../_images/hfo.gif"><img alt="../_images/hfo.gif" class="align-center" src="../_images/hfo.gif" style="width: 512.0px; height: 384.0px;" /></a>
+</section>
+<section id="id2">
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>第一步: 由于HFO的源码是C++实现的，所以我们需要先安装含有 python 接口的 hfo_py。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># To be done by niuyazhe</span>
+</pre></div>
+</div>
+<p>第二步: 安装 gym_soccer_env</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg<span class="o">=</span>gym-soccer
+</pre></div>
+</div>
+<p>注意，在安装过程中可能会遇到由于环境依赖问题引发的报错，根据报错提示安装对应的库即可，一般需要 CMake, Boost, Qt4, zlib, flex等等。具体要求请看 <a class="reference external" href="https://github.com/LARG/HFO/blob/master/doc/manual.pdf">官方手册</a></p>
+</section>
+<section id="id4">
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>方法一: 运行如下命令, 如果能正常显示版本信息，即顺利安装完成。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip show gym-soccer
+</pre></div>
+</div>
+<p>方法二: 运行如下Python程序，如果没有报错则证明安装成功。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import gym
+import gym_soccer
+<span class="nv">env</span> <span class="o">=</span> gym.make<span class="o">(</span><span class="s1">&#39;Soccer-v0&#39;</span><span class="o">)</span>
+<span class="nv">obs</span> <span class="o">=</span> env.reset<span class="o">()</span>
+print<span class="o">(</span>obs<span class="o">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>DI-engine准备好了配备有框架本身和soccer环境的镜像，可通过<code class="docutils literal notranslate"><span class="pre">to</span> <span class="pre">do</span> <span class="pre">by</span> <span class="pre">niuyazhe</span></code>获取，或访问<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker
+hub</a>获取更多镜像</p>
+</section>
+</section>
+<section id="id6">
+<h2>环境介绍<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<section id="id7">
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>Gym-Soccer 的动作空间属于离散连续混合动作空间，有3个离散动作，每个离散动作有n个连续参数（n&gt;=0)。</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TURN</span> <span class="pre">(degree)</span></code> : 表示让agent朝degree方向转身。 <code class="docutils literal notranslate"><span class="pre">degree</span></code> 的取值范围是 <code class="docutils literal notranslate"><span class="pre">[-180，180]</span></code> 。当 <code class="docutils literal notranslate"><span class="pre">degree</span></code> = 0时，表示正前方向；当 <code class="docutils literal notranslate"><span class="pre">degree</span></code> = 90时，表示正右方向。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DASH</span> <span class="pre">(power,</span> <span class="pre">degree)</span></code> : 表示让agent以 <code class="docutils literal notranslate"><span class="pre">power</span></code> 大小的力气向 <code class="docutils literal notranslate"><span class="pre">degree</span></code> 方向移动。 <code class="docutils literal notranslate"><span class="pre">degree</span></code> 的取值范围是 <code class="docutils literal notranslate"><span class="pre">[-180，180]</span></code> 。<code class="docutils literal notranslate"><span class="pre">power</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[0，100]</span></code> 。注意：DASH并不会TURN智能体。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">KICK</span> <span class="pre">(power,</span> <span class="pre">degree)</span></code> : 表示让agent以 <code class="docutils literal notranslate"><span class="pre">power</span></code> 大小的力气向 <code class="docutils literal notranslate"><span class="pre">degree</span></code> 方向击球。当agent手里没球时，动作不生效。</p></li>
+</ul>
+<p>使用gym环境空间定义则可表示为：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">action_space</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">Tuple</span><span class="p">((</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+                             <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+                             <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">180</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+                             <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">180</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+                             <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+                             <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">180</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))))</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h3>状态空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>Gym-Soccer 的状态空间描述了当前游戏的状态，分为<code class="docutils literal notranslate"><span class="pre">High</span> <span class="pre">Level</span> <span class="pre">Feature</span> <span class="pre">Set</span></code> 和 <code class="docutils literal notranslate"><span class="pre">Low</span> <span class="pre">Level</span> <span class="pre">Feature</span> <span class="pre">Set</span></code> ，包含 agent 当前的坐标，球的坐标，agent 的朝向等等。数值型的 feature 被统一 scale 到<code class="docutils literal notranslate"><span class="pre">[-1,1]</span></code> 的范围。具体请查阅官方手册中的 State Spaces 章节。</p>
+</section>
+<section id="id9">
+<h3>内置环境<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;Soccer-v0&quot;</span></code> : 最简单的设定, 奖励稀疏。该环境含有1个进攻球员，0个防守球员。进球得1分，否则得0分。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;SoccerEmptyGoal-v0&quot;</span></code> : 奖励相对更稠密。进攻球员向足球靠近、将足球向目标方向踢、进球都会得到奖励.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;SoccerAgainstKeeper-v0&quot;</span></code> : 奖励设定与 <code class="docutils literal notranslate"><span class="pre">&quot;SoccerEmptyGoal-v0&quot;</span></code> 相同。增加1个守门员（由规则控制的 bot）。进攻球员需要学习如何与守门员周旋并进球得分。</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>用户自定义环境<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>TBD</p>
+</section>
+</section>
+<section id="id11">
+<h2>其他<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<section id="id12">
+<h3>存储录像<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>存储录像依赖 Qt4 库，需提前安装好。存储录像的具体方法请查阅Gym-Soccer环境的 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_soccer/envs">README</a> 文档。</p>
+</section>
+</section>
+<section id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>（TBD）待添加PDQN算法。</p>
+</section>
+<section id="id13">
+<h2>参考资料<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>HFO <a class="reference external" href="https://github.com/LARG/HFO">源码</a></p></li>
+<li><p>Open-AI Gym-soccer <a class="reference external" href="https://github.com/openai/gym-soccer">源码</a></p></li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="image_cls_zh.html" class="btn btn-neutral float-right" title="Image Classification" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="gym_hybrid_zh.html" class="btn btn-neutral" title="Gym-Hybrid" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Gym-Soccer (HFO)</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">安装</a><ul>
+<li><a class="reference internal" href="#id3">安装方法</a></li>
+<li><a class="reference internal" href="#id4">验证安装</a></li>
+<li><a class="reference internal" href="#id5">镜像</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id6">环境介绍</a><ul>
+<li><a class="reference internal" href="#id7">动作空间</a></li>
+<li><a class="reference internal" href="#id8">状态空间</a></li>
+<li><a class="reference internal" href="#id9">内置环境</a></li>
+<li><a class="reference internal" href="#id10">用户自定义环境</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id11">其他</a><ul>
+<li><a class="reference internal" href="#id12">存储录像</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+<li><a class="reference internal" href="#id13">参考资料</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

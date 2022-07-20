@@ -1,8 +1,12 @@
 
 
+
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
 <head>
   <meta charset="utf-8">
   
@@ -11,62 +15,158 @@
   <title>ding.worker.collector.sample_serial_collector &mdash; DI-engine 0.1.0 documentation</title>
   
 
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
   
+  
+
+  
+
   
   
   
 
   
-  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
-    
-
-  
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
   <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../../search.html" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
     <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<body class="wy-body-for-nav">
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
 
    
-  <div class="wy-grid-for-nav">
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
           
 
           
-            <a href="../../../../index.html" class="icon icon-home"> DI-engine
+          
+          
           
 
           
-          </a>
 
-          
-            
-            
-          
 
-          
+
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search Docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -75,56 +175,47 @@
           
         </div>
 
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../distributed/index.html">Distributed</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
 </ul>
 
-            
-          
-        </div>
+        
+        
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
         
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">DI-engine</a>
-        
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
 
 
 
@@ -142,27 +233,43 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="wy-breadcrumbs">
+  <ul class="pytorch-breadcrumbs">
     
-      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      <li>
+        <a href="../../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
         
-          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
         
       <li>ding.worker.collector.sample_serial_collector</li>
     
     
-      <li class="wy-breadcrumbs-aside">
+      <li class="pytorch-breadcrumbs-aside">
         
       </li>
     
   </ul>
 
   
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
             
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
   <h1>Source code for ding.worker.collector.sample_serial_collector</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
@@ -176,7 +283,7 @@
 <span class="kn">from</span> <span class="nn">.base_serial_collector</span> <span class="kn">import</span> <span class="n">ISerialCollector</span><span class="p">,</span> <span class="n">CachePool</span><span class="p">,</span> <span class="n">TrajBuffer</span><span class="p">,</span> <span class="n">INF</span><span class="p">,</span> <span class="n">to_tensor_transitions</span>
 
 
-<div class="viewcode-block" id="SampleSerialCollector"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector">[docs]</a><span class="nd">@SERIAL_COLLECTOR_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sample&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="SampleSerialCollector"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector">[docs]</a><span class="nd">@SERIAL_COLLECTOR_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sample&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SampleSerialCollector</span><span class="p">(</span><span class="n">ISerialCollector</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -191,7 +298,7 @@
 
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">deepcopy_obs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform_obs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">collect_print_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SampleSerialCollector.__init__"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="SampleSerialCollector.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
             <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -229,7 +336,7 @@
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SampleSerialCollector.reset_env"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.reset_env">[docs]</a>    <span class="k">def</span> <span class="nf">reset_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseEnvManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleSerialCollector.reset_env"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.reset_env">[docs]</a>    <span class="k">def</span> <span class="nf">reset_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseEnvManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the environment.</span>
@@ -247,7 +354,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="SampleSerialCollector.reset_policy"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.reset_policy">[docs]</a>    <span class="k">def</span> <span class="nf">reset_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_policy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleSerialCollector.reset_policy"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.reset_policy">[docs]</a>    <span class="k">def</span> <span class="nf">reset_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_policy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the policy.</span>
@@ -260,9 +367,10 @@
         <span class="k">if</span> <span class="n">_policy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span> <span class="o">=</span> <span class="n">_policy</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_default_n_sample</span> <span class="o">=</span> <span class="n">_policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;cfg&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;n_sample&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len_inf</span> <span class="o">=</span> <span class="n">_policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;cfg&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;traj_len_inf&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="n">_policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;unroll_len&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_on_policy</span> <span class="o">=</span> <span class="n">_policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;on_policy&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_n_sample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_n_sample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len_inf</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_default_n_sample</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_default_n_sample</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
@@ -276,7 +384,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len</span> <span class="o">=</span> <span class="n">INF</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="SampleSerialCollector.reset"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_policy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseEnvManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleSerialCollector.reset"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_policy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseEnvManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the environment and policy.</span>
@@ -310,7 +418,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_train_iter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="SampleSerialCollector._reset_stat"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector._reset_stat">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleSerialCollector._reset_stat"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector._reset_stat">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the collector&#39;s state. Including reset the traj_buffer, obs_pool, policy_output_pool\</span>
@@ -334,7 +442,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_envstep_count</span>
 
-<div class="viewcode-block" id="SampleSerialCollector.close"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleSerialCollector.close"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Close the collector. If end_flag is False, close the environment, flush the tb_logger\</span>
@@ -347,7 +455,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="SampleSerialCollector.__del__"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.__del__">[docs]</a>    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleSerialCollector.__del__"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.__del__">[docs]</a>    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute the close command and close the collector. __del__ is automatically called to \</span>
@@ -355,17 +463,21 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="SampleSerialCollector.collect"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.collect">[docs]</a>    <span class="k">def</span> <span class="nf">collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                <span class="n">n_sample</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-                <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SampleSerialCollector.collect"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.collect">[docs]</a>    <span class="k">def</span> <span class="nf">collect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">n_sample</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">drop_extra</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations</span>
+<span class="sd">            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - n_sample (:obj:`int`): the number of collecting data sample</span>
-<span class="sd">            - train_iter (:obj:`int`): the number of training iteration</span>
-<span class="sd">            - policy_kwargs (:obj:`dict`): the keyword args for policy forward</span>
+<span class="sd">            - n_sample (:obj:`int`): The number of collecting data sample.</span>
+<span class="sd">            - train_iter (:obj:`int`): The number of training iteration when calling collect method.</span>
+<span class="sd">            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.</span>
+<span class="sd">            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - return_data (:obj:`List`): A list containing training samples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -376,8 +488,8 @@
                 <span class="n">n_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_n_sample</span>
         <span class="k">if</span> <span class="n">n_sample</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">one_time_warning</span><span class="p">(</span>
-                <span class="s2">&quot;Please make sure env_num is divisible by n_sample: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">, which may cause convergence </span><span class="se">\</span>
-<span class="s2">                problems in a few algorithms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)</span>
+                <span class="s2">&quot;Please make sure env_num is divisible by n_sample: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">, &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)</span> <span class="o">+</span>
+                <span class="s2">&quot;which may cause convergence problems in a few algorithms&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">policy_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">policy_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
@@ -411,25 +523,34 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">env_id</span><span class="p">])</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_reset_stat</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;env_id </span><span class="si">{}</span><span class="s1">, abnormal step </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Env</span><span class="si">{}</span><span class="s1"> returns a abnormal step, its info is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">))</span>
                         <span class="k">continue</span>
-                    <span class="n">transition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">process_transition</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy_output_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="n">timestep</span>
-                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;cfg&#39;</span><span class="p">)</span> <span class="ow">and</span> \
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;cfg&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;ngu_command&#39;</span><span class="p">:</span>
+                        <span class="c1"># for NGU policy</span>
+                        <span class="n">transition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">process_transition</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_obs_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy_output_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">env_id</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">transition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">process_transition</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_obs_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy_output_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="n">timestep</span>
+                        <span class="p">)</span>
                     <span class="c1"># ``train_iter`` passed in from ``serial_entry``, indicates current collecting model&#39;s iteration.</span>
                     <span class="n">transition</span><span class="p">[</span><span class="s1">&#39;collect_iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_iter</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>  <span class="c1"># NOTE</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_env_info</span><span class="p">[</span><span class="n">env_id</span><span class="p">][</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_total_envstep_count</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="c1"># prepare data</span>
                     <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">])</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len</span><span class="p">:</span>
-                        <span class="c1"># for r2d2:</span>
-                        <span class="c1"># 1. for each collect_env, we want to collect data of the length self._traj_len</span>
-                        <span class="c1"># except when it comes to a done.</span>
-                        <span class="c1"># 2. however, even if timestep is done and assume we only collected 9 transitions,</span>
-                        <span class="c1"># by going through self._policy.get_train_sample, it will be padded automatically.</span>
-                        <span class="c1"># 3. so, a unit of train transition for r2d2 will have seq len</span>
-                        <span class="c1"># (burnin + nstep) (collected_sample=1), and we need to collect n_sample.</span>
+                        <span class="c1"># If policy is r2d2:</span>
+                        <span class="c1"># 1. For each collect_env, we want to collect data of length self._traj_len=INF</span>
+                        <span class="c1"># unless the episode enters the &#39;done&#39; state.</span>
+                        <span class="c1"># 2. The length of a train (sequence) sample in r2d2 is &lt;burnin + learn_unroll_length&gt;</span>
+                        <span class="c1"># (please refer to r2d2.py) and in each collect phase,</span>
+                        <span class="c1"># we collect a total of &lt;n_sample&gt; (sequence) samples.</span>
+                        <span class="c1"># 3. When timestep is done and we only collected very few transitions in self._traj_buffer,</span>
+                        <span class="c1"># by going through self._policy.get_train_sample, it will be padded automatically to get the</span>
+                        <span class="c1"># sequence sample of length &lt;burnin + learn_unroll_len&gt; (please refer to r2d2.py).</span>
 
                         <span class="c1"># Episode is done or traj_buffer(maxlen=traj_len) is full.</span>
                         <span class="n">transitions</span> <span class="o">=</span> <span class="n">to_tensor_transitions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">])</span>
@@ -463,9 +584,12 @@
             <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_reset_stat</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">return_data</span><span class="p">[:</span><span class="n">n_sample</span><span class="p">]</span></div>
+        <span class="k">if</span> <span class="n">drop_extra</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">return_data</span><span class="p">[:</span><span class="n">n_sample</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">return_data</span></div>
 
-<div class="viewcode-block" id="SampleSerialCollector._output_log"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector._output_log">[docs]</a>    <span class="k">def</span> <span class="nf">_output_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleSerialCollector._output_log"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector._output_log">[docs]</a>    <span class="k">def</span> <span class="nf">_output_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Print the output log information. You can refer to Docs/Best Practice/How to understand\</span>
@@ -512,43 +636,119 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_step/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_envstep_count</span><span class="p">)</span></div></div>
 </pre></div>
 
-           </div>
-           
-          </div>
-          <footer>
+              </article>
+              
+            </div>
+            <footer>
   
 
-  <hr/>
+  <hr>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2021, OpenDILab Contributors
+      &copy; Copyright 2021, OpenDILab Contributors.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
   </div>
-  
-
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
-
-  
-  
-    
    
 
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/jquery.js"></script>
+  <script src="../../../../_static/underscore.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
 </body>
+
 </html>

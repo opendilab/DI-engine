@@ -1,0 +1,746 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>如何使用 RNN &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="如何理解训练过程中生成的文件夹？" href="training_generated_folders_zh.html" />
+  <link rel="prev" title="注册器（registry）" href="registry_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">最佳实践</a> &gt;</li>
+        
+      <li>如何使用 RNN</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/rnn_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="rnn">
+<h1>如何使用 RNN<a class="headerlink" href="#rnn" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>RNN简介<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>循环神经网络（RNN）是神经网络中的一类。RNN 是从前馈神经网络中衍生出来的，额外增加了内部状态 （hidden state）来存储历史输入信息，可以处理可变长度的输入序列。其中RNN网络在不同时刻之间的连接关系沿时间维度形成了有向图，这个性质允许它可以捕捉与时间相关的动态行为。从而适用于处理输入为可变长度序列的手写识别或语音识别等任务。</p>
+<p>在深度强化学习中， <a class="reference external" href="https://arxiv.org/abs/1507.06527">DRQN</a> (Deep Recurrent
+Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决atari游戏中不完全信息观测的问题。 之后，RNN 就成为了RL研究中解决复杂时序决策任务的一个重要方法。</p>
+<p>经过多年的研究，RNN 有很多变体，如 LSTM、GRU 等。
+但是核心的更新过程仍然非常相似。在MDP的每个时间步
+<span class="math notranslate nohighlight">\(t\)</span> ，智能体需要用现在的观测状态 <span class="math notranslate nohighlight">\(s_t\)</span> 和历史
+的观测状态 <span class="math notranslate nohighlight">\(s_{t-1}, s_{t-2}, ...\)</span> 来推断 <span class="math notranslate nohighlight">\(a_t\)</span>。这
+需要 RNN 智能体保存先前的观察结果并保存RNN 隐藏状态。</p>
+<p>DI-engine 支持 RNN网络，并提供易于使用的 API 让用户
+实现 RNN 的变体。</p>
+</section>
+<section id="di-engine">
+<h2>DI-engine中的相关组件<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ding/model/wrapper/model_wrappers.py:</span> <span class="pre">HiddenStateWrapper</span></code> :
+用于维护隐藏状态 （hidden state）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ding/torch_utils/network/rnn.py</span></code>: 用于构建RNN模型</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ding/rl_utils/adder.py:</span> <span class="pre">Adder:</span></code>: 用于将原始数据排列成
+时序数据（通过调用 ding/utils/default_helper.py: list_split() 函数）</p></li>
+</ol>
+</section>
+<section id="rnn-di-engine">
+<h2>RNN 在 DI-engine 中的示例<a class="headerlink" href="#rnn-di-engine" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>policy</p></th>
+<th class="head"><p>RNN-support</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>a2c</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>atoc</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>c51</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>collaq</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-even"><td><p>coma</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-odd"><td><p>ddpg</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>dqn</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>il</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>impala</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>iqn</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>ppg</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>ppo</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>qmix</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-odd"><td><p>qrdqn</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>r2d2</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-odd"><td><p>rainbow</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>sac</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>sqn</p></td>
+<td><p>×</p></td>
+</tr>
+</tbody>
+</table>
+<p>在 DI-engine 中使用 RNN 的过程如下。</p>
+<ul class="simple">
+<li><p>构建你的 RNN 模型</p></li>
+<li><p>将您的模型包装在策略中</p></li>
+<li><p>将原始数据按时间顺序排列</p></li>
+<li><p>初始化隐藏状态（hidden state）</p></li>
+<li><p>Burn-in（Optional）</p></li>
+</ul>
+<section id="id2">
+<h3>构建 RNN 模型<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>您可以使用 DI-engine 的内置 RNN 模型或您自己的 RNN 模型。</p>
+<ol class="arabic simple">
+<li><p>使用 DI-engine 的内置模型。 DI-engine的DRQN对于离散动作空间环境提供RNN
+支持（默认为 LSTM）。你可以轻松地在配置中指定模型类型或在策略中设置默认模型以使用
+它。</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># in config file</span>
+<span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span>
+    <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+      <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;drqn&#39;</span><span class="p">,</span>
+      <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="o">...</span>
+<span class="p">),</span>
+<span class="o">...</span>
+
+<span class="c1"># or set policy default model</span>
+  <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+      <span class="k">return</span> <span class="s1">&#39;drqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>使用定制模型。 请参考 <a class="reference external" href="..//quick_start/index.html#set-up-policy-and-nn-model">Set up Policy and NN model</a>.
+为了使您的模型以最少的代码更改适应 Di-engine的入口文件（serial entry），模型的输出 dict 应包含 <code class="docutils literal notranslate"><span class="pre">'next_state'</span></code> 键。</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">your_rnn_model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+  <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+      <span class="c1"># the input data `x` must be a dict, contains the key &#39;prev_state&#39;, the hidden state of last timestep</span>
+      <span class="o">...</span>
+      <span class="k">return</span> <span class="p">{</span>
+          <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span>
+          <span class="s1">&#39;next_state&#39;</span><span class="p">:</span> <span class="n">hidden_state</span><span class="p">,</span>
+          <span class="o">...</span>
+      <span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DI-engine也提供 RNN 模块。您可以通过 <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">ding.torch_utils</span> <span class="pre">import</span> <span class="pre">get_lstm</span></code> 使用 <code class="docutils literal notranslate"><span class="pre">get_lstm()</span></code> 函数. 该功能允许用户使用由 ding/pytorch/HPC 实现的 LSTM。</p>
+</div>
+</section>
+<section id="wrapper-rnn">
+<span id="use-model-wrapper-to-wrap-your-rnn-model-in-policy"></span><h3>使用模型 Wrapper 将您的 RNN 模型包装在策略中<a class="headerlink" href="#wrapper-rnn" title="Permalink to this headline">¶</a></h3>
+<p>由于 RNN 模型需要维护数据的隐藏状态（hidden states），DI-engine 提供 <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> 来支持这个功能。 用户只需要在
+策略的学习/收集/评估初始化阶段来包装模型。 Wrapper 会帮助智能体在模型计算时保留隐藏状态（hidden states），并在下一次模型计算时发送这些隐藏状态（hidden states）。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In policy</span>
+<span class="k">class</span> <span class="nc">your_policy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">,</span> <span class="n">state_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span>
+
+     <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">,</span> <span class="n">state_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">env_num</span><span class="p">,</span> <span class="n">save_prev_state</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+     <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">,</span> <span class="n">state_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">env_num</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Set <code class="docutils literal notranslate"><span class="pre">save_prev_state=True</span></code> in collect model’s wrapper to make sure there is previous hidden state for learner to initialize RNN.</p>
+</div>
+<p><cite>HiddenStateWrapper</cite> 的更多细节可以在 <a class="reference external" href="./model_wrapper.rst">model wrapper</a> 中找到，它的工作流程可以表示为下图：</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/model_hiddenwrapper_img.png"><img alt="../_images/model_hiddenwrapper_img.png" class="align-center" src="../_images/model_hiddenwrapper_img.png" style="width: 456.59999999999997px; height: 649.8px;" /></a>
+</div></blockquote>
+</section>
+<section id="id3">
+<h3>数据处理<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>用于训练 RNN 的 mini-batch 数据不同于通常的数据。 这些数据通常应按时间序列排列. 对于 DI-engine, 这个处理是在
+<code class="docutils literal notranslate"><span class="pre">collector</span></code> 阶段完成的。 用户需要在配置文件中指定 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 以确保序列数据的长度与算法匹配。 对于大多数情况，
+<code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 应该等于 RNN 的历史长度（a.k.a 时间序列长度），但在某些情况下并非如此，比如，在r2d2中， 我们使用burn-in操作， 序列长度等于
+<code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> + <code class="docutils literal notranslate"><span class="pre">burnin_step</span></code>. 这里将在下一节中具体解释。</p>
+<p>比如原始采样数据是:math:<cite>[x_1,x_2,x_3,x_4,x_5,x_6]</cite>，每个
+<span class="math notranslate nohighlight">\(x\)</span> 表示 <span class="math notranslate nohighlight">\([s_t,a_t,r_t,d_t,s_{t+1}]\)</span> （也许
+<span class="math notranslate nohighlight">\(log_\pi(a_t|s_t)\)</span>，隐藏状态等），我们需要 RNN
+的序列长度为 3。</p>
+<p>1. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 并且 <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> 可以被 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 除尽:
+例如``learn_unroll_len=3``，数据将被排列为:math:<cite>[[x_1,x_2,x_3],[x_4,x_5,x_6]]</cite>。</p>
+<p>2. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 并且 <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> 不可以被 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 除尽:
+默认情况下，残差数据将由上一个样本中的一部分数据填充，例如如果 <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> 和 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len=4</span></code> ，数据将被排列为
+<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]\)</span>。</p>
+<p>3. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &lt; <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code>：例如如果 <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> 和 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len=7</span></code>，默认情况下，算法将使用 <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> 方法，数据将被排列为
+<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]\)</span>。 <span class="math notranslate nohighlight">\(x_{null}\)</span> 类似于 <span class="math notranslate nohighlight">\(x_6\)</span> 但它的 <code class="docutils literal notranslate"><span class="pre">done=True</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>。</p>
+<p>这里以r2d2算法为例，在r2d2中，在方法``_get_train_sample``中调用函数
+<code class="docutils literal notranslate"><span class="pre">get_nstep_return_data</span></code> 和 <code class="docutils literal notranslate"><span class="pre">get_train_sample</span></code>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">get_nstep_return_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_len</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>有关这两个数据处理功能的更多详细信息，请参见`ding/rl_utilrs/adder.py &lt;<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/adder.py#L125">https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/adder.py#L125</a>&gt;`_ ,
+其数据处理的工作流程见下图：</p>
+<blockquote>
+<div><img alt="../_images/r2d2_sequence.png" class="align-center" src="../_images/r2d2_sequence.png" />
+</div></blockquote>
+</section>
+<section id="hidden-state">
+<h3>初始化隐藏状态 (Hidden State)<a class="headerlink" href="#hidden-state" title="Permalink to this headline">¶</a></h3>
+<p>策略的 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 需要初始化 RNN。这些隐藏状态来自 <code class="docutils literal notranslate"><span class="pre">_collect_model</span></code> 保存的``prev_state``。
+用户需要通过 _process_transition 函数将这些状态添加到 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 输入数据字典中。
+.. code:: python</p>
+<blockquote>
+<div><p>def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -&gt; dict:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>transition = {</dt><dd><p>‘obs’: obs,
+‘action’: model_output[‘action’],
+‘prev_state’: model_output[‘prev_state’], # add <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> key here
+‘reward’: timestep.reward,
+‘done’: timestep.done,</p>
+</dd>
+</dl>
+<p>}
+return transition</p>
+</div></blockquote>
+</div></blockquote>
+<p>然后在 _learn_model 前向函数中， 调用它的重置函数 ( 对应 <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> 里面的重置函数) 以用来初始化 RNN 的
+<code class="docutils literal notranslate"><span class="pre">prev_state</span></code>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+     <span class="c1"># forward</span>
+     <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_preprocess_learn</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+     <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+     <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="burn-in-in-r2d2">
+<h3>Burn-in(in R2D2)<a class="headerlink" href="#burn-in-in-r2d2" title="Permalink to this headline">¶</a></h3>
+<p>Burn-in的概念来自 <a class="reference external" href="https://www.deepmind.com/publications/recurrent-experience-replay-in-distributed-reinforcement-learning">R2D2</a> （Recurrent Experience Replay In Distributed Reinforcement Learning）论文。论文指出在使用 LSTM 时，最基础的方式是：</p>
+<p>1.将完整的 episode 轨迹切分为很多序列样本。在每个序列样本的初始时刻，使用全部为0的 tensor 作为 RNN 网络的初始化 hidden state。</p>
+<p>2.使用完整的 episode 轨迹用于 RNN 训练。</p>
+<p>对于第一种方法，由于每个序列样本的初始时刻的 hidden state 应该包含之前时刻的信息，这里简单使用全为0的 Tensor 带来很大的 bias
+对于第二种方法，往往在不同环境上，完整的一个episode的长度是变化的，很难直接用于 RNN 的训练。</p>
+<p>Burn-in 给予 RNN 网络一个
+<code class="docutils literal notranslate"><span class="pre">burn-in</span> <span class="pre">period</span></code>。  即使用 <code class="docutils literal notranslate"><span class="pre">replay</span> <span class="pre">sequence</span></code> 的前面一部分数据产生一个开始的隐藏状态 (hidden state)，然后仅在 <code class="docutils literal notranslate"><span class="pre">replay</span> <span class="pre">sequence</span></code> 的后面一部分数据上更新 RNN 网络。</p>
+<p>在 DI-engine 中，r2d2 使用 n-step td error， 即， <code class="docutils literal notranslate"><span class="pre">self._nstep</span></code> 是 n 的数量。
+<code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">length</span> <span class="pre">=</span> <span class="pre">burnin_step</span> <span class="pre">+</span> <span class="pre">learn_unroll_len</span></code>.
+所以在配置文件中， <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 应该设置为 <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">length</span> <span class="pre">-</span> <span class="pre">burnin_step</span></code>。</p>
+<p>在此设置中，原始展开的 obs 序列被拆分为 <code class="docutils literal notranslate"><span class="pre">burnin_nstep_obs</span></code> ， <code class="docutils literal notranslate"><span class="pre">main_obs</span></code> 和 <code class="docutils literal notranslate"><span class="pre">marget_obs</span></code>。<code class="docutils literal notranslate"><span class="pre">burnin_nstep_obs</span></code> 是
+用于计算 rnn 的初始隐藏状态，用便未来用于计算 q_value、target_q_value 和 target_q_action。
+<code class="docutils literal notranslate"><span class="pre">main_obs</span></code> 用于计算 q_value。在下面的代码中，[bs:-self._nstep] 表示使用来自的数据
+<code class="docutils literal notranslate"><span class="pre">bs</span></code> 时间步长到 <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">length</span></code> -<code class="docutils literal notranslate"><span class="pre">self._nstep</span></code> 时间步长。
+<code class="docutils literal notranslate"><span class="pre">target_obs</span></code> 用于计算 target_q_value。</p>
+<p>这个数据处理可以通过下面的代码来实现：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][:</span><span class="n">bs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">bs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">:]</span>
+</pre></div>
+</div>
+<p>在 R2D2 中，如果我们使用 burn-in, 重置的方式就不是那么简单了。</p>
+<ul class="simple">
+<li><p>当我们调用 self._collect_model 的 forward 方法时，我们设置 inference=True ，每次调用它，我们只传入一个 timestep 数据，
+所以我们可以在每个时间步得到 rnn 的隐藏状态： <code class="docutils literal notranslate"><span class="pre">prev_state</span></code>。</p></li>
+<li><p>当我们调用 self._learn_model 的 forward 方法时，我们设置 inference=False ，当 self._learn_model 不是 inference 模式时，每次调用我们传入一个序列数据，
+他们输出的 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> 字段只是最后一个时间步的隐藏状态，
+所以我们可以通过指定参数 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的方式来指定要存储哪些隐藏状态。
+(<code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的数据格式是一个列表。 具体可参照 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700">ding/model/template/q_learning.py</a> ) 的 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法.
+正如我们在下面的代码中看到的，我们首先将 <code class="docutils literal notranslate"><span class="pre">data['burnin_nstep_obs']</span></code> 传递给 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 和
+<code class="docutils literal notranslate"><span class="pre">self._target_model</span></code>， 以用于获取  <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps</span></code> 列表中指定的不同时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code>。 这些 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code> 将在后面计算 <code class="docutils literal notranslate"><span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">target_q_value</span></code> 和  <a href="#id4"><span class="problematic" id="id5">``</span></a>target_q_action``时使用.</p></li>
+<li><p>请注意，在 r2d2 中，我们指定 <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps=[self._burnin_step,</span> <span class="pre">self._burnin_step</span> <span class="pre">+</span> <span class="pre">self._nstep]</span></code> , 那么在调用完网络的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法后,
+<code class="docutils literal notranslate"><span class="pre">burnin_output</span></code> 和 <code class="docutils literal notranslate"><span class="pre">burnin_output_target</span></code> 将会保存 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 里面指定时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_state</span></code>.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>在 DI-engine 中，每次调用 RNN 模型的 forward 方法时, 我们应该注意用 <code class="docutils literal notranslate"><span class="pre">burnin_output['saved_hidden_state']</span></code> 这个隐藏状态重置这个网络。</dt><dd><p>因为本质上，当我们上次使用 RNN 模型时，RNN 模型的初始隐藏状态被设置为最后一个时间步隐藏状态。</p>
+</dd>
+</dl>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="c1"># forward</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_preprocess_learn</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="c1"># use the hidden state in timestep=0</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_obs&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+            <span class="n">burnin_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
+                <span class="n">inputs</span><span class="p">,</span> <span class="n">saved_hidden_state_timesteps</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">burnin_output_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
+                <span class="n">inputs</span><span class="p">,</span> <span class="n">saved_hidden_state_timesteps</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+            <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">burnin_output</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+    <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">burnin_output</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">burnin_output_target</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">next_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+        <span class="c1"># argmax_action double_dqn</span>
+        <span class="n">target_q_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">)[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>RNN和burn-in的更多细节可以参考 <cite>ding/policy/r2d2.py &lt;https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py&gt;</cite> __。</p>
+</section>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="training_generated_folders_zh.html" class="btn btn-neutral float-right" title="如何理解训练过程中生成的文件夹？" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="registry_zh.html" class="btn btn-neutral" title="注册器（registry）" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">如何使用 RNN</a><ul>
+<li><a class="reference internal" href="#id1">RNN简介</a></li>
+<li><a class="reference internal" href="#di-engine">DI-engine中的相关组件</a></li>
+<li><a class="reference internal" href="#rnn-di-engine">RNN 在 DI-engine 中的示例</a><ul>
+<li><a class="reference internal" href="#id2">构建 RNN 模型</a></li>
+<li><a class="reference internal" href="#wrapper-rnn">使用模型 Wrapper 将您的 RNN 模型包装在策略中</a></li>
+<li><a class="reference internal" href="#id3">数据处理</a></li>
+<li><a class="reference internal" href="#hidden-state">初始化隐藏状态 (Hidden State)</a></li>
+<li><a class="reference internal" href="#burn-in-in-r2d2">Burn-in(in R2D2)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

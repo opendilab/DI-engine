@@ -1,0 +1,522 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>模仿学习 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="强化学习中的探索机制" href="exploration_rl_zh.html" />
+  <link rel="prev" title="基于模型的强化学习" href="model_based_rl_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法分类</a> &gt;</li>
+        
+      <li>模仿学习</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/02_algo/imitation_learning_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="id1">
+<h1>模仿学习<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<section id="id2">
+<h2>问题与意义<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>模仿学习 (Imitation Learning, IL) 指的是，智能体通过学习一些专家数据来提取知识，进而复制下这些专家数据的行为这样一种学习方法。由于IL的本身特性，
+它面临两大难题：需要大量的训练数据、训练数据的质量一定要好。为了解决上述问题，从大体来说，IL可以分成三个方向：IRL（逆强化学习），BC（行为克隆），
+Adversarial Structured IL（对抗结构）。下面对各个方向做简要分析：</p>
+</section>
+<section id="id3">
+<h2>研究方向<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<section id="bc">
+<h3>BC<a class="headerlink" href="#bc" title="Permalink to this headline">¶</a></h3>
+<p>BC 最早提出于[1]，它提出了一种监督学习的方法，通过拟合专家数据，直接建立状态-动作的映射关系。</p>
+<p>BC 的最大好处是效率很高，算法简单，但是一旦智能体遇到了从未见过的状态，就可能做出错误的行为——这一问题被称作“状态漂移”。为了解决这个问题，DAgger[2]方法采用了一种动态更新数据集的方法，根据训练出 policy 遇到的真实状态，不断添加新的专家数据至数据集中。而在后续的研究中，IBC[3] 采用了隐式行为克隆的方法，它的关键是训练一个神经网络来接受观察和动作，并输出一个数字，该数字对专家动作来说很低，对非专家动作来说很高，从而将行为克隆变成一个基于能量的建模问题。</p>
+<p>目前的 BC 算法研究热点主要聚焦于两个方面：meta-learning 和利用 VR 设备进行行为克隆。</p>
+</section>
+<section id="irl">
+<h3>IRL<a class="headerlink" href="#irl" title="Permalink to this headline">¶</a></h3>
+<p>IRL 的主要目标是为了解决数据收集时，难以找到足够高质量数据的问题。具体来说，IRL 首先从专家数据中学习一个奖励函数，进而使用这个奖励函数进行后续的RL训练。通过这样的方法，IRL 从理论上来说，可以表现出超越专家数据的性能。</p>
+<p>从具体的工作上面，Ziebart等人[4] 首先提出了最大熵 IRL，它利用最大熵分布来获得良好的前景和有效的优化。后来在2016年，Finn等人[5]提出了一种基于模型的 IRL 方法，称为引导成本学习（
+guided cost
+learning），这种方法使用神经网络表示 cost 进而提高表达能力。后续，Hester等人又提出了DQfD[6]，该方法仅需少量的专家数据，通过预训练启动过程和后续学习过程，显著加速了训练。后来的方法如 T-REX[7] 提出了一种基于为专家数据排序的结构，通过对比什么专家数据效果更好，间接地学习奖励函数。</p>
+</section>
+<section id="adversarial-structured-il">
+<h3>Adversarial Structured IL<a class="headerlink" href="#adversarial-structured-il" title="Permalink to this headline">¶</a></h3>
+<p>Adversarial Structured IL 方法的主要目标是为了解决 IRL 的效率问题。通过 IRL 的算法可以看出，即便它学到了非常好的奖励函数，由于得到最终的策略仍然需要执行强化学习步骤，因此如果可以直接从专家数据中学习到策略，就可以大大提高效率。基于这个想法 GAIL
+[8] 结合了生成式网络 GAN 和最大熵 IRL，无需人工不断标注专家数据，就可以不断地高效训练。</p>
+<p>在此基础上，许多工作都对 GAIL 做了改进。如 InfoGail
+[9]用 WGAN 替换了 GAN，取得了较好的效果。还有一些近期的工作，如 GoalGAIL[10]，TRGAIL[11] 和 DGAIL[12] 都结合了其他方法，如事后重标记和 DDPG，以实现更快的收敛速度和更好的最终性能。</p>
+</section>
+</section>
+<section id="id4">
+<h2>未来展望<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>当前模仿学习还存在许多挑战，主要包括以下几点：</p>
+<ul class="simple">
+<li><p>当前的模仿学习都是针对某个特定任务而言的，缺乏能适用于多任务的模仿学习方法；</p></li>
+<li><p>当前模仿学习算法对于专家数据并非最优的情形，难以超越专家数据达到最优结果；</p></li>
+<li><p>当前的模仿学习算法主要针对 observation 的，没有能结合语音、自然语言等多模态因素；</p></li>
+<li><p>当前模仿学习能够找到局部的最优点，但往往不能找到全局的最优点。</p></li>
+</ul>
+</section>
+<section id="id5">
+<h2>参考文献<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>[1] Michael Bain and Claude Sammut. 1999. A framework for behavioural
+cloning. In <em>Machine Intelligence 15</em>. Oxford</p>
+<p>University Press, 103–129.</p>
+<p>[2] Stéphane Ross, Geoffffrey Gordon, and Drew Bagnell. 2011. A
+reduction of imitation learning and structured prediction to no-regret
+online learning. In <em>Proceedings of the fourteenth international
+conference on artifificial intelligence and</em></p>
+<p><em>statistics</em>. JMLR Workshop and Conference Proceedings, 627–635.</p>
+<p>[3] Florence, P. , Lynch, C. , Zeng, A. , Ramirez, O. , Wahid, A. , &amp;
+Downs, L. , et al. (2021). Implicit behavioral cloning.</p>
+<p>[4] Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, and Anind K Dey.
+2008. Maximum entropy inverse reinforcement</p>
+<p>learning.. In <em>Aaai</em>, Vol. 8. Chicago, IL, USA, 1433–1438.</p>
+<p>[5] Chelsea Finn, Sergey Levine, and Pieter Abbeel. 2016. Guided cost
+learning: Deep inverse optimal control via policy</p>
+<p>optimization. In <em>International conference on machine learning</em>. PMLR,
+49–58.</p>
+<p>[6] Todd Hester, Matej Vecerik, Olivier Pietquin, Marc Lanctot, Tom
+Schaul, Bilal Piot, Dan Horgan, John Quan, Andrew</p>
+<p>Sendonaris, Gabriel Dulac-Arnold, Ian Osband, John Agapiou, Joel Z.
+Leibo, and Audrunas Gruslys. 2017. Deep Q learning from Demonstrations.
+<em>arXiv:1704.03732 [cs]</em> (Nov. 2017). <a class="reference external" href="http://arxiv.org/abs/1704.03732">http://arxiv.org/abs/1704.03732</a>
+arXiv: 1704.03732.</p>
+<p>[7] Daniel Brown, Wonjoon Goo, Prabhat Nagarajan, and Scott Niekum.
+2019. Extrapolating beyond suboptimal demon</p>
+<p>strations via inverse reinforcement learning from observations. In
+<em>International Conference on Machine Learning</em>.</p>
+<p>PMLR, 783–792.</p>
+<p>[8] Jonathan Ho and Stefano Ermon. 2016. Generative Adversarial
+Imitation Learning. In <em>Advances in Neural Information</em></p>
+<p><em>Processing Systems 29</em>, D. D. Lee, M. Sugiyama, U. V. Luxburg, I.
+Guyon, and R. Garnett (Eds.). Curran Associates, Inc.,</p>
+<p>4565–4573.
+<a class="reference external" href="http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf">http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf</a></p>
+<p>[9] Yunzhu Li, Jiaming Song, and Stefano Ermon. 2017. InfoGAIL:
+Interpretable Imitation Learning from Vi</p>
+<p>sual Demonstrations. In <em>Advances in Neural Information Processing
+Systems 30</em>, I. Guyon, U. V. Luxburg,</p>
+<p>S. Bengio, H. Wallach, R. Fergus, S. Vishwanathan, and R. Garnett
+(Eds.). Curran Associates, Inc., 3812–3822.</p>
+<p><a class="reference external" href="http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf">http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf</a></p>
+<p>[10] Yiming Ding, Carlos Florensa, Mariano Phielipp, and Pieter Abbeel.
+2019. Goal-conditioned imitation learning. <em>arXiv</em></p>
+<p><em>preprint arXiv:1906.05838</em> (2019).</p>
+<p>[11] Akira Kinose and Tadahiro Taniguchi. 2020. Integration of imitation
+learning using GAIL and reinforcement</p>
+<p>learning using task-achievement rewards via probabilistic graphical
+model. <em>Advanced Robotics</em> (June 2020), 1–13.</p>
+<p><a class="reference external" href="https://doi.org/10.1080/01691864.2020.1778521">https://doi.org/10.1080/01691864.2020.1778521</a></p>
+<p>[12] Guoyu Zuo, Kexin Chen, Jiahao Lu, and Xiangsheng Huang. 2020.
+Deterministic generative adversarial imitation</p>
+<p>learning. <em>Neurocomputing</em> 388 (May 2020), 60–69.
+<a class="reference external" href="https://doi.org/10.1016/j.neucom.2020.01.016">https://doi.org/10.1016/j.neucom.2020.01.016</a></p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="exploration_rl_zh.html" class="btn btn-neutral float-right" title="强化学习中的探索机制" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="model_based_rl_zh.html" class="btn btn-neutral" title="基于模型的强化学习" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">模仿学习</a><ul>
+<li><a class="reference internal" href="#id2">问题与意义</a></li>
+<li><a class="reference internal" href="#id3">研究方向</a><ul>
+<li><a class="reference internal" href="#bc">BC</a></li>
+<li><a class="reference internal" href="#irl">IRL</a></li>
+<li><a class="reference internal" href="#adversarial-structured-il">Adversarial Structured IL</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">未来展望</a></li>
+<li><a class="reference internal" href="#id5">参考文献</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>
