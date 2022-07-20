@@ -38,6 +38,7 @@ class RecvPayload:
     method: str = None
     data: Any = None
     err: Exception = None
+    extra: Any = None
 
 
 class ReserveMethod(Enum):

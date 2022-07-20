@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import os
 import torch
 import numpy as np
@@ -12,6 +13,12 @@ from ding.data import FileStorage, Storage
 from os import path
 from ding.data.shm_buffer import ShmBuffer
 from ding.framework.supervisor import RecvPayload, Supervisor, ChildType, SendPayload
+
+
+@dataclass
+class ShmObject:
+    id_: ShmBuffer
+    buf: Any
 
 
 class StorageWorker:
@@ -30,7 +37,7 @@ class StorageLoader(Supervisor, ABC):
         super().__init__(type_=ChildType.PROCESS)
         self._load_lock = Lock()  # Load (first meet) should be called one by one.
         self._callback_map: Dict[str, Callable] = {}
-        self._shm_obj_map: Dict[int, Any] = {}
+        self._shm_obj_map: Dict[int, ShmObject] = {}
         self._worker_num = worker_num
         self._req_count = 0
 
@@ -75,9 +82,9 @@ class StorageLoader(Supervisor, ABC):
         obj = storage.load()
         # Create three workers for each usage type.
         for i in range(self._worker_num):
-            shm_buffer = self._create_shm_buffer(obj)
-            self._shm_obj_map[i] = shm_buffer
-            self.register(StorageWorker, shm_buffer=shm_buffer, shm_callback=self._shm_callback)
+            shm_obj = self._create_shm_buffer(obj)
+            self._shm_obj_map[i] = shm_obj
+            self.register(StorageWorker, shm_buffer=shm_obj, shm_callback=self._shm_callback)
         self.start_link()
         callback(obj)
 
@@ -94,7 +101,7 @@ class StorageLoader(Supervisor, ABC):
                     callback = self._callback_map.pop(payload.req_id)
                     callback(payload.data)
 
-    def _create_shm_buffer(self, obj: Union[Dict, List]) -> Any:
+    def _create_shm_buffer(self, obj: Union[Dict, List]) -> Optional[ShmObject]:
         """
         Overview:
             Create shared object (buf and callback) by walk through the data structure.
@@ -128,16 +135,26 @@ class StorageLoader(Supervisor, ABC):
             return shm_buf
 
         shm_buf = to_shm(obj, level=0)
+        if shm_buf is not None:
+            random_id = self._random_id()
+            shm_buf = ShmObject(id_=ShmBuffer(random_id.dtype, random_id.shape, copy_on_get=False), buf=shm_buf)
         return shm_buf
 
-    def _shm_callback(self, payload: RecvPayload, buf: Union[Dict, List]):
+    def _random_id(self) -> np.ndarray:
+        return np.random.randint(1, 9e6, size=(1))
+
+    def _shm_callback(self, payload: RecvPayload, shm_obj: ShmObject):
         """
         Overview:
             Called in subprocess, put payload.data into buf.
         """
-        assert type(
-            payload.data
-        ) is type(buf), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(buf))
+        assert type(payload.data) is type(
+            shm_obj.buf
+        ), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(shm_obj.buf))
+
+        # Sleep while shm object is not ready.
+        while shm_obj.id_.get()[0] != 0:
+            sleep(0.001)
 
         max_level = 2
 
@@ -168,16 +185,23 @@ class StorageLoader(Supervisor, ABC):
                 for i, data_ in enumerate(data):
                     shm_callback(data_, buf[i], level=level)
 
-        shm_callback(payload.data, buf=buf, level=0)
+        shm_callback(payload.data, buf=shm_obj.buf, level=0)
+        id_ = self._random_id()
+        shm_obj.id_.fill(id_)
+        payload.extra = id_
 
-    def _shm_putback(self, payload: RecvPayload, buf: Union[Dict, List]):
+    def _shm_putback(self, payload: RecvPayload, shm_obj: ShmObject):
         """
         Overview:
             Called in main process, put buf back into payload.data.
         """
-        assert type(
-            payload.data
-        ) is type(buf), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(buf))
+        assert type(payload.data) is type(
+            shm_obj.buf
+        ), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(shm_obj.buf))
+
+        assert shm_obj.id_.get()[0] == payload.extra[0], "Shm object and payload do not match ({} - {}).".format(
+            shm_obj.id_.get()[0], payload.extra[0]
+        )
 
         def shm_putback(data: Union[Dict, List], buf: Union[Dict, List]):
             if isinstance(data, Dict) or isinstance(data, ttorch.Tensor):
@@ -193,7 +217,8 @@ class StorageLoader(Supervisor, ABC):
                 for i, data_ in enumerate(data):
                     shm_putback(data_, buf[i])
 
-        shm_putback(payload.data, buf=buf)
+        shm_putback(payload.data, buf=shm_obj.buf)
+        shm_obj.id_.fill(np.array([0]))
 
 
 class FileStorageLoader(StorageLoader):

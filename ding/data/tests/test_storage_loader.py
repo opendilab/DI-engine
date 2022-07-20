@@ -98,18 +98,18 @@ def test_shared_object():
 
     ######## Test array ########
     obj = [{"obs": np.random.rand(100, 100)} for _ in range(10)]
-    buf = loader._create_shm_buffer(obj)
-    assert len(buf) == len(obj) * 2
-    assert isinstance(buf[0]["obs"], ShmBuffer)
+    shm_obj = loader._create_shm_buffer(obj)
+    assert len(shm_obj.buf) == len(obj) * 2
+    assert isinstance(shm_obj.buf[0]["obs"], ShmBuffer)
 
     # Callback
     payload = RecvPayload(proc_id=0, data=obj)
-    loader._shm_callback(payload=payload, buf=buf)
+    loader._shm_callback(payload=payload, shm_obj=shm_obj)
     assert len(payload.data) == 10
     assert [d["obs"] is None for d in payload.data]
 
     ## Putback
-    loader._shm_putback(payload=payload, buf=buf)
+    loader._shm_putback(payload=payload, shm_obj=shm_obj)
     obj = payload.data
     assert len(obj) == 10
     for o in obj:
@@ -118,28 +118,28 @@ def test_shared_object():
 
     ######## Test dict ########
     obj = {"obs": torch.rand(100, 100, dtype=torch.float32)}
-    buf = loader._create_shm_buffer(obj)
-    assert isinstance(buf["obs"], ShmBuffer)
+    shm_obj = loader._create_shm_buffer(obj)
+    assert isinstance(shm_obj.buf["obs"], ShmBuffer)
 
     payload = RecvPayload(proc_id=0, data=obj)
-    loader._shm_callback(payload=payload, buf=buf)
+    loader._shm_callback(payload=payload, shm_obj=shm_obj)
     assert payload.data["obs"] is None
 
-    loader._shm_putback(payload=payload, buf=buf)
+    loader._shm_putback(payload=payload, shm_obj=shm_obj)
     assert isinstance(payload.data["obs"], torch.Tensor)
     assert payload.data["obs"].shape == (100, 100)
 
     ######## Test treetensor ########
     obj = {"trajectories": [ttorch.as_tensor({"obs": torch.rand(10, 10, dtype=torch.float32)}) for _ in range(10)]}
-    buf = loader._create_shm_buffer(obj)
+    shm_obj = loader._create_shm_buffer(obj)
 
     payload = RecvPayload(proc_id=0, data=obj)
-    loader._shm_callback(payload=payload, buf=buf)
+    loader._shm_callback(payload=payload, shm_obj=shm_obj)
     assert len(payload.data["trajectories"]) == 10
     for traj in payload.data["trajectories"]:
         assert traj["obs"] is None
 
-    loader._shm_putback(payload=payload, buf=buf)
+    loader._shm_putback(payload=payload, shm_obj=shm_obj)
     for traj in payload.data["trajectories"]:
         assert isinstance(traj["obs"], torch.Tensor)
         assert traj["obs"].shape == (10, 10)
@@ -167,8 +167,12 @@ def test_shared_object_benchmark():
     }
     buf = loader._create_shm_buffer(obj)
     payload = RecvPayload(proc_id=0, data=obj)
-    loader._shm_callback(payload=payload, buf=buf)
+    loader._shm_callback(payload=payload, shm_obj=buf)
 
-    res = timeit.repeat(lambda: loader._shm_putback(payload=payload, buf=buf), repeat=5, number=1000)
+    def stmt():
+        payload.extra = buf.id_.get()
+        loader._shm_putback(payload=payload, shm_obj=buf)
+
+    res = timeit.repeat(stmt, repeat=5, number=1000)
     print("Mean: {:.4f}s, STD: {:.4f}s, Mean each call: {:.4f}ms".format(np.mean(res), np.std(res), np.mean(res)))
     assert np.mean(res) < 1
