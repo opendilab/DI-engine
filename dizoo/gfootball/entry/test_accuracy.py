@@ -1,7 +1,7 @@
 import torch
-from ding.torch_utils import to_list
 import logging
 import math
+from ding.torch_utils import to_list
 from ding.utils.data import NaiveRLDataset
 from torch.utils.data import DataLoader
 
@@ -35,6 +35,6 @@ def test_accuracy_in_dataset(data_path, batch_size, policy):
             action_accuracy_in_dataset[action_unique].append(action_accuracy)
             # logging.info(f'the accuracy of action {action_unique} in current train mini-batch is: {action_accuracy}')
 
-    logging.info(f'total accuracy in dataset is: {torch.tensor(total_accuracy_in_dataset).mean()}')
+    logging.info(f'total accuracy in dataset is: {torch.tensor(total_accuracy_in_dataset).mean().item()}')
     logging.info(f'accuracy of each action in dataset is (nan means the action does not appear in the dataset): '
                  f'{ {k: torch.tensor(action_accuracy_in_dataset[k]).mean().item() for k in range(19)} }')
