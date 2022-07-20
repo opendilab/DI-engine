@@ -28,7 +28,7 @@ class DIStarPolicy(Policy):
     config = dict(
         type='distar',
         on_policy=False,
-        cuda=False,
+        cuda=True,
         learning_rate=1e-5,
         model=dict(),
         # learn
@@ -171,9 +171,9 @@ class DIStarPolicy(Policy):
         # ===========
         # pre-process
         # ===========
-        inputs = collate_fn_learn(inputs)
         if self._cfg.cuda:
             inputs = to_device(inputs, self._device)
+        inputs = collate_fn_learn(inputs)
 
         self._learn_model.train()
 
