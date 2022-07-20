@@ -184,7 +184,7 @@ class StepLeagueActor:
             self.total_time += time_end - time_begin
             log_every_sec(
                 logging.INFO, 5,
-                '[Actor {}] sent {} trajectories till now, total trajectory send speed is {}'
+                '[Actor {}] sent {} trajectories till now, total trajectory send speed is {} traj/s'
                 .format(
                     task.router.node_id, self.traj_num, self.traj_num / self.total_time, 
                 )
