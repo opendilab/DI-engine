@@ -78,5 +78,3 @@ def test_onppo_stdim():
         serial_pipeline_onpolicy(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
-    finally:
-        os.popen('rm -rf cartpole_ppo_stdim_unittest')

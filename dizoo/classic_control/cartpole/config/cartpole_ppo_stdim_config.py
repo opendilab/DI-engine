@@ -1,16 +1,18 @@
 
 from easydict import EasyDict
 
+collector_env_num = 8
+evaluator_env_num = 5
 cartpole_ppo_stdim_config = dict(
     exp_name='cartpole_onppo_stdim_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=5,
+        collector_env_num=collector_env_num,
+        evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=195,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         action_space='discrete',
         model=dict(
             obs_shape=4,
@@ -60,6 +62,6 @@ cartpole_ppo_stdim_create_config = EasyDict(cartpole_ppo_stdim_create_config)
 create_config = cartpole_ppo_stdim_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial_onpolicy -c cartpole_ppo_config.py -s 0`
+    # or you can enter `ding -m serial_onpolicy -c cartpole_ppo_stdim_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
     serial_pipeline_onpolicy((main_config, create_config), seed=0)
