@@ -1,5 +1,3 @@
-import sys
-sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
 import numpy as np
 from .trading_env import TradingEnv, Actions, Positions
 from ding.utils import ENV_REGISTRY

@@ -1,6 +1,4 @@
 import sys
-
-from numpy import short
 sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
 print(sys.path)
 from typing import Union, Optional, List, Any, Tuple
