@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -284,11 +285,9 @@
 <p>ICM (Intrinsic Curiosity Module) was first proposed in the paper <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a>,
 It is used to study how to let the agent explore more unexperienced states and learn skills in a sparse reward environment. Its main idea is to use ‘curiosity’ as a signal of intrinsic reward, allowing the agent to explore the environment more efficiently.</p>
 <p>The difficulties the algorithm trying to solve:</p>
-<ol class="arabic simple">
+<ol class="arabic">
 <li><p>High-dimensional continuous state space (such as image information) is difficult to establish an intuitive dynamic model, ie <span class="math notranslate nohighlight">\(p_\theta(s_{t+1}, a_t)\)</span> ;</p></li>
-</ol>
-<p>2. The correlation between the observation in the environment and the agent’s own behavior is different, which can be roughly divided into:
-​​</p>
+<li><p>The correlation between the observation in the environment and the agent’s own behavior is different, which can be roughly divided into:</p>
 <blockquote>
 <div><ol class="loweralpha simple">
 <li><p>Elements that the agent can directly control (such as the position and speed of the vehicle in the autonomous driving scene);</p></li>
@@ -296,6 +295,8 @@ It is used to study how to let the agent explore more unexperienced states and l
 <li><p>Elements that are neither controlled by the agent nor affect the agent (such as the intensity of sunlight in an autonomous driving scene, although it will affect the sensor, it will not affect the driving behavior in essence).</p></li>
 </ol>
 </div></blockquote>
+</li>
+</ol>
 <p>For the above three types of observation elements, we want to extract the environmental features in (a) and (b) two contexts, (these two environmental features are related to the action of the agent), while ignoring (c) the contextual features (this This kind of environment feature has nothing to do with the action of the agent).</p>
 <p>Features: <strong>Description of feature space</strong> Use a feature space to represent the environment, instead of directly using the original observation to represent the environment, so that features only related to agent actions can be extracted, and features unrelated to environmental features can be ignored. .
 Based on the representation of this feature space, a reward module and a forward model are proposed.
@@ -360,6 +361,15 @@ In our implementation, it is normalized to [0, 1] according to the following max
 <p><code class="docutils literal notranslate"><span class="pre">reward</span> <span class="pre">=</span> <span class="pre">(reward</span> <span class="pre">-</span> <span class="pre">reward.min())</span> <span class="pre">/</span> <span class="pre">(reward.max()</span> <span class="pre">-</span> <span class="pre">reward.min()</span> <span class="pre">+</span> <span class="pre">1e-8)</span></code></p>
 <p>2. Use a residual network to fit the forward model. Since the representation dimension of observation is relatively large, the action value is often a discrete value.
 Therefore, when calculating the forward model, the residual network can better retain the information of the action value, so as to obtain a better environmental representation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">encode_state</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_1</span><span class="p">(</span><span class="n">pred_next_state_feature_orig</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">+</span> <span class="n">pred_next_state_feature_orig</span>
+<span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_2</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
 </section>
 <section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>

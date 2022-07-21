@@ -489,23 +489,18 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 <section id="hidden-state">
 <h3>初始化隐藏状态 (Hidden State)<a class="headerlink" href="#hidden-state" title="Permalink to this headline">¶</a></h3>
 <p>策略的 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 需要初始化 RNN。这些隐藏状态来自 <code class="docutils literal notranslate"><span class="pre">_collect_model</span></code> 保存的``prev_state``。
-用户需要通过 _process_transition 函数将这些状态添加到 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 输入数据字典中。
-.. code:: python</p>
-<blockquote>
-<div><p>def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -&gt; dict:</p>
-<blockquote>
-<div><dl class="simple">
-<dt>transition = {</dt><dd><p>‘obs’: obs,
-‘action’: model_output[‘action’],
-‘prev_state’: model_output[‘prev_state’], # add <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> key here
-‘reward’: timestep.reward,
-‘done’: timestep.done,</p>
-</dd>
-</dl>
-<p>}
-return transition</p>
-</div></blockquote>
-</div></blockquote>
+用户需要通过 _process_transition 函数将这些状态添加到 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 输入数据字典中。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+        <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">],</span> <span class="c1"># add ``prev_state`` key here</span>
+        <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+        <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">transition</span>
+</pre></div>
+</div>
 <p>然后在 _learn_model 前向函数中， 调用它的重置函数 ( 对应 <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> 里面的重置函数) 以用来初始化 RNN 的
 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code>。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -546,12 +541,7 @@ return transition</p>
 <ul class="simple">
 <li><p>当我们调用 self._collect_model 的 forward 方法时，我们设置 inference=True ，每次调用它，我们只传入一个 timestep 数据，
 所以我们可以在每个时间步得到 rnn 的隐藏状态： <code class="docutils literal notranslate"><span class="pre">prev_state</span></code>。</p></li>
-<li><p>当我们调用 self._learn_model 的 forward 方法时，我们设置 inference=False ，当 self._learn_model 不是 inference 模式时，每次调用我们传入一个序列数据，
-他们输出的 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> 字段只是最后一个时间步的隐藏状态，
-所以我们可以通过指定参数 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的方式来指定要存储哪些隐藏状态。
-(<code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的数据格式是一个列表。 具体可参照 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700">ding/model/template/q_learning.py</a> ) 的 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法.
-正如我们在下面的代码中看到的，我们首先将 <code class="docutils literal notranslate"><span class="pre">data['burnin_nstep_obs']</span></code> 传递给 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 和
-<code class="docutils literal notranslate"><span class="pre">self._target_model</span></code>， 以用于获取  <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps</span></code> 列表中指定的不同时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code>。 这些 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code> 将在后面计算 <code class="docutils literal notranslate"><span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">target_q_value</span></code> 和  <a href="#id4"><span class="problematic" id="id5">``</span></a>target_q_action``时使用.</p></li>
+<li><p>当我们调用 self._learn_model 的 forward 方法时，我们设置 inference=False ，当 self._learn_model 不是 inference 模式时，每次调用我们传入一个序列数据，他们输出的 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> 字段只是最后一个时间步的隐藏状态，所以我们可以通过指定参数 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的方式来指定要存储哪些隐藏状态。( <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的数据格式是一个列表。 具体可参照 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700">ding/model/template/q_learning.py</a> ) 的 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法. 正如我们在下面的代码中看到的，我们首先将 <code class="docutils literal notranslate"><span class="pre">data['burnin_nstep_obs']</span></code> 传递给 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 和 <code class="docutils literal notranslate"><span class="pre">self._target_model</span></code>，以用于获取  <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps</span></code> 列表中指定的不同时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code>。 这些 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code> 将在后面计算 <code class="docutils literal notranslate"><span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">target_q_value</span></code> 和  <code class="docutils literal notranslate"><span class="pre">target_q_action</span></code> 时使用.</p></li>
 <li><p>请注意，在 r2d2 中，我们指定 <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps=[self._burnin_step,</span> <span class="pre">self._burnin_step</span> <span class="pre">+</span> <span class="pre">self._nstep]</span></code> , 那么在调用完网络的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法后,
 <code class="docutils literal notranslate"><span class="pre">burnin_output</span></code> 和 <code class="docutils literal notranslate"><span class="pre">burnin_output_target</span></code> 将会保存 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 里面指定时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_state</span></code>.</p></li>
 </ul>

@@ -76,13 +76,7 @@ DIAYN的算法的整体训练与计算流程如下：
 实现
 ---------------
 
-DIAYN 的接口定义如下, 相对于 SAC，主要区别在：加入了判别器的训练流程，修改了奖励函数。
-
-.. autoclass:: ding.policy.diayn.DIAYNPolicy
-   :noindex:
-
-注意: ``...`` 表示省略的代码。 对于完整的代码，请参考 DI-engine 的
-`实现 <https://github.com/opendilab/DI-engine/blob/main/ding/policy/diayn.py>`__ 。
+TBD
 
 判别器网络
 ~~~~~~~~~~~~~~~~~~~~~~

@@ -501,7 +501,7 @@
 <li><p>serial</p>
 <blockquote>
 <div><p>将buffer、collector、evaluator、learner的相关信息保存到名为 <code class="docutils literal notranslate"><span class="pre">events.out.tfevents</span></code> 的文件中，供 <strong>tensorboard</strong> 使用。</p>
-<p>DI-engine 将串行文件夹中的所有 tensorboard 文件保存为 <a href="#id3"><span class="problematic" id="id4">**</span></a>一个 tensorboard 文件 ** ，而不是各自的文件夹。 因为在跑如果跑n个实验的时候，当n很大时，4*n个各自的tensorboard文件不容易判别。 所以在串行模式下，所有的 tensorboard文件都在串行文件夹中 （但是，在并行模式下，tensorboard文件位于各自的文件夹中）。</p>
+<p>DI-engine 将串行文件夹中的所有 tensorboard 文件保存为 <strong>一个 tensorboard 文件</strong> ，而不是各自的文件夹。 因为在跑如果跑n个实验的时候，当n很大时，4*n个各自的tensorboard文件不容易判别。 所以在串行模式下，所有的 tensorboard文件都在串行文件夹中 （但是，在并行模式下，tensorboard文件位于各自的文件夹中）。</p>
 </div></blockquote>
 </li>
 <li><p>ckpt</p>
@@ -518,8 +518,8 @@
 </li>
 </ul>
 </section>
-<section id="id5">
-<h2>并行模式<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h2>并行模式<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cartpole_dqn
 ├── ckpt
 │   └── iteration_0.pth.tar
@@ -564,7 +564,7 @@
 <li><p>log/collector</p>
 <blockquote>
 <div><p>在collector文件夹中，有很多 <code class="docutils literal notranslate"><span class="pre">collector_logger.txt</span></code> 文件，包括collector与环境交互时的collector信息。并行模式有很多collector，所以有很多 <code class="docutils literal notranslate"><span class="pre">collector_logger.txt</span></code> 文件记录信息。</p>
-<p><a href="#id6"><span class="problematic" id="id7">``</span></a>collector_logger.txt``中的数据与串行模式相同。</p>
+<p><code class="docutils literal notranslate"><span class="pre">collector_logger.txt</span></code> 中的数据与串行模式相同。</p>
 </div></blockquote>
 </li>
 <li><p>log/evaluator</p>
@@ -662,7 +662,7 @@
               <ul>
 <li><a class="reference internal" href="#">如何理解训练过程中生成的文件夹？</a><ul>
 <li><a class="reference internal" href="#id2">串行模式</a></li>
-<li><a class="reference internal" href="#id5">并行模式</a></li>
+<li><a class="reference internal" href="#id3">并行模式</a></li>
 </ul>
 </li>
 </ul>

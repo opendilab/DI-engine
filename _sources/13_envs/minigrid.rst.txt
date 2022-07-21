@@ -45,7 +45,7 @@ After the installation is complete, you can run the following command on the Pyt
    ./manual_contril.py --env MiniGrid-Empty-8x8-v0
 
 Space before Transformation (Original Environment)
-=========================
+======================================================
 
 Observation Space
 ------------------
@@ -216,7 +216,7 @@ DI-zoo Runnable Code Example
 
 The full training configuration file is at `github
 link <https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/config>`__
- The specific configuration files, such as \ ``minigrid_r2d2_config.py``\ , use the following demo to run:
+The specific configuration files, such as \ ``minigrid_r2d2_config.py``\ , use the following demo to run:
 
 .. code:: python
 

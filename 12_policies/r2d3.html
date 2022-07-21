@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -314,10 +315,11 @@ Concatenate (concat) into a new vector, pass in the head in a) and b), and use i
 <p>The loss function setting of r2d3 is described below, which is the same as DQfD, but all Q values here are calculated by the recurrent neural network described above. include:
 One-step temporal difference loss, n-step temporal difference loss, supervised large interval classification loss, L2 regularization loss for neural network parameters (optional).
 A temporal difference loss ensures that the network satisfies the Bellman equation, a supervised loss is used to make the expert presenter’s action Q-value at least one interval (a constant value) higher than the Q-value of other actions, and an L2 regularization loss for network weights and biases is used to prevent The Q-network overfits on a relatively small number of expert demo datasets.</p>
-<ul class="simple">
-<li><p>In addition to the usual 1-step turn, R2D3 also adds n-step return, which helps to propagate the Q-value of the expert trajectory to all early states for better learning.</p></li>
-</ul>
+<ul>
+<li><p>In addition to the usual 1-step turn, R2D3 also adds n-step return, which helps to propagate the Q-value of the expert trajectory to all early states for better learning.</p>
 <p>The n-step return is:</p>
+</li>
+</ul>
 <a class="reference internal image-reference" href="../_images/r2d3_nstep_return.png"><img alt="../_images/r2d3_nstep_return.png" class="align-center" src="../_images/r2d3_nstep_return.png" style="width: 363.20000000000005px; height: 34.4px;" /></a>
 <ul>
 <li><p>Supervision loss is critical to the performance of training. Due to the following conditions:
@@ -334,8 +336,13 @@ Minimizing this supervision loss <strong>forces the Q-value of actions other tha
 By adding this loss, the Q-values of actions not encountered in the expert data set are changed into values within a reasonable range, and the greedy policy derived from the learned value function is made to mimic the policy of the expert demonstrator.</p>
 <p>Our specific implementation in DI-engine is as follows:</p>
 <blockquote>
-<div></div></blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l</span> <span class="o">=</span> <span class="n">margin_function</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+<span class="n">l</span><span class="o">.</span><span class="n">scatter_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">q</span><span class="p">))</span>
+<span class="n">JE</span> <span class="o">=</span> <span class="n">is_expert</span> <span class="o">*</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">q</span> <span class="o">+</span> <span class="n">l</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">q_s_a</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The overall loss that is ultimately used to update the Q-network is a linear combination of all four of the above losses:</p>
+</div></blockquote>
 <a class="reference internal image-reference" href="../_images/r2d3_loss.png"><img alt="../_images/r2d3_loss.png" class="align-center" src="../_images/r2d3_loss.png" style="width: 365.6px; height: 32.800000000000004px;" /></a>
 </section>
 <section id="pseudo-code">
@@ -354,11 +361,61 @@ The number of sample values greater than pho in the &lt;batch_size&gt; sample va
 <p>2. Since the baseline algorithm R2D2 adopts priority sampling, for a sequence sample, the TD error at each moment is the absolute value of the sum of the 1-step TD error and the n-step TD error, and the TD error is experienced at all times in this sequence. weighted sum of mean and max on
 as the priority for the entire sequence of samples. Since the loss functions corresponding to expert data and experience data are different, we set up two independent replay_buffers in R2D2, <code class="docutils literal notranslate"><span class="pre">expert_buffer</span></code> for expert demonstration , and <code class="docutils literal notranslate"><span class="pre">replay_buffer</span></code> for agent experience ,
 And separate the priority sampling and the update of the relevant parameters in the buffer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence</span>
+<span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">td_error</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.9</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">td_error</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">td_error</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">))</span>
+<span class="c1"># td_error shape list(&lt;self._unroll_len_add_burnin_step-self._burnin_step-self._nstep&gt;, B), for example, (75,64)</span>
+<span class="c1"># torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)</span>
+<span class="o">...</span>
+<span class="k">if</span> <span class="n">learner</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;priority&#39;</span><span class="p">):</span>
+    <span class="c1"># When collector, set replay_buffer_idx and replay_unique_id for each data item, priority = 1.\</span>
+    <span class="c1"># When learner, assign priority for each data item according their loss</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_agent</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">)</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_expert</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">)</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_agent</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="n">agent_batch_size</span><span class="p">]</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_agent</span><span class="p">[</span><span class="s1">&#39;replay_buffer_idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">[</span><span class="s1">&#39;replay_buffer_idx&#39;</span><span class="p">][</span>
+        <span class="mi">0</span><span class="p">:</span><span class="n">agent_batch_size</span><span class="p">]</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_agent</span><span class="p">[</span><span class="s1">&#39;replay_unique_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">[</span><span class="s1">&#39;replay_unique_id&#39;</span><span class="p">][</span>
+        <span class="mi">0</span><span class="p">:</span><span class="n">agent_batch_size</span><span class="p">]</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_expert</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">][</span><span class="n">agent_batch_size</span><span class="p">:]</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_expert</span><span class="p">[</span><span class="s1">&#39;replay_buffer_idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">[</span><span class="s1">&#39;replay_buffer_idx&#39;</span><span class="p">][</span>
+        <span class="n">agent_batch_size</span><span class="p">:]</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">priority_info_expert</span><span class="p">[</span><span class="s1">&#39;replay_unique_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">[</span><span class="s1">&#39;replay_unique_id&#39;</span><span class="p">][</span>
+        <span class="n">agent_batch_size</span><span class="p">:]</span>
+    <span class="c1"># Expert data and demo data update their priority separately.</span>
+    <span class="n">replay_buffer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">priority_info_agent</span><span class="p">)</span>
+    <span class="n">expert_buffer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">priority_info_expert</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>3. For expert demonstration samples and agent experience samples, we add a key <code class="docutils literal notranslate"><span class="pre">is_expert</span></code> to the original data to distinguish them. If it is an expert demonstration sample, this key value is 1.
 If it is an agent experience sample, this key value is 0,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># If it is an expert demonstration sample, this key value is 1,</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">expert_data</span><span class="p">)):</span>
+    <span class="c1"># for rnn/sequence-based alg.</span>
+    <span class="n">expert_data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;is_expert&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">expert_cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
+<span class="o">...</span>
+<span class="c1"># If it is an agent experience sample, this key value is 0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_data</span><span class="p">)):</span>
+    <span class="n">new_data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;is_expert&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">expert_cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
+</pre></div>
+</div>
 <ol class="arabic simple" start="4">
 <li><p>Pre-training. Before the agent interacts with the environment, we can use the expert demo samples to pre-train the Q network, hoping to get a good initialization parameter to speed up the subsequent training process.</p></li>
 </ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">per_train_iter_k</span><span class="p">):</span>  <span class="c1"># pretrain</span>
+    <span class="k">if</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">should_eval</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">):</span>
+        <span class="n">stop</span><span class="p">,</span> <span class="n">reward</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">,</span> <span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="c1"># Learn policy from collected demo data</span>
+    <span class="c1"># Expert_learner will train ``update_per_collect == 1`` times in one iteration.</span>
+    <span class="n">train_data</span> <span class="o">=</span> <span class="n">expert_buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">),</span> <span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">)</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">learner</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;priority&#39;</span><span class="p">):</span>
+        <span class="n">expert_buffer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="implementations">
 <h3>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h3>

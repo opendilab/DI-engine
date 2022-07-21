@@ -74,13 +74,9 @@ Implementations
 ----------------
 The default config of mbpo model is defined as follows:
 
-.. autoclass:: ding.model.model_based.mbpo.EnsembleDynamicsModel
+.. autoclass:: ding.world_model.mbpo.MBPOWorldModel
    :noindex:
 
-The entry MBPO used is defined as follows:
-
-.. autoclass:: ding.entry.serial_entry_mbrl.serial_pipeline_mbrl
-   :noindex:
 
 
 Benchmark

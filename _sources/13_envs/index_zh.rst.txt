@@ -37,8 +37,11 @@
    smac_zh
    d4rl_zh
    gfootball_zh
+   overcooked_zh
+   bsuite_zh
    multiagent_particle_zh
    pybullet_zh
+   pettingzoo_zh
    
    gym_hybrid_zh
    gym_soccer_zh

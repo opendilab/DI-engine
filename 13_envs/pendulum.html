@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -289,10 +290,19 @@
 <section id="installation-method">
 <h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
 <p>The Pendulum environment is built into the gym, and you can install the gym directly. Its environment id is <code class="docutils literal notranslate"><span class="pre">Pendulum-v0</span></code> .</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install gym
+</pre></div>
+</div>
 </section>
 <section id="verify-installation">
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
 <p>Run the following Python program, if no error is reported, the installation is successful.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import gym
+<span class="nv">env</span> <span class="o">=</span> gym.make<span class="o">(</span><span class="s1">&#39;Pendulum-v0&#39;</span><span class="o">)</span>
+<span class="nv">obs</span> <span class="o">=</span> env.reset<span class="o">()</span>
+print<span class="o">(</span>obs<span class="o">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="environment-introduction">
@@ -345,6 +355,73 @@
 <section id="di-zoo-runnable-code-example">
 <h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
 <p>The following provides a complete Pendulum environment config, using the DDPG algorithm as the policy. Please run the <code class="docutils literal notranslate"><span class="pre">pendulum_ddpg_main.py</span></code> file in the <code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/classic_control/pendulum/entry</span></code> directory, as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">AdvancedReplayBuffer</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">DingEnvWrapper</span>
+<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DDPGPolicy</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">QAC</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span> <span class="nn">dizoo.classic_control.pendulum.envs</span> <span class="kn">import</span> <span class="n">PendulumEnv</span>
+<span class="kn">from</span> <span class="nn">dizoo.classic_control.pendulum.config.pendulum_ddpg_config</span> <span class="kn">import</span> <span class="n">pendulum_ddpg_config</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span>
+        <span class="n">BaseEnvManager</span><span class="p">,</span>
+        <span class="n">DDPGPolicy</span><span class="p">,</span>
+        <span class="n">BaseLearner</span><span class="p">,</span>
+        <span class="n">SampleSerialCollector</span><span class="p">,</span>
+        <span class="n">InteractionSerialEvaluator</span><span class="p">,</span>
+        <span class="n">AdvancedReplayBuffer</span><span class="p">,</span>
+        <span class="n">save_cfg</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="c1"># Set up envs for collection and evaluation</span>
+    <span class="n">collector_env_num</span><span class="p">,</span> <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span>
+    <span class="n">collector_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span>
+        <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">PendulumEnv</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+    <span class="p">)</span>
+    <span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span>
+        <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">PendulumEnv</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+    <span class="p">)</span>
+    <span class="c1"># Set random seed for all package and instance</span>
+    <span class="n">collector_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">evaluator_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span><span class="p">)</span>
+    <span class="c1"># Set up RL Policy</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">policy</span> <span class="o">=</span> <span class="n">DDPGPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+    <span class="c1"># Set up collection, training and evaluation utilities</span>
+    <span class="n">tb_logger</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">),</span> <span class="s1">&#39;serial&#39;</span><span class="p">))</span>
+    <span class="n">learner</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+    <span class="n">collector</span> <span class="o">=</span> <span class="n">SampleSerialCollector</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span><span class="p">,</span> <span class="n">collector_env</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
+    <span class="p">)</span>
+    <span class="n">evaluator</span> <span class="o">=</span> <span class="n">InteractionSerialEvaluator</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
+    <span class="p">)</span>
+    <span class="n">replay_buffer</span> <span class="o">=</span> <span class="n">AdvancedReplayBuffer</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+    <span class="c1"># Training &amp; Evaluation loop</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># Evaluate at the beginning and with specific frequency</span>
+        <span class="k">if</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">should_eval</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">):</span>
+            <span class="n">stop</span><span class="p">,</span> <span class="n">reward</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">,</span> <span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">stop</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c1"># Collect data from environments</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">collect</span><span class="p">(</span><span class="n">train_iter</span><span class="o">=</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">)</span>
+        <span class="n">replay_buffer</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">new_data</span><span class="p">,</span> <span class="n">cur_collector_envstep</span><span class="o">=</span><span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+        <span class="c1"># Train</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
+            <span class="n">train_data</span> <span class="o">=</span> <span class="n">replay_buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">),</span> <span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">train_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">learner</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">pendulum_ddpg_config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="experimental-results">
 <h2>Experimental Results<a class="headerlink" href="#experimental-results" title="Permalink to this headline">¶</a></h2>

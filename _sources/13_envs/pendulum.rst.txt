@@ -17,6 +17,7 @@ Installation Method
 The Pendulum environment is built into the gym, and you can install the gym directly. Its environment id is \ ``Pendulum-v0`` \.
 
 .. code:: shell
+
     pip install gym
     
 Verify Installation
@@ -25,10 +26,12 @@ Verify Installation
 Run the following Python program, if no error is reported, the installation is successful.
 
 .. code:: shell
+
     import gym
     env = gym.make('Pendulum-v0')
     obs = env.reset()
     print(obs)
+
 Environment Introduction
 =========================
 
@@ -44,6 +47,7 @@ Using the gym environment space definition can be expressed as:
 .. code:: python
     
     action_space = spaces.Box(low=-2,high=2)
+
 State Space
 ------------
 
@@ -77,7 +81,7 @@ The termination condition for each episode of the Pendulum environment is any of
 
 
 Other
-====
+=======
 
 Store Video
 ------------
@@ -90,6 +94,7 @@ DI-zoo Runnable Code Example
 The following provides a complete Pendulum environment config, using the DDPG algorithm as the policy. Please run the \ ``pendulum_ddpg_main.py`` \ file in the \ ``DI-engine/dizoo/classic_control/pendulum/entry`` \ directory, as follows.
 
 .. code:: python
+
     import os
     import gym
     from tensorboardX import SummaryWriter
