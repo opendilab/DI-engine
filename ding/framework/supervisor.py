@@ -56,23 +56,11 @@ class Child(ABC):
     Abstract class of child process/thread.
     """
 
-    def __init__(
-            self,
-            proc_id: int,
-            init: Callable,
-            *args,
-            shm_buffer: Optional[Any] = None,
-            shm_callback: Optional[Callable] = None,
-            **kwargs
-    ) -> None:
+    def __init__(self, proc_id: int, init: Union[Callable, object], **kwargs) -> None:
         self._proc_id = proc_id
         self._init = init
-        self._args = args
-        self._kwargs = kwargs
         self._recv_queue = None
         self._send_queue = None
-        self._shm_buffer = shm_buffer
-        self._shm_callback = shm_callback
 
     @abstractmethod
     def start(self, recv_queue: Union[mp.Queue, queue.Queue]):
@@ -93,16 +81,17 @@ class Child(ABC):
     def _target(
         self,
         proc_id: int,
-        init: Callable,
-        args: List,
-        kwargs: Dict[str, Any],
+        init: Union[Callable, object],
         send_queue: Union[mp.Queue, queue.Queue],
         recv_queue: Union[mp.Queue, queue.Queue],
         shm_buffer: Optional[Any] = None,
         shm_callback: Optional[Callable] = None
     ):
         send_payload = SendPayload(proc_id=proc_id)
-        child_ins = init(*args, **kwargs)
+        if isinstance(init, Callable):
+            child_ins = init()
+        else:
+            child_ins = init
         while True:
             try:
                 send_payload: SendPayload = send_queue.get()
@@ -135,25 +124,27 @@ class ChildProcess(Child):
     def __init__(
             self,
             proc_id: int,
-            init: Callable,
-            *args,
+            init: Union[Callable, object],
             shm_buffer: Optional[Any] = None,
             shm_callback: Optional[Callable] = None,
+            mp_ctx: Optional[BaseContext] = None,
             **kwargs
     ) -> None:
-        super().__init__(proc_id, init, *args, shm_buffer=shm_buffer, shm_callback=shm_callback, **kwargs)
+        super().__init__(proc_id, init, **kwargs)
         self._proc = None
+        self._mp_ctx = mp_ctx
+        self._shm_buffer = shm_buffer
+        self._shm_callback = shm_callback
 
     def start(self, recv_queue: mp.Queue):
         if self._proc is None:
             self._recv_queue = recv_queue
-            ctx = get_mp_ctx()
+            ctx = self._mp_ctx or get_mp_ctx()
             self._send_queue = ctx.Queue()
             proc = ctx.Process(
                 target=self._target,
                 args=(
-                    self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue,
-                    self._shm_buffer, self._shm_callback
+                    self._proc_id, self._init, self._send_queue, self._recv_queue, self._shm_buffer, self._shm_callback
                 ),
                 name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
                 daemon=True
@@ -179,7 +170,7 @@ class ChildProcess(Child):
 
 class ChildThread(Child):
 
-    def __init__(self, proc_id: int, init: Callable, *args, **kwargs) -> None:
+    def __init__(self, proc_id: int, init: Union[Callable, object], *args, **kwargs) -> None:
         super().__init__(proc_id, init, *args, **kwargs)
         self._thread = None
 
@@ -189,7 +180,7 @@ class ChildThread(Child):
             self._send_queue = queue.Queue()
             thread = threading.Thread(
                 target=self._target,
-                args=(self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue),
+                args=(self._proc_id, self._init, self._send_queue, self._recv_queue),
                 name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
                 daemon=True
             )
@@ -211,32 +202,32 @@ class Supervisor:
 
     TYPE_MAPPING = {ChildType.PROCESS: ChildProcess, ChildType.THREAD: ChildThread}
 
-    QUEUE_MAPPING = {ChildType.PROCESS: get_mp_ctx().Queue, ChildType.THREAD: queue.Queue}
-
-    def __init__(self, type_: ChildType) -> None:
+    def __init__(self, type_: ChildType, mp_ctx: Optional[BaseContext] = None) -> None:
         self._children: List[Child] = []
         self._type = type_
         self._child_class = self.TYPE_MAPPING[self._type]
         self._running = False
         self.__queue = None
+        self._mp_ctx = mp_ctx or get_mp_ctx()
 
     def register(
             self,
-            init: Callable,
-            *args,
+            init: Union[Callable, object],
             shm_buffer: Optional[Any] = None,
-            shm_callback: Optional[Callable] = None,
-            **kwargs
+            shm_callback: Optional[Callable] = None
     ) -> None:
         proc_id = len(self._children)
         self._children.append(
-            self._child_class(proc_id, init, *args, shm_buffer=shm_buffer, shm_callback=shm_callback, **kwargs)
+            self._child_class(proc_id, init, shm_buffer=shm_buffer, shm_callback=shm_callback, mp_ctx=self._mp_ctx)
         )
 
     @property
     def _recv_queue(self) -> Union[queue.Queue, mp.Queue]:
         if not self.__queue:
-            self.__queue = self.QUEUE_MAPPING[self._type]()
+            if self._type is ChildType.PROCESS:
+                self.__queue = self._mp_ctx.Queue()
+            elif self._type is ChildType.THREAD:
+                self.__queue = queue.Queue()
         return self.__queue
 
     @_recv_queue.setter

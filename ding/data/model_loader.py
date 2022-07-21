@@ -6,11 +6,12 @@ from threading import Thread
 from time import sleep, time
 from typing import Callable, Optional
 import uuid
+import torch.multiprocessing as mp
 
 import torch
 from ding.data.storage.file import FileModelStorage
 from ding.data.storage.storage import Storage
-from ding.framework import Supervisor, task
+from ding.framework import Supervisor
 from ding.framework.supervisor import ChildType, SendPayload
 
 
@@ -27,15 +28,19 @@ class ModelWorker():
 class ModelLoader(Supervisor, ABC):
 
     def __init__(self, model: torch.nn.Module) -> None:
-        super().__init__(type_=ChildType.PROCESS)
+        if next(model.parameters()).is_cuda:
+            super().__init__(type_=ChildType.PROCESS, mp_ctx=mp.get_context("spawn"))
+        else:
+            super().__init__(type_=ChildType.PROCESS)
         self._model = model
         self._send_callback_loop = None
         self._send_callbacks = {}
+        self._model_worker = ModelWorker(self._model)
 
     def start(self):
         if not self._running:
             self._model.share_memory()
-            self.register(ModelWorker, self._model)
+            self.register(self._model_worker)
             self.start_link()
             self._send_callback_loop = Thread(target=self._loop_send_callback, daemon=True)
             self._send_callback_loop.start()

@@ -34,7 +34,7 @@ class MockEnv():
 def test_supervisor(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     for env_id in range(len(sv._children)):
@@ -74,6 +74,25 @@ def test_supervisor(type_):
     sv.shutdown()
 
 
+@pytest.mark.unittest
+def test_supervisor_spawn():
+    sv = Supervisor(type_=ChildType.PROCESS, mp_ctx=mp.get_context("spawn"))
+    for _ in range(3):
+        sv.register(MockEnv("AnyArgs"))
+    sv.start_link()
+
+    for env_id in range(len(sv._children)):
+        sv.send(SendPayload(proc_id=env_id, method="step", args=["any action"]))
+
+    recv_states: List[RecvPayload] = []
+    for _ in range(3):
+        recv_states.append(sv.recv())
+
+    assert sum([payload.proc_id for payload in recv_states]) == 3
+    assert all([payload.data == 1 for payload in recv_states])
+    sv.shutdown()
+
+
 class MockCrashEnv(MockEnv):
 
     def step(self, _):
@@ -89,8 +108,8 @@ class MockCrashEnv(MockEnv):
 def test_crash_supervisor(type_):
     sv = Supervisor(type_=type_)
     for _ in range(2):
-        sv.register(MockEnv, "AnyArgs")
-    sv.register(MockCrashEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
+    sv.register(lambda: MockCrashEnv("AnyArgs"))
     sv.start_link()
 
     # Send 6 messages, will cause the third subprocess crash
@@ -129,7 +148,7 @@ def test_crash_supervisor(type_):
 def test_recv_all(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     # Test recv_all
@@ -165,7 +184,7 @@ def test_recv_all(type_):
 def test_timeout(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     send_payloads = []
@@ -205,7 +224,7 @@ def test_timeout(type_):
 def test_timeout_with_callback(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
     send_payloads = []
 
@@ -252,7 +271,7 @@ def test_shared_memory():
 
     shm = mp.Array(ctypes.c_uint8, 3)
     for i in range(3):
-        sv.register(MockEnv, "AnyArgs", shm_buffer=shm, shm_callback=shm_callback)
+        sv.register(lambda: MockEnv("AnyArgs"), shm_buffer=shm, shm_callback=shm_callback)
     sv.start_link()
 
     # Send init request
@@ -277,7 +296,7 @@ def test_shared_memory():
 def test_supervisor_benchmark(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     for env_id in range(len(sv._children)):
