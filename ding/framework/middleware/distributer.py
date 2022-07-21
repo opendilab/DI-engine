@@ -239,11 +239,22 @@ class ModelExchanger:
                 sleep(0.01)
             else:
                 if isinstance(self._state_dict_cache, Storage) and self._model_loader is not None:
-                    self._model.load_state_dict(self._model_loader.load(self._state_dict_cache))
+                    try:
+                        self._model.load_state_dict(self._model_loader.load(self._state_dict_cache))
+                        self._state_dict_cache = None
+                        break
+                    except FileNotFoundError as e:
+                        logging.warning(
+                            "Model file has been deleted on node {}, maybe you can increase the ttl.".format(
+                                task.router.node_id
+                            )
+                        )
+                        self._state_dict_cache = None
+                        continue
                 else:
                     self._model.load_state_dict(self._state_dict_cache)
-                self._state_dict_cache = None
-                break
+                    self._state_dict_cache = None
+                    break
 
     def _send_model(self):
         if self._model_loader:
