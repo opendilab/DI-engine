@@ -170,20 +170,7 @@ class TradingEnv(BaseEnv):
             info['max_possible_profit'] = self.max_possible_profit()
             info['final_eval_reward'] = self._total_reward
             # info['total_profit'] = np.log(self._total_profit)
-            #print("+++++++++++++++++++++:",info['total_profit'])
-            if self._total_reward == 0. :
-                info["debug_msg"] = -1
-                print()
-                print("!!!!!!!!!!!!!!!fake")
-                #print(self._eps_history)
-                print(self._eps_history[-1])
-                if self._eps_history[-1] == Positions.Short:
-                    
-                    info["debug_msg"] = 0
-                if self._eps_history[-1] == Positions.Long:
-                    info["debug_msg"] =1
-                if self._eps_history[-1] == Positions.Flat:
-                    info["debug_msg"] =2
+
             
         
         return BaseEnvTimestep(observation, step_reward, self._done, info)
