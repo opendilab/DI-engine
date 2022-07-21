@@ -1,4 +1,6 @@
 import sys
+
+from numpy import short
 sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
 print(sys.path)
 from typing import Union, Optional, List, Any, Tuple
@@ -19,9 +21,12 @@ from easydict import EasyDict
 import json
 
 
+shortnum = 0
+longnum = 0
+flatnum = 0
 nstep = 1
-lunarlander_dqn_config = dict(
-    exp_name='stocks_test_v3',
+stocks_dqn_config = dict(
+    exp_name='stocks_test_v8',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -37,9 +42,9 @@ lunarlander_dqn_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            obs_shape=61,
-            action_shape=3,
-            encoder_hidden_size_list=[256,64],
+            obs_shape= 61,
+            action_shape=5,
+            encoder_hidden_size_list=[128],
             head_layer_num = 1,
             # Whether to use dueling head.
             dueling=True,
@@ -78,10 +83,10 @@ lunarlander_dqn_config = dict(
         ),
     ),
 )
-lunarlander_dqn_config = EasyDict(lunarlander_dqn_config)
-main_config = lunarlander_dqn_config
+stocks_dqn_config = EasyDict(stocks_dqn_config)
+main_config = stocks_dqn_config
 
-lunarlander_dqn_create_config = dict(
+stocks_dqn_create_config = dict(
     env=dict(
         type='stocks-v0',
         import_names=['dizoo.trading_test.envs.stocks_env'],
@@ -90,8 +95,8 @@ lunarlander_dqn_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
-lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
-create_config = lunarlander_dqn_create_config
+stocks_dqn_create_config = EasyDict(stocks_dqn_create_config)
+create_config = stocks_dqn_create_config
 
 
 
@@ -127,7 +132,7 @@ def serial_pipeline(
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
-    # print(json.dumps(cfg, sort_keys=True, indent=4, separators=(',', ': ')))
+    print(json.dumps(cfg, sort_keys=True, indent=4, separators=(',', ': ')))
     print("config compiling complate!")
 
 
@@ -179,9 +184,18 @@ def serial_pipeline(
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             print("+++++++++++++++++++++++++++++++++++++++++++++++++START EVAL!")
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            stop, reward, cy_info = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             print("+++++++++++++++++++++++++++++++++++++++++++++++++END EVAL!")
-            print("--------------",reward)
+            global shortnum
+            global longnum
+            global flatnum
+            shortnum += cy_info[0]
+            longnum += cy_info[1]
+            flatnum += cy_info[2]
+            print("short:",shortnum)
+            print("long:",longnum)
+            print("flat:",flatnum)
+            
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
@@ -212,4 +226,7 @@ def serial_pipeline(
 
 
 if __name__ == "__main__":
+    shortnum = 0
+    longnum = 0
+    flatnum = 0
     serial_pipeline([main_config, create_config], seed=0)

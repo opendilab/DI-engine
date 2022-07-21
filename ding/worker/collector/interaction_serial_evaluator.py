@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Optional, Callable, Tuple
 from collections import namedtuple
 import numpy as np
@@ -193,6 +194,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         envstep_count = 0
         info = {}
         return_info = []
+        chenyun_info = [0,0,0]
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         self._policy.reset()
@@ -221,6 +223,10 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                         continue
                     if t.done:
                         # Env reset is done by env_manager automatically.
+                        #print(t.info)
+                        if 'debug_msg' in t.info:
+                            #print("DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
+                            chenyun_info[int(t.info['debug_msg'].item())]+=1
                         self._policy.reset([env_id])
                         reward = t.info['final_eval_reward']
                         if 'episode_info' in t.info:
@@ -228,9 +234,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                         eval_monitor.update_reward(env_id, reward)
                         return_info.append(t.info)
                         ################### edit by chenyun
-                        if 'total_profit' in t.info:
-                            profit = t.info['total_profit']
-                            eval_monitor.update_profit(env_id, profit)
+                        if 'max_possible_profit' in t.info:
+                            # profit = t.info['total_profit']
+                            # eval_monitor.update_profit(env_id, profit)
                             max_profit = t.info['max_possible_profit']
                             eval_monitor.update_max_profit(env_id, max_profit)
                         ###############
@@ -317,4 +323,4 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-        return stop_flag, return_info
+        return stop_flag, return_info, chenyun_info

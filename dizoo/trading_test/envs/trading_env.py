@@ -1,6 +1,7 @@
 from cmath import inf
 from tkinter.messagebox import NO
-from turtle import pos
+from tkinter.tix import Tree
+from turtle import pos, position
 import gym
 from gym import spaces
 from gym.utils import seeding
@@ -24,9 +25,11 @@ def load_dataset(name, index_name):
     return df
 
 class Actions(Enum):
-    Sell = 0
-    Hold = 1
-    Buy = 2
+    Double_Sell = 0
+    Sell = 1
+    Hold = 2
+    Buy = 3
+    Double_Buy = 4
 
 
 class Positions(Enum):
@@ -39,18 +42,24 @@ def trans(position,  action):
     if action == Actions.Sell.value:
         
         if position == Positions.Long:
-
-            return Positions.Flat, True
+            return Positions.Flat, False
             
         if position == Positions.Flat:
-            return Positions.Short, False
+            return Positions.Short, True
+
     if action == Actions.Buy.value:
 
         if position == Positions.Short:
+            return Positions.Flat, False
 
-            return Positions.Flat, True
         if position == Positions.Flat:
-            return Positions.Long, False
+            return Positions.Long, True
+    
+    if action == Actions.Double_Sell.value and (position == Positions.Long or position == Positions.Flat):
+        return Positions.Short, True
+
+    if action == Actions.Double_Buy.value and (position == Positions.Short or position == Positions.Flat):
+        return Positions.Long, True
 
     return position, False
 
@@ -61,14 +70,15 @@ class TradingEnv(BaseEnv):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, cfg):
+
         self._cfg = cfg
+        self.cnt = 0 # associate the frequence that update profit.png
         STOCKS_GOOGL = load_dataset('STOCKS_GOOGL', 'Date')
         self.raw_prices = deepcopy(STOCKS_GOOGL).loc[:, 'Close'].to_numpy()
-        self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x-x.mean())/ x.std(), axis=0)
+        self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x-x.mean())/ x.std(), axis=0) # normalize
         
 
         self.window_size = cfg.window_size
-
         self.prices = None
         self.signal_features = None
         self.shape = (cfg.window_size, 3)
@@ -83,25 +93,19 @@ class TradingEnv(BaseEnv):
         self._position = None
         self._position_history = None
         self._total_reward = None
-        self._total_profit = None
-        self._first_rendering = None
         self.history = None
-        self._cfg = cfg
         self._init_flag = False
         
         # for debug
         self._eps_history = []
 
         self._env_id = cfg.env_id
-        self._action_space = spaces.Discrete(3)
+        self._action_space = spaces.Discrete(len(Actions))
         self._observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=self.shape, dtype=np.float64)
         self._reward_space = gym.spaces.Box(
                 -inf, inf, shape=(1, ), dtype=np.float32
             )
-        if 'Continuous' in self._env_id:
-            self._act_scale = cfg.act_scale  # act_scale only works in continous env
-        else:
-            self._act_scale = False
+
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -112,26 +116,17 @@ class TradingEnv(BaseEnv):
 
 
     def reset(self, start_idx = None):
+        self.cnt += 1
         self.prices, self.signal_features = self._process_data(start_idx)
         self._done = False
         self._current_tick = self._start_tick
         self._last_trade_tick = self._current_tick - 1
         self._position = Positions.Flat
-        self._position_history = (self.window_size * [None]) + [self._position]
+        self._position_history = [self._position]
+        self._profit_history = [1.]
         self._total_reward = 0.
-        self._total_profit = 1.  # unit
-        self._first_rendering = True
         self.history = {}
         self._eps_history = []
-        if not self._init_flag:
-            self._action_space = spaces.Discrete(len(Actions))
-            self._observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=self.shape, dtype=np.float64)
-            self._reward_space = gym.spaces.Box(
-                -inf, inf, shape=(1, ), dtype=np.float32
-            )
-            self._init_flag = True
-            # print(self._action_space)
-            # print(self._observation_space)
 
         #print("#############",self._start_tick, self._end_tick)
         return self._get_observation()
@@ -147,10 +142,9 @@ class TradingEnv(BaseEnv):
             self._done = True
 
         step_reward = self._calculate_reward(action)
-
         self._total_reward += step_reward
 
-        self._update_profit(action)
+        # self._update_profit(action)
 
         
         self._position, trade = trans( self._position, action)
@@ -163,23 +157,35 @@ class TradingEnv(BaseEnv):
             self._last_trade_tick = self._current_tick
 
         self._position_history.append(self._position)
+        self._profit_history.append(float(np.exp(self._total_reward)))
         observation = self._get_observation()
         info = dict(
             total_reward = self._total_reward,
-            position = self._position.value
-
+            position = self._position.value,
+            
         )
         self._update_history(info)
         if self._done:
+            #print("######################",self.cnt)
+            if self.cnt % 10 == 0:
+                self.tmp_render()
             info['max_possible_profit'] = self.max_possible_profit()
             info['final_eval_reward'] = self._total_reward
-            info['total_profit'] = np.log(self._total_profit)
+            # info['total_profit'] = np.log(self._total_profit)
             #print("+++++++++++++++++++++:",info['total_profit'])
             if self._total_reward == 0. :
-                
+                info["debug_msg"] = -1
                 print()
                 print("!!!!!!!!!!!!!!!fake")
                 #print(self._eps_history)
+                print(self._eps_history[-1])
+                if self._eps_history[-1] == Positions.Short:
+                    
+                    info["debug_msg"] = 0
+                if self._eps_history[-1] == Positions.Long:
+                    info["debug_msg"] =1
+                if self._eps_history[-1] == Positions.Flat:
+                    info["debug_msg"] =2
             
         
         return BaseEnvTimestep(observation, step_reward, self._done, info)
@@ -198,6 +204,34 @@ class TradingEnv(BaseEnv):
 
         for key, value in info.items():
             self.history[key].append(value)
+
+    def tmp_render(self, save_path = '/home/PJLAB/chenyun/test_pic/'):
+        plt.clf()
+        plt.plot(self._profit_history)
+        plt.savefig(save_path+"profit.png")
+
+
+        plt.clf()
+        window_ticks = np.arange(len(self._position_history))
+        eps_price = self.raw_prices[self._start_tick:self._end_tick+1]
+        plt.plot(eps_price)
+        
+
+        short_ticks = []
+        long_ticks = []
+        flat_ticks = []
+        for i, tick in enumerate(window_ticks):
+            if self._position_history[i] == Positions.Short:
+                short_ticks.append(tick)
+            elif self._position_history[i] == Positions.Long:
+                long_ticks.append(tick)
+            else:
+                flat_ticks.append(tick)
+        #print("DEBUGGGGGGGGGGGGGGGGGGGGGGGG",len(eps_price),len(short_ticks), len(eps_price[short_ticks]))
+        plt.plot(short_ticks, eps_price[short_ticks], 'ro')
+        plt.plot(long_ticks, eps_price[long_ticks], 'go')
+        plt.plot(flat_ticks, eps_price[flat_ticks], 'bo')
+        plt.savefig(save_path+'price.png')
 
 
     def render(self, mode='human'):
