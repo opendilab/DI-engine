@@ -3,65 +3,102 @@ import numpy as np
 import torch
 
 class LevelSampler():
+    """
+    Overview:
+        Policy class of Prioritized Level Replay algorithm.
+        https://arxiv.org/pdf/2010.03934.pdf
+
+        PLR is a method for improving generalization and sample-efficiency of \
+            deep RL agents on procedurally-generated environments by adaptively updating \
+            a sampling distribution over the training levels based on a score of the learning \
+            potential of replaying each level.
+    """
+    config = dict(
+        strategy='policy_entropy',
+        score_transform='rank',
+        temperature=0.1,
+    ),
+
     def __init__(
-        self, seeds, obs_space, action_space, num_actors=1, 
-        strategy='random', replay_schedule='fixed', score_transform='power',
-        temperature=1.0, eps=0.05,
-        rho=0.2, nu=0.5, alpha=1.0, 
-        staleness_coef=0, staleness_transform='power', staleness_temperature=1.0):
+            self,
+            seeds: Optional[List[int]], 
+            obs_space: Union[int, SequenceType], 
+            action_space: int,
+            num_actors: int = 1, 
+            strategy: Optional[str] = 'random', 
+            replay_schedule: Optional[str] = 'fixed', 
+            score_transform: Optional[str] = 'power',
+            temperature: float = 1.0, 
+            eps: float = 0.05,
+            rho: float = 0.2, 
+            nu: float = 0.5, 
+            alpha: float = 1.0, 
+            staleness_coef: float = 0, 
+            staleness_transform: Optional[str] = 'power', 
+            staleness_temperature: float = 1.0
+    ):
         self.obs_space = obs_space
         self.action_space = action_space
         self.strategy = strategy
         self.replay_schedule = replay_schedule
         self.score_transform = score_transform
         self.temperature = temperature
+        # Eps means the level replay epsilon for eps-greedy sampling
         self.eps = eps
+        # Rho means the minimum size of replay set relative to total number of levels before sampling replays
         self.rho = rho
+        # Nu means the probability of sampling a new level instead of a replay level
         self.nu = nu
+        # Alpha means the level score EWA smoothing factor
         self.alpha = alpha
         self.staleness_coef = staleness_coef
         self.staleness_transform = staleness_transform
         self.staleness_temperature = staleness_temperature
 
         # Track seeds and scores as in np arrays backed by shared memory
-        self._init_seed_index(seeds)
+        self.seeds = np.array(seeds, dtype=np.int64)
+        self.seed2index = {seed: i for i, seed in enumerate(seeds)}
 
-        self.unseen_seed_weights = np.array([1.]*len(seeds))
-        self.seed_scores = np.array([0.]*len(seeds), dtype=np.float)
+        self.unseen_seed_weights = np.ones(len(seeds))
+        self.seed_scores = np.zeros(len(seeds))
         self.partial_seed_scores = np.zeros((num_actors, len(seeds)), dtype=np.float)
         self.partial_seed_steps = np.zeros((num_actors, len(seeds)), dtype=np.int64)
-        self.seed_staleness = np.array([0.]*len(seeds), dtype=np.float)
+        self.seed_staleness = np.zeros(len(seeds))
 
         self.next_seed_index = 0 # Only used for sequential strategy
 
     def seed_range(self):
         return (int(min(self.seeds)), int(max(self.seeds)))
 
-    def _init_seed_index(self, seeds):
-        self.seeds = np.array(seeds, dtype=np.int64)
-        self.seed2index = {seed: i for i, seed in enumerate(seeds)}
-
-    def update_with_rollouts(self, train_data, num_actors, total_steps):
+    def update_with_rollouts(self, train_data, num_actors):
+        total_steps = len(train_data)
         if self.strategy == 'random':
             return
 
-        # Update with a RolloutStorage object
         if self.strategy == 'policy_entropy':
-            score_function = self._average_entropy
+            score_function = self._entropy
         elif self.strategy == 'least_confidence':
-            score_function = self._average_least_confidence
+            score_function = self._least_confidence
         elif self.strategy == 'min_margin':
-            score_function = self._average_min_margin
+            score_function = self._min_margin
         elif self.strategy == 'gae':
-            score_function = self._average_gae
+            score_function = self._gae
         elif self.strategy == 'value_l1':
-            score_function = self._average_value_l1
+            score_function = self._value_l1
         elif self.strategy == 'one_step_td_error':
             score_function = self._one_step_td_error
         else:
             raise ValueError(f'Unsupported strategy, {self.strategy}')
 
         self._update_with_rollouts(train_data, num_actors, total_steps, score_function)
+        
+        for actor_index in range(self.partial_seed_scores.shape[0]):
+            for seed_idx in range(self.partial_seed_scores.shape[1]):
+                if self.partial_seed_scores[actor_index][seed_idx] != 0:
+                    self.update_seed_score(actor_index, seed_idx, 0, 0)
+        self.partial_seed_scores.fill(0)
+        self.partial_seed_steps.fill(0)
+
 
     def update_seed_score(self, actor_index, seed_idx, score, num_steps):
         score = self._partial_update_seed_score(actor_index, seed_idx, score, num_steps, done=True)
@@ -87,23 +124,23 @@ class LevelSampler():
 
         return merged_score
 
-    def _average_entropy(self, **kwargs):
+    def _entropy(self, **kwargs):
         episode_logits = kwargs['episode_logits']
-        num_actions = self.action_space.n
+        num_actions = self.action_space
         max_entropy = -(1./num_actions)*np.log(1./num_actions)*num_actions
 
         return (-torch.exp(episode_logits)*episode_logits).sum(-1).mean().item()/max_entropy
 
-    def _average_least_confidence(self, **kwargs):
+    def _least_confidence(self, **kwargs):
         episode_logits = kwargs['episode_logits']
         return (1 - torch.exp(episode_logits.max(-1, keepdim=True)[0])).mean().item()
 
-    def _average_min_margin(self, **kwargs):
+    def _min_margin(self, **kwargs):
         episode_logits = kwargs['episode_logits']
         top2_confidence = torch.exp(episode_logits.topk(2, dim=-1)[0])
         return 1 - (top2_confidence[:,0] - top2_confidence[:,1]).mean().item()
 
-    def _average_gae(self, **kwargs):
+    def _gae(self, **kwargs):
         #returns = kwargs['returns']
         #value_preds = kwargs['value_preds']
 
@@ -112,7 +149,7 @@ class LevelSampler():
 
         return advantages.mean().item()
 
-    def _average_value_l1(self, **kwargs):
+    def _value_l1(self, **kwargs):
         #returns = kwargs['returns']
         #value_preds = kwargs['value_preds']
 
@@ -129,11 +166,7 @@ class LevelSampler():
         td_errors = (rewards[:-1] + value_preds[:max_t-1] - value_preds[1:max_t]).abs()
 
         return td_errors.abs().mean().item()
-
-    @property
-    def requires_value_buffers(self):
-        return self.strategy in ['gae', 'value_l1', 'one_step_td_error']    
-
+  
     def _update_with_rollouts(self, train_data, num_actors, all_total_steps, score_function):
         #print(num_actors, int(total_steps/num_actors))
         level_seeds = train_data['seed'].reshape(num_actors, int(all_total_steps/num_actors)).transpose(0,1)
@@ -147,7 +180,8 @@ class LevelSampler():
             start_t = 0
 
             for t in done_steps:
-                if not start_t < total_steps: break
+                if not start_t < total_steps: 
+                    break
 
                 if t == 0: # if t is 0, then this done step caused a full update of previous seed last cycle
                     continue 
@@ -159,7 +193,7 @@ class LevelSampler():
                 episode_logits = policy_logits[start_t:t,actor_index]
                 score_function_kwargs['episode_logits'] = torch.log_softmax(episode_logits, -1)
 
-                if self.requires_value_buffers:
+                if self.strategy in ['gae', 'value_l1', 'one_step_td_error'] :
                     rewards = train_data['reward'].reshape(num_actors, int(all_total_steps/num_actors)).transpose(0,1)
                     adv = train_data['adv'].reshape(num_actors, int(all_total_steps/num_actors)).transpose(0,1)
                     value = train_data['value'].reshape(num_actors, int(all_total_steps/num_actors)).transpose(0,1)
@@ -182,7 +216,7 @@ class LevelSampler():
                 episode_logits = policy_logits[start_t:,actor_index]
                 score_function_kwargs['episode_logits'] = torch.log_softmax(episode_logits, -1)
 
-                if self.requires_value_buffers:
+                if self.strategy in ['gae', 'value_l1', 'one_step_td_error'] :
                     rewards = train_data['reward'].reshape(num_actors, int(all_total_steps/num_actors)).transpose(0,1)
                     adv = train_data['adv'].reshape(num_actors, int(all_total_steps/num_actors)).transpose(0,1)
                     value = train_data['value'].reshape(num_actors, int(all_total_steps/num_actors)).transpose(0,1)
@@ -194,22 +228,13 @@ class LevelSampler():
                 num_steps = len(episode_logits)
                 self._partial_update_seed_score(actor_index, seed_idx_t, score, num_steps)
 
-    def after_update(self):
-        # Reset partial updates, since weights have changed, and thus logits are now stale
-        for actor_index in range(self.partial_seed_scores.shape[0]):
-            for seed_idx in range(self.partial_seed_scores.shape[1]):
-                if self.partial_seed_scores[actor_index][seed_idx] != 0:
-                    self.update_seed_score(actor_index, seed_idx, 0, 0)
-        self.partial_seed_scores.fill(0)
-        self.partial_seed_steps.fill(0)
-
     def _update_staleness(self, selected_idx):
         if self.staleness_coef > 0:
             self.seed_staleness = self.seed_staleness + 1
             self.seed_staleness[selected_idx] = 0
 
     def _sample_replay_level(self):
-        sample_weights = self.sample_weights()
+        sample_weights = self._sample_weights()
 
         if np.isclose(np.sum(sample_weights), 0):
             sample_weights = np.ones_like(sample_weights, dtype=np.float)/len(sample_weights)
@@ -239,7 +264,7 @@ class LevelSampler():
             seed = self.seeds[seed_idx]
             return int(seed)
 
-        if strategy == 'sequential':
+        elif strategy == 'sequential':
             seed_idx = self.next_seed_index
             self.next_seed_index = (self.next_seed_index + 1) % len(self.seeds)
             seed = self.seeds[seed_idx]
@@ -263,7 +288,7 @@ class LevelSampler():
             else:
                 return self._sample_unseen_level()
 
-    def sample_weights(self):
+    def _sample_weights(self):
         weights = self._score_transform(self.score_transform, self.temperature, self.seed_scores)
         weights = weights * (1-self.unseen_seed_weights) # zero out unseen levels
 
@@ -284,19 +309,7 @@ class LevelSampler():
         return weights
 
     def _score_transform(self, transform, temperature, scores):
-        if transform == 'constant':
-            weights = np.ones_like(scores)
-        if transform == 'max':
-            weights = np.zeros_like(scores)
-            scores = scores[:]
-            scores[self.unseen_seed_weights > 0] = -float('inf') # only argmax over seen levels
-            argmax = np.random.choice(np.flatnonzero(np.isclose(scores, scores.max())))
-            weights[argmax] = 1.
-        elif transform == 'eps_greedy':
-            weights = np.zeros_like(scores)
-            weights[scores.argmax()] = 1. - self.eps
-            weights += self.eps/len(self.seeds)
-        elif transform == 'rank':
+        if transform == 'rank':
             temp = np.flip(scores.argsort())
             ranks = np.empty_like(temp)
             ranks[temp] = np.arange(len(temp)) + 1
@@ -304,7 +317,5 @@ class LevelSampler():
         elif transform == 'power':
             eps = 0 if self.staleness_coef > 0 else 1e-3
             weights = (np.array(scores) + eps) ** (1./temperature)
-        elif transform == 'softmax':
-            weights = np.exp(np.array(scores)/temperature)
 
         return weights
