@@ -1,3 +1,4 @@
+from cmath import cos
 import sys
 sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
 import numpy as np
@@ -55,23 +56,20 @@ class StocksEnv(TradingEnv):
 
     def _calculate_reward(self, action):
         step_reward = 0.
-        current_price = (self.raw_prices[self._current_tick])
-        last_trade_price = (self.raw_prices[self._last_trade_tick])
+        current_price = np.log(self.raw_prices[self._current_tick])
+        last_trade_price = np.log(self.raw_prices[self._last_trade_tick])
         cost = np.log((1 - self.trade_fee_ask_percent)*(1 - self.trade_fee_bid_percent))
         if (action == Actions.Buy.value and self._position == Positions.Short):
-            step_reward = last_trade_price - current_price 
-
-
-
+            step_reward = last_trade_price - current_price + cost
         
         if (action == Actions.Sell.value and self._position == Positions.Long):
-            step_reward = current_price - last_trade_price 
+            step_reward = current_price - last_trade_price + cost
 
         if action == Actions.Double_Sell.value and self._position == Positions.Long:
-            step_reward = current_price - last_trade_price 
+            step_reward = current_price - last_trade_price + cost
 
         if action == Actions.Double_Buy.value and self._position == Positions.Short:
-            step_reward = last_trade_price - current_price 
+            step_reward = last_trade_price - current_price + cost
 
         
         step_reward = to_ndarray([step_reward]).astype(np.float32)
@@ -82,17 +80,19 @@ class StocksEnv(TradingEnv):
     def _update_profit(self, action):
         current_price = self.raw_prices[self._current_tick]
         last_trade_price = self.raw_prices[self._last_trade_tick]
+        cost = (1 - self.trade_fee_ask_percent)*(1 - self.trade_fee_bid_percent)
+
         if (action == Actions.Buy.value and self._position == Positions.Short):
-            self._total_profit = self._total_profit*(1 - self.trade_fee_ask_percent)*\
-                (1 - self.trade_fee_bid_percent)*(last_trade_price/current_price)
-
-
+            self._total_profit = self._total_profit * (last_trade_price/current_price) * cost
 
         if (action == Actions.Sell.value and self._position == Positions.Long):
-            self._total_profit = self._total_profit*(1 - self.trade_fee_ask_percent)*\
-                (1 - self.trade_fee_bid_percent)*(current_price/last_trade_price)
+            self._total_profit = self._total_profit * (current_price/last_trade_price) * cost
 
+        if action == Actions.Double_Sell.value and self._position == Positions.Long:
+            self._total_profit = self._total_profit * (current_price/last_trade_price) * cost
 
+        if action == Actions.Double_Buy.value and self._position == Positions.Short:
+            self._total_profit = self._total_profit * (last_trade_price/current_price) * cost
 
 
     def max_possible_profit(self):
