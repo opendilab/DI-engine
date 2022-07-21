@@ -297,6 +297,10 @@ class Task:
             except StopIteration:
                 continue
 
+    @property
+    def running(self):
+        return self._running
+
     def serial(self, *fns: List[Callable]) -> Callable:
         """
         Overview:

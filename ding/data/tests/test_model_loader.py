@@ -35,10 +35,14 @@ def test_model_loader():
 
         state_dict = loader.load(model_storage)
         model.load_state_dict(state_dict)
+
+        assert len(loader._files) > 0
+        loader.shutdown()
+        assert not path.exists(model_storage.path)
+        assert len(loader._files) == 0
     finally:
         if path.exists(tempdir):
             shutil.rmtree(tempdir)
-        loader.shutdown()
 
 
 @pytest.mark.benchmark

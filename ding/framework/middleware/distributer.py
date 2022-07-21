@@ -31,6 +31,8 @@ class ContextExchanger:
         for role in task.role:  # Only subscribe to other roles
             if not task.has_role(role):
                 task.on(self._event_name.format(role=role), self.put)
+        if storage_loader:
+            task.once("finish", lambda _: storage_loader.shutdown())
 
     def __new__(cls, *args, **kwargs):
         if not task.router.is_active:
@@ -193,6 +195,8 @@ class ModelExchanger:
         self._is_learner = task.has_role(task.role.LEARNER)
         if not self._is_learner:
             task.on(self._event_name, self._cache_state_dict)
+        if model_loader:
+            task.once("finish", lambda _: model_loader.shutdown())
 
     def _cache_state_dict(self, state_dict: Union[object, Storage]):
         self._state_dict_cache = state_dict
@@ -243,9 +247,13 @@ class ModelExchanger:
 
     def _send_model(self):
         if self._model_loader:
-            self._model_loader.save(lambda storage: task.emit(self._event_name, storage, only_remote=True))
+            self._model_loader.save(self._send_callback)
         else:
             task.emit(self._event_name, self._model.state_dict(), only_remote=True)
+
+    def _send_callback(self, storage: Storage):
+        if task.running:
+            task.emit(self._event_name, storage, only_remote=True)
 
     def __del__(self):
         if self._model_loader:

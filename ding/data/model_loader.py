@@ -10,7 +10,7 @@ import uuid
 import torch
 from ding.data.storage.file import FileModelStorage
 from ding.data.storage.storage import Storage
-from ding.framework import Supervisor
+from ding.framework import Supervisor, task
 from ding.framework.supervisor import ChildType, SendPayload
 
 
@@ -78,11 +78,6 @@ class FileModelLoader(ModelLoader):
         self._files = []
         self._cleanup_thread = None
 
-    def start(self):
-        if not self._running:
-            super().start()
-            self._start_cleanup()
-
     def _start_cleanup(self):
         """
         Overview:
@@ -119,4 +114,5 @@ class FileModelLoader(ModelLoader):
         self.send(payload)
         self._send_callbacks[payload.req_id] = callback
         self._files.append([time(), file_path])
+        self._start_cleanup()
         return model_storage
