@@ -1,7 +1,4 @@
 from cmath import inf
-from tkinter.messagebox import NO
-from tkinter.tix import Tree
-from turtle import pos, position
 import gym
 from gym import spaces
 from gym.utils import seeding
@@ -12,7 +9,6 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 import os
 import pandas as pd
-from ding.envs import ObsPlusPrevActRewWrapper
 from copy import deepcopy
 from ding.torch_utils import to_ndarray
 #from sklearn.preprocessing import scale
@@ -67,8 +63,6 @@ def trans(position,  action):
 @ENV_REGISTRY.register('base_trading')
 class TradingEnv(BaseEnv):
 
-    metadata = {'render.modes': ['human']}
-
     def __init__(self, cfg):
 
         self._cfg = cfg
@@ -93,12 +87,7 @@ class TradingEnv(BaseEnv):
         self._position = None
         self._position_history = None
         self._total_reward = None
-        self._total_profit = None
-        self.history = None
-        self._init_flag = False
         
-        # for debug
-        self._eps_history = []
 
         self._env_id = cfg.env_id
         self._action_space = spaces.Discrete(len(Actions))
@@ -126,9 +115,8 @@ class TradingEnv(BaseEnv):
         self._position_history = [self._position]
         self._profit_history = [1.]
         self._total_reward = 0.
-        self._total_profit = 1.
-        self.history = {}
-        self._eps_history = []
+
+
 
         #print("#############",self._start_tick, self._end_tick)
         return self._get_observation()
@@ -146,8 +134,6 @@ class TradingEnv(BaseEnv):
         step_reward = self._calculate_reward(action)
         self._total_reward += step_reward
 
-        self._update_profit(action)
-
         
         self._position, trade = trans( self._position, action)
 
@@ -162,14 +148,13 @@ class TradingEnv(BaseEnv):
             position = self._position.value,
             
         )
-        self._update_history(info)
+
         if self._done:
-            #print("######################",self.cnt)
             if self.cnt % 10 == 0:
                 self.render()
             info['max_possible_profit'] = self.max_possible_profit()
             info['final_eval_reward'] = self._total_reward
-            # info['total_profit'] = np.log(self._total_profit)
+
 
             
         
@@ -179,21 +164,15 @@ class TradingEnv(BaseEnv):
     def _get_observation(self):
         obs = to_ndarray(self.signal_features[(self._current_tick-self.window_size+1):self._current_tick+1]).reshape(-1).astype(np.float32)
         obs = np.hstack([obs, to_ndarray([self._position.value])]).astype(np.float32)
-        #print(obs)
+
         return obs
 
 
-    def _update_history(self, info):
-        if not self.history:
-            self.history = {key: [] for key in info.keys()}
-
-        for key, value in info.items():
-            self.history[key].append(value)
 
     def render(self, save_path = '/home/PJLAB/chenyun/test_pic/'):
         plt.clf()
         plt.plot(self._profit_history)
-        plt.savefig(save_path+"profit.png")
+        plt.savefig(save_path + str(self._env_id) + "profit.png")
 
 
         plt.clf()
@@ -212,16 +191,15 @@ class TradingEnv(BaseEnv):
                 long_ticks.append(tick)
             else:
                 flat_ticks.append(tick)
-        #print("DEBUGGGGGGGGGGGGGGGGGGGGGGGG",len(eps_price),len(short_ticks), len(eps_price[short_ticks]))
+
         plt.plot(short_ticks, eps_price[short_ticks], 'ro')
         plt.plot(long_ticks, eps_price[long_ticks], 'go')
         plt.plot(flat_ticks, eps_price[flat_ticks], 'bo')
-        plt.savefig(save_path+'price.png')
+        plt.savefig(save_path + str(self._env_id) + 'price.png')
 
         
     def close(self):
         plt.close()
-        self._init_flag = False
 
 
     def _process_data(self):

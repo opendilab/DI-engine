@@ -21,10 +21,8 @@ from easydict import EasyDict
 import json
 
 
-shortnum = 0
-longnum = 0
-flatnum = 0
-nstep = 1
+
+nstep = 3
 stocks_dqn_config = dict(
     exp_name='stocks_test_v8',
     env=dict(
@@ -186,15 +184,6 @@ def serial_pipeline(
             print("+++++++++++++++++++++++++++++++++++++++++++++++++START EVAL!")
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             print("+++++++++++++++++++++++++++++++++++++++++++++++++END EVAL!")
-            # global shortnum
-            # global longnum
-            # global flatnum
-            # shortnum += cy_info[0]
-            # longnum += cy_info[1]
-            # flatnum += cy_info[2]
-            # print("short:",shortnum)
-            # print("long:",longnum)
-            # print("flat:",flatnum)
             
             if stop:
                 break
@@ -226,7 +215,4 @@ def serial_pipeline(
 
 
 if __name__ == "__main__":
-    shortnum = 0
-    longnum = 0
-    flatnum = 0
     serial_pipeline([main_config, create_config], seed=0)

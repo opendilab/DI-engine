@@ -1,4 +1,3 @@
-from cmath import cos
 import sys
 sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
 import numpy as np
@@ -76,23 +75,6 @@ class StocksEnv(TradingEnv):
         
         return step_reward
 
-
-    def _update_profit(self, action):
-        current_price = self.raw_prices[self._current_tick]
-        last_trade_price = self.raw_prices[self._last_trade_tick]
-        cost = (1 - self.trade_fee_ask_percent)*(1 - self.trade_fee_bid_percent)
-
-        if (action == Actions.Buy.value and self._position == Positions.Short):
-            self._total_profit = self._total_profit * (last_trade_price/current_price) * cost
-
-        if (action == Actions.Sell.value and self._position == Positions.Long):
-            self._total_profit = self._total_profit * (current_price/last_trade_price) * cost
-
-        if action == Actions.Double_Sell.value and self._position == Positions.Long:
-            self._total_profit = self._total_profit * (current_price/last_trade_price) * cost
-
-        if action == Actions.Double_Buy.value and self._position == Positions.Short:
-            self._total_profit = self._total_profit * (last_trade_price/current_price) * cost
 
 
     def max_possible_profit(self):
