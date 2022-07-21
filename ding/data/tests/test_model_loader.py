@@ -38,8 +38,3 @@ def test_model_loader():
         if path.exists(tempdir):
             shutil.rmtree(tempdir)
         loader.shutdown()
-
-
-@pytest.mark.benchmark
-def test_model_loader_benchmark():
-    pass

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
 from ding.framework.supervisor import ChildType, RecvPayload, SendPayload
 from ding.utils import make_key_as_identifier
 from ditk import logging
-from ding.data import ShmBufferContainer, shm_buffer
+from ding.data import ShmBufferContainer
 import enum
 import treetensor.numpy as tnp
 import numbers

@@ -44,7 +44,7 @@ from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver, ContextExchanger, model_exchanger
+    eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
 
@@ -81,7 +81,7 @@ def main():
 
             # Sync their context and model between each worker.
             task.use(ContextExchanger(skip_n_iter=1))
-            task.use(model_exchanger(model))
+            task.use(ModelExchanger(model))
 
         # Here is the part of single process pipeline.
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))

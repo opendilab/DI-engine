@@ -2,9 +2,10 @@ from time import sleep, time
 from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 from ditk import logging
 from ding.framework import task
-from ding.data import StorageLoader, Storage
+from ding.data import StorageLoader, Storage, ModelLoader
 if TYPE_CHECKING:
     from ding.framework.context import Context
+    from torch.nn import Module
 
 
 class ContextExchanger:
@@ -171,3 +172,81 @@ class ContextExchanger:
     def _fetch_train_iter(self, train_iter: int):
         if task.has_role(task.role.LEARNER):
             return train_iter
+
+
+class ModelExchanger:
+
+    def __init__(self, model: "Module", model_loader: Optional[ModelLoader] = None) -> None:
+        """
+        Overview:
+            Exchange model between processes, only the learner will send the model,
+            otherwise the model will only be received.
+            If you are using a shared model on a single host, there is no need to use this middleware.
+        Arguments:
+            - model (:obj:`torch.nn.Module`): Pytorch module.
+            - model_loader (:obj:`ModelLoader`): Encode model in subprocess.
+        """
+        self._model = model
+        self._model_loader = model_loader
+        self._event_name = "model_exchanger"
+        self._state_dict_cache: Optional[Union[object, Storage]] = None
+        self._is_learner = task.has_role(task.role.LEARNER)
+        if not self._is_learner:
+            task.on(self._event_name, self._cache_state_dict)
+
+    def _cache_state_dict(self, state_dict: Union[object, Storage]):
+        self._state_dict_cache = state_dict
+
+    def __new__(cls, *args, **kwargs):
+        if not task.router.is_active:
+            return task.void()
+
+        if len(task.roles) == 0:
+            logging.warning("The task does not have any roles defined, the ModelExchanger will not work.")
+            return task.void()
+
+        if len(task.roles) > 1:
+            logging.warning(
+                "Use multiple roles in one exchanger may lead to unexpected result, please check your code."
+            )
+
+        return super(ModelExchanger, cls).__new__(cls)
+
+    def __call__(self, ctx: "Context") -> Any:
+        if self._model_loader:
+            self._model_loader.start()
+
+        if not self._is_learner:
+            if ctx.total_step != 0:  # Skip first iteration
+                self._update_model()
+        else:
+            yield
+            self._send_model()
+
+    def _update_model(self):
+        start = time()
+        while True:
+            if task.finish:
+                return
+            if time() - start > 60:
+                logging.warning("Timeout when waiting for new model! Node id: {}".format(task.router.node_id))
+                break
+            if self._state_dict_cache is None:
+                sleep(0.01)
+            else:
+                if isinstance(self._state_dict_cache, Storage) and self._model_loader is not None:
+                    self._model.load_state_dict(self._model_loader.load(self._state_dict_cache))
+                else:
+                    self._model.load_state_dict(self._state_dict_cache)
+                self._state_dict_cache = None
+                break
+
+    def _send_model(self):
+        if self._model_loader:
+            self._model_loader.save(lambda storage: task.emit(self._event_name, storage, only_remote=True))
+        else:
+            task.emit(self._event_name, self._model.state_dict(), only_remote=True)
+
+    def __del__(self):
+        if self._model_loader:
+            self._model_loader.shutdown()

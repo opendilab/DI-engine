@@ -4,9 +4,8 @@ from os import path
 import os
 from threading import Thread
 from time import sleep, time
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 import uuid
-from cv2 import FileStorage
 
 import torch
 from ding.data.storage.file import FileModelStorage
