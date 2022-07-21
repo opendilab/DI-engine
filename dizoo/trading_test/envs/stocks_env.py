@@ -29,10 +29,10 @@ class StocksEnv(TradingEnv):
         '''
         prices = self.df.loc[:, 'Close'].to_numpy()
         diff = np.insert(np.diff(prices), 0, 0)
-        # opens = self.df.loc[:, 'Open'].to_numpy()
-        # highs = self.df.loc[:, 'High'].to_numpy()
-        # lows = self.df.loc[:, 'Low'].to_numpy()
-        # adjclose = self.df.loc[:, 'Adj Close'].to_numpy()
+        opens = self.df.loc[:, 'Open'].to_numpy()
+        highs = self.df.loc[:, 'High'].to_numpy()
+        lows = self.df.loc[:, 'Low'].to_numpy()
+        adjclose = self.df.loc[:, 'Adj Close'].to_numpy()
         volumes = self.df.loc[:, 'Volume'].to_numpy()
 
 
@@ -55,23 +55,23 @@ class StocksEnv(TradingEnv):
 
     def _calculate_reward(self, action):
         step_reward = 0.
-        current_price = np.log(self.raw_prices[self._current_tick])
-        last_trade_price = np.log(self.raw_prices[self._last_trade_tick])
+        current_price = (self.raw_prices[self._current_tick])
+        last_trade_price = (self.raw_prices[self._last_trade_tick])
         cost = np.log((1 - self.trade_fee_ask_percent)*(1 - self.trade_fee_bid_percent))
         if (action == Actions.Buy.value and self._position == Positions.Short):
-            step_reward = last_trade_price - current_price + cost
+            step_reward = last_trade_price - current_price 
 
 
 
         
         if (action == Actions.Sell.value and self._position == Positions.Long):
-            step_reward = current_price - last_trade_price + cost
+            step_reward = current_price - last_trade_price 
 
         if action == Actions.Double_Sell.value and self._position == Positions.Long:
-            step_reward = current_price - last_trade_price + cost
+            step_reward = current_price - last_trade_price 
 
         if action == Actions.Double_Buy.value and self._position == Positions.Short:
-            step_reward = last_trade_price - current_price + cost
+            step_reward = last_trade_price - current_price 
 
         
         step_reward = to_ndarray([step_reward]).astype(np.float32)

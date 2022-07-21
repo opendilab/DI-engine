@@ -93,6 +93,7 @@ class TradingEnv(BaseEnv):
         self._position = None
         self._position_history = None
         self._total_reward = None
+        self._total_profit = None
         self.history = None
         self._init_flag = False
         
@@ -125,6 +126,7 @@ class TradingEnv(BaseEnv):
         self._position_history = [self._position]
         self._profit_history = [1.]
         self._total_reward = 0.
+        self._total_profit = 1.
         self.history = {}
         self._eps_history = []
 
@@ -144,7 +146,7 @@ class TradingEnv(BaseEnv):
         step_reward = self._calculate_reward(action)
         self._total_reward += step_reward
 
-        # self._update_profit(action)
+        self._update_profit(action)
 
         
         self._position, trade = trans( self._position, action)
