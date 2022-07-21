@@ -213,7 +213,7 @@ class StepLeagueActor:
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
                 break
         self.total_episode_num += ctx.env_episode
-        logging.info('[Actor {}] finish {} episodes till now'.format(task.router.node_id, self.total_episode_num))
+        logging.info('[Actor {}] finish {} episodes till now, speed is {} episode/s'.format(task.router.node_id, self.total_episode_num, self.total_time))
 
 
 # class LeagueActor:
