@@ -16,7 +16,7 @@ def test_model_loader():
     tempdir = path.join(tempfile.gettempdir(), "test_model_loader")
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     model = DQN(**cfg.policy.model)
-    loader = FileModelLoader(model=model, dirname=tempdir)
+    loader = FileModelLoader(model=model, dirname=tempdir, ttl=1)
     try:
         loader.start()
         model_storage = None
@@ -29,15 +29,15 @@ def test_model_loader():
         loader.save(save_model)
         save_time = time() - start
         print("Save time: {:.4f}s".format(save_time))
-        assert save_time < 0.01
-        sleep(1)
+        assert save_time < 0.1
+        sleep(0.5)
         assert isinstance(model_storage, FileModelStorage)
+        assert len(loader._files) > 0
 
         state_dict = loader.load(model_storage)
         model.load_state_dict(state_dict)
 
-        assert len(loader._files) > 0
-        loader.shutdown()
+        sleep(2)
         assert not path.exists(model_storage.path)
         assert len(loader._files) == 0
     finally:

@@ -113,7 +113,11 @@ class FileModelLoader(ModelLoader):
         model_storage = FileModelStorage(file_path)
         payload = SendPayload(proc_id=0, method="save", args=[model_storage])
         self.send(payload)
-        self._send_callbacks[payload.req_id] = callback
-        self._files.append([time(), file_path])
+
+        def clean_callback(storage: Storage):
+            self._files.append([time(), file_path])
+            callback(storage)
+
+        self._send_callbacks[payload.req_id] = clean_callback
         self._start_cleanup()
         return model_storage
