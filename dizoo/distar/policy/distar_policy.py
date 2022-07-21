@@ -28,7 +28,7 @@ class DIStarPolicy(Policy):
     config = dict(
         type='distar',
         on_policy=False,
-        cuda=True,
+        cuda=True if torch.cuda.is_available() else False,
         learning_rate=1e-5,
         model=dict(),
         # learn
