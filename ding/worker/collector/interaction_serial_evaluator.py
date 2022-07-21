@@ -188,13 +188,14 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
             - return_info (:obj:`dict`): Current evaluation return information.
         '''
+        ### edit by chenyun
+        _cy_flag = False
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
         info = {}
         return_info = []
-        chenyun_info = [0,0,0]
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         self._policy.reset()
@@ -223,18 +224,16 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                         continue
                     if t.done:
                         # Env reset is done by env_manager automatically.
-                        #print(t.info)
-                        if 'debug_msg' in t.info:
-                            #print("DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
-                            chenyun_info[int(t.info['debug_msg'].item())]+=1
                         self._policy.reset([env_id])
                         reward = t.info['final_eval_reward']
                         if 'episode_info' in t.info:
                             eval_monitor.update_info(env_id, t.info['episode_info'])
                         eval_monitor.update_reward(env_id, reward)
                         return_info.append(t.info)
+
                         ################### edit by chenyun
                         if 'max_possible_profit' in t.info:
+                            _cy_flag = True
                             # profit = t.info['total_profit']
                             # eval_monitor.update_profit(env_id, profit)
                             max_profit = t.info['max_possible_profit']
@@ -249,17 +248,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                     envstep_count += 1
         duration = self._timer.value
         episode_reward = eval_monitor.get_episode_reward()
-        ################ edit by chenyun
-        # episode_profit = eval_monitor.get_episode_profit()
-        max_possible_profit = eval_monitor.get_max_episode_profit()
-        info_chenyun = {
-            
-            'max_possible_profit_max': np.max(max_possible_profit),
-            'max_possible_profit_mean': np.mean(max_possible_profit),
-            'max_possible_profit_min': np.min(max_possible_profit),
-            
-            # 'each_reward': episode_reward,
-        }
+
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
@@ -273,12 +262,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             'reward_std': np.std(episode_reward),
             'reward_max': np.max(episode_reward),
             'reward_min': np.min(episode_reward),
-            ################ edit by chenyun
-            # 'profit_mean': np.mean(episode_profit),
-            # 'profit_std': np.std(episode_profit),
-            # 'profit_max': np.max(episode_profit),
-            # 'profit_min': np.min(episode_profit),
-            
+
             # 'each_reward': episode_reward,
         }
 
@@ -296,14 +280,23 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
 
 
-        for k, v in info_chenyun.items():
-            if not np.isscalar(v):
-                continue
-            # self._tb_logger.add_scalars('{}_iter/'.format(self._instance_name) + k, {k:v, 'max_possible_profit':info_chenyun['max_possible_profit']}, train_iter)
-            # self._tb_logger.add_scalars('{}_step/'.format(self._instance_name) + k, {k:v, 'max_possible_profit':info_chenyun['max_possible_profit']}, envstep)
-            self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
-            self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
-            
+        ################ edit by chenyun
+        if _cy_flag:
+            max_possible_profit = eval_monitor.get_max_episode_profit()
+            info_chenyun = {
+                
+                'max_possible_profit_max': np.max(max_possible_profit),
+                'max_possible_profit_mean': np.mean(max_possible_profit),
+                'max_possible_profit_min': np.min(max_possible_profit),
+
+            }
+            for k, v in info_chenyun.items():
+                if not np.isscalar(v):
+                    continue
+                self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
+                self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
+        #####################
+
         if render:
             video_title = '{}_{}/'.format(self._instance_name, self._render.mode)
             videos = eval_monitor.get_video()
@@ -323,4 +316,4 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-        return stop_flag, return_info, chenyun_info
+        return stop_flag, return_info

@@ -208,9 +208,9 @@ class VectorEvalMonitor(object):
         return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
     ########## edit by chenyun
     def get_episode_profit(self) -> list:
-        return sum([list(v) for v in self._profit.values()], [])  # sum(iterable, start)
+        return sum([list(v) for v in self._profit.values()], [])  
     def get_max_episode_profit(self) -> list:
-        return sum([list(v) for v in self._max_possible_profit.values()], [])  # sum(iterable, start)
+        return sum([list(v) for v in self._max_possible_profit.values()], [])  
     ############
     def get_latest_reward(self, env_id: int) -> int:
         """

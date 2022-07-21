@@ -184,17 +184,17 @@ def serial_pipeline(
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             print("+++++++++++++++++++++++++++++++++++++++++++++++++START EVAL!")
-            stop, reward, cy_info = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             print("+++++++++++++++++++++++++++++++++++++++++++++++++END EVAL!")
-            global shortnum
-            global longnum
-            global flatnum
-            shortnum += cy_info[0]
-            longnum += cy_info[1]
-            flatnum += cy_info[2]
-            print("short:",shortnum)
-            print("long:",longnum)
-            print("flat:",flatnum)
+            # global shortnum
+            # global longnum
+            # global flatnum
+            # shortnum += cy_info[0]
+            # longnum += cy_info[1]
+            # flatnum += cy_info[2]
+            # print("short:",shortnum)
+            # print("long:",longnum)
+            # print("flat:",flatnum)
             
             if stop:
                 break

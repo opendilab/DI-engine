@@ -150,11 +150,7 @@ class TradingEnv(BaseEnv):
 
         
         self._position, trade = trans( self._position, action)
-        self._eps_history.append('#')
-        self._eps_history.append(self._current_tick)
-        self._eps_history.append(action)
-        self._eps_history.append(step_reward)
-        self._eps_history.append(self._position)
+
         if trade:
             self._last_trade_tick = self._current_tick
 
@@ -170,7 +166,7 @@ class TradingEnv(BaseEnv):
         if self._done:
             #print("######################",self.cnt)
             if self.cnt % 10 == 0:
-                self.tmp_render()
+                self.render()
             info['max_possible_profit'] = self.max_possible_profit()
             info['final_eval_reward'] = self._total_reward
             # info['total_profit'] = np.log(self._total_profit)
@@ -207,7 +203,7 @@ class TradingEnv(BaseEnv):
         for key, value in info.items():
             self.history[key].append(value)
 
-    def tmp_render(self, save_path = '/home/PJLAB/chenyun/test_pic/'):
+    def render(self, save_path = '/home/PJLAB/chenyun/test_pic/'):
         plt.clf()
         plt.plot(self._profit_history)
         plt.savefig(save_path+"profit.png")
@@ -235,67 +231,10 @@ class TradingEnv(BaseEnv):
         plt.plot(flat_ticks, eps_price[flat_ticks], 'bo')
         plt.savefig(save_path+'price.png')
 
-
-    def render(self, mode='human'):
-
-        def _plot_position(position, tick):
-            color = None
-            if position == Positions.Short:
-                color = 'red'
-            elif position == Positions.Long:
-                color = 'green'
-            if color:
-                plt.scatter(tick, self.prices[tick], color=color)
-
-        if self._first_rendering:
-            self._first_rendering = False
-            plt.cla()
-            plt.plot(self.prices)
-            start_position = self._position_history[self._start_tick]
-            _plot_position(start_position, self._start_tick)
-
-        _plot_position(self._position, self._current_tick)
-
-        plt.suptitle(
-            "Total Reward: %.6f" % self._total_reward + ' ~ ' +
-            "Total Profit: %.6f" % self._total_profit
-        )
-
-        plt.pause(0.01)
-
-
-    def render_all(self, mode='human'):
-        window_ticks = np.arange(len(self._position_history))
-        plt.plot(self.prices)
-
-        short_ticks = []
-        long_ticks = []
-        for i, tick in enumerate(window_ticks):
-            if self._position_history[i] == Positions.Short:
-                short_ticks.append(tick)
-            elif self._position_history[i] == Positions.Long:
-                long_ticks.append(tick)
-
-        plt.plot(short_ticks, self.prices[short_ticks], 'ro')
-        plt.plot(long_ticks, self.prices[long_ticks], 'go')
-
-        plt.suptitle(
-            "Total Reward: %.6f" % self._total_reward + ' ~ ' +
-            "Total Profit: %.6f" % self._total_profit
-        )
-        
         
     def close(self):
         plt.close()
         self._init_flag = False
-
-
-    def save_rendering(self, filepath):
-        plt.savefig(filepath)
-
-
-    def pause_rendering(self):
-        plt.show()
 
 
     def _process_data(self):
