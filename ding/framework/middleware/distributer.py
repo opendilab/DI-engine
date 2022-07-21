@@ -52,7 +52,7 @@ class ContextExchanger:
         payload = self.fetch(ctx)
         if payload:
             if self._storage_loader and task.has_role(task.role.COLLECTOR):
-                payload = self._storage_loader.to_storage(payload)
+                payload = self._storage_loader.save(payload)
             for role in task.roles:
                 task.emit(self._event_name.format(role=role), payload, only_remote=True)
 

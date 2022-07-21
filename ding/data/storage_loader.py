@@ -59,7 +59,7 @@ class StorageLoader(Supervisor, ABC):
         return self._req_count % self._worker_num
 
     @abstractmethod
-    def to_storage(self, obj: Union[Dict, List]) -> Storage:
+    def save(self, obj: Union[Dict, List]) -> Storage:
         raise NotImplementedError
 
     def load(self, storage: Storage, callback: Callable):
@@ -223,7 +223,7 @@ class StorageLoader(Supervisor, ABC):
 
 class FileStorageLoader(StorageLoader):
 
-    def __init__(self, dirname: str, ttl: int = 600, worker_num: int = 3) -> None:
+    def __init__(self, dirname: str, ttl: int = 60, worker_num: int = 3) -> None:
         """
         Overview:
             Dump and load object with file storage.
@@ -238,7 +238,7 @@ class FileStorageLoader(StorageLoader):
         self._cleanup_thread = None
         self._ttl = ttl  # # Delete files created 10 minutes ago.
 
-    def to_storage(self, obj: Union[Dict, List]) -> FileStorage:
+    def save(self, obj: Union[Dict, List]) -> FileStorage:
         if not path.exists(self._dirname):
             os.mkdir(self._dirname)
         filename = "{}.pkl".format(uuid.uuid1())

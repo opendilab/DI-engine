@@ -1,13 +1,15 @@
 from time import sleep, time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from ditk import logging
+from ding.data.model_loader import ModelLoader
+from ding.data.storage.storage import Storage
 from ding.framework import task
 if TYPE_CHECKING:
     from ding.framework.context import Context
     from torch.nn import Module
 
 
-def model_exchanger(model: "Module"):
+def model_exchanger(model: "Module", model_loader: Optional[ModelLoader] = None):
     """
     Overview:
         Exchange model between processes, only the learner will send the model,
@@ -47,12 +49,18 @@ def model_exchanger(model: "Module"):
                     if state_dict_cache is None:
                         sleep(0.01)
                     else:
-                        model.load_state_dict(state_dict_cache)
+                        if isinstance(state_dict_cache, Storage) and model_loader is not None:
+                            model.load_state_dict(model_loader.load(state_dict_cache))
+                        else:
+                            model.load_state_dict(state_dict_cache)
                         state_dict_cache = None
                         break
 
         if is_learner:
             yield
-            task.emit(event_name, model.state_dict(), only_remote=True)
+            if model_loader:
+                model_loader.save(lambda storage: task.emit(event_name, storage, only_remote=True))
+            else:
+                task.emit(event_name, model.state_dict(), only_remote=True)
 
     return _model_exchanger

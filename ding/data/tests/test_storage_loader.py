@@ -32,7 +32,7 @@ def test_file_storage_loader():
                     "next_obs": torch.rand(4, 84, 84, dtype=torch.float32)
                 } for _ in range(96)
             ]
-            storage = loader.to_storage(data)
+            storage = loader.save(data)
             storages.append(storage)
 
         start = time()
@@ -68,7 +68,6 @@ def test_file_storage_loader():
 
         assert new_time_cost < origin_time_cost
     finally:
-        print(tempdir)
         if path.exists(tempdir):
             shutil.rmtree(tempdir)
         loader.shutdown()
@@ -82,7 +81,7 @@ def test_file_storage_loader_cleanup():
         storages = []
         for _ in range(4):
             data = np.random.rand(4, 84, 84).astype(np.float32)
-            storage = loader.to_storage(data)
+            storage = loader.save(data)
             storages.append(storage)
             sleep(0.5)
         assert len(os.listdir(tempdir)) < 4

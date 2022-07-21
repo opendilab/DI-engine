@@ -2,6 +2,8 @@ from typing import Any
 from ding.data.storage import Storage
 import pickle
 
+from ding.utils.file_helper import read_file, save_file
+
 
 class FileStorage(Storage):
 
@@ -12,3 +14,12 @@ class FileStorage(Storage):
     def load(self) -> Any:
         with open(self.path, "rb") as f:
             return pickle.load(f)
+
+
+class FileModelStorage(Storage):
+
+    def save(self, state_dict: object) -> None:
+        save_file(self.path, state_dict)
+
+    def load(self) -> object:
+        return read_file(self.path)
