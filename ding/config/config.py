@@ -161,7 +161,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
 def read_config_directly(path: str) -> dict:
     """
     Overview:
-        Read configuration from a file path(now only suport python file) and directly return results.
+        Read configuration from a file path(now only support python file) and directly return results.
     Arguments:
         - path (:obj:`str`): Path of configuration file
     Returns:

@@ -1,8 +1,7 @@
-import gym
 from ditk import logging
 from ding.model import QAC
 from ding.policy import SACPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2
+from ding.envs import BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
@@ -18,8 +17,12 @@ def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
-        collector_env = BaseEnvManagerV2(env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(10)], cfg=cfg.env.manager)
-        evaluator_env = BaseEnvManagerV2(env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(5)], cfg=cfg.env.manager)
+        collector_env = BaseEnvManagerV2(
+            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
+        )
+        evaluator_env = BaseEnvManagerV2(
+            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
+        )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 

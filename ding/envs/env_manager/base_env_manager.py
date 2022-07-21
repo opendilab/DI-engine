@@ -388,6 +388,10 @@ class BaseEnvManager(object):
         else:
             raise TypeError("invalid seed arguments type: {}".format(type(seed)))
         self._env_dynamic_seed = dynamic_seed
+        try:
+            self._action_space.seed(seed[0])
+        except Exception:  # TODO(nyz) deal with nested action_space like SMAC
+            pass
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
         """
