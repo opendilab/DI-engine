@@ -187,7 +187,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
             - return_info (:obj:`dict`): Current evaluation return information.
         '''
-        ### edit by chenyun
+        ### only used by anytrading
         _anytrading_flag = False
         if n_episode is None:
             n_episode = self._default_n_episode
@@ -273,16 +273,13 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
 
-
-        ################ edit by chenyun
+        ################ only used by anytrading
         if _anytrading_flag:
             max_possible_profit = eval_monitor.get_max_episode_profit()
             info_anytrading = {
-                
                 'max_possible_profit_max': np.max(max_possible_profit),
                 'max_possible_profit_mean': np.mean(max_possible_profit),
                 'max_possible_profit_min': np.min(max_possible_profit),
-
             }
             for k, v in info_anytrading.items():
                 if not np.isscalar(v):

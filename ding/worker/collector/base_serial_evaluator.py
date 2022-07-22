@@ -99,7 +99,7 @@ class VectorEvalMonitor(object):
         self._reward = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
         self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
 
-        ######## edit by chenyun
+        ######## only used by anytrading
         self._max_possible_profit = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
         ########
 
@@ -135,7 +135,7 @@ class VectorEvalMonitor(object):
             reward = reward.item()
         self._reward[env_id].append(reward)
 
-    ################# edit by chenyun
+    ################# only used by anytrading
 
     def update_max_profit(self, env_id: int, max_profit: Any) -> None:
         """
@@ -150,8 +150,8 @@ class VectorEvalMonitor(object):
         self._max_possible_profit[env_id].append(max_profit)
 
     def get_max_episode_profit(self) -> list:
-        return sum([list(v) for v in self._max_possible_profit.values()], [])  
-        
+        return sum([list(v) for v in self._max_possible_profit.values()], [])
+
     ###########
 
     def update_video(self, imgs):
