@@ -9,7 +9,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
-from ding.worker.level_replay.level_sampler import LevelSampler
+from ding.data.level_replay.level_sampler import LevelSampler
 from ding.policy.common_utils import default_preprocess_learn
 
 def generate_seeds(num_seeds=500, base_seed=0):
@@ -112,7 +112,7 @@ def serial_pipeline_plr(
         trans_seeds = seeds.tolist()
         for e in range(collector_env_num):
             trans_seeds[e] = int(trans_seeds[e])
-            
+
         collector_env.seed(trans_seeds)
         collector_env.reset()
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
