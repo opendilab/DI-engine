@@ -106,6 +106,9 @@ class FileModelLoader(ModelLoader):
                 os.remove(file_path)
 
     def save(self, callback: Callable) -> FileModelStorage:
+        if not self._running:
+            logging.warning("Please start model loader before saving model.")
+            return
         if not path.exists(self._dirname):
             os.mkdir(self._dirname)
         file_path = "model_{}.pth.tar".format(uuid.uuid1())

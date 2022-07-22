@@ -36,6 +36,8 @@ Remember to keep them connected by mesh to ensure that they can exchange informa
 """
 import gym
 from ditk import logging
+from ding.data.model_loader import FileModelLoader
+from ding.data.storage_loader import FileStorageLoader
 from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
@@ -80,7 +82,11 @@ def main():
                 task.add_role(task.role.COLLECTOR)
 
             # Sync their context and model between each worker.
+            storage_loader = FileStorageLoader(dirname="./data", ttl=10)
+            # task.use(ContextExchanger(skip_n_iter=1, storage_loader=storage_loader))
             task.use(ContextExchanger(skip_n_iter=1))
+            model_loader = FileModelLoader(model, dirname="./data", ttl=10)
+            # task.use(ModelExchanger(model, model_loader=model_loader))
             task.use(ModelExchanger(model))
 
         # Here is the part of single process pipeline.

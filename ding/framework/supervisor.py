@@ -165,6 +165,9 @@ class ChildProcess(Child):
             self._send_queue = None
 
     def send(self, payload: SendPayload):
+        if self._send_queue is None:
+            logging.warning("Child worker has been terminated or not started.")
+            return
         self._send_queue.put(payload)
 
 
@@ -195,6 +198,9 @@ class ChildThread(Child):
             self._send_queue = None
 
     def send(self, payload: SendPayload):
+        if self._send_queue is None:
+            logging.warning("Child worker has been terminated or not started.")
+            return
         self._send_queue.put(payload)
 
 
@@ -247,6 +253,9 @@ class Supervisor:
         Arguments:
             - payload (:obj:`SendPayload`): Send payload.
         """
+        if not self._running:
+            logging.warning("Please call start_link before sending any payload to child process.")
+            return
         self._children[payload.proc_id].send(payload)
 
     def recv(self, ignore_err: bool = False, timeout: float = None) -> RecvPayload:
