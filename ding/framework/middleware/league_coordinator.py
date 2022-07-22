@@ -74,5 +74,5 @@ class LeagueCoordinator:
     def __call__(self, ctx: "Context") -> None:
         sleep(1)
         log_every_sec(
-            logging.INFO, 30, "[Coordinator {}] running jobs {}".format(task.router.node_id, self._running_jobs)
+            logging.INFO, 600, "[Coordinator {}] running jobs {}".format(task.router.node_id, self._running_jobs)
         )
