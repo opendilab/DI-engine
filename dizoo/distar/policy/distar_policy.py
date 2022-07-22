@@ -28,7 +28,7 @@ class DIStarPolicy(Policy):
     config = dict(
         type='distar',
         on_policy=False,
-        cuda=True if torch.cuda.is_available() else False,
+        cuda=True,
         learning_rate=1e-5,
         model=dict(),
         # learn
@@ -144,7 +144,11 @@ class DIStarPolicy(Policy):
         self._learn_model = model_wrap(self._model, 'base')
         # TODO(zms): maybe initialize state_dict inside learner
         learn_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
-        learn_state_dict = torch.load(learn_model_path)
+        if self._cuda == False:
+            learn_state_dict = torch.load(learn_model_path, map_location='cpu')
+        else:
+            # TODO(zms): assign to a specific card 
+            learn_state_dict = torch.load(learn_model_path)
         self._load_state_dict_learn(learn_state_dict)
 
         self.head_types = ['action_type', 'delay', 'queued', 'target_unit', 'selected_units', 'target_location']
@@ -165,13 +169,13 @@ class DIStarPolicy(Policy):
             eps=1e-5,
         )
         # utils
-        self.timer = EasyTimer(cuda=self._cfg.cuda)
+        self.timer = EasyTimer(cuda=self._cuda)
 
     def _forward_learn(self, inputs: Dict):
         # ===========
         # pre-process
         # ===========
-        if self._cfg.cuda:
+        if self._cuda:
             inputs = to_device(inputs, self._device)
         inputs = collate_fn_learn(inputs)
 
@@ -388,7 +392,13 @@ class DIStarPolicy(Policy):
         self._collect_model = model_wrap(self._model, 'base')
         # TODO(zms): maybe initialize state_dict inside actor
         collect_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
-        collect_state_dict = torch.load(collect_model_path)
+        
+        if self._cuda == False:
+            collect_state_dict = torch.load(collect_model_path, map_location='cpu')
+        else:
+            # TODO(zms): assign to a specific card
+            collect_state_dict = torch.load(collect_model_path)
+
         self._load_state_dict_collect(collect_state_dict)
 
         self.only_cum_action_kl = False
@@ -402,10 +412,14 @@ class DIStarPolicy(Policy):
         self.cum_type = 'action'  # observation or action
         self.realtime = self._cfg.realtime
         self.teacher_model = model_wrap(Model(self._cfg.model), 'base')
-        if self._cfg.cuda:
+        if self._cuda:
             self.teacher_model = self.teacher_model.cuda()
         teacher_model_path = osp.join(osp.dirname(__file__), self._cfg.teacher_model_path)
-        t_state_dict = torch.load(teacher_model_path)
+        if self._cuda == False:
+            t_state_dict = torch.load(teacher_model_path, map_location='cpu')
+        else:
+            # TODO(zms): assign to a specific card
+            t_state_dict = torch.load(teacher_model_path)
         teacher_state_dict = {k: v for k, v in t_state_dict['model'].items() if 'value_networks' not in k}
         self.teacher_model.load_state_dict(teacher_state_dict)
         # TODO(zms): load teacher_model's state_dict when init policy.
@@ -486,14 +500,14 @@ class DIStarPolicy(Policy):
         obs, game_info = self._data_preprocess_collect(data)
         self.obs = obs
         obs = default_collate([obs])
-        if self._cfg.cuda:
+        if self._cuda:
             obs = to_device(obs, self._device)
 
         self._collect_model.eval()
         with torch.no_grad():
             policy_output = self._collect_model.compute_logp_action(**obs)
 
-        if self._cfg.cuda:
+        if self._cuda:
             policy_output = to_device(policy_output, self._device)
         policy_output = default_decollate(policy_output)[0]
         self.policy_output = self._data_postprocess_collect(policy_output, game_info)
@@ -625,14 +639,14 @@ class DIStarPolicy(Policy):
                 teacher_model_input['action_info']['selected_units'], dim=0
             )
 
-        if self._cfg.cuda:
+        if self._cuda:
             teacher_model_input = to_device(teacher_model_input, self._device)
 
         self.teacher_model.eval()
         with torch.no_grad():
             teacher_output = self.teacher_model.compute_teacher_logit(**teacher_model_input)
 
-        if self._cfg.cuda:
+        if self._cuda:
             teacher_output = to_device(teacher_output, self._device)
         teacher_output = self.decollate_output(teacher_output)
         self.teacher_hidden_state = teacher_output['hidden_state']
