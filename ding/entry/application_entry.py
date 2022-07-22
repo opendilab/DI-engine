@@ -9,7 +9,7 @@ from ding.config import compile_config, read_config
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, EpisodeSerialCollector
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
-from ding.torch_utils import to_device
+from ding.torch_utils import to_device, to_ndarray
 from ding.utils import set_pkg_seed
 from ding.utils.data import offline_data_save_type
 from ding.rl_utils import get_nstep_return_data
@@ -44,7 +44,6 @@ def eval(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, save_path='eval_config.py'
@@ -73,7 +72,7 @@ def eval(
     # Evaluate
     _, episode_info = evaluator.eval()
     reward = [e['final_eval_reward'] for e in episode_info]
-    eval_reward = np.mean(reward)
+    eval_reward = np.mean(to_ndarray(reward))
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
     return eval_reward
 
@@ -108,7 +107,6 @@ def collect_demo_data(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg,
@@ -193,7 +191,6 @@ def collect_episodic_demo_data(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg,
@@ -239,7 +236,7 @@ def collect_episodic_demo_data(
 def episode_to_transitions(data_path: str, expert_data_path: str, nstep: int) -> None:
     r"""
     Overview:
-        Transfer episoded data into nstep transitions
+        Transfer episodic data into nstep transitions.
     Arguments:
         - data_path (:obj:str): data path that stores the pkl file
         - expert_data_path (:obj:`str`): File path of the expert demo data will be written to.
@@ -250,6 +247,32 @@ def episode_to_transitions(data_path: str, expert_data_path: str, nstep: int) ->
         _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
     post_process_data = []
     for i in range(len(_dict)):
+        data = get_nstep_return_data(_dict[i], nstep)
+        post_process_data.extend(data)
+    offline_data_save_type(
+        post_process_data,
+        expert_data_path,
+    )
+
+
+def episode_to_transitions_filter(data_path: str, expert_data_path: str, nstep: int, min_episode_return: int) -> None:
+    r"""
+    Overview:
+        Transfer episodic data into n-step transitions and only take the episode data whose return is larger than
+        min_episode_return.
+    Arguments:
+        - data_path (:obj:str): data path that stores the pkl file
+        - expert_data_path (:obj:`str`): File path of the expert demo data will be written to.
+        - nstep (:obj:`int`): {s_{t}, a_{t}, s_{t+n}}.
+
+    """
+    with open(data_path, 'rb') as f:
+        _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
+    post_process_data = []
+    for i in range(len(_dict)):
+        episode_rewards = torch.stack([_dict[i][j]['reward'] for j in range(_dict[i].__len__())], axis=0)
+        if episode_rewards.sum() < min_episode_return:
+            continue
         data = get_nstep_return_data(_dict[i], nstep)
         post_process_data.extend(data)
     offline_data_save_type(
