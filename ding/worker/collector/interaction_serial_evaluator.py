@@ -230,7 +230,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                         eval_monitor.update_reward(env_id, reward)
                         return_info.append(t.info)
 
-                        ################### edit by chenyun
+                        ################### only used by anytrading
                         if 'max_possible_profit' in t.info:
                             _anytrading_flag = True
                             max_profit = t.info['max_possible_profit']
