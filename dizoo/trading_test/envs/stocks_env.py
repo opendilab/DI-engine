@@ -53,20 +53,22 @@ class StocksEnv(TradingEnv):
 
     def _calculate_reward(self, action):
         step_reward = 0.
-        current_price = np.log(self.raw_prices[self._current_tick])
-        last_trade_price = np.log(self.raw_prices[self._last_trade_tick])
+        current_price = (self.raw_prices[self._current_tick])
+        last_trade_price = (self.raw_prices[self._last_trade_tick])
+        ratio = current_price/last_trade_price
         cost = np.log((1 - self.trade_fee_ask_percent)*(1 - self.trade_fee_bid_percent))
+
         if (action == Actions.Buy.value and self._position == Positions.Short):
-            step_reward = last_trade_price - current_price + cost
+            step_reward = np.log(2-ratio) + cost
         
         if (action == Actions.Sell.value and self._position == Positions.Long):
-            step_reward = current_price - last_trade_price + cost
+            step_reward = np.log(ratio) + cost
 
         if action == Actions.Double_Sell.value and self._position == Positions.Long:
-            step_reward = current_price - last_trade_price + cost
+            step_reward = np.log(ratio) + cost
 
         if action == Actions.Double_Buy.value and self._position == Positions.Short:
-            step_reward = last_trade_price - current_price + cost
+            step_reward = np.log(2-ratio) + cost
 
         
         step_reward = to_ndarray([step_reward]).astype(np.float32)
@@ -89,7 +91,7 @@ class StocksEnv(TradingEnv):
                 
                 current_price = self.raw_prices[current_tick - 1]
                 last_trade_price = self.raw_prices[last_trade_tick]
-                tmp_profit = profit *(last_trade_price / current_price )* (1 - self.trade_fee_ask_percent) * (1 - self.trade_fee_bid_percent)
+                tmp_profit = profit *(2 - (current_price / last_trade_price) )* (1 - self.trade_fee_ask_percent) * (1 - self.trade_fee_bid_percent)
                 profit = max(profit, tmp_profit)
             else:
                 while (current_tick <= self._end_tick and
