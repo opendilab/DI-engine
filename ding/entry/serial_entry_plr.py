@@ -98,6 +98,7 @@ def serial_pipeline_plr(
     learner.call_hook('before_run')
 
     seeds = [int(level_sampler.sample('sequential')) for _ in range(collector_env_num)]
+    level_seeds = torch.Tensor(seeds)
 
     collector_env.seed(seeds)
     collector_env.reset()
@@ -111,14 +112,14 @@ def serial_pipeline_plr(
                 break
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(
-            train_iter=learner.train_iter, level_seeds=torch.Tensor(seeds), policy_kwargs=collect_kwargs
+            train_iter=learner.train_iter, level_seeds=level_seeds, policy_kwargs=collect_kwargs
         )
         # Learn policy from collected data
         learner.train(new_data, collector.envstep)
         stacked_data = default_preprocess_learn(new_data, ignore_done=cfg.policy.learn.ignore_done, use_nstep=False)
         level_sampler.update_with_rollouts(stacked_data, collector_env_num)
         seeds = [int(level_sampler.sample()) for _ in range(collector_env_num)]
-
+        level_seeds = torch.Tensor(seeds)
         collector_env.seed(seeds)
         collector_env.reset()
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
