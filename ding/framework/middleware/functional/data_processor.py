@@ -4,6 +4,7 @@ from ditk import logging
 import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay
+from ding.framework import task
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
