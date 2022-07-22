@@ -1025,6 +1025,11 @@ class PPOSTDIMPolicy(PPOPolicy):
     )
 
     def _init_learn(self) -> None:
+        r"""
+        Overview:
+            Learn mode init method. Called by ``self.__init__``.
+            Init the auxiliary model, its optimizer, and the axuliary loss weight to the main loss.
+        """
         super()._init_learn()
         x_size, y_size = self._get_encoding_size()
         self._aux_model = ContrastiveLoss(x_size, y_size, **self._cfg.aux_model)
@@ -1034,6 +1039,12 @@ class PPOSTDIMPolicy(PPOPolicy):
         self._aux_loss_weight = self._cfg.aux_loss_weight
 
     def _get_encoding_size(self):
+        r"""
+        Overview:
+            Get the input encoding size of the ST-DIM axuiliary model.
+        Returns:
+            - info_dict (:obj:`Tuple[Tuple]`): the encoding size without the first (Batch) dimension.
+        """
         obs = self._cfg.model.obs_shape
         if isinstance(obs, int):
             obs = [obs]
@@ -1048,6 +1059,16 @@ class PPOSTDIMPolicy(PPOPolicy):
         return x.size()[1:], y.size()[1:]
 
     def _model_encode(self, data):
+        r"""
+        Overview:
+            Get the encoding of the stdim model.
+        Arguments:
+            - data (:obj:`dict`): Dict type data, same as the _forward_learn input.
+        Returns:
+            - (:obj:`Tuple[Tensor]`): the tuple of two tensors to apply contrastive embedding learning.
+                In ST-DIM algorithm, these two variables are the dqn encoding of `obs` and `next_obs`\
+                respectively.
+        """
         x = self._model.encoder(data["obs"])
         y = self._model.encoder(data["next_obs"])
         return x, y
