@@ -74,7 +74,7 @@ class LevelSampler():
         return (int(min(self.seeds)), int(max(self.seeds)))
 
     def update_with_rollouts(self, train_data, num_actors):
-        total_steps = len(train_data)
+        total_steps = train_data['rewards'].shape[0]
         if self.strategy == 'random':
             return
 
