@@ -179,9 +179,7 @@ def serial_pipeline(
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            print("+++++++++++++++++++++++++++++++++++++++++++++++++START EVAL!")
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            print("+++++++++++++++++++++++++++++++++++++++++++++++++END EVAL!")
             
             if stop:
                 break
