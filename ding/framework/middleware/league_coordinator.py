@@ -36,7 +36,7 @@ class LeagueCoordinator:
         logging.info("[Coordinator {}] recieve actor {} greeting".format(task.router.node_id, actor_id))
         if self._last_collect_time is None:
             self._last_collect_time = time()
-        if self._total_collect_time is None
+        if self._total_collect_time is None:
             self._total_collect_time = 0
         with self._lock:
             player_num = len(self.league.active_players_ids)
