@@ -196,7 +196,7 @@ class SampleSerialCollector(ISerialCollector):
             train_iter: int = 0,
             drop_extra: bool = True,
             policy_kwargs: Optional[dict] = None,
-            level_seeds: list = None,
+            level_seeds: Optional[List] = None,
     ) -> List[Any]:
         """
         Overview:
