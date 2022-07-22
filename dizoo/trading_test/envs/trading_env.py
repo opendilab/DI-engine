@@ -65,7 +65,19 @@ class TradingEnv(BaseEnv):
     def __init__(self, cfg):
 
         self._cfg = cfg
-        self.cnt = 0 # associate the frequence that update profit.png
+        #======== param to plot =========
+        self.cnt = 0 
+
+        if 'plot_freq' not in self._cfg:
+            self.plot_freq = 10
+        else:
+            self.plot_freq = self._cfg.plot_freq
+        if 'save_path' not in self._cfg :
+            self.save_path = './'
+        else:
+            self.save_path = self._cfg.save_path
+        #================================
+
         STOCKS_GOOGL = load_dataset('STOCKS_GOOGL', 'Date')
         self.raw_prices = deepcopy(STOCKS_GOOGL).loc[:, 'Close'].to_numpy()
         self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x-x.mean())/ x.std(), axis=0) # normalize
@@ -77,7 +89,7 @@ class TradingEnv(BaseEnv):
         self.shape = (cfg.window_size, 3)
 
 
-        # episode
+        #======== param about episode =========
         self._start_tick = None
         self._end_tick = None
         self._done = None
@@ -86,7 +98,7 @@ class TradingEnv(BaseEnv):
         self._position = None
         self._position_history = None
         self._total_reward = None
-        
+        #======================================
 
         self._env_id = cfg.env_id
         self._action_space = spaces.Discrete(len(Actions))
@@ -115,9 +127,6 @@ class TradingEnv(BaseEnv):
         self._profit_history = [1.]
         self._total_reward = 0.
 
-
-
-        #print("#############",self._start_tick, self._end_tick)
         return self._get_observation()
 
 
@@ -149,7 +158,7 @@ class TradingEnv(BaseEnv):
         )
 
         if self._done:
-            if self.cnt % 10 == 0:
+            if self.cnt % self.plot_freq == 0:
                 self.render()
             info['max_possible_profit'] = self.max_possible_profit()
             info['final_eval_reward'] = self._total_reward
@@ -168,10 +177,11 @@ class TradingEnv(BaseEnv):
 
 
 
-    def render(self, save_path = '/home/PJLAB/chenyun/test_pic/'):
+    def render(self):
+        print(self.save_path + str(self._env_id) + "-profit.png")
         plt.clf()
         plt.plot(self._profit_history)
-        plt.savefig(save_path + str(self._env_id) + "profit.png")
+        plt.savefig(self.save_path + str(self._env_id) + "-profit.png")
 
 
         plt.clf()
@@ -194,7 +204,7 @@ class TradingEnv(BaseEnv):
         plt.plot(short_ticks, eps_price[short_ticks], 'ro')
         plt.plot(long_ticks, eps_price[long_ticks], 'go')
         plt.plot(flat_ticks, eps_price[flat_ticks], 'bo')
-        plt.savefig(save_path + str(self._env_id) + 'price.png')
+        plt.savefig(self.save_path + str(self._env_id) + '-price.png')
 
         
     def close(self):
