@@ -58,7 +58,7 @@ class LeagueLearnerCommunicator:
         # log_every_sec(logging.INFO, 5, "[Learner {}] pour data into the ctx".format(task.router.node_id))
         ctx.trajectories = list(self._cache)
         self._cache.clear()
-        sleep(0.1)
+        sleep(0.005)
         yield
         log_every_sec(logging.INFO, 20, "[Learner {}] ctx.train_iter {}".format(task.router.node_id, ctx.train_iter))
         self.player.total_agent_step = ctx.train_iter

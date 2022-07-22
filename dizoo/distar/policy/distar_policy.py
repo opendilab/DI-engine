@@ -144,11 +144,13 @@ class DIStarPolicy(Policy):
         self._learn_model = model_wrap(self._model, 'base')
         # TODO(zms): maybe initialize state_dict inside learner
         learn_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
+
         if self._cuda == False:
             learn_state_dict = torch.load(learn_model_path, map_location='cpu')
         else:
             # TODO(zms): assign to a specific card 
             learn_state_dict = torch.load(learn_model_path)
+        
         self._load_state_dict_learn(learn_state_dict)
 
         self.head_types = ['action_type', 'delay', 'queued', 'target_unit', 'selected_units', 'target_location']
@@ -415,9 +417,13 @@ class DIStarPolicy(Policy):
         if self._cuda:
             self.teacher_model = self.teacher_model.cuda()
         teacher_model_path = osp.join(osp.dirname(__file__), self._cfg.teacher_model_path)
+        print("self._cuda is ", self._cuda)
+
         if self._cuda == False:
+            print('we use torch.load with map_loaction cpu!')
             t_state_dict = torch.load(teacher_model_path, map_location='cpu')
         else:
+            print("NOOOOOOOO!!!!!!!!!!!!!!")
             # TODO(zms): assign to a specific card
             t_state_dict = torch.load(teacher_model_path)
         teacher_state_dict = {k: v for k, v in t_state_dict['model'].items() if 'value_networks' not in k}
