@@ -1,6 +1,3 @@
-import sys
-sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
-print(sys.path)
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
@@ -212,4 +209,3 @@ def serial_pipeline(
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)
-    
