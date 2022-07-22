@@ -17,6 +17,7 @@ import os
 from matplotlib import animation
 import matplotlib.pyplot as plt
 
+
 @ENV_REGISTRY.register('gfootball-academy')
 class GfootballAcademyEnv(BaseEnv):
 
@@ -54,7 +55,7 @@ class GfootballAcademyEnv(BaseEnv):
         self.env_name = self._cfg.env_name  # TODO
         self.n_agents = self._cfg.agent_num
         self.obs_dim = self._cfg.obs_dim
- 
+
         self.episode_limit = time_limit
         self.time_step = time_step
         self.stacked = stacked
@@ -84,7 +85,7 @@ class GfootballAcademyEnv(BaseEnv):
         obs_space_high = self._env.observation_space.high[0][:self.obs_dim]
 
         self._action_space =  gym.spaces.Dict({agent_i: gym.spaces.Discrete(self._env.action_space.nvec[1]) for agent_i in range(self.n_agents)})
-        self._observation_space = gym.spaces.Dict({agent_i: 
+        self._observation_space = gym.spaces.Dict({agent_i:
             gym.spaces.Box(low=obs_space_low, high=obs_space_high, dtype=self._env.observation_space.dtype)
             for agent_i in range(self.n_agents)
         })
@@ -223,7 +224,7 @@ class GfootballAcademyEnv(BaseEnv):
         self.time_step += 1
         if isinstance(actions, np.ndarray):
             actions = actions.tolist()
-        
+
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         _, original_rewards, done, infos = self._env.step(actions)
@@ -244,7 +245,7 @@ class GfootballAcademyEnv(BaseEnv):
 
         if self.check_if_done():
             done = True
-        
+
         if done:
             if self._save_replay:
                 path = os.path.join(
@@ -306,15 +307,6 @@ class GfootballAcademyEnv(BaseEnv):
     def save_replay(self):
         """Save a replay."""
         pass
-    
-    def enable_save_replay(self, replay_path: str) -> None:
-        """
-        Overview:
-            Save replay file in the given path, need to be self-implemented.
-        Arguments:
-            - replay_path(:obj:`str`): Storage path.
-        """
-        raise NotImplementedError
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -342,6 +334,12 @@ class GfootballAcademyEnv(BaseEnv):
         return f'GfootballEnv Academy Env {self.env_name}'
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        """
+        Overview:
+            Save replay file in the given path
+        Arguments:
+            - replay_path(:obj:`str`): Storage path.
+        """
         if replay_path is None:
             replay_path = './video'
         self._save_replay = True
