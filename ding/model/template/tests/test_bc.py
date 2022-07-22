@@ -27,7 +27,6 @@ class TestContinuousBC:
             obs_shape=(N, ),
             action_shape=action_shape,
             action_space=action_space,
-            critic_head_hidden_size=embedding_size,
             actor_head_hidden_size=embedding_size,
         )
         # compute_action

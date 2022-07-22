@@ -14,6 +14,7 @@ pendulum_d4pg_config = dict(
         cuda=False,
         priority=True,
         nstep=3,
+        discount_factor=0.995,
         random_collect_size=800,
         model=dict(
             obs_shape=3,

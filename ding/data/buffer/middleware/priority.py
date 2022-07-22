@@ -9,6 +9,10 @@ if TYPE_CHECKING:
 
 
 class PriorityExperienceReplay:
+    """
+    Overview:
+        The middleware that implements priority experience replay (PER).
+    """
 
     def __init__(
             self,
@@ -18,6 +22,18 @@ class PriorityExperienceReplay:
             IS_weight_power_factor: float = 0.4,
             IS_weight_anneal_train_iter: int = int(1e5),
     ) -> None:
+        """
+        Arguments:
+            - buffer (:obj:`Buffer`): The buffer to use PER.
+            - IS_weight (:obj:`bool`): Whether use importance sampling or not.
+            - priority_power_factor (:obj:`float`): The factor that adjust the sensitivity between\
+                the sampling probability and the priority level.
+            - IS_weight_power_factor (:obj:`float`): The factor that adjust the sensitivity between\
+                the sample rarity and sampling probability in importance sampling.
+            - IS_weight_anneal_train_iter (:obj:`float`): The factor that controls the increasing of\
+                ``IS_weight_power_factor`` during training.
+        """
+
         self.buffer = buffer
         self.buffer_idx = {}
         self.buffer_size = buffer.size

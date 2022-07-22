@@ -30,7 +30,7 @@ class CkptSaver:
             - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.exp_name`.
             - policy (:obj:`Policy`): Policy used to save the checkpoint.
             - train_freq (:obj:`int`): Number of training iterations between each saving checkpoint data.
-            - save_finish (:obj:`int`): Whether save final ckpt when ``task.finish = True``.
+            - save_finish (:obj:`bool`): Whether save final ckpt when ``task.finish = True``.
         """
         self.policy = policy
         self.train_freq = train_freq
@@ -62,7 +62,7 @@ class CkptSaver:
 
         # best eval reward so far
         if ctx.eval_value is not None and ctx.eval_value > self.max_eval_value:
-            save_file("{}/eval.pth.tar".format(self.prefix), self.policy.learn_mode.state_dict())
+            save_file("{}/eval.pth.tar".format(self.prefix), self.policy.eval_mode.state_dict())
             self.max_eval_value = ctx.eval_value
 
         # finish

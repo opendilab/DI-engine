@@ -4,7 +4,7 @@ from functools import reduce
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
-from ding.torch_utils import get_shape0
+from ding.torch_utils import get_shape0, to_ndarray
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
@@ -76,7 +76,7 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
 
         obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
         inference_output = policy.forward(obs, **ctx.collect_kwargs)
-        ctx.action = [v['action'].numpy() for v in inference_output.values()]  # TBD
+        ctx.action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
         ctx.inference_output = inference_output
 
     return _inference

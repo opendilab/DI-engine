@@ -251,7 +251,7 @@ def normed_linear(in_features, out_features, bias: bool = True, device=None, dty
     nn.Linear but with normalized fan-in init
     """
 
-    out = nn.Linear(in_features, out_features, bias, device, dtype)
+    out = nn.Linear(in_features, out_features, bias)
 
     out.weight.data *= scale / out.weight.norm(dim=1, p=2, keepdim=True)
     if bias:
@@ -277,7 +277,15 @@ def normed_conv2d(
     nn.Conv2d but with normalized fan-in init
     """
     out = nn.Conv2d(
-        in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode, device, dtype
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride,
+        padding,
+        dilation,
+        groups,
+        bias,
+        padding_mode,
     )
     out.weight.data *= scale / out.weight.norm(dim=(1, 2, 3), p=2, keepdim=True)
     if bias:

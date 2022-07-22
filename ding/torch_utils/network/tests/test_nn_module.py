@@ -133,7 +133,7 @@ class TestNnModule:
             groups=groups,
             scale=1
         )
-        r = block.weight.norm(dim=(1, 2, 3), p=2, keepdim=True)[0, 0, 0, 0].item()
+        r = block.weight.norm(dim=(1, 2, 3), p=2, keepdim=True)[0, 0, 0, 0]
         assert r.item() < 1.01
         assert r.item() > 0.99
         output = self.run_model(input, block)
