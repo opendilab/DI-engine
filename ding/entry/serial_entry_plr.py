@@ -1,3 +1,6 @@
+from typing import Union, Optional, List, Any, Tuple
+import os
+import torch
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
@@ -11,6 +14,7 @@ from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.data.level_replay.level_sampler import LevelSampler
 from ding.policy.common_utils import default_preprocess_learn
+
 
 def generate_seeds(num_seeds=500, base_seed=0):
     return [base_seed + i for i in range(num_seeds)]
@@ -58,9 +62,15 @@ def serial_pipeline_plr(
     collector_env.seed(cfg.seed, dynamic_seed=False)
     evaluator_env.seed(cfg.seed, dynamic_seed=True)
     train_seeds = generate_seeds()
-    #print(train_seeds)
-    #print(cfg)
-    level_sampler = LevelSampler(train_seeds, cfg.policy.model.obs_shape, cfg.policy.model.action_shape, collector_env_num, strategy=cfg.level_replay.level_replay_strategy, score_transform=cfg.level_replay.level_replay_score_transform,temperature=cfg.level_replay.level_replay_temperature)
+    level_sampler = LevelSampler(
+        train_seeds,
+        cfg.policy.model.obs_shape,
+        cfg.policy.model.action_shape,
+        collector_env_num,
+        strategy=cfg.level_replay.level_replay_strategy,
+        score_transform=cfg.level_replay.level_replay_score_transform,
+        temperature=cfg.level_replay.level_replay_temperature
+    )
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
@@ -86,13 +96,10 @@ def serial_pipeline_plr(
     # ==========
     # Learner's before_run hook.
     learner.call_hook('before_run')
-    seeds = torch.zeros(collector_env_num)
-    seeds = [level_sampler.sample('sequential') for _ in range(collector_env_num)]
-    trans_seeds = seeds.tolist()
-    for e in range(collector_env_num):
-        trans_seeds[e] = int(trans_seeds[e])
 
-    collector_env.seed(trans_seeds)
+    seeds = [int(level_sampler.sample('sequential')) for _ in range(collector_env_num)]
+
+    collector_env.seed(seeds)
     collector_env.reset()
 
     while True:
@@ -103,17 +110,16 @@ def serial_pipeline_plr(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        new_data = collector.collect_plr(train_iter=learner.train_iter, level_seeds= seeds, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(
+            train_iter=learner.train_iter, level_seeds=torch.Tensor(seeds), policy_kwargs=collect_kwargs
+        )
         # Learn policy from collected data
         learner.train(new_data, collector.envstep)
         stacked_data = default_preprocess_learn(new_data, ignore_done=cfg.policy.learn.ignore_done, use_nstep=False)
         level_sampler.update_with_rollouts(stacked_data, collector_env_num)
-        seeds = [level_sampler.sample() for _ in range(collector_env_num)]
-        trans_seeds = seeds.tolist()
-        for e in range(collector_env_num):
-            trans_seeds[e] = int(trans_seeds[e])
+        seeds = [int(level_sampler.sample()) for _ in range(collector_env_num)]
 
-        collector_env.seed(trans_seeds)
+        collector_env.seed(seeds)
         collector_env.reset()
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
