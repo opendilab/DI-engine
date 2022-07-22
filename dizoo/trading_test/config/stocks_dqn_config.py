@@ -22,7 +22,7 @@ import json
 
 nstep = 3
 stocks_dqn_config = dict(
-    exp_name='stocks_test_v8',
+    exp_name='stocks_test_v9',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -212,3 +212,4 @@ def serial_pipeline(
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)
+    

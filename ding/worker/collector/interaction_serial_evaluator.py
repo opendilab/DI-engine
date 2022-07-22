@@ -1,4 +1,3 @@
-from pprint import pprint
 from typing import Optional, Callable, Tuple
 from collections import namedtuple
 import numpy as np
@@ -246,7 +245,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                     envstep_count += 1
         duration = self._timer.value
         episode_reward = eval_monitor.get_episode_reward()
-
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
@@ -260,10 +258,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             'reward_std': np.std(episode_reward),
             'reward_max': np.max(episode_reward),
             'reward_min': np.min(episode_reward),
-
             # 'each_reward': episode_reward,
         }
-
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
             info.update(episode_info)

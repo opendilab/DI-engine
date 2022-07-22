@@ -1,6 +1,5 @@
 from easydict import EasyDict
-import sys
-sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
+
 nstep = 3
 lunarlander_dqn_config = dict(
     exp_name='lunarlander_dqn_seed0',

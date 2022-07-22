@@ -9,3 +9,4 @@ if __name__ == "__main__":
     env = StocksEnv(cfg)
     env.reset(1)
     print(env.max_possible_profit())
+    

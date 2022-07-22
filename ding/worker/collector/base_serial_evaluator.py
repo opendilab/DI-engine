@@ -100,7 +100,6 @@ class VectorEvalMonitor(object):
         self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
 
         ######## edit by chenyun
-        self._profit = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
         self._max_possible_profit = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
         ########
 
@@ -137,30 +136,22 @@ class VectorEvalMonitor(object):
         self._reward[env_id].append(reward)
 
     ################# edit by chenyun
-    def update_profit(self, env_id: int, profit: Any) -> None:
-        """
-        Overview:
-            Update the profit indicated by env_id.
-        Arguments:
-            - env_id: (:obj:`int`): the id of the environment we need to update the reward
-            - profit: (:obj:`Any`): the profit we need to update
-        """
-        if isinstance(profit, torch.Tensor):
-            profit = profit.item()
-        self._profit[env_id].append(profit)
 
     def update_max_profit(self, env_id: int, max_profit: Any) -> None:
         """
         Overview:
-            Update the profit indicated by env_id.
+            Update the max profit indicated by env_id.
         Arguments:
-            - env_id: (:obj:`int`): the id of the environment we need to update the reward
-            - profit: (:obj:`Any`): the profit we need to update
+            - env_id: (:obj:`int`): the id of the environment we need to update the max profit
+            - max_profit: (:obj:`Any`): the profit we need to update
         """
         if isinstance(max_profit, torch.Tensor):
             max_profit = max_profit.item()
         self._max_possible_profit[env_id].append(max_profit)
 
+    def get_max_episode_profit(self) -> list:
+        return sum([list(v) for v in self._max_possible_profit.values()], [])  
+        
     ###########
 
     def update_video(self, imgs):
@@ -206,12 +197,7 @@ class VectorEvalMonitor(object):
             Get the total reward of one episode.
         """
         return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
-    ########## edit by chenyun
-    def get_episode_profit(self) -> list:
-        return sum([list(v) for v in self._profit.values()], [])  
-    def get_max_episode_profit(self) -> list:
-        return sum([list(v) for v in self._max_possible_profit.values()], [])  
-    ############
+
     def get_latest_reward(self, env_id: int) -> int:
         """
         Overview:
