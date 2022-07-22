@@ -112,7 +112,8 @@ def serial_pipeline_plr(
         trans_seeds = seeds.tolist()
         for e in range(collector_env_num):
             trans_seeds[e] = int(trans_seeds[e])
-            collector_env.seed(trans_seeds)
+            
+        collector_env.seed(trans_seeds)
         collector_env.reset()
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
