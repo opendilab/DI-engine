@@ -148,9 +148,9 @@ class StorageLoader(Supervisor, ABC):
         Overview:
             Called in subprocess, put payload.data into buf.
         """
-        assert type(payload.data) is type(
+        assert isinstance(payload.data, type(
             shm_obj.buf
-        ), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(shm_obj.buf))
+        )), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(shm_obj.buf))
 
         # Sleep while shm object is not ready.
         while shm_obj.id_.get()[0] != 0:
@@ -195,9 +195,9 @@ class StorageLoader(Supervisor, ABC):
         Overview:
             Called in main process, put buf back into payload.data.
         """
-        assert type(payload.data) is type(
+        assert isinstance(payload.data, type(
             shm_obj.buf
-        ), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(shm_obj.buf))
+        )), "Data type ({}) and buf type ({}) are not match!".format(type(payload.data), type(shm_obj.buf))
 
         assert shm_obj.id_.get()[0] == payload.extra[0], "Shm object and payload do not match ({} - {}).".format(
             shm_obj.id_.get()[0], payload.extra[0]

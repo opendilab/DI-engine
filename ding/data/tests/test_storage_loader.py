@@ -95,7 +95,7 @@ def test_file_storage_loader_cleanup():
 def test_shared_object():
     loader = FileStorageLoader(dirname="")
 
-    ######## Test array ########
+    # ========== Test array ==========
     obj = [{"obs": np.random.rand(100, 100)} for _ in range(10)]
     shm_obj = loader._create_shm_buffer(obj)
     assert len(shm_obj.buf) == len(obj) * 2
@@ -107,7 +107,7 @@ def test_shared_object():
     assert len(payload.data) == 10
     assert [d["obs"] is None for d in payload.data]
 
-    ## Putback
+    # ========== Putback ==========
     loader._shm_putback(payload=payload, shm_obj=shm_obj)
     obj = payload.data
     assert len(obj) == 10
@@ -115,7 +115,7 @@ def test_shared_object():
         assert isinstance(o["obs"], np.ndarray)
         assert o["obs"].shape == (100, 100)
 
-    ######## Test dict ########
+    # ========== Test dict ==========
     obj = {"obs": torch.rand(100, 100, dtype=torch.float32)}
     shm_obj = loader._create_shm_buffer(obj)
     assert isinstance(shm_obj.buf["obs"], ShmBuffer)
@@ -128,7 +128,7 @@ def test_shared_object():
     assert isinstance(payload.data["obs"], torch.Tensor)
     assert payload.data["obs"].shape == (100, 100)
 
-    ######## Test treetensor ########
+    # ========== Test treetensor ==========
     obj = {"trajectories": [ttorch.as_tensor({"obs": torch.rand(10, 10, dtype=torch.float32)}) for _ in range(10)]}
     shm_obj = loader._create_shm_buffer(obj)
 
@@ -147,7 +147,7 @@ def test_shared_object():
 @pytest.mark.benchmark
 def test_shared_object_benchmark():
     loader = FileStorageLoader(dirname="")
-    ######## Test treetensor ########
+    # ========== Test treetensor ==========
     obj = {
         "env_step": 0,
         "trajectories": [
