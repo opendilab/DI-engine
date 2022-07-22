@@ -36,6 +36,7 @@ class ProcgenEnv(BaseEnv):
         self._start_level = self._cfg.start_level
         self._num_levels = self._cfg.num_levels
         self._env_name = 'procgen:procgen-'+self._cfg.env_id+'-v0'
+        np.random.seed(0)
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -78,7 +79,7 @@ class ProcgenEnv(BaseEnv):
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
-        np.random.seed(self._seed)
+        
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)

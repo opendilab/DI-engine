@@ -56,7 +56,7 @@ def serial_pipeline_plr(
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     collector_env.seed(cfg.seed, dynamic_seed=False)
-    evaluator_env.seed(cfg.seed, dynamic_seed=False)
+    evaluator_env.seed(cfg.seed, dynamic_seed=True)
     train_seeds = generate_seeds()
     #print(train_seeds)
     #print(cfg)
@@ -87,17 +87,15 @@ def serial_pipeline_plr(
     # Learner's before_run hook.
     learner.call_hook('before_run')
     seeds = torch.zeros(collector_env_num)
-    for e in range(collector_env_num):
-        seed = level_sampler.sample('sequential')
-        seeds[e] = seed
+    seeds = [level_sampler.sample('sequential') for _ in range(collector_env_num)]
     trans_seeds = seeds.tolist()
     for e in range(collector_env_num):
         trans_seeds[e] = int(trans_seeds[e])
 
     collector_env.seed(trans_seeds)
+    collector_env.reset()
 
     while True:
-        collector_env.reset()
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -108,19 +106,16 @@ def serial_pipeline_plr(
         new_data = collector.collect_plr(train_iter=learner.train_iter, level_seeds= seeds, policy_kwargs=collect_kwargs)
         # Learn policy from collected data
         learner.train(new_data, collector.envstep)
-        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
-            break
-        train_data_2 = default_preprocess_learn(new_data, ignore_done=cfg.policy.learn.ignore_done, use_nstep=False)
-        level_sampler.update_with_rollouts(train_data_2,collector_env_num,cfg.policy.collect.n_sample)
-        level_sampler.after_update()
-        for e in range(collector_env_num):
-            seed = level_sampler.sample()
-            seeds[e] = seed
+        stacked_data = default_preprocess_learn(new_data, ignore_done=cfg.policy.learn.ignore_done, use_nstep=False)
+        level_sampler.update_with_rollouts(stacked_data, collector_env_num)
+        seeds = [level_sampler.sample() for _ in range(collector_env_num)]
         trans_seeds = seeds.tolist()
         for e in range(collector_env_num):
             trans_seeds[e] = int(trans_seeds[e])
             collector_env.seed(trans_seeds)
-        #print('1')
+        collector_env.reset()
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
