@@ -82,11 +82,7 @@ def main():
                 task.add_role(task.role.COLLECTOR)
 
             # Sync their context and model between each worker.
-            storage_loader = FileStorageLoader(dirname="./data", ttl=10)
-            # task.use(ContextExchanger(skip_n_iter=1, storage_loader=storage_loader))
             task.use(ContextExchanger(skip_n_iter=1))
-            model_loader = FileModelLoader(model, dirname="./data", ttl=10)
-            # task.use(ModelExchanger(model, model_loader=model_loader))
             task.use(ModelExchanger(model))
 
         # Here is the part of single process pipeline.
