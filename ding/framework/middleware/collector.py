@@ -21,7 +21,7 @@ class BattleStepCollector:
 
     def __init__(
         self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, model_info_dict: Dict,
-        all_policies: Dict, agent_num: int
+        player_policy_dict: Dict, agent_num: int
     ):
         self.cfg = cfg
         self.end_flag = False
@@ -33,7 +33,7 @@ class BattleStepCollector:
         self.unroll_len = unroll_len
         self.model_dict = model_dict
         self.model_info_dict = model_info_dict
-        self.all_policies = all_policies
+        self.player_policy_dict = player_policy_dict
         self.agent_num = agent_num
 
         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
@@ -55,8 +55,8 @@ class BattleStepCollector:
         self.end_flag = True
         self.env.close()
 
-    def _update_policies(self, player_id_list) -> None:
-        for player_id in player_id_list:
+    def _update_policies(self, player_id_set) -> None:
+        for player_id in player_id_set:
             # for this player, in the beginning of actor's lifetime, actor didn't recieve any new model, use initial model instead.
             if self.model_info_dict.get(player_id) is None:
                 self.model_info_dict[player_id] = PlayerModelInfo(
@@ -65,9 +65,9 @@ class BattleStepCollector:
 
         while True:
             time_now = time.time()
-            time_list = [time_now - self.model_info_dict[player_id].get_new_model_time for player_id in player_id_list]
+            time_list = [time_now - self.model_info_dict[player_id].get_new_model_time for player_id in player_id_set]
             if any(x >= WAIT_MODEL_TIME for x in time_list):
-                for index, player_id in enumerate(player_id_list):
+                for index, player_id in enumerate(player_id_set):
                     if time_list[index] >= WAIT_MODEL_TIME:
                         #TODO: log_every_sec can only print the first model that not updated
                         log_every_sec(
@@ -80,12 +80,12 @@ class BattleStepCollector:
             else:
                 break
 
-        for player_id in player_id_list:
+        for player_id in player_id_set:
             if self.model_dict.get(player_id) is None:
                 continue
             else:
                 learner_model = self.model_dict.get(player_id)
-                policy = self.all_policies.get(player_id)
+                policy = self.player_policy_dict.get(player_id)
                 assert policy, "for player{}, policy should have been initialized already"
                 # update policy model
                 policy.load_state_dict(learner_model.state_dict)
@@ -113,7 +113,7 @@ class BattleStepCollector:
                 # TODO(zms): only runnable when 1 actor has exactly one env, need to write more general
                 for policy_id, policy in enumerate(ctx.current_policies):
                     policy.reset(self.env.ready_obs[0][policy_id])
-            self._update_policies(ctx.player_id_list)
+            self._update_policies(set(ctx.player_id_list))
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
 
@@ -135,7 +135,7 @@ class BattleStepCollector:
 # class BattleEpisodeCollector:
 
 #     def __init__(
-#         self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict,
+#         self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, player_policy_dict: Dict,
 #         agent_num: int
 #     ):
 #         self.cfg = cfg
@@ -147,7 +147,7 @@ class BattleStepCollector:
 #         self.total_envstep_count = 0
 #         self.n_rollout_samples = n_rollout_samples
 #         self.model_dict = model_dict
-#         self.all_policies = all_policies
+#         self.player_policy_dict = player_policy_dict
 #         self.agent_num = agent_num
 
 #         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
@@ -171,7 +171,7 @@ class BattleStepCollector:
 #                 continue
 #             else:
 #                 learner_model = self.model_dict.get(player_id)
-#                 policy = self.all_policies.get(player_id)
+#                 policy = self.player_policy_dict.get(player_id)
 #                 assert policy, "for player {}, policy should have been initialized already".format(player_id)
 #                 # update policy model
 #                 policy.load_state_dict(learner_model.state_dict)

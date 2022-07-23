@@ -28,14 +28,14 @@ class StepLeagueActor:
         self.policy_fn = policy_fn
         self.unroll_len = self.cfg.policy.collect.unroll_len
         self._collectors: Dict[str, BattleStepCollector] = {}
-        self.all_policies: Dict[str, "Policy.collect_function"] = {}
+        self.player_policy_dict: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
         self.job_queue = queue.Queue()
         self.model_dict = {}
         self.model_dict_lock = Lock()
         self.model_info_dict = {}
-        
+
         self.traj_num = 0
         self.total_time = 0
         self.total_episode_num = 0
@@ -77,23 +77,34 @@ class StepLeagueActor:
         collector = task.wrap(
             BattleStepCollector(
                 cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.model_info_dict,
-                self.all_policies, self.agent_num
+                self.player_policy_dict, self.agent_num
             )
         )
         self._collectors[player_id] = collector
         self.collect_time[player_id] = 0
         return collector
 
-    def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
+    def _get_policy(self, player: "PlayerMeta", duplicate: bool = False) -> "Policy.collect_function":
         player_id = player.player_id
-        if self.all_policies.get(player_id):
-            return self.all_policies.get(player_id)
-        policy: "Policy.collect_function" = self.policy_fn().collect_mode
-        self.all_policies[player_id] = policy
-        if "historical" in player.player_id:
-            policy.load_state_dict(player.checkpoint.load())
 
-        return policy
+        if self.player_policy_dict.get(player_id):
+            player_policy = self.player_policy_dict.get(player_id)
+            if duplicate is False:
+                return player_policy
+            else:
+                duplicate_policy: "Policy.collect_function" = self.policy_fn().collect_mode
+                del duplicate_policy._collect_model
+                del duplicate_policy.teacher_model
+                duplicate_policy._collect_model = player_policy._collect_model
+                duplicate_policy.teacher_model = player_policy.teacher_model
+                return duplicate_policy
+        else:
+            policy: "Policy.collect_function" = self.policy_fn().collect_mode
+            self.player_policy_dict[player_id] = policy
+            if "historical" in player.player_id:
+                policy.load_state_dict(player.checkpoint.load())
+
+            return policy
 
     def _get_job(self):
         if self.job_queue.empty():
@@ -110,8 +121,13 @@ class StepLeagueActor:
     def _get_current_policies(self, job):
         current_policies = []
         main_player: "PlayerMeta" = None
+        player_set = set()
         for player in job.players:
-            current_policies.append(self._get_policy(player))
+            if player.player_id not in player_set:
+                current_policies.append(self._get_policy(player, duplicate=False))
+                player_set.add(player.player_id)
+            else:
+                current_policies.append(self._get_policy(player, duplicate=True))
             if player.player_id == job.launch_player:
                 main_player = player
         assert main_player, "[Actor {}] can not find active player.".format(task.router.node_id)
@@ -179,14 +195,15 @@ class StepLeagueActor:
                     # log_every_sec(logging.INFO, 5, '[Actor {}] send data\n'.format(task.router.node_id))
 
             ctx.trajectories_list = []
-            
+
             time_end = time.time()
             self.total_time += time_end - time_begin
             log_every_sec(
                 logging.INFO, 5,
-                '[Actor {}] sent {} trajectories till now, total trajectory send speed is {} traj/s'
-                .format(
-                    task.router.node_id, self.traj_num, self.traj_num / self.total_time, 
+                '[Actor {}] sent {} trajectories till now, total trajectory send speed is {} traj/s'.format(
+                    task.router.node_id,
+                    self.traj_num,
+                    self.traj_num / self.total_time,
                 )
             )
 
@@ -213,7 +230,11 @@ class StepLeagueActor:
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
                 break
         self.total_episode_num += ctx.env_episode
-        logging.info('[Actor {}] finish {} episodes till now, speed is {} episode/s'.format(task.router.node_id, self.total_episode_num, self.total_episode_num/self.total_time))
+        logging.info(
+            '[Actor {}] finish {} episodes till now, speed is {} episode/s'.format(
+                task.router.node_id, self.total_episode_num, self.total_episode_num / self.total_time
+            )
+        )
 
 
 # class LeagueActor:
@@ -225,7 +246,7 @@ class StepLeagueActor:
 #         self.policy_fn = policy_fn
 #         self.n_rollout_samples = self.cfg.policy.collect.n_rollout_samples
 #         self._collectors: Dict[str, BattleEpisodeCollector] = {}
-#         self.all_policies: Dict[str, "Policy.collect_function"] = {}
+#         self.player_policy_dict: Dict[str, "Policy.collect_function"] = {}
 #         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
 #         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
 #         self.job_queue = queue.Queue()
@@ -256,7 +277,7 @@ class StepLeagueActor:
 #         env = self.env_fn()
 #         collector = task.wrap(
 #             BattleEpisodeCollector(
-#                 cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies,
+#                 cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.player_policy_dict,
 #                 self.agent_num
 #             )
 #         )
@@ -266,10 +287,10 @@ class StepLeagueActor:
 
 #     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
 #         player_id = player.player_id
-#         if self.all_policies.get(player_id):
-#             return self.all_policies.get(player_id)
+#         if self.player_policy_dict.get(player_id):
+#             return self.player_policy_dict.get(player_id)
 #         policy: "Policy.collect_function" = self.policy_fn().collect_mode
-#         self.all_policies[player_id] = policy
+#         self.player_policy_dict[player_id] = policy
 #         if "historical" in player.player_id:
 #             policy.load_state_dict(player.checkpoint.load())
 
