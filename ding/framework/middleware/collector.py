@@ -21,7 +21,7 @@ class BattleStepCollector:
 
     def __init__(
         self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, model_info_dict: Dict,
-        player_policy_dict: Dict, agent_num: int
+        player_policy_collect_dict: Dict, agent_num: int
     ):
         self.cfg = cfg
         self.end_flag = False
@@ -33,7 +33,7 @@ class BattleStepCollector:
         self.unroll_len = unroll_len
         self.model_dict = model_dict
         self.model_info_dict = model_info_dict
-        self.player_policy_dict = player_policy_dict
+        self.player_policy_collect_dict = player_policy_collect_dict
         self.agent_num = agent_num
 
         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
@@ -85,7 +85,7 @@ class BattleStepCollector:
                 continue
             else:
                 learner_model = self.model_dict.get(player_id)
-                policy = self.player_policy_dict.get(player_id)
+                policy = self.player_policy_collect_dict.get(player_id)
                 assert policy, "for player{}, policy should have been initialized already"
                 # update policy model
                 policy.load_state_dict(learner_model.state_dict)
@@ -135,7 +135,7 @@ class BattleStepCollector:
 # class BattleEpisodeCollector:
 
 #     def __init__(
-#         self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, player_policy_dict: Dict,
+#         self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, player_policy_collect_dict: Dict,
 #         agent_num: int
 #     ):
 #         self.cfg = cfg
@@ -147,7 +147,7 @@ class BattleStepCollector:
 #         self.total_envstep_count = 0
 #         self.n_rollout_samples = n_rollout_samples
 #         self.model_dict = model_dict
-#         self.player_policy_dict = player_policy_dict
+#         self.player_policy_collect_dict = player_policy_collect_dict
 #         self.agent_num = agent_num
 
 #         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
@@ -171,7 +171,7 @@ class BattleStepCollector:
 #                 continue
 #             else:
 #                 learner_model = self.model_dict.get(player_id)
-#                 policy = self.player_policy_dict.get(player_id)
+#                 policy = self.player_policy_collect_dict.get(player_id)
 #                 assert policy, "for player {}, policy should have been initialized already".format(player_id)
 #                 # update policy model
 #                 policy.load_state_dict(learner_model.state_dict)

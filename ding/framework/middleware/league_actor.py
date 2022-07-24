@@ -28,9 +28,12 @@ class StepLeagueActor:
         self.policy_fn = policy_fn
         self.unroll_len = self.cfg.policy.collect.unroll_len
         self._collectors: Dict[str, BattleStepCollector] = {}
-        self.player_policy_dict: Dict[str, "Policy.collect_function"] = {}
+        self.player_policy_dict: Dict[str, "Policy"] = {}
+        self.player_policy_collect_dict: Dict[str, "Policy.collect_function"] = {}
+
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
+
         self.job_queue = queue.Queue()
         self.model_dict = {}
         self.model_dict_lock = Lock()
@@ -77,7 +80,7 @@ class StepLeagueActor:
         collector = task.wrap(
             BattleStepCollector(
                 cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.model_info_dict,
-                self.player_policy_dict, self.agent_num
+                self.player_policy_collect_dict, self.agent_num
             )
         )
         self._collectors[player_id] = collector
@@ -87,24 +90,28 @@ class StepLeagueActor:
     def _get_policy(self, player: "PlayerMeta", duplicate: bool = False) -> "Policy.collect_function":
         player_id = player.player_id
 
-        if self.player_policy_dict.get(player_id):
-            player_policy = self.player_policy_dict.get(player_id)
+        if self.player_policy_collect_dict.get(player_id):
+            player_policy_collect_mode = self.player_policy_collect_dict.get(player_id)
             if duplicate is False:
-                return player_policy
+                return player_policy_collect_mode
             else:
-                duplicate_policy: "Policy.collect_function" = self.policy_fn().collect_mode
+                player_policy = self.player_policy_dict.get(player_id)
+                duplicate_policy: "Policy.collect_function" = self.policy_fn()
                 del duplicate_policy._collect_model
                 del duplicate_policy.teacher_model
                 duplicate_policy._collect_model = player_policy._collect_model
                 duplicate_policy.teacher_model = player_policy.teacher_model
-                return duplicate_policy
+                return duplicate_policy.collect_mode
         else:
-            policy: "Policy.collect_function" = self.policy_fn().collect_mode
+            policy: "Policy.collect_function" = self.policy_fn()
             self.player_policy_dict[player_id] = policy
-            if "historical" in player.player_id:
-                policy.load_state_dict(player.checkpoint.load())
 
-            return policy
+            policy_collect_mode = policy.collect_mode
+            self.player_policy_collect_dict[player_id] = policy_collect_mode
+            if "historical" in player.player_id:
+                policy_collect_mode.load_state_dict(player.checkpoint.load())
+
+            return policy_collect_mode
 
     def _get_job(self):
         if self.job_queue.empty():
@@ -246,7 +253,7 @@ class StepLeagueActor:
 #         self.policy_fn = policy_fn
 #         self.n_rollout_samples = self.cfg.policy.collect.n_rollout_samples
 #         self._collectors: Dict[str, BattleEpisodeCollector] = {}
-#         self.player_policy_dict: Dict[str, "Policy.collect_function"] = {}
+#         self.player_policy_collect_dict: Dict[str, "Policy.collect_function"] = {}
 #         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
 #         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
 #         self.job_queue = queue.Queue()
@@ -277,7 +284,7 @@ class StepLeagueActor:
 #         env = self.env_fn()
 #         collector = task.wrap(
 #             BattleEpisodeCollector(
-#                 cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.player_policy_dict,
+#                 cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.player_policy_collect_dict,
 #                 self.agent_num
 #             )
 #         )
@@ -287,10 +294,10 @@ class StepLeagueActor:
 
 #     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
 #         player_id = player.player_id
-#         if self.player_policy_dict.get(player_id):
-#             return self.player_policy_dict.get(player_id)
+#         if self.player_policy_collect_dict.get(player_id):
+#             return self.player_policy_collect_dict.get(player_id)
 #         policy: "Policy.collect_function" = self.policy_fn().collect_mode
-#         self.player_policy_dict[player_id] = policy
+#         self.player_policy_collect_dict[player_id] = policy
 #         if "historical" in player.player_id:
 #             policy.load_state_dict(player.checkpoint.load())
 
