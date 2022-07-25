@@ -17,6 +17,7 @@ cfg1.model.action_shape = action_shape
 cfg2 = deepcopy(cfg1)
 cfg2.action_space = "continuous"
 
+
 def get_transition_discrete(size=64):
     data = []
     for i in range(size):
