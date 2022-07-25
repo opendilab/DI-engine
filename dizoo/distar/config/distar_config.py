@@ -95,7 +95,8 @@ distar_cfg = EasyDict(
             'other': {
                 'replay_buffer': {
                     'type': 'naive',
-                    'replay_buffer_size': 20,
+                    'replay_buffer_size': 64,
+                    'max_use': 2,
                     'deepcopy': False,
                     'enable_track_used_data': False,
                     'periodic_thruput_seconds': 60,

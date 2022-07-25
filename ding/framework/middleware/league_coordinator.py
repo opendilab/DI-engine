@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from ding.framework import task, EventEnum
 from ditk import logging
+import time
 
 from ding.utils.sparse_logging import log_every_sec
 
@@ -41,7 +42,13 @@ class LeagueCoordinator:
         with self._lock:
             player_num = len(self.league.active_players_ids)
             player_id = self.league.active_players_ids[self._total_send_jobs % player_num]
-            job = self.league.get_job_info(player_id)
+            while True:
+                try:
+                    job = self.league.get_job_info(player_id)
+                    break
+                except Exception as e:
+                    logging.error('on actor_id {}, player_id {} greeting, we got a error {}'.format(actor_id, player_id, e))
+                    time.sleep(1)
             job.job_no = self._total_send_jobs
             self._total_send_jobs += 1
         if job.job_no > 0 and job.job_no % self._eval_frequency == 0:
