@@ -10,7 +10,6 @@ from ding.data.shm_buffer import ShmBuffer
 from ding.data.storage_loader import FileStorageLoader
 from time import sleep, time
 from os import path
-
 from ding.framework.supervisor import RecvPayload
 
 
