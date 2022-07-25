@@ -211,7 +211,7 @@ def main(cfg, seed=0):
                 # result is from `info` returned from env.step
                 'result': [e['result'] for e in episode_info[0]],
             }
-            league.finish_job(job_finish_info)
+            league.finish_job(job_finish_info, count)
         if count % 50 == 0:
             payoff_string = repr(league.payoff)
             rank_string = league.player_rank(string=True)

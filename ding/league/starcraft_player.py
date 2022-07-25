@@ -30,7 +30,7 @@ class MainPlayer(ActivePlayer):
         """
         historical = self._get_players(lambda p: isinstance(p, HistoricalPlayer))
         win_rates = self._payoff[self, historical]
-        p = pfsp(win_rates, weighting='squared')
+        p = pfsp(win_rates, weighting='variance')
         return self._get_opponent(historical, p)
 
     def _sp_branch(self) -> ActivePlayer:

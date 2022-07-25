@@ -256,7 +256,7 @@ class BaseLeague:
         """
         raise NotImplementedError
 
-    def finish_job(self, job_info: dict) -> None:
+    def finish_job(self, job_info: dict, count) -> None:
         """
         Overview:
             Finish current job. Update shared payoff to record the game results.
@@ -264,7 +264,7 @@ class BaseLeague:
             - job_info (:obj:`dict`): A dict containing job result information.
         """
         # TODO(nyz) more fine-grained job info
-        self.payoff.update(job_info)
+        self.payoff.update(job_info, count)
         if 'eval_flag' in job_info and job_info['eval_flag']:
             home_id, away_id = job_info['player_id']
             home_player, away_player = self.get_player_by_id(home_id), self.get_player_by_id(away_id)
