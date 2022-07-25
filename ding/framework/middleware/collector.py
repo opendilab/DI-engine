@@ -114,8 +114,16 @@ class BattleStepCollector:
                 for policy_id, policy in enumerate(ctx.current_policies):
                     policy.reset(self.env.ready_obs[0][policy_id])
             self._update_policies(set(ctx.player_id_list))
-            self._battle_inferencer(ctx)
-            self._battle_rolloutor(ctx)
+            try:
+                self._battle_inferencer(ctx)
+                self._battle_rolloutor(ctx)
+            except Exception as e:
+                # TODO(zms): need to handle the exception cleaner
+                logging.error(logging.error("[Actor {}] got an exception: {} when collect data".format(task.router.node_id, e)))
+                self.env.close()
+                for env_id in range(self.env_num):
+                    for policy_id, policy in enumerate(ctx.current_policies):
+                        self._transitions_list[policy_id].clear_newest_episode(env_id, before_append=True)
 
             self.total_envstep_count = ctx.total_envstep_count
 

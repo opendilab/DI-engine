@@ -9,7 +9,12 @@ from functools import partial
 from copy import deepcopy
 import os.path as osp
 from typing import Any
+from ditk import logging
+import pickle
+import os
+import time
 
+from ding.framework import task
 from ding.model import model_wrap
 from ding.policy import Policy
 from ding.torch_utils import to_device, levenshtein_distance, l2_distance, hamming_distance
@@ -510,8 +515,19 @@ class DIStarPolicy(Policy):
             obs = to_device(obs, self._device)
 
         self._collect_model.eval()
-        with torch.no_grad():
-            policy_output = self._collect_model.compute_logp_action(**obs)
+        try:
+            with torch.no_grad():
+                policy_output = self._collect_model.compute_logp_action(**obs)
+        except Exception as e:
+            logging.error("[Actor {}] got an exception: {} in the collect model".format(task.router.node_id, e))
+            bug_time = str(int(time.time()))
+            file_name = 'bug_obs_' + bug_time + '.pkl'
+            with open(os.path.join(os.path.dirname(__file__), file_name), 'wb+') as f:
+                pickle.dump(self.obs, f)
+            model_path_name = 'bug_model_' + bug_time + '.pth'
+            model_path = os.path.join(os.path.dirname(__file__), model_path_name)
+            torch.save(self._collect_model.state_dict(), model_path)
+            raise e
 
         if self._cuda:
             policy_output = to_device(policy_output, self._device)
