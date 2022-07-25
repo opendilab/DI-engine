@@ -157,6 +157,8 @@ class PPOPolicy(Policy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
+        print(data)
+        exit(0)
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
             data = to_device(data, self._device)
@@ -976,7 +978,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         priority_IS_weight=False,
         # (bool) Whether to recompurete advantages in each iteration of on-policy PPO
         recompute_adv=True,
-        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous', 'hybrid']
+        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous']
         action_space='discrete',
         # (bool) Whether to use nstep return to calculate value target, otherwise, use return = adv + value
         nstep_return=False,
@@ -984,6 +986,16 @@ class PPOSTDIMPolicy(PPOPolicy):
         multi_agent=False,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
+        aux_model=dict(
+            # (int) the encoding size (of each head) to apply contrastive loss.
+            encode_shape=64,
+            # ([int, int]) the heads number of the obs encoding and next_obs encoding respectively.
+            heads=[1, 1],
+            # (str) the contrastive loss type.
+            loss_type='infonce',
+            # (float) a parameter to adjust the polarity between positive and negative samples.
+            temperature=1.0,
+        ),
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -1161,30 +1173,7 @@ class PPOSTDIMPolicy(PPOPolicy):
                         batch['return'], batch['weight']
                     )
                     ppo_loss, ppo_info = ppo_error(ppo_batch, self._clip_ratio)
-                elif self._action_space == 'hybrid':
-                    # discrete part (discrete policy loss and entropy loss)
-                    ppo_discrete_batch = ppo_policy_data(
-                        output['logit']['action_type'], batch['logit']['action_type'], batch['action']['action_type'],
-                        adv, batch['weight']
-                    )
-                    ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(ppo_discrete_batch, self._clip_ratio)
-                    # continuous part (continuous policy loss and entropy loss, value loss)
-                    ppo_continuous_batch = ppo_data(
-                        output['logit']['action_args'], batch['logit']['action_args'], batch['action']['action_args'],
-                        output['value'], batch['value'], adv, batch['return'], batch['weight']
-                    )
-                    ppo_continuous_loss, ppo_continuous_info = ppo_error_continuous(
-                        ppo_continuous_batch, self._clip_ratio
-                    )
-                    # sum discrete and continuous loss
-                    ppo_loss = type(ppo_continuous_loss)(
-                        ppo_continuous_loss.policy_loss + ppo_discrete_loss.policy_loss, ppo_continuous_loss.value_loss,
-                        ppo_continuous_loss.entropy_loss + ppo_discrete_loss.entropy_loss
-                    )
-                    ppo_info = type(ppo_continuous_info)(
-                        max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
-                        max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
-                    )
+
                 # ======================
                 # Compute auxiliary loss
                 # ======================
