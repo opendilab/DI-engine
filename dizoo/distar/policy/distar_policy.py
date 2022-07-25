@@ -421,7 +421,7 @@ class DIStarPolicy(Policy):
 
         t_state_dict = torch.load(teacher_model_path)
         if not self._cuda:
-            t_state_dict = to_device(teacher_model_path, self._device)
+            t_state_dict = to_device(t_state_dict, self._device)
         
         teacher_state_dict = {k: v for k, v in t_state_dict['model'].items() if 'value_networks' not in k}
         self.teacher_model.load_state_dict(teacher_state_dict)
