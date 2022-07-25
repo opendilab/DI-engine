@@ -72,6 +72,9 @@ class Task:
     """
     role = Role
 
+    def __init__(self) -> None:
+        self.router = Parallel()
+
     def start(
             self,
             async_mode: bool = False,
@@ -102,7 +105,6 @@ class Task:
         self.labels = labels or set()
 
         # Parallel segment
-        self.router = Parallel()
         if async_mode or self.router.is_active:
             self._activate_async()
 
