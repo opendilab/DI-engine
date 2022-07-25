@@ -150,11 +150,9 @@ class DIStarPolicy(Policy):
         # TODO(zms): maybe initialize state_dict inside learner
         learn_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
 
-        if self._cuda == False:
-            learn_state_dict = torch.load(learn_model_path, map_location='cpu')
-        else:
-            # TODO(zms): assign to a specific card 
-            learn_state_dict = torch.load(learn_model_path)
+        learn_state_dict = torch.load(learn_model_path)
+        if not self._cuda:
+            learn_state_dict = to_device(learn_state_dict, self._device)
         
         self._load_state_dict_learn(learn_state_dict)
 
@@ -385,7 +383,8 @@ class DIStarPolicy(Policy):
 
     def _load_state_dict_collect(self, _state_dict: Dict) -> None:
         #TODO(zms): need to load state_dict after collect, which is very dirty and need to rewrite
-
+        if not self._cuda:
+            _state_dict = to_device(_state_dict, self._device)
         if 'map_name' in _state_dict:
             # map_names.append(_state_dict['map_name'])
             self.fake_reward_prob = _state_dict['fake_reward_prob']
@@ -400,11 +399,7 @@ class DIStarPolicy(Policy):
         # TODO(zms): maybe initialize state_dict inside actor
         collect_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
         
-        if self._cuda == False:
-            collect_state_dict = torch.load(collect_model_path, map_location='cpu')
-        else:
-            # TODO(zms): assign to a specific card
-            collect_state_dict = torch.load(collect_model_path)
+        collect_state_dict = torch.load(collect_model_path)
 
         self._load_state_dict_collect(collect_state_dict)
 
@@ -424,13 +419,10 @@ class DIStarPolicy(Policy):
         teacher_model_path = osp.join(osp.dirname(__file__), self._cfg.teacher_model_path)
         print("self._cuda is ", self._cuda)
 
-        if self._cuda == False:
-            print('we use torch.load with map_loaction cpu!')
-            t_state_dict = torch.load(teacher_model_path, map_location='cpu')
-        else:
-            print("NOOOOOOOO!!!!!!!!!!!!!!")
-            # TODO(zms): assign to a specific card
-            t_state_dict = torch.load(teacher_model_path)
+        t_state_dict = torch.load(teacher_model_path)
+        if not self._cuda:
+            t_state_dict = to_device(teacher_model_path, self._device)
+        
         teacher_state_dict = {k: v for k, v in t_state_dict['model'].items() if 'value_networks' not in k}
         self.teacher_model.load_state_dict(teacher_state_dict)
         # TODO(zms): load teacher_model's state_dict when init policy.
