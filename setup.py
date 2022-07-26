@@ -23,7 +23,7 @@ from importlib import import_module
 here = os.path.abspath(os.path.dirname(__file__))
 meta_module = import_module('ding')
 meta = meta_module.__dict__
-with open('README.md', 'r', 'utf-8') as f:
+with open('README.md', mode='r', encoding='utf-8') as f:
     readme = f.read()
 
 setup(
