@@ -83,7 +83,7 @@ def main():
       patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
         print("node id:", task.router.node_id)
         if task.router.node_id == 0:
-            # DistributedWriter.get_instance(cfg.exp_name + '_coordinator_' + str(task.router.node_id) + player.player_id)
+            DistributedWriter.get_instance(cfg.exp_name + '_coordinator_' + str(task.router.node_id))
             task.use(LeagueCoordinator(cfg, league))
         elif task.router.node_id <= N_PLAYERS:
             cfg.policy.collect.unroll_len = 1
@@ -99,7 +99,7 @@ def main():
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         else:
-            # DistributedWriter.get_instance(cfg.exp_name + '_actor_' + str(task.router.node_id))
+            DistributedWriter.get_instance(cfg.exp_name + '_actor_' + str(task.router.node_id))
             task.use(StepLeagueActor(cfg, PrepareTest.get_env_supervisor, PrepareTest.collect_policy_fn))
 
         task.run()

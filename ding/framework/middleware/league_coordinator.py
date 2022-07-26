@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from ding.framework import task, EventEnum
 from ditk import logging
+from ding.utils import DistributedWriter
 
 from ding.utils.sparse_logging import log_every_sec
 
@@ -27,6 +28,7 @@ class LeagueCoordinator:
         self._running_jobs = dict()
         self._last_collect_time = None
         self._total_collect_time = None
+        self._writer = DistributedWriter.get_instance()
 
         task.on(EventEnum.ACTOR_GREETING, self._on_actor_greeting)
         task.on(EventEnum.LEARNER_SEND_META, self._on_learner_meta)
@@ -46,7 +48,9 @@ class LeagueCoordinator:
                     job = self.league.get_job_info(player_id)
                     break
                 except Exception as e:
-                    logging.error('on actor_id {}, player_id {} greeting, we got a error {}'.format(actor_id, player_id, e))
+                    logging.error(
+                        'on actor_id {}, player_id {} greeting, we got a error {}'.format(actor_id, player_id, e)
+                    )
                     sleep(1)
             job.job_no = self._total_send_jobs
             self._total_send_jobs += 1
@@ -70,7 +74,15 @@ class LeagueCoordinator:
         self._last_collect_time = time()
         self._total_collect_time += self._last_collect_time - old_time
         logging.info(
-            "[Coordinator {}] recieve actor finished job, player {}, recieve {} jobs in total, collect job speed is {} s/job".format(task.router.node_id, job.launch_player, self._total_recv_jobs, self._total_collect_time/self._total_recv_jobs)
+            "[Coordinator {}] recieve actor finished job, player {}, recieve {} jobs in total, collect job speed is {} s/job"
+            .format(
+                task.router.node_id, job.launch_player, self._total_recv_jobs,
+                self._total_collect_time / self._total_recv_jobs
+            )
+        )
+        self._writer.add_scalar(
+            "coordinator_collect_job_speed-total_recv_jobs", self._total_collect_time / self._total_recv_jobs,
+            self._total_recv_jobs
         )
         self.league.update_payoff(job)
 

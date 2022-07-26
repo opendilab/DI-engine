@@ -1,11 +1,14 @@
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
+import time
 from ditk import logging
 import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.framework import task
+from ding.utils import DistributedWriter
 from ding.utils.sparse_logging import log_every_sec
+
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
@@ -19,6 +22,10 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         - cfg (:obj:`EasyDict`): Config.
         - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
     """
+    writer = DistributedWriter.get_instance()
+    last_push_time = None
+    total_push_time = 0
+    total_pushed_traj = 0
 
     def _push(ctx: "OnlineRLContext"):
         """
@@ -28,6 +35,11 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             - trajectories (:obj:`List[Dict]`): Trajectories.
             - episodes (:obj:`List[Dict]`): Episodes.
         """
+        nonlocal last_push_time
+        nonlocal total_push_time
+        nonlocal total_pushed_traj
+        if last_push_time == None:
+            last_push_time = time.time()
 
         if ctx.trajectories is not None:  # each data in buffer is a transition
             if group_by_env:
@@ -36,6 +48,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             else:
                 for t in ctx.trajectories:
                     buffer_.push(t)
+            total_pushed_traj += len(ctx.trajectories)
             ctx.trajectories = None
         elif ctx.episodes is not None:  # each data in buffer is a episode
             for t in ctx.episodes:
@@ -43,6 +56,13 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             ctx.episodes = None
         else:
             raise RuntimeError("Either ctx.trajectories or ctx.episodes should be not None.")
+        finish_push_time = time.time()
+        total_push_time += finish_push_time - last_push_time
+        if total_pushed_traj == 0:
+            total_push_time = 0
+        else:
+            logging.info("[Learner {}] pushing speed is {} traj/s".format(task.router.node_id, total_pushed_traj/total_push_time))
+            writer.add_scalar("pushing_speed_traj/s-traj", total_pushed_traj/total_push_time, total_pushed_traj)
 
     return _push
 

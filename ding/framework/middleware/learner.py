@@ -6,6 +6,7 @@ from ding.framework import task
 from ding.data import Buffer
 from .functional import trainer, offpolicy_data_fetcher, reward_estimator, her_data_enhancer
 from ditk import logging
+from ding.utils import DistributedWriter
 
 if TYPE_CHECKING:
     from ding.framework import Context, OnlineRLContext
@@ -44,6 +45,10 @@ class OffPolicyLearner:
             self._reward_estimator = task.wrap(reward_estimator(cfg, reward_model))
         else:
             self._reward_estimator = None
+        
+        self.last_train_iter = 0
+
+        self._writer = DistributedWriter.get_instance()
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
         """
@@ -70,8 +75,11 @@ class OffPolicyLearner:
         
         if ctx.train_iter == 0:
             self.total_iter_time = 0
-        else:
+        elif ctx.train_iter > self.last_train_iter:
+            self.last_train_iter = ctx.train_iter
             logging.info("[Learner {}] training speed is {} iter/s".format(task.router.node_id, ctx.train_iter/self.total_iter_time))
+            self._writer.add_scalar("training_speed_iter/s-train_iter", ctx.train_iter/self.total_iter_time, ctx.train_iter)
+
 
 
 class HERLearner:

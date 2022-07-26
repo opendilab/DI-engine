@@ -197,7 +197,7 @@ class BaseLeague:
         }
         self.payoff.update(job_info)
 
-        logging.info("show the current payoff {}".format(self.payoff))
+        logging.info("show the current payoff {}".format(self.payoff._data))
         # Update player rating
         home_id, away_id = job_info['player_id']
         home_player, away_player = self.get_player_by_id(home_id), self.get_player_by_id(away_id)

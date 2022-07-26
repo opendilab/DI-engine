@@ -12,6 +12,7 @@ from ding.framework.middleware import BattleStepCollector
 from ding.framework.middleware.functional import ActorData, ActorDataMeta, PlayerModelInfo
 from ding.league.player import PlayerMeta
 from ding.utils.sparse_logging import log_every_sec
+from ding.utils import DistributedWriter
 
 if TYPE_CHECKING:
     from ding.league.v2.base_league import Job
@@ -46,6 +47,8 @@ class StepLeagueActor:
         self.agent_num = 2
 
         self.collect_time = {}
+
+        self._writer = DistributedWriter.get_instance()
 
         # self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
 
@@ -213,6 +216,7 @@ class StepLeagueActor:
                     self.traj_num / self.total_time,
                 )
             )
+            self._writer.add_scalar("traj_num/s-traj_num", self.traj_num / self.total_time, self.traj_num)
 
             self.collect_time[job.launch_player] += time_end - time_begin
             total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[
@@ -241,6 +245,17 @@ class StepLeagueActor:
             '[Actor {}] finish {} episodes till now, speed is {} episode/s'.format(
                 task.router.node_id, self.total_episode_num, self.total_episode_num / self.total_time
             )
+        )
+        self._writer.add_scalar(
+            "total_episode_num/s-total_episode_num", self.total_episode_num / self.total_time, self.total_episode_num
+        )
+        logging.info(
+            '[Actor {}] sent {} trajectories till now, the episode trajectory speed is {} traj/episode'.format(
+                task.router.node_id, self.traj_num, self.traj_num / self.total_episode_num
+            )
+        )
+        self._writer.add_scalar(
+            "total_traj_num/total_episode_num-total_episode_num", self.traj_num / self.total_episode_num, self.total_episode_num
         )
 
 
