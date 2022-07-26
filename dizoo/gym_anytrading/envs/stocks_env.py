@@ -58,10 +58,10 @@ class StocksEnv(TradingEnv):
         ratio = current_price/last_trade_price
         cost = np.log((1 - self.trade_fee_ask_percent)*(1 - self.trade_fee_bid_percent))
 
-        if (action == Actions.BUY.value and self._position == Positions.SHORT):
+        if action == Actions.BUY.value and self._position == Positions.SHORT:
             step_reward = np.log(2-ratio) + cost
         
-        if (action == Actions.SELL.value and self._position == Positions.LONG):
+        if action == Actions.SELL.value and self._position == Positions.LONG:
             step_reward = np.log(ratio) + cost
 
         if action == Actions.DOUBLE_SELL.value and self._position == Positions.LONG:
