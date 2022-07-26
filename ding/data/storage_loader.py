@@ -28,12 +28,14 @@ class StorageWorker:
 
 
 class StorageLoader(Supervisor, ABC):
-    """
-    Overview:
-        Load data storage in shadow processes.
-    """
 
     def __init__(self, worker_num: int = 3) -> None:
+        """
+        Overview:
+            Save and send data synchronously and load them asynchronously.
+        Arguments:
+            - worker_num (:obj:`int`): Subprocess worker number.
+        """
         super().__init__(type_=ChildType.PROCESS)
         self._load_lock = Lock()  # Load (first meet) should be called one by one.
         self._callback_map: Dict[str, Callable] = {}
@@ -60,9 +62,27 @@ class StorageLoader(Supervisor, ABC):
 
     @abstractmethod
     def save(self, obj: Union[Dict, List]) -> Storage:
+        """
+        Overview:
+            Save data with a storage object synchronously.
+        Arguments:
+            - obj (:obj:`Union[Dict, List]`): The data (traj or episodes), can be numpy, tensor or treetensor.
+        Returns:
+            - storage (:obj:`Storage`): The storage object.
+        """
         raise NotImplementedError
 
     def load(self, storage: Storage, callback: Callable):
+        """
+        Overview:
+            Load data from a storage object asynchronously. \
+            This function will analysis the data structure when first meet a new data, \
+            then alloc a shared memory buffer for each subprocess, these shared memory buffer \
+            will be responsible for asynchronously loading data into memory.
+        Arguments:
+            - storage (:obj:`Storage`): The storage object.
+            - callback (:obj:`Callable`): Callback function after data loaded.
+        """
         with self._load_lock:
             if not self._running:
                 self._first_meet(storage, callback)
@@ -78,6 +98,9 @@ class StorageLoader(Supervisor, ABC):
         Overview:
             When first meet an object type, we'll load this object directly and analysis the structure,
             to allocate the shared memory object and create subprocess workers.
+        Arguments:
+            - storage (:obj:`Storage`): The storage object.
+            - callback (:obj:`Callable`): Callback function after data loaded.
         """
         obj = storage.load()
         # Create three workers for each usage type.
@@ -105,6 +128,10 @@ class StorageLoader(Supervisor, ABC):
         """
         Overview:
             Create shared object (buf and callback) by walk through the data structure.
+        Arguments:
+            - obj (:obj:`Union[Dict, List]`): The data (traj or episodes), can be numpy, tensor or treetensor.
+        Returns:
+            - shm_buf (:obj:`Optional[ShmObject]`): The shared memory buffer.
         """
         max_level = 2
 
@@ -147,6 +174,9 @@ class StorageLoader(Supervisor, ABC):
         """
         Overview:
             Called in subprocess, put payload.data into buf.
+        Arguments:
+            - payload (:obj:`RecvPayload`): The recv payload with meta info of the data.
+            - shm_obj (:obj:`ShmObject`): The shm buffer.
         """
         assert isinstance(payload.data, type(
             shm_obj.buf
@@ -194,6 +224,9 @@ class StorageLoader(Supervisor, ABC):
         """
         Overview:
             Called in main process, put buf back into payload.data.
+        Arguments:
+            - payload (:obj:`RecvPayload`): The recv payload with meta info of the data.
+            - shm_obj (:obj:`ShmObject`): The shm buffer.
         """
         assert isinstance(payload.data, type(
             shm_obj.buf

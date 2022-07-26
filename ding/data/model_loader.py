@@ -28,6 +28,12 @@ class ModelWorker():
 class ModelLoader(Supervisor, ABC):
 
     def __init__(self, model: torch.nn.Module) -> None:
+        """
+        Overview:
+            Save and send models asynchronously and load them synchronously.
+        Arguments:
+            - model (:obj:`torch.nn.Module`): Torch module.
+        """
         if next(model.parameters()).is_cuda:
             super().__init__(type_=ChildType.PROCESS, mp_ctx=mp.get_context("spawn"))
         else:
@@ -63,6 +69,14 @@ class ModelLoader(Supervisor, ABC):
                     callback(payload.data)
 
     def load(self, storage: Storage) -> object:
+        """
+        Overview:
+            Load model synchronously.
+        Arguments:
+            - storage (:obj:`Stroage`): The model should be wrapped in a storage object, e.g. FileModelStorage.
+        Returns:
+            - object (:obj:): The loaded model.
+        """
         return storage.load()
 
     @abstractmethod
@@ -70,6 +84,10 @@ class ModelLoader(Supervisor, ABC):
         """
         Overview:
             Save model asynchronously.
+        Arguments:
+            - callback (:obj:`Callable`): The callback function after saving model.
+        Returns:
+            - storage (:obj:`Storage`): The storage object is created synchronously, so it can be returned.
         """
         raise NotImplementedError
 
@@ -77,6 +95,17 @@ class ModelLoader(Supervisor, ABC):
 class FileModelLoader(ModelLoader):
 
     def __init__(self, model: torch.nn.Module, dirname: str, ttl: int = 20) -> None:
+        """
+        Overview:
+            Model loader using files as storage media.
+        Arguments:
+            - model (:obj:`torch.nn.Module`): Torch module.
+            - dirname (:obj:`str`): The directory for saving files.
+            - ttl (:obj:`int`): Files will be automatically cleaned after ttl. Note that \
+                files that do not time out when the process is stopped are not cleaned up \
+                (to avoid errors when other processes read the file), so you may need to \
+                clean up the remaining files manually
+        """
         super().__init__(model)
         self._dirname = dirname
         self._ttl = ttl
