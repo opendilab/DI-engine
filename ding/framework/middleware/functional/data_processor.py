@@ -26,6 +26,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
     last_push_time = None
     total_push_time = 0
     total_pushed_traj = 0
+    last_pushed_traj = 0
 
     def _push(ctx: "OnlineRLContext"):
         """
@@ -38,6 +39,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         nonlocal last_push_time
         nonlocal total_push_time
         nonlocal total_pushed_traj
+        nonlocal last_pushed_traj
         if last_push_time == None:
             last_push_time = time.time()
 
@@ -60,7 +62,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         total_push_time += finish_push_time - last_push_time
         if total_pushed_traj == 0:
             total_push_time = 0
-        else:
+        elif total_pushed_traj > last_pushed_traj:
             logging.info("[Learner {}] pushing speed is {} traj/s".format(task.router.node_id, total_pushed_traj/total_push_time))
             writer.add_scalar("pushing_speed_traj/s-traj", total_pushed_traj/total_push_time, total_pushed_traj)
 
