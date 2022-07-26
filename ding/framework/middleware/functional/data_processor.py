@@ -65,6 +65,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         if total_pushed_traj == 0:
             total_push_time = 0
         elif total_pushed_traj > last_pushed_traj:
+            last_pushed_traj = total_pushed_traj
             logging.info("[Learner {}] pushing speed is {} traj/s".format(task.router.node_id, total_pushed_traj/total_push_time))
             writer.add_scalar("pushing_speed_traj/s-traj", total_pushed_traj/total_push_time, total_pushed_traj)
 
