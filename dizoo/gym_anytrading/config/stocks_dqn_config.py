@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_for_anytrading
 
 stocks_dqn_config = dict(
-    exp_name='stocks_test_v9',
+    exp_name='stocks_test_v13',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -11,10 +11,12 @@ stocks_dqn_config = dict(
         env_id='stocks-v0',
         n_evaluator_episode=8,
         stop_value=2,
-        # one year
+        # one trading year.
         eps_length = 253,
-        # associated with the feature length
+        # associated with the feature length.
         window_size = 20,
+        # the path to save result image.
+        save_path = './fig/'
     ),
     policy=dict(
         # Whether to use cuda for network.
@@ -67,7 +69,7 @@ main_config = stocks_dqn_config
 stocks_dqn_create_config = dict(
     env=dict(
         type='stocks-v0',
-        import_names=['dizoo.trading_test.envs.stocks_env'],
+        import_names=['dizoo.gym_anytrading.envs.stocks_env'],
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
@@ -79,4 +81,4 @@ create_config = stocks_dqn_create_config
 
 
 if __name__ == "__main__":
-    serial_pipeline_for_anytrading([main_config, create_config], seed=0, max_env_step = int(1e7))
+    serial_pipeline_for_anytrading([main_config, create_config], seed=0, max_env_step = int(1e4))

@@ -9,6 +9,7 @@ from tensorboardX import SummaryWriter
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
+from dizoo.gym_anytrading.worker import TradingSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
@@ -76,7 +77,7 @@ def serial_pipeline_for_anytrading(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = InteractionSerialEvaluator(
+    evaluator = TradingSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)

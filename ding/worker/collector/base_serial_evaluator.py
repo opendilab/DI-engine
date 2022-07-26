@@ -99,10 +99,6 @@ class VectorEvalMonitor(object):
         self._reward = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
         self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
 
-        ######## only used by anytrading
-        self._max_possible_profit = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
-        ########
-
     def is_finished(self) -> bool:
         """
         Overview:
@@ -134,25 +130,6 @@ class VectorEvalMonitor(object):
         if isinstance(reward, torch.Tensor):
             reward = reward.item()
         self._reward[env_id].append(reward)
-
-    ################# only used by anytrading
-
-    def update_max_profit(self, env_id: int, max_profit: Any) -> None:
-        """
-        Overview:
-            Update the max profit indicated by env_id.
-        Arguments:
-            - env_id: (:obj:`int`): the id of the environment we need to update the max profit
-            - max_profit: (:obj:`Any`): the profit we need to update
-        """
-        if isinstance(max_profit, torch.Tensor):
-            max_profit = max_profit.item()
-        self._max_possible_profit[env_id].append(max_profit)
-
-    def get_max_episode_profit(self) -> list:
-        return sum([list(v) for v in self._max_possible_profit.values()], [])
-
-    ###########
 
     def update_video(self, imgs):
         for env_id, img in imgs.items():
