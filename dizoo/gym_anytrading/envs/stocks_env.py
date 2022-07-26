@@ -1,5 +1,5 @@
 import numpy as np
-from .trading_env import TradingEnv, Actions, Positions
+from dizoo.gym_anytrading.envs.trading_env import TradingEnv, Actions, Positions
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
 
@@ -58,16 +58,16 @@ class StocksEnv(TradingEnv):
         ratio = current_price/last_trade_price
         cost = np.log((1 - self.trade_fee_ask_percent)*(1 - self.trade_fee_bid_percent))
 
-        if (action == Actions.Buy.value and self._position == Positions.Short):
+        if (action == Actions.BUY.value and self._position == Positions.SHORT):
             step_reward = np.log(2-ratio) + cost
         
-        if (action == Actions.Sell.value and self._position == Positions.Long):
+        if (action == Actions.SELL.value and self._position == Positions.LONG):
             step_reward = np.log(ratio) + cost
 
-        if action == Actions.Double_Sell.value and self._position == Positions.Long:
+        if action == Actions.DOUBLE_SELL.value and self._position == Positions.LONG:
             step_reward = np.log(ratio) + cost
 
-        if action == Actions.Double_Buy.value and self._position == Positions.Short:
+        if action == Actions.DOUBLE_BUY.value and self._position == Positions.SHORT:
             step_reward = np.log(2-ratio) + cost
 
         
@@ -104,7 +104,7 @@ class StocksEnv(TradingEnv):
                 profit = max(profit, tmp_profit)
             last_trade_tick = current_tick - 1
 
-        return np.log(profit)
+        return profit
 
     def __repr__(self) -> str:
         return "DI-engine Stocks Trading Env"

@@ -20,17 +20,17 @@ def load_dataset(name, index_name):
     return df
 
 class Actions(Enum):
-    Double_Sell = 0
-    Sell = 1
-    Hold = 2
-    Buy = 3
-    Double_Buy = 4
+    DOUBLE_SELL = 0
+    SELL = 1
+    HOLD = 2
+    BUY = 3
+    DOUBLE_BUY = 4
 
 
 class Positions(Enum):
-    Short = -1.
-    Flat = 0.
-    Long = 1.
+    SHORT = -1.
+    FLAT = 0.
+    LONG = 1.
 
 def transform(position,  action):
     '''
@@ -44,27 +44,27 @@ def transform(position,  action):
     Returns:
         - next_position(Positions) : the position after transformation.
     '''
-    if action == Actions.Sell.value:
+    if action == Actions.SELL.value:
         
-        if position == Positions.Long:
-            return Positions.Flat, False
+        if position == Positions.LONG:
+            return Positions.FLAT, False
             
-        if position == Positions.Flat:
-            return Positions.Short, True
+        if position == Positions.FLAT:
+            return Positions.SHORT, True
 
-    if action == Actions.Buy.value:
+    if action == Actions.BUY.value:
 
-        if position == Positions.Short:
-            return Positions.Flat, False
+        if position == Positions.SHORT:
+            return Positions.FLAT, False
 
-        if position == Positions.Flat:
-            return Positions.Long, True
+        if position == Positions.FLAT:
+            return Positions.LONG, True
     
-    if action == Actions.Double_Sell.value and (position == Positions.Long or position == Positions.Flat):
-        return Positions.Short, True
+    if action == Actions.DOUBLE_SELL.value and (position == Positions.LONG or position == Positions.FLAT):
+        return Positions.SHORT, True
 
-    if action == Actions.Double_Buy.value and (position == Positions.Short or position == Positions.Flat):
-        return Positions.Long, True
+    if action == Actions.DOUBLE_BUY.value and (position == Positions.SHORT or position == Positions.FLAT):
+        return Positions.LONG, True
 
     return position, False
 
@@ -90,7 +90,8 @@ class TradingEnv(BaseEnv):
 
         STOCKS_GOOGL = load_dataset('STOCKS_GOOGL', 'Date')
         self.raw_prices = deepcopy(STOCKS_GOOGL).loc[:, 'Close'].to_numpy()
-        self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x-x.mean())/ x.std(), axis=0) # normalize
+        EPS = 1e-10
+        self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x-x.mean())/ (x.std() + EPS), axis=0) # normalize
         
 
         self.window_size = cfg.window_size
@@ -132,7 +133,7 @@ class TradingEnv(BaseEnv):
         self._done = False
         self._current_tick = self._start_tick
         self._last_trade_tick = self._current_tick - 1
-        self._position = Positions.Flat
+        self._position = Positions.FLAT
         self._position_history = [self._position]
         self._profit_history = [1.]
         self._total_reward = 0.
@@ -170,7 +171,7 @@ class TradingEnv(BaseEnv):
         if self._done:
             if self._env_id[-1]=='e' and  self.cnt % self.plot_freq == 0:
                 self.render()
-            info['max_possible_profit'] = self.max_possible_profit()
+            info['max_possible_profit'] = np.log(self.max_possible_profit())
             info['final_eval_reward'] = self._total_reward
 
 
@@ -203,9 +204,9 @@ class TradingEnv(BaseEnv):
         long_ticks = []
         flat_ticks = []
         for i, tick in enumerate(window_ticks):
-            if self._position_history[i] == Positions.Short:
+            if self._position_history[i] == Positions.SHORT:
                 short_ticks.append(tick)
-            elif self._position_history[i] == Positions.Long:
+            elif self._position_history[i] == Positions.LONG:
                 long_ticks.append(tick)
             else:
                 flat_ticks.append(tick)
@@ -227,9 +228,6 @@ class TradingEnv(BaseEnv):
     def _calculate_reward(self, action):
         raise NotImplementedError
 
-
-    def _update_profit(self, action):
-        raise NotImplementedError
 
 
     def max_possible_profit(self):  # trade fees are ignored
