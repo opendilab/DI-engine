@@ -60,6 +60,8 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             raise RuntimeError("Either ctx.trajectories or ctx.episodes should be not None.")
         finish_push_time = time.time()
         total_push_time += finish_push_time - last_push_time
+        last_push_time = finish_push_time
+
         if total_pushed_traj == 0:
             total_push_time = 0
         elif total_pushed_traj > last_pushed_traj:
