@@ -23,11 +23,15 @@ from importlib import import_module
 here = os.path.abspath(os.path.dirname(__file__))
 meta_module = import_module('ding')
 meta = meta_module.__dict__
+with open('README.md', 'r', 'utf-8') as f:
+    readme = f.read()
 
 setup(
     name=meta['__TITLE__'],
     version=meta['__VERSION__'],
     description=meta['__DESCRIPTION__'],
+    long_description=readme,
+    long_description_content_type='text/markdown',
     author=meta['__AUTHOR__'],
     author_email=meta['__AUTHOR_EMAIL__'],
     url='https://github.com/opendilab/DI-engine',
