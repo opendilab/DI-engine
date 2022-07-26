@@ -76,7 +76,7 @@ class ModelLoader(Supervisor, ABC):
 
 class FileModelLoader(ModelLoader):
 
-    def __init__(self, model: torch.nn.Module, dirname: str, ttl: int = 60) -> None:
+    def __init__(self, model: torch.nn.Module, dirname: str, ttl: int = 20) -> None:
         super().__init__(model)
         self._dirname = dirname
         self._ttl = ttl

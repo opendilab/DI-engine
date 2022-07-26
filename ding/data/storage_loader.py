@@ -223,7 +223,7 @@ class StorageLoader(Supervisor, ABC):
 
 class FileStorageLoader(StorageLoader):
 
-    def __init__(self, dirname: str, ttl: int = 60, worker_num: int = 3) -> None:
+    def __init__(self, dirname: str, ttl: int = 20, worker_num: int = 3) -> None:
         """
         Overview:
             Dump and load object with file storage.
