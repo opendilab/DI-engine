@@ -7,17 +7,17 @@ from tensorboardX import SummaryWriter
 import numpy as np
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, BaseSerialCommander, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_muzero import BaseSerialEvaluatorMuZero as BaseSerialEvaluator
+from ding.worker.collector.base_serial_evaluator_muzero import MuZeroEvaluator as BaseSerialEvaluator
 
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.data.buffer.game_buffer import GameBuffer
-import line_profiler
-profile = line_profiler.LineProfiler()
+# import line_profiler
+# profile = line_profiler.LineProfiler()
 
 
-@profile
+# @profile
 def serial_pipeline_muzero(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -61,6 +61,10 @@ def serial_pipeline_muzero(
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
+
+    # load pretrained model
+    if cfg.policy.model_path is not None:
+        policy.learn_mode.load_state_dict(torch.load(cfg.policy.model_path, map_location='cpu'))
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -106,6 +110,21 @@ def serial_pipeline_muzero(
                 for _ in range(game_config.collector_env_num)
             ]
         )
+
+        # TODO(pu): eval trained model
+        # returns = []
+        # test_episodes = 1
+        # for i in range(test_episodes):
+        #     stop, reward = evaluator.eval(
+        #         learner.save_checkpoint, learner.train_iter, collector.envstep, config=game_config
+        #     )
+        #     returns.append(reward)
+        # print(returns)
+        # returns = np.array(returns)
+        # print(f'win rate: {len(np.where(returns == 1.)[0])/ test_episodes}, draw rate: {len(np.where(returns == 0.)[0])/test_episodes},
+        # lose rate: {len(np.where(returns == -1.)[0])/ test_episodes}')
+        # break
+
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(
@@ -138,11 +157,19 @@ def serial_pipeline_muzero(
                 break
 
             learner.train(train_data, collector.envstep)
+
+            # if game_config.lr_manually:
+            #     # learning rate decay manually like EfficientZero paper
+            #     if learner.train_iter > 1e5 and learner.train_iter <= 2e5:
+            #         policy._optimizer.lr = 0.02
+            #     elif learner.train_iter > 2e5:
+            #         policy._optimizer.lr = 0.002
             if game_config.lr_manually:
-                # learning rate decay manually like EfficientZero paper
-                if learner.train_iter > 1e5 and learner.train_iter <= 2e5:
+                if learner.train_iter < 0.5 * game_config.max_training_steps:
+                    policy._optimizer.lr = 0.2
+                elif learner.train_iter < 0.75 * game_config.max_training_steps:
                     policy._optimizer.lr = 0.02
-                elif learner.train_iter > 2e5:
+                else:
                     policy._optimizer.lr = 0.002
 
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:

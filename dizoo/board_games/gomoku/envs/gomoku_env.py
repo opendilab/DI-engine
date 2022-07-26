@@ -65,7 +65,7 @@ class GomokuEnv(BaseGameEnv):
 
             # player 1's turn
             timestep_player1 = self._player_step(action)
-            # self.env.render()
+            print('player 1 (muzero player): ' + self.action_to_string(action))  # TODO(pu): visualize
             if timestep_player1.done:
                 # in one_player_mode, we set to_play as None, because we don't consider the alternation between players
                 timestep_player1.obs['to_play'] = None
@@ -73,8 +73,9 @@ class GomokuEnv(BaseGameEnv):
 
             # player 2's turn
             expert_action = self.expert_action()
-            # print('player 2 (computer player): ' + self.action_to_string(expert_action))
+            print('player 2 (computer random player): ' + self.action_to_string(expert_action))  # TODO(pu): visualize
             timestep_player2 = self._player_step(expert_action)
+            self.render()  # TODO(pu): visualize
             # the final_eval_reward is calculated from Player 1's perspective
             timestep_player2.info['final_eval_reward'] = - timestep_player2.reward
             timestep_player2 = timestep_player2._replace(reward=-timestep_player2.reward)
@@ -294,6 +295,7 @@ class GomokuEnv(BaseGameEnv):
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
         evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
+        cfg.battle_mode = 'one_player_mode'
         return [cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self) -> str:

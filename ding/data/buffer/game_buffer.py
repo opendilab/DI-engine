@@ -17,8 +17,8 @@ import ding.rl_utils.mcts.ptree as tree
 from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTS_ptree
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 from ding.torch_utils.data_helper import to_ndarray
-import line_profiler
-profile = line_profiler.LineProfiler()
+# import line_profiler
+# profile = line_profiler.LineProfiler()
 
 
 @dataclass
@@ -365,6 +365,7 @@ class GameBuffer(Buffer):
         context = (game_lst, game_history_pos_lst, indices_lst, weights_lst, make_time)
         return context
 
+    # @profile
     def make_batch(self, batch_context, ratio):
         """
         Overview:
@@ -581,7 +582,7 @@ class GameBuffer(Buffer):
         ]
         return policy_re_context
 
-    @profile
+    # @profile
     def prepare_reward_value(self, reward_value_context, model):
         """
         Overview:
@@ -779,7 +780,7 @@ class GameBuffer(Buffer):
         batch_values = np.asarray(batch_values)
         return batch_value_prefixs, batch_values
 
-    @profile
+    # @profile
     def prepare_policy_reanalyzed(self, policy_re_context, model):
         """
         prepare policy targets from the reanalyzed context of policies
@@ -979,7 +980,7 @@ class GameBuffer(Buffer):
 
         return batch_policies_re
 
-    @profile
+    # @profile
     def prepare_policy_non_reanalyzed(self, policy_non_re_context):
         """
         Overview:
@@ -1070,7 +1071,7 @@ class GameBuffer(Buffer):
         batch_policies_non_re = np.asarray(batch_policies_non_re)
         return batch_policies_non_re
 
-    @profile
+    # @profile
     def sample_train_data(self, batch_size, policy):
         """
         Overview:

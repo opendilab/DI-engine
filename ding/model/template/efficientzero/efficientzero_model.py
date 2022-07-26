@@ -8,7 +8,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 from ding.utils import MODEL_REGISTRY
-from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize, mlp
+from ding.model.template.efficientzero.efficientzero_base_model import BaseNet, renormalize
 from ding.torch_utils.network.nn_module import MLP
 from ding.torch_utils.network.res_block import ResBlock
 
@@ -27,7 +27,7 @@ class ResidualBlock(nn.Module):
         self.conv2 = conv3x3(out_channels, out_channels)
         self.bn2 = nn.BatchNorm2d(out_channels, momentum=momentum)
         self.downsample = downsample
-        self.activation = nn.ReLU()
+        self.activation = nn.ReLU(inplace=True)
 
     def forward(self, x):
         identity = x
@@ -84,7 +84,7 @@ class DownSample(nn.Module):
             [ResidualBlock(out_channels, out_channels, momentum=momentum) for _ in range(1)]
         )
         self.pooling2 = nn.AvgPool2d(kernel_size=3, stride=2, padding=1)
-        self.activation = nn.ReLU()
+        self.activation = nn.ReLU(inplace=True)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -104,41 +104,23 @@ class DownSample(nn.Module):
 
 
 # Encode the observations into hidden states
-class RepresentationNetworkIndIdentity(nn.Module):
-
-    def __init__(self, ):
-        """
-        Representation network
-        equivalence transformation
-        """
-        super().__init__()
-
-    def forward(self, x):
-        return x.float()  # TODO(pu)
-
-
-# Encode the observations into hidden states
 class RepresentationNetwork(nn.Module):
 
     def __init__(
-        self,
-        observation_shape,
-        num_blocks,
-        num_channels,
-        downsample,
-        momentum=0.1,
+            self,
+            observation_shape,
+            num_blocks,
+            num_channels,
+            downsample,
+            momentum=0.1,
     ):
-        """Representation network
-        Parameters
-        ----------
-        observation_shape: tuple or list
-            shape of observations: [C, W, H]
-        num_blocks: int
-            number of res blocks
-        num_channels: int
-            channels of hidden states
-        downsample: bool
-            True -> do downsampling for observations. (For board games, do not need)
+        """
+        Overview: Representation network
+        Arguments:
+            - observation_shape (:obj:`Union[List, tuple]`):  shape of observations: [C, W, H]
+            - num_blocks (:obj:`int`): number of res blocks
+            - num_channels (:obj:`int`): channels of hidden states
+            - downsample (:obj:`bool`): True -> do downsampling for observations. (For board games, do not need)
         """
         super().__init__()
         self.downsample = downsample
@@ -155,7 +137,7 @@ class RepresentationNetwork(nn.Module):
         self.resblocks = nn.ModuleList(
             [ResidualBlock(num_channels, num_channels, momentum=momentum) for _ in range(num_blocks)]
         )
-        self.activation = nn.ReLU()
+        self.activation = nn.ReLU(inplace=True)
 
     def forward(self, x):
         if self.downsample:
@@ -174,16 +156,16 @@ class RepresentationNetwork(nn.Module):
 class DynamicsNetwork(nn.Module):
 
     def __init__(
-        self,
-        num_blocks,
-        num_channels,
-        reduced_channels_reward,
-        fc_reward_layers,
-        full_support_size,
-        block_output_size_reward,
-        lstm_hidden_size=64,
-        momentum=0.1,
-        init_zero=False,
+            self,
+            num_blocks,
+            num_channels,
+            reduced_channels_reward,
+            fc_reward_layers,
+            full_support_size,
+            block_output_size_reward,
+            lstm_hidden_size=64,
+            momentum=0.1,
+            last_linear_layer_init_zero=False,
     ):
         """
         Overview:
@@ -195,7 +177,7 @@ class DynamicsNetwork(nn.Module):
             - full_support_size (:obj:int): dim of reward output
             - block_output_size_reward (:obj:int): dim of flatten hidden states
             - lstm_hidden_size (:obj:int): dim of lstm hidden
-            - init_zero (:obj:bool): if True -> zero initialization for the last layer of reward mlp
+            - last_linear_layer_init_zero (:obj:bool): if True -> zero initialization for the last layer of reward mlp
         """
         super().__init__()
         self.num_channels = num_channels
@@ -216,12 +198,12 @@ class DynamicsNetwork(nn.Module):
         self.block_output_size_reward = block_output_size_reward
         self.lstm = nn.LSTM(input_size=self.block_output_size_reward, hidden_size=self.lstm_hidden_size)
         self.bn_value_prefix = nn.BatchNorm1d(self.lstm_hidden_size, momentum=momentum)
-        self.fc = mlp(
-            self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum
-        )
         # TODO(pu)
-        # self.fc = MLP(self.lstm_hidden_size, fc_reward_layers[0], full_support_size, len(fc_reward_layers))
-        self.activation = nn.ReLU()
+        self.fc = MLP(in_channels=self.lstm_hidden_size, hidden_channels=fc_reward_layers[0],
+                      out_channels=full_support_size, layer_num=len(fc_reward_layers) + 1, activation=nn.ReLU(inplace=True),
+                      norm_type='BN',
+                      output_activation=nn.Identity(), output_norm_type=None, last_linear_layer_init_zero=last_linear_layer_init_zero)
+        self.activation = nn.ReLU(inplace=True)
 
     def forward(self, x, reward_hidden_state):
         state = x[:, :-1, :, :]
@@ -273,19 +255,19 @@ class DynamicsNetwork(nn.Module):
 class PredictionNetwork(nn.Module):
 
     def __init__(
-        self,
-        action_space_size,
-        num_blocks,
-        num_channels,
-        reduced_channels_value,
-        reduced_channels_policy,
-        fc_value_layers,
-        fc_policy_layers,
-        full_support_size,
-        block_output_size_value,
-        block_output_size_policy,
-        momentum=0.1,
-        init_zero=False,
+            self,
+            action_space_size,
+            num_blocks,
+            num_channels,
+            reduced_channels_value,
+            reduced_channels_policy,
+            fc_value_layers,
+            fc_policy_layers,
+            full_support_size,
+            block_output_size_value,
+            block_output_size_policy,
+            momentum=0.1,
+            last_linear_layer_init_zero=False,
     ):
         """Prediction network
         Parameters
@@ -310,7 +292,7 @@ class PredictionNetwork(nn.Module):
             dim of flatten hidden states
         block_output_size_policy: int
             dim of flatten hidden states
-        init_zero: bool
+        last_linear_layer_init_zero: bool
             True -> zero initialization for the last layer of value/policy mlp
         """
         super().__init__()
@@ -324,18 +306,17 @@ class PredictionNetwork(nn.Module):
         self.bn_policy = nn.BatchNorm2d(reduced_channels_policy, momentum=momentum)
         self.block_output_size_value = block_output_size_value
         self.block_output_size_policy = block_output_size_policy
-        self.fc_value = mlp(
-            self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum
-        )
-        self.fc_policy = mlp(
-            self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum
-        )
         # TODO(pu)
-        # self.fc_value = MLP(self.block_output_size_value, fc_value_layers[0], full_support_size, len(fc_value_layers),
-        #                     activation=nn.ReLU(), init_zero=True)
-        # self.fc_policy = MLP(self.block_output_size_policy, fc_policy_layers[0], action_space_size,
-        #                      len(fc_policy_layers), activation=nn.ReLU(), init_zero=True)
-        self.activation = nn.ReLU()
+        self.fc_value = MLP(in_channels=self.block_output_size_value, hidden_channels=fc_value_layers[0],
+                      out_channels=full_support_size, layer_num=len(fc_value_layers) + 1, activation=nn.ReLU(inplace=True),
+                      norm_type='BN',
+                      output_activation=nn.Identity(), output_norm_type=None, last_linear_layer_init_zero=last_linear_layer_init_zero)
+        self.fc_policy = MLP(in_channels=self.block_output_size_policy, hidden_channels=fc_policy_layers[0],
+                      out_channels=action_space_size, layer_num=len(fc_policy_layers) + 1, activation=nn.ReLU(inplace=True),
+                      norm_type='BN',
+                      output_activation=nn.Identity(), output_norm_type=None, last_linear_layer_init_zero=last_linear_layer_init_zero)
+
+        self.activation = nn.ReLU(inplace=True)
 
     def forward(self, x):
         for block in self.resblocks:
@@ -359,30 +340,30 @@ class PredictionNetwork(nn.Module):
 class EfficientZeroNet(BaseNet):
 
     def __init__(
-        self,
-        env_type,
-        representation_model_type,
-        observation_shape,
-        action_space_size,
-        num_blocks,
-        num_channels,
-        reduced_channels_reward,
-        reduced_channels_value,
-        reduced_channels_policy,
-        fc_reward_layers,
-        fc_value_layers,
-        fc_policy_layers,
-        reward_support_size,
-        value_support_size,
-        downsample,
-        lstm_hidden_size=512,
-        bn_mt=0.1,
-        proj_hid=256,
-        proj_out=256,
-        pred_hid=64,
-        pred_out=256,
-        init_zero=False,
-        state_norm=False
+            self,
+            env_type,
+            representation_model_type,
+            observation_shape,
+            action_space_size,
+            num_blocks,
+            num_channels,
+            reduced_channels_reward,
+            reduced_channels_value,
+            reduced_channels_policy,
+            fc_reward_layers,
+            fc_value_layers,
+            fc_policy_layers,
+            reward_support_size,
+            value_support_size,
+            downsample,
+            lstm_hidden_size=512,
+            bn_mt=0.1,
+            proj_hid=256,
+            proj_out=256,
+            pred_hid=64,
+            pred_out=256,
+            last_linear_layer_init_zero=False,
+            state_norm=False
     ):
         """EfficientZero network
         Parameters
@@ -425,7 +406,7 @@ class EfficientZeroNet(BaseNet):
             dim of projection head (prediction) hidden layer
         pred_out: int
             dim of projection head (prediction) output layer
-        init_zero: bool
+        last_linear_layer_init_zero: bool
             True -> zero initialization for the last layer of value/policy mlp
         state_norm: bool
             True -> normalization for hidden states
@@ -435,7 +416,7 @@ class EfficientZeroNet(BaseNet):
         self.proj_out = proj_out
         self.pred_hid = pred_hid
         self.pred_out = pred_out
-        self.init_zero = init_zero
+        self.last_linear_layer_init_zero = last_linear_layer_init_zero
         self.state_norm = state_norm
         self.representation_model_type = representation_model_type
         self.env_type = env_type
@@ -460,7 +441,7 @@ class EfficientZeroNet(BaseNet):
         )
 
         if self.representation_model_type == 'raw_obs':
-            self.representation_network = RepresentationNetworkIndIdentity()
+            self.representation_network = nn.Identity()
         elif self.representation_model_type == 'conv_res':
             self.representation_network = RepresentationNetwork(
                 observation_shape,
@@ -479,7 +460,7 @@ class EfficientZeroNet(BaseNet):
             block_output_size_reward,
             lstm_hidden_size=lstm_hidden_size,
             momentum=bn_mt,
-            init_zero=self.init_zero,
+            last_linear_layer_init_zero=self.last_linear_layer_init_zero,
         )
 
         self.prediction_network = PredictionNetwork(
@@ -494,7 +475,7 @@ class EfficientZeroNet(BaseNet):
             block_output_size_value,
             block_output_size_policy,
             momentum=bn_mt,
-            init_zero=self.init_zero,
+            last_linear_layer_init_zero=self.last_linear_layer_init_zero,
         )
 
         # projection
@@ -506,14 +487,14 @@ class EfficientZeroNet(BaseNet):
 
         self.porjection_in_dim = in_dim
         self.projection = nn.Sequential(
-            nn.Linear(self.porjection_in_dim, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(),
-            nn.Linear(self.proj_hid, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(),
+            nn.Linear(self.porjection_in_dim, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(inplace=True),
+            nn.Linear(self.proj_hid, self.proj_hid), nn.BatchNorm1d(self.proj_hid), nn.ReLU(inplace=True),
             nn.Linear(self.proj_hid, self.proj_out), nn.BatchNorm1d(self.proj_out)
         )
         self.projection_head = nn.Sequential(
             nn.Linear(self.proj_out, self.pred_hid),
             nn.BatchNorm1d(self.pred_hid),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(self.pred_hid, self.pred_out),
         )
 

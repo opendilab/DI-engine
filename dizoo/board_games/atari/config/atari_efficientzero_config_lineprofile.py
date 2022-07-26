@@ -113,5 +113,5 @@ create_config = atari_efficientzero_create_config
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero
 
-    max_env_step = int(5e3)
+    max_env_step = int(1000)
     serial_pipeline_muzero([main_config, create_config], seed=0, max_env_step=max_env_step, game_config=game_config)

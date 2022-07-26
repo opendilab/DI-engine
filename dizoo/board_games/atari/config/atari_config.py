@@ -4,14 +4,15 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 game_config = EasyDict(dict(
     env_name='PongNoFrameskip-v4',
     model_type='atari',
-    # device='cuda',
-    device='cpu',
+    device='cuda',
+    # device='cpu',
     # if mcts_ctree=True, using cpp mcts code
     mcts_ctree=True,
     # mcts_ctree=False,
     image_based=True,
-    cvt_string=True,
-    # cvt_string=False, # for check data
+    # cvt_string=True,
+    # trade memory for speed
+    cvt_string=False,
     clip_reward=True,
     game_wrapper=True,
     action_space_size=6,
@@ -71,7 +72,7 @@ game_config = EasyDict(dict(
     use_root_value=False,
 
     # TODO(pu): test the effect
-    init_zero=True,
+    last_linear_layer_init_zero=True,
     state_norm=False,
 
     mini_infer_size=2,
@@ -120,7 +121,8 @@ game_config = EasyDict(dict(
     policy_loss_coeff=1,
     consistency_coeff=2,
     # reward sum
-    lstm_hidden_size=512,
+    # lstm_hidden_size=512,  # default config in EZ original repo
+    lstm_hidden_size=256,  # for time efficiency
     lstm_horizon_len=5,
     # siamese
     proj_hid=1024,
@@ -130,7 +132,9 @@ game_config = EasyDict(dict(
 
     bn_mt=0.1,
     blocks=1,  # Number of blocks in the ResNet
-    channels=64,  # Number of channels in the ResNet
+    # channels=64,  # Number of channels in the ResNet, config in EZ original repo
+    channels=32,  # Number of channels in the ResNet, for time efficiency
+
     reduced_channels_reward=16,  # x36 Number of channels in reward head
     reduced_channels_value=16,  # x36 Number of channels in value head
     reduced_channels_policy=16,  # x36 Number of channels in policy head

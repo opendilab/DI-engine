@@ -12,8 +12,8 @@ game_config = EasyDict(dict(
     #  we must specify the one same action mask,
     #  when env_num>1, the action mask for different env may be different.
     mcts_ctree=False,
-    # battle_mode='two_player_mode',
-    battle_mode='one_player_mode',
+    battle_mode='two_player_mode',
+    # battle_mode='one_player_mode',
     game_history_length=18,
     image_based=False,
     cvt_string=False,
@@ -44,7 +44,7 @@ game_config = EasyDict(dict(
     # td_steps=5,
 
     collector_env_num=8,
-    evaluator_env_num=3,
+    evaluator_env_num=1,  # TODO(pu): 3
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=50,

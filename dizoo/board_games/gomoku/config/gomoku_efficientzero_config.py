@@ -6,11 +6,11 @@ from dizoo.board_games.gomoku.config.gomoku_config import game_config
 # evaluator_env_num = 1
 
 collector_env_num = 8
-evaluator_env_num = 3
+evaluator_env_num = 1  # TODO(pu):3
 board_size = 6  # default_size is 15
 
 gomoku_efficientzero_config = dict(
-    exp_name='data_ez_ptree/gomoku_1pl_efficientzero_seed0',
+    exp_name='data_ez_ptree/gomoku_2pl_efficientzero_seed0_debug',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -19,10 +19,13 @@ gomoku_efficientzero_config = dict(
         # 'one_player_mode' when eval, 'two_player_mode' when collect
         # automatically assign in tictactoe env
         board_size=board_size,  # default_size is 15
-        # battle_mode='two_player_mode',
-        battle_mode='one_player_mode',
+        battle_mode='two_player_mode',
+        # battle_mode='one_player_mode',
     ),
     policy=dict(
+        # pretrained model
+        model_path='/Users/puyuan/code/DI-engine/data_ez_ptree/gomoku_2pl_efficientzero_seed0/ckpt/ckpt_best.pth.tar',
+
         env_name='conv_res',
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,

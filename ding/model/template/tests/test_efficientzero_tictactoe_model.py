@@ -2,8 +2,7 @@ import pytest
 from itertools import product
 import torch
 from ding.model.template.efficientzero.efficientzero_model import DynamicsNetwork
-from ding.model.template.efficientzero.efficientzero_model import RepresentationNetworkTictactoe as \
-    RepresentationNetwork
+from ding.model.template.efficientzero.efficientzero_model import RepresentationNetwork
 from ding.torch_utils import is_differentiable
 
 bs_args = [10]
@@ -14,7 +13,7 @@ reduced_channels_reward = [2]
 fc_reward_layers = [[16, 8]]
 full_support_size = [2]
 block_output_size_reward = [180]
-dyn_args = list(
+dynamics_network_args = list(
     product(
         num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size, block_output_size_reward
     )
@@ -33,26 +32,27 @@ class TestEfficientZero:
             loss = sum([v.sum() for v in outputs.values()])
         is_differentiable(loss, model)
 
-    @pytest.mark.parametrize('batch_size', [(10)])
-    def test_RepresentationNetwork(self, batch_size):
+    @pytest.mark.parametrize('batch_size', [10])
+    def test_representation_network(self, batch_size):
         batch = batch_size
         obs = torch.rand(batch, 1, 3, 3)
-        repnet = RepresentationNetwork()
-        state = repnet(obs)
-        assert state.size() == obs.size()
+        representation_network = RepresentationNetwork(observation_shape=[1, 3, 3], num_blocks=1, num_channels=16,
+                                                       downsample=False)
+        state = representation_network(obs)
+        assert state.shape == torch.Size([10, 16, 3, 3])
 
     @pytest.mark.parametrize(
         'num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,'
         'block_output_size_reward',
-        dyn_args
+        dynamics_network_args
     )
-    def test_DynamicsNetwork(
-        self, num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,
-        block_output_size_reward
+    def test_dynamics_network(
+            self, num_blocks, num_channels, reduced_channels_reward, fc_reward_layers, full_support_size,
+            block_output_size_reward
     ):
-        batch = 100  # this is (torch.randn(1, 10, 64), torch.randn(1, 10, 64)) => 100 / 10 = 10
+        batch = 100
         state = torch.rand(batch, 3, 3, 3)
-        dynnet = DynamicsNetwork(
+        dynamics_network = DynamicsNetwork(
             num_blocks=num_blocks,
             num_channels=num_channels,
             reduced_channels_reward=reduced_channels_reward,
@@ -60,6 +60,8 @@ class TestEfficientZero:
             full_support_size=full_support_size,
             block_output_size_reward=block_output_size_reward
         )
-        state_, reward_hidden, value_prefix = dynnet(state, (torch.randn(1, 10, 64), torch.randn(1, 10, 64)))
-        assert state_.size() == torch.Size([100, 2, 3, 3])
-        # assert state_.size() == state.size()
+        state, reward_hidden, value_prefix = dynamics_network(state, (torch.randn(1, 10, 64), torch.randn(1, 10, 64)))
+        assert state.shape == torch.Size([100, 2, 3, 3])
+        assert reward_hidden[0].shape == torch.Size([1, 10, 64])
+        assert reward_hidden[1].shape == torch.Size([1, 10, 64])
+        assert value_prefix.shape == torch.Size([10, 2])

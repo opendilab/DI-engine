@@ -25,8 +25,8 @@ from ding.model.template.efficientzero.efficientzero_base_model import inverse_s
 from dizoo.board_games.atari.config.atari_config import game_config
 # from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_config import game_config
-import line_profiler
-profile = line_profiler.LineProfiler()
+# import line_profiler
+# profile = line_profiler.LineProfiler()
 
 
 @POLICY_REGISTRY.register('efficientzero')
@@ -70,7 +70,7 @@ class EfficientZeroPolicy(Policy):
             proj_out=1024,
             pred_hid=512,
             pred_out=1024,
-            init_zero=True,
+            last_linear_layer_init_zero=True,
             state_norm=False,
         ),
         # learn_mode config
@@ -161,7 +161,7 @@ class EfficientZeroPolicy(Policy):
                 image_shape=(self.game_config.obs_shape[1], self.game_config.obs_shape[2])
             )
 
-    @profile
+    # @profile
     def _forward_learn(self, data: ttorch.Tensor) -> Dict[str, Union[float, int]]:
         self._learn_model.train()
         self._target_model.train()
@@ -229,7 +229,6 @@ class EfficientZeroPolicy(Policy):
 
         transformed_target_value = self.game_config.scalar_transform(target_value)
         target_value_phi = self.game_config.value_phi(transformed_target_value)
-
         network_output = self._learn_model.initial_inference(obs_batch)
         value = network_output.value
         value_prefix = network_output.value_prefix
@@ -488,7 +487,7 @@ class EfficientZeroPolicy(Policy):
             ]
         )
 
-    @profile
+    # @profile
     def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None, to_play=None):
         """
         Shapes:
@@ -585,7 +584,7 @@ class EfficientZeroPolicy(Policy):
         else:
             self._mcts_eval = MCTSPtree(self.game_config)
 
-    @profile
+    # @profile
     def _forward_eval(self, data: ttorch.Tensor, action_mask: list, to_play: None):
         """
         Overview:

@@ -87,19 +87,14 @@ def inverse_scalar_transform(logits, support_size, epsilon=0.001):
         & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
     """
     scalar_support = DiscreteSupport(-support_size, support_size, delta=1)
-    delta = scalar_support.delta
     value_probs = torch.softmax(logits, dim=1)
-    value_support = torch.ones(value_probs.shape)
-    value_support[:, :] = torch.from_numpy(np.array([x for x in scalar_support.range]))
-    value_support = value_support.to(device=value_probs.device)
-    value = (value_support * value_probs).sum(1, keepdim=True) / delta
-    sign = torch.ones_like(value)
 
-    sign[value < 0] = -1.0
-    output = (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
-    output = sign * output * delta
-    # TODO(pu)
-    # output = mask_nan(output)
+    value_support = torch.from_numpy(scalar_support.range).unsqueeze(0)
+
+    value_support = value_support.to(device=value_probs.device)
+    value = (value_support * value_probs).sum(1, keepdim=True)
+
+    output = torch.sign(value) * (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
     output[torch.abs(output) < epsilon] = 0.
 
     return output
@@ -116,43 +111,3 @@ def renormalize(tensor, first_dim=1):
 
     return flat_tensor.view(*tensor.shape)
 
-
-def mlp(
-    input_size,
-    layer_sizes,
-    output_size,
-    output_activation=nn.Identity,
-    activation=nn.ReLU,
-    momentum=0.1,
-    init_zero=False,
-):
-    """
-    Overview:
-        MLP layers
-    Parameters
-    ----------
-    input_size: int
-        dim of inputs
-    layer_sizes: list
-        dim of hidden layers
-    output_size: int
-        dim of outputs
-    init_zero: bool
-        zero initialization for the last layer (including w and b).
-        This can provide stable zero outputs in the beginning.
-    """
-    sizes = [input_size] + layer_sizes + [output_size]
-    layers = []
-    for i in range(len(sizes) - 1):
-        if i < len(sizes) - 2:
-            act = activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]), nn.BatchNorm1d(sizes[i + 1], momentum=momentum), act()]
-        else:
-            act = output_activation
-            layers += [nn.Linear(sizes[i], sizes[i + 1]), act()]
-
-    if init_zero:
-        layers[-2].weight.data.fill_(0)
-        layers[-2].bias.data.fill_(0)
-
-    return nn.Sequential(*layers)

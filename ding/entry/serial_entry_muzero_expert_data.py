@@ -8,7 +8,7 @@ import numpy as np
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, BaseSerialCommander, \
     create_serial_collector
-from ding.worker.collector.base_serial_evaluator_muzero import BaseSerialEvaluatorMuZero as BaseSerialEvaluator
+from ding.worker.collector.base_serial_evaluator_muzero import MuZeroEvaluator as BaseSerialEvaluator
 
 from ding.config import read_config, compile_config
 from ding.policy import create_policy

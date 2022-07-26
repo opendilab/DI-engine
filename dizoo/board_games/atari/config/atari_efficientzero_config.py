@@ -8,7 +8,7 @@ from dizoo.board_games.atari.config.atari_config import game_config
 collector_env_num = 1
 evaluator_env_num = 3
 atari_efficientzero_config = dict(
-    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_upc200',
+    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_ft025_upc1000_halfsizemodel',
     # exp_name='data_ez_ptree/pong_efficientzero_seed0_lr0.2_ns50_upc200',
     env=dict(
         collector_env_num=collector_env_num,
@@ -21,12 +21,15 @@ atari_efficientzero_config = dict(
         max_episode_steps=int(1.08e5),
         episode_life=True,
         gray_scale=False,
-        cvt_string=True,
-        # cvt_string=False, # for check data
+        # cvt_string=True,
+        # trade memory for speed
+        cvt_string=False,
         game_wrapper=True,
         dqn_expert_data=False,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
+        model_path=None,
         env_name='PongNoFrameskip-v4',
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
@@ -39,7 +42,8 @@ atari_efficientzero_config = dict(
             action_space_size=6,
             downsample=True,
             num_blocks=1,
-            num_channels=64,
+            # num_channels=64,  # Number of channels in the ResNet, default config in EZ original repo
+            num_channels=32,  # Number of channels in the ResNet, for time efficiency
             reduced_channels_reward=16,
             reduced_channels_value=16,
             reduced_channels_policy=16,
@@ -48,22 +52,24 @@ atari_efficientzero_config = dict(
             fc_policy_layers=[32],
             reward_support_size=601,
             value_support_size=601,
-            lstm_hidden_size=512,
+            # lstm_hidden_size=512,  # default config in EZ original repo
+            lstm_hidden_size=256,  # for time efficiency
+
             bn_mt=0.1,
             proj_hid=1024,
             proj_out=1024,
             pred_hid=512,
             pred_out=1024,
-            init_zero=True,
+            last_linear_layer_init_zero=True,
             state_norm=False,
         ),
         # learn_mode config
         learn=dict(
             # debug
-            # update_per_collect=8,
+            # update_per_collect=2,
             # batch_size=4,
 
-            update_per_collect=200,  # TODO(pu): 1000
+            update_per_collect=1000,
             batch_size=256,
 
             learning_rate=0.2,
@@ -102,8 +108,8 @@ atari_efficientzero_create_config = dict(
         type='atari-muzero',
         import_names=['dizoo.atari.envs.atari_muzero_env'],
     ),
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='base'),
     policy=dict(type='efficientzero'),
     collector=dict(type='episode_muzero', get_train_sample=True)
 )
