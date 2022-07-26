@@ -1,4 +1,5 @@
 from cmath import inf
+from typing import Any, List
 import gym
 from gym import spaces
 from gym.utils import seeding
@@ -11,7 +12,7 @@ import os
 import pandas as pd
 from copy import deepcopy
 from ding.torch_utils import to_ndarray
-
+from easydict import EasyDict
 
 def load_dataset(name, index_name):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -32,7 +33,7 @@ class Positions(Enum):
     FLAT = 0.
     LONG = 1.
 
-def transform(position,  action):
+def transform(position:Positions,  action:int) -> Any:
     '''
     Overview:
         used by env.tep().
@@ -72,7 +73,7 @@ def transform(position,  action):
 @ENV_REGISTRY.register('base_trading')
 class TradingEnv(BaseEnv):
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: EasyDict) -> None:
 
         self._cfg = cfg
         #======== param to plot =========
@@ -127,7 +128,7 @@ class TradingEnv(BaseEnv):
 
 
 
-    def reset(self, start_idx = None):
+    def reset(self, start_idx: int = None) -> Any:
         self.cnt += 1
         self.prices, self.signal_features = self._process_data(start_idx)
         self._done = False
@@ -141,7 +142,7 @@ class TradingEnv(BaseEnv):
         return self._get_observation()
 
 
-    def step(self, action):
+    def step(self, action: List) -> Any:
         action = int(action[0])
         
         self._done = False
@@ -174,9 +175,6 @@ class TradingEnv(BaseEnv):
             info['max_possible_profit'] = np.log(self.max_possible_profit())
             info['final_eval_reward'] = self._total_reward
 
-
-            
-        
         return BaseEnvTimestep(observation, step_reward, self._done, info)
 
 
@@ -188,7 +186,7 @@ class TradingEnv(BaseEnv):
 
 
 
-    def render(self):
+    def render(self) -> None:
         plt.clf()
         plt.plot(self._profit_history)
         plt.savefig(self.save_path + str(self._env_id) + "-profit.png")

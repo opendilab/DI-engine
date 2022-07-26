@@ -1,3 +1,4 @@
+from typing import Any
 import numpy as np
 from dizoo.gym_anytrading.envs.trading_env import TradingEnv, Actions, Positions
 from ding.utils import ENV_REGISTRY
@@ -15,7 +16,7 @@ class StocksEnv(TradingEnv):
         self.trade_fee_ask_percent = 0.005  # unit
 
 
-    def _process_data(self, start_idx = None):
+    def _process_data(self, start_idx :int = None) -> Any:
         '''
         Overview:
             used by env.reset(), process the raw data.
@@ -51,7 +52,7 @@ class StocksEnv(TradingEnv):
         return prices, signal_features
 
 
-    def _calculate_reward(self, action):
+    def _calculate_reward(self, action: int) -> np.float32:
         step_reward = 0.
         current_price = (self.raw_prices[self._current_tick])
         last_trade_price = (self.raw_prices[self._last_trade_tick])
@@ -77,7 +78,7 @@ class StocksEnv(TradingEnv):
 
 
 
-    def max_possible_profit(self):
+    def max_possible_profit(self) -> float:
         current_tick = self._start_tick
         last_trade_tick = current_tick - 1
         profit = 1.
