@@ -48,7 +48,7 @@ distar_cfg = EasyDict(
                 },
                 'multi_gpu': False,
                 'epoch_per_collect': 10,
-                'batch_size': 3,
+                'batch_size': 6,
                 'learning_rate': 1e-05,
                 'value_weight': 0.5,
                 'entropy_weight': 0.0,
@@ -95,7 +95,7 @@ distar_cfg = EasyDict(
             'other': {
                 'replay_buffer': {
                     'type': 'naive',
-                    'replay_buffer_size': 64,
+                    'replay_buffer_size': 20,
                     'max_use': 2,
                     'deepcopy': False,
                     'enable_track_used_data': False,

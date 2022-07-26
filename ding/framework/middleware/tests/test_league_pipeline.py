@@ -16,6 +16,7 @@ from dizoo.distar.envs.distar_env import DIStarEnv
 from unittest.mock import patch
 from dizoo.distar.policy.distar_policy import DIStarPolicy
 from ding.utils import DistributedWriter
+from ding.data.buffer.middleware import use_time_check
 
 env_cfg = dict(
     actor=dict(job_type='train', ),
@@ -82,21 +83,23 @@ def main():
       patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
         print("node id:", task.router.node_id)
         if task.router.node_id == 0:
+            # DistributedWriter.get_instance(cfg.exp_name + '_coordinator_' + str(task.router.node_id) + player.player_id)
             task.use(LeagueCoordinator(cfg, league))
         elif task.router.node_id <= N_PLAYERS:
             cfg.policy.collect.unroll_len = 1
-            buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             player = league.active_players[task.router.node_id % N_PLAYERS]
             
             DistributedWriter.get_instance(cfg.exp_name + '_' + player.player_id)
 
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
+            buffer_.use(use_time_check(buffer_, max_use=cfg.policy.other.replay_buffer.max_use))
             policy = PrepareTest.policy_fn()
 
             task.use(LeagueLearnerCommunicator(cfg, policy.learn_mode, player))
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         else:
+            # DistributedWriter.get_instance(cfg.exp_name + '_actor_' + str(task.router.node_id))
             task.use(StepLeagueActor(cfg, PrepareTest.get_env_supervisor, PrepareTest.collect_policy_fn))
 
         task.run()
