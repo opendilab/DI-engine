@@ -26,3 +26,4 @@ from .serial_entry_preference_based_irl_onpolicy \
       import serial_pipeline_preference_based_irl_onpolicy
 from .application_entry_drex_collect_data import drex_collecting_data
 from .serial_entry_mbrl import serial_pipeline_dyna, serial_pipeline_dream
+from .serial_entry_for_anytrading import serial_pipeline_for_anytrading

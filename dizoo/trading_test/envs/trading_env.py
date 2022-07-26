@@ -32,8 +32,18 @@ class Positions(Enum):
     Flat = 0.
     Long = 1.
 
-def trans(position,  action):
-
+def transform(position,  action):
+    '''
+    Overview:
+        used by env.tep().
+            This func is used to transform the env's position from 
+        the input (position, action) pair based on the status machine.
+    Arguments:
+        - position(Positions) : Long, Short or Flat
+        - action(int) : Doulbe_Sell, Sell, Hold, Buy, Double_Buy
+    Returns:
+        - next_position(Positions) : the position after transformation.
+    '''
     if action == Actions.Sell.value:
         
         if position == Positions.Long:
@@ -143,7 +153,7 @@ class TradingEnv(BaseEnv):
         self._total_reward += step_reward
 
         
-        self._position, trade = trans( self._position, action)
+        self._position, trade = transform( self._position, action)
 
         if trade:
             self._last_trade_tick = self._current_tick
@@ -158,7 +168,7 @@ class TradingEnv(BaseEnv):
         )
 
         if self._done:
-            if self.cnt % self.plot_freq == 0:
+            if self._env_id[-1]=='e' and  self.cnt % self.plot_freq == 0:
                 self.render()
             info['max_possible_profit'] = self.max_possible_profit()
             info['final_eval_reward'] = self._total_reward
@@ -178,7 +188,6 @@ class TradingEnv(BaseEnv):
 
 
     def render(self):
-        print(self.save_path + str(self._env_id) + "-profit.png")
         plt.clf()
         plt.plot(self._profit_history)
         plt.savefig(self.save_path + str(self._env_id) + "-profit.png")
