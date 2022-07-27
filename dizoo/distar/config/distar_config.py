@@ -112,7 +112,8 @@ distar_cfg = EasyDict(
                         'one_phase_step': 10,  # 20
                         'branch_probs': {
                             'pfsp': 0.0,
-                            'sp': 1.0
+                            'sp': 0.0,
+                            'sl': 1.0
                         },
                         'strong_win_rate': 0.7
                     },
@@ -133,7 +134,10 @@ distar_cfg = EasyDict(
                         'mutate_prob': 0.5
                     },
                     'use_pretrain': False,
-                    'use_pretrain_init_historical': False,
+                    'use_pretrain_init_historical': True,
+                    'pretrain_checkpoint_path': {
+                        'default': 'sl_model.pth', 
+                    },
                     'payoff': {
                         'type': 'battle',
                         'decay': 0.99,

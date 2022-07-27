@@ -112,6 +112,11 @@ class StepLeagueActor:
             policy_collect_mode = policy.collect_mode
             self.player_policy_collect_dict[player_id] = policy_collect_mode
             if "historical" in player.player_id:
+                print(
+                    '[Actor {}] recieved historical player {}, checkpoint.path is {}'.format(
+                        task.router.node_id, player.player_id, player.checkpoint.path
+                    )
+                )
                 policy_collect_mode.load_state_dict(player.checkpoint.load())
 
             return policy_collect_mode
@@ -158,6 +163,7 @@ class StepLeagueActor:
         job = self._get_job()
         if job is None:
             return
+        print('[Actor {}] recieve job {}'.format(task.router.node_id, job))
         log_every_sec(
             logging.INFO, 5, '[Actor {}] job of player {} begins.'.format(task.router.node_id, job.launch_player)
         )
@@ -255,7 +261,8 @@ class StepLeagueActor:
             )
         )
         self._writer.add_scalar(
-            "total_traj_num/total_episode_num-total_episode_num", self.traj_num / self.total_episode_num, self.total_episode_num
+            "total_traj_num/total_episode_num-total_episode_num", self.traj_num / self.total_episode_num,
+            self.total_episode_num
         )
 
 

@@ -43,15 +43,7 @@ class LeagueCoordinator:
         with self._lock:
             player_num = len(self.league.active_players_ids)
             player_id = self.league.active_players_ids[self._total_send_jobs % player_num]
-            while True:
-                try:
-                    job = self.league.get_job_info(player_id)
-                    break
-                except Exception as e:
-                    logging.error(
-                        'on actor_id {}, player_id {} greeting, we got a error {}'.format(actor_id, player_id, e)
-                    )
-                    sleep(1)
+            job = self.league.get_job_info(player_id)
             job.job_no = self._total_send_jobs
             self._total_send_jobs += 1
         if job.job_no > 0 and job.job_no % self._eval_frequency == 0:
