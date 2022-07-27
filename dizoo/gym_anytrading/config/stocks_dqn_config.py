@@ -12,20 +12,20 @@ stocks_dqn_config = dict(
         n_evaluator_episode=8,
         stop_value=2,
         # one trading year.
-        eps_length = 253,
+        eps_length=253,
         # associated with the feature length.
-        window_size = 20,
+        window_size=20,
         # the path to save result image.
-        save_path = './fig/'
+        save_path='./fig/'
     ),
     policy=dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            obs_shape= 61,
+            obs_shape=61,
             action_shape=5,
             encoder_hidden_size_list=[128],
-            head_layer_num = 1,
+            head_layer_num=1,
             # Whether to use dueling head.
             dueling=True,
         ),
@@ -78,7 +78,5 @@ stocks_dqn_create_config = dict(
 stocks_dqn_create_config = EasyDict(stocks_dqn_create_config)
 create_config = stocks_dqn_create_config
 
-
-
 if __name__ == "__main__":
-    serial_pipeline_for_anytrading([main_config, create_config], seed=0, max_env_step = int(1e4))
+    serial_pipeline_for_anytrading([main_config, create_config], seed=0, max_env_step=int(1e4))

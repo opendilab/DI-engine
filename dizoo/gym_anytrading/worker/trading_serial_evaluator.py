@@ -8,6 +8,7 @@ from ding.worker import VectorEvalMonitor, InteractionSerialEvaluator
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
 
+
 @SERIAL_EVALUATOR_REGISTRY.register('trading_interaction')
 class TradingSerialEvaluator(InteractionSerialEvaluator):
     """
@@ -18,6 +19,7 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
     Property:
         env, policy
     """
+
     def __init__(
             self,
             cfg: dict,
@@ -192,7 +194,6 @@ class TradingEvalMonitor(VectorEvalMonitor):
         each_env_episode = [n_episode // env_num for _ in range(env_num)]
         self._max_possible_profit = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
 
-
     def update_max_profit(self, env_id: int, max_profit: Any) -> None:
         """
         Overview:
@@ -207,4 +208,3 @@ class TradingEvalMonitor(VectorEvalMonitor):
 
     def get_max_episode_profit(self) -> list:
         return sum([list(v) for v in self._max_possible_profit.values()], [])
-
