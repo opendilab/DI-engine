@@ -79,6 +79,24 @@ class DiscreteSupport(object):
         self.size = len(self.range)
         self.delta = delta
 
+def scalar_transform(x, support_size, epsilon = 0.001):
+    """
+    Overview:
+        Reference from MuZero: Appendix F => Network Architecture
+        & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
+    """
+    scalar_support = DiscreteSupport(-support_size, support_size, delta=1)
+    assert scalar_support.delta == 1
+    # sign = torch.ones(x.shape).float().to(x.device)
+    # sign[x < 0] = -1.0
+    # output = sign * (torch.sqrt(torch.abs(x) + 1) - 1) + epsilon * x
+
+    output = torch.sign(x) * (torch.sqrt(torch.abs(x) + 1) - 1) + epsilon * x
+
+    # delta !=1
+    # output = sign * (torch.sqrt(torch.abs(x / delta) + 1) - 1) + epsilon * x / delta
+
+    return output
 
 def inverse_scalar_transform(logits, support_size, epsilon=0.001):
     """
@@ -93,8 +111,12 @@ def inverse_scalar_transform(logits, support_size, epsilon=0.001):
 
     value_support = value_support.to(device=value_probs.device)
     value = (value_support * value_probs).sum(1, keepdim=True)
+    # value = (value_support * value_probs).sum(1, keepdim=True) / delta
 
     output = torch.sign(value) * (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
+    # if delta!=1
+    # output = torch.sign(value) * (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1) * delta
+
     output[torch.abs(output) < epsilon] = 0.
 
     return output

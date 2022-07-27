@@ -8,12 +8,12 @@ import numpy as np
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, BaseSerialCommander, \
     create_serial_collector
-from ding.worker.collector.base_serial_evaluator_muzero import MuZeroEvaluator as BaseSerialEvaluator
+from ding.worker.collector.muzero_evaluator import MuZeroEvaluator as BaseSerialEvaluator
 
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from ding.data.buffer.game_buffer import GameBuffer
+from ding.rl_utils.mcts.game_buffer import GameBuffer
 from ding.model import model_wrap
 
 

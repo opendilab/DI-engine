@@ -214,6 +214,7 @@ class EpisodeSerialCollector(ISerialCollector):
                 new_available_env_id = set(obs.keys()).difference(ready_env_id)
                 ready_env_id = ready_env_id.union(set(list(new_available_env_id)[:remain_episode]))
                 remain_episode -= min(len(new_available_env_id), remain_episode)
+
                 obs = {env_id: obs[env_id] for env_id in ready_env_id}
                 # Policy forward.
                 self._obs_pool.update(obs)

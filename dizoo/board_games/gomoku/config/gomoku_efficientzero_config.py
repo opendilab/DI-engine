@@ -6,7 +6,7 @@ from dizoo.board_games.gomoku.config.gomoku_config import game_config
 # evaluator_env_num = 1
 
 collector_env_num = 8
-evaluator_env_num = 1  # TODO(pu):3
+evaluator_env_num = 3
 board_size = 6  # default_size is 15
 
 gomoku_efficientzero_config = dict(
@@ -53,7 +53,7 @@ gomoku_efficientzero_config = dict(
             proj_out=1024,
             pred_hid=512,
             pred_out=1024,
-            init_zero=True,
+            last_linear_layer_init_zero=True,
             state_norm=False,
         ),
         # learn_mode config

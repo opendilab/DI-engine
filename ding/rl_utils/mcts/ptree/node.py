@@ -394,6 +394,7 @@ def ucb_score(
 def batch_traverse(
     roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults, virtual_to_play
 ):
+    last_action = 0
     parent_q = 0.0
     results.search_lens = [None for i in range(results.num)]
     results.last_actions = [None for i in range(results.num)]

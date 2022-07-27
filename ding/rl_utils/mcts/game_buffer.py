@@ -1,3 +1,7 @@
+"""
+The following code is adapted from https://github.com/YeWR/EfficientZero/core/replay_buffer.py
+"""
+
 from dataclasses import dataclass
 import time
 import torch
@@ -17,8 +21,6 @@ import ding.rl_utils.mcts.ptree as tree
 from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTS_ptree
 from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
 from ding.torch_utils.data_helper import to_ndarray
-# import line_profiler
-# profile = line_profiler.LineProfiler()
 
 
 @dataclass
@@ -31,12 +33,13 @@ class BufferedData:
 @BUFFER_REGISTRY.register('game')
 class GameBuffer(Buffer):
     """
-        Overview:
-            The specific game buffer for MuZero-based policy
+    Overview:
+        The specific game buffer for MuZero-based policy.
     """
 
     def __init__(self, config=None):
-        """Reference : DISTRIBUTED PRIORITIZED EXPERIENCE REPLAY
+        """
+        Reference : DISTRIBUTED PRIORITIZED EXPERIENCE REPLAY
         Algo. 1 and Algo. 2 in Page-3 of (https://arxiv.org/pdf/1803.00933.pdf
         """
         super().__init__(config.total_transitions)

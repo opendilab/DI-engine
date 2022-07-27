@@ -42,6 +42,8 @@ game_config = EasyDict(dict(
     # total_transitions=int(1e5),
     # num_unroll_steps=5,
     # td_steps=5,
+    # lstm_hidden_size=64,
+    # lstm_horizon_len=5,
 
     collector_env_num=8,
     evaluator_env_num=1,  # TODO(pu): 3
@@ -52,6 +54,8 @@ game_config = EasyDict(dict(
     total_transitions=int(1e5),
     num_unroll_steps=5,
     td_steps=5,
+    lstm_hidden_size=512,
+    lstm_horizon_len=5,
 
     # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
@@ -120,10 +124,6 @@ game_config = EasyDict(dict(
     value_loss_coeff=0.25,
     policy_loss_coeff=1,
     consistency_coeff=2,
-
-    # reward sum
-    lstm_hidden_size=64,
-    lstm_horizon_len=5,
 
     bn_mt=0.1,
     # siamese

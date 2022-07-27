@@ -15,10 +15,10 @@ from ding.envs import BaseEnvTimestep
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('episode_muzero')
-class EpisodeSerialCollectorMuZero(ISerialCollector):
+class MuZeroCollector(ISerialCollector):
     """
     Overview:
-        Episode collector(n_episode)
+        MuZero collector(n_episode)
     Interfaces:
         __init__, reset, reset_env, reset_policy, collect, close
     Property:
@@ -328,11 +328,11 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
         init_obses = self._env.ready_obs
         action_mask = [to_ndarray(init_obses[i]['action_mask']) for i in range(env_nums)]
         if 'to_play' in init_obses[0]:
-            two_plaer_game = True
+            two_player_game = True
         else:
-            two_plaer_game = False
+            two_player_game = False
 
-        if two_plaer_game:
+        if two_player_game:
             to_play = [to_ndarray(init_obses[i]['to_play']) for i in range(env_nums)]
 
         dones = np.array([False for _ in range(env_nums)])
@@ -397,7 +397,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 else:
                     stack_obs = torch.from_numpy(np.array(stack_obs)).to(self.game_config.device)
 
-                if two_plaer_game:
+                if two_player_game:
                     policy_output = self._policy.forward(stack_obs, action_mask, temperature, to_play)
                 else:
                     policy_output = self._policy.forward(stack_obs, action_mask, temperature, None)
@@ -408,6 +408,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 pred_value_dict = {k: v['pred_value'] for k, v in policy_output.items()}
                 visit_entropy_dict = {k: v['visit_entropy'] for k, v in policy_output.items()}
 
+                # Interact with env.
                 timesteps = self._env.step(actions)
 
             # TODO(nyz) this duration may be inaccurate in async env
@@ -422,7 +423,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
                 else:
                     clip_reward = ori_reward
                 game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
-                if two_plaer_game:
+                if two_player_game:
                     # for two_player board games
                     game_histories[i].append(
                         actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
@@ -432,7 +433,7 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                 # NOTE: the position of code snippt is very important.
                 # the obs['action_mask'] and obs['to_play'] is corresponding to next action
-                if two_plaer_game:
+                if two_player_game:
                     action_mask[i] = to_ndarray(obs['action_mask'])
                     to_play[i] = to_ndarray(obs['to_play'])
 
@@ -512,12 +513,11 @@ class EpisodeSerialCollectorMuZero(ISerialCollector):
 
                     # assert len(game_histories[i]) == len(priorities)
                     self.trajectory_pool.append((game_histories[i], priorities, dones[i]))
-                    # NOTE: this is very important to save the done data to replay_buffer
-                    # self.free(end_tag=True)
 
                     # reset the finished env and init game_histories
                     init_obses = self._env.ready_obs
                     init_obs = init_obses[i]['observation']
+
                     init_obs = to_ndarray(init_obs)
                     action_mask[i] = to_ndarray(init_obses[i]['action_mask'])
                     to_play[i] = to_ndarray(init_obses[i]['to_play'])

@@ -5,13 +5,13 @@ from easydict import EasyDict
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 # debug
-# collector_env_num = 8
-# evaluator_env_num = 2
+# collector_env_num = 1
+# evaluator_env_num = 1
 
-collector_env_num = 32
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 3
 tictactoe_efficientzero_config = dict(
-    exp_name='data_ez_ptree/tictactoe_2pl_efficientzero_seed0_tp025',
+    exp_name='data_ez_ptree/tictactoe_1pl_efficientzero_seed0_ftp025',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -19,10 +19,12 @@ tictactoe_efficientzero_config = dict(
         stop_value=2,
         # 'one_player_mode' when eval, 'two_player_mode' when collect
         # automatically assign in tictactoe env
-        battle_mode='two_player_mode',
-        # battle_mode='one_player_mode',
+        # battle_mode='two_player_mode',
+        battle_mode='one_player_mode',
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
+        model_path=None,
         env_name='tictactoe',
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
@@ -50,7 +52,7 @@ tictactoe_efficientzero_config = dict(
             proj_out=128,
             pred_hid=64,
             pred_out=128,
-            init_zero=True,
+            last_linear_layer_init_zero=True,
             state_norm=False,
         ),
         # learn_mode config
@@ -59,12 +61,14 @@ tictactoe_efficientzero_config = dict(
             # update_per_collect=2,
             # batch_size=4,
 
-            update_per_collect=32,
+            # one_player_mode, board_size=3, episode_length=3**2/2=4.5
+            # collector_env_num=8,  update_per_collect=5*8=40
+            update_per_collect=int(3 ** 2 / 2 * collector_env_num),
             batch_size=256,
 
             learning_rate=0.2,
             # Frequency of target network update.
-            target_update_freq=200,
+            target_update_freq=400,
         ),
         # collect_mode config
         collect=dict(
@@ -101,10 +105,10 @@ tictactoe_efficientzero_create_config = dict(
         type='tictactoe',
         import_names=['dizoo.board_games.tictactoe.envs.tictactoe_env'],
     ),
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
     policy=dict(type='efficientzero'),
-    collector=dict(type='episode_muzero', get_train_sample=True)
+
+    env_manager=dict(type='base'),
+    collector=dict(type='episode_muzero', get_train_sample=True),
 )
 tictactoe_efficientzero_create_config = EasyDict(tictactoe_efficientzero_create_config)
 create_config = tictactoe_efficientzero_create_config

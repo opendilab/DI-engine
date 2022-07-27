@@ -40,48 +40,6 @@ class GameBaseConfig(object):
     def modified_cross_entropy_loss(prediction, target):
         return -(torch.log_softmax(prediction, dim=1) * target).sum(1)
 
-    def scalar_transform(self, x):
-        """
-        Overview:
-            Reference from MuZerp: Appendix F => Network Architecture
-            & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
-        """
-        delta = self.value_support.delta
-        assert delta == 1
-        epsilon = 0.001
-        sign = torch.ones(x.shape).float().to(x.device)
-        sign[x < 0] = -1.0
-        output = sign * (torch.sqrt(torch.abs(x / delta) + 1) - 1) + epsilon * x / delta
-        return output
-
-    def inverse_reward_transform(self, reward_logits):
-        return self.inverse_scalar_transform(reward_logits, self.reward_support)
-
-    def inverse_value_transform(self, value_logits):
-        return self.inverse_scalar_transform(value_logits, self.value_support)
-
-    def inverse_scalar_transform(self, logits, scalar_support):
-        """ Reference from MuZerp: Appendix F => Network Architecture
-        & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
-        """
-        delta = self.value_support.delta
-        value_probs = torch.softmax(logits, dim=1)
-        value_support = torch.ones(value_probs.shape)
-        value_support[:, :] = torch.from_numpy(np.array([x for x in scalar_support.range]))
-        value_support = value_support.to(device=value_probs.device)
-        value = (value_support * value_probs).sum(1, keepdim=True) / delta
-
-        epsilon = 0.001
-        sign = torch.ones(value.shape).float().to(value.device)
-        sign[value < 0] = -1.0
-        output = (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
-        output = sign * output * delta
-
-        nan_part = torch.isnan(output)
-        output[nan_part] = 0.
-        output[torch.abs(output) < epsilon] = 0.
-        return output
-
     def value_phi(self, x):
         return self._phi(x, self.value_support.min, self.value_support.max, self.value_support.size)
 

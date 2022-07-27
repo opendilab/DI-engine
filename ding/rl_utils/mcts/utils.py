@@ -127,7 +127,10 @@ def select_action(visit_counts, temperature=1, deterministic=True):
         True -> select the argmax
         False -> sample from the distribution
     """
-    action_probs = [visit_count_i ** (1 / temperature) for visit_count_i in visit_counts]
+    try:
+        action_probs = [visit_count_i ** (1 / temperature) for visit_count_i in visit_counts]
+    except Exception as error:
+        print(error)
     action_probs = [x / sum(action_probs) for x in action_probs]
 
     if deterministic:

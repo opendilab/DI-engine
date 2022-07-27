@@ -20,13 +20,11 @@ import ding.rl_utils.mcts.ptree as tree
 from ding.rl_utils.mcts.mcts_ptree import EfficientZeroMCTSPtree as MCTSPtree
 from ding.rl_utils.mcts.utils import select_action
 from ding.torch_utils import to_tensor, to_device
-from ding.model.template.efficientzero.efficientzero_base_model import inverse_scalar_transform
+from ding.model.template.efficientzero.efficientzero_base_model import scalar_transform, inverse_scalar_transform
 # TODO(pu): choose game config
-from dizoo.board_games.atari.config.atari_config import game_config
-# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+# from dizoo.board_games.atari.config.atari_config import game_config
+from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 # from dizoo.board_games.gomoku.config.gomoku_config import game_config
-# import line_profiler
-# profile = line_profiler.LineProfiler()
 
 
 @POLICY_REGISTRY.register('efficientzero')
@@ -224,10 +222,10 @@ class EfficientZeroPolicy(Policy):
             other_loss[key + '_0'] = -1
 
         # transform targets to categorical representation
-        transformed_target_value_prefix = self.game_config.scalar_transform(target_value_prefix)
+        transformed_target_value_prefix = scalar_transform(target_value_prefix, self.game_config.support_size)
         target_value_prefix_phi = self.game_config.reward_phi(transformed_target_value_prefix)
 
-        transformed_target_value = self.game_config.scalar_transform(target_value)
+        transformed_target_value = scalar_transform(target_value, self.game_config.support_size)
         target_value_phi = self.game_config.value_phi(transformed_target_value)
         network_output = self._learn_model.initial_inference(obs_batch)
         value = network_output.value
@@ -488,7 +486,7 @@ class EfficientZeroPolicy(Policy):
         )
 
     # @profile
-    def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None, to_play=None):
+    def _forward_collect(self, data: ttorch.Tensor, action_mask: list = None, temperature: list = None, to_play=None, ready_env_id=None):
         """
         Shapes:
             obs: (B, S, C, H, W), where S is the stack num
@@ -496,6 +494,7 @@ class EfficientZeroPolicy(Policy):
         """
         self._collect_model.eval()
         stack_obs = data
+        active_collect_env_num = stack_obs.shape[0]
         with torch.no_grad():
             network_output = self._collect_model.initial_inference(stack_obs)
             hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
@@ -519,11 +518,11 @@ class EfficientZeroPolicy(Policy):
             # cpp mcts
             if self.game_config.mcts_ctree:
                 action_num = int(action_mask[0].sum())
-                roots = cytree.Roots(self.game_config.collector_env_num, action_num, self.game_config.num_simulations)
+                roots = cytree.Roots(active_collect_env_num, action_num, self.game_config.num_simulations)
                 noises = [
                     np.random.dirichlet([self.game_config.root_dirichlet_alpha] * action_num).astype(np.float32
                                                                                                      ).tolist()
-                    for j in range(self.game_config.collector_env_num)
+                    for j in range(active_collect_env_num)
                 ]
                 roots.prepare(self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool)
                 # do MCTS for a policy (argmax in testing)
@@ -532,14 +531,14 @@ class EfficientZeroPolicy(Policy):
                 # python mcts
                 legal_actions = [
                     [i for i, x in enumerate(action_mask[j]) if x == 1]
-                    for j in range(self.game_config.collector_env_num)
+                    for j in range(active_collect_env_num)
                 ]
-                roots = tree.Roots(self.game_config.collector_env_num, legal_actions, self.game_config.num_simulations)
+                roots = tree.Roots(active_collect_env_num, legal_actions, self.game_config.num_simulations)
                 # the only difference between collect and eval is the dirichlet noise
                 noises = [
                     np.random.dirichlet([self.game_config.root_dirichlet_alpha] * int(sum(action_mask[j]))
                                         ).astype(np.float32).tolist()
-                    for j in range(self.game_config.collector_env_num)
+                    for j in range(active_collect_env_num)
                 ]
                 roots.prepare(
                     self.game_config.root_exploration_fraction, noises, value_prefix_pool, policy_logits_pool, to_play
@@ -549,9 +548,14 @@ class EfficientZeroPolicy(Policy):
 
             roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
             roots_values = roots.get_values()  # {list: 1}
-            data_id = [i for i in range(self.game_config.collector_env_num)]
+            data_id = [i for i in range(active_collect_env_num)]
             output = {i: None for i in data_id}
-            for i in range(self.game_config.collector_env_num):
+
+            # TODO
+            if ready_env_id is None:
+                ready_env_id = np.arange(active_collect_env_num)
+
+            for i, env_id in enumerate(ready_env_id):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 # TODO(pu):
@@ -560,7 +564,7 @@ class EfficientZeroPolicy(Policy):
                 # action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
-                output[i] = {
+                output[env_id] = {
                     'action': action,
                     'distributions': distributions,
                     'visit_entropy': visit_entropy,
@@ -598,6 +602,7 @@ class EfficientZeroPolicy(Policy):
         """
         self._eval_model.eval()
         stack_obs = data
+        active_eval_env_num = stack_obs.shape[0]
         with torch.no_grad():
             # stack_obs shape [B, S x C, W, H] e.g. {Tensor:(B,12,96,96)}
             network_output = self._eval_model.initial_inference(stack_obs)
@@ -622,7 +627,7 @@ class EfficientZeroPolicy(Policy):
                 # cpp mcts
                 # TODO(pu): for board games, when action_num is a list, adapt the Roots method
                 action_num = int(action_mask[0].sum())
-                roots = cytree.Roots(self.game_config.evaluator_env_num, action_num, self.game_config.num_simulations)
+                roots = cytree.Roots(active_eval_env_num, action_num, self.game_config.num_simulations)
                 roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
                 # do MCTS for a policy (argmax in testing)
                 self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
@@ -630,9 +635,9 @@ class EfficientZeroPolicy(Policy):
                 # python mcts
                 legal_actions = [
                     [i for i, x in enumerate(action_mask[j]) if x == 1]
-                    for j in range(self.game_config.evaluator_env_num)
+                    for j in range(active_eval_env_num)
                 ]
-                roots = tree.Roots(self.game_config.evaluator_env_num, legal_actions, self.game_config.num_simulations)
+                roots = tree.Roots(active_eval_env_num, legal_actions, self.game_config.num_simulations)
 
                 roots.prepare_no_noise(value_prefix_pool, policy_logits_pool, to_play)
                 # do MCTS for a policy (argmax in testing)
@@ -641,9 +646,9 @@ class EfficientZeroPolicy(Policy):
             # root visit count
             roots_distributions = roots.get_distributions()  # {list: 1} each element {list:6}
             roots_values = roots.get_values()  # {list: 1}
-            data_id = [i for i in range(self.game_config.evaluator_env_num)]
+            data_id = [i for i in range(active_eval_env_num)]
             output = {i: None for i in data_id}
-            for i in range(self.game_config.evaluator_env_num):
+            for i in range(active_eval_env_num):
                 distributions, value = roots_distributions[i], roots_values[i]
                 # select the argmax, not sampling
                 action, _ = select_action(distributions, temperature=1, deterministic=True)

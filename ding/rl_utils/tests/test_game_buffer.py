@@ -1,7 +1,7 @@
 import pytest
 import time
 from typing import Callable
-from ding.data.buffer.game_buffer import GameBuffer
+from ding.rl_utils.mcts.game_buffer import GameBuffer
 from ding.data.buffer.buffer import BufferedData
 import numpy as np
 from easydict import EasyDict
