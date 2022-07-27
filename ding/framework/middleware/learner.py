@@ -94,17 +94,17 @@ class OffPolicyLearner:
                 )
             )
             self._writer.add_scalar(
-                "total epoch speed: train_iter/s-train_iter", ctx.train_iter / self.total_iter_time, ctx.train_iter
+                "total_epoch_speed____train_iter/s-train_iter", ctx.train_iter / self.total_iter_time, ctx.train_iter
             )
             self._writer.add_scalar(
-                "current epoch speed: train_iter/s-train_iter",
+                "current_epoch_speed____train_iter/s-train_iter",
                 (ctx.train_iter - self.last_train_iter) / current_iter_time, ctx.train_iter
             )
             self._writer.add_scalar(
-                "total trainning speed: train_iter/s-train_iter", ctx.train_iter / self.total_trainning_time
+                "total_trainning_speed____train_iter/s-train_iter", ctx.train_iter / self.total_trainning_time
             )
             self._writer.add_scalar(
-                "current trainning speed: train_iter/s-train_iter",
+                "current_trainning_speed____train_iter/s-train_iter",
                 (ctx.train_iter - self.last_train_iter) / (finish_iter_time - begin_trainning_time), ctx.train_iter
             )
             self.last_train_iter = ctx.train_iter
