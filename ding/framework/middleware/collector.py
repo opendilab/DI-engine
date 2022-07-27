@@ -1,3 +1,4 @@
+from turtle import update
 from easydict import EasyDict
 from typing import Dict, TYPE_CHECKING
 import time
@@ -63,11 +64,15 @@ class BattleStepCollector:
                     get_new_model_time=time.time(), update_new_model_time=None
                 )
 
+        update_player_id_set = set()
+        for player_id in player_id_set:
+            if 'historical' not in player_id:
+                update_player_id_set.add(player_id)
         while True:
             time_now = time.time()
-            time_list = [time_now - self.model_info_dict[player_id].get_new_model_time for player_id in player_id_set]
+            time_list = [time_now - self.model_info_dict[player_id].get_new_model_time for player_id in update_player_id_set]
             if any(x >= WAIT_MODEL_TIME for x in time_list):
-                for index, player_id in enumerate(player_id_set):
+                for index, player_id in enumerate(update_player_id_set):
                     if time_list[index] >= WAIT_MODEL_TIME:
                         #TODO: log_every_sec can only print the first model that not updated
                         log_every_sec(
@@ -80,7 +85,7 @@ class BattleStepCollector:
             else:
                 break
 
-        for player_id in player_id_set:
+        for player_id in update_player_id_set:
             if self.model_dict.get(player_id) is None:
                 continue
             else:
@@ -119,7 +124,7 @@ class BattleStepCollector:
                 self._battle_rolloutor(ctx)
             except Exception as e:
                 # TODO(zms): need to handle the exception cleaner
-                logging.error(logging.error("[Actor {}] got an exception: {} when collect data".format(task.router.node_id, e)))
+                logging.error("[Actor {}] got an exception: {} when collect data".format(task.router.node_id, e))
                 self.env.close()
                 for env_id in range(self.env_num):
                     for policy_id, policy in enumerate(ctx.current_policies):
