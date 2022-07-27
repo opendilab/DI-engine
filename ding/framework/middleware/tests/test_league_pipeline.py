@@ -84,7 +84,8 @@ def main():
         print("node id:", task.router.node_id)
         if task.router.node_id == 0:
             DistributedWriter.get_instance(cfg.exp_name + '_coordinator_' + str(task.router.node_id))
-            task.use(LeagueCoordinator(cfg, league))
+            coordinator_league = deepcopy(league)
+            task.use(LeagueCoordinator(cfg, coordinator_league))
         elif task.router.node_id <= N_PLAYERS:
             cfg.policy.collect.unroll_len = 1
             player = league.active_players[task.router.node_id % N_PLAYERS]

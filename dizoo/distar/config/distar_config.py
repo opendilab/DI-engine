@@ -106,7 +106,7 @@ distar_cfg = EasyDict(
                     'player_category': ['default'],
                     'path_policy': 'league_demo/ckpt',
                     'active_players': {
-                        'main_player': 2
+                        'main_player': 1
                     },
                     'main_player': {
                         'one_phase_step': 10,  # 20
