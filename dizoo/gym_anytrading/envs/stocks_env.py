@@ -26,14 +26,20 @@ class StocksEnv(TradingEnv):
             - prices: the close.
             - signal_features: feature map
         '''
+
+        # ====== build feature map ========
+        all_feature_name = ['Close', 'Open', 'High', 'Low', 'Adj Close', 'Volume']
+        all_feature = {k: self.df.loc[:, k].to_numpy() for k in all_feature_name}
+        # add feature "Diff"
         prices = self.df.loc[:, 'Close'].to_numpy()
         diff = np.insert(np.diff(prices), 0, 0)
-        opens = self.df.loc[:, 'Open'].to_numpy()
-        highs = self.df.loc[:, 'High'].to_numpy()
-        lows = self.df.loc[:, 'Low'].to_numpy()
-        adjclose = self.df.loc[:, 'Adj Close'].to_numpy()
-        volumes = self.df.loc[:, 'Volume'].to_numpy()
+        all_feature_name.append('Diff')
+        all_feature['Diff'] = diff
+        # =================================
 
+        # you can select features you want
+        selected_feature_name = ['Close', 'Diff', 'Volume']
+        selected_feature = np.column_stack([all_feature[k] for k in selected_feature_name])
 
         # validate index 
         if start_idx == None:
@@ -44,12 +50,7 @@ class StocksEnv(TradingEnv):
         self._start_tick = self.start_idx
         self._end_tick = self._start_tick + self._cfg.eps_length - 1
         
-        
-        signal_features = np.column_stack((prices, diff, volumes))
-        # signal_features = np.column_stack((prices, opens, highs, lows, adjclose, volumes))
-        # signal_features = np.column_stack((prices, diff, opens, highs, lows, adjclose, volumes))
-        
-        return prices, signal_features
+        return prices, selected_feature
 
 
     def _calculate_reward(self, action: int) -> np.float32:

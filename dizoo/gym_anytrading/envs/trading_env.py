@@ -38,7 +38,7 @@ def transform(position:Positions,  action:int) -> Any:
     Overview:
         used by env.tep().
             This func is used to transform the env's position from 
-        the input (position, action) pair based on the status machine.
+        the input (position, action) pair according to the status machine.
     Arguments:
         - position(Positions) : Long, Short or Flat
         - action(int) : Doulbe_Sell, Sell, Hold, Buy, Double_Buy

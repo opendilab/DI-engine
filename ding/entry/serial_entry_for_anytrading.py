@@ -54,7 +54,7 @@ def serial_pipeline_for_anytrading(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
 
-    # Rname env_id
+    # Rename env_id
     eval_env_num = len(evaluator_env_cfg)
     one_env = evaluator_env_cfg[0]
     evaluator_env_cfg = [copy.deepcopy(one_env) for _ in range(eval_env_num)]
