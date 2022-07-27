@@ -10,6 +10,7 @@ from ding.league.metric import LeagueMetricEnv
 from ding.framework.storage import Storage
 from typing import TYPE_CHECKING
 from ditk import logging
+from ding.utils import DistributedWriter
 if TYPE_CHECKING:
     from ding.league import Player, PlayerMeta
 
@@ -90,6 +91,9 @@ class BaseLeague:
         metric_cfg = self.cfg.metric
         self.metric_env = LeagueMetricEnv(metric_cfg.mu, metric_cfg.sigma, metric_cfg.tau, metric_cfg.draw_probability)
         self._init_players()
+
+        self._writer = DistributedWriter.get_instance()
+        self._update_times = 0
 
     def _init_players(self) -> None:
         """
@@ -197,7 +201,29 @@ class BaseLeague:
         }
         self.payoff.update(job_info)
 
+        self._update_times += 1
         logging.info("show the current payoff {}".format(self.payoff._data))
+        for battle_player in self.payoff._data.keys():
+            for result in self.payoff._data[battle_player].keys():
+                self._writer.add_scalar(
+                    battle_player + "-" + result, self.payoff._data[battle_player][result], self._update_times
+                )
+            self._writer.add_scalar(
+                battle_player + "-" + "win_rate",
+                self.payoff._data[battle_player]['wins'] / self.payoff._data[battle_player]['games'],
+                self.payoff._data[battle_player]['games']
+            )
+            self._writer.add_scalar(
+                battle_player + "-" + "draw_rate",
+                self.payoff._data[battle_player]['draws'] / self.payoff._data[battle_player]['games'],
+                self.payoff._data[battle_player]['games']
+            )
+            self._writer.add_scalar(
+                battle_player + "-" + "loss_rate",
+                self.payoff._data[battle_player]['losses'] / self.payoff._data[battle_player]['games'],
+                self.payoff._data[battle_player]['games']
+            )
+
         # Update player rating
         home_id, away_id = job_info['player_id']
         home_player, away_player = self.get_player_by_id(home_id), self.get_player_by_id(away_id)

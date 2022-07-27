@@ -9,7 +9,6 @@ from ding.framework import task
 from ding.utils import DistributedWriter
 from ding.utils.sparse_logging import log_every_sec
 
-
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
 
@@ -66,8 +65,13 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             total_push_time = 0
         elif total_pushed_traj > last_pushed_traj:
             last_pushed_traj = total_pushed_traj
-            logging.info("[Learner {}] pushing speed is {} traj/s".format(task.router.node_id, total_pushed_traj/total_push_time))
-            writer.add_scalar("pushing_speed_traj/s-traj", total_pushed_traj/total_push_time, total_pushed_traj)
+            logging.info(
+                "[Learner {}] pushing speed is {} traj/s, pushed {} traj in total, current buffer size is {}".format(
+                    task.router.node_id, total_pushed_traj / total_push_time, total_pushed_traj, buffer_.count()
+                )
+            )
+            writer.add_scalar("pushing_speed_traj/s-traj", total_pushed_traj / total_push_time, total_pushed_traj)
+            writer.add_scalar('buffer_size', buffer_.count(), total_pushed_traj)
 
     return _push
 

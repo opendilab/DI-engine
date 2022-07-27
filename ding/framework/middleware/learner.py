@@ -39,13 +39,15 @@ class OffPolicyLearner:
         self.cfg = cfg
         self._fetcher = task.wrap(offpolicy_data_fetcher(cfg, buffer_))
         self._trainer = task.wrap(trainer(cfg, policy))
-        self.last_iter_time = None
-        self.total_iter_time = 0
         if reward_model is not None:
             self._reward_estimator = task.wrap(reward_estimator(cfg, reward_model))
         else:
             self._reward_estimator = None
-        
+
+        self.last_iter_time = None
+        self.total_iter_time = 0
+        self.total_trainning_time = 0
+
         self.last_train_iter = 0
 
         self._writer = DistributedWriter.get_instance()
@@ -55,8 +57,10 @@ class OffPolicyLearner:
         Output of ctx:
             - train_output (:obj:`Deque`): The training output in deque.
         """
-        if self.last_iter_time == None:
+        if self.last_iter_time is None:
             self.last_iter_time = time.time()
+        begin_trainning_time = time.time()
+
         train_output_queue = []
         for _ in range(self.cfg.policy.learn.update_per_collect):
             self._fetcher(ctx)
@@ -69,17 +73,41 @@ class OffPolicyLearner:
         ctx.train_output = train_output_queue
 
         finish_iter_time = time.time()
-        
-        self.total_iter_time += finish_iter_time - self.last_iter_time
+        current_iter_time = finish_iter_time - self.last_iter_time
+        self.total_iter_time += current_iter_time
+
+        self.total_trainning_time += finish_iter_time - begin_trainning_time
         self.last_iter_time = finish_iter_time
-        
+
         if ctx.train_iter == 0:
             self.total_iter_time = 0
+            self.total_trainning_time = 0
         elif ctx.train_iter > self.last_train_iter:
+            logging.info(
+                "[Learner {}] total epoch speed is {} iter/s, current epoch speed is {} iter/s, total_training speed is {} iter/s, current training speed is {} iter/s"
+                .format(
+                    task.router.node_id, 
+                    ctx.train_iter / self.total_iter_time,
+                    (ctx.train_iter - self.last_train_iter) / current_iter_time,
+                    ctx.train_iter / self.total_trainning_time,
+                    (ctx.train_iter - self.last_train_iter) / (finish_iter_time - begin_trainning_time)
+                )
+            )
+            self._writer.add_scalar(
+                "total epoch speed: train_iter/s-train_iter", ctx.train_iter / self.total_iter_time, ctx.train_iter
+            )
+            self._writer.add_scalar(
+                "current epoch speed: train_iter/s-train_iter",
+                (ctx.train_iter - self.last_train_iter) / current_iter_time, ctx.train_iter
+            )
+            self._writer.add_scalar(
+                "total trainning speed: train_iter/s-train_iter", ctx.train_iter / self.total_trainning_time
+            )
+            self._writer.add_scalar(
+                "current trainning speed: train_iter/s-train_iter",
+                (ctx.train_iter - self.last_train_iter) / (finish_iter_time - begin_trainning_time), ctx.train_iter
+            )
             self.last_train_iter = ctx.train_iter
-            logging.info("[Learner {}] training speed is {} iter/s".format(task.router.node_id, ctx.train_iter/self.total_iter_time))
-            self._writer.add_scalar("training_speed_iter/s-train_iter", ctx.train_iter/self.total_iter_time, ctx.train_iter)
-
 
 
 class HERLearner:
