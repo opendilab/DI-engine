@@ -6,13 +6,14 @@ board_size = 6  # default_size is 15
 game_config = EasyDict(dict(
     env_name='gomoku',
     model_type='board_game',
-    device='cuda',
-    # device='cpu',
+    # device='cuda',
+    device='cpu',
     # TODO: mcts_ctree now only support env_num=1, because in cpp MCTS root node,
     #  we must specify the one same action mask,
     #  when env_num>1, the action mask for different env may be different.
     mcts_ctree=False,
     # battle_mode='two_player_mode',
+    # game_history_length=36,
     battle_mode='one_player_mode',
     game_history_length=18,
     image_based=False,

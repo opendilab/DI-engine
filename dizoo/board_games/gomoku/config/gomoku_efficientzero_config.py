@@ -24,8 +24,8 @@ gomoku_efficientzero_config = dict(
     ),
     policy=dict(
         # pretrained model
-        # model_path='/Users/puyuan/code/DI-engine/data_ez_ptree/gomoku_2pl_efficientzero_seed0/ckpt/ckpt_best.pth.tar',
-        model_path=None,
+        model_path='/Users/puyuan/code/DI-engine/data_ez_ptree/gomoku_1pl_efficientzero_seed0/ckpt/ckpt_best.pth.tar',
+        # model_path=None,
 
         env_name='conv_res',
         # TODO(pu): how to pass into game_config, which is class, not a dict
