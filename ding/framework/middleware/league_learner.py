@@ -14,6 +14,7 @@ from ding.league.player import PlayerMeta
 from ding.utils import DistributedWriter
 from ding.utils.sparse_logging import log_every_sec
 from ding.worker.learner.base_learner import BaseLearner
+from ding.torch_utils import to_device
 
 if TYPE_CHECKING:
     from ding.policy import Policy
@@ -85,8 +86,11 @@ class LeagueLearnerCommunicator:
                 PlayerMeta(player_id=self.player_id, checkpoint=storage, total_agent_step=ctx.train_iter)
             )
 
+            _state_dict = self.policy.state_dict()
+            if self.cfg.actor_cuda is False:
+                _state_dict = to_device(_state_dict, 'cpu')
             learner_model = LearnerModel(
-                player_id=self.player_id, state_dict=self.policy.state_dict(), train_iter=ctx.train_iter
+                player_id=self.player_id, state_dict=_state_dict, train_iter=ctx.train_iter
             )
             task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
 

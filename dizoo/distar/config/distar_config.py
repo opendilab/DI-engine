@@ -2,6 +2,7 @@ from easydict import EasyDict
 
 distar_cfg = EasyDict(
     {
+        'actor_cuda': False,
         'env': {
             'manager': {
                 'episode_num': 100000,
