@@ -62,7 +62,7 @@ class LeagueLearnerCommunicator:
         # log_every_sec(logging.INFO, 5, "[Learner {}] pour data into the ctx".format(task.router.node_id))
         ctx.trajectories = list(self._cache)
         if ctx.train_iter > self.last_train_iter:
-            self.last_train_iter == ctx.train_iter
+            self.last_train_iter = ctx.train_iter
             logging.info(
                 '[Learner {}] cache size is {}, train_iter is {}'.format(
                     task.router.node_id, len(self._cache), ctx.train_iter
