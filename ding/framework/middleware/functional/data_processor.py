@@ -42,6 +42,8 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         if last_push_time == None:
             last_push_time = time.time()
 
+        before_push_buffer_size = buffer_.count()
+
         if ctx.trajectories is not None:  # each data in buffer is a transition
             if group_by_env:
                 for i, t in enumerate(ctx.trajectories):
@@ -66,12 +68,15 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         elif total_pushed_traj > last_pushed_traj:
             last_pushed_traj = total_pushed_traj
             logging.info(
-                "[Learner {}] pushing speed is {} traj/s, pushed {} traj in total, current buffer size is {}".format(
-                    task.router.node_id, total_pushed_traj / total_push_time, total_pushed_traj, buffer_.count()
+                "[Learner {}] pushing speed is {} traj/s, pushed {} traj in total. Before push, buffer size is {}, after push, buffer size is {}"
+                .format(
+                    task.router.node_id, total_pushed_traj / total_push_time, total_pushed_traj,
+                    before_push_buffer_size, buffer_.count()
                 )
             )
             writer.add_scalar("pushing_speed_traj/s-traj", total_pushed_traj / total_push_time, total_pushed_traj)
-            writer.add_scalar('buffer_size', buffer_.count(), total_pushed_traj)
+            writer.add_scalar('before_push-buffer_size', before_push_buffer_size, total_pushed_traj)
+            writer.add_scalar('after_push-buffer_size', buffer_.count(), total_pushed_traj)
 
     return _push
 
@@ -95,6 +100,7 @@ def offpolicy_data_fetcher(
             For each key-value pair of dict, batch_size of data will be sampled from the corresponding buffer \
             and assigned to the same key of `ctx.train_data`.
     """
+    writer = DistributedWriter.get_instance()
 
     def _fetch(ctx: "OnlineRLContext"):
         """
@@ -148,6 +154,8 @@ def offpolicy_data_fetcher(
             )
             ctx.train_data = None
             return
+        logging.info("[Learner {}] after sample, buffer size is {}".format(task.router.node_id, buffer_.count()))
+        writer.add_scalar("after_sample-buffer_size", buffer_.count(), ctx.train_iter)
 
         yield
 

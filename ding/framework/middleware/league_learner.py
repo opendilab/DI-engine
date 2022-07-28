@@ -11,12 +11,13 @@ from ding.framework import task, EventEnum
 from ding.framework.middleware import OffPolicyLearner, CkptSaver, data_pusher
 from ding.framework.storage import Storage, FileStorage
 from ding.league.player import PlayerMeta
+from ding.utils import DistributedWriter
 from ding.utils.sparse_logging import log_every_sec
 from ding.worker.learner.base_learner import BaseLearner
 
 if TYPE_CHECKING:
     from ding.policy import Policy
-    from ding.framework import Context
+    from ding.framework import Context, BattleContext
     from ding.framework.middleware.league_actor import ActorData
     from ding.league import ActivePlayer
 
@@ -41,6 +42,9 @@ class LeagueLearnerCommunicator:
             os.makedirs(self.prefix)
         task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
 
+        self._writer = DistributedWriter.get_instance()
+        self.last_train_iter = 0
+
     def _push_data(self, data: "ActorData"):
         log_every_sec(
             logging.INFO, 5,
@@ -54,11 +58,19 @@ class LeagueLearnerCommunicator:
         # else:
         #     self._cache.append(data.train_data)
 
-    def __call__(self, ctx: "Context"):
+    def __call__(self, ctx: "BattleContext"):
         # log_every_sec(logging.INFO, 5, "[Learner {}] pour data into the ctx".format(task.router.node_id))
         ctx.trajectories = list(self._cache)
+        if ctx.train_iter > self.last_train_iter:
+            self.last_train_iter == ctx.train_iter
+            logging.info(
+                '[Learner {}] cache size is {}, train_iter is {}'.format(
+                    task.router.node_id, len(self._cache), ctx.train_iter
+                )
+            )
+            self._writer.add_scalar("cache_length-train_iter", len(self._cache), ctx.train_iter)
         self._cache.clear()
-        sleep(0.005)
+        sleep(0.0001)
         yield
         log_every_sec(logging.INFO, 20, "[Learner {}] ctx.train_iter {}".format(task.router.node_id, ctx.train_iter))
         self.player.total_agent_step = ctx.train_iter
