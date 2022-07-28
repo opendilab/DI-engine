@@ -86,8 +86,7 @@ class OffPolicyLearner:
             logging.info(
                 "[Learner {}] total epoch speed is {} iter/s, current epoch speed is {} iter/s, total_training speed is {} iter/s, current training speed is {} iter/s"
                 .format(
-                    task.router.node_id, 
-                    ctx.train_iter / self.total_iter_time,
+                    task.router.node_id, ctx.train_iter / self.total_iter_time,
                     (ctx.train_iter - self.last_train_iter) / current_iter_time,
                     ctx.train_iter / self.total_trainning_time,
                     (ctx.train_iter - self.last_train_iter) / (finish_iter_time - begin_trainning_time)
@@ -101,7 +100,8 @@ class OffPolicyLearner:
                 (ctx.train_iter - self.last_train_iter) / current_iter_time, ctx.train_iter
             )
             self._writer.add_scalar(
-                "total_trainning_speed____train_iter/s-train_iter", ctx.train_iter / self.total_trainning_time
+                "total_trainning_speed____train_iter/s-train_iter", 
+                ctx.train_iter / self.total_trainning_time, ctx.train_iter
             )
             self._writer.add_scalar(
                 "current_trainning_speed____train_iter/s-train_iter",
