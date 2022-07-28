@@ -953,17 +953,21 @@ class GameBuffer(Buffer):
                                 cpp mcts
                                 """
                                 # for one_player atari games
-                                # sum_visits = sum(distributions)
-                                # policy = [visit_count / sum_visits for visit_count in distributions]
-                                # target_policies.append(policy)
-                                target_policies.append(distributions)
+                                # TODO(pu): very important
+                                sum_visits = sum(distributions)
+                                policy = [visit_count / sum_visits for visit_count in distributions]
+                                target_policies.append(policy)
+                                # target_policies.append(distributions)
                             else:
                                 """
                                 python mcts
                                 """
                                 if to_play_history[0][0] is None:
-                                    # for one_player atari games
-                                    target_policies.append(distributions)
+                                    # TODO(pu): very important
+                                    sum_visits = sum(distributions)
+                                    policy = [visit_count / sum_visits for visit_count in distributions]
+                                    target_policies.append(policy)
+                                    # target_policies.append(distributions)
                                 else:
                                     # for two_player board games
                                     policy_tmp = [0 for _ in range(self.config.action_space_size)]
@@ -1036,7 +1040,7 @@ class GameBuffer(Buffer):
                     if current_index < traj_len:
                         # target_policies.append(child_visit[current_index])
                         policy_mask.append(1)
-
+                        # already is a distribution
                         distributions = child_visit[current_index]
                         if self.config.mcts_ctree:
                             """

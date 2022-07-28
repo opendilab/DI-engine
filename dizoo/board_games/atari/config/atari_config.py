@@ -4,8 +4,8 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 game_config = EasyDict(dict(
     env_name='PongNoFrameskip-v4',
     model_type='atari',
-    # device='cuda',
-    device='cpu',
+    device='cuda',
+    # device='cpu',
     # if mcts_ctree=True, using cpp mcts code
     mcts_ctree=True,
     # mcts_ctree=False,
@@ -33,12 +33,14 @@ game_config = EasyDict(dict(
     # evaluator_env_num=1,
     # max_episode_steps=int(1e4),
     # test_max_episode_steps=int(1e4),
-    # num_simulations=8,
+    # num_simulations=6,
     # batch_size=4,
     # game_history_length=20,
     # total_transitions=int(1e5),
     # num_unroll_steps=5,
     # td_steps=5,
+    # lstm_hidden_size=512,
+    # lstm_horizon_len=5,
 
     collector_env_num=1,
     evaluator_env_num=3,
@@ -51,6 +53,11 @@ game_config = EasyDict(dict(
     total_transitions=int(1e5),
     num_unroll_steps=5,
     td_steps=5,
+    # lstm_hidden_size=512,  # default config in EZ original repo
+    lstm_hidden_size=256,  # for time efficiency
+    lstm_horizon_len=5,
+    # channels=64,  # Number of channels in the ResNet, config in EZ original repo
+    channels=32,  # Number of channels in the ResNet, for time efficiency
 
     # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
@@ -65,7 +72,7 @@ game_config = EasyDict(dict(
 
     # TODO(pu): only used for adjust temperature manually
     max_training_steps=int(1e5),
-    auto_temperature=True,
+    auto_temperature=False,
     # only effective when auto_temperature=False
     fixed_temperature_value=0.25,
     # TODO(pu): whether to use root value in reanalyzing?
@@ -120,10 +127,7 @@ game_config = EasyDict(dict(
     value_loss_coeff=0.25,
     policy_loss_coeff=1,
     consistency_coeff=2,
-    # reward sum
-    # lstm_hidden_size=512,  # default config in EZ original repo
-    lstm_hidden_size=256,  # for time efficiency
-    lstm_horizon_len=5,
+
     # siamese
     proj_hid=1024,
     proj_out=1024,
@@ -132,8 +136,6 @@ game_config = EasyDict(dict(
 
     bn_mt=0.1,
     blocks=1,  # Number of blocks in the ResNet
-    # channels=64,  # Number of channels in the ResNet, config in EZ original repo
-    channels=32,  # Number of channels in the ResNet, for time efficiency
 
     reduced_channels_reward=16,  # x36 Number of channels in reward head
     reduced_channels_value=16,  # x36 Number of channels in value head

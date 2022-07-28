@@ -10,7 +10,7 @@ evaluator_env_num = 3
 board_size = 6  # default_size is 15
 
 gomoku_efficientzero_config = dict(
-    exp_name='data_ez_ptree/gomoku_2pl_efficientzero_seed0_debug',
+    exp_name='data_ez_ptree/gomoku_1pl_efficientzero_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -19,12 +19,13 @@ gomoku_efficientzero_config = dict(
         # 'one_player_mode' when eval, 'two_player_mode' when collect
         # automatically assign in tictactoe env
         board_size=board_size,  # default_size is 15
-        battle_mode='two_player_mode',
-        # battle_mode='one_player_mode',
+        # battle_mode='two_player_mode',
+        battle_mode='one_player_mode',
     ),
     policy=dict(
         # pretrained model
-        model_path='/Users/puyuan/code/DI-engine/data_ez_ptree/gomoku_2pl_efficientzero_seed0/ckpt/ckpt_best.pth.tar',
+        # model_path='/Users/puyuan/code/DI-engine/data_ez_ptree/gomoku_2pl_efficientzero_seed0/ckpt/ckpt_best.pth.tar',
+        model_path=None,
 
         env_name='conv_res',
         # TODO(pu): how to pass into game_config, which is class, not a dict
@@ -77,7 +78,6 @@ gomoku_efficientzero_config = dict(
             # Get "n_sample" samples per collect.
             n_episode=collector_env_num,
         ),
-        # we only collect 10000 episode * 9 env step = 9e4 env step,
         # the eval cost is expensive, so we set eval_freq larger
         eval=dict(evaluator=dict(eval_freq=int(2e3), )),
         # command_mode config
@@ -103,7 +103,6 @@ gomoku_efficientzero_create_config = dict(
         type='gomoku',
         import_names=['dizoo.board_games.gomoku.envs.gomoku_env'],
     ),
-    # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='efficientzero'),
     collector=dict(type='episode_muzero', get_train_sample=True)

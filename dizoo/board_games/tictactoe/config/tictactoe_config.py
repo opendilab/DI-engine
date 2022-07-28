@@ -45,7 +45,7 @@ game_config = EasyDict(dict(
     # lstm_horizon_len=3,
 
     collector_env_num=8,
-    evaluator_env_num=3,
+    evaluator_env_num=5,
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=25,

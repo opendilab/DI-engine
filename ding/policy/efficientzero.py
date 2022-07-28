@@ -23,8 +23,8 @@ from ding.torch_utils import to_tensor, to_device
 from ding.model.template.efficientzero.efficientzero_base_model import scalar_transform, inverse_scalar_transform
 # TODO(pu): choose game config
 # from dizoo.board_games.atari.config.atari_config import game_config
-from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
-# from dizoo.board_games.gomoku.config.gomoku_config import game_config
+# from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
+from dizoo.board_games.gomoku.config.gomoku_config import game_config
 
 
 @POLICY_REGISTRY.register('efficientzero')

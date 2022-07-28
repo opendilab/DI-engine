@@ -8,7 +8,7 @@ from dizoo.board_games.atari.config.atari_config import game_config
 collector_env_num = 1
 evaluator_env_num = 3
 atari_efficientzero_config = dict(
-    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_ft025_upc1000_halfsizemodel_debug',
+    exp_name='data_ez_ctree/pong_efficientzero_seed0_lr0.2_ns50_ftv025_upc1000_halfsizemodel',
     # exp_name='data_ez_ptree/pong_efficientzero_seed0_lr0.2_ns50_upc200',
     env=dict(
         collector_env_num=collector_env_num,
@@ -82,9 +82,8 @@ atari_efficientzero_config = dict(
             # Get "n_sample" samples per collect.
             n_episode=collector_env_num,
         ),
-        # we only collect 100 episode * 2000 env step = 200K env step,
         # the eval cost is expensive, so we set eval_freq larger
-        eval=dict(evaluator=dict(eval_freq=int(5e3), )),
+        eval=dict(evaluator=dict(eval_freq=int(1e4), )),
         # command_mode config
         other=dict(
             # Epsilon greedy with decay.
@@ -108,8 +107,7 @@ atari_efficientzero_create_config = dict(
         type='atari-muzero',
         import_names=['dizoo.atari.envs.atari_muzero_env'],
     ),
-    env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),
+    env_manager=dict(type='base'),
     policy=dict(type='efficientzero'),
     collector=dict(type='episode_muzero', get_train_sample=True)
 )

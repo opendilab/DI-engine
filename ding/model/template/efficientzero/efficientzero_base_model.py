@@ -95,7 +95,6 @@ def scalar_transform(x, support_size, epsilon = 0.001):
 
     # delta !=1
     # output = sign * (torch.sqrt(torch.abs(x / delta) + 1) - 1) + epsilon * x / delta
-
     return output
 
 def inverse_scalar_transform(logits, support_size, epsilon=0.001):
