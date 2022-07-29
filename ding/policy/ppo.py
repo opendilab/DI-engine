@@ -167,7 +167,7 @@ class PPOPolicy(Policy):
         self._learn_model.train()
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv:   # calculate new value using the new updated value network
+            if self._recompute_adv:  # calculate new value using the new updated value network
                 with torch.no_grad():
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
                     next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
@@ -1104,7 +1104,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         self._learn_model.train()
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv:   # calculate new value using the new updated value network
+            if self._recompute_adv:  # calculate new value using the new updated value network
                 with torch.no_grad():
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
                     next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
