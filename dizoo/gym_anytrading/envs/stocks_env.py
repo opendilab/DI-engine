@@ -1,9 +1,9 @@
 from typing import Any
 import numpy as np
-from dizoo.gym_anytrading.envs.trading_env import TradingEnv, Actions, Positions
+from dizoo.gym_anytrading.envs.trading_env import TradingEnv, Actions, Positions, load_dataset
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
-
+from copy import deepcopy
 
 @ENV_REGISTRY.register('stocks-v0')
 class StocksEnv(TradingEnv):
@@ -12,6 +12,14 @@ class StocksEnv(TradingEnv):
 
         super().__init__(cfg)
 
+        # ====== load Google stocks data =======
+        STOCKS_GOOGL = load_dataset('STOCKS_GOOGL', 'Date')
+        self.raw_prices = deepcopy(STOCKS_GOOGL).loc[:, 'Close'].to_numpy()
+        EPS = 1e-10
+        self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)  # normalize
+        # ======================================
+
+        # set cost
         self.trade_fee_bid_percent = 0.01  # unit
         self.trade_fee_ask_percent = 0.005  # unit
 

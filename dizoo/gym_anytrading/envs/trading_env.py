@@ -10,7 +10,6 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 import os
 import pandas as pd
-from copy import deepcopy
 from ding.torch_utils import to_ndarray
 from easydict import EasyDict
 
@@ -18,6 +17,8 @@ from easydict import EasyDict
 def load_dataset(name, index_name):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(base_dir, 'data', name + '.csv')
+    assert os.path.exists(path), "You need to put the stock data under the \'DI-engine/dizoo/gym_anytrading/envs/data\' folder.\n \
+     if using StocksEnv, you can download Google stocks data at https://github.com/AminHP/gym-anytrading/blob/master/gym_anytrading/datasets/data/STOCKS_GOOGL.csv"
     df = pd.read_csv(path, parse_dates=True, index_col=index_name)
     return df
 
@@ -91,11 +92,6 @@ class TradingEnv(BaseEnv):
         else:
             self.save_path = self._cfg.save_path
         #================================
-
-        STOCKS_GOOGL = load_dataset('STOCKS_GOOGL', 'Date')
-        self.raw_prices = deepcopy(STOCKS_GOOGL).loc[:, 'Close'].to_numpy()
-        EPS = 1e-10
-        self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)  # normalize
 
         self.window_size = cfg.window_size
         self.prices = None

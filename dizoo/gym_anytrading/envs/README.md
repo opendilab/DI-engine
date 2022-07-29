@@ -78,7 +78,7 @@ Comparing the objective function ($\mathbb{E}_{\tau}\sum\ r$) in reinforcement l
 so that maximize $\mathbb{E}_{\tau} \sum r$ 
 is equivalent to maximize $\mathbb{E}_{\tau}[\prod_{buying\ long}(r_{curr}/r_{pre}\ *\ cost) + \prod_{short\ selling}((2-r_{curr}/r_{pre})\ *\ cost)]$
 
-The experimental results show that such a defination is better than the original gym-anytrading reward funnction :$\sum(r_{curr} - r_{pre})$.
+The experimental results show that such a defination is better than the original gym-anytrading accumulated reward function :$\sum(r_{curr} - r_{pre})$.
 ### Render Function
 
 - As you see, you can use `render` method to plot the position and profit at one eposide.
