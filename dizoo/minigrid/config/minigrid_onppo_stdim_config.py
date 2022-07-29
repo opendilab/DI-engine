@@ -7,8 +7,10 @@ minigrid_ppo_stdim_config = dict(
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
-        # minigrid env id: 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'
+        n_evaluator_episode=evaluator_env_num,
+        # MiniGrid env_id choices={'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0',\
+        # 'MiniGrid-DoorKey-8x8-v0', 'MiniGrid-DoorKey-16x16-v0', ...}, please refer to\
+        # https://github.com/Farama-Foundation/gym-minigrid for details.
         env_id='MiniGrid-Empty-8x8-v0',
         max_step=300,
         stop_value=0.96,

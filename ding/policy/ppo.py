@@ -167,7 +167,7 @@ class PPOPolicy(Policy):
         self._learn_model.train()
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv:  # new v network compute new value
+            if self._recompute_adv:   # calculate new value using the new updated value network
                 with torch.no_grad():
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
                     next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
@@ -765,7 +765,7 @@ class PPOOffPolicy(Policy):
             if self._adv_norm:
                 # Normalize advantage in a total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-            # Calculate ppo error
+            # Calculate ppo loss
             ppodata = ppo_data(
                 output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
                 data['weight']
@@ -781,7 +781,7 @@ class PPOOffPolicy(Policy):
                 # Normalize advantage in a total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
-            # Calculate ppo error
+            # Calculate ppo loss
             ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
             ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
             wv, we = self._value_weight, self._entropy_weight
@@ -958,7 +958,7 @@ class PPOOffPolicy(Policy):
 
 @POLICY_REGISTRY.register('ppo_stdim')
 class PPOSTDIMPolicy(PPOPolicy):
-    r"""
+    """
     Overview:
         Policy class of on policy version PPO algorithm with ST-DIM auxiliary model.
     """
@@ -1035,7 +1035,7 @@ class PPOSTDIMPolicy(PPOPolicy):
     )
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
             Learn mode init method. Called by ``self.__init__``.
             Init the auxiliary model, its optimizer, and the axuliary loss weight to the main loss.
@@ -1049,7 +1049,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         self._aux_loss_weight = self._cfg.aux_loss_weight
 
     def _get_encoding_size(self):
-        r"""
+        """
         Overview:
             Get the input encoding size of the ST-DIM axuiliary model.
         Returns:
@@ -1069,7 +1069,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         return x.size()[1:], y.size()[1:]
 
     def _model_encode(self, data):
-        r"""
+        """
         Overview:
             Get the encoding of the stdim model.
         Arguments:
@@ -1084,7 +1084,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         return x, y
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        r"""
+        """
         Overview:
             Forward and backward function of learn mode.
         Arguments:
@@ -1104,7 +1104,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         self._learn_model.train()
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv:  # new v network compute new value
+            if self._recompute_adv:   # calculate new value using the new updated value network
                 with torch.no_grad():
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
                     next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
@@ -1144,6 +1144,7 @@ class PPOSTDIMPolicy(PPOPolicy):
                 with torch.no_grad():
                     x_no_grad, y_no_grad = self._model_encode(batch)
                 # the forward function of the auxiliary network
+                self._aux_model.train()
                 aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
                 # the BP process of the auxiliary network
                 self._aux_optimizer.zero_grad()
@@ -1158,7 +1159,7 @@ class PPOSTDIMPolicy(PPOPolicy):
                     # Normalize advantage in a train_batch
                     adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
-                # Calculate ppo error
+                # Calculate ppo loss
                 if self._action_space == 'continuous':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
@@ -1180,6 +1181,7 @@ class PPOSTDIMPolicy(PPOPolicy):
                 # The auxiliary network won't be updated since the self._optimizer does not contain
                 # its weights.
                 x, y = self._model_encode(data)
+                self._aux_model.eval()
                 aux_loss_eval = self._aux_model.forward(x, y) * self._aux_loss_weight
 
                 wv, we = self._value_weight, self._entropy_weight
