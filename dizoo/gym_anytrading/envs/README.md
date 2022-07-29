@@ -16,7 +16,7 @@ We use a state machine to describe how the TradingEnv interact with agent as wel
 
 As shown below, the state machine use three kinds of trading positions and five (action "Hold" does not shown) kinds of trading actions to describe how the transaction goes over time.
 
-![state machine](./statemachine.jpg)
+![state machine](./statemachine.png)
 
 ### Trading Positions
 
