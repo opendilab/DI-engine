@@ -5,6 +5,7 @@ import time
 import traceback
 from mpire.pool import WorkerPool
 import pickle
+import io
 from ditk import logging
 import tempfile
 import socket
@@ -15,9 +16,19 @@ from ding.framework.event_loop import EventLoop
 from ding.utils.design_helper import SingletonMetaclass
 from ding.framework.message_queue import *
 from ding.utils.registry_factory import MQ_REGISTRY
+import torch
 
 # Avoid ipc address conflict, random should always use random seed
 random = random.Random()
+
+
+class CPU_Unpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        if module == 'torch.storage' and name == '_load_from_bytes':
+            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
+        else:
+            return super().find_class(module, name)
 
 
 class Parallel(metaclass=SingletonMetaclass):
@@ -341,7 +352,10 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             logging.debug("Event {} was not listened in parallel {}".format(event, self.node_id))
             return
         try:
-            payload = pickle.loads(msg)
+            if not torch.cuda.is_available():
+                payload = CPU_Unpickler(msg).load()
+            else:
+                payload = pickle.loads(msg)
         except Exception as e:
             logging.error("Error when unpacking message on node {}, msg: {}".format(self.node_id, e))
             return
