@@ -30,6 +30,11 @@ class CPU_Unpickler(pickle.Unpickler):
         else:
             return super().find_class(module, name)
 
+def cpu_loads(x):
+    bs = io.BytesIO(x)
+    unpickler = CPU_Unpickler(bs)
+    return unpickler.load()
+
 
 class Parallel(metaclass=SingletonMetaclass):
 
@@ -353,7 +358,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             return
         try:
             if not torch.cuda.is_available():
-                payload = CPU_Unpickler(msg).load()
+                payload = cpu_loads(msg)
             else:
                 payload = pickle.loads(msg)
         except Exception as e:
