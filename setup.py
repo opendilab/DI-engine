@@ -91,6 +91,7 @@ setup(
     ],
     extras_require={
         'test': [
+            'opencv-python',
             'coverage>=5',
             'mock>=4.0.3',
             'pytest~=6.2.5',
@@ -102,7 +103,7 @@ setup(
         ],
         'style': [
             'yapf==0.29.0',
-            'flake8',
+            'flake8<=3.9.2',
         ],
         'fast': [
             'numpy-stl',

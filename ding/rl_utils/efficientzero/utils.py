@@ -3,7 +3,6 @@ The following code is adapted from https://github.com/YeWR/EfficientZero/core/ut
 """
 
 import os
-import cv2
 import gym
 import torch
 import random
