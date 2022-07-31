@@ -34,7 +34,7 @@ Reinforcement learning environments have some common major interfaces that are i
 
 2. ``seed()``
 
-   ``seed`` is used to set the random seed in the environment. There are two types of the random seed in the environment that need to be set, one is the random seed of the **original environment**, the other is the library seeds (e.g. ``random`` ``np.random``, etc.) in various **environment transformations**.
+   ``seed`` is used to set the random seed in the environment. There are two types of the random seed in the environment that need to be set, one is the random seed of the **original environment**, the other is the library seeds (e.g. ``random`` , ``np.random``, etc.) in various **environment transformations**.
 
    For the second type, the setting of the seed of the random library is relatively simple, and it is set directly in the ``seed`` method of the environment.
 
@@ -87,7 +87,7 @@ Reinforcement learning environments have some common major interfaces that are i
 
    The ``step`` method is responsible for receiving the ``action`` of the current timestep, and then giving the ``reward`` of the current timestep and the ``obs`` of the next timestep. In DI-engine, you also need to give: The flag ``done`` of whether the current episode ends (here requires ``done`` must be of type ``bool``, not ``np.bool``), other information in the form of a dictionary ``info`` (which includes at least the key ``self._final_eval_reward``).
 
-   After getting ``reward`` ``obs`` ``done`` ``info`` and other data, it needs to be processed and converted into ``np.ndarray`` format to conform to the DI-engine specification. ``self._final_eval_reward`` will accumulate the actual reward obtained at the current step at each time step, and return the accumulated value at the end of an episode ( ``done == True``).
+   After getting ``reward`` , ``obs`` , ``done`` , ``info`` and other data, it needs to be processed and converted into ``np.ndarray`` format to conform to the DI-engine specification. ``self._final_eval_reward`` will accumulate the actual reward obtained at the current step at each time step, and return the accumulated value at the end of an episode ( ``done == True``).
 
    Finally, put the above four data into ``BaseEnvTimestep`` defined as ``namedtuple`` and return (defined as: ``BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done ', 'info'])`` )
    
@@ -342,7 +342,8 @@ Advanced
    - reset/step method
    - Whether there are unreasonable identical references in the observation of two adjacent time steps (that is, deepcopy should be used to avoid identical references)
    
-   The implementation of the check tool is in ``ding/envs/env/env_implementation_check.py``；for the usage of the check tool, please refer to ``ding/envs/env/tests/test_env_implementation_check.py`` 的 ``test_an_implemented_env``。
+   The implementation of the check tool is in ``ding/envs/env/env_implementation_check.py`` .
+   For the usage of the check tool, please refer to ``ding/envs/env/tests/test_env_implementation_check.py`` 's ``test_an_implemented_env``。
 
 
 
@@ -364,7 +365,7 @@ Q & A
 
    - If the environment supports both single-agent, double-agent or even multi-agent, consider different mode classifications
    - In a multi-agent environment, the number of action and observation matches the number of agents, but the reward and done are not necessarily the same. It is necessary to clarify the definition of reward
-   - Note how the original environment requires actions and observations to be combined (tuples, lists, dictionaries, stacked arrays...)
+   - Note how the original environment requires actions and observations to be combined (tuples, lists, dictionaries, stacked arrays and so on)
 
 
 2. How should the environment of the hybrid action space be migrated?

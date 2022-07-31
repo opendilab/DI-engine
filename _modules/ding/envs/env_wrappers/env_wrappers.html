@@ -275,15 +275,13 @@
 <span></span><span class="c1"># Borrow a lot from openai baselines:</span>
 <span class="c1"># https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py</span>
 
-<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
-<span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">float32</span>
-<span class="c1"># import matplotlib.pyplot as plt</span>
 
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">ENV_WRAPPER_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span>
@@ -447,6 +445,13 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - observation (:obj:`Any`): Framed observation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">cv2</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+            <span class="kn">import</span> <span class="nn">sys</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please install opencv-python first.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">frame</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2GRAY</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_AREA</span><span class="p">)</span></div></div>
 

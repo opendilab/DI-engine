@@ -47,3 +47,4 @@
    gym_soccer_zh
 
    image_cls_zh
+   sokoban_zh
