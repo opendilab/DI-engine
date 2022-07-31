@@ -73,7 +73,6 @@ setup(
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
-        'opencv-python',  # pypy incompatible
         'enum_tools',
         'scipy',
         'trueskill',
