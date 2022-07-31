@@ -378,6 +378,7 @@ class DIStarPolicy(Policy):
         self._learn_model.load_state_dict(_state_dict['model'], strict=False)
         if 'optimizer' in _state_dict:
             self.optimizer.load_state_dict(_state_dict['optimizer'])
+        del _state_dict
 
     def _load_state_dict_collect(self, _state_dict: Dict) -> None:
         #TODO(zms): need to load state_dict after collect, which is very dirty and need to rewrite
@@ -391,6 +392,7 @@ class DIStarPolicy(Policy):
         _state_dict = {k: v for k, v in _state_dict['model'].items() if 'value_networks' not in k}
 
         self._collect_model.load_state_dict(_state_dict, strict=False)
+        del _state_dict
 
     def _init_collect(self):
         self._collect_model = model_wrap(self._model, 'base')
@@ -400,6 +402,7 @@ class DIStarPolicy(Policy):
         collect_state_dict = torch.load(collect_model_path, self._device)
 
         self._load_state_dict_collect(collect_state_dict)
+        del collect_state_dict
 
         self.only_cum_action_kl = False
         self.z_path = self._cfg.z_path
@@ -422,6 +425,7 @@ class DIStarPolicy(Policy):
         teacher_state_dict = {k: v for k, v in t_state_dict['model'].items() if 'value_networks' not in k}
         self.teacher_model.load_state_dict(teacher_state_dict)
         # TODO(zms): load teacher_model's state_dict when init policy.
+        del t_state_dict
 
     def _reset_collect(self, data: Dict):
         self.exceed_loop_flag = False
