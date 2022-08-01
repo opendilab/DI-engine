@@ -211,17 +211,17 @@ class BaseLeague:
             self._writer.add_scalar(
                 battle_player + "-" + "win_rate",
                 self.payoff._data[battle_player]['wins'] / self.payoff._data[battle_player]['games'],
-                self.payoff._data[battle_player]['games']
+                self._update_times
             )
             self._writer.add_scalar(
                 battle_player + "-" + "draw_rate",
                 self.payoff._data[battle_player]['draws'] / self.payoff._data[battle_player]['games'],
-                self.payoff._data[battle_player]['games']
+                self._update_times
             )
             self._writer.add_scalar(
                 battle_player + "-" + "loss_rate",
                 self.payoff._data[battle_player]['losses'] / self.payoff._data[battle_player]['games'],
-                self.payoff._data[battle_player]['games']
+                self._update_times
             )
 
         # Update player rating

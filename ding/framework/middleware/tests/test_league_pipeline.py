@@ -78,7 +78,7 @@ def main():
     N_PLAYERS = len(league.active_players_ids)
     print("League: n_players =", N_PLAYERS)
 
-    with task.start(async_mode=True, ctx=BattleContext()),\
+    with task.start(async_mode=False, ctx=BattleContext()),\
       patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar),\
       patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
         print("node id:", task.router.node_id)
