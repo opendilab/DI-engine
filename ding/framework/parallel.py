@@ -22,7 +22,7 @@ import torch
 random = random.Random()
 
 
-class CPU_Unpickler(pickle.Unpickler):
+class CpuUnpickler(pickle.Unpickler):
 
     def find_class(self, module, name):
         if module == 'torch.storage' and name == '_load_from_bytes':
@@ -30,10 +30,19 @@ class CPU_Unpickler(pickle.Unpickler):
         else:
             return super().find_class(module, name)
 
+
 def cpu_loads(x):
     bs = io.BytesIO(x)
-    unpickler = CPU_Unpickler(bs)
+    unpickler = CpuUnpickler(bs)
     return unpickler.load()
+
+
+def my_pickle_loads(msg):
+    if not torch.cuda.is_available():
+        payload = cpu_loads(msg)
+    else:
+        payload = pickle.loads(msg)
+    return payload
 
 
 class Parallel(metaclass=SingletonMetaclass):
@@ -357,10 +366,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             logging.debug("Event {} was not listened in parallel {}".format(event, self.node_id))
             return
         try:
-            if not torch.cuda.is_available():
-                payload = cpu_loads(msg)
-            else:
-                payload = pickle.loads(msg)
+            payload = my_pickle_loads(msg)
         except Exception as e:
             logging.error("Error when unpacking message on node {}, msg: {}".format(self.node_id, e))
             return
