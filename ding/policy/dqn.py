@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import copy
-from ding.rl_utils.td import q_nstep_td_error_with_rescale, q_nstep_td_error_with_error_rescale
+from ding.rl_utils.td import q_nstep_td_error_with_rescale, q_nstep_td_error_with_error_clip
 import torch
 import numpy as np
 
@@ -191,8 +191,7 @@ class DQNPolicy(Policy):
         # Current q value (main model)
         
         q_value = self._learn_model.forward(data['obs'])['logit']
-        q_next_value = self._learn_model.forward(data['next_obs'])['logit']
-        if self._cfg.other.reward_scale.reward_scale_function == 'popart':
+        if self._cfg.learn.reward_scale.reward_scale_function == 'popart':
             W = list(self._learn_model.parameters())[10]
             b = list(self._learn_model.parameters())[11]
             W.data, b.data = self._popart_update.update(q_value, W.data, b.data)
@@ -207,12 +206,12 @@ class DQNPolicy(Policy):
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         value_gamma = data.get('value_gamma')
-        if self._cfg.other.reward_scale.reward_scale_function == 'normal':
+        if self._cfg.learn.reward_scale_function == 'normal':
             loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        elif self._cfg.other.reward_scale.reward_scale_function == 'apex':
+        elif self._cfg.learn.reward_scale_function == 'value_rescale':
             loss, td_error_per_sample = q_nstep_td_error_with_rescale(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        elif self._cfg.other.reward_scale.reward_scale_function == 'errorclip':
-            loss, td_error_per_sample = q_nstep_td_error_with_error_rescale(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        elif self._cfg.learn.reward_scale_function == 'errorclip':
+            loss, td_error_per_sample = q_nstep_td_error_with_error_clip(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
         else:
             loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
             
@@ -222,7 +221,7 @@ class DQNPolicy(Policy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._cfg.other.reward_scale.reward_scale_function == 'consgrad':
+        if self._cfg.learn.reward_scale.reward_scale_function == 'consgrad':
             grad_v_norm = self.g_v(data['next_obs'])
             for i, p in enumerate(self._learn_model.parameters()):
                 p.grad -= torch.mul(p.grad, grad_v_norm[i]) * grad_v_norm[i]
