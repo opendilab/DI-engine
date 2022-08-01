@@ -1071,7 +1071,7 @@ class PPOSTDIMPolicy(PPOPolicy):
     def _model_encode(self, data):
         """
         Overview:
-            Get the encoding of the main model as input for the auxiliary model
+            Get the encoding of the main model as input for the auxiliary model.
         Arguments:
             - data (:obj:`dict`): Dict type data, same as the _forward_learn input.
         Returns:
@@ -1230,6 +1230,6 @@ class PPOSTDIMPolicy(PPOPolicy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
         self._aux_optimizer.load_state_dict(state_dict['aux_optimizer'])
-    
+
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ["aux_loss_learn", "aux_loss_eval"]
