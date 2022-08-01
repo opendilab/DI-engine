@@ -192,7 +192,10 @@ class TradingEvalMonitor(VectorEvalMonitor):
         super().__init__(env_num, n_episode)
 
         self._each_env_episode = [n_episode // env_num for _ in range(env_num)]
-        self._max_possible_profit = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(self._each_env_episode)}
+        self._max_possible_profit = {
+            env_id: deque(maxlen=maxlen)
+            for env_id, maxlen in enumerate(self._each_env_episode)
+        }
 
     def update_max_profit(self, env_id: int, max_profit: Any) -> None:
         """

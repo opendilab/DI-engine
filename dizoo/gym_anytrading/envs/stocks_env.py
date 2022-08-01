@@ -6,6 +6,7 @@ from dizoo.gym_anytrading.envs.trading_env import TradingEnv, Actions, Positions
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
 
+
 @ENV_REGISTRY.register('stocks-v0')
 class StocksEnv(TradingEnv):
 
