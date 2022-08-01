@@ -279,7 +279,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Independent</span><span class="p">,</span> <span class="n">Normal</span>
 
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span><span class="p">,</span> <span class="n">unsqueeze</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span><span class="p">,</span> <span class="n">unsqueeze</span><span class="p">,</span> <span class="n">ContrastiveLoss</span>
 <span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">ppo_data</span><span class="p">,</span> <span class="n">ppo_error</span><span class="p">,</span> <span class="n">ppo_policy_error</span><span class="p">,</span> <span class="n">ppo_policy_data</span><span class="p">,</span> <span class="n">get_gae_with_default_last_value</span><span class="p">,</span> \
     <span class="n">v_nstep_td_data</span><span class="p">,</span> <span class="n">v_nstep_td_error</span><span class="p">,</span> <span class="n">get_nstep_return_data</span><span class="p">,</span> <span class="n">get_train_sample</span><span class="p">,</span> <span class="n">gae</span><span class="p">,</span> <span class="n">gae_data</span><span class="p">,</span> <span class="n">ppo_error_continuous</span><span class="p">,</span> \
     <span class="n">get_gae</span>
@@ -441,7 +441,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">epoch_per_collect</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recompute_adv</span><span class="p">:</span>  <span class="c1"># new v network compute new value</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recompute_adv</span><span class="p">:</span>  <span class="c1"># calculate new value using the new updated value network</span>
                 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
                     <span class="n">next_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
@@ -1039,7 +1039,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adv_norm</span><span class="p">:</span>
                 <span class="c1"># Normalize advantage in a total train_batch</span>
                 <span class="n">adv</span> <span class="o">=</span> <span class="p">(</span><span class="n">adv</span> <span class="o">-</span> <span class="n">adv</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">adv</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
-            <span class="c1"># Calculate ppo error</span>
+            <span class="c1"># Calculate ppo loss</span>
             <span class="n">ppodata</span> <span class="o">=</span> <span class="n">ppo_data</span><span class="p">(</span>
                 <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">adv</span><span class="p">,</span> <span class="n">return_</span><span class="p">,</span>
                 <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
@@ -1055,7 +1055,7 @@
                 <span class="c1"># Normalize advantage in a total train_batch</span>
                 <span class="n">adv</span> <span class="o">=</span> <span class="p">(</span><span class="n">adv</span> <span class="o">-</span> <span class="n">adv</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">adv</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
 
-            <span class="c1"># Calculate ppo error</span>
+            <span class="c1"># Calculate ppo loss</span>
             <span class="n">ppodata</span> <span class="o">=</span> <span class="n">ppo_policy_data</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">adv</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
             <span class="n">ppo_policy_loss</span><span class="p">,</span> <span class="n">ppo_info</span> <span class="o">=</span> <span class="n">ppo_policy_error</span><span class="p">(</span><span class="n">ppodata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_ratio</span><span class="p">)</span>
             <span class="n">wv</span><span class="p">,</span> <span class="n">we</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_weight</span>
@@ -1228,6 +1228,285 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_monitor_vars_learn</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
             <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;value_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;adv_abs_max&#39;</span><span class="p">,</span> <span class="s1">&#39;approx_kl&#39;</span><span class="p">,</span> <span class="s1">&#39;clipfrac&#39;</span>
         <span class="p">]</span>
+
+
+<span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;ppo_stdim&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">PPOSTDIMPolicy</span><span class="p">(</span><span class="n">PPOPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy class of on policy version PPO algorithm with ST-DIM auxiliary model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ppo_stdim&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use cuda for network.</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use priority(priority sample, IS weight, update priority)</span>
+        <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use Importance Sampling Weight to correct biased update due to priority.</span>
+        <span class="c1"># If True, priority must be True.</span>
+        <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to recompurete advantages in each iteration of on-policy PPO</span>
+        <span class="n">recompute_adv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (str) Which kind of action space used in PPOPolicy, [&#39;discrete&#39;, &#39;continuous&#39;]</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use nstep return to calculate value target, otherwise, use return = adv + value</span>
+        <span class="n">nstep_return</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to enable multi-agent training, i.e.: MAPPO</span>
+        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">aux_model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) the encoding size (of each head) to apply contrastive loss.</span>
+            <span class="n">encode_shape</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="c1"># ([int, int]) the heads number of the obs encoding and next_obs encoding respectively.</span>
+            <span class="n">heads</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="c1"># (str) the contrastive loss type.</span>
+            <span class="n">loss_type</span><span class="o">=</span><span class="s1">&#39;infonce&#39;</span><span class="p">,</span>
+            <span class="c1"># (float) a parameter to adjust the polarity between positive and negative samples.</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (bool) Whether to use multi gpu</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs is algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (float) The loss weight of value network, policy network weight is set to 1</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="c1"># (float) The loss weight of entropy regularization, policy network weight is set to 1</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="c1"># (float) PPO clip ratio, defaults to 0.2</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether to use advantage norm in a whole training batch</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">value_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ppo_param_init</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">grad_clip_type</span><span class="o">=</span><span class="s1">&#39;clip_norm&#39;</span><span class="p">,</span>
+            <span class="n">grad_clip_value</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) Only one of [n_sample, n_episode] shoule be set</span>
+            <span class="c1"># n_sample=64,</span>
+            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs is algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (float) Reward&#39;s future discount factor, aka. gamma.</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="c1"># (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)</span>
+            <span class="n">gae_lambda</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+        <span class="n">aux_loss_weight</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
+<span class="sd">            Init the auxiliary model, its optimizer, and the axuliary loss weight to the main loss.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_init_learn</span><span class="p">()</span>
+        <span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_encoding_size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span> <span class="o">=</span> <span class="n">ContrastiveLoss</span><span class="p">(</span><span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">aux_model</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_loss_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">aux_loss_weight</span>
+
+    <span class="k">def</span> <span class="nf">_get_encoding_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the input encoding size of the ST-DIM axuiliary model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info_dict (:obj:`[Tuple, Tuple]`): The encoding size without the first (Batch) dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">obs_shape</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="p">]</span>
+        <span class="n">test_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;obs&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">obs</span><span class="p">),</span>
+            <span class="s2">&quot;next_obs&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">obs</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">test_data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">test_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_encode</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">def</span> <span class="nf">_model_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the encoding of the main model as input for the auxiliary model.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`dict`): Dict type data, same as the _forward_learn input.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - (:obj:`Tuple[Tensor]`): the tuple of two tensors to apply contrastive embedding learning.</span>
+<span class="sd">                In ST-DIM algorithm, these two variables are the dqn encoding of `obs` and `next_obs`\</span>
+<span class="sd">                respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="s2">&quot;encoder&quot;</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;obs&quot;</span><span class="p">])</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;next_obs&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Forward and backward function of learn mode.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`dict`): Dict type data</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`):</span>
+<span class="sd">              Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \</span>
+<span class="sd">                        adv_abs_max, approx_kl, clipfrac</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_done</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span><span class="p">,</span> <span class="n">use_nstep</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="c1"># ====================</span>
+        <span class="c1"># PPO forward</span>
+        <span class="c1"># ====================</span>
+        <span class="n">return_infos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">epoch_per_collect</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recompute_adv</span><span class="p">:</span>  <span class="c1"># calculate new value using the new updated value network</span>
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                    <span class="n">next_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                        <span class="n">next_value</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+
+                    <span class="n">traj_flag</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;traj_flag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># traj_flag indicates termination of trajectory</span>
+                    <span class="n">compute_adv_data</span> <span class="o">=</span> <span class="n">gae_data</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">next_value</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">],</span> <span class="n">traj_flag</span><span class="p">)</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gae</span><span class="p">(</span><span class="n">compute_adv_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span><span class="p">)</span>
+
+                    <span class="n">unnormalized_returns</span> <span class="o">=</span> <span class="n">value</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unnormalized_returns</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">unnormalized_returns</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unnormalized_returns</span>
+
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># don&#39;t recompute adv</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+                    <span class="n">unnormalized_return</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unnormalized_return</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">unnormalized_return</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">split_data_generator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="c1"># ======================</span>
+                <span class="c1"># Auxiliary model update</span>
+                <span class="c1"># ======================</span>
+
+                <span class="c1"># RL network encoding</span>
+                <span class="c1"># To train the auxiliary network, the gradients of x, y should be 0.</span>
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                    <span class="n">x_no_grad</span><span class="p">,</span> <span class="n">y_no_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_encode</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+                <span class="c1"># the forward function of the auxiliary network</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+                <span class="n">aux_loss_learn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x_no_grad</span><span class="p">,</span> <span class="n">y_no_grad</span><span class="p">)</span>
+                <span class="c1"># the BP process of the auxiliary network</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">aux_loss_learn</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+                <span class="n">adv</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adv_norm</span><span class="p">:</span>
+                    <span class="c1"># Normalize advantage in a train_batch</span>
+                    <span class="n">adv</span> <span class="o">=</span> <span class="p">(</span><span class="n">adv</span> <span class="o">-</span> <span class="n">adv</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">adv</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
+
+                <span class="c1"># Calculate ppo loss</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+                    <span class="n">ppo_batch</span> <span class="o">=</span> <span class="n">ppo_data</span><span class="p">(</span>
+                        <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">adv</span><span class="p">,</span>
+                        <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">ppo_loss</span><span class="p">,</span> <span class="n">ppo_info</span> <span class="o">=</span> <span class="n">ppo_error_continuous</span><span class="p">(</span><span class="n">ppo_batch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_ratio</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
+                    <span class="n">ppo_batch</span> <span class="o">=</span> <span class="n">ppo_data</span><span class="p">(</span>
+                        <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">adv</span><span class="p">,</span>
+                        <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">ppo_loss</span><span class="p">,</span> <span class="n">ppo_info</span> <span class="o">=</span> <span class="n">ppo_error</span><span class="p">(</span><span class="n">ppo_batch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_ratio</span><span class="p">)</span>
+
+                <span class="c1"># ======================</span>
+                <span class="c1"># Compute auxiliary loss</span>
+                <span class="c1"># ======================</span>
+
+                <span class="c1"># In total_loss BP, the gradients of x, y are required to update the encoding network.</span>
+                <span class="c1"># The auxiliary network won&#39;t be updated since the self._optimizer does not contain</span>
+                <span class="c1"># its weights.</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_encode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                <span class="n">aux_loss_eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_loss_weight</span>
+
+                <span class="n">wv</span><span class="p">,</span> <span class="n">we</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_weight</span>
+                <span class="n">total_loss</span> <span class="o">=</span> <span class="n">ppo_loss</span><span class="o">.</span><span class="n">policy_loss</span> <span class="o">+</span> <span class="n">wv</span> <span class="o">*</span> <span class="n">ppo_loss</span><span class="o">.</span><span class="n">value_loss</span> <span class="o">-</span> <span class="n">we</span> <span class="o">*</span> <span class="n">ppo_loss</span><span class="o">.</span><span class="n">entropy_loss</span>\
+                    <span class="o">+</span> <span class="n">aux_loss_eval</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+                <span class="n">return_info</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;cur_lr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;total_loss&#39;</span><span class="p">:</span> <span class="n">total_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;aux_loss_learn&#39;</span><span class="p">:</span> <span class="n">aux_loss_learn</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;aux_loss_eval&#39;</span><span class="p">:</span> <span class="n">aux_loss_eval</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;policy_loss&#39;</span><span class="p">:</span> <span class="n">ppo_loss</span><span class="o">.</span><span class="n">policy_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;value_loss&#39;</span><span class="p">:</span> <span class="n">ppo_loss</span><span class="o">.</span><span class="n">value_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;entropy_loss&#39;</span><span class="p">:</span> <span class="n">ppo_loss</span><span class="o">.</span><span class="n">entropy_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;adv_max&#39;</span><span class="p">:</span> <span class="n">adv</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;adv_mean&#39;</span><span class="p">:</span> <span class="n">adv</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;value_mean&#39;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;value_max&#39;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                    <span class="s1">&#39;approx_kl&#39;</span><span class="p">:</span> <span class="n">ppo_info</span><span class="o">.</span><span class="n">approx_kl</span><span class="p">,</span>
+                    <span class="s1">&#39;clipfrac&#39;</span><span class="p">:</span> <span class="n">ppo_info</span><span class="o">.</span><span class="n">clipfrac</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+                    <span class="n">return_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;act&#39;</span><span class="p">:</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                            <span class="s1">&#39;mu_mean&#39;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="s1">&#39;mu&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                            <span class="s1">&#39;sigma_mean&#39;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="s1">&#39;sigma&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+                <span class="n">return_infos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">return_info</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">return_infos</span>
+
+    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;aux_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;aux_optimizer&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_monitor_vars_learn</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;aux_loss_learn&quot;</span><span class="p">,</span> <span class="s2">&quot;aux_loss_eval&quot;</span><span class="p">]</span>
 </pre></div>
 
               </article>

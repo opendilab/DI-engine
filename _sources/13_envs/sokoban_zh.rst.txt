@@ -97,7 +97,7 @@ Sokoban 是一种离散动作空间环境。在该游戏中，智能体需要在
 终止条件
 ----
 
--  所有箱子都推到目标点上，或者行动步数到达最大步数 max_step ，则当前环境 episode 结束。默认 max_step 为 120 步。
+-  所有箱子都推到目标点上，或者行动步数到达最大步数 max_step ，则当前环境 episode 结束。默认 max_step 为 120 步，可在 config 中调节。
 
 
 内置环境
@@ -136,3 +136,25 @@ Sokoban 是一种离散动作空间环境。在该游戏中，智能体需要在
 -  环境内部的具体实现：对于原始环境的种子，在调用环境的\ ``reset``\ 方法内部，具体的原始环境\ ``reset``\ 之前设置
 
 -  环境内部的具体实现：对于随机库种子，则在环境的\ ``seed``\ 方法中直接设置该值
+
+
+存储录像
+--------
+
+在环境创建之后，重置之前，调用\ ``enable_save_replay``\ 方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用\ ``gym.wrapper.Monitor``\ 实现，依赖\ ``ffmpeg``\ ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在形如\ ``./video/xxx.mp4``\ 这样的文件中：
+
+.. code:: python
+
+  from easydict import EasyDict
+  from dizoo.sokoban.envs.sokoban_env import SokobanEnv
+
+  env = SokobanEnv(EasyDict({'env_id': 'Sokoban-v0', 'is_train': False}))
+  env.enable_save_replay('./video')
+  obs = env.reset()
+
+  while True:
+      action = env.action_space.sample()
+      timestep = env.step(action)
+      if timestep.done:
+          print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+          break

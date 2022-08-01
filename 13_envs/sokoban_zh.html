@@ -357,7 +357,7 @@ pip install -e .
 <section id="id9">
 <h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>所有箱子都推到目标点上，或者行动步数到达最大步数 max_step ，则当前环境 episode 结束。默认 max_step 为 120 步。</p></li>
+<li><p>所有箱子都推到目标点上，或者行动步数到达最大步数 max_step ，则当前环境 episode 结束。默认 max_step 为 120 步，可在 config 中调节。</p></li>
 </ul>
 </section>
 <section id="id10">
@@ -390,6 +390,25 @@ pip install -e .
 <li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
 <li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
 </ul>
+</section>
+<section id="id15">
+<h3>存储录像<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">dizoo.sokoban.envs.sokoban_env</span> <span class="kn">import</span> <span class="n">SokobanEnv</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">SokobanEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Sokoban-v0&#39;</span><span class="p">,</span> <span class="s1">&#39;is_train&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}))</span>
+<span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>
@@ -456,6 +475,7 @@ pip install -e .
 <li><a class="reference internal" href="#id12">其他</a><ul>
 <li><a class="reference internal" href="#id13">惰性初始化</a></li>
 <li><a class="reference internal" href="#id14">随机种子</a></li>
+<li><a class="reference internal" href="#id15">存储录像</a></li>
 </ul>
 </li>
 </ul>
