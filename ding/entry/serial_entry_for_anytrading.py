@@ -1,5 +1,6 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
+import copy
 from numpy import rint
 import torch
 from ditk import logging
@@ -14,7 +15,6 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from .utils import random_collect
-import copy
 
 def serial_pipeline_for_anytrading(
         input_cfg: Union[str, Tuple[dict, dict]],
@@ -26,7 +26,9 @@ def serial_pipeline_for_anytrading(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry for off-policy RL.
+        Similar to function "serial_pipline", this is a serial pipeline entry for anytrading.
+        In this func, we renamed the env_id of every env, so that we can plot every profit feature\
+            for every env.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \

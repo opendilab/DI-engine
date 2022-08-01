@@ -6,7 +6,7 @@ import numpy as np
 from ding.envs import BaseEnvManager
 from ding.worker import VectorEvalMonitor, InteractionSerialEvaluator
 from ding.torch_utils import to_tensor, to_ndarray
-from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
+from ding.utils import SERIAL_EVALUATOR_REGISTRY
 
 
 @SERIAL_EVALUATOR_REGISTRY.register('trading_interaction')

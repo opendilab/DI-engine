@@ -1,18 +1,20 @@
 from cmath import inf
 from typing import Any, List
-import gym
-from gym import spaces
-from gym.utils import seeding
-import numpy as np
-from enum import Enum
-import matplotlib.pyplot as plt
-from ding.envs import BaseEnv, BaseEnvTimestep
-from ding.utils import ENV_REGISTRY
-import os
-import pandas as pd
-from ding.torch_utils import to_ndarray
 from easydict import EasyDict
 from abc import abstractmethod
+from gym import spaces
+from gym.utils import seeding
+from enum import Enum
+
+import os
+import gym
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.utils import ENV_REGISTRY
+from ding.torch_utils import to_ndarray
 
 def load_dataset(name, index_name):
     base_dir = os.path.dirname(os.path.abspath(__file__))

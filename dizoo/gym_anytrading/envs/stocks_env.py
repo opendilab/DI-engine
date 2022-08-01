@@ -1,9 +1,10 @@
 from typing import Any
+from copy import deepcopy
 import numpy as np
+
 from dizoo.gym_anytrading.envs.trading_env import TradingEnv, Actions, Positions, load_dataset
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
-from copy import deepcopy
 
 @ENV_REGISTRY.register('stocks-v0')
 class StocksEnv(TradingEnv):
