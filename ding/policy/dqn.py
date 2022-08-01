@@ -547,7 +547,7 @@ class DQNSTDIMPolicy(DQNPolicy):
                 In ST-DIM algorithm, these two variables are the dqn encoding of `obs` and `next_obs`\
                 respectively.
         """
-        assert self._model.__getattr__("encoder")
+        assert hasattr(self._model, "encoder")
         x = self._model.encoder(data["obs"])
         y = self._model.encoder(data["next_obs"])
         return x, y
