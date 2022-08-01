@@ -30,7 +30,7 @@ def load_dataset(name, index_name):
     return df
 
 
-class Actions(Enum):
+class Actions(int, Enum):
     DOUBLE_SELL = 0
     SELL = 1
     HOLD = 2
@@ -38,7 +38,7 @@ class Actions(Enum):
     DOUBLE_BUY = 4
 
 
-class Positions(Enum):
+class Positions(int, Enum):
     SHORT = -1.
     FLAT = 0.
     LONG = 1.
@@ -213,9 +213,10 @@ class TradingEnv(BaseEnv):
             else:
                 flat_ticks.append(tick)
 
-        plt.plot(short_ticks, eps_price[short_ticks], 'ro')
-        plt.plot(long_ticks, eps_price[long_ticks], 'go')
-        plt.plot(flat_ticks, eps_price[flat_ticks], 'bo')
+        plt.plot(long_ticks, eps_price[long_ticks], 'g^', markersize = 3, label = "Long")
+        plt.plot(flat_ticks, eps_price[flat_ticks], 'bo', markersize = 3, label = "Flat")
+        plt.plot(short_ticks, eps_price[short_ticks], 'rv', markersize = 3, label = "Short")
+        plt.legend(loc='upper left', bbox_to_anchor=(0.05, 0.95))
         plt.savefig(self.save_path + str(self._env_id) + '-price.png')
 
     def close(self):
