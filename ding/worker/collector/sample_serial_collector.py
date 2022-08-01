@@ -191,13 +191,12 @@ class SampleSerialCollector(ISerialCollector):
         self.close()
 
     def collect(
-        self,
-        n_sample: Optional[int] = None,
-        train_iter: int = 0,
-        drop_extra: bool = True,
-        policy_kwargs: Optional[dict] = None,
-        # Used in PLR, represents the seed of the environment that generate the data
-        level_seeds: Optional[List] = None,
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            drop_extra: bool = True,
+            policy_kwargs: Optional[dict] = None,
+            level_seeds: Optional[List] = None,
     ) -> List[Any]:
         """
         Overview:
@@ -207,6 +206,8 @@ class SampleSerialCollector(ISerialCollector):
             - train_iter (:obj:`int`): The number of training iteration when calling collect method.
             - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.
             - policy_kwargs (:obj:`dict`): The keyword args for policy forward.
+            - level_seeds (:obj:`dict`): Used in PLR, represents the seed of the environment that \
+                generate the data
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """

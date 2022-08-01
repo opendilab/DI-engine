@@ -1,5 +1,6 @@
 from typing import Optional, Union, Any, List
-from ding.utils import SequenceType
+from easydict import EasyDict
+from ding.utils import deep_merge_dicts, SequenceType
 from collections import namedtuple
 import numpy as np
 import torch
@@ -20,7 +21,7 @@ class LevelSampler():
         strategy='policy_entropy',
         replay_schedule='fixed',
         score_transform='rank',
-        temperature=0.1,
+        temperature=1.0,
         eps=0.05,
         rho=0.2,
         nu=0.5,
@@ -28,43 +29,35 @@ class LevelSampler():
         staleness_coef=0,
         staleness_transform='power',
         staleness_temperature=1.0,
-    ),
+    )
 
     def __init__(
         self,
         seeds: Optional[List[int]],
         obs_space: Union[int, SequenceType],
         action_space: int,
-        num_actors: int = 1,
-        strategy: Optional[str] = 'random',
-        replay_schedule: Optional[str] = 'fixed',
-        score_transform: Optional[str] = 'power',
-        temperature: float = 1.0,
-        eps: float = 0.05,
-        rho: float = 0.2,
-        nu: float = 0.5,
-        alpha: float = 1.0,
-        staleness_coef: float = 0,
-        staleness_transform: Optional[str] = 'power',
-        staleness_temperature: float = 1.0
+        num_actors: int,
+        cfg: EasyDict,
     ):
+        self.cfg = EasyDict(deep_merge_dicts(self.config, cfg))
+        self.cfg.update(cfg)
         self.obs_space = obs_space
         self.action_space = action_space
-        self.strategy = strategy
-        self.replay_schedule = replay_schedule
-        self.score_transform = score_transform
-        self.temperature = temperature
+        self.strategy = self.cfg.strategy
+        self.replay_schedule = self.cfg.replay_schedule
+        self.score_transform = self.cfg.score_transform
+        self.temperature = self.cfg.temperature
         # Eps means the level replay epsilon for eps-greedy sampling
-        self.eps = eps
+        self.eps = self.cfg.eps
         # Rho means the minimum size of replay set relative to total number of levels before sampling replays
-        self.rho = rho
+        self.rho = self.cfg.rho
         # Nu means the probability of sampling a new level instead of a replay level
-        self.nu = nu
+        self.nu = self.cfg.nu
         # Alpha means the level score EWA smoothing factor
-        self.alpha = alpha
-        self.staleness_coef = staleness_coef
-        self.staleness_transform = staleness_transform
-        self.staleness_temperature = staleness_temperature
+        self.alpha = self.cfg.alpha
+        self.staleness_coef = self.cfg.staleness_coef
+        self.staleness_transform = self.cfg.staleness_transform
+        self.staleness_temperature = self.cfg.staleness_temperature
 
         # Track seeds and scores as in np arrays backed by shared memory
         self.seeds = np.array(seeds, dtype=np.int64)
@@ -157,8 +150,7 @@ class LevelSampler():
 
     def _value_l1(self, **kwargs):
         advantages = kwargs['adv']
-        #If the absolute value of ADV is large, it means that the level can significantly \
-        #change the policy and can be used to learn more
+        #If the absolute value of ADV is large, it means that the level can significantly change the policy and can be used to learn more
 
         return advantages.abs().mean().item()
 

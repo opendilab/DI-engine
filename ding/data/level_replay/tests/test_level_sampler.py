@@ -11,22 +11,16 @@ def test_level_sampler():
     obs_shape = [3, 64, 64]
     action_shape = 15
     collector_env_num = 16
-    strategy = 'min_margin'
-    score_transform = 'rank'
-    temperature = 0.1
+    level_replay_dict = dict(
+        strategy='min_margin',
+        score_transform='rank',
+        temperature=0.1,
+    )
     N = 10
     collector_sample_length = 160
 
     train_seeds = [i for i in range(num_seeds)]
-    level_sampler = LevelSampler(
-        train_seeds,
-        obs_shape,
-        action_shape,
-        collector_env_num,
-        strategy=strategy,
-        score_transform=score_transform,
-        temperature=temperature
-    )
+    level_sampler = LevelSampler(train_seeds, obs_shape, action_shape, collector_env_num, level_replay_dict)
 
     value = torch.randn(collector_sample_length)
     reward = torch.randn(collector_sample_length)

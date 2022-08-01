@@ -63,13 +63,7 @@ def serial_pipeline_plr(
     evaluator_env.seed(cfg.seed, dynamic_seed=True)
     train_seeds = generate_seeds()
     level_sampler = LevelSampler(
-        train_seeds,
-        cfg.policy.model.obs_shape,
-        cfg.policy.model.action_shape,
-        collector_env_num,
-        strategy=cfg.level_replay.strategy,
-        score_transform=cfg.level_replay.score_transform,
-        temperature=cfg.level_replay.temperature
+        train_seeds, cfg.policy.model.obs_shape, cfg.policy.model.action_shape, collector_env_num, cfg.level_replay
     )
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
