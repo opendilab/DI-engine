@@ -565,6 +565,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         with torch.no_grad():
             x_no_grad, y_no_grad = self._model_encode(data)
         # the forward function of the auxiliary network
+        self._aux_model.train()
         aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
         # the BP process of the auxiliary network
         self._aux_optimizer.zero_grad()
@@ -598,6 +599,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         # Compute auxiliary loss
         # ======================
         x, y = self._model_encode(data)
+        self._aux_model.eval()
         aux_loss_eval = self._aux_model.forward(x, y) * self._aux_loss_weight
         loss = aux_loss_eval + bellman_loss
 
@@ -617,7 +619,8 @@ class DQNSTDIMPolicy(DQNPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'bellman_loss': bellman_loss.item(),
-            'aux_loss': aux_loss_eval.item(),
+            'aux_loss_learn': aux_loss_learn.item(),
+            'aux_loss_eval': aux_loss_eval.item(),
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
@@ -626,7 +629,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
-        return ['cur_lr', 'bellman_loss', 'aux_loss', 'total_loss', 'q_value']
+        return ['cur_lr', 'bellman_loss', 'aux_loss_learn', 'aux_loss_eval', 'total_loss', 'q_value']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """

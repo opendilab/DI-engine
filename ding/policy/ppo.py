@@ -1053,7 +1053,7 @@ class PPOSTDIMPolicy(PPOPolicy):
         Overview:
             Get the input encoding size of the ST-DIM axuiliary model.
         Returns:
-            - info_dict (:obj:`Tuple[Tuple]`): the encoding size without the first (Batch) dimension.
+            - info_dict (:obj:`[Tuple, Tuple]`): The encoding size without the first (Batch) dimension.
         """
         obs = self._cfg.model.obs_shape
         if isinstance(obs, int):
@@ -1071,7 +1071,7 @@ class PPOSTDIMPolicy(PPOPolicy):
     def _model_encode(self, data):
         """
         Overview:
-            Get the encoding of the stdim model.
+            Get the encoding of the main model as input for the auxiliary model
         Arguments:
             - data (:obj:`dict`): Dict type data, same as the _forward_learn input.
         Returns:
@@ -1079,6 +1079,7 @@ class PPOSTDIMPolicy(PPOPolicy):
                 In ST-DIM algorithm, these two variables are the dqn encoding of `obs` and `next_obs`\
                 respectively.
         """
+        assert self._model.__getattr__("encoder")
         x = self._model.encoder(data["obs"])
         y = self._model.encoder(data["next_obs"])
         return x, y
@@ -1195,7 +1196,8 @@ class PPOSTDIMPolicy(PPOPolicy):
                 return_info = {
                     'cur_lr': self._optimizer.defaults['lr'],
                     'total_loss': total_loss.item(),
-                    'aux_loss': aux_loss_eval.item(),
+                    'aux_loss_learn': aux_loss_learn.item(),
+                    'aux_loss_eval': aux_loss_eval.item(),
                     'policy_loss': ppo_loss.policy_loss.item(),
                     'value_loss': ppo_loss.value_loss.item(),
                     'entropy_loss': ppo_loss.entropy_loss.item(),
@@ -1228,3 +1230,6 @@ class PPOSTDIMPolicy(PPOPolicy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
         self._aux_optimizer.load_state_dict(state_dict['aux_optimizer'])
+    
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + ["aux_loss_learn", "aux_loss_eval"]
