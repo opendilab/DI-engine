@@ -264,7 +264,7 @@ class SampleSerialCollector(ISerialCollector):
                         transition = self._policy.process_transition(
                             self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                         )
-                        if not level_seeds == None:
+                        if level_seeds is not None:
                             transition['seed'] = level_seeds[env_id]
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter

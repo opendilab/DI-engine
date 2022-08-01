@@ -157,7 +157,8 @@ class LevelSampler():
 
     def _value_l1(self, **kwargs):
         advantages = kwargs['adv']
-        #If the absolute value of ADV is large, it means that the level can significantly change the policy and can be used to learn more
+        #If the absolute value of ADV is large, it means that the level can significantly \
+        #change the policy and can be used to learn more
 
         return advantages.abs().mean().item()
 
