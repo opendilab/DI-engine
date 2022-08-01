@@ -10,7 +10,6 @@ bigfish_plr_default_config = dict(
         evaluator_env_num=10,
         n_evaluator_episode=50,
         stop_value=40,
-        manager=dict(),
     ),
     policy=dict(
         cuda=True,
@@ -39,9 +38,9 @@ bigfish_plr_default_config = dict(
         ),
     ),
     level_replay=dict(
-        level_replay_strategy='min_margin',
-        level_replay_score_transform='rank',
-        level_replay_temperature=0.1,
+        strategy='min_margin',
+        score_transform='rank',
+        temperature=0.1,
     ),
 )
 bigfish_plr_default_config = EasyDict(bigfish_plr_default_config)

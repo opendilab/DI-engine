@@ -18,8 +18,16 @@ class LevelSampler():
     """
     config = dict(
         strategy='policy_entropy',
+        replay_schedule='fixed',
         score_transform='rank',
         temperature=0.1,
+        eps=0.05,
+        rho=0.2,
+        nu=0.5,
+        alpha=1.0,
+        staleness_coef=0,
+        staleness_transform='power',
+        staleness_temperature=1.0,
     ),
 
     def __init__(
@@ -70,10 +78,7 @@ class LevelSampler():
 
         self.next_seed_index = 0  # Only used for sequential strategy
 
-    def seed_range(self):
-        return (int(min(self.seeds)), int(max(self.seeds)))
-
-    def update_with_rollouts(self, train_data, num_actors):
+    def update_with_rollouts(self, train_data: dict, num_actors: int):
         total_steps = train_data['reward'].shape[0]
         if self.strategy == 'random':
             return
@@ -91,7 +96,7 @@ class LevelSampler():
         elif self.strategy == 'one_step_td_error':
             score_function = self._one_step_td_error
         else:
-            raise ValueError(f'Unsupported strategy, {self.strategy}')
+            raise ValueError('Not supported strategy: {}'.format(self.strategy))
 
         self._update_with_rollouts(train_data, num_actors, total_steps, score_function)
 
@@ -102,7 +107,7 @@ class LevelSampler():
         self.partial_seed_scores.fill(0)
         self.partial_seed_steps.fill(0)
 
-    def update_seed_score(self, actor_index, seed_idx, score, num_steps):
+    def update_seed_score(self, actor_index: int, seed_idx: int, score: float, num_steps: int):
         score = self._partial_update_seed_score(actor_index, seed_idx, score, num_steps, done=True)
 
         self.unseen_seed_weights[seed_idx] = 0.  # No longer unseen
@@ -110,7 +115,9 @@ class LevelSampler():
         old_score = self.seed_scores[seed_idx]
         self.seed_scores[seed_idx] = (1 - self.alpha) * old_score + self.alpha * score
 
-    def _partial_update_seed_score(self, actor_index, seed_idx, score, num_steps, done=False):
+    def _partial_update_seed_score(
+        self, actor_index: int, seed_idx: int, score: float, num_steps: int, done: bool = False
+    ):
         partial_score = self.partial_seed_scores[actor_index][seed_idx]
         partial_num_steps = self.partial_seed_steps[actor_index][seed_idx]
 
@@ -143,34 +150,27 @@ class LevelSampler():
         return 1 - (top2_confidence[:, 0] - top2_confidence[:, 1]).mean().item()
 
     def _gae(self, **kwargs):
-        #returns = kwargs['returns']
-        #value_preds = kwargs['value_preds']
 
-        #advantages = returns - value_preds
         advantages = kwargs['adv']
 
         return advantages.mean().item()
 
     def _value_l1(self, **kwargs):
-        #returns = kwargs['returns']
-        #value_preds = kwargs['value_preds']
-
-        #advantages = returns - value_preds
         advantages = kwargs['adv']
+        #If the absolute value of ADV is large, it means that the level can significantly change the policy and can be used to learn more
 
         return advantages.abs().mean().item()
 
     def _one_step_td_error(self, **kwargs):
         rewards = kwargs['rewards']
-        value_preds = kwargs['value_preds']
+        value = kwargs['value']
 
         max_t = len(rewards)
-        td_errors = (rewards[:-1] + value_preds[:max_t - 1] - value_preds[1:max_t]).abs()
+        td_errors = (rewards[:-1] + value[:max_t - 1] - value[1:max_t]).abs()
 
         return td_errors.abs().mean().item()
 
-    def _update_with_rollouts(self, train_data, num_actors, all_total_steps, score_function):
-        #print(num_actors, int(total_steps/num_actors))
+    def _update_with_rollouts(self, train_data: dict, num_actors: int, all_total_steps: int, score_function):
         level_seeds = train_data['seed'].reshape(num_actors, int(all_total_steps / num_actors)).transpose(0, 1)
         policy_logits = train_data['logit'].reshape(num_actors, int(all_total_steps / num_actors), -1).transpose(0, 1)
         done = train_data['done'].reshape(num_actors, int(all_total_steps / num_actors)).transpose(0, 1)
@@ -200,10 +200,9 @@ class LevelSampler():
                                                            int(all_total_steps / num_actors)).transpose(0, 1)
                     adv = train_data['adv'].reshape(num_actors, int(all_total_steps / num_actors)).transpose(0, 1)
                     value = train_data['value'].reshape(num_actors, int(all_total_steps / num_actors)).transpose(0, 1)
-                    #score_function_kwargs['returns'] = rollouts.returns[start_t:t,actor_index]
                     score_function_kwargs['adv'] = adv[start_t:t, actor_index]
                     score_function_kwargs['rewards'] = rewards[start_t:t, actor_index]
-                    score_function_kwargs['value_preds'] = value[start_t:t, actor_index]
+                    score_function_kwargs['value'] = value[start_t:t, actor_index]
 
                 score = score_function(**score_function_kwargs)
                 num_steps = len(episode_logits)
@@ -226,15 +225,15 @@ class LevelSampler():
                     value = train_data['value'].reshape(num_actors, int(all_total_steps / num_actors)).transpose(0, 1)
                     score_function_kwargs['adv'] = adv[start_t:, actor_index]
                     score_function_kwargs['rewards'] = rewards[start_t:, actor_index]
-                    score_function_kwargs['value_preds'] = value[start_t:, actor_index]
+                    score_function_kwargs['value'] = value[start_t:, actor_index]
 
                 score = score_function(**score_function_kwargs)
                 num_steps = len(episode_logits)
                 self._partial_update_seed_score(actor_index, seed_idx_t, score, num_steps)
 
-    def _update_staleness(self, selected_idx):
+    def _update_staleness(self, selected_idx: int):
         if self.staleness_coef > 0:
-            self.seed_staleness = self.seed_staleness + 1
+            self.seed_staleness += 1
             self.seed_staleness[selected_idx] = 0
 
     def _sample_replay_level(self):
@@ -259,12 +258,12 @@ class LevelSampler():
 
         return int(seed)
 
-    def sample(self, strategy=None):
+    def sample(self, strategy: Optional[str] = None):
         if not strategy:
             strategy = self.strategy
 
         if strategy == 'random':
-            seed_idx = np.random.choice(range((len(self.seeds))))
+            seed_idx = np.random.choice(range(len(self.seeds)))
             seed = self.seeds[seed_idx]
             return int(seed)
 
@@ -314,7 +313,7 @@ class LevelSampler():
 
         return weights
 
-    def _score_transform(self, transform, temperature, scores):
+    def _score_transform(self, transform: Optional[str], temperature: float, scores: Optional[List[float]]):
         if transform == 'rank':
             temp = np.flip(scores.argsort())
             ranks = np.empty_like(temp)

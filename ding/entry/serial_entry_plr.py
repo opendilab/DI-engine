@@ -30,7 +30,7 @@ def serial_pipeline_plr(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry on-policy RL.
+        Serial pipeline entry for Priority Level Replay.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -67,9 +67,9 @@ def serial_pipeline_plr(
         cfg.policy.model.obs_shape,
         cfg.policy.model.action_shape,
         collector_env_num,
-        strategy=cfg.level_replay.level_replay_strategy,
-        score_transform=cfg.level_replay.level_replay_score_transform,
-        temperature=cfg.level_replay.level_replay_temperature
+        strategy=cfg.level_replay.strategy,
+        score_transform=cfg.level_replay.score_transform,
+        temperature=cfg.level_replay.temperature
     )
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
@@ -98,6 +98,7 @@ def serial_pipeline_plr(
     learner.call_hook('before_run')
 
     seeds = [int(level_sampler.sample('sequential')) for _ in range(collector_env_num)]
+    # default_preprocess_learn function can only deal with the Tensor data
     level_seeds = torch.Tensor(seeds)
 
     collector_env.seed(seeds)

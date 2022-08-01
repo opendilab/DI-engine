@@ -191,12 +191,13 @@ class SampleSerialCollector(ISerialCollector):
         self.close()
 
     def collect(
-            self,
-            n_sample: Optional[int] = None,
-            train_iter: int = 0,
-            drop_extra: bool = True,
-            policy_kwargs: Optional[dict] = None,
-            level_seeds: Optional[List] = None,
+        self,
+        n_sample: Optional[int] = None,
+        train_iter: int = 0,
+        drop_extra: bool = True,
+        policy_kwargs: Optional[dict] = None,
+        # Used in PLR, represents the seed of the environment that generate the data
+        level_seeds: Optional[List] = None,
     ) -> List[Any]:
         """
         Overview:
