@@ -14,7 +14,7 @@ class StocksEnv(TradingEnv):
 
         # ====== load Google stocks data =======
         STOCKS_GOOGL = load_dataset('STOCKS_GOOGL', 'Date')
-        self.raw_prices = deepcopy(STOCKS_GOOGL).loc[:, 'Close'].to_numpy()
+        self.raw_prices = STOCKS_GOOGL.loc[:, 'Close'].to_numpy()
         EPS = 1e-10
         self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)  # normalize
         # ======================================
@@ -23,6 +23,7 @@ class StocksEnv(TradingEnv):
         self.trade_fee_bid_percent = 0.01  # unit
         self.trade_fee_ask_percent = 0.005  # unit
 
+    # override
     def _process_data(self, start_idx: int = None) -> Any:
         '''
         Overview:
@@ -59,6 +60,7 @@ class StocksEnv(TradingEnv):
 
         return prices, selected_feature
 
+    # override
     def _calculate_reward(self, action: int) -> np.float32:
         step_reward = 0.
         current_price = (self.raw_prices[self._current_tick])
@@ -82,6 +84,7 @@ class StocksEnv(TradingEnv):
 
         return step_reward
 
+    # override
     def max_possible_profit(self) -> float:
         current_tick = self._start_tick
         last_trade_tick = current_tick - 1

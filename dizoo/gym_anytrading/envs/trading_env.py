@@ -12,7 +12,7 @@ import os
 import pandas as pd
 from ding.torch_utils import to_ndarray
 from easydict import EasyDict
-
+from abc import abstractmethod
 
 def load_dataset(name, index_name):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -167,8 +167,8 @@ class TradingEnv(BaseEnv):
         return BaseEnvTimestep(observation, step_reward, self._done, info)
 
     def _get_observation(self):
-        obs = to_ndarray(self.signal_features[(self._current_tick - self.window_size + 1):self._current_tick + 1]
-                         ).reshape(-1).astype(np.float32)
+        obs = to_ndarray(self.signal_features[(self._current_tick - self.window_size + 1) \
+            :self._current_tick + 1]).reshape(-1).astype(np.float32)
         obs = np.hstack([obs, to_ndarray([self._position.value])]).astype(np.float32)
 
         return obs
@@ -202,12 +202,15 @@ class TradingEnv(BaseEnv):
     def close(self):
         plt.close()
 
+    @abstractmethod
     def _process_data(self):
         raise NotImplementedError
 
+    @abstractmethod
     def _calculate_reward(self, action):
         raise NotImplementedError
 
+    @abstractmethod
     def max_possible_profit(self):  # trade fees are ignored
         raise NotImplementedError
 
