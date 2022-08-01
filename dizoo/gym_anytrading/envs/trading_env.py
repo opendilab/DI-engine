@@ -51,7 +51,7 @@ def transform(position: Positions, action: int) -> Any:
     Returns:
         - next_position(Positions) : the position after transformation.
     '''
-    if action == Actions.SELL.value:
+    if action == Actions.SELL:
 
         if position == Positions.LONG:
             return Positions.FLAT, False
@@ -59,7 +59,7 @@ def transform(position: Positions, action: int) -> Any:
         if position == Positions.FLAT:
             return Positions.SHORT, True
 
-    if action == Actions.BUY.value:
+    if action == Actions.BUY:
 
         if position == Positions.SHORT:
             return Positions.FLAT, False
@@ -67,10 +67,10 @@ def transform(position: Positions, action: int) -> Any:
         if position == Positions.FLAT:
             return Positions.LONG, True
 
-    if action == Actions.DOUBLE_SELL.value and (position == Positions.LONG or position == Positions.FLAT):
+    if action == Actions.DOUBLE_SELL and (position == Positions.LONG or position == Positions.FLAT):
         return Positions.SHORT, True
 
-    if action == Actions.DOUBLE_BUY.value and (position == Positions.SHORT or position == Positions.FLAT):
+    if action == Actions.DOUBLE_BUY and (position == Positions.SHORT or position == Positions.FLAT):
         return Positions.LONG, True
 
     return position, False
@@ -82,6 +82,7 @@ class TradingEnv(BaseEnv):
     def __init__(self, cfg: EasyDict) -> None:
 
         self._cfg = cfg
+        self._env_id = cfg.env_id
         #======== param to plot =========
         self.cnt = 0
 
@@ -98,11 +99,12 @@ class TradingEnv(BaseEnv):
         self.window_size = cfg.window_size
         self.prices = None
         self.signal_features = None
+        self.feature_dim_len = None
         self.shape = (cfg.window_size, 3)
 
         #======== param about episode =========
-        self._start_tick = None
-        self._end_tick = None
+        self._start_tick = 0
+        self._end_tick = 0
         self._done = None
         self._current_tick = None
         self._last_trade_tick = None
@@ -111,10 +113,11 @@ class TradingEnv(BaseEnv):
         self._total_reward = None
         #======================================
 
-        self._env_id = cfg.env_id
-        self._action_space = spaces.Discrete(len(Actions))
-        self._observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=self.shape, dtype=np.float64)
-        self._reward_space = gym.spaces.Box(-inf, inf, shape=(1, ), dtype=np.float32)
+        self._init_flag = True
+        # init the following variables variable at first reset.
+        self._action_space = None
+        self._observation_space = None
+        self._reward_space = None
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -124,7 +127,13 @@ class TradingEnv(BaseEnv):
 
     def reset(self, start_idx: int = None) -> Any:
         self.cnt += 1
-        self.prices, self.signal_features = self._process_data(start_idx)
+        self.prices, self.signal_features, self.feature_dim_len = self._process_data(start_idx)
+        if self._init_flag:
+            self.shape = (self.window_size, self.feature_dim_len)
+            self._action_space = spaces.Discrete(len(Actions))
+            self._observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=self.shape, dtype=np.float64)
+            self._reward_space = gym.spaces.Box(-inf, inf, shape=(1, ), dtype=np.float32)
+            self._init_flag = False
         self._done = False
         self._current_tick = self._start_tick
         self._last_trade_tick = self._current_tick - 1
@@ -135,13 +144,15 @@ class TradingEnv(BaseEnv):
 
         return self._get_observation()
 
-    def step(self, action: List) -> Any:
-        action = int(action[0])
+    def step(self, action: np.ndarray) -> BaseEnvTimestep:
+        assert isinstance(action, np.ndarray), type(action)
+        if action.shape == (1, ):
+            action = action.item()  # 0-dim array
 
         self._done = False
         self._current_tick += 1
 
-        if self._current_tick == self._end_tick:
+        if self._current_tick >= self._end_tick:
             self._done = True
 
         step_reward = self._calculate_reward(action)

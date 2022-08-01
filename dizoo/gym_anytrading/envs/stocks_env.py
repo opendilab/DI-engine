@@ -34,6 +34,7 @@ class StocksEnv(TradingEnv):
         Returns:
             - prices: the close.
             - signal_features: feature map
+            - feature_dim_len: the dimension length of selected feature
         '''
 
         # ====== build feature map ========
@@ -49,17 +50,18 @@ class StocksEnv(TradingEnv):
         # you can select features you want
         selected_feature_name = ['Close', 'Diff', 'Volume']
         selected_feature = np.column_stack([all_feature[k] for k in selected_feature_name])
+        feature_dim_len = len(selected_feature_name)
 
         # validate index
         if start_idx is None:
-            self.start_idx = np.random.randint(self.window_size, len(self.df) - self._cfg.eps_length - 1)
+            self.start_idx = np.random.randint(self.window_size, len(self.df) - self._cfg.eps_length)
         else:
             self.start_idx = start_idx
 
         self._start_tick = self.start_idx
         self._end_tick = self._start_tick + self._cfg.eps_length - 1
 
-        return prices, selected_feature
+        return prices, selected_feature, feature_dim_len
 
     # override
     def _calculate_reward(self, action: int) -> np.float32:
@@ -69,16 +71,16 @@ class StocksEnv(TradingEnv):
         ratio = current_price / last_trade_price
         cost = np.log((1 - self.trade_fee_ask_percent) * (1 - self.trade_fee_bid_percent))
 
-        if action == Actions.BUY.value and self._position == Positions.SHORT:
+        if action == Actions.BUY and self._position == Positions.SHORT:
             step_reward = np.log(2 - ratio) + cost
 
-        if action == Actions.SELL.value and self._position == Positions.LONG:
+        if action == Actions.SELL and self._position == Positions.LONG:
             step_reward = np.log(ratio) + cost
 
-        if action == Actions.DOUBLE_SELL.value and self._position == Positions.LONG:
+        if action == Actions.DOUBLE_SELL and self._position == Positions.LONG:
             step_reward = np.log(ratio) + cost
 
-        if action == Actions.DOUBLE_BUY.value and self._position == Positions.SHORT:
+        if action == Actions.DOUBLE_BUY and self._position == Positions.SHORT:
             step_reward = np.log(2 - ratio) + cost
 
         step_reward = to_ndarray([step_reward]).astype(np.float32)
