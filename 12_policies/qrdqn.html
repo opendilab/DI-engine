@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -298,16 +297,200 @@
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>C51 uses N fixed locations for its approximation distribution and adjusts their probabilities, while QRDQN assigns fixed, uniform probabilities to N adjustable locations. Based on this, QRDQN uses quantile regression to stochastically adjust the distributions’ locations so as to minimize
 the Wasserstein distance to a target distribution.</p>
-<p>The quantile regression loss, for a quantile <span class="math notranslate nohighlight">\(\tau \in [0, 1]\)</span>, is an asymmetric convex loss function that penalizes <strong>overestimation errors</strong> with weight <span class="math notranslate nohighlight">\(\tau\)</span> and <strong>underestimation errors</strong> with weight <span class="math notranslate nohighlight">\(1−\tau\)</span>. For a distribution <span class="math notranslate nohighlight">\(Z\)</span>, and a given quantile <span class="math notranslate nohighlight">\(\tau\)</span>, the value of the quantile function <span class="math notranslate nohighlight">\(F_Z^{−1}(\tau)\)</span> may be characterized as the minimizer of the quantile regression loss:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{array}{r}
+<p>The quantile regression loss, for a quantile <img class="math" src="../_images/math/88e065e44b98828b7f054d20ab771869a39b9764.svg" alt="\tau \in [0, 1]"/>, is an asymmetric convex loss function that penalizes <strong>overestimation errors</strong> with weight <img class="math" src="../_images/math/4dae076f5e60f4ff803e6123d1b56584a099f4f2.svg" alt="\tau"/> and <strong>underestimation errors</strong> with weight <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">1−\tau</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+
+! Package inputenc Error: Unicode character − (U+2212)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $1−
+                                       \tau$
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 316 bytes).
+Transcript written on math.log.
+</p>
+</div>
+. For a distribution <img class="math" src="../_images/math/477a35681992f70ed51fe0bf6435eec59f0811ee.svg" alt="Z"/>, and a given quantile <img class="math" src="../_images/math/4dae076f5e60f4ff803e6123d1b56584a099f4f2.svg" alt="\tau"/>, the value of the quantile function <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">F_Z^{−1}(\tau)</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+
+! Package inputenc Error: Unicode character − (U+2212)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $F_Z^{−
+                                           1}(\tau)$
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 436 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ may be characterized as the minimizer of the quantile regression loss:</p>
+<div class="math">
+<p><img src="../_images/math/1b756fdebbd3513204cbbc1fc4a7cce56e8f1f3a.svg" alt="\begin{array}{r}
 \mathcal{L}_{\mathrm{QR}}^{\tau}(\theta):=\mathbb{E}_{\hat{z} \sim Z}\left[\rho_{\tau}(\hat{Z}-\theta)\right], \text { where } \\
 \rho_{\tau}(u)=u\left(\tau-\delta_{\{u&lt;0\}}\right), \forall u \in \mathbb{R}
-\end{array}\end{split}\]</div>
-<p>And the above mentioned loss is not smooth at zero, which can limit performance when using non-linear function approximation. Therefore, a modified quantile loss, called <code class="docutils literal notranslate"><span class="pre">quantile</span> <span class="pre">huber</span> <span class="pre">loss</span></code> is applied during the Bellman update of QRDQN (i.e. the equation 10 in the following pseudo-code).</p>
-<div class="math notranslate nohighlight">
-\[\rho^{\kappa}_{\tau}(u)=L_{\kappa}(u)\lvert \tau-\delta_{\{u&lt;0\}} \rvert\]</div>
-<p>Where <span class="math notranslate nohighlight">\(L_{\kappa}\)</span> is Huber Loss.</p>
+\end{array}"/></p>
+</div><p>And the above mentioned loss is not smooth at zero, which can limit performance when using non-linear function approximation. Therefore, a modified quantile loss, called <code class="docutils literal notranslate"><span class="pre">quantile</span> <span class="pre">huber</span> <span class="pre">loss</span></code> is applied during the Bellman update of QRDQN (i.e. the equation 10 in the following pseudo-code).</p>
+<div class="math">
+<p><img src="../_images/math/9fb6f4cc9864d4eee14a0c82697b50a69885b3c3.svg" alt="\rho^{\kappa}_{\tau}(u)=L_{\kappa}(u)\lvert \tau-\delta_{\{u&lt;0\}} \rvert"/></p>
+</div><p>Where <img class="math" src="../_images/math/d082a3d40966455e0721530e662f96c67cfe34c5.svg" alt="L_{\kappa}"/> is Huber Loss.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Compared with DQN, QRDQN has these differences:</p>
@@ -554,9 +737,9 @@ Parameter updates with QRDQN’s MLPs forward setup.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is head_hidden_size.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where M is action_shape.</p></li>
-<li><p>tau (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):  <span class="math notranslate nohighlight">\((B, M, 1)\)</span></p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is head_hidden_size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where M is action_shape.</p></li>
+<li><p>tau (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):  <img class="math" src="../_images/math/5a0cc3c94fdcccb043103d45f88addb77242c2f6.svg" alt="(B, M, 1)"/></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QRDQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -734,7 +917,6 @@ Parameter updates with QRDQN’s MLPs forward setup.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

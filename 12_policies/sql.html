@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -305,7 +304,7 @@ skills between tasks.</p>
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>SQL considers a more general maximum entropy policy, such that the optimal policy aims to maximize its entropy at each visited state:</p>
 <img alt="../_images/sql_policy.png" src="../_images/sql_policy.png" />
-<p>where <span class="math notranslate nohighlight">\({\alpha}\)</span>   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, <span class="math notranslate nohighlight">\({\alpha}\)</span>  is a hyperparameter that has to be tuned (not one to be learned during training).</p>
+<p>where <img class="math" src="../_images/math/3eda5b38ff6ebe84786988d2cdbe686a2f790aec.svg" alt="{\alpha}"/>   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, <img class="math" src="../_images/math/3eda5b38ff6ebe84786988d2cdbe686a2f790aec.svg" alt="{\alpha}"/>  is a hyperparameter that has to be tuned (not one to be learned during training).</p>
 <p>By defining the soft Q function and soft V functions in equations 4 and 5 below respectively:</p>
 <img alt="../_images/SQL_Q.png" src="../_images/SQL_Q.png" />
 <img alt="../_images/SQL_V.png" src="../_images/SQL_V.png" />
@@ -313,9 +312,183 @@ skills between tasks.</p>
 <img alt="../_images/SQL_opt_policy.png" src="../_images/SQL_opt_policy.png" />
 <p>The proof can be found in the appendix or from the paper <cite>Modeling purposeful adaptive behavior with the principle of maximum causal entropy &lt;https://www.cs.cmu.edu/~bziebart/publications/thesis-bziebart.pdf&gt;</cite></p>
 <p>The soft Q iteration for training expressive energy-based models is given by the following theorem (<cite>Theorem 3</cite> in the paper):</p>
-<p>Theorem: Let <span class="math notranslate nohighlight">\(Q_{\text{soft}(\cdot, \cdot))\)</span> and <span class="math notranslate nohighlight">\(V_{\text{soft}(\cdot))\)</span> be bounded and assume that <span class="math notranslate nohighlight">\(\int_{\mathcal{A}} exp(\frac{1}{\alpha} Q_{\text{soft}}(\cdot, a^{'}) ) \,da^{'} &lt; \infty\)</span> and that <span class="math notranslate nohighlight">\(Q^{*}_{\text{soft}} &lt; \infty\)</span> exist. Then the fixed-point iteration</p>
+<p>Theorem: Let <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">Q_{\text{soft}(\cdot, \cdot))</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 ...selectfont $Q_{\text{soft}(\cdot, \cdot))$
+                                                  
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 436 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ and <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">V_{\text{soft}(\cdot))</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 ...4}{17}\selectfont $V_{\text{soft}(\cdot))$
+                                                  
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 388 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ be bounded and assume that <img class="math" src="../_images/math/31afeb15620a442642add56dc10fa60603255bf5.svg" alt="\int_{\mathcal{A}} exp(\frac{1}{\alpha} Q_{\text{soft}}(\cdot, a^{'}) ) \,da^{'} &lt; \infty"/> and that <img class="math" src="../_images/math/76c95a6aa7828cbf224acdcb01dc4d6503aa98e7.svg" alt="Q^{*}_{\text{soft}} &lt; \infty"/> exist. Then the fixed-point iteration</p>
 <img alt="../_images/SQL_fi.png" src="../_images/SQL_fi.png" />
-<p>converges to <span class="math notranslate nohighlight">\(Q^{*}_{\text{soft}} and V^{*}_{\text{soft}}\)</span> respectively.</p>
+<p>converges to <img class="math" src="../_images/math/eef3578dfee5b99e38e23e463d1f962e3f06e069.svg" alt="Q^{*}_{\text{soft}} and V^{*}_{\text{soft}}"/> respectively.</p>
 <p>However, there are several practicalities
 that need to be considered in order to make use of the algorithm to solve real world problems.
 First, the soft Bellman backup cannot be performed
@@ -326,20 +499,20 @@ in general.</p>
 problem, we first express the soft value function in terms
 of an expectation via importance sampling:</p>
 <img alt="../_images/SQL_sto_V.png" src="../_images/SQL_sto_V.png" />
-<p>where <span class="math notranslate nohighlight">\(q_{a'}\)</span> can be an arbitrary distribution over the action
+<p>where <img class="math" src="../_images/math/aec6d4747952dbd6fdbacbf96f1d3c6048320667.svg" alt="q_{a'}"/> can be an arbitrary distribution over the action
 space.</p>
-<p>By noting the identity <span class="math notranslate nohighlight">\(g_{1}(x)=g_{2}(x) \forall x \in \mathbb{X} \Leftrightarrow  \mathbb{E}_{x\sim q}[((g_{1}(x)-g_{2}(x))^{2}]=0\)</span> , where q can be any strictly positive density function on <span class="math notranslate nohighlight">\(\mathbb{X}\)</span>, we can express the
+<p>By noting the identity <img class="math" src="../_images/math/1d51c6b62d9d91d85ecfc23535f8483e6df5f985.svg" alt="g_{1}(x)=g_{2}(x) \forall x \in \mathbb{X} \Leftrightarrow  \mathbb{E}_{x\sim q}[((g_{1}(x)-g_{2}(x))^{2}]=0"/> , where q can be any strictly positive density function on <img class="math" src="../_images/math/58c7ed56147764153072fae6db2efa241b83fb38.svg" alt="\mathbb{X}"/>, we can express the
 soft Q-iteration in an equivalent form as minimizing</p>
 <img alt="../_images/SQL_sto_Q.png" src="../_images/SQL_sto_Q.png" />
-<p>where <span class="math notranslate nohighlight">\(q_{s_{t}}\)</span> and <span class="math notranslate nohighlight">\(q_{a_{t}}\)</span> are positive over <span class="math notranslate nohighlight">\(\mathrm{S}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{A}\)</span> respectively.</p>
+<p>where <img class="math" src="../_images/math/44ab6634063bf6cbe18879b978f0ab62addf3111.svg" alt="q_{s_{t}}"/> and <img class="math" src="../_images/math/fc970a1b2d903913646aaa13a7390e503d1e5cd6.svg" alt="q_{a_{t}}"/> are positive over <img class="math" src="../_images/math/6a38051d24e1c577163b2bf30be34a888011b3b0.svg" alt="\mathrm{S}"/> and <img class="math" src="../_images/math/723d21d52d7cf49aaf28ba80fa202a8af5d990d2.svg" alt="\mathrm{A}"/> respectively.</p>
 <img alt="../_images/SQL_sto_Q_tar.png" src="../_images/SQL_sto_Q_tar.png" />
-<p>is a target Q-value, with <span class="math notranslate nohighlight">\(V^{\bar{\theta}}_{\text{soft}}\)</span> given by the equation 10 and <span class="math notranslate nohighlight">\(\theta\)</span> being replaced by the target parameters, <span class="math notranslate nohighlight">\(\bar{\theta}\)</span>.</p>
-<p>While the sampling distributions <span class="math notranslate nohighlight">\(q_{s_{t}}\)</span>, <span class="math notranslate nohighlight">\(q_{a_{t}}\)</span> and <span class="math notranslate nohighlight">\(q_{a'}\)</span> can be arbitrary, we typically use real samples from rollouts of the current policy <span class="math notranslate nohighlight">\(\pi(a_{t}|s_{t}) \propto exp(\frac{1}{\alpha} Q_{\text{soft}}^{\theta}(s_{t},a_{t}))\)</span>.</p>
+<p>is a target Q-value, with <img class="math" src="../_images/math/a79080fb365c659739fa7247a22caa21ee5152a5.svg" alt="V^{\bar{\theta}}_{\text{soft}}"/> given by the equation 10 and <img class="math" src="../_images/math/70dc2a5833559be2562698337b43b3bf1ac8e9bd.svg" alt="\theta"/> being replaced by the target parameters, <img class="math" src="../_images/math/403aac2fb03191763413229e924d101954c4a25e.svg" alt="\bar{\theta}"/>.</p>
+<p>While the sampling distributions <img class="math" src="../_images/math/44ab6634063bf6cbe18879b978f0ab62addf3111.svg" alt="q_{s_{t}}"/>, <img class="math" src="../_images/math/fc970a1b2d903913646aaa13a7390e503d1e5cd6.svg" alt="q_{a_{t}}"/> and <img class="math" src="../_images/math/aec6d4747952dbd6fdbacbf96f1d3c6048320667.svg" alt="q_{a'}"/> can be arbitrary, we typically use real samples from rollouts of the current policy <img class="math" src="../_images/math/040ac9cc5703a1b54611bd1f5c7c7a597c96046c.svg" alt="\pi(a_{t}|s_{t}) \propto exp(\frac{1}{\alpha} Q_{\text{soft}}^{\theta}(s_{t},a_{t}))"/>.</p>
 <p>However, in continuous spaces, Since the form of the policy is so
 general, sampling from it is intractable - We still need a tractable way to sample from the policy. Here is where SVGD comes in.</p>
-<p>Formally, we want to learn a state-conditioned stochastic neural network <span class="math notranslate nohighlight">\(a_{t}=f^{\phi}(\xi,s_{t})\)</span> parametrized by <span class="math notranslate nohighlight">\(\phi\)</span>, that
-maps noise samples <span class="math notranslate nohighlight">\(\xi\)</span> drawn from a normal Gaussian, or other arbitrary distribution, into unbiased action samples. We denote
-the induced distribution of the actions as <span class="math notranslate nohighlight">\(\pi^{\phi}(a_{t}|s_{t})\)</span> and we want tp find parameters <span class="math notranslate nohighlight">\(\phi\)</span> so that the induced distribution approximates the energy-based distribution in terms of the
+<p>Formally, we want to learn a state-conditioned stochastic neural network <img class="math" src="../_images/math/ac4cf636d681dabd85aaac21cf1fa300c7bbc1aa.svg" alt="a_{t}=f^{\phi}(\xi,s_{t})"/> parametrized by <img class="math" src="../_images/math/ecf00919908755c43f83cfec84ac1cd42ff2d81f.svg" alt="\phi"/>, that
+maps noise samples <img class="math" src="../_images/math/4efd41a46e97c56e4f075ec1b4a5f2f60ea6f378.svg" alt="\xi"/> drawn from a normal Gaussian, or other arbitrary distribution, into unbiased action samples. We denote
+the induced distribution of the actions as <img class="math" src="../_images/math/75ff86e818f0307d3a336ad8200de2bfedf5e419.svg" alt="\pi^{\phi}(a_{t}|s_{t})"/> and we want tp find parameters <img class="math" src="../_images/math/ecf00919908755c43f83cfec84ac1cd42ff2d81f.svg" alt="\phi"/> so that the induced distribution approximates the energy-based distribution in terms of the
 KL divergence.</p>
 <img alt="../_images/SQL_sto_pi12.png" src="../_images/SQL_sto_pi12.png" />
 <p>Practically, we optimise the policy by the following two equations:</p>
@@ -523,7 +696,6 @@ the principle of maximum causal entropy. PhD thesis,
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

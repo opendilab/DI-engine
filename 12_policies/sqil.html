@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -312,7 +311,7 @@ Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a r
 <p>Specifically, recalling from <a class="reference external" href="./sql.html">SQL</a>, the soft Q values are a function of the rewards and dynamics, given
 by the the soft Bellman equation:</p>
 <img alt="../_images/sqil_soft_q.png" src="../_images/sqil_soft_q.png" />
-<p>The policy <span class="math notranslate nohighlight">\(\pi\)</span> forms a Boltzmann distribution over actions:</p>
+<p>The policy <img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/> forms a Boltzmann distribution over actions:</p>
 <img alt="../_images/sqil_pi.png" src="../_images/sqil_pi.png" />
 <p>Rearrange the above function, we obtain the formula for the reward:</p>
 <img alt="../_images/sqil_implied_reward.png" src="../_images/sqil_implied_reward.png" />
@@ -321,16 +320,16 @@ by the the soft Bellman equation:</p>
 <img alt="../_images/sqil_bc2.png" src="../_images/sqil_bc2.png" />
 <p>The regularized BC is formulated through the prior work <a class="reference external" href="http://www.ifaamas.org/Proceedings/aamas2014/aamas/p1249.pdf">Boosted and reward regularized classification for apprenticeship learning</a> where Q is regularized with a sparsity prior on the above rewards.
 By adding BC with this regularization, our final regularized BC target incorporates information about the state transition dynamics
-into the imitation learning objective, since <span class="math notranslate nohighlight">\(R_{q}(s,a)\)</span> is a function of an expectation over next state <span class="math notranslate nohighlight">\(s'\)</span>. Formally, its formula is given as follows:</p>
+into the imitation learning objective, since <img class="math" src="../_images/math/de93797a12fff309d1013924deef4e4b6c43c6cc.svg" alt="R_{q}(s,a)"/> is a function of an expectation over next state <img class="math" src="../_images/math/4e33c8b0c9ceec95dbedcd57638b4cd0c2fae65e.svg" alt="s'"/>. Formally, its formula is given as follows:</p>
 <img alt="../_images/sqil_rbc.png" src="../_images/sqil_rbc.png" />
-<p>where where <span class="math notranslate nohighlight">\(\lambda \in \mathbb{R}_{&gt;0}\)</span>  is a constant hyperparameter, and  <span class="math notranslate nohighlight">\(\delta\)</span> denotes the squared soft Bellman error defined
-in the equation in the Pseudo-code part below. The BC loss encourages <span class="math notranslate nohighlight">\(Q\)</span>  to output high values for demonstrated actions at
+<p>where where <img class="math" src="../_images/math/acdf857f67eab77562e8e82327cf10c4fa851185.svg" alt="\lambda \in \mathbb{R}_{&gt;0}"/>  is a constant hyperparameter, and  <img class="math" src="../_images/math/a4b4bcf3f843b3f49e379775f96a130c18ab7174.svg" alt="\delta"/> denotes the squared soft Bellman error defined
+in the equation in the Pseudo-code part below. The BC loss encourages <img class="math" src="../_images/math/d99b0c7690900ac2fad59109353c638d0f1a228f.svg" alt="Q"/>  to output high values for demonstrated actions at
 demonstrated states, and the penalty term propagates those high values to nearby states. In other
-words, <span class="math notranslate nohighlight">\(Q\)</span>  outputs high values for actions that lead to states from which the demonstrated states are
+words, <img class="math" src="../_images/math/d99b0c7690900ac2fad59109353c638d0f1a228f.svg" alt="Q"/>  outputs high values for actions that lead to states from which the demonstrated states are
 reachable. Hence, when the agent finds itself far from the demonstrated states, it takes actions that
 lead it back to the demonstrated states.</p>
 <p>Surprisingly, it can be proved that the gradient of the regularized BC loss in the above equation is proportional to the gradient of the SQIL
-loss in line 4 of Algorithm 1 below, plus an additional term that penalizes the soft value of the initial state <span class="math notranslate nohighlight">\(s_{0}\)</span></p>
+loss in line 4 of Algorithm 1 below, plus an additional term that penalizes the soft value of the initial state <img class="math" src="../_images/math/80bf86a7dac78f1e6eda665dbd438175377548e3.svg" alt="s_{0}"/></p>
 <img alt="../_images/sqil_equa.png" src="../_images/sqil_equa.png" />
 <p>For the full derivation, please refer to Section A.1 of the appendix in the original paper.</p>
 <p>In summary, SQIL solves a similar optimization problem to regularized BC proposed in <a class="reference external" href="http://www.ifaamas.org/Proceedings/aamas2014/aamas/p1249.pdf">Boosted and reward regularized classification for apprenticeship learning</a>. However, SQIL can be motivated as a more practical and trivial way to implement the ideas for the regularized BC.
@@ -618,7 +617,6 @@ skip-v4)</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

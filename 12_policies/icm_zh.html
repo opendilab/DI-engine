@@ -287,7 +287,7 @@
 用于研究在稀疏奖励的环境中，如何让agent探索更多没有经历过的状态，学到技能。它的主要想法是使用‘好奇心’作为内在奖励的信号，让agent更有效地探索环境。</p>
 <p>算法试图解决的困难：</p>
 <ol class="arabic">
-<li><p>高维度的连续状态空间(比如图像信息）很难建立直观的dynamic model，即  <span class="math notranslate nohighlight">\(p_\theta(s_{t+1}, a_t)\)</span> ;</p></li>
+<li><p>高维度的连续状态空间(比如图像信息）很难建立直观的dynamic model，即  <img class="math" src="../_images/math/57cdbc171b748d9833b17c73f3f0e46873d6af68.svg" alt="p_\theta(s_{t+1}, a_t)"/> ;</p></li>
 <li><p>环境中的observation和agent自身行为的相关性有所区别，大致可以分为：</p>
 <blockquote>
 <div><ol class="loweralpha simple">
@@ -320,38 +320,529 @@
 <h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>ICM算法的整体训练与计算流程如下：</p>
 <a class="reference internal image-reference" href="../_images/ICM_illustraion.png"><img alt="../_images/ICM_illustraion.png" class="align-center" src="../_images/ICM_illustraion.png" style="width: 853.3px; height: 294.0px;" /></a>
-<p>1. 如左图所示，agent在状态 <span class="math notranslate nohighlight">\(s_t\)</span> 通过当前的策略 <span class="math notranslate nohighlight">\(\pi\)</span> 采样得到动作 a并执行，最终得到状态 <span class="math notranslate nohighlight">\(s_{t+1}\)</span>。 总的奖励为两个部分奖励之和，一部分是外部奖励 <span class="math notranslate nohighlight">\(r_t^e\)</span>，即环境中得到的，稀疏的奖励；另一部分是由ICM得到的内在奖励 <span class="math notranslate nohighlight">\(r_t^ｉ\)</span> （具体计算过程由第4步给出），最终的策略的需要通过优化总的奖励来实现训练的目的。
+<p>1. 如左图所示，agent在状态 <img class="math" src="../_images/math/e806833f2f111400bded5ffcb5ef44220d111dad.svg" alt="s_t"/> 通过当前的策略 <img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/> 采样得到动作 a并执行，最终得到状态 <img class="math" src="../_images/math/a7e711c1312dade2606dd68ec3427c701b81dafd.svg" alt="s_{t+1}"/>。 总的奖励为两个部分奖励之和，一部分是外部奖励 <img class="math" src="../_images/math/6203f62cd6bb5d1968c1189cfe24ba9d98042cfd.svg" alt="r_t^e"/>，即环境中得到的，稀疏的奖励；另一部分是由ICM得到的内在奖励 <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">r_t^ｉ</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   \begingroup 
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ
+                                          $
+
+! Package inputenc Error: Unicode character ｉ (U+FF49)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ
+                                          $
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ$
+                                           
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 324 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ （具体计算过程由第4步给出），最终的策略的需要通过优化总的奖励来实现训练的目的。
 具体公式表现为：</p>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(ｒ_t=r_t^i + r_t^e\)</span></p>
-<p><span class="math notranslate nohighlight">\({\max}_{\theta_p}\mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t]\)</span></p>
+<div><p><div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">ｒ_t=r_t^i + r_t^e</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+
+! Package inputenc Error: Unicode character ｒ (U+FF52)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $ｒ
+                                      _t=r_t^i + r_t^e$
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 428 bytes).
+Transcript written on math.log.
+</p>
+</div>
+</p>
+<p><img class="math" src="../_images/math/2958fbb1bd7e4bec4b93d7eb12ab5c4206735c46.svg" alt="{\max}_{\theta_p}\mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t]"/></p>
 </div></blockquote>
 <ol class="arabic simple" start="2">
-<li><p>在ICM的逆向模型中，它首先会把　<span class="math notranslate nohighlight">\(s_t\)</span>　和 <span class="math notranslate nohighlight">\(s_{t+1}\)</span>　提取表征后的特征向量　<span class="math notranslate nohighlight">\(\Phi(s_t; \theta_E)\)</span>　和　<span class="math notranslate nohighlight">\(\Phi(s_{t+1}; \theta_E)\)</span> 作为输入（后面把它们简化为 <span class="math notranslate nohighlight">\(\Phi(s_t)\)</span> 和 <span class="math notranslate nohighlight">\(\Phi(s_{t+1})\)</span>），并且输出预测的动作值　<span class="math notranslate nohighlight">\(a_t\)</span> 。</p></li>
+<li><p>在ICM的逆向模型中，它首先会把　<img class="math" src="../_images/math/e806833f2f111400bded5ffcb5ef44220d111dad.svg" alt="s_t"/>　和 <img class="math" src="../_images/math/a7e711c1312dade2606dd68ec3427c701b81dafd.svg" alt="s_{t+1}"/>　提取表征后的特征向量　<img class="math" src="../_images/math/6c501c2c893b8429c2f6fbec8e7ddbabae6799f5.svg" alt="\Phi(s_t; \theta_E)"/>　和　<img class="math" src="../_images/math/390eb3f654fbee229a459c4c018471e452c60d8f.svg" alt="\Phi(s_{t+1}; \theta_E)"/> 作为输入（后面把它们简化为 <img class="math" src="../_images/math/59085e4c51ac987b70bf4973470bad4e8bc381ec.svg" alt="\Phi(s_t)"/> 和 <img class="math" src="../_images/math/fd0802284dd9af1d6a573b04fdb3fb405abab2e6.svg" alt="\Phi(s_{t+1})"/>），并且输出预测的动作值　<img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/> 。</p></li>
 </ol>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(\hat{a_t}=g(\Phi(s_t),\Phi(s_{t+1}) ; \theta_I)\)</span></p>
-<p><span class="math notranslate nohighlight">\({\min}_{\theta_I, \theta_E} L_i(\hat{a_t},a_t)\)</span></p>
+<div><p><img class="math" src="../_images/math/1e6820ea946e3419e34058dd8c97e32c315b64bc.svg" alt="\hat{a_t}=g(\Phi(s_t),\Phi(s_{t+1}) ; \theta_I)"/></p>
+<p><img class="math" src="../_images/math/b3bc9c2be931adcba2aa9b568d863872eeb9238d.svg" alt="{\min}_{\theta_I, \theta_E} L_i(\hat{a_t},a_t)"/></p>
 </div></blockquote>
-<p>在这里　<span class="math notranslate nohighlight">\(\hat{a_t}\)</span>　是　<span class="math notranslate nohighlight">\(a_t\)</span>　的预测值， <span class="math notranslate nohighlight">\(L_Ｉ\)</span> 描述两者之间的差异 (cross entropy loss) 。差异越小，说明对于当前动作估计的越准确，说明对于agent可以控制的环境元素的表征就越好。</p>
-<p>３．ICM的前向模型会把　<span class="math notranslate nohighlight">\(\Phi(s_t)\)</span>　和动作值　<span class="math notranslate nohighlight">\(a_t\)</span>　作为输入，　输出下一个时刻状态的特征向量的预测数值　<span class="math notranslate nohighlight">\(\hat{\Phi}(s_{t+1})\)</span> 。
+<p>在这里　<img class="math" src="../_images/math/47aed2364220b52ceb236e8cab0211b07a02765b.svg" alt="\hat{a_t}"/>　是　<img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/>　的预测值， <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">L_Ｉ</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   \begingroup 
+l.30 \fontsize{14}{17}\selectfont $L_Ｉ
+                                        $
+
+! Package inputenc Error: Unicode character Ｉ (U+FF29)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $L_Ｉ
+                                        $
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $L_Ｉ$
+                                         
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 272 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ 描述两者之间的差异 (cross entropy loss) 。差异越小，说明对于当前动作估计的越准确，说明对于agent可以控制的环境元素的表征就越好。</p>
+<p>３．ICM的前向模型会把　<img class="math" src="../_images/math/59085e4c51ac987b70bf4973470bad4e8bc381ec.svg" alt="\Phi(s_t)"/>　和动作值　<img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/>　作为输入，　输出下一个时刻状态的特征向量的预测数值　<img class="math" src="../_images/math/6313ac2a26f8d4c084ce1cce1cabbd64f76a1ffa.svg" alt="\hat{\Phi}(s_{t+1})"/> 。
 下一时刻预测的特征向量和真实的特征向量的误差被用来当做内在奖励。</p>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(\hat{\phi(s_{t+1})}=f(\Phi(s_t),a_t) ; \theta_F)\)</span></p>
-<p><span class="math notranslate nohighlight">\({\min}_{\theta_F, \theta_E} L_F(\hat{\phi(s_{t+1})},\phi(s_{t+1}))\)</span></p>
+<div><p><img class="math" src="../_images/math/f6e4f35991e1dec819b7a0c863a661e301f93ba1.svg" alt="\hat{\phi(s_{t+1})}=f(\Phi(s_t),a_t) ; \theta_F)"/></p>
+<p><img class="math" src="../_images/math/478f68314de43caf6d4454f761f03aaba2a093c6.svg" alt="{\min}_{\theta_F, \theta_E} L_F(\hat{\phi(s_{t+1})},\phi(s_{t+1}))"/></p>
 </div></blockquote>
-<p>在这里， <span class="math notranslate nohighlight">\(L_Ｆ\)</span> 描述了　<span class="math notranslate nohighlight">\(\hat{\phi(s_{t+1})}\)</span> 和 <span class="math notranslate nohighlight">\(\phi(s_{t+1})\)</span> 之间的差异 (L2 loss), 通过前向模型的学习，可以让学习的特征表征更加容易预测。</p>
-<p>４．内在奖励可以由　<span class="math notranslate nohighlight">\(\hat{\phi(s_{t+1})}\)</span> 和 <span class="math notranslate nohighlight">\(\phi(s_{t+1})\)</span> 之间的差异来表征：</p>
+<p>在这里， <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">L_Ｆ</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   \begingroup 
+l.30 \fontsize{14}{17}\selectfont $L_Ｆ
+                                        $
+
+! Package inputenc Error: Unicode character Ｆ (U+FF26)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $L_Ｆ
+                                        $
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $L_Ｆ$
+                                         
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 272 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ 描述了　<img class="math" src="../_images/math/7939d6608d19bcbacc0a7cba27cd8e33d9ecd9d9.svg" alt="\hat{\phi(s_{t+1})}"/> 和 <img class="math" src="../_images/math/90b86a7cf94bebebe4f9aca3e46dbd2e3b29cd44.svg" alt="\phi(s_{t+1})"/> 之间的差异 (L2 loss), 通过前向模型的学习，可以让学习的特征表征更加容易预测。</p>
+<p>４．内在奖励可以由　<img class="math" src="../_images/math/7939d6608d19bcbacc0a7cba27cd8e33d9ecd9d9.svg" alt="\hat{\phi(s_{t+1})}"/> 和 <img class="math" src="../_images/math/90b86a7cf94bebebe4f9aca3e46dbd2e3b29cd44.svg" alt="\phi(s_{t+1})"/> 之间的差异来表征：</p>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(r_i^t = \frac{\eta}{2} (\| \hat{\phi(s_{t+1})} - \phi(s_{t+1}) \|)_2^2\)</span></p>
+<div><p><img class="math" src="../_images/math/dcf818cc19cc49cc2a6b99299b6450094f380ea8.svg" alt="r_i^t = \frac{\eta}{2} (\| \hat{\phi(s_{t+1})} - \phi(s_{t+1}) \|)_2^2"/></p>
 </div></blockquote>
 <p><strong>总结</strong>：
 ICM通过前向模型和逆向模型，会提取更多会受到agent影响的环境元素特征；对于那些agent的动作无法影响的环境元素（比如噪声），将不会产生内在奖励，进而提高了探索策略的鲁棒性。
 同时，１－４也可以写作一个优化函数：</p>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\({\min}_{\theta_P,\theta_I,\theta_F，\theta_E} [- \lambda \mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t] + (1-\beta)L_I + \beta LF]\)</span></p>
+<div><p><div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">{\min}_{\theta_P,\theta_I,\theta_F，\theta_E} [- \lambda \mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t] + (1-\beta)L_I + \beta LF]</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+
+! Package inputenc Error: Unicode character ， (U+FF0C)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 ...ont ${\min}_{\theta_P,\theta_I,\theta_F，
+                                                  \theta_E} [- \lambda \math...
+
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 736 bytes).
+Transcript written on math.log.
+</p>
+</div>
+</p>
 </div></blockquote>
-<p>在这里 <span class="math notranslate nohighlight">\(\beta \in [0,1]\)</span> 用来权衡正向模型误差和逆向模型误差的权重；　<span class="math notranslate nohighlight">\(\lambda &gt;0\)</span> 用来表征策略梯度误差对于内在信号的重要程度。</p>
+<p>在这里 <img class="math" src="../_images/math/e950c2473594102f7c74e08cb9d9c02aead2fc7a.svg" alt="\beta \in [0,1]"/> 用来权衡正向模型误差和逆向模型误差的权重；　<img class="math" src="../_images/math/237a2f85e426b4e6e2e173d8a109ca5c3bfa167b.svg" alt="\lambda &gt;0"/> 用来表征策略梯度误差对于内在信号的重要程度。</p>
 </section>
 <section id="id4">
 <h2>重要实现细节<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
@@ -451,7 +942,7 @@ ICM通过前向模型和逆向模型，会提取更多会受到agent影响的环
 <p>self.feature: 对observation的特征进行提取；</p>
 <p>self.inverse_net: ICM网络的逆向模型，通过将先后两帧feature特征作为输入，输出一个预测的动作</p>
 <p>self.residual: 参与ICM网络的前向模型，通过多次将action与中间层的输出做concat,使得特征更加明显</p>
-<p>self.forward_net: 参与ICM网络的前向模型，负责输出 <span class="math notranslate nohighlight">\(s_{t+1}\)</span> 时刻的feature</p>
+<p>self.forward_net: 参与ICM网络的前向模型，负责输出 <img class="math" src="../_images/math/a7e711c1312dade2606dd68ec3427c701b81dafd.svg" alt="s_{t+1}"/> 时刻的feature</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ICMNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Intrinsic Curiosity Model (ICM Module)</span>
@@ -650,7 +1141,6 @@ ICM通过前向模型和逆向模型，会提取更多会受到agent影响的环
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

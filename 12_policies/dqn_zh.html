@@ -298,9 +298,9 @@
 <section id="id3">
 <h2>重要公示/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>DQN 中的 TD-loss 是：</p>
-<div class="math notranslate nohighlight">
-\[\mathrm{L}(w)=\mathbb{E}\left[(\underbrace{r+\gamma \max _{a^{\prime}} Q_{\text {target }}\left(s^{\prime}, a^{\prime}, \theta^{-}\right)}-Q(s, a, \theta))^{2}\right]\]</div>
-<p>其中目标网络 <span class="math notranslate nohighlight">\(Q_{\text {target}}\)</span> ，带有参数 <span class="math notranslate nohighlight">\(\theta^{-}\)</span> ，与在线网络相同，只是它的参数会每 <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> 个环境步数从在线网络复制更新一次（超参数 <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> 可以在配置文件中修改。请参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/wrapper/model_wrappers.py">TargetNetworkWrapper</a> 了解更多详情）。</p>
+<div class="math">
+<p><img src="../_images/math/c6a297cc590126a3770ca2b47d9501f5829035a5.svg" alt="\mathrm{L}(w)=\mathbb{E}\left[(\underbrace{r+\gamma \max _{a^{\prime}} Q_{\text {target }}\left(s^{\prime}, a^{\prime}, \theta^{-}\right)}-Q(s, a, \theta))^{2}\right]"/></p>
+</div><p>其中目标网络 <img class="math" src="../_images/math/ac349463a8b2ed3902a8e6309ddf8071ef824dad.svg" alt="Q_{\text {target}}"/> ，带有参数 <img class="math" src="../_images/math/bfd0cefa4060fc31584de3ff67c7fe4f74816885.svg" alt="\theta^{-}"/> ，与在线网络相同，只是它的参数会每 <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> 个环境步数从在线网络复制更新一次（超参数 <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> 可以在配置文件中修改。请参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/wrapper/model_wrappers.py">TargetNetworkWrapper</a> 了解更多详情）。</p>
 </section>
 <section id="id4">
 <h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
@@ -323,15 +323,15 @@
 <a class="reference external" href="../best_practice/priority.html">PER example</a></p>
 </li>
 <li><p>多步（Multi-step） TD-loss</p>
-<p>在 Single-step TD-loss 中，Q-learning 通过贝尔曼方程更新 <span class="math notranslate nohighlight">\(Q(s,a)\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[r(s,a)+\gamma \max_{a^{'}}Q(s',a')\]</div>
-<p>在 Multi-step TD-loss 中，贝尔曼方程是:</p>
-<div class="math notranslate nohighlight">
-\[\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \max_{a^{'}}Q(s_n,a')\]</div>
-<div class="admonition note">
+<p>在 Single-step TD-loss 中，Q-learning 通过贝尔曼方程更新 <img class="math" src="../_images/math/4bee4bf2dbdb810489db12a4e75c281e6117ad65.svg" alt="Q(s,a)"/>:</p>
+<div class="math">
+<p><img src="../_images/math/1c1b6f6b275ae79822673380d46436ef3d0d1f17.svg" alt="r(s,a)+\gamma \max_{a^{'}}Q(s',a')"/></p>
+</div><p>在 Multi-step TD-loss 中，贝尔曼方程是:</p>
+<div class="math">
+<p><img src="../_images/math/ec36ed9b891ad66dd8b9023930444dbeb021090a.svg" alt="\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \max_{a^{'}}Q(s_n,a')"/></p>
+</div><div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>在DQN中使用 Multi-step TD-loss 有一个潜在的问题：采用 epsilon 贪心收集数据时， Q值的估计是有偏的。 因为t &gt;= 1时，<span class="math notranslate nohighlight">\(r(s_t,a_t)\)</span> 是在 epsilon-greedy 策略下采样的，而不是通过正在学习的策略本身来采样。但实践中发现 Multi-step TD-loss 与 epsilon-greedy 结合使用，一般都可以明显提升智能体的最终性能。</p>
+<p>在DQN中使用 Multi-step TD-loss 有一个潜在的问题：采用 epsilon 贪心收集数据时， Q值的估计是有偏的。 因为t &gt;= 1时，<img class="math" src="../_images/math/7ecea079b99f189b76795a01ac3389014fcfcd0c.svg" alt="r(s_t,a_t)"/> 是在 epsilon-greedy 策略下采样的，而不是通过正在学习的策略本身来采样。但实践中发现 Multi-step TD-loss 与 epsilon-greedy 结合使用，一般都可以明显提升智能体的最终性能。</p>
 </div>
 <p>在DI-engine中，Multi-step TD-loss 可以通过修改配置文件中的 <code class="docutils literal notranslate"><span class="pre">nstep</span></code> 字段来控制，详细的损失函数计算代码可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/rl_utils/td.py">nstep code</a> 中的 <code class="docutils literal notranslate"><span class="pre">q_nstep_td_error</span></code></p>
 </li>
@@ -340,8 +340,8 @@
 <p>标准 Q 学习或 DQN 中在计算目标网络时的 max 算子使用同一个的 Q 值来选择和评估动作。这使得它选择的动作的价值更有可能被高估，从而导致过度乐观的价值估计。为了防止这种情况，我们可以将选择与评估分离。更具体地说，以下两个公式展示了二者的差异：</p>
 <p>（1）标记的Q-learning和（2）标记的Double DQN中的目标如下图所示：</p>
 <a class="reference internal image-reference" href="../_images/DQN_and_DDQN.png"><img alt="../_images/DQN_and_DDQN.png" class="align-center" src="../_images/DQN_and_DDQN.png" style="width: 336.8px; height: 44.0px;" /></a>
-<p>区别于传统DQN，Double DQN中的目标网络不会选择当前网络中离散动作空间中的最大Q值，而是首先查找  <strong>在线网络</strong>  中Q值最大的动作（对应上面公式中的  <span class="math notranslate nohighlight">\(argmax_a Q(S_{t+1},a;\theta_t)\)</span>），然后根据该动作从 <strong>目标网络</strong>  计算得到Q值
-(对应上面公示中的  <span class="math notranslate nohighlight">\(Q(S_{t+1},argmax_a Q(S_{t+1},a;\theta_t);\theta'_t)\)</span>）。</p>
+<p>区别于传统DQN，Double DQN中的目标网络不会选择当前网络中离散动作空间中的最大Q值，而是首先查找  <strong>在线网络</strong>  中Q值最大的动作（对应上面公式中的  <img class="math" src="../_images/math/3254985d3230f76b4a9876e82e254370b2831e22.svg" alt="argmax_a Q(S_{t+1},a;\theta_t)"/>），然后根据该动作从 <strong>目标网络</strong>  计算得到Q值
+(对应上面公示中的  <img class="math" src="../_images/math/ce12d762b3b1f59887ce53b7214bd081120e8370.svg" alt="Q(S_{t+1},argmax_a Q(S_{t+1},a;\theta_t);\theta'_t)"/>）。</p>
 <p>综上所述，Double Q-learning 可以抑制 Q 值的高估，从而减少相关的负面影响。</p>
 <p>DI-engine 默认实现并使用 Double DQN ，没有关闭选项。</p>
 <div class="admonition note">
@@ -725,8 +725,8 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -890,7 +890,6 @@ skip-v4)</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

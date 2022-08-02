@@ -122,4 +122,4 @@ HiddenStateWrapper 的结构如下：
             :align: center
             :scale: 60%
 
-关于模型 wrapper 的其他示例，您可以在 ``ding/model/wrappers/model_wrappers.py`` 找到更多细节。
+关于模型 wrapper 的其他示例，您可以在 ``ding/model/wrappers/model_wrappers.py``找到更多细节。

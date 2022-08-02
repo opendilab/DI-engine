@@ -308,7 +308,7 @@
 <p>R2D3算法的Q网络结构图如下：</p>
 <a class="reference internal image-reference" href="../_images/r2d3_q_net.png"><img alt="../_images/r2d3_q_net.png" class="align-center" src="../_images/r2d3_q_net.png" style="width: 549.6px; height: 302.40000000000003px;" /></a>
 <p>(a)R2D3智能体使用的recurrent head。 (b)DQfD智能体使用的feedforward head。(c)表示输入的是大小为96x72的图像帧，
-接着通过一个ResNet，然后将前一时刻的动作，前一时刻的奖励和当前时刻的其他本体感受特征(proprioceptive features) <span class="math notranslate nohighlight">\(f_{t}\)</span> （包括加速度、avatar是否握住物体以及手与avatar的相对距离等辅助信息
+接着通过一个ResNet，然后将前一时刻的动作，前一时刻的奖励和当前时刻的其他本体感受特征(proprioceptive features) <img class="math" src="../_images/math/7b03b461c48e723eace56403238d3da9d9737d6c.svg" alt="f_{t}"/> （包括加速度、avatar是否握住物体以及手与avatar的相对距离等辅助信息
 连接(concat)为一个新的向量，传入(a)和(b)中的head，用于计算Q值。</p>
 <p>下面描述r2d3的损失函数设置，和DQfD一样，不过这里所有的Q值都是通过上面所描述的循环神经网络计算得到。包括：
 一步时序差分损失，n步时序差分损失，监督大间隔分类损失，神经网络参数的L2正则化损失(可选)。
@@ -326,7 +326,7 @@ n步return为：</p></li>
 并且网络将在整个学习过程中通过Q函数传播这些误差，造成误差累计造成过估计问题。这里采用了 <a class="reference external" href="https://arxiv.org/pdf/1606.01128.pdf">监督大边际分类损失(supervised large margin classification loss)</a>  来缓解这个问题，
 其计算公式为：</p>
 <a class="reference internal image-reference" href="../_images/r2d3_slmcl.png"><img alt="../_images/r2d3_slmcl.png" class="align-center" src="../_images/r2d3_slmcl.png" style="width: 341.6px; height: 38.400000000000006px;" /></a>
-<p>其中 <span class="math notranslate nohighlight">\(a_{E}\)</span> 表示专家执行的动作。 <span class="math notranslate nohighlight">\(l(a_{E}, a)\)</span>  是一个边际函数，当 <span class="math notranslate nohighlight">\(a = a_{E}\)</span> 时为 0，否则为一个正的常数。
+<p>其中 <img class="math" src="../_images/math/d1f7bf3b061cdf808797393d4e97d3c606afcd06.svg" alt="a_{E}"/> 表示专家执行的动作。 <img class="math" src="../_images/math/0ce73dfe4699b92a87730edcd9669667d4685712.svg" alt="l(a_{E}, a)"/>  是一个边际函数，当 <img class="math" src="../_images/math/6f22c4e7061308ea30c6c0d9a4c2bce3d5c18b45.svg" alt="a = a_{E}"/> 时为 0，否则为一个正的常数。
 最小化这个监督损失， <strong>可以迫使除专家演示者执行的动作以外的其他动作的Q值至少比专家演示者的动作Q值低一个间隔</strong>。
 通过加上这个损失，将专家数据集合中没有遇到过的动作的Q值变成合理范围内的值，并使学得的值函数导出的贪婪策略模仿专家演示者的策略。</p>
 <p>我们在DI-engine中的具体实现如下所示：</p>
@@ -757,15 +757,15 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
 <li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code>): the q_nstep_td_data containing            [‘q’, ‘next_n_q’, ‘action’, ‘next_n_action’, ‘reward’, ‘done’, ‘weight’                , ‘new_n_q_one_step’, ‘next_n_action_one_step’, ‘is_expert’]</p></li>
-<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span> i.e. [batch_size, action_dim]</p></li>
-<li><p>next_n_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>next_n_action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span>, where T is timestep(nstep)</p></li>
-<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
-<li><p>td_error_per_sample (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>new_n_q_one_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span></p></li>
-<li><p>next_n_action_one_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/> i.e. [batch_size, action_dim]</p></li>
+<li><p>next_n_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/></p></li>
+<li><p>next_n_action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/04725baff8271367dbe8c9f59add9dab2f3f623a.svg" alt="(T, B)"/>, where T is timestep(nstep)</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, whether done in last timestep</p></li>
+<li><p>td_error_per_sample (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/></p></li>
+<li><p>new_n_q_one_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/></p></li>
+<li><p>next_n_action_one_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/></p></li>
 <li><p>is_expert (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>) : 0 or 1</p></li>
 </ul>
 </dd>
@@ -774,7 +774,7 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>我们目前的r2d3策略实现中网络的输入只是时刻t的状态观测，不包含时刻t-1的动作和奖励, 也不包括额外的信息向量 <span class="math notranslate nohighlight">\(f_{t}\)</span> .</p>
+<p>我们目前的r2d3策略实现中网络的输入只是时刻t的状态观测，不包含时刻t-1的动作和奖励, 也不包括额外的信息向量 <img class="math" src="../_images/math/7b03b461c48e723eace56403238d3da9d9737d6c.svg" alt="f_{t}"/> .</p>
 </div>
 </section>
 <section id="id8">
@@ -924,7 +924,6 @@ Acquire the data, calculate the loss and optimize learner model.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

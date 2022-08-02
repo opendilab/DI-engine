@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -285,9 +284,11 @@
 <p>ICM (Intrinsic Curiosity Module) was first proposed in the paper <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a>,
 It is used to study how to let the agent explore more unexperienced states and learn skills in a sparse reward environment. Its main idea is to use ‘curiosity’ as a signal of intrinsic reward, allowing the agent to explore the environment more efficiently.</p>
 <p>The difficulties the algorithm trying to solve:</p>
-<ol class="arabic">
-<li><p>High-dimensional continuous state space (such as image information) is difficult to establish an intuitive dynamic model, ie <span class="math notranslate nohighlight">\(p_\theta(s_{t+1}, a_t)\)</span> ;</p></li>
-<li><p>The correlation between the observation in the environment and the agent’s own behavior is different, which can be roughly divided into:</p>
+<ol class="arabic simple">
+<li><p>High-dimensional continuous state space (such as image information) is difficult to establish an intuitive dynamic model, ie <img class="math" src="../_images/math/57cdbc171b748d9833b17c73f3f0e46873d6af68.svg" alt="p_\theta(s_{t+1}, a_t)"/> ;</p></li>
+</ol>
+<p>2. The correlation between the observation in the environment and the agent’s own behavior is different, which can be roughly divided into:
+​​</p>
 <blockquote>
 <div><ol class="loweralpha simple">
 <li><p>Elements that the agent can directly control (such as the position and speed of the vehicle in the autonomous driving scene);</p></li>
@@ -295,8 +296,6 @@ It is used to study how to let the agent explore more unexperienced states and l
 <li><p>Elements that are neither controlled by the agent nor affect the agent (such as the intensity of sunlight in an autonomous driving scene, although it will affect the sensor, it will not affect the driving behavior in essence).</p></li>
 </ol>
 </div></blockquote>
-</li>
-</ol>
 <p>For the above three types of observation elements, we want to extract the environmental features in (a) and (b) two contexts, (these two environmental features are related to the action of the agent), while ignoring (c) the contextual features (this This kind of environment feature has nothing to do with the action of the agent).</p>
 <p>Features: <strong>Description of feature space</strong> Use a feature space to represent the environment, instead of directly using the original observation to represent the environment, so that features only related to agent actions can be extracted, and features unrelated to environmental features can be ignored. .
 Based on the representation of this feature space, a reward module and a forward model are proposed.
@@ -319,40 +318,142 @@ Based on the representation of this feature space, a reward module and a forward
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The overall training and calculation process of the ICM algorithm is as follows:</p>
 <a class="reference internal image-reference" href="../_images/ICM_illustraion.png"><img alt="../_images/ICM_illustraion.png" class="align-center" src="../_images/ICM_illustraion.png" style="width: 853.3px; height: 294.0px;" /></a>
-<p>1. As shown in the figure on the left, the agent samples the action a in the state <span class="math notranslate nohighlight">\(s_t\)</span> through the current policy  <span class="math notranslate nohighlight">\(\pi\)</span> and executes it, and finally obtains the state  <span class="math notranslate nohighlight">\(s_{t+1}\)</span>. The total reward is the sum of two partial rewards, one part is the external reward <span class="math notranslate nohighlight">\(r_t^e\)</span>, that is, the sparse reward obtained in the environment; the other part is the intrinsic reward obtained by the ICM <span class="math notranslate nohighlight">\(r_t^ｉ\)</span> (The specific calculation process is given in step 4), the final strategy needs to achieve the purpose of training by optimizing the total reward.
+<p>1. As shown in the figure on the left, the agent samples the action a in the state <img class="math" src="../_images/math/e806833f2f111400bded5ffcb5ef44220d111dad.svg" alt="s_t"/> through the current policy  <img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/> and executes it, and finally obtains the state  <img class="math" src="../_images/math/a7e711c1312dade2606dd68ec3427c701b81dafd.svg" alt="s_{t+1}"/>. The total reward is the sum of two partial rewards, one part is the external reward <img class="math" src="../_images/math/6203f62cd6bb5d1968c1189cfe24ba9d98042cfd.svg" alt="r_t^e"/>, that is, the sparse reward obtained in the environment; the other part is the intrinsic reward obtained by the ICM <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">r_t^ｉ</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   \begingroup 
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ
+                                          $
+
+! Package inputenc Error: Unicode character ｉ (U+FF49)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ
+                                          $
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $r_t^ｉ$
+                                           
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 324 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ (The specific calculation process is given in step 4), the final strategy needs to achieve the purpose of training by optimizing the total reward.
 The specific formula is as follows:</p>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(r_t=r_t^i + r_t^e\)</span></p>
-<p><span class="math notranslate nohighlight">\({\max}_{\theta_p}\mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t]\)</span></p>
+<div><p><img class="math" src="../_images/math/5e3e4928e36b09728a3c11616b4f3ccc39b1bbc4.svg" alt="r_t=r_t^i + r_t^e"/></p>
+<p><img class="math" src="../_images/math/2958fbb1bd7e4bec4b93d7eb12ab5c4206735c46.svg" alt="{\max}_{\theta_p}\mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t]"/></p>
 </div></blockquote>
 <ol class="arabic simple" start="2">
-<li><p>In the reward module of ICM, it first extracts the eigenvectors after characterization by <span class="math notranslate nohighlight">\(s_t\)</span> and <span class="math notranslate nohighlight">\(s_{t+1}\)</span>,:math:<cite>Phi(s_t; theta_E)</cite> and <span class="math notranslate nohighlight">\(\Phi(s_{t+1}; \theta_E)\)</span> as input (reduce them to <span class="math notranslate nohighlight">\(\Phi(s_t)\)</span> and <span class="math notranslate nohighlight">\(\Phi(s_{t+1 })\)</span>), and output the predicted action value <span class="math notranslate nohighlight">\(a_t\)</span></p></li>
+<li><p>In the reward module of ICM, it first extracts the eigenvectors after characterization by <img class="math" src="../_images/math/e806833f2f111400bded5ffcb5ef44220d111dad.svg" alt="s_t"/> and <img class="math" src="../_images/math/a7e711c1312dade2606dd68ec3427c701b81dafd.svg" alt="s_{t+1}"/>,:math:<cite>Phi(s_t; theta_E)</cite> and <img class="math" src="../_images/math/390eb3f654fbee229a459c4c018471e452c60d8f.svg" alt="\Phi(s_{t+1}; \theta_E)"/> as input (reduce them to <img class="math" src="../_images/math/59085e4c51ac987b70bf4973470bad4e8bc381ec.svg" alt="\Phi(s_t)"/> and <img class="math" src="../_images/math/eeb9cd8fbae7e54dab6598d1947ef7bdfddf08ab.svg" alt="\Phi(s_{t+1 })"/>), and output the predicted action value <img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/></p></li>
 </ol>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(\hat{a_t}=g(\Phi(s_t),\Phi(s_{t+1}) ; \theta_I)\)</span></p>
-<p><span class="math notranslate nohighlight">\({\min}_{\theta_I, \theta_E} L_i(\hat{a_t},a_t)\)</span></p>
+<div><p><img class="math" src="../_images/math/1e6820ea946e3419e34058dd8c97e32c315b64bc.svg" alt="\hat{a_t}=g(\Phi(s_t),\Phi(s_{t+1}) ; \theta_I)"/></p>
+<p><img class="math" src="../_images/math/b3bc9c2be931adcba2aa9b568d863872eeb9238d.svg" alt="{\min}_{\theta_I, \theta_E} L_i(\hat{a_t},a_t)"/></p>
 </div></blockquote>
-<p>Here <span class="math notranslate nohighlight">\(\hat{a_t}\)</span> is the predicted value of <span class="math notranslate nohighlight">\(a_t\)</span> and <span class="math notranslate nohighlight">\(L_I\)</span> describes the difference between the two (cross entropy loss). The smaller the difference, the more accurate the estimation of the current action, and the better the representation of the environmental elements that the agent can control.</p>
-<p>3. The forward model of ICM will take <span class="math notranslate nohighlight">\(\Phi(s_t)\)</span>  and action value　<span class="math notranslate nohighlight">\(a_t\)</span> as input, and output the predicted value of the feature vector of the state at the next moment:math:<cite>hat{Phi}(s_{t+1})</cite>
+<p>Here <img class="math" src="../_images/math/47aed2364220b52ceb236e8cab0211b07a02765b.svg" alt="\hat{a_t}"/> is the predicted value of <img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/> and <img class="math" src="../_images/math/1826b5a2fd00b3457b82407a0f17f68784acd8ad.svg" alt="L_I"/> describes the difference between the two (cross entropy loss). The smaller the difference, the more accurate the estimation of the current action, and the better the representation of the environmental elements that the agent can control.</p>
+<p>3. The forward model of ICM will take <img class="math" src="../_images/math/59085e4c51ac987b70bf4973470bad4e8bc381ec.svg" alt="\Phi(s_t)"/>  and action value　<img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/> as input, and output the predicted value of the feature vector of the state at the next moment:math:<cite>hat{Phi}(s_{t+1})</cite>
 The error between the predicted feature vector at the next moment and the real feature vector is used as the intrinsic reward.</p>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(\hat{\phi(s_{t+1})}=f(\Phi(s_t),a_t) ; \theta_F)\)</span></p>
-<p><span class="math notranslate nohighlight">\({\min}_{\theta_F, \theta_E} L_F(\hat{\phi(s_{t+1})},\phi(s_{t+1}))\)</span></p>
+<div><p><img class="math" src="../_images/math/f6e4f35991e1dec819b7a0c863a661e301f93ba1.svg" alt="\hat{\phi(s_{t+1})}=f(\Phi(s_t),a_t) ; \theta_F)"/></p>
+<p><img class="math" src="../_images/math/478f68314de43caf6d4454f761f03aaba2a093c6.svg" alt="{\min}_{\theta_F, \theta_E} L_F(\hat{\phi(s_{t+1})},\phi(s_{t+1}))"/></p>
 </div></blockquote>
-<p>Here, <span class="math notranslate nohighlight">\(L_F\)</span> describes the difference between <span class="math notranslate nohighlight">\(\hat{\phi(s_{t+1})}\)</span> and <span class="math notranslate nohighlight">\(\phi(s_{t+1})\)</span> (L2 loss), through the learning of the forward model, the learned feature representation can be more predictable.</p>
+<p>Here, <img class="math" src="../_images/math/a00828a463911060200e9490bd2dde511b896a23.svg" alt="L_F"/> describes the difference between <img class="math" src="../_images/math/7939d6608d19bcbacc0a7cba27cd8e33d9ecd9d9.svg" alt="\hat{\phi(s_{t+1})}"/> and <img class="math" src="../_images/math/90b86a7cf94bebebe4f9aca3e46dbd2e3b29cd44.svg" alt="\phi(s_{t+1})"/> (L2 loss), through the learning of the forward model, the learned feature representation can be more predictable.</p>
 <ol class="arabic simple" start="4">
-<li><p>The intrinsic reward can be characterized by the difference between <span class="math notranslate nohighlight">\(\hat{\phi(s_{t+1})}\)</span> and <span class="math notranslate nohighlight">\(\phi(s_{t+1})\)</span>:</p></li>
+<li><p>The intrinsic reward can be characterized by the difference between <img class="math" src="../_images/math/7939d6608d19bcbacc0a7cba27cd8e33d9ecd9d9.svg" alt="\hat{\phi(s_{t+1})}"/> and <img class="math" src="../_images/math/90b86a7cf94bebebe4f9aca3e46dbd2e3b29cd44.svg" alt="\phi(s_{t+1})"/>:</p></li>
 </ol>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\(r_i^t = \frac{\eta}{2} (\| \hat{\phi(s_{t+1})} - \phi(s_{t+1}) \|)_2^ 2\)</span></p>
+<div><p><img class="math" src="../_images/math/d83ec7c94b5fa35ce95d8116961760c1ea6845aa.svg" alt="r_i^t = \frac{\eta}{2} (\| \hat{\phi(s_{t+1})} - \phi(s_{t+1}) \|)_2^ 2"/></p>
 </div></blockquote>
 <p><strong>Summarize</strong>:
 Through the forward model and the reward model, ICM will extract more features of environmental elements that will be affected by the agent; for those environmental elements (such as noise) that cannot be affected by the agent’s actions, there will be no intrinsic reward, thus improving the exploration strategy in robustness.
 At the same time, 1-4 can also be written as an optimization function:</p>
 <blockquote>
-<div><p><span class="math notranslate nohighlight">\({\min}_{\theta_P,\theta_I,\theta_F,\theta_E} [- \lambda \mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t] + (1 -\beta)L_I + \beta LF]\)</span></p>
+<div><p><img class="math" src="../_images/math/5e5c5441ac00a085fac9103ad1a9d781786c00c1.svg" alt="{\min}_{\theta_P,\theta_I,\theta_F,\theta_E} [- \lambda \mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t] + (1 -\beta)L_I + \beta LF]"/></p>
 </div></blockquote>
-<p>Here: math:<cite>beta in [0,1]</cite> is used to weigh the weight of forward model error and reward model error; <span class="math notranslate nohighlight">\(\lambda &gt;0\)</span> is used to characterize the importance of policy gradient error to the intrinsic signal degree.</p>
+<p>Here: math:<cite>beta in [0,1]</cite> is used to weigh the weight of forward model error and reward model error; <img class="math" src="../_images/math/237a2f85e426b4e6e2e173d8a109ca5c3bfa167b.svg" alt="\lambda &gt;0"/> is used to characterize the importance of policy gradient error to the intrinsic signal degree.</p>
 </section>
 <section id="important-implementation-details">
 <h2>Important Implementation Details<a class="headerlink" href="#important-implementation-details" title="Permalink to this headline">¶</a></h2>
@@ -361,15 +462,6 @@ In our implementation, it is normalized to [0, 1] according to the following max
 <p><code class="docutils literal notranslate"><span class="pre">reward</span> <span class="pre">=</span> <span class="pre">(reward</span> <span class="pre">-</span> <span class="pre">reward.min())</span> <span class="pre">/</span> <span class="pre">(reward.max()</span> <span class="pre">-</span> <span class="pre">reward.min()</span> <span class="pre">+</span> <span class="pre">1e-8)</span></code></p>
 <p>2. Use a residual network to fit the forward model. Since the representation dimension of observation is relatively large, the action value is often a discrete value.
 Therefore, when calculating the forward model, the residual network can better retain the information of the action value, so as to obtain a better environmental representation.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">encode_state</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_1</span><span class="p">(</span><span class="n">pred_next_state_feature_orig</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-    <span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-    <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="p">)</span> <span class="o">+</span> <span class="n">pred_next_state_feature_orig</span>
-<span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_2</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-</pre></div>
-</div>
 </section>
 <section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
@@ -452,7 +544,7 @@ Therefore, when calculating the forward model, the residual network can better r
 <p>self.feature: extract the features of observation;</p>
 <p>self.inverse_net: The inverse model of the ICM network, which outputs a predicted action by taking two successive frames of feature features as input</p>
 <p>self.residual: Participate in the forward model of the ICM network, and make the features more obvious by concat the output of the action and the intermediate layer for many times</p>
-<p>self.forward_net: Participate in the forward model of the ICM network, responsible for outputting the feature at the moment of <span class="math notranslate nohighlight">\(s_{t+1}\)</span></p>
+<p>self.forward_net: Participate in the forward model of the ICM network, responsible for outputting the feature at the moment of <img class="math" src="../_images/math/a7e711c1312dade2606dd68ec3427c701b81dafd.svg" alt="s_{t+1}"/></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ICMNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Intrinsic Curiosity Model (ICM Module)</span>
@@ -651,7 +743,6 @@ The three lines of the experiment are three seeds, the ids are: 0, 10, 20</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

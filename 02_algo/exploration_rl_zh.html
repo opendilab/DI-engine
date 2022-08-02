@@ -326,12 +326,12 @@ Montezuma’s Revenge
 <h3>经典的探索机制<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>在传统的 multi-armed bandit 问题中，常用的经典探索机制包括：</p>
 <ul class="simple">
-<li><p>Epsilon-Greedy：在某一时刻，所有动作的选择概率都大于0。智能体以一个较小的概率<span class="math notranslate nohighlight">\(\epsilon\)</span>执行随机的动作（探索），以一个较大的概率<span class="math notranslate nohighlight">\(1-\epsilon\)</span>执行Q值最大的动作（利用）。</p></li>
+<li><p>Epsilon-Greedy：在某一时刻，所有动作的选择概率都大于0。智能体以一个较小的概率<img class="math" src="../_images/math/16f308203c04d65932015daf58f48836dddfc61f.svg" alt="\epsilon"/>执行随机的动作（探索），以一个较大的概率<img class="math" src="../_images/math/34f08aed218e547fb9021297d3a951cc80ca4d51.svg" alt="1-\epsilon"/>执行Q值最大的动作（利用）。</p></li>
 <li><p>Upper Confidence
-Bounds：智能体贪婪地选取最大化置信上界<span class="math notranslate nohighlight">\(\hat{Q}_{t}(a)+\hat{U}_{t}(a)\)</span>的动作，其中<span class="math notranslate nohighlight">\(\hat{Q}_{t}(a)\)</span>是在
-<span class="math notranslate nohighlight">\(t\)</span> 时刻前与动作
-<span class="math notranslate nohighlight">\(a\)</span>有关的平均奖励，<span class="math notranslate nohighlight">\(\hat{U}_{t}(a)\)</span> 是一个与采取动作
-<span class="math notranslate nohighlight">\(a\)</span> 的次数成反比的函数。</p></li>
+Bounds：智能体贪婪地选取最大化置信上界<img class="math" src="../_images/math/756e0d93e13ab5ceafedc286c0c165351422ad9b.svg" alt="\hat{Q}_{t}(a)+\hat{U}_{t}(a)"/>的动作，其中<img class="math" src="../_images/math/a8c3cd44e17735519b2ca52474e5069c8c1f73d0.svg" alt="\hat{Q}_{t}(a)"/>是在
+<img class="math" src="../_images/math/bf9d1a2bb98a9d76bebf5ddb189fdbe3127fd13a.svg" alt="t"/> 时刻前与动作
+<img class="math" src="../_images/math/880d564ad58d3f8e5efd212642b27bd68378f7d4.svg" alt="a"/>有关的平均奖励，<img class="math" src="../_images/math/f945e1632c1ca12d40214a4483da6a6c164dfd6f.svg" alt="\hat{U}_{t}(a)"/> 是一个与采取动作
+<img class="math" src="../_images/math/880d564ad58d3f8e5efd212642b27bd68378f7d4.svg" alt="a"/> 的次数成反比的函数。</p></li>
 <li><p>Boltzmann Exploration：智能体从学习到的 Q 值对应的玻尔兹曼分布
 (即对Q值 的 logits 执行 softmax 操作后得到的分布)
 中采样动作，可以通过温度参数调整探索程度。</p></li>
@@ -351,24 +351,24 @@ reward)，而探索机制给出的奖励称为<strong>内在奖励</strong>（in
 <p>我们希望通过增加这个额外的内在奖励来实现下列两种目的：</p>
 <ol class="arabic simple">
 <li><p>对状态空间的探索：激励智能体探索更多的新颖状态 (novel
-state)。(需要评估状态<span class="math notranslate nohighlight">\(s\)</span>的新颖性)</p></li>
+state)。(需要评估状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>的新颖性)</p></li>
 <li><p>对状态动作空间的探索：激励智能体执行有利于减少对于环境不确定性的动作。(需要评估状态动作对
-<span class="math notranslate nohighlight">\((s,a)\)</span> 的新颖性)</p></li>
+<img class="math" src="../_images/math/942aa23607e31bb39c841e530ee236cf71e26da1.svg" alt="(s,a)"/> 的新颖性)</p></li>
 </ol>
 <p>首先定性地给出<strong>新颖性的定义</strong>：</p>
 <ul class="simple">
-<li><p>对于某个状态<span class="math notranslate nohighlight">\(s\)</span>，在智能体之前访问过的所有状态中，如果与<span class="math notranslate nohighlight">\(s\)</span>类似的状态数量越少，我们就称状态<span class="math notranslate nohighlight">\(s\)</span>越新颖
-(状态动作对 <span class="math notranslate nohighlight">\((s,a)\)</span> 的新颖性的定义与此类似)。</p></li>
+<li><p>对于某个状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>，在智能体之前访问过的所有状态中，如果与<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>类似的状态数量越少，我们就称状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>越新颖
+(状态动作对 <img class="math" src="../_images/math/942aa23607e31bb39c841e530ee236cf71e26da1.svg" alt="(s,a)"/> 的新颖性的定义与此类似)。</p></li>
 </ul>
-<p>某个状态<span class="math notranslate nohighlight">\(s\)</span>越新颖，通常对应智能体对状态<span class="math notranslate nohighlight">\(s\)</span>的认知不够充分，需要智能体在之后与环境交互时，更多地探索这个状态<span class="math notranslate nohighlight">\(s\)</span>的邻近区域，
-因此，这种特别设计的探索机制就会赋予该状态更大的内在奖励。那状态<span class="math notranslate nohighlight">\(s\)</span>的新颖性具体如何度量呢？主要有2种方式，一是通过某种方式对状态进行计数来衡量，二是基于某个预测问题的预测误差来衡量，
+<p>某个状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>越新颖，通常对应智能体对状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>的认知不够充分，需要智能体在之后与环境交互时，更多地探索这个状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>的邻近区域，
+因此，这种特别设计的探索机制就会赋予该状态更大的内在奖励。那状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>的新颖性具体如何度量呢？主要有2种方式，一是通过某种方式对状态进行计数来衡量，二是基于某个预测问题的预测误差来衡量，
 这样就分别得到了<strong>基于内在奖励的探索</strong>下面的2大子类算法：<strong>基于计数的内在奖励</strong>和<strong>基于预测误差的内在奖励</strong>。</p>
 <section id="id8">
 <h4>基于计数的内在奖励<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
 <p>基于计数的内在奖励采用最简单的思想，即通过计数度量新颖性，即每个
-<span class="math notranslate nohighlight">\(s\)</span>
-都对应一个访问计数<span class="math notranslate nohighlight">\(N(s)\)</span>，其值越大，说明之前智能体对其访问的次数越多，也即对
-<span class="math notranslate nohighlight">\(s\)</span> 探索的越充分 (或者说 <span class="math notranslate nohighlight">\(s\)</span>
+<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>
+都对应一个访问计数<img class="math" src="../_images/math/b3901fdb92c79eaac7517c1f45983445ee0e1d45.svg" alt="N(s)"/>，其值越大，说明之前智能体对其访问的次数越多，也即对
+<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/> 探索的越充分 (或者说 <img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>
 越不新颖)。探索模块给出一个与状态计数成反比的内在奖励。</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://arxiv.org/abs/1606.01868">Unifying Count-Based Exploration and Intrinsic
@@ -382,14 +382,14 @@ LSH) 将连续的高维状态数据转换为离散哈希码。从而使得状态
 <p>但基于计数的方法度量新颖性存在很多明显的局限性：</p>
 <ul class="simple">
 <li><p>高维连续观测空间和连续动作空间没有简单的计数方法。</p></li>
-<li><p>访问计数不能准确地度量智能体对 <span class="math notranslate nohighlight">\((s,a)\)</span> 的认知程度。</p></li>
+<li><p>访问计数不能准确地度量智能体对 <img class="math" src="../_images/math/942aa23607e31bb39c841e530ee236cf71e26da1.svg" alt="(s,a)"/> 的认知程度。</p></li>
 </ul>
 </section>
 <section id="id11">
 <h4>基于预测误差的内在奖励<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
 <p>基于预测误差的内在奖励是<strong>利用状态在某个预测问题 (通常是监督学习问题)
-上的预测误差来度量新颖性</strong>。根据在监督学习中神经网络拟合数据集的特性，如果智能体在某个状态<span class="math notranslate nohighlight">\(s\)</span>上预测误差越大，近似说明在状态<span class="math notranslate nohighlight">\(s\)</span>
-附近的状态空间上智能体之前访问的次数少，从而该状态<span class="math notranslate nohighlight">\(s\)</span>
+上的预测误差来度量新颖性</strong>。根据在监督学习中神经网络拟合数据集的特性，如果智能体在某个状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>上预测误差越大，近似说明在状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>
+附近的状态空间上智能体之前访问的次数少，从而该状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>
 新颖性较大。</p>
 <p>预测问题往往是与环境的 dynamics 相关的问题，例如论文 <a class="footnote-reference brackets" href="#id30" id="id12">3</a> <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a> (ICM) 提出了一种新的基于预测误差的内在好奇心模块 (Intrinsic Curiosity
 Module，ICM)，通过在原始问题空间上，利用逆向动力学模型和前向动力学模型来学习一个新的特征空间，促使学习到的特征空间只编码影响智能体决策的部分，而忽视掉环境中的噪声等无关干扰。然后在这个更纯粹的特征空间上，根据前向模型预测误差来为 RL 训练提供 intrinsic
@@ -406,7 +406,7 @@ Distillation</a>一文提出 RND
 (observation)
 相关的随机蒸馏问题，不是关于环境的前向或逆向动力学模型。具体地，RND 利用2个结构相同的神经网络：一个固定随机初始化参数的目标网络
 (target network)。一个预测器网络 (predictor
-network)，预测器网络用于输出对<em>目标网络给出的状态编码</em>的预测值。然后 RND 内在探索奖励定义为正比于<strong>预测器网络预测的状态特征</strong><span class="math notranslate nohighlight">\(\hat{f}(s_t)\)</span>与<strong>目标网络的状态特征</strong><span class="math notranslate nohighlight">\(f(s_t)\)</span>之间的误差。关于 RND 的更多细节可以参考<a class="reference external" href="https://zhuanlan.zhihu.com/p/485476646">博客</a>。</p>
+network)，预测器网络用于输出对<em>目标网络给出的状态编码</em>的预测值。然后 RND 内在探索奖励定义为正比于<strong>预测器网络预测的状态特征</strong><img class="math" src="../_images/math/b85f65c9cb2bd01c501c3ef01a46efe78fea741d.svg" alt="\hat{f}(s_t)"/>与<strong>目标网络的状态特征</strong><img class="math" src="../_images/math/8c5a529e5c39b391e0717d9cf2e9d70e399cb9b2.svg" alt="f(s_t)"/>之间的误差。关于 RND 的更多细节可以参考<a class="reference external" href="https://zhuanlan.zhihu.com/p/485476646">博客</a>。</p>
 </section>
 <section id="id14">
 <h4>基于信息论的内在奖励<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
@@ -637,7 +637,6 @@ function.”</a>. ICLR 2019.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

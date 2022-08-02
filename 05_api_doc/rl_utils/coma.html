@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -298,15 +297,15 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span>, where B is batch size A is the agent num, and N is             action dim</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A)\)</span></p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span></p></li>
-<li><p>target_q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span></p></li>
-<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
-<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>): <span class="math notranslate nohighlight">\((T ,B, A)\)</span></p></li>
-<li><p>policy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span>, 0-dim tensor</p></li>
-<li><p>value_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span></p></li>
-<li><p>entropy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/6c4e99c49ed4f13304e5217f23964c91cfae5900.svg" alt="(T, B, A, N)"/>, where B is batch size A is the agent num, and N is             action dim</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <img class="math" src="../../_images/math/e4fa4a075ce4f3b226b9a2f47c15daf5554e9827.svg" alt="(T, B, A)"/></p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/6c4e99c49ed4f13304e5217f23964c91cfae5900.svg" alt="(T, B, A, N)"/></p></li>
+<li><p>target_q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/6c4e99c49ed4f13304e5217f23964c91cfae5900.svg" alt="(T, B, A, N)"/></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/04725baff8271367dbe8c9f59add9dab2f3f623a.svg" alt="(T, B)"/></p></li>
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>): <img class="math" src="../../_images/math/aacf2d2cef233db28401a2ba21459d5889a956be.svg" alt="(T ,B, A)"/></p></li>
+<li><p>policy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/8fd1d9df605ba8733f3f94fb85e964ef2e81cb5b.svg" alt="()"/>, 0-dim tensor</p></li>
+<li><p>value_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/8fd1d9df605ba8733f3f94fb85e964ef2e81cb5b.svg" alt="()"/></p></li>
+<li><p>entropy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../../_images/math/8fd1d9df605ba8733f3f94fb85e964ef2e81cb5b.svg" alt="()"/></p></li>
 </ul>
 </dd>
 </dl>
@@ -384,7 +383,6 @@
   <script src="../../_static/jquery.js"></script>
   <script src="../../_static/underscore.js"></script>
   <script src="../../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

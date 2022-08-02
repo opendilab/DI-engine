@@ -166,7 +166,7 @@ DI-engine 在训练过程中会生成很多文件夹：
 
     将buffer、collector、evaluator、learner的相关信息保存到名为 ``events.out.tfevents`` 的文件中，供 **tensorboard** 使用。
     
-    DI-engine 将串行文件夹中的所有 tensorboard 文件保存为 **一个 tensorboard 文件** ，而不是各自的文件夹。 因为在跑如果跑n个实验的时候，当n很大时，4*n个各自的tensorboard文件不容易判别。 所以在串行模式下，所有的 tensorboard文件都在串行文件夹中 （但是，在并行模式下，tensorboard文件位于各自的文件夹中）。
+    DI-engine 将串行文件夹中的所有 tensorboard 文件保存为 **一个 tensorboard 文件 ** ，而不是各自的文件夹。 因为在跑如果跑n个实验的时候，当n很大时，4*n个各自的tensorboard文件不容易判别。 所以在串行模式下，所有的 tensorboard文件都在串行文件夹中 （但是，在并行模式下，tensorboard文件位于各自的文件夹中）。
 
 - ckpt
 
@@ -228,7 +228,7 @@ DI-engine 在训练过程中会生成很多文件夹：
 
     在collector文件夹中，有很多 ``collector_logger.txt`` 文件，包括collector与环境交互时的collector信息。并行模式有很多collector，所以有很多 ``collector_logger.txt`` 文件记录信息。
 
-    ``collector_logger.txt`` 中的数据与串行模式相同。
+    ``collector_logger.txt``中的数据与串行模式相同。
 
 - log/evaluator
 

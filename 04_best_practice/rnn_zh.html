@@ -287,8 +287,8 @@
 Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决atari游戏中不完全信息观测的问题。 之后，RNN 就成为了RL研究中解决复杂时序决策任务的一个重要方法。</p>
 <p>经过多年的研究，RNN 有很多变体，如 LSTM、GRU 等。
 但是核心的更新过程仍然非常相似。在MDP的每个时间步
-<span class="math notranslate nohighlight">\(t\)</span> ，智能体需要用现在的观测状态 <span class="math notranslate nohighlight">\(s_t\)</span> 和历史
-的观测状态 <span class="math notranslate nohighlight">\(s_{t-1}, s_{t-2}, ...\)</span> 来推断 <span class="math notranslate nohighlight">\(a_t\)</span>。这
+<img class="math" src="../_images/math/bf9d1a2bb98a9d76bebf5ddb189fdbe3127fd13a.svg" alt="t"/> ，智能体需要用现在的观测状态 <img class="math" src="../_images/math/e806833f2f111400bded5ffcb5ef44220d111dad.svg" alt="s_t"/> 和历史
+的观测状态 <img class="math" src="../_images/math/c2a0b5b4a4cc5a33e908cfea4015c4547dedae1b.svg" alt="s_{t-1}, s_{t-2}, ..."/> 来推断 <img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/>。这
 需要 RNN 智能体保存先前的观察结果并保存RNN 隐藏状态。</p>
 <p>DI-engine 支持 RNN网络，并提供易于使用的 API 让用户
 实现 RNN 的变体。</p>
@@ -463,16 +463,16 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 应该等于 RNN 的历史长度（a.k.a 时间序列长度），但在某些情况下并非如此，比如，在r2d2中， 我们使用burn-in操作， 序列长度等于
 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> + <code class="docutils literal notranslate"><span class="pre">burnin_step</span></code>. 这里将在下一节中具体解释。</p>
 <p>比如原始采样数据是:math:<cite>[x_1,x_2,x_3,x_4,x_5,x_6]</cite>，每个
-<span class="math notranslate nohighlight">\(x\)</span> 表示 <span class="math notranslate nohighlight">\([s_t,a_t,r_t,d_t,s_{t+1}]\)</span> （也许
-<span class="math notranslate nohighlight">\(log_\pi(a_t|s_t)\)</span>，隐藏状态等），我们需要 RNN
+<img class="math" src="../_images/math/cab28febf0a492021ceae40d44e5cc309609872a.svg" alt="x"/> 表示 <img class="math" src="../_images/math/dba3f899228f0747f332eb871a58796b4f3b1f75.svg" alt="[s_t,a_t,r_t,d_t,s_{t+1}]"/> （也许
+<img class="math" src="../_images/math/e5d891f63e176249678ea040136a86360e06cb80.svg" alt="log_\pi(a_t|s_t)"/>，隐藏状态等），我们需要 RNN
 的序列长度为 3。</p>
 <p>1. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 并且 <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> 可以被 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 除尽:
 例如``learn_unroll_len=3``，数据将被排列为:math:<cite>[[x_1,x_2,x_3],[x_4,x_5,x_6]]</cite>。</p>
 <p>2. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 并且 <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> 不可以被 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 除尽:
 默认情况下，残差数据将由上一个样本中的一部分数据填充，例如如果 <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> 和 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len=4</span></code> ，数据将被排列为
-<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]\)</span>。</p>
+<img class="math" src="../_images/math/04902f13cd5190a2803c6aac7b7a31261d70ec57.svg" alt="[[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]"/>。</p>
 <p>3. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &lt; <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code>：例如如果 <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> 和 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len=7</span></code>，默认情况下，算法将使用 <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> 方法，数据将被排列为
-<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]\)</span>。 <span class="math notranslate nohighlight">\(x_{null}\)</span> 类似于 <span class="math notranslate nohighlight">\(x_6\)</span> 但它的 <code class="docutils literal notranslate"><span class="pre">done=True</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>。</p>
+<img class="math" src="../_images/math/10196914ae82360d863bbc522e923050d4b7e6cc.svg" alt="[[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]"/>。 <img class="math" src="../_images/math/2d111cabd532a7bec6111546d58beccc96c539be.svg" alt="x_{null}"/> 类似于 <img class="math" src="../_images/math/7dc2f7d72a9592cc7ec51749ac30c94ebd199ec9.svg" alt="x_6"/> 但它的 <code class="docutils literal notranslate"><span class="pre">done=True</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>。</p>
 <p>这里以r2d2算法为例，在r2d2中，在方法``_get_train_sample``中调用函数
 <code class="docutils literal notranslate"><span class="pre">get_nstep_return_data</span></code> 和 <code class="docutils literal notranslate"><span class="pre">get_train_sample</span></code>。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
@@ -489,18 +489,23 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 <section id="hidden-state">
 <h3>初始化隐藏状态 (Hidden State)<a class="headerlink" href="#hidden-state" title="Permalink to this headline">¶</a></h3>
 <p>策略的 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 需要初始化 RNN。这些隐藏状态来自 <code class="docutils literal notranslate"><span class="pre">_collect_model</span></code> 保存的``prev_state``。
-用户需要通过 _process_transition 函数将这些状态添加到 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 输入数据字典中。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
-        <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">],</span> <span class="c1"># add ``prev_state`` key here</span>
-        <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
-        <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">transition</span>
-</pre></div>
-</div>
+用户需要通过 _process_transition 函数将这些状态添加到 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 输入数据字典中。
+.. code:: python</p>
+<blockquote>
+<div><p>def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -&gt; dict:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>transition = {</dt><dd><p>‘obs’: obs,
+‘action’: model_output[‘action’],
+‘prev_state’: model_output[‘prev_state’], # add <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> key here
+‘reward’: timestep.reward,
+‘done’: timestep.done,</p>
+</dd>
+</dl>
+<p>}
+return transition</p>
+</div></blockquote>
+</div></blockquote>
 <p>然后在 _learn_model 前向函数中， 调用它的重置函数 ( 对应 <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> 里面的重置函数) 以用来初始化 RNN 的
 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code>。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -541,7 +546,12 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 <ul class="simple">
 <li><p>当我们调用 self._collect_model 的 forward 方法时，我们设置 inference=True ，每次调用它，我们只传入一个 timestep 数据，
 所以我们可以在每个时间步得到 rnn 的隐藏状态： <code class="docutils literal notranslate"><span class="pre">prev_state</span></code>。</p></li>
-<li><p>当我们调用 self._learn_model 的 forward 方法时，我们设置 inference=False ，当 self._learn_model 不是 inference 模式时，每次调用我们传入一个序列数据，他们输出的 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> 字段只是最后一个时间步的隐藏状态，所以我们可以通过指定参数 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的方式来指定要存储哪些隐藏状态。( <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的数据格式是一个列表。 具体可参照 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700">ding/model/template/q_learning.py</a> ) 的 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法. 正如我们在下面的代码中看到的，我们首先将 <code class="docutils literal notranslate"><span class="pre">data['burnin_nstep_obs']</span></code> 传递给 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 和 <code class="docutils literal notranslate"><span class="pre">self._target_model</span></code>，以用于获取  <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps</span></code> 列表中指定的不同时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code>。 这些 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code> 将在后面计算 <code class="docutils literal notranslate"><span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">target_q_value</span></code> 和  <code class="docutils literal notranslate"><span class="pre">target_q_action</span></code> 时使用.</p></li>
+<li><p>当我们调用 self._learn_model 的 forward 方法时，我们设置 inference=False ，当 self._learn_model 不是 inference 模式时，每次调用我们传入一个序列数据，
+他们输出的 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> 字段只是最后一个时间步的隐藏状态，
+所以我们可以通过指定参数 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的方式来指定要存储哪些隐藏状态。
+(<code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 的数据格式是一个列表。 具体可参照 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700">ding/model/template/q_learning.py</a> ) 的 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法.
+正如我们在下面的代码中看到的，我们首先将 <code class="docutils literal notranslate"><span class="pre">data['burnin_nstep_obs']</span></code> 传递给 <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> 和
+<code class="docutils literal notranslate"><span class="pre">self._target_model</span></code>， 以用于获取  <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps</span></code> 列表中指定的不同时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code>。 这些 <code class="docutils literal notranslate"><span class="pre">hidden_​​state</span></code> 将在后面计算 <code class="docutils literal notranslate"><span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">target_q_value</span></code> 和  <a href="#id4"><span class="problematic" id="id5">``</span></a>target_q_action``时使用.</p></li>
 <li><p>请注意，在 r2d2 中，我们指定 <code class="docutils literal notranslate"><span class="pre">saved_hidden_​​state_timesteps=[self._burnin_step,</span> <span class="pre">self._burnin_step</span> <span class="pre">+</span> <span class="pre">self._nstep]</span></code> , 那么在调用完网络的 <code class="docutils literal notranslate"><span class="pre">forward</span></code> 方法后,
 <code class="docutils literal notranslate"><span class="pre">burnin_output</span></code> 和 <code class="docutils literal notranslate"><span class="pre">burnin_output_target</span></code> 将会保存 <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> 里面指定时间步的 <code class="docutils literal notranslate"><span class="pre">hidden_state</span></code>.</p></li>
 </ul>
@@ -665,7 +675,6 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

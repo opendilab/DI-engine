@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -299,9 +298,9 @@
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The TD-loss used in DQN is:</p>
-<div class="math notranslate nohighlight">
-\[\mathrm{L}(w)=\mathbb{E}\left[(\underbrace{r+\gamma \max _{a^{\prime}} Q_{\text {target }}\left(s^{\prime}, a^{\prime}, \theta^{-}\right)}-Q(s, a, \theta))^{2}\right]\]</div>
-<p>where the target network <span class="math notranslate nohighlight">\(Q_{\text {target }}\)</span>, with parameters <span class="math notranslate nohighlight">\(\theta^{-}\)</span>, is the same as the online network except that its parameters are copied every <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> steps from the online network (The hyper-parameter <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> can be modified in the configuration file. Please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/wrapper/model_wrappers.py">TargetNetworkWrapper</a> for more details).</p>
+<div class="math">
+<p><img src="../_images/math/c6a297cc590126a3770ca2b47d9501f5829035a5.svg" alt="\mathrm{L}(w)=\mathbb{E}\left[(\underbrace{r+\gamma \max _{a^{\prime}} Q_{\text {target }}\left(s^{\prime}, a^{\prime}, \theta^{-}\right)}-Q(s, a, \theta))^{2}\right]"/></p>
+</div><p>where the target network <img class="math" src="../_images/math/603f27c4c43235b9b07bd5002ff55b1b812c9628.svg" alt="Q_{\text {target }}"/>, with parameters <img class="math" src="../_images/math/bfd0cefa4060fc31584de3ff67c7fe4f74816885.svg" alt="\theta^{-}"/>, is the same as the online network except that its parameters are copied every <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> steps from the online network (The hyper-parameter <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> can be modified in the configuration file. Please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/wrapper/model_wrappers.py">TargetNetworkWrapper</a> for more details).</p>
 </section>
 <section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
@@ -325,17 +324,17 @@
 <li><p>Multi-step TD-loss</p>
 <p>In single-step TD-loss, the update of Q-learning (Bellman equation) is described as follows:</p>
 <blockquote>
-<div><div class="math notranslate nohighlight">
-\[r(s,a)+\gamma \max_{a^{'}}Q(s',a')\]</div>
-</div></blockquote>
+<div><div class="math">
+<p><img src="../_images/math/1c1b6f6b275ae79822673380d46436ef3d0d1f17.svg" alt="r(s,a)+\gamma \max_{a^{'}}Q(s',a')"/></p>
+</div></div></blockquote>
 <p>While in multi-step TD-loss, it is replaced by the following formula:</p>
 <blockquote>
-<div><div class="math notranslate nohighlight">
-\[\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \max_{a^{'}}Q(s_n,a')\]</div>
-</div></blockquote>
+<div><div class="math">
+<p><img src="../_images/math/ec36ed9b891ad66dd8b9023930444dbeb021090a.svg" alt="\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \max_{a^{'}}Q(s_n,a')"/></p>
+</div></div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>An issue about n-step for Q-learning is that, when epsilon greedy is adopted, the q value estimation is biased because the <span class="math notranslate nohighlight">\(r(s_t,a_t)\)</span> at t&gt;=1 are sampled under epsilon greedy rather than the policy itself. However, multi-step along with epsilon greedy generally improves DQN practically.</p>
+<p>An issue about n-step for Q-learning is that, when epsilon greedy is adopted, the q value estimation is biased because the <img class="math" src="../_images/math/7ecea079b99f189b76795a01ac3389014fcfcd0c.svg" alt="r(s_t,a_t)"/> at t&gt;=1 are sampled under epsilon greedy rather than the policy itself. However, multi-step along with epsilon greedy generally improves DQN practically.</p>
 </div>
 <p>In DI-engine, Multi-step TD-loss can be enabled by the <code class="docutils literal notranslate"><span class="pre">nstep</span></code> field in the configuration file, and the loss function is described in <code class="docutils literal notranslate"><span class="pre">q_nstep_td_error</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/rl_utils/td.py">nstep code</a>.</p>
 </li>
@@ -729,8 +728,8 @@ prevent this, we can decouple the selection from the evaluation. More concretely
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -894,7 +893,6 @@ skip-v4)</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

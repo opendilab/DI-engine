@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -305,22 +304,22 @@ to details that add additional hyperparameter(s), and ‡ corresponds to ones th
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>TD3BC simply consists to add a behavior cloning term to TD3 in order to regularize the policy:</p>
-<div class="math notranslate nohighlight">
-\[\begin{aligned}
+<div class="math">
+<p><img src="../_images/math/86decfb2834cf8589ef264f90af31592c6628ed9.svg" alt="\begin{aligned}
 \pi = \arg\max_{\pi} \mathbb{E}_{(s, a) \sim D} [ \lambda Q(s, \pi(s)) - (\pi(s)-a)^2 ]
-\end{aligned}\]</div>
-<p><span class="math notranslate nohighlight">\((\pi(s)-a)^2\)</span> is the behavior cloning term acts as a regularizer and aims to push the policy towards favoring
-actions contained in the dataset. The hyperparameter <span class="math notranslate nohighlight">\(\lambda\)</span> is used to control the strength of the
+\end{aligned}"/></p>
+</div><p><img class="math" src="../_images/math/5c1f44d01a9c37439f9434560745e05230a90a1a.svg" alt="(\pi(s)-a)^2"/> is the behavior cloning term acts as a regularizer and aims to push the policy towards favoring
+actions contained in the dataset. The hyperparameter <img class="math" src="../_images/math/306d48e07886c1968c16b7a0700539c3098194fa.svg" alt="\lambda"/> is used to control the strength of the
 regularizer.</p>
 <p>Assuming an action range of [−1, 1], the BC term is at most 4, however the range of Q will be a function of the scale of
-the reward. Consequently, the scalar <span class="math notranslate nohighlight">\(\lambda\)</span> can be defined as:</p>
-<div class="math notranslate nohighlight">
-\[\begin{aligned}
+the reward. Consequently, the scalar <img class="math" src="../_images/math/306d48e07886c1968c16b7a0700539c3098194fa.svg" alt="\lambda"/> can be defined as:</p>
+<div class="math">
+<p><img src="../_images/math/a5c05ded4349060fc80a78152877c9c7a3a56453.svg" alt="\begin{aligned}
 \lambda = \frac{\alpha}{\frac{1}{N}\sum_{s_i, a_i}|Q(s_i, a_i)|}
-\end{aligned}\]</div>
-<p>which is simply a normalization term based on the average absolute value of Q over mini-batches. This formulation has
+\end{aligned}"/></p>
+</div><p>which is simply a normalization term based on the average absolute value of Q over mini-batches. This formulation has
 also the benefit of normalizing the learning rate across tasks since it is dependent on the scale of Q. The default
-value for <span class="math notranslate nohighlight">\(\alpha\)</span> is 2.5.</p>
+value for <img class="math" src="../_images/math/572746b289dd61951cfd618c58c36f49a762f123.svg" alt="\alpha"/> is 2.5.</p>
 <p>Additionally, all the states in each mini-batch are normalized, such that they have mean 0 and standard deviation 1.
 This normalization improves the stability of the learned policy.</p>
 </section>
@@ -690,12 +689,12 @@ such as <code class="docutils literal notranslate"><span class="pre">action</spa
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/8ec79fd7bd1d60ba7d453bbeca7be51e6265c84a.svg" alt="(B, N3)"/>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
@@ -742,11 +741,11 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N4)\)</span>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/8ec79fd7bd1d60ba7d453bbeca7be51e6265c84a.svg" alt="(B, N3)"/>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/ac58afe53306c8a1c6eba1487eead690f84095d4.svg" alt="(B, N4)"/>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
@@ -982,7 +981,6 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

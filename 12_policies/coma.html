@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -301,17 +300,17 @@
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The overall information flow between the decentralized actors, the environment and the centralized critic in COMA:</p>
 <img alt="../_images/coma.png" src="../_images/coma.png" />
-<p>COMA computes an advantage function that compares the Q-value for the current action $u^a$ to a counterfactual baseline that marginalises out <span class="math notranslate nohighlight">\(u^a\)</span>, while keeping the other agents’ actions <span class="math notranslate nohighlight">\(u^{-a}\)</span> fixed.</p>
-<div class="math notranslate nohighlight">
-\[A^{a}(s, \textbf{u}) = Q(s, \textbf{u}) -
+<p>COMA computes an advantage function that compares the Q-value for the current action $u^a$ to a counterfactual baseline that marginalises out <img class="math" src="../_images/math/7f13802c9b6e5622d908948e8937750c19b84bfe.svg" alt="u^a"/>, while keeping the other agents’ actions <img class="math" src="../_images/math/028912218ccc332afcb8f8fb57317cf673a4ceaf.svg" alt="u^{-a}"/> fixed.</p>
+<div class="math">
+<p><img src="../_images/math/19c15fbf3517ff1c9d61bbb6a073c3277efab040.svg" alt="A^{a}(s, \textbf{u}) = Q(s, \textbf{u}) -
 \sum_{u^{'a}}\pi^{a}(u^{'a}|\tau^{a})Q(s,
-(\textbf{u}^{-a}, u^{'a}))\]</div>
-<p>The advantage <span class="math notranslate nohighlight">\(A^{a}(s, u)\)</span> computes a separate baseline that uses the centralized critic to find counterfactuals when only <span class="math notranslate nohighlight">\(a\)</span>’s action changes, learned directly from agents’ experiences.</p>
+(\textbf{u}^{-a}, u^{'a}))"/></p>
+</div><p>The advantage <img class="math" src="../_images/math/6d86f94878155d1fb954f0875a6cd76372a507a0.svg" alt="A^{a}(s, u)"/> computes a separate baseline that uses the centralized critic to find counterfactuals when only <img class="math" src="../_images/math/880d564ad58d3f8e5efd212642b27bd68378f7d4.svg" alt="a"/>’s action changes, learned directly from agents’ experiences.</p>
 <p>The first term in the equation is the global Q-value of the currently selected action, which indicates the estimated Q-value in centrailed critical. The second term in the equation represents the expectation of global Q-value that can be obtained under all possible selection actions of agent a. The difference between two reflects the advantage of the action selected by the current agent over the average result.</p>
 <p>Comparing to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:</p>
-<div class="math notranslate nohighlight">
-\[g_{k} = \mathbb{E}_{\pi}[\sum_{a}\nabla_{\theta_{k}} \log \pi^{a}(u^{a}|\tau^{a})A^{a}(s, \textbf{u})]\]</div>
-<div class="admonition note">
+<div class="math">
+<p><img src="../_images/math/e5b71441481c3ff83b707763d403d4a6400eff8a.svg" alt="g_{k} = \mathbb{E}_{\pi}[\sum_{a}\nabla_{\theta_{k}} \log \pi^{a}(u^{a}|\tau^{a})A^{a}(s, \textbf{u})]"/></p>
+</div><div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>COMA uses a counterfactual baseline. Each agent learns from a shaped reward that compares the global reward to the reward received when that agent’s action is replaced with a default action.</p>
 </div>
@@ -321,11 +320,11 @@
 <ul class="simple">
 <li><p>COMA takes the advantage of learning a centralized critic to train decentralized actors. Similarly, Gupta et al. (2017) present a centralized actor-critic algorithm learning per-agent critics to opt for better scalability at the cost of diluted benefits of centralization.</p></li>
 <li><p>MADDPG (Lowe et al. 2017) extends the DDPG framework in multi-agent settings and learns a centralized critic for each agent. These approaches use on-policy policy gradient learning.</p></li>
-<li><p>COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than mini-batches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires <span class="math notranslate nohighlight">\(n\)</span> inputs, one for each agent, and the COMA-CC critic requires <span class="math notranslate nohighlight">\(nm\)</span> inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations <span class="math notranslate nohighlight">\((z^1_t, ..., z^n_t)\)</span> is compressed via an encoding network before used as inputs to the critic.</p></li>
+<li><p>COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than mini-batches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires <img class="math" src="../_images/math/22ff12c49cbff3c41a9fdb111888fa3844a2bbcc.svg" alt="n"/> inputs, one for each agent, and the COMA-CC critic requires <img class="math" src="../_images/math/8a75f13573c6919dfdd0ee2a8de9aacb13241cdc.svg" alt="nm"/> inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations <img class="math" src="../_images/math/ffdd92b731f7e4864a44748270dfaa6c70ebabf0.svg" alt="(z^1_t, ..., z^n_t)"/> is compressed via an encoding network before used as inputs to the critic.</p></li>
 </ul>
-<div class="math notranslate nohighlight">
-\[Q(s_{t},\textbf{u}_{t}) \approx Q_{\phi}(s_{t}, z^{1}_{t}, \cdots, z^{n}_{t}, \textbf{u}_{t-1}, \textbf{u}_{t})\]</div>
-</section>
+<div class="math">
+<p><img src="../_images/math/d9d193bdbe1fdaf6492074a2cb4f566bc005786b.svg" alt="Q(s_{t},\textbf{u}_{t}) \approx Q_{\phi}(s_{t}, z^{1}_{t}, \cdots, z^{n}_{t}, \textbf{u}_{t-1}, \textbf{u}_{t})"/></p>
+</div></section>
 <section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
@@ -608,14 +607,14 @@
 <td><p>1.00</p></td>
 <td><img alt="../_images/COMA_MMM.png" src="../_images/COMA_MMM.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_MMM_coma_config.py">config_link_1</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_MMM_coma_config.py">config_link</a></p></td>
 <td><p>Pymarl(0.1)</p></td>
 </tr>
 <tr class="row-odd"><td><p>3s5z</p></td>
 <td><p>1.00</p></td>
 <td><img alt="../_images/COMA_3s5z.png" src="../_images/COMA_3s5z.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_coma_config.py">config_link_2</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_coma_config.py">config_link</a></p></td>
 <td><p>Pymarl(0.0)</p></td>
 </tr>
 </tbody>
@@ -711,7 +710,6 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

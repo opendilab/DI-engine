@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -345,8 +344,8 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>logit: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>logit: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">DiscreteHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -410,9 +409,9 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>logit: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
-<li><p>distribution: <span class="math notranslate nohighlight">\((B, M, n_atom)\)</span>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>logit: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>distribution: <img class="math" src="../../../_images/math/3f41f33e6ea36f5f5b22ad4d926ca691344fa8a0.svg" alt="(B, M, n_atom)"/>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">DistributionHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -479,9 +478,9 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>logit: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
-<li><p>distribution: <span class="math notranslate nohighlight">\((B, M, n_atom)\)</span>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>logit: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>distribution: <img class="math" src="../../../_images/math/3f41f33e6ea36f5f5b22ad4d926ca691344fa8a0.svg" alt="(B, M, n_atom)"/>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">RainbowHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -545,10 +544,10 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>logit: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
-<li><p>q: <span class="math notranslate nohighlight">\((B, M, num_quantiles)\)</span>.</p></li>
-<li><p>tau: <span class="math notranslate nohighlight">\((B, M, 1)\)</span>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>logit: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>q: <img class="math" src="../../../_images/math/e6aa5f69624a674ee71c71012b39f924173a6a9b.svg" alt="(B, M, num_quantiles)"/>.</p></li>
+<li><p>tau: <img class="math" src="../../../_images/math/5a0cc3c94fdcccb043103d45f88addb77242c2f6.svg" alt="(B, M, 1)"/>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">QRDQNHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -615,10 +614,10 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>logit: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
-<li><p>q: <span class="math notranslate nohighlight">\((num_quantiles, B, M)\)</span>.</p></li>
-<li><p>quantiles: <span class="math notranslate nohighlight">\((quantile_embedding_size, 1)\)</span>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>logit: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>q: <img class="math" src="../../../_images/math/1fc565ca5f4d888e146e5c206326fb82051485ff.svg" alt="(num_quantiles, B, M)"/>.</p></li>
+<li><p>quantiles: <img class="math" src="../../../_images/math/1b98fc3c4764cff387ffc0356c1ab371a3c83189.svg" alt="(quantile_embedding_size, 1)"/>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">QuantileHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -650,7 +649,7 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>quantile_net <span class="math notranslate nohighlight">\((quantile_embedding_size, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>quantile_net <img class="math" src="../../../_images/math/e900f35a38bdf5416b4b217c36cd69544972e8d5.svg" alt="(quantile_embedding_size, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">QuantileHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -713,8 +712,8 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>logit: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>logit: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">DuelingHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -776,8 +775,8 @@ Input is a (<code class="xref py py-obj docutils literal notranslate"><span clas
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>pred: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>pred: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">RegressionHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -841,9 +840,9 @@ Input is a (<code class="xref py py-obj docutils literal notranslate"><span clas
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>mu: <span class="math notranslate nohighlight">\((B, M)\)</span>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
-<li><p>sigma: <span class="math notranslate nohighlight">\((B, M)\)</span>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>mu: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">output_size</span></code>.</p></li>
+<li><p>sigma: <img class="math" src="../../../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span>  <span class="n">ReparameterizationHead</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">sigma_type</span><span class="o">=</span><span class="s1">&#39;fixed&#39;</span><span class="p">)</span>
@@ -903,8 +902,8 @@ Input is a (<code class="xref py py-obj docutils literal notranslate"><span clas
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
-<li><p>logit: <span class="math notranslate nohighlight">\((B, Mi)\)</span>, where <code class="docutils literal notranslate"><span class="pre">Mi</span> <span class="pre">=</span> <span class="pre">output_size</span></code> corresponding to output <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p></li>
+<li><p>x: <img class="math" src="../../../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">hidden_size</span></code>.</p></li>
+<li><p>logit: <img class="math" src="../../../_images/math/e29caf7a335007bde98c62042d0bc7970992ed15.svg" alt="(B, Mi)"/>, where <code class="docutils literal notranslate"><span class="pre">Mi</span> <span class="pre">=</span> <span class="pre">output_size</span></code> corresponding to output <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">MultiHead</span><span class="p">(</span><span class="n">DuelingHead</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">v_layer_num</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -1005,7 +1004,6 @@ Input is a (<code class="xref py py-obj docutils literal notranslate"><span clas
   <script src="../../../_static/jquery.js"></script>
   <script src="../../../_static/underscore.js"></script>
   <script src="../../../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

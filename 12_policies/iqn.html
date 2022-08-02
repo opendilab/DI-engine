@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -298,9 +297,9 @@
 <h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
 <p>In implicit quantile networks, a sampled quantile tau is first encoded into an embedding vector via:</p>
 <blockquote>
-<div><div class="math notranslate nohighlight">
-\[\phi_{j}(\tau):=\operatorname{ReLU}\left(\sum_{i=0}^{n-1} \cos (\pi i \tau) w_{i j}+b_{j}\right)\]</div>
-</div></blockquote>
+<div><div class="math">
+<p><img src="../_images/math/bdf3a91feb4693d5f02ddfa073d2c735da3421ae.svg" alt="\phi_{j}(\tau):=\operatorname{ReLU}\left(\sum_{i=0}^{n-1} \cos (\pi i \tau) w_{i j}+b_{j}\right)"/></p>
+</div></div></blockquote>
 <p>Then the quantile embedding is element-wise multiplied by the embedding of the observation of the environment, and the subsequent fully-connected layers map the resulted product vector to the respective quantile value.</p>
 </section>
 <section id="key-graphs">
@@ -543,9 +542,9 @@ Parameter updates with IQN’s MLPs forward setup.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is head_hidden_size.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where M is action_shape</p></li>
-<li><p>quantiles (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):  <span class="math notranslate nohighlight">\((P, 1)\)</span>, where P is quantile_embedding_size.</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is head_hidden_size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where M is action_shape</p></li>
+<li><p>quantiles (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):  <img class="math" src="../_images/math/384cea2d3ba825f5b8e1e5acbc2fa485a5c3504b.svg" alt="(P, 1)"/>, where P is quantile_embedding_size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">IQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -712,7 +711,6 @@ skip-v4)</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

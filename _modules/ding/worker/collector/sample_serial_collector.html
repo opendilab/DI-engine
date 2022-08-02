@@ -187,7 +187,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -469,8 +468,7 @@
             <span class="n">n_sample</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
             <span class="n">drop_extra</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">level_seeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -480,8 +478,6 @@
 <span class="sd">            - train_iter (:obj:`int`): The number of training iteration when calling collect method.</span>
 <span class="sd">            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.</span>
 <span class="sd">            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.</span>
-<span class="sd">            - level_seeds (:obj:`dict`): Used in PLR, represents the seed of the environment that \</span>
-<span class="sd">                generate the data</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - return_data (:obj:`List`): A list containing training samples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -539,8 +535,6 @@
                         <span class="n">transition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">process_transition</span><span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_obs_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy_output_pool</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="n">timestep</span>
                         <span class="p">)</span>
-                        <span class="k">if</span> <span class="n">level_seeds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="n">transition</span><span class="p">[</span><span class="s1">&#39;seed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_seeds</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span>
                     <span class="c1"># ``train_iter`` passed in from ``serial_entry``, indicates current collecting model&#39;s iteration.</span>
                     <span class="n">transition</span><span class="p">[</span><span class="s1">&#39;collect_iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_iter</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>

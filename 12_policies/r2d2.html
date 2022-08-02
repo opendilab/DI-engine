@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -304,12 +303,104 @@ The authors claim that, Recurrent Replay Distributed DQN (R2D2) is the first age
 generating experience by a large number of actors (typically 256) and learning from batches of
 replayed experience by a single learner.
 The Q network of R2D2 use the dueling network architecture and provide an LSTM layer after the convolutional stack.</p>
-<p>Instead of regular <span class="math notranslate nohighlight">\((s, a, r, s^')\)</span> transition tuples, R2D2 stores fixed-length (m = 80) sequences of <span class="math notranslate nohighlight">\((s, a, r)\)</span>
+<p>Instead of regular <div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(s, a, r, s^')</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Missing { inserted.
+&lt;to be read again&gt; 
+                   ^
+l.30 \fontsize{14}{17}\selectfont $(s, a, r, s^'
+                                                )$
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.30 \fontsize{14}{17}\selectfont $(s, a, r, s^')$
+                                                  
+[1] (./math.aux) )
+(see the transcript file for additional information)
+Output written on math.dvi (1 page, 436 bytes).
+Transcript written on math.log.
+</p>
+</div>
+ transition tuples, R2D2 stores fixed-length (m = 80) sequences of <img class="math" src="../_images/math/2b5a66418e41372ea06ba3c6f8749e5b02954839.svg" alt="(s, a, r)"/>
 in replay, with adjacent sequences overlapping each other by 40 time steps, and never crossing episode boundaries.
 Specifically, the n-step targets used in R2D2 is:</p>
 <a class="reference internal image-reference" href="../_images/r2d2_q_targets.png"><img alt="../_images/r2d2_q_targets.png" class="align-center" src="../_images/r2d2_q_targets.png" style="width: 625.1999999999999px; height: 65.39999999999999px;" /></a>
-<p>Here, <span class="math notranslate nohighlight">\(\theta^{-}\)</span> denotes the target network parameters which are copied from the online network parameters <span class="math notranslate nohighlight">\(\theta\)</span> every 2500 learner steps.</p>
-<p>R2D uses the mixture of max and mean absolute n-step TD-errors <span class="math notranslate nohighlight">\(\delta_i\)</span>
+<p>Here, <img class="math" src="../_images/math/bfd0cefa4060fc31584de3ff67c7fe4f74816885.svg" alt="\theta^{-}"/> denotes the target network parameters which are copied from the online network parameters <img class="math" src="../_images/math/70dc2a5833559be2562698337b43b3bf1ac8e9bd.svg" alt="\theta"/> every 2500 learner steps.</p>
+<p>R2D uses the mixture of max and mean absolute n-step TD-errors <img class="math" src="../_images/math/342d7b26e8993f87faeb80aa4d8e81ae84fc7513.svg" alt="\delta_i"/>
 as prioritization metrics for prioritized experience replay over the sequence:</p>
 <a class="reference internal image-reference" href="../_images/r2d2_priority.png"><img alt="../_images/r2d2_priority.png" class="align-center" src="../_images/r2d2_priority.png" style="width: 270.0px; height: 31.2px;" /></a>
 <div class="admonition note">
@@ -673,10 +764,10 @@ that are listed in list saved_state_timesteps.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N=obs_space)\)</span>, where B is batch size.</p></li>
-<li><p>prev_state(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span> <span class="pre">list</span></code>): <span class="math notranslate nohighlight">\([(B, N)]\)</span></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span></p></li>
-<li><p>next_state(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span> <span class="pre">list</span></code>): <span class="math notranslate nohighlight">\([(B, N)]\)</span></p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/13e6d8ec1f0ed004751929df61c8a605d1814da7.svg" alt="(B, N=obs_space)"/>, where B is batch size.</p></li>
+<li><p>prev_state(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span> <span class="pre">list</span></code>): <img class="math" src="../_images/math/c97f1ddc4b4a3b7c65162bf62739af07abba3c28.svg" alt="[(B, N)]"/></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/></p></li>
+<li><p>next_state(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span> <span class="pre">list</span></code>): <img class="math" src="../_images/math/c97f1ddc4b4a3b7c65162bf62739af07abba3c28.svg" alt="[(B, N)]"/></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Init input&#39;s Keys:</span>
@@ -858,7 +949,6 @@ that are listed in list saved_state_timesteps.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

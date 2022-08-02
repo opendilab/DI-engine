@@ -1,5 +1,5 @@
 framework.middleware.functional
-=================================
+=================
 
 .. toctree::
     :maxdepth: 4
@@ -10,4 +10,6 @@ framework.middleware.functional
     enhancer
     evaluator
     explorer
+    pace_controller
+    termination_checker
     trainer

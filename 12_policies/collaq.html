@@ -36,7 +36,7 @@
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
   <link rel="next" title="ATOC" href="atoc.html" />
-  <link rel="prev" title="QTRAN" href="qtran.html" />
+  <link rel="prev" title="WQMIX" href="wqmix.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -300,12 +299,12 @@
 <p>The overall architecture of the Q-function with attention-based model in CollaQ:</p>
 <img alt="../_images/collaq.png" src="../_images/collaq.png" />
 <p>The Q-function for agent i:</p>
-<div class="math notranslate nohighlight">
-\[Q_{i}(s_{i},a_{i};\hat{\textbf{r}}_{i}) = \underbrace{Q_{1}(s{i}, a_{i},\hat{\textbf{r}_{0i}})}_{Q^{alone}(s_{i},a_{i})}  + \underbrace{\nabla_{\textbf{r}}Q_{i}(s_{i},a_{i};\textbf{r}_{0i})\cdot(\hat{\textbf{r}_{i}} - \textbf{r}_{0i}) + \mathcal{O}(||\hat{\textbf{r}_{i}} - \textbf{r}_{0i}||^{2})}_{Q^{collab}(s^{local}_{i}, a_{i})}\]</div>
-<p>The overall training objective of standard DQN training with MARA loss:</p>
-<div class="math notranslate nohighlight">
-\[L = \mathbb{E}_{s_{i},a{i}\sim\rho(\cdot)}[\underbrace{(y-Q_{i}(o_{i},a_{i}))^{2}}_{\text{DQN Object}} +\underbrace{\alpha(Q_{i}^{collab}(o_{i}^{alone}, a_{i}))^{2}}_{\text{MARA Object}}]\]</div>
-</section>
+<div class="math">
+<p><img src="../_images/math/b15d0608cef6dc99fc9414949fc795d6af6adb3f.svg" alt="Q_{i}(s_{i},a_{i};\hat{\textbf{r}}_{i}) = \underbrace{Q_{1}(s{i}, a_{i},\hat{\textbf{r}_{0i}})}_{Q^{alone}(s_{i},a_{i})}  + \underbrace{\nabla_{\textbf{r}}Q_{i}(s_{i},a_{i};\textbf{r}_{0i})\cdot(\hat{\textbf{r}_{i}} - \textbf{r}_{0i}) + \mathcal{O}(||\hat{\textbf{r}_{i}} - \textbf{r}_{0i}||^{2})}_{Q^{collab}(s^{local}_{i}, a_{i})}"/></p>
+</div><p>The overall training objective of standard DQN training with MARA loss:</p>
+<div class="math">
+<p><img src="../_images/math/08a9b9f5baff1b1385355fff6c475927f796b704.svg" alt="L = \mathbb{E}_{s_{i},a{i}\sim\rho(\cdot)}[\underbrace{(y-Q_{i}(o_{i},a_{i}))^{2}}_{\text{DQN Object}} +\underbrace{\alpha(Q_{i}^{collab}(o_{i}^{alone}, a_{i}))^{2}}_{\text{MARA Object}}]"/></p>
+</div></section>
 <section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -545,12 +544,12 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
-<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, M)\)</span>, where M is global_obs_shape</p></li>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/6c4e99c49ed4f13304e5217f23964c91cfae5900.svg" alt="(T, B, A, N)"/>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/e8bdb65fc231c9d71966a9f8653dc3ec644ec7a1.svg" alt="(T, B, M)"/>, where M is global_obs_shape</p></li>
 <li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A)\)</span></p></li>
-<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
-<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, P)\)</span>, where P is action_shape</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/e4fa4a075ce4f3b226b9a2f47c15daf5554e9827.svg" alt="(T, B, A)"/></p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/04725baff8271367dbe8c9f59add9dab2f3f623a.svg" alt="(T, B)"/></p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9f891b53a8a0ccced97ac9380760b95dd0d9c428.svg" alt="(T, B, A, P)"/>, where P is action_shape</p></li>
 <li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
 </ul>
 </dd>
@@ -633,7 +632,7 @@
         class="next-page"></a>
     
     
-    <a href="qtran.html" class="btn btn-neutral" title="QTRAN" accesskey="p"
+    <a href="wqmix.html" class="btn btn-neutral" title="WQMIX" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -694,7 +693,6 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

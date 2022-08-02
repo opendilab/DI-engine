@@ -93,12 +93,3 @@ Context 是为中间件之间传递数据的信使，不同的交互策略决定
 .. image::
     images/async.png
     :align: center
-
-不同阶段的中间件
--------------------------------
-
-大部分中间件都可以对应不同的阶段，您可以通过下图查看已有的中间件与阶段的对应关系，以便正确的组合各类中间件：
-
-.. image::
-    images/pipeline.png
-    :align: center
