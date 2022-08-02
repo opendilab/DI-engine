@@ -46,6 +46,7 @@ Note:
 3. If you install ``mujoco-py<2.1.0`` , you can do the following:
 
 .. code:: shell
+
     # Installation for Linux
     # Download the MuJoCo version 2.0 binaries for Linux.
     wget https://www.roboti.us/download/mujoco200_linux.zip
@@ -73,6 +74,7 @@ Verify Installation
 After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:
 
 .. code:: python
+
     import gym
     env = gym.make('Hopper-v3')
     obs = env.reset()
@@ -146,6 +148,7 @@ Bonus Space
 The above space can be expressed as:
 
 .. code:: python
+
    import gym
    obs_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(11, ), dtype=np.float64)
    act_space = gym.spaces.Box(low=-1, high=1, shape=(3, ), dtype=np.float32)
@@ -189,6 +192,7 @@ After the environment is created, but before reset, call the\ ``enable_save_repl
 
 
 .. code:: python
+
    from easydict import EasyDict
    from dizoo.mujoco.envs import MujocoEnv
    env = MujocoEnv(EasyDict({'env_id': 'Hoopper-v3' }))
@@ -200,6 +204,7 @@ After the environment is created, but before reset, call the\ ``enable_save_repl
        if timestep.done:
            print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
            break
+
 DI-zoo Runnable Code Example
 =============================
 
@@ -209,7 +214,8 @@ Inside, for specific configuration files, such as\ ``hopper_sac_default_config.p
 
 
 .. code:: python
-   from easydict import EasyDict
+
+    from easydict import EasyDict
     hopper_sac_default_config = dict(
         env=dict(
             env_id='Hopper-v3',
@@ -271,9 +277,11 @@ Inside, for specific configuration files, such as\ ``hopper_sac_default_config.p
     )
     hopper_sac_default_create_config = EasyDict(hopper_sac_default_create_config)
     create_config = hopper_sac_default_create_config
-   if __name__ == '__main__':
-       from ding.entry import serial_pipeline
-       serial_pipeline((main_config, create_config), seed=0)
+
+    if __name__ == '__main__':
+        from ding.entry import serial_pipeline
+        serial_pipeline((main_config, create_config), seed=0)
+
 Note: For some special algorithms, such as PPO, special entry functions need to be used. For examples, please refer to
 `link <https://github.com/opendilab/DI-engine/blob/main/dizoo/mujoco/entry/mujoco_ppo_main.py>`__
 You can also use ``serial_pipeline_onpolicy`` to enter with one click.
@@ -284,5 +292,6 @@ Benchmark Algorithm Performance
 -  Hopper-v3
 
    - Hopper-v3 + SAC
+
    .. image:: images/mujoco.png
      :align: center

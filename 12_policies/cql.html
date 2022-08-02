@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -306,26 +307,26 @@ number of standard, online RL algorithms, simply by adding the CQL regularizatio
 the Q-function update.</p>
 <p>In general, for the conservative off-policy evaluation, the Q-function is trained via an iterative update:</p>
 <a class="reference internal image-reference" href="../_images/cql_policy_evaluation.png"><img alt="../_images/cql_policy_evaluation.png" class="align-center" src="../_images/cql_policy_evaluation.png" style="width: 700.7px; height: 103.4px;" /></a>
-<p>Taking a closer look at the above equation, it consists of two parts - the regularization term and the usual Bellman error with a tradeoff factor alpha. Inside the the regularization term, the first term always pushes the Q value down on the (s,a) pairs sampled from <img class="math" src="../_images/math/1f86e503cb1becd4e389bd4557b044555b6eabad.svg" alt="\mu"/> whereas the second term pushes Q value up on the (s,a) samples drawn from the offline data set.</p>
-<p>According to the following theorem, the above equation lower-bounds the expected value under the policy <img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/>, when <img class="math" src="../_images/math/1f86e503cb1becd4e389bd4557b044555b6eabad.svg" alt="\mu"/> = <img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/>.</p>
-<p>For suitable <img class="math" src="../_images/math/572746b289dd61951cfd618c58c36f49a762f123.svg" alt="\alpha"/>, the bound holds under sampling
-error and function approximation. We also note that as more data becomes available and |D(s; a)| increases, the theoretical value of <img class="math" src="../_images/math/572746b289dd61951cfd618c58c36f49a762f123.svg" alt="\alpha"/> that is needed to guarantee a lower bound decreases, which
+<p>Taking a closer look at the above equation, it consists of two parts - the regularization term and the usual Bellman error with a tradeoff factor alpha. Inside the the regularization term, the first term always pushes the Q value down on the (s,a) pairs sampled from <span class="math notranslate nohighlight">\(\mu\)</span> whereas the second term pushes Q value up on the (s,a) samples drawn from the offline data set.</p>
+<p>According to the following theorem, the above equation lower-bounds the expected value under the policy <span class="math notranslate nohighlight">\(\pi\)</span>, when <span class="math notranslate nohighlight">\(\mu\)</span> = <span class="math notranslate nohighlight">\(\pi\)</span>.</p>
+<p>For suitable <span class="math notranslate nohighlight">\(\alpha\)</span>, the bound holds under sampling
+error and function approximation. We also note that as more data becomes available and |D(s; a)| increases, the theoretical value of <span class="math notranslate nohighlight">\(\alpha\)</span> that is needed to guarantee a lower bound decreases, which
 indicates that in the limit of infinite data, a lower bound can be obtained by using extremely small
-values of <img class="math" src="../_images/math/572746b289dd61951cfd618c58c36f49a762f123.svg" alt="\alpha"/>.</p>
+values of <span class="math notranslate nohighlight">\(\alpha\)</span>.</p>
 <p>Note that the analysis presented below assumes that no function approximation is used in the Q-function,
 meaning that each iterate can be represented exactly. the result in this theorem can be further generalized to the case of both linear function approximators and non-linear neural network function
 approximators, where the latter builds on the neural tangent kernel (NTK) framework. For more details, please refer to the Theorem D.1 and Theorem D.2 in Appendix D.1 in the original paper.</p>
 <a class="reference internal image-reference" href="../_images/cql_theorem.png"><img alt="../_images/cql_theorem.png" class="align-center" src="../_images/cql_theorem.png" style="width: 1169.3000000000002px; height: 363.00000000000006px;" /></a>
-<p>So, how should we utilize this for policy optimization? We could alternate between performing full off-policy evaluation for each policy iterate, <img class="math" src="../_images/math/ccb1a3c636ff08514073253c655c5b74bcc91ce0.svg" alt="\hat{\pi}^{k}(a|s)"/>, and one
+<p>So, how should we utilize this for policy optimization? We could alternate between performing full off-policy evaluation for each policy iterate, <span class="math notranslate nohighlight">\(\hat{\pi}^{k}(a|s)\)</span>, and one
 step of policy improvement. However, this can be computationally expensive. Alternatively, since the
-policy <img class="math" src="../_images/math/ccb1a3c636ff08514073253c655c5b74bcc91ce0.svg" alt="\hat{\pi}^{k}(a|s)"/> is typically derived from the Q-function, we could instead choose <img class="math" src="../_images/math/c3087dd28f6ad9586a9db38abb0afb24c793c7c8.svg" alt="\mu(a|s)"/> to approximate
+policy <span class="math notranslate nohighlight">\(\hat{\pi}^{k}(a|s)\)</span> is typically derived from the Q-function, we could instead choose <span class="math notranslate nohighlight">\(\mu(a|s)\)</span> to approximate
 the policy that would maximize the current Q-function iterate, thus giving rise to an online algorithm. So, for a complete offline RL algorithm, Q-function in general updates as follows:</p>
 <a class="reference internal image-reference" href="../_images/cql_general_3.png"><img alt="../_images/cql_general_3.png" class="align-center" src="../_images/cql_general_3.png" style="width: 680.9000000000001px; height: 101.2px;" /></a>
-<p>where <img class="math" src="../_images/math/dabbf9f83aceeaa5648f55536c82ab9c94edf8c0.svg" alt="CQL(R)"/> is characterized by a particular choice of regularizer <img class="math" src="../_images/math/a54e291b9b54643b4db04ef514d95f2e1b9b25c2.svg" alt="R(\mu)"/>. If <img class="math" src="../_images/math/a54e291b9b54643b4db04ef514d95f2e1b9b25c2.svg" alt="R(\mu)"/> is chosen to be the KL-divergence against a prior distribution, <img class="math" src="../_images/math/3799f94546e58eb88128ea711599a16767ad28d2.svg" alt="\rho(a|s)"/>, then we get <img class="math" src="../_images/math/e389177b73c1fea8f4960afb640d13792bafac73.svg" alt="\mu(a|s)\approx \rho(a|s)exp(Q(s,a))"/>. Firstly, if <img class="math" src="../_images/math/3799f94546e58eb88128ea711599a16767ad28d2.svg" alt="\rho(a|s)"/> = Unif(a), then the first term above corresponds to a soft-maximum
+<p>where <span class="math notranslate nohighlight">\(CQL(R)\)</span> is characterized by a particular choice of regularizer <span class="math notranslate nohighlight">\(R(\mu)\)</span>. If <span class="math notranslate nohighlight">\(R(\mu)\)</span> is chosen to be the KL-divergence against a prior distribution, <span class="math notranslate nohighlight">\(\rho(a|s)\)</span>, then we get <span class="math notranslate nohighlight">\(\mu(a|s)\approx \rho(a|s)exp(Q(s,a))\)</span>. Firstly, if <span class="math notranslate nohighlight">\(\rho(a|s)\)</span> = Unif(a), then the first term above corresponds to a soft-maximum
 of the Q-values at any state s and gives rise to the following variant, called CQL(H):</p>
 <a class="reference internal image-reference" href="../_images/cql_equation_4.png"><img alt="../_images/cql_equation_4.png" class="align-center" src="../_images/cql_equation_4.png" style="width: 899.8000000000001px; height: 81.4px;" /></a>
-<p>Secondly, if <img class="math" src="../_images/math/3799f94546e58eb88128ea711599a16767ad28d2.svg" alt="\rho(a|s)"/> is chosen to be the previous policy <img class="math" src="../_images/math/fe32db30e449f6f3de4dcfedb6857d4790b44545.svg" alt="\hat{\pi}^{k-1}"/>, the first term in Equation (4) above is replaced by
-an exponential weighted average of Q-values of actions from the chosen <img class="math" src="../_images/math/215539828de226729b82cba23a650c5610ae1cb5.svg" alt="\hat{\pi}^{k-1}(a|s)"/>.</p>
+<p>Secondly, if <span class="math notranslate nohighlight">\(\rho(a|s)\)</span> is chosen to be the previous policy <span class="math notranslate nohighlight">\(\hat{\pi}^{k-1}\)</span>, the first term in Equation (4) above is replaced by
+an exponential weighted average of Q-values of actions from the chosen <span class="math notranslate nohighlight">\(\hat{\pi}^{k-1}(a|s)\)</span>.</p>
 </section>
 <section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
@@ -739,37 +740,37 @@ ID Symbol               Type     Default Value  Description                     
 <p>(Medium Expert)</p>
 </td>
 <td><p>57.6
-<img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<span class="math notranslate nohighlight">\(\pm\)</span>
 3.7</p></td>
 <td><img alt="../_images/halfcheetah_cql.png" src="../_images/halfcheetah_cql.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_cql_medium_expert_config.py">config_link_ha</a></p></td>
 <td><p>CQL Repo (75.6
-<img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/> 25.7)</p></td>
+<span class="math notranslate nohighlight">\(\pm\)</span> 25.7)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Walker2d</p>
 <p>(Medium Expert)</p>
 </td>
 <td><p>109.7
-<img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<span class="math notranslate nohighlight">\(\pm\)</span>
 0.8</p></td>
 <td><img alt="../_images/walker2d_cql.png" src="../_images/walker2d_cql.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_cql_medium_expert_config.py">config_link_w</a></p></td>
 <td><p>CQL Repo (107.9
-<img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/> 1.6)</p></td>
+<span class="math notranslate nohighlight">\(\pm\)</span> 1.6)</p></td>
 </tr>
 <tr class="row-even"><td><p>Hopper</p>
 <p>(Medium Expert)</p>
 </td>
 <td><p>85.4
-<img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<span class="math notranslate nohighlight">\(\pm\)</span>
 14.8</p></td>
 <td><img alt="../_images/hopper_cql.png" src="../_images/hopper_cql.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_sac_cql_medium_expert_config.py">config_link_ho</a></p></td>
 <td><p>CQL Repo (105.6
-<img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/> 12.9)</p></td>
+<span class="math notranslate nohighlight">\(\pm\)</span> 12.9)</p></td>
 </tr>
 </tbody>
 </table>
@@ -794,39 +795,39 @@ ID Symbol               Type     Default Value  Description                     
 </thead>
 <tbody>
 <tr class="row-even"><td><p>HalfCheetah</p></td>
-<td><p>18.7 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>18.7 <span class="math notranslate nohighlight">\(\pm\)</span>
 1.2</p></td>
-<td><p>47.1 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>47.1 <span class="math notranslate nohighlight">\(\pm\)</span>
 0.3</p></td>
-<td><p>57.6 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>57.6 <span class="math notranslate nohighlight">\(\pm\)</span>
 3.7</p></td>
-<td><p>49.7 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>49.7 <span class="math notranslate nohighlight">\(\pm\)</span>
 0.4</p></td>
-<td><p>75.1 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>75.1 <span class="math notranslate nohighlight">\(\pm\)</span>
 18.4</p></td>
 </tr>
 <tr class="row-odd"><td><p>Walker2d</p></td>
-<td><p>22.0 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>22.0 <span class="math notranslate nohighlight">\(\pm\)</span>
 0.0</p></td>
-<td><p>82.6 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>82.6 <span class="math notranslate nohighlight">\(\pm\)</span>
 3.4</p></td>
-<td><p>109.7 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>109.7 <span class="math notranslate nohighlight">\(\pm\)</span>
 0.8</p></td>
-<td><p>82.4 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>82.4 <span class="math notranslate nohighlight">\(\pm\)</span>
 1.9</p></td>
-<td><p>109.2 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>109.2 <span class="math notranslate nohighlight">\(\pm\)</span>
 0.3</p></td>
 </tr>
 <tr class="row-even"><td><p>Hopper</p></td>
-<td><p>3.1 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>3.1 <span class="math notranslate nohighlight">\(\pm\)</span>
 2.6</p></td>
-<td><p>98.3 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>98.3 <span class="math notranslate nohighlight">\(\pm\)</span>
 1.8</p></td>
-<td><p>85.4 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>85.4 <span class="math notranslate nohighlight">\(\pm\)</span>
 14.8</p></td>
-<td><p>79.6 <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>79.6 <span class="math notranslate nohighlight">\(\pm\)</span>
 8.5</p></td>
-<td><p>105.4  <img class="math" src="../_images/math/5ad22619752acfa89ed5e68e111c98251c19f0a3.svg" alt="\pm"/>
+<td><p>105.4  <span class="math notranslate nohighlight">\(\pm\)</span>
 7.2</p></td>
 </tr>
 </tbody>
@@ -931,6 +932,7 @@ The complete table is depicted below</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

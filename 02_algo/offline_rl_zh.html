@@ -285,9 +285,9 @@
 <p>离线强化学习（Offline Reinforcement Learning, Offline RL），又称作批量强化学习（Batch Reinforcement Learning, BRL），是强化学习的一种变体，主要研究的是如何利用预先收集的大规模静态数据集来训练强化学习智能体。
 利用静态数据集意味着在智能体的训练过程中，Offline RL 不进行任何形式的在线交互与探索，这也是它和其它常见的强化学习方法最显著的区别。方便起见，在本文后续的阐述中，我们将非离线的强化学习（包含 On-policy 和 Off-policy）称为在线强化学习（Online RL）。</p>
 <a class="reference internal image-reference" href="../_images/offline_no_words.png"><img alt="../_images/offline_no_words.png" class="align-center" src="../_images/offline_no_words.png" style="width: 841.5px; height: 196.5px;" /></a>
-<p>在该图中，(a)是标准的 On-policy RL，智能体采用当前策略 <img class="math" src="../_images/math/2beba60bc78fcedd4cc255861b4c4cd020801c52.svg" alt="\pi_k"/> 与环境进行交互，只使用当前策略产生的数据来更新网络。
-(b)是 Off-policy RL，它会将历史所有策略与环境交互的数据存储在经验池 <img class="math" src="../_images/math/7227fabb2e0b301986aa5bd90df1b179864b644c.svg" alt="\mathcal{D}"/> 中。即 <img class="math" src="../_images/math/7227fabb2e0b301986aa5bd90df1b179864b644c.svg" alt="\mathcal{D}"/> 中包含了策略 <img class="math" src="../_images/math/87d25d04221aed8e6b720a16aca583b6ca9341b2.svg" alt="\pi_0, \pi_1, ..., \pi_k"/> 在不同时刻与环境交互产生的数据，这些数据都会被用于更新网络 <img class="math" src="../_images/math/9aed452d2b24aae16ac8c3cceadba0ef1df96d5c.svg" alt="\pi_{k+1}"/>。
-(c)是 Offline RL，它所使用的数据集 <img class="math" src="../_images/math/7227fabb2e0b301986aa5bd90df1b179864b644c.svg" alt="\mathcal{D}"/> 中的数据来自某些（可能未知）的行为策略 <img class="math" src="../_images/math/3667f610c187c4eeb933f4aa1d57932df383896a.svg" alt="\pi_{\beta}"/> 。该数据集 <img class="math" src="../_images/math/7227fabb2e0b301986aa5bd90df1b179864b644c.svg" alt="\mathcal{D}"/> 是提前一次性收集好的，不会在训练过程中发生改变。
+<p>在该图中，(a)是标准的 On-policy RL，智能体采用当前策略 <span class="math notranslate nohighlight">\(\pi_k\)</span> 与环境进行交互，只使用当前策略产生的数据来更新网络。
+(b)是 Off-policy RL，它会将历史所有策略与环境交互的数据存储在经验池 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 中。即 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 中包含了策略 <span class="math notranslate nohighlight">\(\pi_0, \pi_1, ..., \pi_k\)</span> 在不同时刻与环境交互产生的数据，这些数据都会被用于更新网络 <span class="math notranslate nohighlight">\(\pi_{k+1}\)</span>。
+(c)是 Offline RL，它所使用的数据集 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 中的数据来自某些（可能未知）的行为策略 <span class="math notranslate nohighlight">\(\pi_{\beta}\)</span> 。该数据集 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 是提前一次性收集好的，不会在训练过程中发生改变。
 在训练过程中，智能体不会与环境进行交互，只有在学习完成后才会对策略进行评估与应用。</p>
 <p><strong>为什么选择 Offline RL？</strong></p>
 <p>Offline RL 成为了最近的研究热点，具体原因可以归结为两方面：</p>
@@ -298,14 +298,14 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
 <p>第二方面，在线强化学习算法在离线设定下学习效果往往非常差。在实际部署中，学到的策略往往无法取得令人满意的表现（具体原因见后文）。因此，如何将在线强化学习算法中的思想和技巧迁移到离线场景，对人们来说也是一个充满挑战的研究话题。</p>
 <p><strong>Offline RL 的训练过程</strong></p>
 <p>在训练阶段，根据 Offline RL 的设定，智能体不能和环境进行交互。
-我们先根据行为策略 <img class="math" src="../_images/math/0d637e40fa477bec235b2b3ca945cbe246464af8.svg" alt="\pi_{\beta}(\mathbf{a}\mid \mathbf{s})"/> 与环境交互得到数据集 <img class="math" src="../_images/math/7227fabb2e0b301986aa5bd90df1b179864b644c.svg" alt="\mathcal{D}"/>，然后
-再利用该数据集训练智能体。以 Actor-Critic 范式为例，给定数据集 <img class="math" src="../_images/math/b31c53c6efcf3e2fbc0b0c8c3857b3db8e279098.svg" alt="\mathcal{D} = \left\{ (\mathbf{s}, \mathbf{a}, r, \mathbf{s}^{\prime})\right\}"/>,
+我们先根据行为策略 <span class="math notranslate nohighlight">\(\pi_{\beta}(\mathbf{a}\mid \mathbf{s})\)</span> 与环境交互得到数据集 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>，然后
+再利用该数据集训练智能体。以 Actor-Critic 范式为例，给定数据集 <span class="math notranslate nohighlight">\(\mathcal{D} = \left\{ (\mathbf{s}, \mathbf{a}, r, \mathbf{s}^{\prime})\right\}\)</span>,
 我们可以将价值迭代（value iteration）和策略优化（policy optimization）表示为:</p>
-<div class="math">
-<p><img src="../_images/math/b45feebb9c5f6e7887c8aeaf368ac56497200d5d.svg" alt="\hat{Q}^{k+1} \leftarrow \arg\min_{Q} \mathbb{E}_{\mathbf{s}, \mathbf{a} \sim \mathcal{D}} \left[ \left(\hat{\mathcal{B}}^\pi \hat{Q}(\mathbf{s}, \mathbf{a})  - Q(\mathbf{s}, \mathbf{a}) \right)^2 \right],
+<div class="math notranslate nohighlight">
+\[\begin{split}\hat{Q}^{k+1} \leftarrow \arg\min_{Q} \mathbb{E}_{\mathbf{s}, \mathbf{a} \sim \mathcal{D}} \left[ \left(\hat{\mathcal{B}}^\pi \hat{Q}(\mathbf{s}, \mathbf{a})  - Q(\mathbf{s}, \mathbf{a}) \right)^2 \right],
 \\
-\hat{\pi}^{k+1} \leftarrow \arg\max_{\pi} \mathbb{E}_{\mathbf{s} \sim \mathcal{D}, \mathbf{a} \sim \pi^{k}(\mathbf{a} \mid \mathbf{s})}\left[\hat{Q}^{k+1}(\mathbf{s}, \mathbf{a})\right],"/></p>
-</div><p>其中， <img class="math" src="../_images/math/1c819f12e3b86674e6d58386d5885642d580fa4b.svg" alt="\hat{\mathcal{B}}^\pi"/> 表示遵循策略 <img class="math" src="../_images/math/be9ef0fbe4613f127e2d8de297cafaa911cefed4.svg" alt="\hat{\pi} \left(\mathbf{a} \mid \mathbf{s}\right)"/> 的贝尔曼操作符, <img class="math" src="../_images/math/b675cae67937e9b4452d87469ff865572984fbd7.svg" alt="\hat{\mathcal{B}}^\pi \hat{Q}\left(\mathbf{s}, \mathbf{a}\right) = \mathbb{E}_{\mathbf{s}, \mathbf{a}, \mathbf{s}^{\prime} \sim \mathcal{D}}[ r(\mathbf{s}, \mathbf{a})+\gamma \mathbb{E}_{\mathbf{a}^{\prime} \sim \hat{\pi}^{k}\left(\mathbf{a}^{\prime} \mid \mathbf{s}^{\prime}\right)}\left[\hat{Q}^{k}\left(\mathbf{s}^{\prime}, \mathbf{a}^{\prime}\right)\right] ]"/>。</p>
+\hat{\pi}^{k+1} \leftarrow \arg\max_{\pi} \mathbb{E}_{\mathbf{s} \sim \mathcal{D}, \mathbf{a} \sim \pi^{k}(\mathbf{a} \mid \mathbf{s})}\left[\hat{Q}^{k+1}(\mathbf{s}, \mathbf{a})\right],\end{split}\]</div>
+<p>其中， <span class="math notranslate nohighlight">\(\hat{\mathcal{B}}^\pi\)</span> 表示遵循策略 <span class="math notranslate nohighlight">\(\hat{\pi} \left(\mathbf{a} \mid \mathbf{s}\right)\)</span> 的贝尔曼操作符, <span class="math notranslate nohighlight">\(\hat{\mathcal{B}}^\pi \hat{Q}\left(\mathbf{s}, \mathbf{a}\right) = \mathbb{E}_{\mathbf{s}, \mathbf{a}, \mathbf{s}^{\prime} \sim \mathcal{D}}[ r(\mathbf{s}, \mathbf{a})+\gamma \mathbb{E}_{\mathbf{a}^{\prime} \sim \hat{\pi}^{k}\left(\mathbf{a}^{\prime} \mid \mathbf{s}^{\prime}\right)}\left[\hat{Q}^{k}\left(\mathbf{s}^{\prime}, \mathbf{a}^{\prime}\right)\right] ]\)</span>。</p>
 <p><strong>Offline RL VS 模仿学习</strong></p>
 <p>模仿学习（Imitation Learning，IL）也使用静态数据进行训练，且在训练过程中不进行探索，这一点上和 Offline RL 是非常相似的。然而，两者也有很多显著的区别：</p>
 <ul class="simple">
@@ -318,11 +318,11 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
 <p>Off-policy RL 指的是能够使用历史策略收集到的数据来优化当前策略的一类 RL 算法，包括 Q-learning 算法、利用Q-函数的 Actor-Critic 算法、以及许多基于模型的强化学习算法（Model-based RL）等。
 然而，Off-policy RL 在学习过程中仍然通过额外的交互来收集数据，这是与 Offline RL 的根本区别。</p>
 <p><strong>在线强化学习算法在离线设定下的问题</strong></p>
-<p>以往，很多研究工作都表明经典强化学习算法在 Offline RL 场景表现不佳，乃至很差。在论文 [6] 中，作者表明这个问题是因为在离线情况下，学到的策略倾向于选择偏离数据集 <img class="math" src="../_images/math/7227fabb2e0b301986aa5bd90df1b179864b644c.svg" alt="\mathcal{D}"/> 的动作（out-of-distribution, OOD）。
+<p>以往，很多研究工作都表明经典强化学习算法在 Offline RL 场景表现不佳，乃至很差。在论文 [6] 中，作者表明这个问题是因为在离线情况下，学到的策略倾向于选择偏离数据集 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 的动作（out-of-distribution, OOD）。
 以基于Q-函数的经典算法为例，仅当待预估数据与离线训练数据分布相同时，Q-函数的估计才是准确的，具体的对应关系如下图所示：</p>
 <img alt="../_images/offline_ood.png" class="align-center" src="../_images/offline_ood.png" />
 <p>当智能体进行在线探索时，数据集随着策略的学习而不断地更新，策略对应的马尔科夫静态状态分布和数据集中实际的状态分布始终是一致或者相似的（取决于 on-policy 还是 off-policy）。
-但在 Offline RL 场景下，策略的马尔科夫静态状态分布相比原数据集会产生偏移（distributional shift）。对于数据集中罕见的 <img class="math" src="../_images/math/f2732ad57c5c45623cb54254fa8631ed88795512.svg" alt="(\mathbf{s}, \mathbf{a})"/> 训练样本，Q-函数就有可能会输出过高的估计值。在实际交互中，当智能体选择最大化期望奖励的动作时，便可能选到实际收益非常差的动作，导致整体的表现非常差。</p>
+但在 Offline RL 场景下，策略的马尔科夫静态状态分布相比原数据集会产生偏移（distributional shift）。对于数据集中罕见的 <span class="math notranslate nohighlight">\((\mathbf{s}, \mathbf{a})\)</span> 训练样本，Q-函数就有可能会输出过高的估计值。在实际交互中，当智能体选择最大化期望奖励的动作时，便可能选到实际收益非常差的动作，导致整体的表现非常差。</p>
 </section>
 <section id="id3">
 <h2>研究方向<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
@@ -335,37 +335,37 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
 <p>除此以外，还有针对 Model-based RL 在离线设定下的一些研究工作，这里就不再展开，有兴趣的读者可以参考 <a class="footnote-reference brackets" href="#id21" id="id5">7</a> <a class="footnote-reference brackets" href="#id22" id="id6">8</a> 等文献。关于 Offline RL 领域整体的发展，可以参考 <a class="footnote-reference brackets" href="#id23" id="id7">9</a> 中的概述图：</p>
 <img alt="../_images/offline_roadmap.png" class="align-center" src="../_images/offline_roadmap.png" />
 <p><strong>策略约束方法</strong></p>
-<p>该类方法的核心思想是让待优化策略 <img class="math" src="../_images/math/8671c72fa2e5869becbc424919e91ce27edf057b.svg" alt="\pi(\mathbf{a} \mid \mathbf{s})"/> 和行为策略 <img class="math" src="../_images/math/5b2fea52ad030494fe1c4c68cdd8c4878f282b25.svg" alt="\pi_{\beta}(\mathbf{a} \mid \mathbf{s})"/> 尽可能地接近，从而来保证Q-函数的估计足够有效。
-以 <img class="math" src="../_images/math/62707dfedb15d791129871203d58b071bd703419.svg" alt="\mathbf{D}(\pi, \pi_{\beta})"/> 来表示待优化策略和行为策略的距离，可以在策略迭代中直接增加显式的约束条件，使其小于某个给定值 <img class="math" src="../_images/math/a835663a275cc6406877e2599fb4e7b659946349.svg" alt="\mathcal{C}"/>，即：</p>
-<div class="math">
-<p><img src="../_images/math/51fc0dd5abaac1611d47cd9583e141ea0b60d1cf.svg" alt="\mathbf{D}_f(\pi, \pi_{\beta}) \le \mathcal{C}, \forall \pi."/></p>
-</div><p>也可以使用隐式的约束，如通过策略重建等方式，使其与行为策略 <img class="math" src="../_images/math/5b2fea52ad030494fe1c4c68cdd8c4878f282b25.svg" alt="\pi_{\beta}(\mathbf{a} \mid \mathbf{s})"/> 相似。
+<p>该类方法的核心思想是让待优化策略 <span class="math notranslate nohighlight">\(\pi(\mathbf{a} \mid \mathbf{s})\)</span> 和行为策略 <span class="math notranslate nohighlight">\(\pi_{\beta}(\mathbf{a} \mid \mathbf{s})\)</span> 尽可能地接近，从而来保证Q-函数的估计足够有效。
+以 <span class="math notranslate nohighlight">\(\mathbf{D}(\pi, \pi_{\beta})\)</span> 来表示待优化策略和行为策略的距离，可以在策略迭代中直接增加显式的约束条件，使其小于某个给定值 <span class="math notranslate nohighlight">\(\mathcal{C}\)</span>，即：</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{D}_f(\pi, \pi_{\beta}) \le \mathcal{C}, \forall \pi.\]</div>
+<p>也可以使用隐式的约束，如通过策略重建等方式，使其与行为策略 <span class="math notranslate nohighlight">\(\pi_{\beta}(\mathbf{a} \mid \mathbf{s})\)</span> 相似。
 在 BCQ <a class="footnote-reference brackets" href="#id16" id="id8">2</a> 中，作者提出训练一个生成模型（VAE）来模拟数据集中的动作。在策略更新过程中，策略从 VAE 扰动产生的动作中选择 Q 值最高的，从而确保被选择的动作和数据集中的动作相近。
 在 BCQ 的基础上，选择 TD3 作为网络结构，衍生出了 TD3BC 算法，具体内容可参考 <a class="footnote-reference brackets" href="#id17" id="id9">3</a>。</p>
-<p>另外，也可以通过惩罚项等方式，将 <img class="math" src="../_images/math/62707dfedb15d791129871203d58b071bd703419.svg" alt="\mathbf{D}(\pi, \pi_{\beta})"/> 加入奖励或者Q值中。</p>
+<p>另外，也可以通过惩罚项等方式，将 <span class="math notranslate nohighlight">\(\mathbf{D}(\pi, \pi_{\beta})\)</span> 加入奖励或者Q值中。</p>
 <p><strong>基于不确定性的方法</strong></p>
 <p>如果说策略约束方法主要是为了从Q-函数的输入源头避免 OOD 动作的出现，那么基于不确定性的方法就是尽可能使Q-函数足够鲁棒，以至于即便输入 OOD 动作后它也能够保持一个相对有效的估计。
-这一类方法需要先学习一个关于Q-函数的不确定集合或者不确定分布 <img class="math" src="../_images/math/b30ac4410e17999900691d276694bc18b3aab91c.svg" alt="\mathcal{P}(\mathbf{Q}^{\pi})"/>，具体做法可参考 <a class="footnote-reference brackets" href="#id18" id="id10">4</a> <a class="footnote-reference brackets" href="#id19" id="id11">5</a>。然后，将 <img class="math" src="../_images/math/b30ac4410e17999900691d276694bc18b3aab91c.svg" alt="\mathcal{P}(\mathbf{Q}^{\pi})"/> 作为Q-函数的一个惩罚项，</p>
-<div class="math">
-<p><img src="../_images/math/517575c379b9194a3185c3c5c322396c7d5f4a09.svg" alt="\pi_{k+1} \leftarrow \arg\max_{\pi}\mathbb{E}_{\mathbf{s} \sim \mathcal{D}}[\mathbb{E}_{\mathbf{a} \sim \pi(\mathbf{a} \mid \mathbf{s})}[\mathbb{E}_{\mathbf{Q}_{k+1}^{\pi} \sim \mathcal{P}(\mathbf{Q}^{\pi})}[\mathbf{Q}_{k+1}^{\pi}(\mathbf{s}, \mathbf{a})] - \alpha \mathbf{Unc}(\mathcal{P}(\mathbf{Q}^{\pi}))]],"/></p>
-</div><p>其中 <img class="math" src="../_images/math/00b636c49896aceea0cb495bf5501cc86b15dec3.svg" alt="\mathbf{Unc}(\cdot)"/> 表示对不确定分布的度量。由此，我们得到了一个对Q-函数的保守估计，在一定程度上能够减少或避免策略选择 OOD 动作。</p>
+这一类方法需要先学习一个关于Q-函数的不确定集合或者不确定分布 <span class="math notranslate nohighlight">\(\mathcal{P}(\mathbf{Q}^{\pi})\)</span>，具体做法可参考 <a class="footnote-reference brackets" href="#id18" id="id10">4</a> <a class="footnote-reference brackets" href="#id19" id="id11">5</a>。然后，将 <span class="math notranslate nohighlight">\(\mathcal{P}(\mathbf{Q}^{\pi})\)</span> 作为Q-函数的一个惩罚项，</p>
+<div class="math notranslate nohighlight">
+\[\pi_{k+1} \leftarrow \arg\max_{\pi}\mathbb{E}_{\mathbf{s} \sim \mathcal{D}}[\mathbb{E}_{\mathbf{a} \sim \pi(\mathbf{a} \mid \mathbf{s})}[\mathbb{E}_{\mathbf{Q}_{k+1}^{\pi} \sim \mathcal{P}(\mathbf{Q}^{\pi})}[\mathbf{Q}_{k+1}^{\pi}(\mathbf{s}, \mathbf{a})] - \alpha \mathbf{Unc}(\mathcal{P}(\mathbf{Q}^{\pi}))]],\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\mathbf{Unc}(\cdot)\)</span> 表示对不确定分布的度量。由此，我们得到了一个对Q-函数的保守估计，在一定程度上能够减少或避免策略选择 OOD 动作。</p>
 <p><strong>值函数的正则化方法</strong></p>
 <p>该方法顾名思义，就是在Q-函数上增加正则项，代表性工作有 Conservative Q-learning（简称CQL） <a class="footnote-reference brackets" href="#id20" id="id12">6</a>。相比于前两种方法，其优势是不必显式地计算行为策略的分布，且可以适用于绝大多数基于 Actor-Critic 或Q-函数架构的强化学习算法。</p>
 <p>与基于不确定性的方法类似，CQL 也是为了得到保守的Q-函数估计，但采用的方式为关于Q值的正则化。其目标为：</p>
-<div class="math">
-<p><img src="../_images/math/7707bf860b900bcdc795301807cd121eccaac301.svg" alt="\hat{\mathcal{E}}(\mathcal{B}, \mathcal{\phi}) = \alpha\mathcal{C}(\mathcal{B}, \mathcal{\phi}) + \mathcal{E}(\mathcal{B}, \mathbf{\phi}),"/></p>
-</div><p>其中，<img class="math" src="../_images/math/16268209adc8ebc3d50fd80e0126f9c284312193.svg" alt="\mathcal{E}(\mathcal{B}, \mathcal{\phi})"/> 表示贝尔曼误差，也就是一般 DQN 的目标，<img class="math" src="../_images/math/f7ce423d4f24ee4d3b2676e8345f451eb190bb77.svg" alt="\mathcal{C}(\mathcal{B}, \mathcal{\phi})"/> 表示额外添加的惩罚项。
+<div class="math notranslate nohighlight">
+\[\hat{\mathcal{E}}(\mathcal{B}, \mathcal{\phi}) = \alpha\mathcal{C}(\mathcal{B}, \mathcal{\phi}) + \mathcal{E}(\mathcal{B}, \mathbf{\phi}),\]</div>
+<p>其中，<span class="math notranslate nohighlight">\(\mathcal{E}(\mathcal{B}, \mathcal{\phi})\)</span> 表示贝尔曼误差，也就是一般 DQN 的目标，<span class="math notranslate nohighlight">\(\mathcal{C}(\mathcal{B}, \mathcal{\phi})\)</span> 表示额外添加的惩罚项。
 选择不同类型的惩罚项可能会导致算法具有不同的特性。例如：</p>
-<div class="math">
-<p><img src="../_images/math/d0e5cd7cc0920f67a02a54ffbc85f7ed2f5fbdb1.svg" alt="\mathcal{C}_{CQL_0}(\mathcal{B}, \mathbf{\phi}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{D}}\mathbb{E}_{\mathbf{a} \sim \mu(\mathbf{a} \mid \mathbf{s})}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})],"/></p>
-</div><p>其作用是压低某个特殊分布 <img class="math" src="../_images/math/ff46d070493c52efaf04c92f132ca166b0e0bb4e.svg" alt="\mu(\mathbf{a} \mid \mathbf{s})"/> 中过高的Q值。对于 <img class="math" src="../_images/math/ff46d070493c52efaf04c92f132ca166b0e0bb4e.svg" alt="\mu(\mathbf{a} \mid \mathbf{s})"/>，一个简单实用的选择是：</p>
-<div class="math">
-<p><img src="../_images/math/e7e9b96ba3879ed216602525b4c87687fcc305b2.svg" alt="\mu = \arg\max_{\mu} \mathbb{E}_{\mathbf{s} \sim \mathcal{D}}[\mathbb{E}_{\mathbf{a} \sim \mu(\mathbf{a} \mid \mathbf{s})}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})] + \mathcal{H}(\mu(\cdot \mid \mathbf{s}))],"/></p>
-</div><p>其意义为使得当前数据集Q值期望最高的策略。这样一来，OOD 动作对应的Q值会因为 <img class="math" src="../_images/math/63acfb35267bd48edb3596acc4184b4a63dc885e.svg" alt="\mathcal{C}_{CQL_0}(\mathcal{B}, \mathbf{\phi})"/> 的存在而降低，正常动作的Q值则根据贝尔曼误差来学习，当我们选取一个合适的 <img class="math" src="../_images/math/572746b289dd61951cfd618c58c36f49a762f123.svg" alt="\alpha"/> 比例就能够得到一个表现良好Q-函数。</p>
-<p>另外，在某些情况下，<img class="math" src="../_images/math/63acfb35267bd48edb3596acc4184b4a63dc885e.svg" alt="\mathcal{C}_{CQL_0}(\mathcal{B}, \mathbf{\phi})"/> 会使得Q-函数的估计过于保守。当面临这种问题时，我们还可以选择：</p>
-<div class="math">
-<p><img src="../_images/math/164addc899ee97372bf655892922a38e8f440692.svg" alt="\mathcal{C}_{CQL_1}(\mathcal{B}, \mathbf{\phi}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{D}}\mathbb{E}_{\mathbf{a} \sim \mu(\mathbf{a} \mid \mathbf{s})}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})] - \mathbb{E}_{(\mathbf{s}, \mathbf{a}) \sim \mathcal{D}}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})]."/></p>
-</div></section>
+<div class="math notranslate nohighlight">
+\[\mathcal{C}_{CQL_0}(\mathcal{B}, \mathbf{\phi}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{D}}\mathbb{E}_{\mathbf{a} \sim \mu(\mathbf{a} \mid \mathbf{s})}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})],\]</div>
+<p>其作用是压低某个特殊分布 <span class="math notranslate nohighlight">\(\mu(\mathbf{a} \mid \mathbf{s})\)</span> 中过高的Q值。对于 <span class="math notranslate nohighlight">\(\mu(\mathbf{a} \mid \mathbf{s})\)</span>，一个简单实用的选择是：</p>
+<div class="math notranslate nohighlight">
+\[\mu = \arg\max_{\mu} \mathbb{E}_{\mathbf{s} \sim \mathcal{D}}[\mathbb{E}_{\mathbf{a} \sim \mu(\mathbf{a} \mid \mathbf{s})}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})] + \mathcal{H}(\mu(\cdot \mid \mathbf{s}))],\]</div>
+<p>其意义为使得当前数据集Q值期望最高的策略。这样一来，OOD 动作对应的Q值会因为 <span class="math notranslate nohighlight">\(\mathcal{C}_{CQL_0}(\mathcal{B}, \mathbf{\phi})\)</span> 的存在而降低，正常动作的Q值则根据贝尔曼误差来学习，当我们选取一个合适的 <span class="math notranslate nohighlight">\(\alpha\)</span> 比例就能够得到一个表现良好Q-函数。</p>
+<p>另外，在某些情况下，<span class="math notranslate nohighlight">\(\mathcal{C}_{CQL_0}(\mathcal{B}, \mathbf{\phi})\)</span> 会使得Q-函数的估计过于保守。当面临这种问题时，我们还可以选择：</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{C}_{CQL_1}(\mathcal{B}, \mathbf{\phi}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{D}}\mathbb{E}_{\mathbf{a} \sim \mu(\mathbf{a} \mid \mathbf{s})}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})] - \mathbb{E}_{(\mathbf{s}, \mathbf{a}) \sim \mathcal{D}}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})].\]</div>
+</section>
 <section id="id13">
 <h2>未来展望<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <p>在机器学习领域，过去十余年的惊人成就很大一部分都要归功于 Data-driven 的学习范式。在计算机视觉和自然语言领域，架构和模型的衍进的确推动了学习性能的显著提升。
@@ -483,6 +483,7 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

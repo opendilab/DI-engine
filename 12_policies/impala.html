@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -299,52 +300,52 @@ introduced in <a class="reference external" href="https://arxiv.org/abs/1802.015
 <section id="key-equations">
 <h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
 <p>Loss used in IMPALA is similar to that in PPO, A2C and other value function actor-critic models. All of them come from <code class="docutils literal notranslate"><span class="pre">policy_loss</span></code>,<code class="docutils literal notranslate"><span class="pre">value_loss</span></code> and <code class="docutils literal notranslate"><span class="pre">entropy_loss</span></code>, with respect to some carefully chosen weights, i.e.:</p>
-<div class="math">
-<p><img src="../_images/math/b587b78acadac0c7dc16130234b251a137ec3a71.svg" alt="loss_{total} = loss_{policy} + w_{value} * loss_{value} + w_{entropy} * loss_{entropy}"/></p>
-</div><div class="admonition tip">
+<div class="math notranslate nohighlight">
+\[loss_{total} = loss_{policy} + w_{value} * loss_{value} + w_{entropy} * loss_{entropy}\]</div>
+<div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>NOTATION AND CONVENTIONS:</p>
-<p><img class="math" src="../_images/math/c9c652001d53576263e4d9f1efc5d64cdefa3674.svg" alt="\pi_{\phi}"/>: current training policy parameterized by <img class="math" src="../_images/math/ecf00919908755c43f83cfec84ac1cd42ff2d81f.svg" alt="\phi"/>.</p>
-<p><img class="math" src="../_images/math/8f5432c858b7e995880ac6b58e25a0b4023c4911.svg" alt="V_\theta"/>: value function parameterized by <img class="math" src="../_images/math/70dc2a5833559be2562698337b43b3bf1ac8e9bd.svg" alt="\theta"/>.</p>
-<p><img class="math" src="../_images/math/1f86e503cb1becd4e389bd4557b044555b6eabad.svg" alt="\mu"/>: older policy which generates trajectories in replay buffer.</p>
+<p><span class="math notranslate nohighlight">\(\pi_{\phi}\)</span>: current training policy parameterized by <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(V_\theta\)</span>: value function parameterized by <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(\mu\)</span>: older policy which generates trajectories in replay buffer.</p>
 </div>
-<p>At the training time <img class="math" src="../_images/math/bf9d1a2bb98a9d76bebf5ddb189fdbe3127fd13a.svg" alt="t"/>, given transition <img class="math" src="../_images/math/99fe25d6a2dc62a33f92592934a33ae5155e5a3d.svg" alt="(x_t, a_t, x_{t+1}, r_t)"/>, the value function <img class="math" src="../_images/math/8f5432c858b7e995880ac6b58e25a0b4023c4911.svg" alt="V_\theta"/>
-is learned through an <img class="math" src="../_images/math/f82de24aace2b35ecf9a1d502750b07b08a791a2.svg" alt="L_2"/> loss between the current value and a V-trace target value. The n-step V-trace target
+<p>At the training time <span class="math notranslate nohighlight">\(t\)</span>, given transition <span class="math notranslate nohighlight">\((x_t, a_t, x_{t+1}, r_t)\)</span>, the value function <span class="math notranslate nohighlight">\(V_\theta\)</span>
+is learned through an <span class="math notranslate nohighlight">\(L_2\)</span> loss between the current value and a V-trace target value. The n-step V-trace target
 at time s is defined as follows:</p>
-<div class="math">
-<p><img src="../_images/math/d96e896e04c94757ec6af5f828f5c4a69d31005c.svg" alt="v_s  \stackrel{def}{=} V(x_s) + \sum_{t=s}^{s+n-1} \gamma^{t-s} \big(\prod_{i=s}^{t-1} c_i\big)\delta_t V"/></p>
-</div><p>where <img class="math" src="../_images/math/0a2b4b2f85516eb44f77290368b6297bbafb0885.svg" alt="\delta_t V \stackrel{def}{=}  \rho_t (r_t + \gamma V(x_{t+1}) - V(x_t))"/> is a temporal difference for <img class="math" src="../_images/math/5a2eef32c1226f4023de69afd94cc2d15f4d4dae.svg" alt="V"/>,
-<img class="math" src="../_images/math/bf5882e7cb419a0bbd56454e540047a861dedbff.svg" alt="\rho_t \stackrel{def}{=} \min\big(\bar{\rho}, \frac{\pi(a_t \vert x_t)}{\mu(a_t \vert x_t)}\big)"/>,
-and <img class="math" src="../_images/math/de3634648d0b3e62b4359429a5b04b8bbd93b8d3.svg" alt="c_i \stackrel{def}{=}\min\big(\bar{c}, \frac{\pi(a_i \vert s_i)}{\mu(a_i \vert s_i)}\big)"/></p>
-<p><img class="math" src="../_images/math/58813268003eebe375a18d2e7cfa1aa4043efc0f.svg" alt="\rho_t"/> and <img class="math" src="../_images/math/dc05a2d5fb465ffa9879a7bf3850a987af3d02fe.svg" alt="c_i"/> are <code class="docutils literal notranslate"><span class="pre">truncated</span> <span class="pre">importance</span> <span class="pre">sampling</span> <span class="pre">(IS)</span> <span class="pre">weights</span></code>,
-where <img class="math" src="../_images/math/05d5390497827bb78d107ec85699d03dbc7bae9c.svg" alt="\bar{\rho}"/> and <img class="math" src="../_images/math/19e269b2cdc419227ebabd365ddfe7cbd5084647.svg" alt="\bar{c}"/> are two truncation constants with <img class="math" src="../_images/math/4a07cee5c7ec3248d44d0d130396618cc646e35f.svg" alt="\bar{\rho} \geq \bar{c}"/>.</p>
-<p>The product of <img class="math" src="../_images/math/a2179870e834a64a09f03cd5afff3190659c0a15.svg" alt="c_s, \dots, c_{t-1}"/> measures how much a temporal difference <img class="math" src="../_images/math/c526dd98b2e10f0949a08463c79d789c08a77caf.svg" alt="\delta_t V"/> observed at time
-<img class="math" src="../_images/math/bf9d1a2bb98a9d76bebf5ddb189fdbe3127fd13a.svg" alt="t"/> impacts the update of the value function at a previous time <img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/> . In the on-policy case, we have <img class="math" src="../_images/math/639f93bed7be9796906eff8ce2bc16b157126137.svg" alt="\rho_t=1"/>
-and <img class="math" src="../_images/math/8e082cf3c70e345d9d3fe11214373baec9369e7e.svg" alt="c_i=1"/> (assuming <img class="math" src="../_images/math/2d59e2e2bffa7fe681fc2d2869c0efb80f8f6e8b.svg" alt="\bar{c} \geq 1)"/> and therefore the V-trace target becomes on-policy n-step Bellman
+<div class="math notranslate nohighlight">
+\[v_s  \stackrel{def}{=} V(x_s) + \sum_{t=s}^{s+n-1} \gamma^{t-s} \big(\prod_{i=s}^{t-1} c_i\big)\delta_t V\]</div>
+<p>where <span class="math notranslate nohighlight">\(\delta_t V \stackrel{def}{=}  \rho_t (r_t + \gamma V(x_{t+1}) - V(x_t))\)</span> is a temporal difference for <span class="math notranslate nohighlight">\(V\)</span>,
+<span class="math notranslate nohighlight">\(\rho_t \stackrel{def}{=} \min\big(\bar{\rho}, \frac{\pi(a_t \vert x_t)}{\mu(a_t \vert x_t)}\big)\)</span>,
+and <span class="math notranslate nohighlight">\(c_i \stackrel{def}{=}\min\big(\bar{c}, \frac{\pi(a_i \vert s_i)}{\mu(a_i \vert s_i)}\big)\)</span></p>
+<p><span class="math notranslate nohighlight">\(\rho_t\)</span> and <span class="math notranslate nohighlight">\(c_i\)</span> are <code class="docutils literal notranslate"><span class="pre">truncated</span> <span class="pre">importance</span> <span class="pre">sampling</span> <span class="pre">(IS)</span> <span class="pre">weights</span></code>,
+where <span class="math notranslate nohighlight">\(\bar{\rho}\)</span> and <span class="math notranslate nohighlight">\(\bar{c}\)</span> are two truncation constants with <span class="math notranslate nohighlight">\(\bar{\rho} \geq \bar{c}\)</span>.</p>
+<p>The product of <span class="math notranslate nohighlight">\(c_s, \dots, c_{t-1}\)</span> measures how much a temporal difference <span class="math notranslate nohighlight">\(\delta_t V\)</span> observed at time
+<span class="math notranslate nohighlight">\(t\)</span> impacts the update of the value function at a previous time <span class="math notranslate nohighlight">\(s\)</span> . In the on-policy case, we have <span class="math notranslate nohighlight">\(\rho_t=1\)</span>
+and <span class="math notranslate nohighlight">\(c_i=1\)</span> (assuming <span class="math notranslate nohighlight">\(\bar{c} \geq 1)\)</span> and therefore the V-trace target becomes on-policy n-step Bellman
 target.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><img class="math" src="../_images/math/05d5390497827bb78d107ec85699d03dbc7bae9c.svg" alt="\bar{\rho}"/> impacts the fixed-point of the value function we converge to, and <img class="math" src="../_images/math/19e269b2cdc419227ebabd365ddfe7cbd5084647.svg" alt="\bar{c}"/> impacts the speed
+<p><span class="math notranslate nohighlight">\(\bar{\rho}\)</span> impacts the fixed-point of the value function we converge to, and <span class="math notranslate nohighlight">\(\bar{c}\)</span> impacts the speed
 of convergence.</p>
-<p>When <img class="math" src="../_images/math/2d2ac226df9ca0b1073fcabc19b4058fe884e897.svg" alt="\bar{\rho} =\infty"/> (untruncated), v-trace value function will converge to the value
-function of the target policy <img class="math" src="../_images/math/970b409043ae7c4626b861c197a1b56ff445de4d.svg" alt="V_\pi"/>;</p>
-<p>When <img class="math" src="../_images/math/05d5390497827bb78d107ec85699d03dbc7bae9c.svg" alt="\bar{\rho}"/> is close to 0, we evaluate the value function
-of the behavior policy <img class="math" src="../_images/math/ad0938fc5dce7e4d431ecaf04b7c0a8333ea8d49.svg" alt="V_\mu"/>; when in-between, we evaluate a policy between <img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/> and <img class="math" src="../_images/math/1f86e503cb1becd4e389bd4557b044555b6eabad.svg" alt="\mu"/>.</p>
+<p>When <span class="math notranslate nohighlight">\(\bar{\rho} =\infty\)</span> (untruncated), v-trace value function will converge to the value
+function of the target policy <span class="math notranslate nohighlight">\(V_\pi\)</span>;</p>
+<p>When <span class="math notranslate nohighlight">\(\bar{\rho}\)</span> is close to 0, we evaluate the value function
+of the behavior policy <span class="math notranslate nohighlight">\(V_\mu\)</span>; when in-between, we evaluate a policy between <span class="math notranslate nohighlight">\(\pi\)</span> and <span class="math notranslate nohighlight">\(\mu\)</span>.</p>
 </div>
 <p>Therefore, loss functions are</p>
-<div class="math">
-<p><img src="../_images/math/32e6e730d587c58ce38ecf9942f52f1a04ff9a48.svg" alt="loss_{value} &amp;= (v_s - V_\theta(x_s))^2 \\
+<div class="math notranslate nohighlight">
+\[\begin{split}loss_{value} &amp;= (v_s - V_\theta(x_s))^2 \\
 loss_{policy} &amp;= -\rho_s \log \pi_\phi(a_s \vert x_s)  \big(r_s + \gamma v_{s+1} - V_\theta(x_s)\big) \\
-loss_{entropy} &amp;= -H(\pi_\phi) = \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)"/></p>
-</div><p>where <img class="math" src="../_images/math/167ee0f02d37fc2af686aac592a284c292493971.svg" alt="H(\pi_{\phi})"/>, entropy of policy <img class="math" src="../_images/math/ecf00919908755c43f83cfec84ac1cd42ff2d81f.svg" alt="\phi"/>, is a bonus to encourage exploration.</p>
+loss_{entropy} &amp;= -H(\pi_\phi) = \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(H(\pi_{\phi})\)</span>, entropy of policy <span class="math notranslate nohighlight">\(\phi\)</span>, is a bonus to encourage exploration.</p>
 <p>Value function parameter is updated in the direction of:</p>
-<div class="math">
-<p><img src="../_images/math/cc5a55807fd3dfc24d1786ddb97434337c709792.svg" alt="\Delta\theta = w_{value} (v_s - V_\theta(x_s))\nabla_\theta V_\theta(x_s)"/></p>
-</div><p>Policy parameter <img class="math" src="../_images/math/ecf00919908755c43f83cfec84ac1cd42ff2d81f.svg" alt="\phi"/> is updated through policy gradient,</p>
-<div class="math">
-<p><img src="../_images/math/83162cb1284da113fc50319c25d42a499ad547b7.svg" alt="\Delta \phi &amp;= \rho_s \nabla_\phi \log \pi_\phi(a_s \vert x_s) \big(r_s + \gamma v_{s+1}- V_\theta(x_s)\big)\\
-            &amp;- w_{entropy} \nabla_\phi \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)"/></p>
-</div><p>where <img class="math" src="../_images/math/a7ad61e7fad36ec3f9d03058f7daefe8e9785a67.svg" alt="r_s + \gamma v_{s+1}"/> is the v-trace advantage, which is estimated Q value subtracted by a state-dependent baseline <img class="math" src="../_images/math/5207dad77c67f78d22176b5de61e78a57edc699d.svg" alt="V_\theta(x_s)"/>.</p>
+<div class="math notranslate nohighlight">
+\[\Delta\theta = w_{value} (v_s - V_\theta(x_s))\nabla_\theta V_\theta(x_s)\]</div>
+<p>Policy parameter <span class="math notranslate nohighlight">\(\phi\)</span> is updated through policy gradient,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\Delta \phi &amp;= \rho_s \nabla_\phi \log \pi_\phi(a_s \vert x_s) \big(r_s + \gamma v_{s+1}- V_\theta(x_s)\big)\\
+            &amp;- w_{entropy} \nabla_\phi \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(r_s + \gamma v_{s+1}\)</span> is the v-trace advantage, which is estimated Q value subtracted by a state-dependent baseline <span class="math notranslate nohighlight">\(V_\theta(x_s)\)</span>.</p>
 </section>
 <section id="key-graphs">
 <h2>Key Graphs<a class="headerlink" href="#key-graphs" title="Permalink to this headline">¶</a></h2>
@@ -550,9 +551,9 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
@@ -687,9 +688,9 @@ First, we use the following functions to compute importance_weights.</p>
         <span class="k">return</span> <span class="n">rhos</span>
 </pre></div>
 </div>
-<p>After that, we clip importance weights based on constant <img class="math" src="../_images/math/e0c94a2b6a4cfe2db26676308bd4de8758260a9e.svg" alt="\rho"/> and <img class="math" src="../_images/math/514f9e9895bc551d94e785912c59e27bbe42386a.svg" alt="c"/> to get clipped_rhos, clipped_cs.
+<p>After that, we clip importance weights based on constant <span class="math notranslate nohighlight">\(\rho\)</span> and <span class="math notranslate nohighlight">\(c\)</span> to get clipped_rhos, clipped_cs.
 Then we can compute vtrace value according to the following function. Notice, here bootstrap_values are just
-value function <img class="math" src="../_images/math/d0eef2e2b9fcac40f26389062106b964ac6211be.svg" alt="V(x_s)"/> in vtrace definition.</p>
+value function <span class="math notranslate nohighlight">\(V(x_s)\)</span> in vtrace definition.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">vtrace_nstep_return</span><span class="p">(</span><span class="n">clipped_rhos</span><span class="p">,</span> <span class="n">clipped_cs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Shapes:</span>
@@ -939,6 +940,7 @@ process is as follows.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="CollaQ" href="collaq.html" />
+  <link rel="next" title="QTRAN" href="qtran.html" />
   <link rel="prev" title="COMA" href="coma.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -308,44 +309,44 @@ The mixing network is a feed-forward neural network that takes the agent network
 <a class="reference internal image-reference" href="../_images/wqmix_setup.png"><img alt="../_images/wqmix_setup.png" class="align-center" src="../_images/wqmix_setup.png" style="width: 735.6px; height: 232.79999999999998px;" /></a>
 <p>First, WQMIX examine an operator that represents an idealised version of QMIX in a tabular setting.
 The purpose of this analysis is primarily to understand the fundamental limitations of QMIX that stem from its training objective and the restricted function class it uses.
-This is the space of all <img class="math" src="../_images/math/9ded0f6b145f96a362809083f7acfb653c853660.svg" alt="Q_{tot}"/> that can be represented by monotonic funtions of tabular <img class="math" src="../_images/math/39ffb7e961d6adfec07e75bdb998d25c42e42522.svg" alt="Q_{a}(s,u)"/> :</p>
-<div class="math">
-<p><img src="../_images/math/0011928df5bf637ee3746eb49df93a8544ea4cbc.svg" alt="\mathcal{Q}^{m i x}:=\left\{Q_{t o t} \mid Q_{t o t}(s, \mathbf{u})=f_{s}\left(Q_{1}\left(s, u_{1}\right), \ldots Q_{n}\left(s, u_{n}\right)\right), \frac{\partial f_{s}}{\partial Q_{a}} \geq 0, Q_{a}(s, u) \in \mathbb{R}\right\}"/></p>
-</div><p>At each iteration of our idealised QMIX algorithm, we constrain <img class="math" src="../_images/math/9ded0f6b145f96a362809083f7acfb653c853660.svg" alt="Q_{tot}"/> to lie in the above space by solving the following optimisation problem:</p>
-<div class="math">
-<p><img src="../_images/math/cb1283f260df218f5f6de8080f394eb5f7caddd9.svg" alt="\underset{q \in \mathcal{Q}^{m i x}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}}\left(\mathcal{T}^{*} Q_{t o t}(s, \mathbf{u})-q(s, \mathbf{u})\right)^{2}"/></p>
-</div><p>where, the Bellman optimality operator is defined by:</p>
-<div class="math">
-<p><img src="../_images/math/3428ba231a7ac85cd159403f9439439223c0deaf.svg" alt="\mathcal{T}^{*} Q(s, \mathbf{u}):=\mathbb{E}\left[r+\gamma \max _{\mathbf{u}^{\prime}} Q\left(s^{\prime}, \mathbf{u}^{\prime}\right)\right]"/></p>
-</div><p>Then define the corresponding projection operator <img class="math" src="../_images/math/73b18705caae59688b26a2165de151a7a20dcc72.svg" alt="T^{Qmix}"/> as follows:</p>
-<div class="math">
-<p><img src="../_images/math/6568c8be000c570ce95d314720803de81b3faaf5.svg" alt="\Pi_{\mathrm{Qmix}} Q:=\underset{q \in \mathcal{Q}^{\text {mix }}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}}(Q(s, \mathbf{u})-q(s, \mathbf{u}))^{2}"/></p>
-</div><p>Properties of <img class="math" src="../_images/math/3829afc138f248e67b75ad320f29254db4e4865b.svg" alt="T_{*}^{Qmix}"/> :</p>
+This is the space of all <span class="math notranslate nohighlight">\(Q_{tot}\)</span> that can be represented by monotonic funtions of tabular <span class="math notranslate nohighlight">\(Q_{a}(s,u)\)</span> :</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{Q}^{m i x}:=\left\{Q_{t o t} \mid Q_{t o t}(s, \mathbf{u})=f_{s}\left(Q_{1}\left(s, u_{1}\right), \ldots Q_{n}\left(s, u_{n}\right)\right), \frac{\partial f_{s}}{\partial Q_{a}} \geq 0, Q_{a}(s, u) \in \mathbb{R}\right\}\]</div>
+<p>At each iteration of our idealised QMIX algorithm, we constrain <span class="math notranslate nohighlight">\(Q_{tot}\)</span> to lie in the above space by solving the following optimisation problem:</p>
+<div class="math notranslate nohighlight">
+\[\underset{q \in \mathcal{Q}^{m i x}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}}\left(\mathcal{T}^{*} Q_{t o t}(s, \mathbf{u})-q(s, \mathbf{u})\right)^{2}\]</div>
+<p>where, the Bellman optimality operator is defined by:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{T}^{*} Q(s, \mathbf{u}):=\mathbb{E}\left[r+\gamma \max _{\mathbf{u}^{\prime}} Q\left(s^{\prime}, \mathbf{u}^{\prime}\right)\right]\]</div>
+<p>Then define the corresponding projection operator <span class="math notranslate nohighlight">\(T^{Qmix}\)</span> as follows:</p>
+<div class="math notranslate nohighlight">
+\[\Pi_{\mathrm{Qmix}} Q:=\underset{q \in \mathcal{Q}^{\text {mix }}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}}(Q(s, \mathbf{u})-q(s, \mathbf{u}))^{2}\]</div>
+<p>Properties of <span class="math notranslate nohighlight">\(T_{*}^{Qmix}\)</span> :</p>
 <ul class="simple">
-<li><p><img class="math" src="../_images/math/3829afc138f248e67b75ad320f29254db4e4865b.svg" alt="T_{*}^{Qmix}"/> is not a contraction.</p></li>
+<li><p><span class="math notranslate nohighlight">\(T_{*}^{Qmix}\)</span> is not a contraction.</p></li>
 <li><p>QMIX’s argmax is not always correct.</p></li>
 <li><p>QMIX can underestimate the value of the optimal joint action.</p></li>
 </ul>
 <p>The WQMIX paper argues that this equal weighting over joint actions when performing the optimisation in QMIX.
 is responsible for the possibly incorrect argmax of the objective minimising solution.
-To prioritise estimating <img class="math" src="../_images/math/473a065956e845c6f256b85d2a62c71c0c85ed9d.svg" alt="T_{tot}(u^{*})"/> well, while still anchoring down the value estimates for other joint actions,
+To prioritise estimating <span class="math notranslate nohighlight">\(T_{tot}(u^{*})\)</span> well, while still anchoring down the value estimates for other joint actions,
 we can add a suitable weighting function w into the projection operator of QMIX:</p>
-<div class="math">
-<p><img src="../_images/math/1cb4cabb8a71899318b51a55e3fc3d7299fa1ec8.svg" alt="\Pi_{w} Q:=\underset{q \in \mathcal{Q}^{\text {mix }}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}} w(s, \mathbf{u})(Q(s, \mathbf{u})-q(s, \mathbf{u}))^{2}"/></p>
-</div><p>The choice of weighting is crucial to ensure that WQMIX can overcome the limitations of QMIX.
+<div class="math notranslate nohighlight">
+\[\Pi_{w} Q:=\underset{q \in \mathcal{Q}^{\text {mix }}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}} w(s, \mathbf{u})(Q(s, \mathbf{u})-q(s, \mathbf{u}))^{2}\]</div>
+<p>The choice of weighting is crucial to ensure that WQMIX can overcome the limitations of QMIX.
 WQMIX considers two different weightings and proved that
-these choices of w ensure that the <img class="math" src="../_images/math/9ded0f6b145f96a362809083f7acfb653c853660.svg" alt="Q_{tot}"/> returned from the projection has the correct argmax.</p>
+these choices of w ensure that the <span class="math notranslate nohighlight">\(Q_{tot}\)</span> returned from the projection has the correct argmax.</p>
 <p><strong>Idealised Central Weighting</strong>:
 It implies down-weight every suboptimal action. However, this weighting requires computing the maximum across the joint action space, which is often infeasible.
 In implementation WQMIX takes an approximation to this weighting in the deep RL setting.</p>
-<div class="math">
-<p><img src="../_images/math/c11c689bb4abde71bd6a0d7afb7f8ce000274b0b.svg" alt="w(s, \mathbf{u})=\left\{\begin{array}{ll} 1 &amp; \mathbf{u}=\mathbf{u}^{*}=\operatorname{argmax}_{\mathbf{u}} Q(s, \mathbf{u}) \\ \alpha &amp; \text { otherwise } \end{array}\right."/></p>
-</div><p><strong>Optimistic Weighting</strong>:
+<div class="math notranslate nohighlight">
+\[\begin{split}w(s, \mathbf{u})=\left\{\begin{array}{ll} 1 &amp; \mathbf{u}=\mathbf{u}^{*}=\operatorname{argmax}_{\mathbf{u}} Q(s, \mathbf{u}) \\ \alpha &amp; \text { otherwise } \end{array}\right.\end{split}\]</div>
+<p><strong>Optimistic Weighting</strong>:
 This weighting assigns a higher weighting to those joint actions that are underestimated relative to Q,
 and hence could be the true optimal actions (in an optimistic outlook).</p>
-<div class="math">
-<p><img src="../_images/math/88bf40ec2c26ddeb13d6db80dff41b4b7e46c4fc.svg" alt="w(s, \mathbf{u})=\left\{\begin{array}{ll} 1 &amp; Q_{t o t}(s, \mathbf{u})&lt;Q(s, \mathbf{u}) \\ \alpha &amp; \text { otherwise } \end{array}\right."/></p>
-</div><p>For the details analysis, please refer to the  <a class="reference external" href="https://arxiv.org/abs/2006.10800">WQMIX paper</a>.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}w(s, \mathbf{u})=\left\{\begin{array}{ll} 1 &amp; Q_{t o t}(s, \mathbf{u})&lt;Q(s, \mathbf{u}) \\ \alpha &amp; \text { otherwise } \end{array}\right.\end{split}\]</div>
+<p>For the details analysis, please refer to the  <a class="reference external" href="https://arxiv.org/abs/2006.10800">WQMIX paper</a>.</p>
 </section>
 <section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
@@ -564,12 +565,12 @@ and hence could be the true optimal actions (in an optimistic outlook).</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/6c4e99c49ed4f13304e5217f23964c91cfae5900.svg" alt="(T, B, A, N)"/>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
-<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/e8bdb65fc231c9d71966a9f8653dc3ec644ec7a1.svg" alt="(T, B, M)"/>, where M is global_obs_shape</p></li>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, M)\)</span>, where M is global_obs_shape</p></li>
 <li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(T, B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/e4fa4a075ce4f3b226b9a2f47c15daf5554e9827.svg" alt="(T, B, A)"/></p></li>
-<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/04725baff8271367dbe8c9f59add9dab2f3f623a.svg" alt="(T, B)"/></p></li>
-<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9f891b53a8a0ccced97ac9380760b95dd0d9c428.svg" alt="(T, B, A, P)"/>, where P is action_shape</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A)\)</span></p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, P)\)</span>, where P is action_shape</p></li>
 <li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(T, B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
 </ul>
 </dd>
@@ -647,7 +648,7 @@ and hence could be the true optimal actions (in an optimistic outlook).</p>
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="collaq.html" class="btn btn-neutral float-right" title="CollaQ" accesskey="n"
+    <a href="qtran.html" class="btn btn-neutral float-right" title="QTRAN" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
@@ -711,6 +712,7 @@ and hence could be the true optimal actions (in an optimistic outlook).</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

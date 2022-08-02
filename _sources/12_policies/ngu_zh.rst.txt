@@ -95,12 +95,13 @@ N组奖励折扣因子和内在奖励权重系数的分布图如下所示：
 `r2d2 <hhttps://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py>`_ 。
 
 重要的实现细节
------------
+---------------
 
 1. 奖励归一化。在通过上面所述的算法计算得到局内内在奖励后，由于在智能体学习的不同阶段和不同的环境下，它的幅度是变化剧烈的，如果直接用作后续的计算，很容易造成学习的不稳定。在我们
 的实现中，是按照下面的最大最小归一化公式 归一化到 [0,1] 之间:
 
 .. code::
+
     episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-11)，
 
 其中 episodic_reward 是一个 mini-batch 计算得到的局内内在奖励。我们也分析了其他归一化方式的效果。
@@ -109,20 +110,24 @@ N组奖励折扣因子和内在奖励权重系数的分布图如下所示：
     由于我们的实现中批数据里面可能会有null_padding的样本（注意null_padding样本的原始归一化前的 episodic reward=0），造成episodic_reward.mean() 不是真正的均值，需要特别处理计算得到真实的均值 episodic_reward_real_mean，
     这给代码实现造成了额外的复杂度，此外这种方式不能将局内内在奖励的幅度限制在一定范围内，造成内在奖励的加权系数不好确定。
     .. code::
+
         episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
 
     方法2. transform to long-term mean1: erlm1。
     存在和方法1类似的问题
     .. code::
+
         episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
 
     方法3. transform to mean 0, std 1。
     由于 rnd_reward在[1,5]集合内, episodic reward 应该大于0，例如如果 episodic_reward 是 -2, rnd_reward 越大, 总的intrinsic reward 却越小, 这是不正确的
     .. code::
+
         episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean)/ self._running_mean_std_episodic_reward.std
 
     方法4. transform to std1, 似乎没有直观的意义。
     .. code::
+
         episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
 
 2. 在 minigrid 环境上，由于环境设置只有在智能体达到目标位置时，智能体才获得一个正的 0 到 1 之间的奖励，其他时刻奖励都为零，在这种环境上累计折扣内在奖励的幅度会远大于原始的0，1之间的数，造成
@@ -412,7 +417,7 @@ RndNetwork/InverseNetwork
 
 
 基准算法性能
----------
+---------------
 ..
    -  MiniGrid-Empty-8x8-v0（0.5M env step下，平均奖励大于0.95）
 
@@ -482,4 +487,3 @@ RndNetwork/InverseNetwork
 3. Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration by self-supervised prediction[C]//International conference on machine learning. PMLR, 2017: 2778-2787.
 
 4. Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience replay in distributed reinforcement learning[C]//International conference on learning representations. 2018.
-

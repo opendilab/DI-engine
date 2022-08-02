@@ -19,7 +19,7 @@ Welcome to DI-engine's documentation!
    01_quickstart/index
    02_algo/index
    03_system/index
-   .. 04_best_practice/index
+   04_best_practice/index
    05_api_doc/index
    06_faq/index
 

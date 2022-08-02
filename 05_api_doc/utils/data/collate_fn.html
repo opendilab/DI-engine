@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -333,7 +334,7 @@ For short, this process can be represented by:
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Union[torch.Tensor,</span> <span class="pre">list]]</span></code>): the collated data, with timestep and batch size             into each data field. By using <code class="docutils literal notranslate"><span class="pre">default_collate</span></code>, timestep would come to the first dim.             So the final shape is <img class="math" src="../../../_images/math/bf4b6d50b7a096bff7170e5508b757e1eb8ea373.svg" alt="(T, B, dim1, dim2, ...)"/></p></li>
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Union[torch.Tensor,</span> <span class="pre">list]]</span></code>): the collated data, with timestep and batch size             into each data field. By using <code class="docutils literal notranslate"><span class="pre">default_collate</span></code>, timestep would come to the first dim.             So the final shape is <span class="math notranslate nohighlight">\((T, B, dim1, dim2, ...)\)</span></p></li>
 </ul>
 </dd>
 </dl>
@@ -448,6 +449,7 @@ which is the reverse operation of <code class="docutils literal notranslate"><sp
   <script src="../../../_static/jquery.js"></script>
   <script src="../../../_static/underscore.js"></script>
   <script src="../../../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

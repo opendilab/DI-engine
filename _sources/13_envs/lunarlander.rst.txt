@@ -19,6 +19,7 @@ Just install the gym and Box2d libraries. Users can choose to install them with 
 Note: If the user does not have root privileges, please add --user after the install command
 
 .. code:: shell
+
    # Install Directly
    pip install gym
    pip install Box2D
@@ -30,6 +31,7 @@ After the installation is complete, you can verify that the installation was suc
 
 
 .. code:: python
+
    import gym
    env = gym.make('LunarLander-v2')
    obs = env.reset()
@@ -114,6 +116,7 @@ Bonus Space
 The above space can be expressed as:
 
 .. code:: python
+
    import gym
    obs_space = gym.spaces.spaces.Box(-np.inf, np.inf, shape=(8,), dtype=np.float32)
    act_space = gym.spaces.Discrete(4)
@@ -155,6 +158,7 @@ After the environment is created, but before reset, call the \ ``enable_save_rep
 
 
 .. code:: python
+
    from easydict import EasyDict
    from dizoo.box2d.lunarlander.envs import LunarLanderEnv
    
@@ -178,6 +182,7 @@ Inside, for specific configuration files, such as \ ``lunarlander_dqn_config.py`
 
 
 .. code:: python
+
     from easydict import EasyDict
     from ding.entry import serial_pipeline
     
@@ -257,5 +262,6 @@ Benchmark Algorithm Performance
 - LunarLander (Average reward greater than or equal to 200 is considered a better Agent)
 
    - Lunarlander + DQFD
+
    .. image:: images/lunarlander_dqfd.png
      :align: center

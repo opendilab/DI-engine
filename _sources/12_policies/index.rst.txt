@@ -80,6 +80,7 @@ All pages relative to our algorithms are grouped by category and follow the stru
     qmix
     coma
     wqmix
+    qtran
     collaq
     atoc
 

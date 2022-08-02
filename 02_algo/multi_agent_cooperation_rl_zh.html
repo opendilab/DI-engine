@@ -286,7 +286,7 @@
 <a class="reference internal image-reference" href="../_images/smac.gif"><img alt="../_images/smac.gif" class="align-center" src="../_images/smac.gif" style="width: 230.0px; height: 132.5px;" /></a>
 <p>在MARL中，策略控制多个智能体同时与环境交互，其目标仍然是最大化能够获得的累积回报。此时，环境全局状态（global state）的转移以及奖励值（reward）是和所有智能体的联合动作（joint action）而非单个智能体的动作相关的。因此在策略的学习过程中，每个智能体的策略的更新需要考虑其他智能体的当前策略。</p>
 <a class="reference internal image-reference" href="../_images/MARL_summary.png"><img alt="../_images/MARL_summary.png" class="align-center" src="../_images/MARL_summary.png" style="width: 260.5px; height: 227.0px;" /></a>
-<p>在该图中，system表示多智能体环境 <img class="math" src="../_images/math/799753be1b535901dfa7f1222a90c3a830a0c200.svg" alt="Agent_i"/> 表示第i个智能体，<img class="math" src="../_images/math/568954badf889cc3a1bc9b7807c1b1ad2d40d0b6.svg" alt="a_i"/> 表示第i个智能体采取的动作，<img class="math" src="../_images/math/35318a7d65c1e7c6017ccd6f7dcb3ca07b9b9781.svg" alt="r_i"/> 表示第i个智能体获取的局部奖励。
+<p>在该图中，system表示多智能体环境 <span class="math notranslate nohighlight">\(Agent_i\)</span> 表示第i个智能体，<span class="math notranslate nohighlight">\(a_i\)</span> 表示第i个智能体采取的动作，<span class="math notranslate nohighlight">\(r_i\)</span> 表示第i个智能体获取的局部奖励。
 在训练过程中，各个智能体分别与环境进行交互，系统会反馈回联合奖励。</p>
 <p>总的来说，多智能体强化学习与单智能体强化学习的主要区别在于以下四点：</p>
 <blockquote>
@@ -306,10 +306,10 @@
 <p><strong>Valued-based MARL</strong></p>
 <p>对于 Valued-based MARL， 主要的思路是将全局的 reward 值分解为可以供各个 agent 学习的局部 reward 值，从而便于智能体的训练。主要有 QMIX， WQMIX， QTRAN 等方法。</p>
 <ul class="simple">
-<li><p>QMIX: QMIX 的核心是学习一个单调性的Q值混合网络，每个智能体的Q值经过非线性变换求和生成 <img class="math" src="../_images/math/7e1646fbb86ec8cf04c97af281391f675b9a22e0.svg" alt="Q_tot"/>。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qmix.rst">QMIX</a> <a class="footnote-reference brackets" href="#id13" id="id4">2</a></p></li>
+<li><p>QMIX: QMIX 的核心是学习一个单调性的Q值混合网络，每个智能体的Q值经过非线性变换求和生成 <span class="math notranslate nohighlight">\(Q_tot\)</span>。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qmix.rst">QMIX</a> <a class="footnote-reference brackets" href="#id13" id="id4">2</a></p></li>
 <li><p>WQMIX: WQMIX 的核心与 QMIX 相同，也是学习一个Q值混合网络，但其通过加权投影的方法学到可以突破单调性限制的Q值混合网络。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/wqmix.rst">WQMIX</a> <a class="footnote-reference brackets" href="#id12" id="id5">1</a></p></li>
 <li><p>QTRAN: QTRAN 通过学习独立 action-value 网络,混合 action-value 网络，全局 state-value 网络来突破单调性限制。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qtran.rst">QTRAN</a> <a class="footnote-reference brackets" href="#id15" id="id6">4</a></p></li>
-<li><p>QPLEX: QPLEX 通过分别对联合 Q 值 <img class="math" src="../_images/math/7e1646fbb86ec8cf04c97af281391f675b9a22e0.svg" alt="Q_tot"/> 和各个 agent 的 Q 值 <img class="math" src="../_images/math/1c527d329f1c0de7889388eba6e1a66d3ff7e66f.svg" alt="Q_i"/> 使用 Dueling structure 进行分解，将 IGM 一致性转化为易于实现的优势函数取值范围约束，从而方便了具有线性分解结构的值函数的学习。具体可以参考 <a class="reference external" href="https://arxiv.org/abs/2008.01062">QPLEX</a> <a class="footnote-reference brackets" href="#id21" id="id7">10</a></p></li>
+<li><p>QPLEX: QPLEX 通过分别对联合 Q 值 <span class="math notranslate nohighlight">\(Q_tot\)</span> 和各个 agent 的 Q 值 <span class="math notranslate nohighlight">\(Q_i\)</span> 使用 Dueling structure 进行分解，将 IGM 一致性转化为易于实现的优势函数取值范围约束，从而方便了具有线性分解结构的值函数的学习。具体可以参考 <a class="reference external" href="https://arxiv.org/abs/2008.01062">QPLEX</a> <a class="footnote-reference brackets" href="#id21" id="id7">10</a></p></li>
 </ul>
 <p><strong>Actor-critic MARL</strong></p>
 <p>对于 Actor-critic MARL， 主要的思路是学习一个适用于多智能体的策略网络。主要有 COMA, MAPPO 等方法。</p>
@@ -434,6 +434,7 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

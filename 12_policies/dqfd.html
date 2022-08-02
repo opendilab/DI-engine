@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -299,104 +300,12 @@ The ratio of both types of data in each mini-batch is automatically controlled b
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The DQfD overall loss used to update the network is a combination of all four losses.</p>
-<p>Overall Loss:  <img class="math" src="../_images/math/e66a9a05522f86992bf8be355574925a16d1fd02.svg" alt="J(Q) = J_{DQ}(Q) + \lambda_1 J_n(Q) + \lambda_2J_E(Q) + \lambda_3 J_{L2}(Q)"/></p>
+<p>Overall Loss:  <span class="math notranslate nohighlight">\(J(Q) = J_{DQ}(Q) + \lambda_1 J_n(Q) + \lambda_2J_E(Q) + \lambda_3 J_{L2}(Q)\)</span></p>
 <ul class="simple">
-<li><p>one-step loss:  <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">J_{DQ}(Q) = (R(s,a) + \gamma Q(s_{t+1}, a_{t+1}^{max}; \theta ^') - Q(s,a;\theta))^2</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-! Missing { inserted.
-&lt;to be read again&gt; 
-                   ^
-l.30 ...\gamma Q(s_{t+1}, a_{t+1}^{max}; \theta ^'
-                                                  ) - Q(s,a;\theta))^2$
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.30 ...t+1}^{max}; \theta ^') - Q(s,a;\theta))^2$
-                                                  
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 688 bytes).
-Transcript written on math.log.
-</p>
-</div>
-, where <img class="math" src="../_images/math/c5c19cf9c91b8d5a5f58ffbec0b02d95b846f2a4.svg" alt="a_{t+1}^{max} = argmax_a Q(s_{t+1},a;\theta)"/>.</p></li>
-<li><p>n-step loss:  <img class="math" src="../_images/math/3b58c739bbcada1bfccaed8b323bd58db63fd9de.svg" alt="J_n(Q) = r_t + \gamma r_{t+1} + ... + \gamma^{n-1} r_{t+n-1} + max_a \gamma^n Q(s_{t+n},a)"/>.</p></li>
-<li><p>large margin classiﬁcation loss: <img class="math" src="../_images/math/e64e7e8e2a9711a270a5275855b8af86269c8f02.svg" alt="J_E(Q) = max_{a \in A}[Q(s,a) + L(a_E,a)] - Q(s,a_E)"/>, <img class="math" src="../_images/math/6f474ebe5e074ae0ff5005f7248ee46a4f4a8410.svg" alt="L(a_E,a)"/> is a margin function that is 0 when <img class="math" src="../_images/math/bab9d713723b77487edc970aa0e9e89400983654.svg" alt="a = a_E"/> and positive otherwise. This loss forces the values of the other actions to be at least a margin lower than the value of the demonstrator’s action.</p></li>
-<li><p>L2 regularization loss: <img class="math" src="../_images/math/27ceaa6a18d69b8d63e20e1b613f0140a16e4d71.svg" alt="J_{L2}(Q)"/> help prevent from over-ﬁtting.</p></li>
+<li><p>one-step loss:  <span class="math notranslate nohighlight">\(J_{DQ}(Q) = (R(s,a) + \gamma Q(s_{t+1}, a_{t+1}^{max}; \theta ^') - Q(s,a;\theta))^2\)</span>, where <span class="math notranslate nohighlight">\(a_{t+1}^{max} = argmax_a Q(s_{t+1},a;\theta)\)</span>.</p></li>
+<li><p>n-step loss:  <span class="math notranslate nohighlight">\(J_n(Q) = r_t + \gamma r_{t+1} + ... + \gamma^{n-1} r_{t+n-1} + max_a \gamma^n Q(s_{t+n},a)\)</span>.</p></li>
+<li><p>large margin classiﬁcation loss: <span class="math notranslate nohighlight">\(J_E(Q) = max_{a \in A}[Q(s,a) + L(a_E,a)] - Q(s,a_E)\)</span>, <span class="math notranslate nohighlight">\(L(a_E,a)\)</span> is a margin function that is 0 when <span class="math notranslate nohighlight">\(a = a_E\)</span> and positive otherwise. This loss forces the values of the other actions to be at least a margin lower than the value of the demonstrator’s action.</p></li>
+<li><p>L2 regularization loss: <span class="math notranslate nohighlight">\(J_{L2}(Q)\)</span> help prevent from over-ﬁtting.</p></li>
 </ul>
 </section>
 <section id="pseudo-code">
@@ -795,8 +704,8 @@ Transcript written on math.log.
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -954,6 +863,7 @@ skip-v4)</p></td>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

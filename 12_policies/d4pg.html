@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -300,28 +301,28 @@ returns brining the biggest performance gain and priority buffer being the less 
 </section>
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>The D4PG algorithm maintains a distributional critic <img class="math" src="../_images/math/73c8a54fc7b7da6dee62962d61c3aabdf60813d5.svg" alt="Z_\pi(s, a)"/> which estimates the expected Q value as a
-random variable such that <img class="math" src="../_images/math/126b061d245fa64dbcebbde378bd8cce0b8c7af5.svg" alt="Q(s, a)=\mathbb{E}Z_\pi(s, a)"/>. <img class="math" src="../_images/math/477a35681992f70ed51fe0bf6435eec59f0811ee.svg" alt="Z"/> is usually a Categorical distribution over Q with 51 supports.</p>
+<p>The D4PG algorithm maintains a distributional critic <span class="math notranslate nohighlight">\(Z_\pi(s, a)\)</span> which estimates the expected Q value as a
+random variable such that <span class="math notranslate nohighlight">\(Q(s, a)=\mathbb{E}Z_\pi(s, a)\)</span>. <span class="math notranslate nohighlight">\(Z\)</span> is usually a Categorical distribution over Q with 51 supports.</p>
 <p>Accordingly, the distributional Bellman operator can be defined as:</p>
-<div class="math">
-<p><img src="../_images/math/65bf91aac33f0579e8a548717b94890460e05a01.svg" alt="\begin{aligned}
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
 (\mathcal{T}_{\pi} Z)(s, a)=r(s, a)+\gamma\mathbb{E}[Z(s',\pi(s'))|(s, a)]
-\end{aligned}"/></p>
-</div><p>The distributional variant of the operator takes functions which map from state-action pairs to distributions, and returns a function of the same form.
-The loss used to learn the <strong>critic distribution</strong> parameters is defined as <img class="math" src="../_images/math/acf30eb44c61ddbd61437ebb73e64e80dda29600.svg" alt="L(\pi) = \mathbb{E}[d(\mathcal{T}_{\pi_{\theta'}}, Z_{w'}(s, a), Z_{w}(s, a)]"/>
-for some metric <img class="math" src="../_images/math/f7c00024379334bc53013ad6577120061491d8d8.svg" alt="d"/> that measures the distance between two distributions.</p>
+\end{aligned}\]</div>
+<p>The distributional variant of the operator takes functions which map from state-action pairs to distributions, and returns a function of the same form.
+The loss used to learn the <strong>critic distribution</strong> parameters is defined as <span class="math notranslate nohighlight">\(L(\pi) = \mathbb{E}[d(\mathcal{T}_{\pi_{\theta'}}, Z_{w'}(s, a), Z_{w}(s, a)]\)</span>
+for some metric <span class="math notranslate nohighlight">\(d\)</span> that measures the distance between two distributions.</p>
 <p>Finally, the actor update is done by taking the expectation with respect to the <strong>action-value distribution</strong>:</p>
-<div class="math">
-<p><img src="../_images/math/2164528a2fade20507066e9f78b14ba2106fc697.svg" alt="\begin{aligned}
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
 \nabla_\theta J(\theta)
 &amp;\approx \mathbb{E}_{\rho^\pi} [\nabla_a Q_w(s, a) \nabla_\theta \pi_{\theta}(s) \rvert_{a=\pi\theta(s)}] \\
 &amp;= \mathbb{E}_{\rho^\pi} [\mathbb{E}[\nabla_a Z_w(s, a)] \nabla_\theta \pi_{\theta}(s) \rvert_{a=\pi\theta(s)}]
-\end{aligned}"/></p>
-</div><p>When calculating the TD error, D4PG computes <strong>N-step</strong> in the TD target to incorporate rewards in more future steps:</p>
-<div class="math">
-<p><img src="../_images/math/aefe0a2e229275b4f8524e9596fc0ae1700701c9.svg" alt="r(s_0, a_0) + \mathbb{E}[\sum_{n=1}^{N-1} \gamma^n r(s_n, a_n) + \gamma^N Q(s_N, \mu_\theta(s_N)) \vert s_0, a_0 ]"/></p>
-</div><p>D4PG samples from a <strong>prioritized replay buffer</strong> with a non-uniform probability <img class="math" src="../_images/math/94b064aabf0ccd86ff316a2c937852fd5c89e822.svg" alt="p_i"/>.
-This requires the use of importance sampling, implemented by weighting the critic update by a factor of <img class="math" src="../_images/math/ad49c6e5c48c15a4ad3d775e9ce42d8158e9b5f2.svg" alt="R_{p_i}^{-1}"/>.</p>
+\end{aligned}\end{split}\]</div>
+<p>When calculating the TD error, D4PG computes <strong>N-step</strong> in the TD target to incorporate rewards in more future steps:</p>
+<div class="math notranslate nohighlight">
+\[r(s_0, a_0) + \mathbb{E}[\sum_{n=1}^{N-1} \gamma^n r(s_n, a_n) + \gamma^N Q(s_N, \mu_\theta(s_N)) \vert s_0, a_0 ]\]</div>
+<p>D4PG samples from a <strong>prioritized replay buffer</strong> with a non-uniform probability <span class="math notranslate nohighlight">\(p_i\)</span>.
+This requires the use of importance sampling, implemented by weighting the critic update by a factor of <span class="math notranslate nohighlight">\(R_{p_i}^{-1}\)</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>D4PG utilizes multiple <strong>parallel independent actors</strong>, gathering experience and feeding data into the same replay buffer.
@@ -714,10 +715,10 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): 2 elements, mu and sigma, each is the shape of <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/>.</p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, B is batch size.</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): 2 elements, mu and sigma, each is the shape of <span class="math notranslate nohighlight">\((B, N0)\)</span>.</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
@@ -761,10 +762,10 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, where B is batch size and N2 is``action_shape``</p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>distribution (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/af3be837125b9505f476461867ff354d87521fa2.svg" alt="(B, 1, N3)"/>, where B is batch size and N3 is <code class="docutils literal notranslate"><span class="pre">num_atom</span></code></p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, where B is batch size and N2 is``action_shape``</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>distribution (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, 1, N3)\)</span>, where B is batch size and N3 is <code class="docutils literal notranslate"><span class="pre">num_atom</span></code></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Categorical mode</span>
@@ -830,16 +831,16 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </ul>
 </dd>
 <dt>Actor Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/></p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span></p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Critic Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, where B is batch size and N2 is``action_shape``</p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>distribution (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/af3be837125b9505f476461867ff354d87521fa2.svg" alt="(B, 1, N3)"/>, where B is batch size and N3 is <code class="docutils literal notranslate"><span class="pre">num_atom</span></code></p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, where B is batch size and N2 is``action_shape``</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>distribution (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, 1, N3)\)</span>, where B is batch size and N3 is <code class="docutils literal notranslate"><span class="pre">num_atom</span></code></p></li>
 </ul>
 </dd>
 <dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
@@ -1015,6 +1016,7 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

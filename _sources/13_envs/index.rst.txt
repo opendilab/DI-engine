@@ -24,18 +24,26 @@ Environments:
    
    cartpole
    pendulum
+   bitflip
    
    lunarlander
    bipedalwalker
    minigrid
 
    slime_volleyball
+   competitive_rl
    procgen
    smac
-   
-   gym_hybrid
-
+   d4rl
+   gfootball
    overcooked
    bsuite
+   multiagent_particle
+   pybullet
+
+   gym_hybrid
+   gym_soccer
+
+   image_cls
 
 `Chinese version doc <./index_zh.html>`_ includes more environments that you may be interested in.

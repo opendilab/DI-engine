@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -298,317 +299,15 @@
 <a class="reference internal image-reference" href="../_images/C51.png"><img alt="../_images/C51.png" class="align-center" src="../_images/C51.png" style="width: 505.2px; height: 418.2px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>C51 models the value distribution using a discrete distribution, whose support set are N atoms: <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">z_i = V_\min + i * delta, i = 0,1,...,N-1</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-! Missing { inserted.
-&lt;to be read again&gt; 
-                   \mathop 
-l.30 \fontsize{14}{17}\selectfont $z_i = V_\min
-                                                + i * delta, i = 0,1,...,N-1$
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.30 ...z_i = V_\min + i * delta, i = 0,1,...,N-1$
-                                                  
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 520 bytes).
-Transcript written on math.log.
-</p>
-</div>
- and <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">delta = (V_\max - V_\min) / N</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-! Missing { inserted.
-&lt;to be read again&gt; 
-                   \mathop 
-l.30 \fontsize{14}{17}\selectfont $delta = (V_\max
-                                                   - V_\min) / N$
-! Missing { inserted.
-&lt;to be read again&gt; 
-                   \mathop 
-l.30 ...}{17}\selectfont $delta = (V_\max - V_\min
-                                                  ) / N$
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.30 ...selectfont $delta = (V_\max - V_\min) / N$
-                                                  
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.30 ...selectfont $delta = (V_\max - V_\min) / N$
-                                                  
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 592 bytes).
-Transcript written on math.log.
-</p>
-</div>
-. Each atom <img class="math" src="../_images/math/35794e20eb2d0ab8050d07cc691f0e2098deb611.svg" alt="z_i"/> has a parameterized probability <img class="math" src="../_images/math/94b064aabf0ccd86ff316a2c937852fd5c89e822.svg" alt="p_i"/>. The Bellman update of C51 projects the distribution of <img class="math" src="../_images/math/17f5e0e0ce512c811cd2c40dabbbb2329f4fe50d.svg" alt="r + \gamma * z_j^{\left(t+1\right)}"/> onto the distribution <img class="math" src="../_images/math/fd68df2123c90b630468679d23413005a6cf90bb.svg" alt="z_i^t"/>.</p>
+<p>C51 models the value distribution using a discrete distribution, whose support set are N atoms: <span class="math notranslate nohighlight">\(z_i = V_\min + i * delta, i = 0,1,...,N-1\)</span> and <span class="math notranslate nohighlight">\(delta = (V_\max - V_\min) / N\)</span>. Each atom <span class="math notranslate nohighlight">\(z_i\)</span> has a parameterized probability <span class="math notranslate nohighlight">\(p_i\)</span>. The Bellman update of C51 projects the distribution of <span class="math notranslate nohighlight">\(r + \gamma * z_j^{\left(t+1\right)}\)</span> onto the distribution <span class="math notranslate nohighlight">\(z_i^t\)</span>.</p>
 </div>
 </section>
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>The Bellman target of C51 is derived by projecting the returned distribution <img class="math" src="../_images/math/d9e85634513deb6ecf5948e06621e10d869e9d45.svg" alt="r + \gamma * z_j"/> onto the current distribution <img class="math" src="../_images/math/35794e20eb2d0ab8050d07cc691f0e2098deb611.svg" alt="z_i"/>. Given a sample transition <img class="math" src="../_images/math/3c44445387e0bad1088f4e32658b475bf164cafa.svg" alt="(x, a, r, x')"/>, we compute the Bellman update <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">Tˆz_j := r + \gamma z_j</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-
-LaTeX Warning: Command \textasciicircum invalid in math mode on input line 30.
-
-
-LaTeX Warning: Command \^ invalid in math mode on input line 30.
-
-! Please use \mathaccent for accents in math mode.
-\add&#64;accent ... \let \ignorespaces \relax \accent 
-                                                  #1 #2\egroup \spacefactor ...
-l.30 \fontsize{14}{17}\selectfont $Tˆ
-                                      z_j := r + \gamma z_j$
-! Missing { inserted.
-&lt;to be read again&gt; 
-                   \egroup 
-l.30 \fontsize{14}{17}\selectfont $Tˆ
-                                      z_j := r + \gamma z_j$
-! You can't use `\spacefactor' in math mode.
-\add&#64;accent ... \accent #1 #2\egroup \spacefactor 
-                                                  \accent&#64;spacefactor 
-l.30 \fontsize{14}{17}\selectfont $Tˆ
-                                      z_j := r + \gamma z_j$
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.30 ...{17}\selectfont $Tˆz_j := r + \gamma z_j$
-                                                  
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 420 bytes).
-Transcript written on math.log.
-</p>
-</div>
- for each atom <img class="math" src="../_images/math/ba1d8cc1e8e50dbc107531bef666f06460421fec.svg" alt="z_j"/>, then distribute its probability <img class="math" src="../_images/math/2715ca5241d5edee3aadaffb367f9df24f3e4aaf.svg" alt="p_{j}(x', \pi(x'))"/> to the immediate neighbors <img class="math" src="../_images/math/78cc39d4a00580386cadf584a2d414bc65085838.svg" alt="p_{i}(x, \pi(x))"/>:</p>
-<div class="math">
-<p><img src="../_images/math/e9bab4cf24acdb5bc230ed3383b0b69d4af15e13.svg" alt="\left(\Phi \hat{T} Z_{\theta}(x, a)\right)_{i}=\sum_{j=0}^{N-1}\left[1-\frac{\left|\left[\hat{\mathcal{T}} z_{j}\right]_{V_{\mathrm{MIN}}}^{V_{\mathrm{MAX}}}-z_{i}\right|}{\Delta z}\right]_{0}^{1} p_{j}\left(x^{\prime}, \pi\left(x^{\prime}\right)\right)"/></p>
-</div></section>
+<p>The Bellman target of C51 is derived by projecting the returned distribution <span class="math notranslate nohighlight">\(r + \gamma * z_j\)</span> onto the current distribution <span class="math notranslate nohighlight">\(z_i\)</span>. Given a sample transition <span class="math notranslate nohighlight">\((x, a, r, x')\)</span>, we compute the Bellman update <span class="math notranslate nohighlight">\(Tˆz_j := r + \gamma z_j\)</span> for each atom <span class="math notranslate nohighlight">\(z_j\)</span>, then distribute its probability <span class="math notranslate nohighlight">\(p_{j}(x', \pi(x'))\)</span> to the immediate neighbors <span class="math notranslate nohighlight">\(p_{i}(x, \pi(x))\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\left(\Phi \hat{T} Z_{\theta}(x, a)\right)_{i}=\sum_{j=0}^{N-1}\left[1-\frac{\left|\left[\hat{\mathcal{T}} z_{j}\right]_{V_{\mathrm{MIN}}}^{V_{\mathrm{MAX}}}-z_{i}\right|}{\Delta z}\right]_{0}^{1} p_{j}\left(x^{\prime}, \pi\left(x^{\prime}\right)\right)\]</div>
+</section>
 <section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -864,9 +563,9 @@ Parameter updates with C51DQN’s MLPs forward setup.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is head_hidden_size.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where M is action_shape.</p></li>
-<li><p>distribution(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/0640f575005f6b65991c8e9ba12d51a4654993ae.svg" alt="(B, M, P)"/>, where P is n_atom.</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is head_hidden_size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where M is action_shape.</p></li>
+<li><p>distribution(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M, P)\)</span>, where P is n_atom.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">C51DQN</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>  <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -1035,6 +734,7 @@ Parameter updates with C51DQN’s MLPs forward setup.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

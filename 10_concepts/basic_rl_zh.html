@@ -311,37 +311,37 @@ discounted reward/return）。首先简单描述智能体与环境交互 (intera
 <ul class="simple">
 <li><p>马尔可夫性质（Markov
 property）是指一个随机过程在给定当前时刻状态及所有过去时刻状态情况下，其下一时刻状态的条件概率分布仅依赖于当前时刻状态。即
-<img class="math" src="../_images/math/056ccbc1c6157b367ddbaa18389b2f3f722eeb22.svg" alt="p\left(s_{t+1} \mid s_{t}\right)=p\left(s_{t+1} \mid h_{t}\right) =p(s_{t+1} \mid (s_{1}, s_{2}, s_{3}, \ldots, s_{t})"/>.</p></li>
+<span class="math notranslate nohighlight">\(p\left(s_{t+1} \mid s_{t}\right)=p\left(s_{t+1} \mid h_{t}\right) =p(s_{t+1} \mid (s_{1}, s_{2}, s_{3}, \ldots, s_{t})\)</span>.</p></li>
 <li><p>若随机变量序列中的每个状态都满足马尔科夫性质，则称此随机过程为<strong>马尔科夫过程</strong>。马尔科夫过程通常用一个二元组
-<img class="math" src="../_images/math/b9f680dfc5161477292216de968518e0bedfccef.svg" alt="(S,P)"/> 来表示，且满足：
-<img class="math" src="../_images/math/65ffba8c0067e4ada6c857b9369e03aaaacce8d9.svg" alt="S"/>是状态集合，<img class="math" src="../_images/math/adf905804c988c2f90b92d78e5dc4fe2e67e1803.svg" alt="P"/>是状态转移概率。马尔科夫过程中不存在动作和奖励。将动作和奖励考虑在内的马尔科夫过程称为<strong>马尔科夫决策过程</strong>。</p></li>
-<li><p>马尔科夫决策过程由五元组 <img class="math" src="../_images/math/5fcbdea0eb5051a2ccdee68ab684f070d255cd70.svg" alt="(S,A,P,R,\gamma)"/> 定义，
-其中<img class="math" src="../_images/math/65ffba8c0067e4ada6c857b9369e03aaaacce8d9.svg" alt="S"/>为状态集和，<img class="math" src="../_images/math/c858adf8e048a7ca63ba672d126817eef2102ddd.svg" alt="A"/>为动作集和，
-<img class="math" src="../_images/math/adf905804c988c2f90b92d78e5dc4fe2e67e1803.svg" alt="P"/>为状态转移函数， <img class="math" src="../_images/math/7d1bfa437e80e53ae19f3e1c55cc38e3531d00b5.svg" alt="R"/>为奖励函数，
-<img class="math" src="../_images/math/1470962c0b61a11521022fedc9a04b87b0fec9ac.svg" alt="\gamma \in [0,1)"/>为折扣因子,
-定义了问题的horizon。跟马尔科夫过程不同的是，马尔科夫决策过程的状态转移概率为<img class="math" src="../_images/math/d459254351afea46ebe959c6e394214353ff573a.svg" alt="P\left(s_{t+1} \mid s_{t}, a_{t}\right)"/>。为了数学上的方便，我们通常假设
-<img class="math" src="../_images/math/65ffba8c0067e4ada6c857b9369e03aaaacce8d9.svg" alt="S"/> 和<img class="math" src="../_images/math/c858adf8e048a7ca63ba672d126817eef2102ddd.svg" alt="A"/>是有限的集合。</p></li>
+<span class="math notranslate nohighlight">\((S,P)\)</span> 来表示，且满足：
+<span class="math notranslate nohighlight">\(S\)</span>是状态集合，<span class="math notranslate nohighlight">\(P\)</span>是状态转移概率。马尔科夫过程中不存在动作和奖励。将动作和奖励考虑在内的马尔科夫过程称为<strong>马尔科夫决策过程</strong>。</p></li>
+<li><p>马尔科夫决策过程由五元组 <span class="math notranslate nohighlight">\((S,A,P,R,\gamma)\)</span> 定义，
+其中<span class="math notranslate nohighlight">\(S\)</span>为状态集和，<span class="math notranslate nohighlight">\(A\)</span>为动作集和，
+<span class="math notranslate nohighlight">\(P\)</span>为状态转移函数， <span class="math notranslate nohighlight">\(R\)</span>为奖励函数，
+<span class="math notranslate nohighlight">\(\gamma \in [0,1)\)</span>为折扣因子,
+定义了问题的horizon。跟马尔科夫过程不同的是，马尔科夫决策过程的状态转移概率为<span class="math notranslate nohighlight">\(P\left(s_{t+1} \mid s_{t}, a_{t}\right)\)</span>。为了数学上的方便，我们通常假设
+<span class="math notranslate nohighlight">\(S\)</span> 和<span class="math notranslate nohighlight">\(A\)</span>是有限的集合。</p></li>
 <li><p>通常我们将智能体与环境交互形成的(状态，动作，奖励)序列，称为轨迹,
-记为<img class="math" src="../_images/math/198e130856dddc8ec9cdbf937dddd58f8dc9b4ae.svg" alt="\tau_t=(s_0,a_0,r_0, s_1,...,s_t,a_t,r_t)"/>。</p></li>
-<li><p>强化学习的目标是给定一个马尔科夫决策过程，寻找最优策略<img class="math" src="../_images/math/3a76d0ae064de5f5b18cf7eea4df5520bbc99b58.svg" alt="\pi^*"/>。其中策略
-<img class="math" src="../_images/math/49ca30732319c4f4b4784e4ce3bed09557482fb9.svg" alt="\pi(a|s)"/>
-是状态到动作的映射，通常是一个随机概率分布函数，定义了在每个状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>上执行动作<img class="math" src="../_images/math/880d564ad58d3f8e5efd212642b27bd68378f7d4.svg" alt="a"/>的概率。</p></li>
+记为<span class="math notranslate nohighlight">\(\tau_t=(s_0,a_0,r_0, s_1,...,s_t,a_t,r_t)\)</span>。</p></li>
+<li><p>强化学习的目标是给定一个马尔科夫决策过程，寻找最优策略<span class="math notranslate nohighlight">\(\pi^*\)</span>。其中策略
+<span class="math notranslate nohighlight">\(\pi(a|s)\)</span>
+是状态到动作的映射，通常是一个随机概率分布函数，定义了在每个状态<span class="math notranslate nohighlight">\(s\)</span>上执行动作<span class="math notranslate nohighlight">\(a\)</span>的概率。</p></li>
 </ul>
 </section>
 <section id="state-spaces">
 <h2>状态空间/State Spaces<a class="headerlink" href="#state-spaces" title="Permalink to this headline">¶</a></h2>
-<p>状态 state，一般用<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>表示，是对环境的全局性描述，观测 observation 一般用<img class="math" src="../_images/math/50d59ec8e73f4c3a45a51f7f62cfa95ec193fcad.svg" alt="o"/>表示，是对环境的局部性描述。一般环境会使用实值向量、矩阵或高阶张量来表示状态和观察的结果。例如，Atari 游戏中使用 RGB 图片来表示游戏环境的信息，MuJoCo 控制任务中使用向量来表示智能体的状态。</p>
-<p>当智能体能够接收到环境全部的状态信息<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>
+<p>状态 state，一般用<span class="math notranslate nohighlight">\(s\)</span>表示，是对环境的全局性描述，观测 observation 一般用<span class="math notranslate nohighlight">\(o\)</span>表示，是对环境的局部性描述。一般环境会使用实值向量、矩阵或高阶张量来表示状态和观察的结果。例如，Atari 游戏中使用 RGB 图片来表示游戏环境的信息，MuJoCo 控制任务中使用向量来表示智能体的状态。</p>
+<p>当智能体能够接收到环境全部的状态信息<span class="math notranslate nohighlight">\(s\)</span>
 时，我们称环境为完全可观测的 (fully
-observable)，当智能体只能接收部分环境信息<img class="math" src="../_images/math/50d59ec8e73f4c3a45a51f7f62cfa95ec193fcad.svg" alt="o"/>时，我们称这个过程为部分可观测的（partial
+observable)，当智能体只能接收部分环境信息<span class="math notranslate nohighlight">\(o\)</span>时，我们称这个过程为部分可观测的（partial
 observable) 的，对应的决策过程即称为部分可观测马尔可夫决策过程 (Partially
 Observable Markov Decision Processes，POMDP)，
 部分可观测马尔可夫决策过程是马尔可夫决策过程的一种泛化。部分可观测马尔可夫决策过程依然具有马尔可夫性质，但是假设智能体无法感知环境的状态，只能知道部分观测值。通常用一个七元组描述
-<img class="math" src="../_images/math/8d430a6c3077f7c1f8da00066e8cd3d90ffd94e4.svg" alt="(S, \Omega, O, A, P, R, \gamma)"/>，其中O为观测空间，<img class="math" src="../_images/math/eb6fbb12d724e74998955440f41e77f54fa86a0f.svg" alt="\Omega(o|s,a)"/>为观测概率函数，其他与MDP的定义类似。</p>
+<span class="math notranslate nohighlight">\((S, \Omega, O, A, P, R, \gamma)\)</span>，其中O为观测空间，<span class="math notranslate nohighlight">\(\Omega(o|s,a)\)</span>为观测概率函数，其他与MDP的定义类似。</p>
 </section>
 <section id="action-spaces">
 <h2>动作空间/Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this headline">¶</a></h2>
-<p>不同的环境对应的动作空间一般是不同的。一般将环境中所有有效动作<img class="math" src="../_images/math/880d564ad58d3f8e5efd212642b27bd68378f7d4.svg" alt="a"/>
+<p>不同的环境对应的动作空间一般是不同的。一般将环境中所有有效动作<span class="math notranslate nohighlight">\(a\)</span>
 的集合称之为动作空间 (Action Space)。其中，动作空间又分为离散 (discrete)
 动作空间与连续 (continuous) 动作空间。</p>
 <p>例如在Atari游戏与SMAC星际游戏中为离散的动作空间，只可以从有限数量的动作中进行选择，而 MuJoCo 等一些机器人连续控制任务中为连续动作空间，动作空间一般为实值向量区间。</p>
@@ -349,55 +349,55 @@ Observable Markov Decision Processes，POMDP)，
 <section id="reward-and-return">
 <h2>奖励与回报/Reward and Return<a class="headerlink" href="#reward-and-return" title="Permalink to this headline">¶</a></h2>
 <p><strong>奖励 (reward)</strong> 是智能体所处的环境给强化学习方法的一个学习信号
-(signal)，当环境发生变化时，奖励函数也会发生变化。奖励函数由当前的状态与智能体的动作决定，表示为<img class="math" src="../_images/math/e68d9241b9ff4d879fc2aed08659b2d19ae07ffc.svg" alt="r_t = R(s_t, a_t)"/>。</p>
+(signal)，当环境发生变化时，奖励函数也会发生变化。奖励函数由当前的状态与智能体的动作决定，表示为<span class="math notranslate nohighlight">\(r_t = R(s_t, a_t)\)</span>。</p>
 <p><strong>回报(Return)</strong>,
-又称为累积折扣奖励，定义为在一个马尔可夫决策过程中从<img class="math" src="../_images/math/bf9d1a2bb98a9d76bebf5ddb189fdbe3127fd13a.svg" alt="t"/>时刻开始往后所有奖励的加权和：<img class="math" src="../_images/math/b882b2dde9caf2aa412768bb344f9da906dcc98f.svg" alt="G_t = \sum_{k=0}^{\infty} \gamma^{k} r_{t+k+1}"/>。其中<img class="math" src="../_images/math/06c8500e920549cd88af0be68f48f12bc8859780.svg" alt="\gamma"/>
-表示折扣因子（衰减因子）体现的是未来的奖励在当前时刻的相对重要性，如果接近0，则表明趋向于只评估当前时刻的奖励，接近于1时表明同时考虑长期的奖励。一般情况下，<img class="math" src="../_images/math/1470962c0b61a11521022fedc9a04b87b0fec9ac.svg" alt="\gamma \in [0,1)"/>。在很多现实任务对应环境中的奖励函数可能是稀疏的，即并不是每一个状态下环境都会给予奖励，只有在一段轨迹过后才会给出一个奖励。因此在强化学习中，对奖励函数的设计与学习也是一个重要的方向，对强化学习方法的效果有很大的影响。</p>
+又称为累积折扣奖励，定义为在一个马尔可夫决策过程中从<span class="math notranslate nohighlight">\(t\)</span>时刻开始往后所有奖励的加权和：<span class="math notranslate nohighlight">\(G_t = \sum_{k=0}^{\infty} \gamma^{k} r_{t+k+1}\)</span>。其中<span class="math notranslate nohighlight">\(\gamma\)</span>
+表示折扣因子（衰减因子）体现的是未来的奖励在当前时刻的相对重要性，如果接近0，则表明趋向于只评估当前时刻的奖励，接近于1时表明同时考虑长期的奖励。一般情况下，<span class="math notranslate nohighlight">\(\gamma \in [0,1)\)</span>。在很多现实任务对应环境中的奖励函数可能是稀疏的，即并不是每一个状态下环境都会给予奖励，只有在一段轨迹过后才会给出一个奖励。因此在强化学习中，对奖励函数的设计与学习也是一个重要的方向，对强化学习方法的效果有很大的影响。</p>
 </section>
 <section id="policy">
 <h2>策略/Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
 <p><strong>策略 (policy)</strong>
 决定了智能体面对不同的环境状态时采取的动作，是智能体的动作模型。它本质上是一个函数，用于把输入的状态变成动作。策略可分为两种：随机性策略和确定性策略。当策略为确定的
-(deterministic)，一般用 <img class="math" src="../_images/math/cbd084e5960f26200001ee64b644a9ce7bb6aac2.svg" alt="a_t = \mu(s_t)"/> 来表示，当策略为随机的
-(stochastic)，一般表示为 <img class="math" src="../_images/math/6cac4386fa2aff7a5e3bd368b91efb787823b05b.svg" alt="\pi(a_t|s_t)"/>
+(deterministic)，一般用 <span class="math notranslate nohighlight">\(a_t = \mu(s_t)\)</span> 来表示，当策略为随机的
+(stochastic)，一般表示为 <span class="math notranslate nohighlight">\(\pi(a_t|s_t)\)</span>
 。一般情况下，强化学习使用随机性策略，通过引入一定的随机性可以更好地探索环境。</p>
 <p>在强化学习中，基于策略梯度的方法显式地需要学习一个参数化表示的策略
-(Parameterized policy)，用神经网络拟合策略函数，经常使用<img class="math" src="../_images/math/70dc2a5833559be2562698337b43b3bf1ac8e9bd.svg" alt="\theta"/>
-表示神经网络的参数。但基于价值函数的方法则不一定需要显式地学习策略函数，而是通过学习得到的最优动作值函数中推导出策略，即<img class="math" src="../_images/math/c32d00f1924cf46388cd35f41f7fb803f1d979c3.svg" alt="a^{*}=\pi^*(a|s)={\arg \max }_a Q^*(s,a)"/>。</p>
+(Parameterized policy)，用神经网络拟合策略函数，经常使用<span class="math notranslate nohighlight">\(\theta\)</span>
+表示神经网络的参数。但基于价值函数的方法则不一定需要显式地学习策略函数，而是通过学习得到的最优动作值函数中推导出策略，即<span class="math notranslate nohighlight">\(a^{*}=\pi^*(a|s)={\arg \max }_a Q^*(s,a)\)</span>。</p>
 </section>
 <section id="value-functions">
 <h2>价值函数/Value Functions<a class="headerlink" href="#value-functions" title="Permalink to this headline">¶</a></h2>
 <p><strong>状态价值函数 (state value function)</strong> 是指智能体在状态
-<img class="math" src="../_images/math/e806833f2f111400bded5ffcb5ef44220d111dad.svg" alt="s_t"/>以及以后的所有时刻都采用策略<img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/>
+<span class="math notranslate nohighlight">\(s_t\)</span>以及以后的所有时刻都采用策略<span class="math notranslate nohighlight">\(\pi\)</span>
 得到的累计折扣奖励(回报)的期望值：</p>
-<p><img class="math" src="../_images/math/d9976ee095cce61b18f0094f10fa8a5eab546a28.svg" alt="V_{\pi}(s) = E_{\pi}[G_t|s_t=s]"/></p>
+<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi}[G_t|s_t=s]\)</span></p>
 <p><strong>动作价值函数 (action value function)</strong> 是指智能体在状态
-<img class="math" src="../_images/math/e806833f2f111400bded5ffcb5ef44220d111dad.svg" alt="s_t"/>采取动作<img class="math" src="../_images/math/6b86b26d79faf7f329fd8b0ca398fc9a5e943ffb.svg" alt="a_t"/>,
-以后的所有时刻都采用策略<img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/> 得到的累计折扣奖励(回报)的期望值：</p>
-<p><img class="math" src="../_images/math/b61be44087d388a75d55d93fea9b6a7b005aea23.svg" alt="Q_{\pi}(s, a) = E_{\pi}[G_t|s_t=s, a_t=a]"/></p>
-<p>状态价值函数和行为价值函数的关系：<img class="math" src="../_images/math/5857cf2ea03c56d04a713788174f69a9d064d825.svg" alt="V_{\pi}(s) = \sum_{a \in A} \pi(a|s)Q_{\pi}(s,a)"/></p>
-<p>我们定义最优策略<img class="math" src="../_images/math/3a76d0ae064de5f5b18cf7eea4df5520bbc99b58.svg" alt="\pi^*"/>对应的最优状态值函数与最优动作价值函数分别为<img class="math" src="../_images/math/2624af93153bb5cc6b623a27c0be567ebff8a3a4.svg" alt="V^*(s), Q^*(s, a)"/>。</p>
-<p>最优的状态价值函数与最优的行为价值函数的关系：<img class="math" src="../_images/math/2d74739dbf66e429cb8cd389d9e78032939c02ee.svg" alt="V^*(s)=max_a Q^*(s, a)"/></p>
+<span class="math notranslate nohighlight">\(s_t\)</span>采取动作<span class="math notranslate nohighlight">\(a_t\)</span>,
+以后的所有时刻都采用策略<span class="math notranslate nohighlight">\(\pi\)</span> 得到的累计折扣奖励(回报)的期望值：</p>
+<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi}[G_t|s_t=s, a_t=a]\)</span></p>
+<p>状态价值函数和行为价值函数的关系：<span class="math notranslate nohighlight">\(V_{\pi}(s) = \sum_{a \in A} \pi(a|s)Q_{\pi}(s,a)\)</span></p>
+<p>我们定义最优策略<span class="math notranslate nohighlight">\(\pi^*\)</span>对应的最优状态值函数与最优动作价值函数分别为<span class="math notranslate nohighlight">\(V^*(s), Q^*(s, a)\)</span>。</p>
+<p>最优的状态价值函数与最优的行为价值函数的关系：<span class="math notranslate nohighlight">\(V^*(s)=max_a Q^*(s, a)\)</span></p>
 <p><strong>贝尔曼方程 (Bellman
 Equations)</strong>是强化学习方法的基础，描述的是当前时刻状态的值（动作值）与下一时刻状态的值（动作值）之间的递推关系。</p>
-<p><img class="math" src="../_images/math/3c0f1dd388dc31e3bb52c4809ee9b99256720fce.svg" alt="V_{\pi}(s) = E_{\pi,P}[r_{t+1}+\gamma * V_{\pi}(s_{t+1})|S_t=s]"/></p>
-<p><img class="math" src="../_images/math/319f37da956a97bf626c9498e3e3e887b8a5dd68.svg" alt="Q_{\pi}(s, a) = E_{\pi,P}[r_{t+1}+\gamma * Q_\pi(s_{t+1},a_{t+1})|S_t=s, A_t=a]"/></p>
+<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi,P}[r_{t+1}+\gamma * V_{\pi}(s_{t+1})|S_t=s]\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi,P}[r_{t+1}+\gamma * Q_\pi(s_{t+1},a_{t+1})|S_t=s, A_t=a]\)</span></p>
 <p>进一步如果将期望展开，可以写成下面的形式：</p>
 <div class="line-block">
-<div class="line"><img class="math" src="../_images/math/aeb35a1a545a2cf93c99e94ccadb95632b030d0f.svg" alt="v_{\pi}(s)=\sum_{a \in A} \pi(a \mid s)\left(R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} v_{\pi}\left(s^{\prime}\right)\right)"/></div>
-<div class="line"><img class="math" src="../_images/math/a02ff31dfdd0468885892db63962b170942c68cc.svg" alt="q_{\pi}(s, a)=R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} \sum_{a^{\prime} \in A} \pi\left(a^{\prime} \mid s^{\prime}\right) q_{\pi}\left(s^{\prime}, a^{\prime}\right)"/></div>
+<div class="line"><span class="math notranslate nohighlight">\(v_{\pi}(s)=\sum_{a \in A} \pi(a \mid s)\left(R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} v_{\pi}\left(s^{\prime}\right)\right)\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(q_{\pi}(s, a)=R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} \sum_{a^{\prime} \in A} \pi\left(a^{\prime} \mid s^{\prime}\right) q_{\pi}\left(s^{\prime}, a^{\prime}\right)\)</span></div>
 </div>
-<p>其中<img class="math" src="../_images/math/4af09bf1dc1aa1f3e9b0ebdc63c6cc6c474dbfdd.svg" alt="R_{s}^{a}=\mathbb{E}\left[R_{t+1} \mid S_{t}=s, A_{t}=a\right]"/>,
-<img class="math" src="../_images/math/7ff5e137cd3faada19b4352950feea8bd10f1688.svg" alt="P_{s s^{\prime}}^{a}=\mathbb{P}\left[S_{t+1}=s^{\prime} \mid S_{t}=s, A_{t}=a\right]"/></p>
+<p>其中<span class="math notranslate nohighlight">\(R_{s}^{a}=\mathbb{E}\left[R_{t+1} \mid S_{t}=s, A_{t}=a\right]\)</span>,
+<span class="math notranslate nohighlight">\(P_{s s^{\prime}}^{a}=\mathbb{P}\left[S_{t+1}=s^{\prime} \mid S_{t}=s, A_{t}=a\right]\)</span></p>
 <p><strong>贝尔曼最优方程(Bellman Optimality
 Equations)</strong>，描述的是当前时刻状态的最优值（最优动作值）与下一时刻状态的最优值（最优动作值）之间的递推关系。</p>
-<p><img class="math" src="../_images/math/a4b4ea5d354c267ee23d2f5475983c288076a987.svg" alt="V^*(s)=max_a( E[r_{t+1} + \gamma * V^*(s_{t+1})|s_t=s])"/></p>
-<p><img class="math" src="../_images/math/1995fb3935edee264dbf33d0eee22c4a6138270d.svg" alt="Q^*(s, a) = E[r_{t+1}+\gamma * max_{a'}Q^*(s_{t+1},a')|s_t=s, a_t=a]"/></p>
+<p><span class="math notranslate nohighlight">\(V^*(s)=max_a( E[r_{t+1} + \gamma * V^*(s_{t+1})|s_t=s])\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q^*(s, a) = E[r_{t+1}+\gamma * max_{a'}Q^*(s_{t+1},a')|s_t=s, a_t=a]\)</span></p>
 <p>进一步如果将期望展开，可以写成下面的形式：</p>
-<p><img class="math" src="../_images/math/6c5f970047a5d548927ab4f8c9e1eba1761b25fe.svg" alt="v_{*}(s)=\max _{a} R_{s}^{a}+\gamma \sum_{s^{\prime} \in \mathcal{S}} P_{s s^{\prime}}^{a} v_{*}\left(s^{\prime}\right)"/></p>
-<p><img class="math" src="../_images/math/80cb59eeae26addaa4d18fd0512a961b4df39a7d.svg" alt="q^{*}(s, a)=R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} \max _{a^{\prime}} q^{*}\left(s^{\prime}, a^{\prime}\right)"/></p>
-<p>同样的，其中<img class="math" src="../_images/math/4af09bf1dc1aa1f3e9b0ebdc63c6cc6c474dbfdd.svg" alt="R_{s}^{a}=\mathbb{E}\left[R_{t+1} \mid S_{t}=s, A_{t}=a\right]"/>,
-<img class="math" src="../_images/math/7ff5e137cd3faada19b4352950feea8bd10f1688.svg" alt="P_{s s^{\prime}}^{a}=\mathbb{P}\left[S_{t+1}=s^{\prime} \mid S_{t}=s, A_{t}=a\right]"/>。</p>
+<p><span class="math notranslate nohighlight">\(v_{*}(s)=\max _{a} R_{s}^{a}+\gamma \sum_{s^{\prime} \in \mathcal{S}} P_{s s^{\prime}}^{a} v_{*}\left(s^{\prime}\right)\)</span></p>
+<p><span class="math notranslate nohighlight">\(q^{*}(s, a)=R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} \max _{a^{\prime}} q^{*}\left(s^{\prime}, a^{\prime}\right)\)</span></p>
+<p>同样的，其中<span class="math notranslate nohighlight">\(R_{s}^{a}=\mathbb{E}\left[R_{t+1} \mid S_{t}=s, A_{t}=a\right]\)</span>,
+<span class="math notranslate nohighlight">\(P_{s s^{\prime}}^{a}=\mathbb{P}\left[S_{t+1}=s^{\prime} \mid S_{t}=s, A_{t}=a\right]\)</span>。</p>
 <p>对于模型已知 (即知道状态转移概率函数和奖励函数)
 的系统，值函数可以利用动态规划的方法得到；对于模型未知的系统，可以利用蒙特卡洛的方法或者时间差分的方法得到。</p>
 <p>下面分别简介这3类方法：</p>
@@ -406,18 +406,18 @@ Equations)</strong>，描述的是当前时刻状态的最优值（最优动作�
 <ul>
 <li><p>我们知道动态规划适合解决满足最优子结构（optimal
 substructure）和重叠子问题（overlapping
-subproblem）两个性质的问题。而给定MDP和策略<img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/>求解策略
-<img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/>
-对应的价值函数<img class="math" src="../_images/math/970b409043ae7c4626b861c197a1b56ff445de4d.svg" alt="V_\pi"/>的问题恰好满足这2个性质，我们可以利用贝尔曼方程，把求解<img class="math" src="../_images/math/970b409043ae7c4626b861c197a1b56ff445de4d.svg" alt="V_\pi"/>的问题分解成求解不同状态<img class="math" src="../_images/math/59a28fd7649b5e88c0973bc8a7eabda3b938b2a3.svg" alt="s"/>的值<img class="math" src="../_images/math/6ecaac2cdc1f856e5e5d286c240891f1405f72ce.svg" alt="V_\pi(s)"/>的子问题。可以把它分解成递归的结构，如果某个问题的子状态能得到一个值，那么它的未来状态因为与子状态是直接相关的，我们也可以将之推算出来。价值函数<img class="math" src="../_images/math/6ecaac2cdc1f856e5e5d286c240891f1405f72ce.svg" alt="V_\pi(s)"/>可以存储并重用子问题的最佳的解。具体地，我们可以直接把贝尔曼期望方程，变成迭代的过程，反复迭代直到收敛。当我们得到上一迭代的
-<img class="math" src="../_images/math/fb9d2550edad089524da7613350afe8f7a34e381.svg" alt="V_t"/>的时候，就可以通过递推的关系推出下一迭代的值。<img class="math" src="../_images/math/7c498af6218e32b385e506a6c05af75c39b640ae.svg" alt="V^{t+1}(s)=\sum_{a \in A} \pi(a \mid s)\left(R(s, a)+\gamma \sum_{s^{\prime} \in S} p\left(s^{\prime} \mid s, a\right) V^{t}\left(s^{\prime}\right)\right)"/>。反复迭代，最后得到的
-<img class="math" src="../_images/math/5a2eef32c1226f4023de69afd94cc2d15f4d4dae.svg" alt="V"/> 的值就是从 <img class="math" src="../_images/math/2933c63be614529d7e006da8be1046dea15c006e.svg" alt="V_1"/>, <img class="math" src="../_images/math/b713921e65b358a54c41e927d6ab603d9156ac87.svg" alt="V_2"/> , <img class="math" src="../_images/math/c509c7ed4f601c183ff3c4f1768bb3c2bcb723f5.svg" alt="V_3"/>, …,
-到最后收敛之后的值<img class="math" src="../_images/math/970b409043ae7c4626b861c197a1b56ff445de4d.svg" alt="V_\pi"/>。<img class="math" src="../_images/math/970b409043ae7c4626b861c197a1b56ff445de4d.svg" alt="V_\pi"/>就是当前给定的策略
-<img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/> 对应的价值函数。</p></li>
+subproblem）两个性质的问题。而给定MDP和策略<span class="math notranslate nohighlight">\(\pi\)</span>求解策略
+<span class="math notranslate nohighlight">\(\pi\)</span>
+对应的价值函数<span class="math notranslate nohighlight">\(V_\pi\)</span>的问题恰好满足这2个性质，我们可以利用贝尔曼方程，把求解<span class="math notranslate nohighlight">\(V_\pi\)</span>的问题分解成求解不同状态<span class="math notranslate nohighlight">\(s\)</span>的值<span class="math notranslate nohighlight">\(V_\pi(s)\)</span>的子问题。可以把它分解成递归的结构，如果某个问题的子状态能得到一个值，那么它的未来状态因为与子状态是直接相关的，我们也可以将之推算出来。价值函数<span class="math notranslate nohighlight">\(V_\pi(s)\)</span>可以存储并重用子问题的最佳的解。具体地，我们可以直接把贝尔曼期望方程，变成迭代的过程，反复迭代直到收敛。当我们得到上一迭代的
+<span class="math notranslate nohighlight">\(V_t\)</span>的时候，就可以通过递推的关系推出下一迭代的值。<span class="math notranslate nohighlight">\(V^{t+1}(s)=\sum_{a \in A} \pi(a \mid s)\left(R(s, a)+\gamma \sum_{s^{\prime} \in S} p\left(s^{\prime} \mid s, a\right) V^{t}\left(s^{\prime}\right)\right)\)</span>。反复迭代，最后得到的
+<span class="math notranslate nohighlight">\(V\)</span> 的值就是从 <span class="math notranslate nohighlight">\(V_1\)</span>, <span class="math notranslate nohighlight">\(V_2\)</span> , <span class="math notranslate nohighlight">\(V_3\)</span>, …,
+到最后收敛之后的值<span class="math notranslate nohighlight">\(V_\pi\)</span>。<span class="math notranslate nohighlight">\(V_\pi\)</span>就是当前给定的策略
+<span class="math notranslate nohighlight">\(\pi\)</span> 对应的价值函数。</p></li>
 <li><p>但是 DP 方法必须要求给定环境模型(状态转移函数，奖励函数)，而这往往是不现实的，而且 DP 方法很难用于连续状态和动作的环境中。</p></li>
 </ul>
 </li>
 <li><p><strong>蒙特卡洛 (Monte Carlo,
-MC)</strong>方法是指我们可以采样大量的轨迹，计算所有轨迹的真实回报<img class="math" src="../_images/math/3a4b67205f46b4473ac61301c041d1e72f680bc5.svg" alt="G_{t}=r_{t+1}+\gamma r_{t+2}+\gamma^{2} r_{t+3}+\ldots"/>，然后计算平均值作为Q值的估计。即使用经验平均回报（empirical
+MC)</strong>方法是指我们可以采样大量的轨迹，计算所有轨迹的真实回报<span class="math notranslate nohighlight">\(G_{t}=r_{t+1}+\gamma r_{t+2}+\gamma^{2} r_{t+3}+\ldots\)</span>，然后计算平均值作为Q值的估计。即使用经验平均回报（empirical
 mean return）的方法来估计期望值。</p>
 <ul>
 <li><p>它不需要马尔可夫决策过程的状态转移函数和奖励函数，也不需要像动态规划那样用自举的方法，只能用在有终止状态的马尔可夫决策过程中。</p></li>
@@ -426,9 +426,9 @@ mean return）的方法来估计期望值。</p>
 <li><p><strong>时序差分 (Temporal Difference,
 TD)</strong>方法时序差分是介于蒙特卡洛和动态规划之间的方法，它是免模型的，不需要马尔可夫决策过程的状态转移函数和奖励函数。可以从不完整的回合中学习，并且结合了自举的思想。最简单的算法是一步时序差分（one-step
 TD) 即 TD(0)。每往前走一步，就做一步自举，用得到的估计回报（estimated
-return）<img class="math" src="../_images/math/d6b898b2366fe2947df0ed7936c450d0a19f9c96.svg" alt="r_t+1 + \gamma V (s_{t+1})"/> 来更新上一时刻的值
-<img class="math" src="../_images/math/3e8a14f8c332a3c3f00e32ac591bccb187a2a428.svg" alt="V (s_t)"/>：
-<img class="math" src="../_images/math/2452434e1686b527d53d3876d8a1279618c07212.svg" alt="V (s_{t})\leftarrow V (s_{t}) + \alpha (r_{t+1} + \gamma V (s_{t+1})- V (s_{t}))"/></p></li>
+return）<span class="math notranslate nohighlight">\(r_t+1 + \gamma V (s_{t+1})\)</span> 来更新上一时刻的值
+<span class="math notranslate nohighlight">\(V (s_t)\)</span>：
+<span class="math notranslate nohighlight">\(V (s_{t})\leftarrow V (s_{t}) + \alpha (r_{t+1} + \gamma V (s_{t+1})- V (s_{t}))\)</span></p></li>
 <li><p>这几种学习值函数的方法的比较如下图所示。</p></li>
 </ul>
 <p>对于表格型的强化学习方法，我们通过迭代更新值函数的表格即可完成对值函数的估计。而很多情况下，如状态空间或动作空间不为离散空间时，值函数无法用一张表格来表示。此时，我们需要利用函数逼近的方法对值函数进行表示。</p>
@@ -438,31 +438,31 @@ return）<img class="math" src="../_images/math/d6b898b2366fe2947df0ed7936c450d0
 <h2>策略梯度/Policy Gradients<a class="headerlink" href="#policy-gradients" title="Permalink to this headline">¶</a></h2>
 <p>在基于值函数的方法中，我们希望迭代计算得到最优值函数，然后根据最优值函数得到最优动作；RL 方法中还有另外一大类基于策略梯度的方法，直接学习参数化的最优策略。</p>
 <p>下面首先阐述策略梯度定理：</p>
-<p>令 <img class="math" src="../_images/math/4dae076f5e60f4ff803e6123d1b56584a099f4f2.svg" alt="\tau"/> 表示一条轨迹，初始状态分布为
-<img class="math" src="../_images/math/1f86e503cb1becd4e389bd4557b044555b6eabad.svg" alt="\mu"/>，如果动作是按照策略<img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/>选择的，那么轨迹
-<img class="math" src="../_images/math/4dae076f5e60f4ff803e6123d1b56584a099f4f2.svg" alt="\tau"/>的概率分布为：:math:` {Pr}_{mu}^{pi}(tau)=muleft(s_{0}right) pileft(a_{0} mid s_{0}right) Pleft(s_{1} mid s_{0}, a_{0}right) pileft(a_{1} mid s_{1}right) cdots`</p>
-<p>这条轨迹的累计折扣奖励为：<img class="math" src="../_images/math/5bcf2d26a2791bd4805ba825d51aecb3938e5769.svg" alt="R(\tau):=\sum_{t=0}^{\infty} \gamma^{t} r\left(s_{t}, a_{t}\right)"/></p>
-<p>策略<img class="math" src="../_images/math/20b6ca0c77cf92a75ecbe45f5e24d240d27fdb3f.svg" alt="\pi_\theta"/>期望最大化的目标为：<img class="math" src="../_images/math/3b14383c200f0c4406778ac3c89265956e4c2415.svg" alt="V^{\pi_{\theta}}(\mu)=\mathbb{E}_{\tau \sim  {Pr}_{\mu}^{\pi_{\theta}}[R(\tau)]}"/></p>
+<p>令 <span class="math notranslate nohighlight">\(\tau\)</span> 表示一条轨迹，初始状态分布为
+<span class="math notranslate nohighlight">\(\mu\)</span>，如果动作是按照策略<span class="math notranslate nohighlight">\(\pi\)</span>选择的，那么轨迹
+<span class="math notranslate nohighlight">\(\tau\)</span>的概率分布为：:math:` {Pr}_{mu}^{pi}(tau)=muleft(s_{0}right) pileft(a_{0} mid s_{0}right) Pleft(s_{1} mid s_{0}, a_{0}right) pileft(a_{1} mid s_{1}right) cdots`</p>
+<p>这条轨迹的累计折扣奖励为：<span class="math notranslate nohighlight">\(R(\tau):=\sum_{t=0}^{\infty} \gamma^{t} r\left(s_{t}, a_{t}\right)\)</span></p>
+<p>策略<span class="math notranslate nohighlight">\(\pi_\theta\)</span>期望最大化的目标为：<span class="math notranslate nohighlight">\(V^{\pi_{\theta}}(\mu)=\mathbb{E}_{\tau \sim  {Pr}_{\mu}^{\pi_{\theta}}[R(\tau)]}\)</span></p>
 <p>3种形式的策略梯度公式为：</p>
 <ul class="simple">
 <li><p>REINFORCE 形式:</p></li>
 </ul>
-<div class="math">
-<p><img src="../_images/math/5301672b1f3f7919f87efa9fca638c9d45d43f7d.svg" alt="\nabla V^{\pi_{\theta}}(\mu)=\mathbb{E}_{\tau \sim  {Pr}_{\mu}^{\pi_{\theta}}}\left[R(\tau) \sum_{t=0}^{\infty} \nabla \log \pi_{\theta}\left(a_{t} \mid s_{t}\right)\right]"/></p>
-</div><ul class="simple">
+<div class="math notranslate nohighlight">
+\[\nabla V^{\pi_{\theta}}(\mu)=\mathbb{E}_{\tau \sim  {Pr}_{\mu}^{\pi_{\theta}}}\left[R(\tau) \sum_{t=0}^{\infty} \nabla \log \pi_{\theta}\left(a_{t} \mid s_{t}\right)\right]\]</div>
+<ul class="simple">
 <li><p>Q值形式:</p></li>
 </ul>
-<div class="math">
-<p><img src="../_images/math/42288ec1d7ff714ba54f20544f5a569e15e7f1ff.svg" alt="\begin{aligned}
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
 \nabla V^{\pi_{\theta}}(\mu) &amp;=\mathbb{E}_{\tau \sim  {Pr}_{\mu}^{\pi_{\theta}}}\left[\sum_{t=0}^{\infty} \gamma^{t} Q^{\pi_{\theta}}\left(s_{t}, a_{t}\right) \nabla \log \pi_{\theta}\left(a_{t} \mid s_{t}\right)\right] \\
 &amp;=\frac{1}{1-\gamma} \mathbb{E}_{s \sim d^{\pi_{\theta}}} \mathbb{E}_{a \sim \pi_{\theta}(\cdot \mid s)}\left[Q^{\pi_{\theta}}(s, a) \nabla \log \pi_{\theta}(a \mid s)\right]
-\end{aligned}"/></p>
-</div><ul class="simple">
+\end{aligned}\end{split}\]</div>
+<ul class="simple">
 <li><p>优势函数形式:</p></li>
 </ul>
-<div class="math">
-<p><img src="../_images/math/331ebab5a874401050a7dadf3466f3e5c6f1b672.svg" alt="\nabla V^{\pi_{\theta}}(\mu)=\frac{1}{1-\gamma} \mathbb{E}_{s \sim d^{\pi_{\theta}}} \mathbb{E}_{a \sim \pi_{\theta}(\cdot \mid s)}\left[A^{\pi_{\theta}}(s, a) \nabla \log \pi_{\theta}(a \mid s)\right]"/></p>
-</div><p>利用策略梯度定理，我们便可以利用采样的样本近似计算策略梯度，直接更新策略网络对应的参数，使策略逐步得到改进。</p>
+<div class="math notranslate nohighlight">
+\[\nabla V^{\pi_{\theta}}(\mu)=\frac{1}{1-\gamma} \mathbb{E}_{s \sim d^{\pi_{\theta}}} \mathbb{E}_{a \sim \pi_{\theta}(\cdot \mid s)}\left[A^{\pi_{\theta}}(s, a) \nabla \log \pi_{\theta}(a \mid s)\right]\]</div>
+<p>利用策略梯度定理，我们便可以利用采样的样本近似计算策略梯度，直接更新策略网络对应的参数，使策略逐步得到改进。</p>
 <p>与基于值函数的RL方法相比，基于策略梯度的方法更加容易收敛到局部最小值，评估单个策略时并不充分，方差较大。</p>
 <p>关于基于策略梯度（又称为 policy-based）的强化学习算法的细节，请参考PPO等具体算法文档。</p>
 </section>
@@ -483,196 +483,7 @@ DDPG, TD3, SAC 等具体算法文档。</p>
 model) 和如何利用学习好的模型来学习值函数或策略。通过学习环境模型，可以帮助我们提高强化学习方法的样本效率
 (sample efficiency)。</p>
 <p>环境模型可以定义为状态转移分布和奖励函数组成的元组：
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">M=(P,R), 其中P(s_{t+1}|s_t, a_t)表示状态转移函数, R(r_{t+1}|s_t, a_t)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-No file math.aux.
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-
-! Package inputenc Error: Unicode character 其 (U+5176)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 \fontsize{14}{17}\selectfont $M=(P,R), 其
-                                               中P(s_{t+1}|s_t, a_t)表示�...
-
-
-! Package inputenc Error: Unicode character 中 (U+4E2D)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 \fontsize{14}{17}\selectfont $M=(P,R), 其中
-                                                  P(s_{t+1}|s_t, a_t)表示�...
-
-
-! Package inputenc Error: Unicode character 表 (U+8868)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ...ont $M=(P,R), 其中P(s_{t+1}|s_t, a_t)表
-                                                  示状态转移函数, R(r...
-
-
-! Package inputenc Error: Unicode character 示 (U+793A)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ... $M=(P,R), 其中P(s_{t+1}|s_t, a_t)表示
-                                                  状态转移函数, R(r_{t...
-
-
-! Package inputenc Error: Unicode character 状 (U+72B6)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ...=(P,R), 其中P(s_{t+1}|s_t, a_t)表示状
-                                                  态转移函数, R(r_{t+1}...
-
-
-! Package inputenc Error: Unicode character 态 (U+6001)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ...,R), 其中P(s_{t+1}|s_t, a_t)表示状态
-                                                  转移函数, R(r_{t+1}|s_...
-
-
-! Package inputenc Error: Unicode character 转 (U+8F6C)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ..., 其中P(s_{t+1}|s_t, a_t)表示状态转
-                                                  移函数, R(r_{t+1}|s_t, ...
-
-
-! Package inputenc Error: Unicode character 移 (U+79FB)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ...��中P(s_{t+1}|s_t, a_t)表示状态转移
-                                                  函数, R(r_{t+1}|s_t, a_t)$
-
-! Package inputenc Error: Unicode character 函 (U+51FD)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ...��P(s_{t+1}|s_t, a_t)表示状态转移函
-                                                  数, R(r_{t+1}|s_t, a_t)$
-
-! Package inputenc Error: Unicode character 数 (U+6570)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 ...(s_{t+1}|s_t, a_t)表示状态转移函数
-                                                  , R(r_{t+1}|s_t, a_t)$
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 584 bytes).
-Transcript written on math.log.
-</p>
-</div>
-表示奖励函数。</p>
+<span class="math notranslate nohighlight">\(M=(P,R), 其中P(s_{t+1}|s_t, a_t)表示状态转移函数, R(r_{t+1}|s_t, a_t)\)</span>表示奖励函数。</p>
 <p>根据模型学习方法和使用方法的不同，可以有各种各样的 model-based RL算法。</p>
 <p>在学习好环境模型后，主要有两种使用方法，一种是通过学到的模型生成一些仿真轨迹，在这些仿真轨迹上学习最优值函数进而得到最优策略；另一种是在学到的模型上直接优化策略。</p>
 </section>
@@ -842,6 +653,7 @@ efficiency)。</p></li>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

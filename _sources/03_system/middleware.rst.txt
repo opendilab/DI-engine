@@ -105,3 +105,14 @@ In practice, you may want to try more to speed up the whole interaction process 
 .. image::
     images/async.png
     :align: center
+
+Middleware in different stages
+-------------------------------
+
+Most of the middleware can correspond to different stages. You can see the correspondence between the \
+existing middleware and the stages in the \
+following diagram in order to combine the various middleware correctly.
+
+.. image::
+    images/pipeline.png
+    :align: center

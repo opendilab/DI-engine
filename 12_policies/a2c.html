@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -295,12 +296,12 @@
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>A2C uses advantage estimation in the policy gradient. We implement the advantage by Generalized Advantage Estimation (GAE):</p>
-<div class="math">
-<p><img src="../_images/math/08e4851bccbf3f3c6045799569a4faabfca4e5f2.svg" alt="\nabla_{\theta} \log \pi\left(a_{t} \mid {s}_{t} ; \theta\right) \hat{A}^{\pi}\left(s_{t}, {a}_{t} ; \phi \right)"/></p>
-</div><p>where the k-step advantage function is defined:</p>
-<div class="math">
-<p><img src="../_images/math/d3785c7b38905dd46bea387a9837e110927b4a8e.svg" alt="\sum_{i=0}^{k-1} \gamma^{i} r_{t+i}+\gamma^{k} \hat{V}^{\pi}\left(s_{t+k} ; \phi\right)-\hat{V}^{\pi}\left(s_{t} ; \phi\right)"/></p>
-</div></section>
+<div class="math notranslate nohighlight">
+\[\nabla_{\theta} \log \pi\left(a_{t} \mid {s}_{t} ; \theta\right) \hat{A}^{\pi}\left(s_{t}, {a}_{t} ; \phi \right)\]</div>
+<p>where the k-step advantage function is defined:</p>
+<div class="math notranslate nohighlight">
+\[\sum_{i=0}^{k-1} \gamma^{i} r_{t+i}+\gamma^{k} \hat{V}^{\pi}\left(s_{t+k} ; \phi\right)-\hat{V}^{\pi}\left(s_{t} ; \phi\right)\]</div>
+</section>
 <section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/A2C.png"><img alt="../_images/A2C.png" class="align-center" src="../_images/A2C.png" style="height: 150px;" /></a>
@@ -317,15 +318,15 @@
 <li><p>RNN</p></li>
 <li><p>Generalized Advantage Estimation (GAE)
 GAE is proposed in <a class="reference external" href="https://arxiv.org/abs/1506.02438">High-Dimensional Continuous Control Using Generalized Advantage Estimation</a>, it uses exponentially-weighted average of different steps of advantage estimators, to make trade-off between variance and bias of the estimation of the advantage:</p>
-<div class="math">
-<p><img src="../_images/math/4ad2e5904e8e800101bdd6718d6eb21c06bd7ec5.svg" alt="\hat{A}_{t}^{\mathrm{GAE}(\gamma, \lambda)}:=(1-\lambda)\left(\hat{A}_{t}^{(1)}+\lambda \hat{A}_{t}^{(2)}+\lambda^{2} \hat{A}_{t}^{(3)}+\ldots\right)"/></p>
-</div><p>where the k-step advantage estimator <img class="math" src="../_images/math/c0e5893467d0f484935ea7bdf198f9210e14484b.svg" alt="\hat{A}_t^{(k)}"/> is defined as :</p>
-<div class="math">
-<p><img src="../_images/math/10296031c1d0b481de5ff1498619dea3c704b6ae.svg" alt="\hat{A}_{t}^{(k)}:=\sum_{l=0}^{k-1} \gamma^{l} \delta_{t+l}^{V}=-V\left(s_{t}\right)+r_{t}+\gamma r_{t+1}+\cdots+\gamma^{k-1} r_{t+k-1}+\gamma^{k} V\left(s_{t+k}\right)"/></p>
-</div><p>When k=1, the estimator <img class="math" src="../_images/math/db3da9b077f19c498a96d4103f89e3be60845870.svg" alt="\hat{A}_t^{(1)}"/> is the naive advantage estimator:</p>
-<div class="math">
-<p><img src="../_images/math/9e5363d23cf0b034acaa58a43dd5b7fd1832552a.svg" alt="\hat{A}_{t}^{(1)}:=\delta_{t}^{V} \quad=-V\left(s_{t}\right)+r_{t}+\gamma V\left(s_{t+1}\right)"/></p>
-</div><p>When GAE is used, the common values of <img class="math" src="../_images/math/306d48e07886c1968c16b7a0700539c3098194fa.svg" alt="\lambda"/> usually belong to [0.8, 1.0].</p>
+<div class="math notranslate nohighlight">
+\[\hat{A}_{t}^{\mathrm{GAE}(\gamma, \lambda)}:=(1-\lambda)\left(\hat{A}_{t}^{(1)}+\lambda \hat{A}_{t}^{(2)}+\lambda^{2} \hat{A}_{t}^{(3)}+\ldots\right)\]</div>
+<p>where the k-step advantage estimator <span class="math notranslate nohighlight">\(\hat{A}_t^{(k)}\)</span> is defined as :</p>
+<div class="math notranslate nohighlight">
+\[\hat{A}_{t}^{(k)}:=\sum_{l=0}^{k-1} \gamma^{l} \delta_{t+l}^{V}=-V\left(s_{t}\right)+r_{t}+\gamma r_{t+1}+\cdots+\gamma^{k-1} r_{t+k-1}+\gamma^{k} V\left(s_{t+k}\right)\]</div>
+<p>When k=1, the estimator <span class="math notranslate nohighlight">\(\hat{A}_t^{(1)}\)</span> is the naive advantage estimator:</p>
+<div class="math notranslate nohighlight">
+\[\hat{A}_{t}^{(1)}:=\delta_{t}^{V} \quad=-V\left(s_{t}\right)+r_{t}+\gamma V\left(s_{t+1}\right)\]</div>
+<p>When GAE is used, the common values of <span class="math notranslate nohighlight">\(\lambda\)</span> usually belong to [0.8, 1.0].</p>
 </li>
 </ul>
 </dd>
@@ -385,7 +386,7 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
@@ -423,8 +424,8 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
@@ -475,7 +476,7 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
@@ -527,9 +528,9 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
@@ -727,6 +728,7 @@ Rllib(692)</p></td>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

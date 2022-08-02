@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -295,18 +296,18 @@
 </section>
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>For any continuous quantile function <img class="math" src="../_images/math/33236f5b1ee8a5e0e3a91d1525d12bcade0fbc2f.svg" alt="F_{Z}^{-1}"/> that is non-decreasing, define the 1-Wasserstein loss of <img class="math" src="../_images/math/33236f5b1ee8a5e0e3a91d1525d12bcade0fbc2f.svg" alt="F_{Z}^{-1}"/> and <img class="math" src="../_images/math/18c048adf797b540756ab980aa6317c7cb292b62.svg" alt="F_{Z}^{-1, \tau}"/> by</p>
-<div class="math">
-<p><img src="../_images/math/84a3aaebea35a9ccbd959d8f546f542b2cc9678a.svg" alt="W_{1}(Z, \tau)=\sum_{i=0}^{N-1} \int_{\tau_{i}}^{\tau_{i+1}}\left|F_{Z}^{-1}(\omega)-F_{Z}^{-1}\left(\hat{\tau}_{i}\right)\right| d \omega"/></p>
-</div><p>Note that as <img class="math" src="../_images/math/e2abcaafc3f27ecca6f5d091097b066c43d4f2b7.svg" alt="W_{1}"/> is not computed, we can’t directly perform gradient descent for the fraction proposal network. Instead, we assign <img class="math" src="../_images/math/303c874e0e0070ef4bcb80e8a376a73297e8a880.svg" alt="\frac{\partial W_{1}}{\partial \tau_{i}}"/>
+<p>For any continuous quantile function <span class="math notranslate nohighlight">\(F_{Z}^{-1}\)</span> that is non-decreasing, define the 1-Wasserstein loss of <span class="math notranslate nohighlight">\(F_{Z}^{-1}\)</span> and <span class="math notranslate nohighlight">\(F_{Z}^{-1, \tau}\)</span> by</p>
+<div class="math notranslate nohighlight">
+\[W_{1}(Z, \tau)=\sum_{i=0}^{N-1} \int_{\tau_{i}}^{\tau_{i+1}}\left|F_{Z}^{-1}(\omega)-F_{Z}^{-1}\left(\hat{\tau}_{i}\right)\right| d \omega\]</div>
+<p>Note that as <span class="math notranslate nohighlight">\(W_{1}\)</span> is not computed, we can’t directly perform gradient descent for the fraction proposal network. Instead, we assign <span class="math notranslate nohighlight">\(\frac{\partial W_{1}}{\partial \tau_{i}}\)</span>
 to the optimizer.</p>
-<p><img class="math" src="../_images/math/303c874e0e0070ef4bcb80e8a376a73297e8a880.svg" alt="\frac{\partial W_{1}}{\partial \tau_{i}}"/> is given by</p>
-<div class="math">
-<p><img src="../_images/math/b3e82d6cf03bbaa9bce97af86a00b7c6302c0fa6.svg" alt="\frac{\partial W_{1}}{\partial \tau_{i}}=2 F_{Z}^{-1}\left(\tau_{i}\right)-F_{Z}^{-1}\left(\hat{\tau}_{i}\right)-F_{Z}^{-1}\left(\hat{\tau}_{i-1}\right), \forall i \in(0, N)."/></p>
-</div><p>Like implicit quantile networks, a learned quantile tau is encoded into an embedding vector via:</p>
-<div class="math">
-<p><img src="../_images/math/bdf3a91feb4693d5f02ddfa073d2c735da3421ae.svg" alt="\phi_{j}(\tau):=\operatorname{ReLU}\left(\sum_{i=0}^{n-1} \cos (\pi i \tau) w_{i j}+b_{j}\right)"/></p>
-</div><p>Then the quantile embedding is element-wise multiplied by the embedding of the observation of the environment, and the subsequent fully-connected layers map the resulted product vector to the respective quantile value.</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial W_{1}}{\partial \tau_{i}}\)</span> is given by</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial W_{1}}{\partial \tau_{i}}=2 F_{Z}^{-1}\left(\tau_{i}\right)-F_{Z}^{-1}\left(\hat{\tau}_{i}\right)-F_{Z}^{-1}\left(\hat{\tau}_{i-1}\right), \forall i \in(0, N).\]</div>
+<p>Like implicit quantile networks, a learned quantile tau is encoded into an embedding vector via:</p>
+<div class="math notranslate nohighlight">
+\[\phi_{j}(\tau):=\operatorname{ReLU}\left(\sum_{i=0}^{n-1} \cos (\pi i \tau) w_{i j}+b_{j}\right)\]</div>
+<p>Then the quantile embedding is element-wise multiplied by the embedding of the observation of the environment, and the subsequent fully-connected layers map the resulted product vector to the respective quantile value.</p>
 <p>The advantage of FQF over IQN can be showed in this picture:</p>
 <a class="reference internal image-reference" href="../_images/fqf_iqn_compare.png"><img alt="../_images/fqf_iqn_compare.png" class="align-center" src="../_images/fqf_iqn_compare.png" style="width: 783.0px; height: 430.0px;" /></a>
 </section>
@@ -543,13 +544,13 @@ Parameter updates with FQF’s MLPs forward setup.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x: <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is head_hidden_size.</p></li>
-<li><p>logit: <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where M is action_shape.</p></li>
-<li><p>q: <img class="math" src="../_images/math/410a1947b0ea5d9ad0f0ca62ff1622d0903fae98.svg" alt="(B, num_quantiles, M)"/>.</p></li>
-<li><p>quantiles: <img class="math" src="../_images/math/b23b67041a1c889ef1b43a2698b2f05199730973.svg" alt="(B, num_quantiles + 1)"/>.</p></li>
-<li><p>quantiles_hats: <img class="math" src="../_images/math/b9b358e42cc08de51669c3ecbefe8ec30ab6389b.svg" alt="(B, num_quantiles)"/>.</p></li>
-<li><p>q_tau_i: <img class="math" src="../_images/math/ab293c67fe2651132ce0de335902636e76a1c933.svg" alt="(B, num_quantiles - 1, M)"/>.</p></li>
-<li><p>entropies: <img class="math" src="../_images/math/e2b9dac894dc634829134b46c134dad6309341d5.svg" alt="(B, 1)"/>.</p></li>
+<li><p>x: <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is head_hidden_size.</p></li>
+<li><p>logit: <span class="math notranslate nohighlight">\((B, M)\)</span>, where M is action_shape.</p></li>
+<li><p>q: <span class="math notranslate nohighlight">\((B, num_quantiles, M)\)</span>.</p></li>
+<li><p>quantiles: <span class="math notranslate nohighlight">\((B, num_quantiles + 1)\)</span>.</p></li>
+<li><p>quantiles_hats: <span class="math notranslate nohighlight">\((B, num_quantiles)\)</span>.</p></li>
+<li><p>q_tau_i: <span class="math notranslate nohighlight">\((B, num_quantiles - 1, M)\)</span>.</p></li>
+<li><p>entropies: <span class="math notranslate nohighlight">\((B, 1)\)</span>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">FQF</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -716,6 +717,7 @@ skip-v4)</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

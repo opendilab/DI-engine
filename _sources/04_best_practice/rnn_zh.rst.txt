@@ -204,14 +204,14 @@ sqn     ×
     :scale: 50%
 
 初始化隐藏状态 (Hidden State)
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 策略的 ``_learn_model`` 需要初始化 RNN。这些隐藏状态来自 ``_collect_model`` 保存的``prev_state``。
 用户需要通过 _process_transition 函数将这些状态添加到 ``_learn_model`` 输入数据字典中。
+
 .. code:: python
 
-   def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         transition = {
             'obs': obs,
             'action': model_output['action'],
@@ -274,12 +274,7 @@ Burn-in 给予 RNN 网络一个
 - 当我们调用 self._collect_model 的 forward 方法时，我们设置 inference=True ，每次调用它，我们只传入一个 timestep 数据，
   所以我们可以在每个时间步得到 rnn 的隐藏状态： ``prev_state``。
 
-- 当我们调用 self._learn_model 的 forward 方法时，我们设置 inference=False ，当 self._learn_model 不是 inference 模式时，每次调用我们传入一个序列数据，
-  他们输出的 ``prev_state`` 字段只是最后一个时间步的隐藏状态，
-  所以我们可以通过指定参数 ``saved_hidden_state_timesteps`` 的方式来指定要存储哪些隐藏状态。
-  (``saved_hidden_state_timesteps`` 的数据格式是一个列表。 具体可参照 `ding/model/template/q_learning.py <https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700>`__ ) 的 ``self._learn_model`` 的 ``forward`` 方法.
-  正如我们在下面的代码中看到的，我们首先将 ``data['burnin_nstep_obs']`` 传递给 ``self._learn_model`` 和
-  ``self._target_model``， 以用于获取  ``saved_hidden_​​state_timesteps`` 列表中指定的不同时间步的 ``hidden_​​state``。 这些 ``hidden_​​state`` 将在后面计算 ``q_value``, ``target_q_value`` 和  ``target_q_action``时使用.
+- 当我们调用 self._learn_model 的 forward 方法时，我们设置 inference=False ，当 self._learn_model 不是 inference 模式时，每次调用我们传入一个序列数据，他们输出的 ``prev_state`` 字段只是最后一个时间步的隐藏状态，所以我们可以通过指定参数 ``saved_hidden_state_timesteps`` 的方式来指定要存储哪些隐藏状态。( ``saved_hidden_state_timesteps`` 的数据格式是一个列表。 具体可参照 `ding/model/template/q_learning.py <https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700>`_ ) 的 ``self._learn_model`` 的 ``forward`` 方法. 正如我们在下面的代码中看到的，我们首先将 ``data['burnin_nstep_obs']`` 传递给 ``self._learn_model`` 和 ``self._target_model``，以用于获取  ``saved_hidden_​​state_timesteps`` 列表中指定的不同时间步的 ``hidden_​​state``。 这些 ``hidden_​​state`` 将在后面计算 ``q_value``, ``target_q_value`` 和  ``target_q_action`` 时使用.
 
 - 请注意，在 r2d2 中，我们指定 ``saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]`` , 那么在调用完网络的 ``forward`` 方法后,
   ``burnin_output`` 和 ``burnin_output_target`` 将会保存 ``saved_hidden_state_timesteps`` 里面指定时间步的 ``hidden_state``.

@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -305,27 +306,27 @@
 <li><p>Communication Channel: integrating internal states of agents within a group and guiding the agents towards coordinated decision making. The LSTM unit can selectively outputs information that promotes cooperation and forgets information that impedes cooperation through gates.</p></li>
 </ul>
 <p>The overall training of ATOC is an extension of DDPG, including parameter updates of the critic, actor, communication channel, and attention unit.</p>
-<p>Select experiences where the action is determined by an agent independently (i.e., without communication) and experiences with communication, respectively, to update the action-value function <img class="math" src="../_images/math/63f7fb66cefc0642b169ba86004894c95c7b2e73.svg" alt="Q^{\mu}"/>:</p>
-<div class="math">
-<p><img src="../_images/math/e1be7c5e7d8e3b1fefcf3849414a247425f937a7.svg" alt="\mathcal{L}(\theta^{Q}) =
+<p>Select experiences where the action is determined by an agent independently (i.e., without communication) and experiences with communication, respectively, to update the action-value function <span class="math notranslate nohighlight">\(Q^{\mu}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(\theta^{Q}) =
 \mathbb{E}_{o,a,r,o^{'}}[(Q^{\mu}(o,a) -
 y)^{2}], y = r + \gamma Q^{\mu{'}}
-(o^{'},a^{'})|_{a^{'}=\mu^{'}(o^{'})}"/></p>
-</div><p>The gradients are propagated backwardly to the policy network and communication channel to update the
+(o^{'},a^{'})|_{a^{'}=\mu^{'}(o^{'})}\]</div>
+<p>The gradients are propagated backwardly to the policy network and communication channel to update the
 parameters.</p>
-<div class="math">
-<p><img src="../_images/math/da3d8e0e41887eb7c7a22e76902a380e39262f4e.svg" alt="\nabla_{\theta^{\mu}}\mathcal{J}(\theta^{\mu}) = \mathbb{E}_{o,a\sim \mathcal{R}}[\nabla_{\theta^{\mu}}\mu(a|o)\nabla_{a}Q^{\mu}(o,a)|_{a=\mu (o)}]"/></p>
-</div><p>The gradient of integrated thought in the communication channel:</p>
-<div class="math">
-<p><img src="../_images/math/737f04738e1acea7912a05febd279711d0166d74.svg" alt="\nabla_{\theta^{g}}\mathcal{J}(\theta^{g}) =
+<div class="math notranslate nohighlight">
+\[\nabla_{\theta^{\mu}}\mathcal{J}(\theta^{\mu}) = \mathbb{E}_{o,a\sim \mathcal{R}}[\nabla_{\theta^{\mu}}\mu(a|o)\nabla_{a}Q^{\mu}(o,a)|_{a=\mu (o)}]\]</div>
+<p>The gradient of integrated thought in the communication channel:</p>
+<div class="math notranslate nohighlight">
+\[\nabla_{\theta^{g}}\mathcal{J}(\theta^{g}) =
 \mathbb{E}_{o,a\sim \mathcal{R}}
-[\nabla_{\theta^{g}}g(\tilde{h}|H)\nabla_{\tilde{h}}\mu(a|\hat{h})\nabla_{\hat{a}}Q^{\mu}(o,a)|_{a=\mu (o)}]"/></p>
-</div><p>The attention unit is trained as a binary classifier for communication. The log loss to update attention unit of ATOC:</p>
-<div class="math">
-<p><img src="../_images/math/9b510122fed8c20a27221002b7c2d8dc14cc53d2.svg" alt="\mathcal{L}(\theta^{p}) = -\nabla \hat{Q}_{i}
+[\nabla_{\theta^{g}}g(\tilde{h}|H)\nabla_{\tilde{h}}\mu(a|\hat{h})\nabla_{\hat{a}}Q^{\mu}(o,a)|_{a=\mu (o)}]\]</div>
+<p>The attention unit is trained as a binary classifier for communication. The log loss to update attention unit of ATOC:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(\theta^{p}) = -\nabla \hat{Q}_{i}
 \log(p(h^{i}|\theta^{p}))- (1-\Delta
-\hat{Q}_{i}) \log(1 - p(h^{i}|\theta^{p}))"/></p>
-</div></section>
+\hat{Q}_{i}) \log(1 - p(h^{i}|\theta^{p}))\]</div>
+</section>
 <section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -437,6 +438,7 @@ parameters.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   
