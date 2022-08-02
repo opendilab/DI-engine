@@ -2,24 +2,24 @@ gym hybrid
 ~~~~~~~~~~
 
 Overview
-=========
+=======
 In the gym-hybrid task, the agent's task is simple: Accelerate, turn, or break within a square box of side length 2 to stay in the red target area. The target area is a circle with a radius of 0.1. As shown below.
 
 .. image:: ./images/hybrid.gif
    :align: center
 
 Install
-========
+====
 
 Installation Method
---------------------
+--------
 
 .. code:: shell
 
     pip install git+https://github.com/thomashirtz/gym-hybrid@master#egg=gym-hybrid
 
 Verify Installation
---------------------
+--------
 
 Method 1: Run the following command, if the version information can be displayed normally, the installation is completed successfully.
 
@@ -93,7 +93,7 @@ Achieve goals. When the episode ends, if the agent stops in the target area, it 
 
 
 Termination Condition
------------------------
+------------
 The termination condition for each episode of the Gym-hybrid environment is any of the following:
 
 - The agent successfully entered the target area
@@ -104,19 +104,19 @@ The termination condition for each episode of the Gym-hybrid environment is any 
   
 
 Built-in Environment
---------------------------
+------------
 There are two built-in environments, \ ``"Moving-v0"`` \ and \ ``"Sliding-v0"`` \. The former does not consider conservation of inertia, while the latter does (so is more practical). The two environments are consistent in state space, action space, and reward space.
 
 Other
-=======
+====
 
 Store Video
-----------------
+--------
 
 Some environments have their own rendering plug-ins, but DI-engine does not support the rendering plug-ins that come with the environment, but generates video recordings by saving the logs during training. For details, please refer to the Visualization & Logging section under the DI-engine `official documentation <https://opendilab.github.io/DI-engine/quick_start/index.html>`__ Quick start chapter.
 
 DI-zoo Runnable Code Example
-===============================
+======================
 
 The following provides a complete gym hybrid environment config, using DDPG as the baseline algorithm. Please run the \ ``gym_hybrid_ddpg_config.py`` \ file in the \ ``DI-engine/dizoo/gym_hybrid`` \ directory, as follows.
 

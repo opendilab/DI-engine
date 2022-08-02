@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="Best Practice" href="../04_best_practice/index.html" />
+  <link rel="next" title="API Doc" href="../05_api_doc/index.html" />
   <link rel="prev" title="Middleware" href="middleware.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -413,7 +412,6 @@
 <p>By analogy, K8s clustering brings the concept of jobs and pods, where a job can be configured with multiple pods via replica, each with a quantitative resource allocation. Here a pod is equivalent to a process within a single machine, or the concept of a task in slurm. So we recommend deploying ditask in k8s with only one worker per ditask (ditask parameter –parallel-workers 1) and 4 replicas.</p>
 <a class="reference internal image-reference" href="../_images/worker_k8s.png"><img alt="../_images/worker_k8s.png" class="align-center" src="../_images/worker_k8s.png" style="width: 800px;" /></a>
 <p>If for some special reason (e.g. you want to reduce the number of pods because you don’t have enough gpu), you can still enable multiple ditask workers in a pod of k8s or a task of slurm, and the actual executing processes will be distributed as follows. Either way, the –parallel-workers argument only affects the number of child processes in the current container, and the number of workers for the entire training task needs to be multiplied by the number of ditask master processes (number of pods or number of slurm tasks).</p>
-<a class="reference internal image-reference" href="../_images/worker_k8s_multi_workers.png"><img alt="../_images/worker_k8s_multi_workers.png" class="align-center" src="../_images/worker_k8s_multi_workers.png" style="width: 800px;" /></a>
 </section>
 </section>
 
@@ -425,7 +423,7 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="../04_best_practice/index.html" class="btn btn-neutral float-right" title="Best Practice" accesskey="n"
+    <a href="../05_api_doc/index.html" class="btn btn-neutral float-right" title="API Doc" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     

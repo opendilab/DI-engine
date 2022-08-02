@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -327,10 +326,10 @@ Using the policy learned, the MCTS simulation will gain better performance compa
 <li><p>bandit algorithms</p>
 <blockquote>
 <div><p>The bandit algorithm mostly used in MCTS is the UCT algorithm.</p>
-<p><span class="math notranslate nohighlight">\(U C T=\bar{X}_{j}+2 C_{p} \sqrt{\frac{2 \ln n}{n_{j}}}\)</span></p>
+<p><img class="math" src="../_images/math/f324cbbde16a311954d30d6b7df736412012780a.svg" alt="U C T=\bar{X}_{j}+2 C_{p} \sqrt{\frac{2 \ln n}{n_{j}}}"/></p>
 <p>There are certain variation of UCT algorithm, such as PUCT which used in <strong>AlphaGo</strong>.</p>
-<p><span class="math notranslate nohighlight">\(U(s, a)=c_{\text {puct }} P(s, a) \frac{\sqrt{\sum_{b} N(s, b)}}{1+N(s, a)}\)</span></p>
-<p>where <span class="math notranslate nohighlight">\(N(s, a)\)</span> is the visit count state and action, and <span class="math notranslate nohighlight">\(c_{puct}\)</span> is a constant determining the level of exploration.</p>
+<p><img class="math" src="../_images/math/43f87345bd55cd5713096401cbe1546ea4b99ca7.svg" alt="U(s, a)=c_{\text {puct }} P(s, a) \frac{\sqrt{\sum_{b} N(s, b)}}{1+N(s, a)}"/></p>
+<p>where <img class="math" src="../_images/math/a4531279e1324458086b84df7331bd2eba39d599.svg" alt="N(s, a)"/> is the visit count state and action, and <img class="math" src="../_images/math/a42b6964c1f9ef39f6cce6dd0224854e239159b5.svg" alt="c_{puct}"/> is a constant determining the level of exploration.</p>
 </div></blockquote>
 </li>
 <li><p>model-based RL algorithms</p>
@@ -441,7 +440,6 @@ policy, the value function and the reward.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

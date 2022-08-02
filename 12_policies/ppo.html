@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -304,34 +303,34 @@ PPO avoids the calculation of the Hessian matrix in TRPO, thus is simpler to imp
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>PPO use clipped probability ratios in the policy gradient to prevent the policy from too rapid changes, specifically the
 optimizing objective is:</p>
-<div class="math notranslate nohighlight">
-\[L_{\theta_{k}}^{C L I P}(\theta) \doteq {\mathrm{E}}_{s, a \sim \theta_{k}}\left[\min \left(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)} A^{\theta_{k}}(s, a), {clip}\left(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)}, 1-\epsilon, 1+\epsilon\right) A^{\theta_{k}}(s, a)\right)\right]\]</div>
-<p>where <span class="math notranslate nohighlight">\(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)}\)</span> is denoted as the probability ratio <span class="math notranslate nohighlight">\(r_t(\theta)\)</span>,
-<span class="math notranslate nohighlight">\(\theta\)</span> are the policy parameters to be optimized at the current time, <span class="math notranslate nohighlight">\(\theta_k\)</span> are the parameters of the policy at iteration k and <span class="math notranslate nohighlight">\(\gamma\)</span> is a small hyperparameter control that controls the maximum update step size of the policy parameters.</p>
+<div class="math">
+<p><img src="../_images/math/016192a905797a1ec534f164603a87b16379275d.svg" alt="L_{\theta_{k}}^{C L I P}(\theta) \doteq {\mathrm{E}}_{s, a \sim \theta_{k}}\left[\min \left(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)} A^{\theta_{k}}(s, a), {clip}\left(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)}, 1-\epsilon, 1+\epsilon\right) A^{\theta_{k}}(s, a)\right)\right]"/></p>
+</div><p>where <img class="math" src="../_images/math/419ab4c6603691d8cba0f086479e8dbf5db57f4e.svg" alt="\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)}"/> is denoted as the probability ratio <img class="math" src="../_images/math/a8c8d4da3fc84e319a94d566bef95ed0e1828ee5.svg" alt="r_t(\theta)"/>,
+<img class="math" src="../_images/math/70dc2a5833559be2562698337b43b3bf1ac8e9bd.svg" alt="\theta"/> are the policy parameters to be optimized at the current time, <img class="math" src="../_images/math/7b845c1ed38a5c20f8fdfcfc042eec7f8056b232.svg" alt="\theta_k"/> are the parameters of the policy at iteration k and <img class="math" src="../_images/math/06c8500e920549cd88af0be68f48f12bc8859780.svg" alt="\gamma"/> is a small hyperparameter control that controls the maximum update step size of the policy parameters.</p>
 <p>According to this <a class="reference external" href="https://drive.google.com/file/d/1PDzn9RPvaXjJFZkGeapMHbHGiWWW20Ey/view?usp=sharing">note</a>, the PPO-Clip objective can be simplified to:</p>
-<div class="math notranslate nohighlight">
-\[L_{\theta_{k}}^{C L I P}(\theta)={\mathrm{E}}_{s, a \sim \theta_{k}}\left[\min \left(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)} A^{\theta_{k}}(s, a), g\left(\epsilon, A^{\theta_{k}}(s, a)\right)\right)\right]\]</div>
-<p>where,</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}g(\epsilon, A)= \begin{cases}(1+\epsilon) A &amp; A \geq 0 \\ (1-\epsilon) A &amp; \text { otherwise }\end{cases}\end{split}\]</div>
-<p>Usually we don’t access to the true advantage value of the sampled state-action pair <span class="math notranslate nohighlight">\((s,a)\)</span>, but luckily we can calculate a approximate value <span class="math notranslate nohighlight">\(\hat{A}_t\)</span>.
-The idea behind this clipping objective is: for <span class="math notranslate nohighlight">\((s,a)\)</span>, if <span class="math notranslate nohighlight">\(\hat{A}_t &lt; 0\)</span>, maximizing <span class="math notranslate nohighlight">\(L^{C L I P}(\theta)\)</span> means make <span class="math notranslate nohighlight">\(\pi_{\theta}(a_{t} \mid s_{t})\)</span> smaller, but no additional benefit to the objective function is gained
-by making <span class="math notranslate nohighlight">\(\pi_{\theta}(a_{t} \mid s_{t})\)</span> smaller than <span class="math notranslate nohighlight">\((1-\epsilon)\pi_{\theta}(a_{t} \mid s_{t})\)</span>
-. Analogously, if <span class="math notranslate nohighlight">\(\hat{A}_t &gt; 0\)</span>, maximizing <span class="math notranslate nohighlight">\(L^{C L I P}(\theta)\)</span> means make <span class="math notranslate nohighlight">\(\pi_{\theta}(a_{t} \mid s_{t})\)</span> larger, but no additional benefit is gained by making <span class="math notranslate nohighlight">\(\pi_{\theta}(a_{t} \mid s_{t})\)</span>
-larger than <span class="math notranslate nohighlight">\((1+\epsilon)\pi_{\theta}(a_{t} \mid s_{t})\)</span>.
+<div class="math">
+<p><img src="../_images/math/fd9b34c6e337c17c636787cca54e98eeb8c9c3cc.svg" alt="L_{\theta_{k}}^{C L I P}(\theta)={\mathrm{E}}_{s, a \sim \theta_{k}}\left[\min \left(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)} A^{\theta_{k}}(s, a), g\left(\epsilon, A^{\theta_{k}}(s, a)\right)\right)\right]"/></p>
+</div><p>where,</p>
+<div class="math">
+<p><img src="../_images/math/e1317c0b9d988b12cde8cba469e4ec11114c0165.svg" alt="g(\epsilon, A)= \begin{cases}(1+\epsilon) A &amp; A \geq 0 \\ (1-\epsilon) A &amp; \text { otherwise }\end{cases}"/></p>
+</div><p>Usually we don’t access to the true advantage value of the sampled state-action pair <img class="math" src="../_images/math/942aa23607e31bb39c841e530ee236cf71e26da1.svg" alt="(s,a)"/>, but luckily we can calculate a approximate value <img class="math" src="../_images/math/f70088b942f04a8f6dead4cf6eb04dcc828552b6.svg" alt="\hat{A}_t"/>.
+The idea behind this clipping objective is: for <img class="math" src="../_images/math/942aa23607e31bb39c841e530ee236cf71e26da1.svg" alt="(s,a)"/>, if <img class="math" src="../_images/math/2ee33b30de1fa225190cb38ba3813f34c0b5ee2c.svg" alt="\hat{A}_t &lt; 0"/>, maximizing <img class="math" src="../_images/math/43fd94bac3cb711424817ad5085f49773b037dd6.svg" alt="L^{C L I P}(\theta)"/> means make <img class="math" src="../_images/math/6a45dc64b634b9deb8803372162193074e0b388e.svg" alt="\pi_{\theta}(a_{t} \mid s_{t})"/> smaller, but no additional benefit to the objective function is gained
+by making <img class="math" src="../_images/math/6a45dc64b634b9deb8803372162193074e0b388e.svg" alt="\pi_{\theta}(a_{t} \mid s_{t})"/> smaller than <img class="math" src="../_images/math/62c7c19eda2d131b108223d9e59a85ead7a3facc.svg" alt="(1-\epsilon)\pi_{\theta}(a_{t} \mid s_{t})"/>
+. Analogously, if <img class="math" src="../_images/math/27aef6ce45f0ec97b55db5346bcb9d6d2f05728b.svg" alt="\hat{A}_t &gt; 0"/>, maximizing <img class="math" src="../_images/math/43fd94bac3cb711424817ad5085f49773b037dd6.svg" alt="L^{C L I P}(\theta)"/> means make <img class="math" src="../_images/math/6a45dc64b634b9deb8803372162193074e0b388e.svg" alt="\pi_{\theta}(a_{t} \mid s_{t})"/> larger, but no additional benefit is gained by making <img class="math" src="../_images/math/6a45dc64b634b9deb8803372162193074e0b388e.svg" alt="\pi_{\theta}(a_{t} \mid s_{t})"/>
+larger than <img class="math" src="../_images/math/c3bc26407c17ff3f6c4fddf1b30f25cce092fe39.svg" alt="(1+\epsilon)\pi_{\theta}(a_{t} \mid s_{t})"/>.
 Empirically, by optimizing this objective function, the update step of the policy network can be controlled within a reasonable range.</p>
 <p>For the value function, in order to balance the bias and variance in value learning, PPO adopts the <a class="reference external" href="https://arxiv.org/abs/1506.02438">Generalized Advantage Estimator</a> to compute the advantages,
 which is a exponentially-weighted sum of Bellman residual terms.  that is analogous to TD(λ):</p>
-<div class="math notranslate nohighlight">
-\[\hat{A}_{t}=\delta_{t}+(\gamma \lambda) \delta_{t+1}+\cdots+\cdots+(\gamma \lambda)^{T-t+1} \delta_{T-1}\]</div>
-<p>where V is an approximate value function, <span class="math notranslate nohighlight">\(\delta_{t}=r_{t}+\gamma V\left(s_{t+1}\right)-V\left(s_{t}\right)\)</span> is the Bellman residual terms, or called TD-error at timestep t.</p>
-<p>The value target is calculated as: <span class="math notranslate nohighlight">\(V_{t}^{target}=V_{t}+\hat{A}_{t}\)</span>,
-and the value loss is defined as a squared-error: <span class="math notranslate nohighlight">\(\frac{1}{2}*\left(V_{\theta}\left(s_{t}\right)-V_{t}^{\mathrm{target}}\right)^{2}\)</span>,
+<div class="math">
+<p><img src="../_images/math/4a59a446e1905e98abbd917822e4b12403afb150.svg" alt="\hat{A}_{t}=\delta_{t}+(\gamma \lambda) \delta_{t+1}+\cdots+\cdots+(\gamma \lambda)^{T-t+1} \delta_{T-1}"/></p>
+</div><p>where V is an approximate value function, <img class="math" src="../_images/math/cbdd0286ff358563877cefd5882b74fdcf8a39bd.svg" alt="\delta_{t}=r_{t}+\gamma V\left(s_{t+1}\right)-V\left(s_{t}\right)"/> is the Bellman residual terms, or called TD-error at timestep t.</p>
+<p>The value target is calculated as: <img class="math" src="../_images/math/277939bac9149b54f53290c716fc74b083fc4bfe.svg" alt="V_{t}^{target}=V_{t}+\hat{A}_{t}"/>,
+and the value loss is defined as a squared-error: <img class="math" src="../_images/math/e0ef0925d951ff3327a801bce8469b54313a8287.svg" alt="\frac{1}{2}*\left(V_{\theta}\left(s_{t}\right)-V_{t}^{\mathrm{target}}\right)^{2}"/>,
 To ensure adequate exploration, PPO further enhances the objective by adding a policy entropy bonus.</p>
 <p>The total PPO loss is a weighted sum of policy loss, value loss and policy entropy regularization term:</p>
-<div class="math notranslate nohighlight">
-\[L_{t}^{total}=\hat{\mathbb{E}}_{t}[ L_{t}^{C L I P}(\theta)+c_{1} L_{t}^{V F}(\phi)-c_{2} H(a_t|s_{t}; \pi_{\theta})]\]</div>
-<p>where c1 and c2 are coefficients that control the relative importance of different terms.</p>
+<div class="math">
+<p><img src="../_images/math/7349016c345444fb3599614732d169414d703372.svg" alt="L_{t}^{total}=\hat{\mathbb{E}}_{t}[ L_{t}^{C L I P}(\theta)+c_{1} L_{t}^{V F}(\phi)-c_{2} H(a_t|s_{t}; \pi_{\theta})]"/></p>
+</div><p>where c1 and c2 are coefficients that control the relative importance of different terms.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The standard implementation of PPO contains the many additional optimizations which are not described in the paper. Further details can be found in <a class="reference external" href="https://arxiv.org/abs/2005.12729">IMPLEMENTATION MATTERS IN DEEP POLICY GRADIENTS: A CASE STUDY ON PPO AND TRPO</a>.</p>
@@ -409,7 +408,7 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
@@ -447,8 +446,8 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
@@ -499,7 +498,7 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
@@ -551,9 +550,9 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
@@ -649,8 +648,8 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </td>
 <td><div class="line-block">
 <div class="line">In the paper <a class="reference external" href="https://arxiv.org/abs/1912.09729">Mastering Complex Control in MOBA Games with Deep Reinforcement Learning</a>,</div>
-<div class="line">the authors claim that when <span class="math notranslate nohighlight">\(\hat{A}_t &lt; 0\)</span>, a too large <span class="math notranslate nohighlight">\(r_t(\theta)\)</span> should also be clipped, which introduces dual clip:</div>
-<div class="line"><span class="math notranslate nohighlight">\(\max \left(\min \left(r_{t}(\theta) \hat{A}_{t}, {clip}\left(r_{t}(\theta), 1-\epsilon, 1+\epsilon\right) \hat{A}_{t}\right), c \hat{A}_{t}\right)\)</span></div>
+<div class="line">the authors claim that when <img class="math" src="../_images/math/2ee33b30de1fa225190cb38ba3813f34c0b5ee2c.svg" alt="\hat{A}_t &lt; 0"/>, a too large <img class="math" src="../_images/math/a8c8d4da3fc84e319a94d566bef95ed0e1828ee5.svg" alt="r_t(\theta)"/> should also be clipped, which introduces dual clip:</div>
+<div class="line"><img class="math" src="../_images/math/29f52406d28d600171c2bbcdd43d1cc05bcfd0f4.svg" alt="\max \left(\min \left(r_{t}(\theta) \hat{A}_{t}, {clip}\left(r_{t}(\theta), 1-\epsilon, 1+\epsilon\right) \hat{A}_{t}\right), c \hat{A}_{t}\right)"/></div>
 </div>
 </td>
 </tr>
@@ -965,7 +964,6 @@ skip-v4)</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

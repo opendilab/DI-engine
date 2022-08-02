@@ -18,7 +18,7 @@ Quick Facts
 5. FQF can be equipped with RNN.
 
 Key Equations or Key Graphs
-----------------------------
+-------------
 For any continuous quantile function :math:`F_{Z}^{-1}` that is non-decreasing, define the 1-Wasserstein loss of :math:`F_{Z}^{-1}` and :math:`F_{Z}^{-1, \tau}` by
 
 .. math::

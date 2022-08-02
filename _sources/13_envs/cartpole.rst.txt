@@ -2,17 +2,17 @@ Cartpole
 ~~~~~~~~~~~~~~~~~~
 
 Overview
-==========
+=======
 The inverted pendulum problem is a classic control problem in reinforcement learning. Cartpole is a discrete control task in the inverted pendulum problem. In the game there is a car with a pole on it. The cart slides side to side on a smooth and frictionless track to keep the pole upright. As shown below.
 
 .. image:: ./images/cartpole.gif
    :align: center
 
 Install
-========
+====
 
 Installation Method
----------------------
+--------
 
 The Cartpole environment is built into the gym, and you can install the gym directly. Its environment id is \ ``CartPole-v0``\.
 
@@ -21,7 +21,7 @@ The Cartpole environment is built into the gym, and you can install the gym dire
     pip install gym
     
 Verify Installation
---------------------
+--------
 
 Run the following command on the Python command line to verify that the installation is successful.
 
@@ -33,7 +33,7 @@ Run the following command on the Python command line to verify that the installa
     print(obs)
 
 Environment Introduction
-===========================
+=========
 
 Action Space
 ------------
@@ -70,7 +70,7 @@ Each step will receive a reward of 1 until the episode terminates (the terminati
 
 
 Termination Condition
------------------------
+------------
 The termination condition for each episode of the Cartpole environment is any of the following:
 
 - The angle of the rod offset is more than 12 degrees.
@@ -81,21 +81,21 @@ The termination condition for each episode of the Cartpole environment is any of
   
 
 When Does the Cartpole Mission Count as a Victory
----------------------------------------------------
+--------------------------------
 
 When the average episode reward for 100 trials reaches 195 or more, the game is considered a victory.
 
 
 Others
-========
+====
 
 Store Video
----------------
+--------
 
 Some environments have their own rendering plug-ins, but DI-engine does not support the rendering plug-ins that come with the environment, but generates video recordings by saving the logs during training. For details, please refer to the Visualization & Logging section under the DI-engine `official documentation <https://opendilab.github.io/DI-engine/quick_start/index.html>`__ Quick start chapter.
 
 DI-zoo Runnable Code Example
-==============================
+======================
 
 The following provides a complete cartpole environment config, using the DQN algorithm as the policy. Please run the \ ``cartpole_dqn_main.py`` \ file in the \ ``DI-engine/dizoo/classic_control/cartpole/entry`` \ directory, as follows.
 
@@ -190,7 +190,7 @@ The following provides a complete cartpole environment config, using the DQN alg
         main(cartpole_dqn_config)
 
 Experimental Results
-=========================
+=================
 The experimental results using the DQN algorithm are as follows. The abscissa is \ ``episode`` \, and the ordinate is \ ``reward_mean`` \.
 
 .. image:: ./images/cartpole_dqn.png

@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -344,11 +343,6 @@ For example, <code class="docutils literal notranslate"><span class="pre">Online
 <p>In addition to training and collection, there are many ways to take advantage of asynchrony, such as moving the next batch of data to the GPU earlier while training the model, and evaluating the performance of historical models while training the model. In practice, you may want to try more to speed up the whole interaction process by asynchronous execution.</p>
 <img alt="../_images/async.png" class="align-center" src="../_images/async.png" />
 </section>
-<section id="middleware-in-different-stages">
-<h2>Middleware in different stages<a class="headerlink" href="#middleware-in-different-stages" title="Permalink to this headline">¶</a></h2>
-<p>Most of the middleware can correspond to different stages. You can see the correspondence between the existing middleware and the stages in the following diagram in order to combine the various middleware correctly.</p>
-<img alt="../_images/pipeline.png" class="align-center" src="../_images/pipeline.png" />
-</section>
 </section>
 
 
@@ -397,7 +391,6 @@ For example, <code class="docutils literal notranslate"><span class="pre">Online
 <li><a class="reference internal" href="#">Middleware</a><ul>
 <li><a class="reference internal" href="#context">Context</a></li>
 <li><a class="reference internal" href="#using-task-to-execute-tasks-asynchronously">Using task to execute tasks asynchronously</a></li>
-<li><a class="reference internal" href="#middleware-in-different-stages">Middleware in different stages</a></li>
 </ul>
 </li>
 </ul>

@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -300,71 +299,71 @@
 <section id="double-dqn">
 <h3>Double DQN<a class="headerlink" href="#double-dqn" title="Permalink to this headline">¶</a></h3>
 <p>Double DQN, proposed in <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a>, is a common variant of DQN. Conventional DQN maintains a target q network, which is periodically updated with the current q network. Double DQN addresses the overestimation of q-value by decoupling. It selects action with the current q network but estimates the q-value with the target network, formally:</p>
-<div class="math notranslate nohighlight">
-\[\left(R_{t+1}+\gamma_{t+1} q_{\bar{\theta}}\left(S_{t+1}, \underset{a^{\prime}}{\operatorname{argmax}} q_{\theta}\left(S_{t+1}, a^{\prime}\right)\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}\]</div>
-</section>
+<div class="math">
+<p><img src="../_images/math/86d822f29b028c1816df523ab4b2807f20bb3292.svg" alt="\left(R_{t+1}+\gamma_{t+1} q_{\bar{\theta}}\left(S_{t+1}, \underset{a^{\prime}}{\operatorname{argmax}} q_{\theta}\left(S_{t+1}, a^{\prime}\right)\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}"/></p>
+</div></section>
 <section id="prioritized-experience-replay-per">
 <h3>Prioritized Experience Replay(PER)<a class="headerlink" href="#prioritized-experience-replay-per" title="Permalink to this headline">¶</a></h3>
 <p>DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probabilities relative to the last encountered absolute TD error, formally:</p>
-<div class="math notranslate nohighlight">
-\[p_{t} \propto\left|R_{t+1}+\gamma_{t+1} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+1}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right|^{\omega}\]</div>
-<p>In the original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.</p>
+<div class="math">
+<p><img src="../_images/math/6938c38cc746f97e49a52373a8fb8e4e30f37562.svg" alt="p_{t} \propto\left|R_{t+1}+\gamma_{t+1} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+1}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right|^{\omega}"/></p>
+</div><p>In the original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.</p>
 </section>
 <section id="dueling-network">
 <h3>Dueling Network<a class="headerlink" href="#dueling-network" title="Permalink to this headline">¶</a></h3>
 <p>The dueling network is a neural network architecture designed for value based RL. It features two streams of computation streams,
-one for state value function <span class="math notranslate nohighlight">\(V\)</span> and one for the state-dependent action advantage function <span class="math notranslate nohighlight">\(A\)</span>.
-Both of them share a common convolutional encoder, and are merged by a special aggregator to produce an estimate of the state-action value function <span class="math notranslate nohighlight">\(Q\)</span> as shown in figure.</p>
+one for state value function <img class="math" src="../_images/math/5a2eef32c1226f4023de69afd94cc2d15f4d4dae.svg" alt="V"/> and one for the state-dependent action advantage function <img class="math" src="../_images/math/c858adf8e048a7ca63ba672d126817eef2102ddd.svg" alt="A"/>.
+Both of them share a common convolutional encoder, and are merged by a special aggregator to produce an estimate of the state-action value function <img class="math" src="../_images/math/d99b0c7690900ac2fad59109353c638d0f1a228f.svg" alt="Q"/> as shown in figure.</p>
 <a class="reference internal image-reference" href="../_images/DuelingDQN.png"><img alt="../_images/DuelingDQN.png" class="align-center" src="../_images/DuelingDQN.png" style="height: 300px;" /></a>
-<p>It is unidentifiable that given <span class="math notranslate nohighlight">\(Q\)</span> we cannot recover <span class="math notranslate nohighlight">\(V\)</span> and <span class="math notranslate nohighlight">\(A\)</span> uniquely. So we force the advantage function zero by the following factorization of action values:</p>
-<div class="math notranslate nohighlight">
-\[q_{\theta}(s, a)=v_{\eta}\left(f_{\xi}(s)\right)+a_{\psi}\left(f_{\xi}(s), a\right)-\frac{\sum_{a^{\prime}} a_{\psi}\left(f_{\xi}(s), a^{\prime}\right)}{N_{\text {actions }}}\]</div>
-<p>In this way, it can address the issue of identifiability and increase the stability of the optimization.The network architecture of Rainbow is a dueling network architecture adapted for use with return distributions.</p>
+<p>It is unidentifiable that given <img class="math" src="../_images/math/d99b0c7690900ac2fad59109353c638d0f1a228f.svg" alt="Q"/> we cannot recover <img class="math" src="../_images/math/5a2eef32c1226f4023de69afd94cc2d15f4d4dae.svg" alt="V"/> and <img class="math" src="../_images/math/c858adf8e048a7ca63ba672d126817eef2102ddd.svg" alt="A"/> uniquely. So we force the advantage function zero by the following factorization of action values:</p>
+<div class="math">
+<p><img src="../_images/math/e94c08a43496140a17acaf6a2cd26af742d882d3.svg" alt="q_{\theta}(s, a)=v_{\eta}\left(f_{\xi}(s)\right)+a_{\psi}\left(f_{\xi}(s), a\right)-\frac{\sum_{a^{\prime}} a_{\psi}\left(f_{\xi}(s), a^{\prime}\right)}{N_{\text {actions }}}"/></p>
+</div><p>In this way, it can address the issue of identifiability and increase the stability of the optimization.The network architecture of Rainbow is a dueling network architecture adapted for use with return distributions.</p>
 </section>
 <section id="multi-step-learning">
 <h3>Multi-step Learning<a class="headerlink" href="#multi-step-learning" title="Permalink to this headline">¶</a></h3>
 <p>A multi-step variant of DQN is then defined by minimizing the alternative loss:</p>
-<div class="math notranslate nohighlight">
-\[\left(R_{t}^{(n)}+\gamma_{t}^{(n)} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+n}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}\]</div>
-<p>where the truncated n-step return is defined as:</p>
-<div class="math notranslate nohighlight">
-\[R_{t}^{(n)} \equiv \sum_{k=0}^{n-1} \gamma_{t}^{(k)} R_{t+k+1}\]</div>
-<p>In the paper <a class="reference external" href="https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf">Revisiting Fundamentals of Experience Replay</a>, the authors analyze that a greater capacity of replay buffer substantially increases the performance when multi-step learning is used, and they think the reason is that multi-step learning brings larger variance, which is compensated by a larger replay buffer.</p>
+<div class="math">
+<p><img src="../_images/math/055e4dd25e12efa85b492f12fd914d140abe09d1.svg" alt="\left(R_{t}^{(n)}+\gamma_{t}^{(n)} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+n}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}"/></p>
+</div><p>where the truncated n-step return is defined as:</p>
+<div class="math">
+<p><img src="../_images/math/2e8ee30dd8b9f3dd4175fcca79b3eb35e0dba210.svg" alt="R_{t}^{(n)} \equiv \sum_{k=0}^{n-1} \gamma_{t}^{(k)} R_{t+k+1}"/></p>
+</div><p>In the paper <a class="reference external" href="https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf">Revisiting Fundamentals of Experience Replay</a>, the authors analyze that a greater capacity of replay buffer substantially increases the performance when multi-step learning is used, and they think the reason is that multi-step learning brings larger variance, which is compensated by a larger replay buffer.</p>
 </section>
 <section id="distribution-rl">
 <h3>Distribution RL<a class="headerlink" href="#distribution-rl" title="Permalink to this headline">¶</a></h3>
-<p>Distributional RL was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.06887">A Distributional Perspective on Reinforcement Learning</a>. It learns to approximate the distribution of returns instead of the expected return using a discrete distribution, whose support is <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span>, a vector with <span class="math notranslate nohighlight">\(N_{\text {atoms }} \in \mathbb{N}^{+}atoms\)</span>, defined by <span class="math notranslate nohighlight">\(z^{i}=v_{\min }+(i-1) \frac{v_{\max }-v_{\min }}{N_{\text {atoms }}-1}\)</span> for <span class="math notranslate nohighlight">\(i \in\left\{1, \ldots, N_{\text {atoms }}\right\}\)</span>. The approximate distribution <span class="math notranslate nohighlight">\(d_{t}\)</span> at time t is defined on this support, with the probability <span class="math notranslate nohighlight">\(p_{\theta}^{i}\left(S_{t}, A_{t}\right)\)</span> on each atom <span class="math notranslate nohighlight">\(i\)</span>, such that <span class="math notranslate nohighlight">\(d_{t}=\left(z, p_{\theta}\left(S_{t}, A_{t}\right)\right)\)</span>. A distributinal variant of Q-learning is then derived by minimizing the Kullbeck-Leibler divergence between the distribution <span class="math notranslate nohighlight">\(d_{t}\)</span> and the target distribution <span class="math notranslate nohighlight">\(d_{t}^{\prime} \equiv\left(R_{t+1}+\gamma_{t+1} z, \quad p_{\bar{\theta}}\left(S_{t+1}, \bar{a}_{t+1}^{*}\right)\right)\)</span>, formally:</p>
-<div class="math notranslate nohighlight">
-\[D_{\mathrm{KL}}\left(\Phi_{\boldsymbol{z}} d_{t}^{\prime} \| d_{t}\right)\]</div>
-<p>Here <span class="math notranslate nohighlight">\(\Phi_{\boldsymbol{z}}\)</span> is a L2-projection of the target distribution onto the fixed support <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span>.</p>
+<p>Distributional RL was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.06887">A Distributional Perspective on Reinforcement Learning</a>. It learns to approximate the distribution of returns instead of the expected return using a discrete distribution, whose support is <img class="math" src="../_images/math/7366146f3bf022b322e3fe0ffe7d5c826ad52aa3.svg" alt="\boldsymbol{z}"/>, a vector with <img class="math" src="../_images/math/d0985e15adb188ffe3c24138c764475dd6c06edc.svg" alt="N_{\text {atoms }} \in \mathbb{N}^{+}atoms"/>, defined by <img class="math" src="../_images/math/4b17842e15a17db49d3a0ffdddb8153ee457f917.svg" alt="z^{i}=v_{\min }+(i-1) \frac{v_{\max }-v_{\min }}{N_{\text {atoms }}-1}"/> for <img class="math" src="../_images/math/d2a7beeacafc5cfc8c98f8982350392a101fbb1d.svg" alt="i \in\left\{1, \ldots, N_{\text {atoms }}\right\}"/>. The approximate distribution <img class="math" src="../_images/math/6982ce55e9cd3a7dc13a95b1ada0a558bf632293.svg" alt="d_{t}"/> at time t is defined on this support, with the probability <img class="math" src="../_images/math/bd0f9d9e25799c051011c7fe5a695c9dc921f954.svg" alt="p_{\theta}^{i}\left(S_{t}, A_{t}\right)"/> on each atom <img class="math" src="../_images/math/eaff87df6578bd23aef9b767264c5d7e75c494e3.svg" alt="i"/>, such that <img class="math" src="../_images/math/5f3bcab1dcf4db87769bdd97707e071cd4f2b164.svg" alt="d_{t}=\left(z, p_{\theta}\left(S_{t}, A_{t}\right)\right)"/>. A distributinal variant of Q-learning is then derived by minimizing the Kullbeck-Leibler divergence between the distribution <img class="math" src="../_images/math/6982ce55e9cd3a7dc13a95b1ada0a558bf632293.svg" alt="d_{t}"/> and the target distribution <img class="math" src="../_images/math/ae8d30fc5bf6ed8f4da13c40f07469e65d4917bb.svg" alt="d_{t}^{\prime} \equiv\left(R_{t+1}+\gamma_{t+1} z, \quad p_{\bar{\theta}}\left(S_{t+1}, \bar{a}_{t+1}^{*}\right)\right)"/>, formally:</p>
+<div class="math">
+<p><img src="../_images/math/c74a29d19e1ee34ac973f562291d1c28b54814ca.svg" alt="D_{\mathrm{KL}}\left(\Phi_{\boldsymbol{z}} d_{t}^{\prime} \| d_{t}\right)"/></p>
+</div><p>Here <img class="math" src="../_images/math/2e861f581d8f08fab882513f3aa88effb03672be.svg" alt="\Phi_{\boldsymbol{z}}"/> is a L2-projection of the target distribution onto the fixed support <img class="math" src="../_images/math/7366146f3bf022b322e3fe0ffe7d5c826ad52aa3.svg" alt="\boldsymbol{z}"/>.</p>
 </section>
 <section id="noisy-net">
 <h3>Noisy Net<a class="headerlink" href="#noisy-net" title="Permalink to this headline">¶</a></h3>
 <p>Noisy Nets use a noisy linear layer that combines a deterministic and noisy stream:</p>
-<div class="math notranslate nohighlight">
-\[\boldsymbol{y}=(\boldsymbol{b}+\mathbf{W} \boldsymbol{x})+\left(\boldsymbol{b}_{\text {noisy }} \odot \epsilon^{b}+\left(\mathbf{W}_{\text {noisy }} \odot \epsilon^{w}\right) \boldsymbol{x}\right)\]</div>
-<p>Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against <span class="math notranslate nohighlight">\(\epsilon\)</span>-greedy when the action space is large, e.g. Montezuma’s Revenge, because <span class="math notranslate nohighlight">\(\epsilon\)</span>-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
-In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the noises are first sampled from <span class="math notranslate nohighlight">\(N(0,1)\)</span>, then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. <span class="math notranslate nohighlight">\(x \rightarrow x.sign() * x.sqrt()\)</span>.</p>
+<div class="math">
+<p><img src="../_images/math/ef3dde9499cf440b44d08d7d529336d696158078.svg" alt="\boldsymbol{y}=(\boldsymbol{b}+\mathbf{W} \boldsymbol{x})+\left(\boldsymbol{b}_{\text {noisy }} \odot \epsilon^{b}+\left(\mathbf{W}_{\text {noisy }} \odot \epsilon^{w}\right) \boldsymbol{x}\right)"/></p>
+</div><p>Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against <img class="math" src="../_images/math/16f308203c04d65932015daf58f48836dddfc61f.svg" alt="\epsilon"/>-greedy when the action space is large, e.g. Montezuma’s Revenge, because <img class="math" src="../_images/math/16f308203c04d65932015daf58f48836dddfc61f.svg" alt="\epsilon"/>-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
+In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the noises are first sampled from <img class="math" src="../_images/math/1c4c4e51508f25f50bfeeffc79459431d82e86f7.svg" alt="N(0,1)"/>, then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. <img class="math" src="../_images/math/d18632a4bbe15b0b7c3b424703c290e725e6d6ac.svg" alt="x \rightarrow x.sign() * x.sqrt()"/>.</p>
 </section>
 <section id="intergrated-method">
 <h3>Intergrated Method<a class="headerlink" href="#intergrated-method" title="Permalink to this headline">¶</a></h3>
 <p>First, We replace the 1-step distributional loss with multi-step loss:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{split}
+<div class="math">
+<p><img src="../_images/math/15ce0ee743d862c6123494808ec7cc5ffcfa7a75.svg" alt="\begin{split}
 D_{\mathrm{KL}}\left(\Phi_{\boldsymbol{z}} d_{t}^{(n)} \| d_{t}\right) \\
 d_{t}^{(n)}=\left(R_{t}^{(n)}+\gamma_{t}^{(n)} z,\quad p_{\bar{\theta}}\left(S_{t+n}, a_{t+n}^{*}\right)\right)
-\end{split}\end{split}\]</div>
-<p>Then, we comine the multi-step distributinal loss with Double DQN by selecting the greedy action using the online network and evaluating such action using the target network.
+\end{split}"/></p>
+</div><p>Then, we comine the multi-step distributinal loss with Double DQN by selecting the greedy action using the online network and evaluating such action using the target network.
 The KL loss is also used to prioritize the transitions:</p>
-<div class="math notranslate nohighlight">
-\[p_{t} \propto\left(D_{\mathrm{KL}}\left(\Phi_{z} d_{t}^{(n)} \| d_{t}\right)\right)^{\omega}\]</div>
-<p>The network has a shared representation, which is then fed into a value stream <span class="math notranslate nohighlight">\(v_\eta\)</span> with <span class="math notranslate nohighlight">\(N_{atoms}\)</span> outputs, and into an advantage stream <span class="math notranslate nohighlight">\(a_{\psi}\)</span> with <span class="math notranslate nohighlight">\(N_{atoms} \times N_{actions}\)</span> outputs, where <span class="math notranslate nohighlight">\(a_{\psi}^i(a)\)</span> will denote the output corresponding to atom i and action a. For each atom <span class="math notranslate nohighlight">\(z_i\)</span>, the value and advantage streams are aggregated, as in dueling DQN, and then passed through a softmax layer to obtain the normalized parametric distributions used to estimate the returns’ distributions:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{split}
+<div class="math">
+<p><img src="../_images/math/11c13a24c1d9ef851064973549a3943cf1ea351c.svg" alt="p_{t} \propto\left(D_{\mathrm{KL}}\left(\Phi_{z} d_{t}^{(n)} \| d_{t}\right)\right)^{\omega}"/></p>
+</div><p>The network has a shared representation, which is then fed into a value stream <img class="math" src="../_images/math/a3ed04a7582fe6ee6bf7085cd72e5ed55160aaea.svg" alt="v_\eta"/> with <img class="math" src="../_images/math/9fdccda6466d85350193096a539a90dd3fdd88a8.svg" alt="N_{atoms}"/> outputs, and into an advantage stream <img class="math" src="../_images/math/e4645dd5b22a9541715bf6513cf5a5c4f0983780.svg" alt="a_{\psi}"/> with <img class="math" src="../_images/math/e4464fae5e46515b1d0c72ae1ae4304d5556f972.svg" alt="N_{atoms} \times N_{actions}"/> outputs, where <img class="math" src="../_images/math/d55954ee0cd311ac593347dcb3cb7ec67ca44a94.svg" alt="a_{\psi}^i(a)"/> will denote the output corresponding to atom i and action a. For each atom <img class="math" src="../_images/math/35794e20eb2d0ab8050d07cc691f0e2098deb611.svg" alt="z_i"/>, the value and advantage streams are aggregated, as in dueling DQN, and then passed through a softmax layer to obtain the normalized parametric distributions used to estimate the returns’ distributions:</p>
+<div class="math">
+<p><img src="../_images/math/cbc2550790a63a346b5f261812ab361d89d650ca.svg" alt="\begin{split}
 p_{\theta}^{i}(s, a)=\frac{\exp \left(v_{\eta}^{i}(\phi)+a_{\psi}^{i}(\phi, a)-\bar{a}_{\psi}^{i}(s)\right)}{\sum_{j} \exp \left(v_{\eta}^{j}(\phi)+a_{\psi}^{j}(\phi, a)-\bar{a}_{\psi}^{j}(s)\right)} \\
 \text { where } \phi=f_{\xi}(s) \text { and } \bar{a}_{\psi}^{i}(s)=\frac{1}{N_{\text {actions }}} \sum_{a^{\prime}} a_{\psi}^{i}\left(\phi, a^{\prime}\right)
-\end{split}\end{split}\]</div>
-</section>
+\end{split}"/></p>
+</div></section>
 </section>
 <section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
@@ -630,9 +629,9 @@ Parameter updates with Rainbow’s MLPs forward setup.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is head_hidden_size.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where M is action_shape.</p></li>
-<li><p>distribution(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M, P)\)</span>, where P is n_atom.</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9d09f5531d0fa16bf302bf577ac8bde824dceb37.svg" alt="(B, N)"/>, where B is batch size and N is head_hidden_size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/52043aac20d99e911aa6c01104e8de38252569ec.svg" alt="(B, M)"/>, where M is action_shape.</p></li>
+<li><p>distribution(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/0640f575005f6b65991c8e9ba12d51a4654993ae.svg" alt="(B, M, P)"/>, where P is n_atom.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">RainbowDQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -883,7 +882,6 @@ type of policy as below.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

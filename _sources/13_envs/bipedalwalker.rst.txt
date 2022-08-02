@@ -18,26 +18,22 @@ Installation Method
 Just install the gym and box2d libraries, which can be installed by pip or combined with DI-engine
 
 .. code:: shell
-
    # Method1: Install Directly
    pip install gym
    pip install box2d
    # Method2: Install with DI-engine requirements
    cd DI-engine
    pip install ".[common_env]"
-
 Verify Installation
 -------------------
 
 After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:
 
 .. code:: python
-
    import gym
    env = gym.make('BipedalWalker-v3')
    obs = env.reset()
    print(obs.shape)  # (24,)
-
 Image
 -------
 
@@ -93,7 +89,6 @@ Store Video
 After the environment is created, but before reset, call the  \ ``enable_save_replay``\ method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call \ ``gym.wrapper.Monitor``\ implementation, depends on \ ``ffmpeg``\), the code shown below will run an environment episode and save the results of this episode in the form \ ``./video/xxx.mp4``\ in a file like this:
 
 .. code:: python
-
     from easydict import EasyDict
     from dizoo.box2d.bipedalwalker.envs import BipedalWalkerEnv
     import numpy as np
@@ -190,6 +185,5 @@ Benchmark Algorithm Performance
 - Average reward more than or equal to 300 is considered as a better agent
 
     - BipedalWalker + TD3
-
     .. image:: images/bipedalwalker_td3.png
        :align: center

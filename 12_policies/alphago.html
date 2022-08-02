@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -312,7 +311,7 @@ and continuously train neural networks through self-play.</p>
 <p>After passing offline-RL and self-play online-RL training, AlphaGo’s level has reached and surpassed the level of top professional Go players:</p>
 <img alt="../_images/Go-ranking.jpg" src="../_images/Go-ranking.jpg" />
 <p>The PUCT algorithm:</p>
-<p><span class="math notranslate nohighlight">\(u(s, a)=c_{\mathrm{puct}} P(s, a) \frac{\sqrt{\sum_{b} N_{r}(s, b)}}{1+N_{r}(s, a)}\)</span></p>
+<p><img class="math" src="../_images/math/4f27cfb3f770d7eaecf8edd29e00cca0b8b44b13.svg" alt="u(s, a)=c_{\mathrm{puct}} P(s, a) \frac{\sqrt{\sum_{b} N_{r}(s, b)}}{1+N_{r}(s, a)}"/></p>
 <p>The Monte Carlo Tree Search process of AlphaGo:</p>
 <img alt="../_images/Go-mcts.jpg" src="../_images/Go-mcts.jpg" />
 <p>The fly in the ointment is that AlphaGo used a lot of Human prior knowledge. In addition to using replays of professional Go players,
@@ -486,7 +485,6 @@ but trains a purely self-play deep learning algorithm starting from zero.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

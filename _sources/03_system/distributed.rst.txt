@@ -154,7 +154,7 @@ Once installed, the following template can help you quickly deploy the DI-engine
     The above template will start 6 DI-engine processes (3 pods, two processes per pod)
 
 Worker & Job & Pod & Task & Node & ...
--------------------------------------------
+-------------------------------
 
 Since DI-engine supports standalone, k8s and slurm deployment, and k8s and slurm itself have similar concepts like node and task, here are some explanations to avoid confusion.
 
@@ -209,7 +209,7 @@ pod of k8s or a task of slurm, and the actual executing processes will be distri
 Either way, the --parallel-workers argument only affects the number of child processes in the current container, and the number of workers for the entire \
 training task needs to be multiplied by the number of ditask master processes (number of pods or number of slurm tasks).
 
-.. image:: 
+.. images::
     images/worker_k8s_multi_workers.png
     :width: 800
     :align: center

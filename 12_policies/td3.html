@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -286,7 +285,7 @@
 TD3 is an actor-critic, model-free algorithm based on the <a class="reference external" href="https://arxiv.org/abs/1509.02971">deep deterministic policy gradient (DDPG)</a> that can address overestimation bias, the accumulation of error in temporal difference methods and high sensitivity to hyper-parameters in continuous action spaces. Specifically, TD3 addresses the issue by introducing the following three critical tricks:</p>
 <ol class="arabic simple">
 <li><p>Clipped Double-Q Learning: When calculating the targets in the Bellman error loss functions, TD3 learns two Q-functions instead of one, and uses the smaller Q-value.</p></li>
-<li><p>Delayed Policy Updates:  TD3 updates the policy (and target networks) less frequently than the Q-function. In the paper, the author recommends one policy update for two Q-function updates. In our implementation, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic. We implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p></li>
+<li><p>Delayed Policy Updates:  TD3 updates the policy (and target networks) less frequently than the Q-function. In the paper, the author recommends one policy update for two Q-function updates. In our implementation, TD3 only updates the policy and target networks after a ﬁxed number of updates <img class="math" src="../_images/math/f7c00024379334bc53013ad6577120061491d8d8.svg" alt="d"/> to the critic. We implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p></li>
 <li><p>Target Policy Smoothing:  By smoothing out Q along changes in action, TD3 provides noise to the target action, making it more difficult for the policy to exploit Q-function faults.</p></li>
 </ol>
 </section>
@@ -301,25 +300,27 @@ TD3 is an actor-critic, model-free algorithm based on the <a class="reference ex
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>TD3 proposes a clipped Double Q-learning variant which leverages the notion that a value estimate suffering from overestimation bias can be used as an approximate upper-bound to the true value estimate. TD3 shows that target networks, a common approach in deep Q-learning methods, are critical for variance reduction by reducing the accumulation of errors.</p>
-<p>Firstly, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic.
+<p>Firstly, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <img class="math" src="../_images/math/f7c00024379334bc53013ad6577120061491d8d8.svg" alt="d"/> to the critic.
 We implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p>
 <p>Secondly, the target update of Clipped Double Q-learning algorithm is as follows:</p>
-<div class="math notranslate nohighlight">
-\[y_{1}=r+\gamma \min _{i=1,2} Q_{\theta_{i}^{\prime}}\left(s^{\prime}, \pi_{\phi_{1}}\left(s^{\prime}\right)\right)\]</div>
-<p>In implementation, computational costs can be reduced by using a single actor optimized with respect to <span class="math notranslate nohighlight">\(Q_{\theta_1}\)</span> . We then use the same target <span class="math notranslate nohighlight">\(y_2= y_1for Q_{\theta_2}\)</span>.</p>
+<div class="math">
+<p><img src="../_images/math/0adf3082c4027209399e8b62d4a6ba07400b79bf.svg" alt="y_{1}=r+\gamma \min _{i=1,2} Q_{\theta_{i}^{\prime}}\left(s^{\prime}, \pi_{\phi_{1}}\left(s^{\prime}\right)\right)"/></p>
+</div><p>In implementation, computational costs can be reduced by using a single actor optimized with respect to <img class="math" src="../_images/math/b6ae15f56359667e7910a7602115cdb4c1208ed3.svg" alt="Q_{\theta_1}"/> . We then use the same target <img class="math" src="../_images/math/7dbd65bc666b76b5fb3f4a567143352c765a96fc.svg" alt="y_2= y_1for Q_{\theta_2}"/>.</p>
 <p>Finally, a concern with deterministic policies is they can overﬁt to narrow peaks in the value estimate. When updating the critic, a learning target using a deterministic policy is highly susceptible to inaccuracies induced by function approximation error, increasing the variance of the target.
 TD3 introduces a regularization strategy for deep value learning, target policy smoothing, which mimics the learning update from SARSA. Specifically, TD3 approximates this expectation over actions by adding a small amount of random noise to the target policy and averaging over mini-batches following:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{array}{l}
+<div class="math">
+<p><img src="../_images/math/02e6bc6f456da0fac5b858dc5fa3ee0d0a7f4db0.svg" alt="\begin{array}{l}
 y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\prime}\right)+\epsilon\right) \\
 \epsilon \sim \operatorname{clip}(\mathcal{N}(0, \sigma),-c, c)
-\end{array}\end{split}\]</div>
-<p>we implement Target Policy Smoothing through configuring <code class="docutils literal notranslate"><span class="pre">learn.noise</span></code>, <code class="docutils literal notranslate"><span class="pre">learn.noise_sigma</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.noise_range</span></code>.</p>
+\end{array}"/></p>
+</div><p>we implement Target Policy Smoothing through configuring <code class="docutils literal notranslate"><span class="pre">learn.noise</span></code>, <code class="docutils literal notranslate"><span class="pre">learn.noise_sigma</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.noise_range</span></code>.</p>
 </section>
 <section id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
-<div class="math notranslate nohighlight">
-\[ \begin{align}\begin{aligned}:nowrap:\\\begin{split}\begin{algorithm}[H]
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">:nowrap:
+
+\begin{algorithm}[H]
     \caption{Twin Delayed DDPG}
     \label{alg1}
 \begin{algorithmic}[1]
@@ -361,7 +362,737 @@ y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\pri
         \ENDIF
     \UNTIL{convergence}
 \end{algorithmic}
-\end{algorithm}\end{split}\end{aligned}\end{align} \]</div>
+\end{algorithm}</span>)</p>
+<p>latex exited with error
+[stdout]
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
+ restricted \write18 enabled.
+entering extended mode
+(./math.tex
+LaTeX2e &lt;2020-02-02&gt; patch level 2
+L3 programming layer &lt;2020-02-14&gt;
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
+
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Argument of \align* has an extra }.
+&lt;inserted text&gt; 
+                \par 
+l.75 \end{aligned}\end{align*}
+                              
+Runaway argument?
+ 
+! Paragraph ended before \align* was complete.
+&lt;to be read again&gt; 
+                   \par 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Display math should end with $$.
+&lt;to be read again&gt; 
+                   \&#64;&#64;par 
+l.75 \end{aligned}\end{align*}
+                              
+! Extra }, or forgotten \endgroup.
+\par ...m \&#64;noitemerr {\&#64;&#64;par }\fi \else {\&#64;&#64;par }
+                                                  \fi 
+l.75 \end{aligned}\end{align*}
+                              
+! Extra }, or forgotten \endgroup.
+&lt;recently read&gt; }
+                 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+
+! LaTeX Error: \begin{aligned} on input line 75 ended by \end{align*}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Display math should end with $$.
+&lt;to be read again&gt; 
+                   \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Undefined control sequence.
+&lt;argument&gt; ...text {for } i=1,2 \end {align*} \IF 
+                                                  { $j \mod $ \texttt {polic...
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Undefined control sequence.
+&lt;argument&gt; ...xttt {policy\_delay} $ = 0$} \STATE 
+                                                  Update policy by one step ...
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Undefined control sequence.
+&lt;argument&gt; ...theta }(s)) \end {equation*} \STATE 
+                                                  Update target networks wit...
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+(That makes 100 errors; please try again.)
+No pages of output.
+Transcript written on math.log.
+</p>
+</div>
 <a class="reference internal image-reference" href="../_images/TD3.png"><img alt="../_images/TD3.png" class="align-center" src="../_images/TD3.png" style="width: 526.4px; height: 603.2px;" /></a>
 </section>
 <section id="extensions">
@@ -753,12 +1484,12 @@ such as <code class="docutils literal notranslate"><span class="pre">action</spa
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/8ec79fd7bd1d60ba7d453bbeca7be51e6265c84a.svg" alt="(B, N3)"/>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
@@ -805,11 +1536,11 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N4)\)</span>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/8ec79fd7bd1d60ba7d453bbeca7be51e6265c84a.svg" alt="(B, N3)"/>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/ac58afe53306c8a1c6eba1487eead690f84095d4.svg" alt="(B, N4)"/>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
@@ -1150,7 +1881,6 @@ Walker2d-v2)</p></td>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

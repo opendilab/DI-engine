@@ -140,7 +140,7 @@ hub <https://hub.docker.com/repository/docker/opendilab/ding>`_ 获取更多镜�
 .. _变换后的空间 rl 环境）:
 
 变换后的空间（RL 环境）
-=======================
+======================
 
 .. _观察空间-2:
 
@@ -215,7 +215,7 @@ hub <https://hub.docker.com/repository/docker/opendilab/ding>`_ 获取更多镜�
 在环境创建之后，重置之前，调用\ ``enable_save_replay``\ 方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用\ ``gym.wrapper.Monitor``\ 实现，依赖\ ``ffmpeg``\ ）
 
 DI-zoo 可运行代码示例
-======================
+====================
 
 完整的训练配置文件在 `github link <https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/config/>`__
 内，对于具体的配置文件，例如\ ``ptz_simple_spread_mappo_config.py``\ ，使用如下的 demo 即可运行：

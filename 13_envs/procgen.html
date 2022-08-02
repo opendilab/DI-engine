@@ -190,7 +190,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -295,26 +294,10 @@
 <section id="installation-method">
 <h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
 <p>It can be installed by one-click pip or combined with DI-engine. It only needs to install two libraries, gym and gym[procgen].</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
-pip install gym
-pip install gym<span class="o">[</span>procgen<span class="o">]</span>
-<span class="c1"># Method2: Install with DI-engine requirements</span>
-<span class="nb">cd</span> DI-engine
-pip install <span class="s2">&quot;.[procgen_env]&quot;</span>
-</pre></div>
-</div>
 </section>
 <section id="verify-installation">
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
 <p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;procgen:procgen-maze-v0&#39;</span><span class="p">,</span> <span class="n">start_level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_levels</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="c1"># num_levels=0 - The number of unique levels that can be generated. Set to 0 to use unlimited levels.</span>
-<span class="c1"># start_level=0 - The lowest seed that will be used to generated levels. &#39;start_level&#39; and &#39;num_levels&#39; fully specify the set of possible levels.</span>
-<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (64, 64, 3)</span>
-</pre></div>
-</div>
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
@@ -384,12 +367,6 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 <li><p>Basically no transformation</p></li>
 </ul>
 <p>The above space can be expressed as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="n">obs_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-<span class="n">act_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-<span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-</pre></div>
-</div>
 </section>
 <section id="id4">
 <h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
@@ -420,19 +397,6 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 <section id="store-video">
 <h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method, specifying the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code> implementation, depends on <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> ), the code shown below will run an environment episode and save the result of this episode in the form<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>in a file like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.procgen.coinrun.envs</span> <span class="kn">import</span> <span class="n">CoinRunEnv</span>
-<span class="n">env</span> <span class="o">=</span> <span class="n">CoinRunEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;procgen:procgen-coinrun-v0&#39;</span><span class="p">}))</span>
-<span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
-<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-    <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
-    <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
-        <span class="k">break</span>
-</pre></div>
-</div>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
@@ -440,59 +404,6 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 <p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/procgen/coinrun/entry">github
 link</a>
 Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">coinrun_dqn_config.py</span></code> , use the following demo to run:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="n">coinrun_dqn_default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-        <span class="n">stop_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="p">),</span>
-    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">obs_shape</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
-            <span class="n">action_shape</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">512</span><span class="p">],</span>
-            <span class="n">dueling</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-            <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0005</span><span class="p">,</span>
-            <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="p">)),</span>
-        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
-                <span class="n">start</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
-                <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
-                <span class="n">decay</span><span class="o">=</span><span class="mi">250000</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="p">),</span>
-        <span class="p">),</span>
-    <span class="p">),</span>
-<span class="p">)</span>
-<span class="n">coinrun_dqn_default_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">coinrun_dqn_default_config</span><span class="p">)</span>
-<span class="n">main_config</span> <span class="o">=</span> <span class="n">coinrun_dqn_default_config</span>
-<span class="n">coinrun_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;coinrun&#39;</span><span class="p">,</span>
-        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.procgen.coinrun.envs.coinrun_env&#39;</span><span class="p">],</span>
-    <span class="p">),</span>
-    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">,</span> <span class="p">),</span>
-    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">),</span>
-<span class="p">)</span>
-<span class="n">coinrun_dqn_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">coinrun_dqn_create_config</span><span class="p">)</span>
-<span class="n">create_config</span> <span class="o">=</span> <span class="n">coinrun_dqn_create_config</span>
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
-    <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-</pre></div>
-</div>
 </section>
 <section id="benchmark-algorithm-performance">
 <h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>

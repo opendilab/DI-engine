@@ -35,8 +35,6 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="CollaQ" href="collaq.html" />
-  <link rel="prev" title="WQMIX" href="wqmix.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -190,15 +188,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">RL Algorithms Cheat Sheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
@@ -245,8 +242,6 @@
         </a> &gt;
       </li>
 
-        
-          <li><a href="index.html">RL Algorithms Cheat Sheet</a> &gt;</li>
         
       <li>QTRAN</li>
     
@@ -302,15 +297,15 @@
 <p>The overall QTRAN architecture including individual agent networks and the mixing network structure:</p>
 <a class="reference internal image-reference" href="../_images/Qtran_net.png"><img alt="../_images/Qtran_net.png" class="align-center" src="../_images/Qtran_net.png" style="width: 600px;" /></a>
 <p>QTRAN trains the mixing network via minimizing the following loss:</p>
-<div class="math notranslate nohighlight">
-\[L_{\mathrm{td}}(; \boldsymbol{\theta}) =\left(Q_{\mathrm{jt}}(\boldsymbol{\tau}, \boldsymbol{u})-y^{\mathrm{dqn}}\left(r, \boldsymbol{\tau}^{\prime} ; \boldsymbol{\theta}^{-}\right)\right)^{2}\]</div>
-<div class="math notranslate nohighlight">
-\[L_{\mathrm{opt}}(; \boldsymbol{\theta}) =\left(Q_{\mathrm{jt}}^{\prime}(\boldsymbol{\tau}, \overline{\boldsymbol{u}})-\hat{Q}_{\mathrm{jt}}(\boldsymbol{\tau}, \overline{\boldsymbol{u}})+V_{\mathrm{jt}}(\boldsymbol{\tau})\right)^{2}\]</div>
-<div class="math notranslate nohighlight">
-\[L_{\mathrm{nopt}}(; \boldsymbol{\theta}) =\left(\min \left[Q_{\mathrm{jt}}^{\prime}(\boldsymbol{\tau}, \boldsymbol{u})-\hat{Q}_{\mathrm{jt}}(\boldsymbol{\tau}, \boldsymbol{u})+V_{\mathrm{jt}}(\boldsymbol{\tau}), 0\right]\right)^{2}\]</div>
-<div class="math notranslate nohighlight">
-\[L\left(\boldsymbol{\tau}, \boldsymbol{u}, r, \boldsymbol{\tau}^{\prime} ; \boldsymbol{\theta}\right)=L_{\mathrm{td}}+\lambda_{\mathrm{opt}} L_{\mathrm{opt}}+\lambda_{\mathrm{nopt}} L_{\mathrm{nopt}},\]</div>
-</section>
+<div class="math">
+<p><img src="../_images/math/7b209fa4c0f62c6f7319407ce5cca0e97c6feb32.svg" alt="L_{\mathrm{td}}(; \boldsymbol{\theta}) =\left(Q_{\mathrm{jt}}(\boldsymbol{\tau}, \boldsymbol{u})-y^{\mathrm{dqn}}\left(r, \boldsymbol{\tau}^{\prime} ; \boldsymbol{\theta}^{-}\right)\right)^{2}"/></p>
+</div><div class="math">
+<p><img src="../_images/math/5994c032945138d39f8df0db4f7acd4172bf58a7.svg" alt="L_{\mathrm{opt}}(; \boldsymbol{\theta}) =\left(Q_{\mathrm{jt}}^{\prime}(\boldsymbol{\tau}, \overline{\boldsymbol{u}})-\hat{Q}_{\mathrm{jt}}(\boldsymbol{\tau}, \overline{\boldsymbol{u}})+V_{\mathrm{jt}}(\boldsymbol{\tau})\right)^{2}"/></p>
+</div><div class="math">
+<p><img src="../_images/math/1ade26079c464df0d7bd96730b685dbcde6abd1d.svg" alt="L_{\mathrm{nopt}}(; \boldsymbol{\theta}) =\left(\min \left[Q_{\mathrm{jt}}^{\prime}(\boldsymbol{\tau}, \boldsymbol{u})-\hat{Q}_{\mathrm{jt}}(\boldsymbol{\tau}, \boldsymbol{u})+V_{\mathrm{jt}}(\boldsymbol{\tau}), 0\right]\right)^{2}"/></p>
+</div><div class="math">
+<p><img src="../_images/math/dc68d72813e4f74b12fa7f4bd3f7b051208d089e.svg" alt="L\left(\boldsymbol{\tau}, \boldsymbol{u}, r, \boldsymbol{\tau}^{\prime} ; \boldsymbol{\theta}\right)=L_{\mathrm{td}}+\lambda_{\mathrm{opt}} L_{\mathrm{opt}}+\lambda_{\mathrm{nopt}} L_{\mathrm{nopt}},"/></p>
+</div></section>
 <section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <p>The following flow charts show how QTRAN trains.</p>
@@ -560,18 +555,6 @@
             </div>
             <footer>
   
-  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-    
-    <a href="collaq.html" class="btn btn-neutral float-right" title="CollaQ" accesskey="n"
-      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
-        class="next-page"></a>
-    
-    
-    <a href="wqmix.html" class="btn btn-neutral" title="WQMIX" accesskey="p"
-      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
-    
-  </div>
-  
 
   <hr>
 
@@ -628,7 +611,6 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   
