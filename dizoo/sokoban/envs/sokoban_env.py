@@ -72,12 +72,10 @@ class SokobanEnv(BaseEnv):
         self._init_flag = False
 
     def enable_save_replay(self, replay_path) -> None:
-        print("yes it opens")
         if replay_path is None:
             replay_path = './video'
         self._save_replay = True
         self._replay_path = replay_path
-        self._save_replay_count = 0
     
     def __repr__(self) -> str:
         return "DI-engine Sokoban Env({})".format(self._cfg.env_id)

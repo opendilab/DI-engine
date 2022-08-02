@@ -1,1 +1,1 @@
-#from .sokoban_env import SokobanEnv
+from .sokoban_env import SokobanEnv
