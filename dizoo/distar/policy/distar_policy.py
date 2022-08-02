@@ -351,7 +351,7 @@ class DIStarPolicy(Policy):
             self.optimizer.zero_grad()
             total_loss.backward()
             if self._cfg.learn.multi_gpu:
-                self.sync_gradients()
+                self.sync_gradients(self._learn_model)
             gradient = torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), self._cfg.grad_clip.threshold, 2)
             self.optimizer.step()
 
