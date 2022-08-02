@@ -16,6 +16,7 @@ ENV LC_ALL      en_US.UTF-8
 ADD setup.py setup.py
 ADD dizoo dizoo
 ADD ding ding
+ADD README.md README.md
 
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
@@ -45,6 +46,7 @@ ENV LC_ALL      en_US.UTF-8
 ADD setup.py setup.py
 ADD dizoo dizoo
 ADD ding ding
+ADD README.md README.md
 
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \

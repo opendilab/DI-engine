@@ -23,11 +23,15 @@ from importlib import import_module
 here = os.path.abspath(os.path.dirname(__file__))
 meta_module = import_module('ding')
 meta = meta_module.__dict__
+with open('README.md', mode='r', encoding='utf-8') as f:
+    readme = f.read()
 
 setup(
     name=meta['__TITLE__'],
     version=meta['__VERSION__'],
     description=meta['__DESCRIPTION__'],
+    long_description=readme,
+    long_description_content_type='text/markdown',
     author=meta['__AUTHOR__'],
     author_email=meta['__AUTHOR_EMAIL__'],
     url='https://github.com/opendilab/DI-engine',
@@ -69,7 +73,6 @@ setup(
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
-        'opencv-python',  # pypy incompatible
         'enum_tools',
         'scipy',
         'trueskill',
@@ -88,6 +91,7 @@ setup(
     ],
     extras_require={
         'test': [
+            'opencv-python',
             'coverage>=5',
             'mock>=4.0.3',
             'pytest~=6.2.5',
@@ -99,7 +103,7 @@ setup(
         ],
         'style': [
             'yapf==0.29.0',
-            'flake8',
+            'flake8<=3.9.2',
         ],
         'fast': [
             'numpy-stl',

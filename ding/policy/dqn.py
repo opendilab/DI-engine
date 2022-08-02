@@ -437,8 +437,8 @@ class DQNSTDIMPolicy(DQNPolicy):
                                                                                                  | decay from start
                                                                                                  | value to end value
                                                                                                  | during decay length.
-        20 | ``aux_loss_ratio`` float    0.05           | the ratio of the auxiliary loss to     | any real value,
-                                                        | the TD loss                            | typically in
+        20 | ``aux_loss``       float    0.001          | the ratio of the auxiliary loss to     | any real value,
+           | ``_weight``                                | the TD loss                            | typically in
                                                                                                  | [-0.1, 0.1].
         == ==================== ======== ============== ======================================== =======================
     """
@@ -499,19 +499,30 @@ class DQNSTDIMPolicy(DQNPolicy):
             ),
             replay_buffer=dict(replay_buffer_size=10000, ),
         ),
-        aux_loss_ratio=0.05,
+        aux_loss_weight=0.001,
     )
 
     def _init_learn(self) -> None:
+        """
+        Overview:
+            Learn mode init method. Called by ``self.__init__``.
+            Init the auxiliary model, its optimizer, and the axuliary loss weight to the main loss.
+        """
         super()._init_learn()
         x_size, y_size = self._get_encoding_size()
         self._aux_model = ContrastiveLoss(x_size, y_size, **self._cfg.aux_model)
         if self._cuda:
             self._aux_model.cuda()
         self._aux_optimizer = Adam(self._aux_model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._aux_ratio = self._cfg.aux_loss_ratio
+        self._aux_loss_weight = self._cfg.aux_loss_weight
 
     def _get_encoding_size(self):
+        """
+        Overview:
+            Get the input encoding size of the ST-DIM axuiliary model.
+        Returns:
+            - info_dict (:obj:`[Tuple, Tuple]`): The encoding size without the first (Batch) dimension.
+        """
         obs = self._cfg.model.obs_shape
         if isinstance(obs, int):
             obs = [obs]
@@ -519,11 +530,24 @@ class DQNSTDIMPolicy(DQNPolicy):
             "obs": torch.randn(1, *obs),
             "next_obs": torch.randn(1, *obs),
         }
+        if self._cuda:
+            test_data = to_device(test_data, self._device)
         with torch.no_grad():
-            x, y = self._aux_encode(test_data)
+            x, y = self._model_encode(test_data)
         return x.size()[1:], y.size()[1:]
 
-    def _aux_encode(self, data):
+    def _model_encode(self, data):
+        """
+        Overview:
+            Get the encoding of the main model as input for the auxiliary model.
+        Arguments:
+            - data (:obj:`dict`): Dict type data, same as the _forward_learn input.
+        Returns:
+            - (:obj:`Tuple[Tensor]`): the tuple of two tensors to apply contrastive embedding learning.
+                In ST-DIM algorithm, these two variables are the dqn encoding of `obs` and `next_obs`\
+                respectively.
+        """
+        assert hasattr(self._model, "encoder")
         x = self._model.encoder(data["obs"])
         y = self._model.encoder(data["next_obs"])
         return x, y
@@ -555,6 +579,23 @@ class DQNSTDIMPolicy(DQNPolicy):
         if self._cuda:
             data = to_device(data, self._device)
 
+        # ======================
+        # Auxiliary model update
+        # ======================
+        # RL network encoding
+        # To train the auxiliary network, the gradients of x, y should be 0.
+        with torch.no_grad():
+            x_no_grad, y_no_grad = self._model_encode(data)
+        # the forward function of the auxiliary network
+        self._aux_model.train()
+        aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
+        # the BP process of the auxiliary network
+        self._aux_optimizer.zero_grad()
+        aux_loss_learn.backward()
+        if self._cfg.learn.multi_gpu:
+            self.sync_gradients(self._aux_model)
+        self._aux_optimizer.step()
+
         # ====================
         # Q-learning forward
         # ====================
@@ -568,18 +609,6 @@ class DQNSTDIMPolicy(DQNPolicy):
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
-        # ======================
-        # Auxiliary model update
-        # ======================
-        with torch.no_grad():
-            x_no_grad, y_no_grad = self._aux_encode(data)
-        aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
-        self._aux_optimizer.zero_grad()
-        aux_loss_learn.backward()
-        if self._cfg.learn.multi_gpu:
-            self.sync_gradients(self._aux_model)
-        self._aux_optimizer.step()
-
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
@@ -591,8 +620,9 @@ class DQNSTDIMPolicy(DQNPolicy):
         # ======================
         # Compute auxiliary loss
         # ======================
-        x, y = self._aux_encode(data)
-        aux_loss_eval = self._aux_model.forward(x, y) * self._aux_ratio
+        x, y = self._model_encode(data)
+        self._aux_model.eval()
+        aux_loss_eval = self._aux_model.forward(x, y) * self._aux_loss_weight
         loss = aux_loss_eval + bellman_loss
 
         # ====================
@@ -611,7 +641,8 @@ class DQNSTDIMPolicy(DQNPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'bellman_loss': bellman_loss.item(),
-            'aux_loss': aux_loss_eval.item(),
+            'aux_loss_learn': aux_loss_learn.item(),
+            'aux_loss_eval': aux_loss_eval.item(),
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
@@ -620,7 +651,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
-        return ['cur_lr', 'bellman_loss', 'aux_loss', 'total_loss', 'q_value']
+        return ['cur_lr', 'bellman_loss', 'aux_loss_learn', 'aux_loss_eval', 'total_loss', 'q_value']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
