@@ -29,8 +29,8 @@ def test_stocks_dqn():
     # =====================================
 
     fake_data = pd.DataFrame(data)
-    data_path = os.path.dirname(os.path.dirname(os.path.dirname\
-            (os.path.dirname(os.path.abspath(__file__))))) + '/dizoo/gym_anytrading/envs/data/STOCKS_FAKE.csv'
+    data_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    data_path += '/dizoo/gym_anytrading/envs/data/STOCKS_FAKE.csv'
     fake_data.to_csv(data_path, sep=',', index=None)
     try:
         serial_pipeline_for_anytrading(config, seed=0, max_train_iter=1)
