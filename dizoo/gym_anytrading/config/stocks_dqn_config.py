@@ -16,7 +16,9 @@ stocks_dqn_config = dict(
         # associated with the feature length.
         window_size=20,
         # the path to save result image.
-        save_path='./fig/'
+        save_path='./fig/',
+        # the raw data file name
+        stocks_data_filename = 'STOCKS_GOOGL',
     ),
     policy=dict(
         # Whether to use cuda for network.

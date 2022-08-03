@@ -15,10 +15,10 @@ class StocksEnv(TradingEnv):
         super().__init__(cfg)
 
         # ====== load Google stocks data =======
-        STOCKS_GOOGL = load_dataset('STOCKS_GOOGL', 'Date')
-        self.raw_prices = STOCKS_GOOGL.loc[:, 'Close'].to_numpy()
+        raw_data = load_dataset(self._cfg.stocks_data_filename, 'Date')
+        self.raw_prices = raw_data.loc[:, 'Close'].to_numpy()
         EPS = 1e-10
-        self.df = deepcopy(STOCKS_GOOGL).apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)  # normalize
+        self.df = deepcopy(raw_data).apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)  # normalize
         # ======================================
 
         # set cost
