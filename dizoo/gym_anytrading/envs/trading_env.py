@@ -149,6 +149,9 @@ class TradingEnv(BaseEnv):
 
         return self._get_observation()
 
+    def random_action(self) -> Any:
+        return np.array([self.action_space.sample()])
+
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
@@ -213,9 +216,9 @@ class TradingEnv(BaseEnv):
             else:
                 flat_ticks.append(tick)
 
-        plt.plot(long_ticks, eps_price[long_ticks], 'g^', markersize = 3, label = "Long")
-        plt.plot(flat_ticks, eps_price[flat_ticks], 'bo', markersize = 3, label = "Flat")
-        plt.plot(short_ticks, eps_price[short_ticks], 'rv', markersize = 3, label = "Short")
+        plt.plot(long_ticks, eps_price[long_ticks], 'g^', markersize=3, label="Long")
+        plt.plot(flat_ticks, eps_price[flat_ticks], 'bo', markersize=3, label="Flat")
+        plt.plot(short_ticks, eps_price[short_ticks], 'rv', markersize=3, label="Short")
         plt.legend(loc='upper left', bbox_to_anchor=(0.05, 0.95))
         plt.savefig(self.save_path + str(self._env_id) + '-price.png')
 
