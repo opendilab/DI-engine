@@ -8,7 +8,7 @@ from dizoo.gym_anytrading.config import stocks_dqn_config, stocks_dqn_create_con
 def test_stocks_dqn():
     config = [deepcopy(stocks_dqn_config), deepcopy(stocks_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].exp_name = 'cartpole_dqn_unittest'
+    config[0].exp_name = 'stocks_dqn_unittest'
     try:
         serial_pipeline_for_anytrading(config, seed=0, max_train_iter=1)
     except Exception:
