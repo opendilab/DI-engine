@@ -17,7 +17,7 @@ def test_stocks_dqn():
 
     # ======== generate fake data =========
     Date = pd.bdate_range(start='2018-02-20', end='2022-02-20')
-    data = {'Date':[], 'Open':[], 'High':[], 'Low':[], 'Close':[], 'Adj Close':[], 'Volume':[]}
+    data = {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [], 'Volume': []}
     for i in range(len(Date)):
         data['Date'].append(Date[i])
         data['Low'].append(np.random.uniform(200, 500))
