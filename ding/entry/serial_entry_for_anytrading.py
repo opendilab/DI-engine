@@ -16,6 +16,7 @@ from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from .utils import random_collect
 
+
 def serial_pipeline_for_anytrading(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,

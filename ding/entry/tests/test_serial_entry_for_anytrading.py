@@ -3,6 +3,7 @@ from copy import deepcopy
 from ding.entry.serial_entry_for_anytrading import serial_pipeline_for_anytrading
 from dizoo.gym_anytrading.config import stocks_dqn_config, stocks_dqn_create_config
 
+
 @pytest.mark.platformtest
 @pytest.mark.unittest
 def test_stocks_dqn():
