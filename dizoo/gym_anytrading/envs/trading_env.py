@@ -191,8 +191,8 @@ class TradingEnv(BaseEnv):
         obs = to_ndarray(self.signal_features[(self._current_tick - self.window_size + 1):self._current_tick + 1]
                          ).reshape(-1).astype(np.float32)
 
-        obs = np.hstack([obs, to_ndarray([self._position.value])]).astype(np.float32)
-
+        obs = np.hstack([obs, to_ndarray([self._position.value]),\
+             to_ndarray([(self._current_tick - self._last_trade_tick)/self._cfg.eps_length])]).astype(np.float32)
         return obs
 
     def render(self) -> None:

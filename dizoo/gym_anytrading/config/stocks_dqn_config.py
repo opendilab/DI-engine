@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_for_anytrading
 
 stocks_dqn_config = dict(
-    exp_name='stocks_test_v14',
+    exp_name='stocks_test_v19',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -24,7 +24,7 @@ stocks_dqn_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            obs_shape=61,
+            obs_shape=62,
             action_shape=5,
             encoder_hidden_size_list=[128],
             head_layer_num=1,
