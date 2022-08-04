@@ -13,7 +13,7 @@ def test_stocks_dqn():
     config = [deepcopy(stocks_dqn_config), deepcopy(stocks_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].exp_name = 'stocks_dqn_unittest'
-    config[0].stocks_data_filename = 'STOCKS_FAKE'
+    config[0].env.stocks_data_filename = 'STOCKS_FAKE'
 
     # ======== generate fake data =========
     Date = pd.bdate_range(start='2018-02-20', end='2022-02-20')
