@@ -9,6 +9,8 @@ from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from ding.policy.base_policy import Policy
+import time
+import treetensor.torch as ttorch
 
 
 @POLICY_REGISTRY.register('impala')
@@ -406,3 +408,41 @@ class IMPALAPolicy(Policy):
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
+
+
+@POLICY_REGISTRY.register('impala_v2')
+class IMPALAPolicyV2(IMPALAPolicy):
+    r"""
+    Overview:
+        Policy class of IMPALA algorithm used in new middleware.
+    """
+    
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
+        """
+        Overview:
+            Data preprocess function of learn mode.
+            Convert batch of trajectory data to to trajectory data, which is a dict of tensors.
+        Arguments:
+            - data (:obj:`List[List[Dict[str, Any]]]`): List type data, a list of data for training. \
+            Each list element is also a list, and for each inner list, each list element is a \
+            dict, whose values are torch.Tensor, keys include at least 'obs',\
+             'next_obs', 'logit', 'action', 'reward', 'done'
+        Returns:
+            - data (:obj:`dict`): Dict type data. Values are torch.Tensor or np.ndarray or dict/list combinations. \
+        ReturnsKeys:
+            - necessary: 'logit', 'action', 'reward', 'done', 'weight', 'obs_plus_1'.
+        ReturnsShapes:
+            - obs_plus_1 (:obj:`torch.FloatTensor`): :math:`(T * B, obs_shape)`, where T is timestep, B is batch size \
+                and obs_shape is the shape of single env observation
+            - logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim
+            - action (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - reward (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+            - done (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - weight (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        """
+        for i in range(len(data)):
+            # print(type(data[i]), type(data[i][0]))
+            data[i] = default_collate(data[i])
+            for key in data[i].keys():
+                data[i][key] = list(data[i][key])
+        return super(IMPALAPolicyV2, self)._data_preprocess_learn(data)

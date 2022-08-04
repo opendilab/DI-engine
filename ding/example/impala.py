@@ -1,7 +1,7 @@
 import gym
 from ditk import logging
 from ding.model import VAC
-from ding.policy import IMPALAPolicy
+from ding.policy import IMPALAPolicyV2 as IMPALAPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config

@@ -10,8 +10,8 @@ cartpole_impala_config = dict(
     ),
     policy=dict(
         cuda=False,
-        nstep=5,
-        discount_factor=0.99,
+        nstep=1,
+        discount_factor=0.9,
         model=dict(
             obs_shape=4,
             action_shape=2,
