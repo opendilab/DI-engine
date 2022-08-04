@@ -9,8 +9,6 @@ from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from ding.policy.base_policy import Policy
-import time
-import treetensor.torch as ttorch
 
 
 @POLICY_REGISTRY.register('impala')
@@ -416,7 +414,7 @@ class IMPALAPolicyV2(IMPALAPolicy):
     Overview:
         Policy class of IMPALA algorithm used in new middleware.
     """
-    
+
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
         Overview:
