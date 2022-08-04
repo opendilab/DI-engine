@@ -55,16 +55,22 @@ def serial_pipeline_for_anytrading(
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
+
+    # Rename env_id, and set data_range
+    coll_env_num = len(collector_env_cfg)
+    one_env = collector_env_cfg[0]
+    collector_env_cfg = [copy.deepcopy(one_env) for _ in range(coll_env_num)]
+    for i in range(len(collector_env_cfg)):
+        collector_env_cfg[i]['env_id'] = collector_env_cfg[i]['env_id'] + ('-' + str(i) + 'c')
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
 
-    # Rename env_id
     eval_env_num = len(evaluator_env_cfg)
     one_env = evaluator_env_cfg[0]
     evaluator_env_cfg = [copy.deepcopy(one_env) for _ in range(eval_env_num)]
     for i in range(len(evaluator_env_cfg)):
         evaluator_env_cfg[i]['env_id'] = evaluator_env_cfg[i]['env_id'] + ('-' + str(i) + 'e')
-
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
+
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)

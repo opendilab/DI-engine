@@ -1,8 +1,10 @@
+import sys
+sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
 from easydict import EasyDict
 from ding.entry import serial_pipeline_for_anytrading
 
 stocks_dqn_config = dict(
-    exp_name='stocks_test_v14',
+    exp_name='stocks_test_v20',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -19,6 +21,9 @@ stocks_dqn_config = dict(
         save_path='./fig/',
         # the raw data file name
         stocks_data_filename = 'STOCKS_GOOGL',
+        # the stocks range percentage used by train/test
+        train_range = 0.8,
+        test_range = -0.2,
     ),
     policy=dict(
         # Whether to use cuda for network.

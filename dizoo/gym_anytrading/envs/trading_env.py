@@ -101,6 +101,8 @@ class TradingEnv(BaseEnv):
             self.save_path = self._cfg.save_path
         #================================
 
+        self.train_range = cfg.train_range
+        self.test_range = cfg.test_range
         self.window_size = cfg.window_size
         self.prices = None
         self.signal_features = None

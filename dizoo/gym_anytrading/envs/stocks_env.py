@@ -55,8 +55,17 @@ class StocksEnv(TradingEnv):
 
         # validate index
         if start_idx is None:
-            assert self.window_size < len(self.df) - self._cfg.eps_length, "window_size and eps_length does not fit"
-            self.start_idx = np.random.randint(self.window_size, len(self.df) - self._cfg.eps_length)
+            # self.start_idx = np.random.randint(self.window_size, len(self.df) - self._cfg.eps_length)
+            if self._env_id[-1] == 'e':
+                boundary = int(len(self.df) * (1 + self.test_range))
+                assert len(self.df) - self._cfg.eps_length > boundary + self.window_size,\
+                 "parameter test_range is too large!"
+                self.start_idx = np.random.randint(boundary + self.window_size, len(self.df) - self._cfg.eps_length)
+            else:
+                boundary = int(len(self.df) * self.train_range)
+                assert boundary - self._cfg.eps_length > self.window_size,\
+                 "parameter test_range is too small!"
+                self.start_idx = np.random.randint(self.window_size, boundary - self._cfg.eps_length)
         else:
             self.start_idx = start_idx
 
