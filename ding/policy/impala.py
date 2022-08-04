@@ -439,7 +439,6 @@ class IMPALAPolicyV2(IMPALAPolicy):
             - weight (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
         for i in range(len(data)):
-            # print(type(data[i]), type(data[i][0]))
             data[i] = default_collate(data[i])
             for key in data[i].keys():
                 data[i][key] = list(data[i][key])
