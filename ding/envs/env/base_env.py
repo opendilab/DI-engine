@@ -9,7 +9,10 @@ from ding.utils import import_module, ENV_REGISTRY
 BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
 
 
-class BaseEnv(ABC, gym.Env):
+class FinalMeta(type(ABC), type(gym.Env)):
+    pass
+
+class BaseEnv(ABC, gym.Env, metaclass=FinalMeta):
     """
     Overview:
         Basic environment class, extended from ``gym.Env``

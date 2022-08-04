@@ -7,13 +7,15 @@ pong_trex_sql_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        env_id='Pong-v4',
+        #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
     reward_model=dict(
         type='trex',
         algo_for_model='sql',
-        env_id='PongNoFrameskip-v4',
+        env_id='Pong-v4',
+        #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         min_snippet_length=50,
         max_snippet_length=100,
         checkpoint_min=10000,

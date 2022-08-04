@@ -11,10 +11,13 @@ lunarlander_dqn_config = dict(
         env_id='LunarLander-v2',
         n_evaluator_episode=8,
         stop_value=200,
+        # The path to save the game replay
+        # replay_path='./lunarlander_dqn_seed0/video',
     ),
     policy=dict(
         # Whether to use cuda for network.
         cuda=True,
+        load_path="./lunarlander_dqn_seed0/ckpt/ckpt_best.pth.tar",
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -64,8 +67,8 @@ lunarlander_dqn_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
 lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)

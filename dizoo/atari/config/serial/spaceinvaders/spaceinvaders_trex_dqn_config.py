@@ -8,14 +8,16 @@ spaceinvaders_trex_dqn_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='SpaceInvadersNoFrameskip-v4',
+        env_id='SpaceInvaders-v4',
+        #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
     reward_model=dict(
         type='trex',
         algo_for_model='dqn',
-        env_id='SpaceInvadersNoFrameskip-v4',
+        env_id='SpaceInvaders-v4',
+        #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         min_snippet_length=50,
         max_snippet_length=100,
         checkpoint_min=10000,

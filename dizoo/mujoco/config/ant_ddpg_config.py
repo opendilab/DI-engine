@@ -12,10 +12,13 @@ ant_ddpg_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, ),
+        # The path to save the game replay
+        # replay_path='./ant_ddpg_seed0/video',
     ),
     policy=dict(
         cuda=True,
+        load_path="./ant_ddpg_seed0/ckpt/ckpt_best.pth.tar",
         random_collect_size=25000,
         model=dict(
             obs_shape=111,

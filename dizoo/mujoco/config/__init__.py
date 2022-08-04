@@ -1,4 +1,4 @@
-from .ant_ddpg_config import ant_ddpg_config
+from .ant_ddpg_config import ant_ddpg_config, ant_ddpg_create_config
 from .ant_sac_config import ant_sac_config
 from .ant_td3_config import ant_td3_config
 from .ant_trex_onppo_config import ant_trex_ppo_config, ant_trex_ppo_create_config

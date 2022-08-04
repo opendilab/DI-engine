@@ -53,8 +53,8 @@ setup(
         'numpy>=1.18.0',
         'requests>=2.25.1',
         'six',
-        'gym==0.20.0',  # pypy incompatible
-        'torch>=1.1.0,<=1.10.0',  # PyTorch 1.10.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
+        'gym>=0.25.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'torch>=1.1.0',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
         'protobuf<=3.20.1',
@@ -91,7 +91,7 @@ setup(
     ],
     extras_require={
         'test': [
-            'opencv-python',
+            'opencv-python', # pypy incompatible
             'coverage>=5',
             'mock>=4.0.3',
             'pytest~=6.2.5',
@@ -114,9 +114,9 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py==0.7.0',  # atari
+            'ale-py>=0.7.5',  # atari
             'autorom',
-            'box2d-py',
+            'gym[box2d]>=0.25.0'
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],

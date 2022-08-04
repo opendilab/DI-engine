@@ -27,13 +27,19 @@ class GymHybridEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make(self._env_id)
             if self._replay_path is not None:
-                self._env = gym.wrappers.RecordVideo(
-                    self._env,
-                    video_folder=self._replay_path,
-                    episode_trigger=lambda episode_id: True,
-                    name_prefix='rl-video-{}'.format(id(self))
-                )
-                self._env.metadata["render.modes"] = ["human", "rgb_array"]
+                if gym.version.VERSION > '0.22.0':
+                    # Gym removed classic control rendering to support using pygame instead.
+                    # And thus, gym hybrid currently do not support rendering.
+                    self._env.metadata["render_modes"] = ["human", "rgb_array"]
+                else:
+                    self._env = gym.wrappers.RecordVideo(
+                        self._env,
+                        video_folder=self._replay_path,
+                        episode_trigger=lambda episode_id: True,
+                        name_prefix='rl-video-{}'.format(id(self))
+                    )
+                    self._env.metadata["render.modes"] = ["human", "rgb_array"]
+                
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
