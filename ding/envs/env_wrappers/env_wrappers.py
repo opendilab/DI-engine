@@ -1,15 +1,13 @@
 # Borrow a lot from openai baselines:
 # https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
-import copy
 from typing import Union, List, Tuple
-import cv2
 from easydict import EasyDict
+from collections import deque
+import copy
 import gym
 import numpy as np
-from collections import deque
 from torch import float32
-# import matplotlib.pyplot as plt
 
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_WRAPPER_REGISTRY, import_module
@@ -173,6 +171,13 @@ class WarpFrameWrapper(gym.ObservationWrapper):
         Returns:
             - observation (:obj:`Any`): Framed observation
         """
+        try:
+            import cv2
+        except ImportError:
+            from ditk import logging
+            import sys
+            logging.warning("Please install opencv-python first.")
+            sys.exit(1)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
 
