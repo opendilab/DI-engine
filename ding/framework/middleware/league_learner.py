@@ -73,36 +73,36 @@ class LeagueLearnerCommunicator:
 
             log_every_sec(
                 logging.INFO, 5,
-                "[Learner {}] receive {} trajectories of player {} from actor! Current recv speed: {} traj/s, Total recv speed: {} traj/s, Current network_delay: {} traj/s, Total network_delay: {} traj/s \n"
+                "[Learner {}] receive {} trajectories of player {} from actor! Current recv speed: {} s/traj, Total recv speed: {} s/traj, Current network_delay: {} s/traj, Total network_delay: {} s/traj \n"
                 .format(
                     task.router.node_id,
                     current_recv_traj,
                     self.player_id,
-                    current_recv_traj / (current_recv_traj_time - self.last_recv_traj_time),
-                    self.total_recv_traj / self.total_recv_traj_time,
-                    current_recv_traj / network_delay,
-                    self.total_recv_traj / self.total_network_delay,
+                    (current_recv_traj_time - self.last_recv_traj_time) / current_recv_traj,
+                    self.total_recv_traj_time / self.total_recv_traj,
+                    network_delay / current_recv_traj,
+                    self.total_network_delay / self.total_recv_traj,
                 )
             )
 
             self._writer.add_scalar(
-                "current_recv_traj_speed____traj/s-traj",
-                current_recv_traj / (current_recv_traj_time - self.last_recv_traj_time), 
+                "current_recv_traj_speed____s/traj-traj",
+                (current_recv_traj_time - self.last_recv_traj_time) / current_recv_traj, 
                 self.total_recv_traj
             )
             self._writer.add_scalar(
-                "total_recv_traj_speed____traj/s-traj", 
-                self.total_recv_traj / self.total_recv_traj_time,
+                "total_recv_traj_speed____s/traj-traj", 
+                self.total_recv_traj_time / self.total_recv_traj,
                 self.total_recv_traj
             )
             self._writer.add_scalar(
-                "current_network_delay____traj/s-traj", 
-                current_recv_traj / network_delay, 
+                "current_network_delay____s/traj-traj", 
+                network_delay / current_recv_traj, 
                 self.total_recv_traj
             )
             self._writer.add_scalar(
-                "total_network_delay____traj/s-traj", 
-                self.total_recv_traj / self.total_network_delay,
+                "total_network_delay____s/traj-traj", 
+                self.total_network_delay / self.total_recv_traj,
                 self.total_recv_traj
             )
             self.last_recv_traj_time = current_recv_traj_time
