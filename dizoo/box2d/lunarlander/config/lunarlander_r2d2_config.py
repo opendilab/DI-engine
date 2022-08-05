@@ -13,8 +13,8 @@ lunarlander_r2d2_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
-        priority=False,
+        on_policy=True,
+        priority=True,
         priority_IS_weight=False,
         model=dict(
             obs_shape=8,
