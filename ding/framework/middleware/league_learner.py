@@ -3,10 +3,10 @@ import os
 from dataclasses import dataclass
 from collections import deque
 from threading import Lock
-from time import sleep
+from time import time, sleep
 from typing import TYPE_CHECKING, Callable, Optional
-from ding.data.buffer.deque_buffer import DequeBuffer
 
+from ding.data.buffer.deque_buffer import DequeBuffer
 from ding.framework import task, EventEnum
 from ding.framework.middleware import OffPolicyLearner, CkptSaver, data_pusher
 from ding.framework.storage import Storage, FileStorage
@@ -45,15 +45,67 @@ class LeagueLearnerCommunicator:
 
         self._writer = DistributedWriter.get_instance()
         self.last_train_iter = 0
+        self.total_recv_traj = 0
+        self.total_recv_traj_time = 0
+        self.last_recv_traj_time = None
+        self.total_network_delay = 0
 
     def _push_data(self, data: "ActorData"):
-        log_every_sec(
-            logging.INFO, 5,
-            "[Learner {}] receive data of player {} from actor! \n".format(task.router.node_id, self.player_id)
-        )
+        if self.last_recv_traj_time is None:
+            self.last_recv_traj_time = time()
+
+        current_recv_traj = 0
+
         for env_trajectories in data.train_data:
             for traj in env_trajectories.trajectories:
                 self._cache.append(traj)
+                current_recv_traj += 1
+
+        self.total_recv_traj += current_recv_traj
+
+        if current_recv_traj > 0:
+            current_recv_traj_time = time()
+            self.total_recv_traj_time += current_recv_traj_time - self.last_recv_traj_time
+
+            # TODO
+            network_delay = current_recv_traj_time - data.meta.send_wall_time
+            self.total_network_delay += network_delay
+
+            log_every_sec(
+                logging.INFO, 5,
+                "[Learner {}] receive {} trajectories of player {} from actor! Current recv speed: {} traj/s, Total recv speed: {} traj/s, Current network_delay: {} traj/s, Total network_delay: {} traj/s \n"
+                .format(
+                    task.router.node_id,
+                    current_recv_traj,
+                    self.player_id,
+                    current_recv_traj / (current_recv_traj_time - self.last_recv_traj_time),
+                    self.total_recv_traj / self.total_recv_traj_time,
+                    current_recv_traj / network_delay,
+                    self.total_recv_traj / self.total_network_delay,
+                )
+            )
+
+            self._writer.add_scalar(
+                "current_recv_traj_speed____traj/s-traj",
+                current_recv_traj / (current_recv_traj_time - self.last_recv_traj_time), 
+                self.total_recv_traj
+            )
+            self._writer.add_scalar(
+                "total_recv_traj_speed____traj/s-traj", 
+                self.total_recv_traj / self.total_recv_traj_time,
+                self.total_recv_traj
+            )
+            self._writer.add_scalar(
+                "current_network_delay____traj/s-traj", 
+                current_recv_traj / network_delay, 
+                self.total_recv_traj
+            )
+            self._writer.add_scalar(
+                "total_network_delay____traj/s-traj", 
+                self.total_recv_traj / self.total_network_delay,
+                self.total_recv_traj
+            )
+            self.last_recv_traj_time = current_recv_traj_time
         # if isinstance(data.train_data, list):
         #     self._cache.extend(data.train_data)
         # else:
