@@ -48,7 +48,7 @@ setup(
         package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
         for package_name in find_packages(include=('ding.*'))
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         'numpy>=1.18.0',
         'requests>=2.25.1',
@@ -114,7 +114,7 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py>=0.7.5',  # atari
+            'ale-py',#>=0.7.5',  # atari
             'autorom',
             'gym[box2d]>=0.25.0'
             'cmake>=3.18.4',
@@ -176,9 +176,9 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )

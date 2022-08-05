@@ -9,10 +9,10 @@ from ding.utils import import_module, ENV_REGISTRY
 BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
 
 
-class FinalMeta(type(ABC), type(gym.Env)):
+class FinalMeta(type(gym.Env), type(ABC)):
     pass
 
-class BaseEnv(ABC, gym.Env, metaclass=FinalMeta):
+class BaseEnv(gym.Env, ABC, metaclass=FinalMeta):
     """
     Overview:
         Basic environment class, extended from ``gym.Env``
@@ -181,3 +181,7 @@ def create_model_env(cfg: EasyDict) -> Any:
     cfg.pop('import_names')
     cfg.pop('type')
     return model_env_fn(**cfg)
+
+
+if __name__=="__main__":
+    pass
