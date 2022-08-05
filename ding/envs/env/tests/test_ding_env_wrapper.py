@@ -48,7 +48,7 @@ gym.envs.registration.register(
 class TestDingEnvWrapper:
 
     @pytest.mark.unittest
-    @pytest.mark.parametrize('env_id', ['CartPole-v0', 'Pendulum-v0'])
+    @pytest.mark.parametrize('env_id', ['CartPole-v0', 'Pendulum-v1'])
     def test_cartpole_pendulum(self, env_id):
         env = gym.make(env_id)
         ding_env = DingEnvWrapper(env=env)

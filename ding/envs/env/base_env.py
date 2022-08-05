@@ -182,7 +182,3 @@ def create_model_env(cfg: EasyDict) -> Any:
     cfg.pop('import_names')
     cfg.pop('type')
     return model_env_fn(**cfg)
-
-
-if __name__ == "__main__":
-    pass
