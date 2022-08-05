@@ -21,7 +21,7 @@ class PettingZooEnv(BaseEnv):
         self._replay_path = None
         self._env_family = self._cfg.env_family
         self._env_id = self._cfg.env_id
-        # self._num_agents = self._cfg.n_agent
+        self._num_agents = self._cfg.n_agent
         self._num_landmarks = self._cfg.n_landmark
         self._continuous_actions = self._cfg.get('continuous_actions', False)
         self._max_cycles = self._cfg.get('max_cycles', 25)
@@ -47,9 +47,7 @@ class PettingZooEnv(BaseEnv):
             )
         obs = self._env.reset()
         if not self._init_flag:
-            # Because agents cannot be accessed before reset
             self._agents = self._env.agents
-            self._num_agents = len(self._env.agents)
 
             self._action_space = gym.spaces.Dict({agent: self._env.action_space(agent) for agent in self._agents})
             single_agent_obs_space = self._env.action_space(self._agents[0])
@@ -73,10 +71,10 @@ class PettingZooEnv(BaseEnv):
                             dtype=np.float32
                         ),
                         'global_state': gym.spaces.Box(
-                            low=float("-inf"), high=float("inf"), shape=(70, ), dtype=np.float32
+                            low=float("-inf"), high=float("inf"), shape=(4*self._num_agents+2*self._num_landmarks+2*self._num_agents*(self._num_agents-1), ), dtype=np.float32
                         ),
                         'agent_alone_state': gym.spaces.Box(
-                            low=float("-inf"), high=float("inf"), shape=(self._num_agents, 22), dtype=np.float32
+                            low=float("-inf"), high=float("inf"), shape=(self._num_agents, 4+2*self._num_landmarks+2*(self._num_agents-1)), dtype=np.float32
                         ),
                         'agent_alone_padding_state': gym.spaces.Box(
                             low=float("-inf"),
@@ -98,7 +96,7 @@ class PettingZooEnv(BaseEnv):
                     agent_specifig_global_state = gym.spaces.Box(
                         low=float("-inf"),
                         high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0] + 70),
+                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0] + 4*self._num_agents+2*self._num_landmarks+2*self._num_agents*(self._num_agents-1)),
                         dtype=np.float32
                     )
                     self._observation_space['global_state'] = agent_specifig_global_state
@@ -107,7 +105,7 @@ class PettingZooEnv(BaseEnv):
                 self._observation_space = gym.spaces.Box(
                     low=float("-inf"),
                     high=float("inf"),
-                    shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
+                    shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),
                     dtype=np.float32
                 )
 
@@ -215,7 +213,7 @@ class PettingZooEnv(BaseEnv):
         #               - global_state info
         if self._agent_specific_global_state:
             ret['global_state'] = np.concatenate(
-                [ret['agent_state'], np.expand_dims(ret['global_state'], axis=0).repeat(5, axis=0)], axis=1
+                [ret['agent_state'], np.expand_dims(ret['global_state'], axis=0).repeat(self._num_agents, axis=0)], axis=1
             )
         # agent_alone_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2).
         #                    Stacked observation. Exclude other agents' positions from agent_state. Contains
