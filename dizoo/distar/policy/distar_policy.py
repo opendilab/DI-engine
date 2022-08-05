@@ -127,6 +127,7 @@ class DIStarPolicy(Policy):
         realtime=False,  #TODO(zms): set from env, need to use only one cfg define policy and env
         model_path='sl_model.pth',
         teacher_model_path='sl_model.pth',
+        value_pretrain_iters=4000,
     )
 
     def _create_model(
@@ -163,6 +164,8 @@ class DIStarPolicy(Policy):
         self.upgo_head_weights = self._cfg.upgo_head_weights
         self.entropy_head_weights = self._cfg.entropy_head_weights
         self.kl_head_weights = self._cfg.kl_head_weights
+        self._only_update_value = False
+        self._remain_value_pretrain_iters = self._cfg.value_pretrain_iters
 
         # optimizer
         self.optimizer = Adam(
@@ -174,10 +177,22 @@ class DIStarPolicy(Policy):
         # utils
         self.timer = EasyTimer(cuda=self._cuda)
 
+    def _step_value_pretrain(self):
+        if self._remain_value_pretrain_iters > 0:
+            self._only_update_value = True
+            self._remain_value_pretrain_iters -= 1
+            self._learn_model.only_update_baseline = True
+
+        elif self._remain_value_pretrain_iters == 0:
+            self._only_update_value = False
+            self._remain_value_pretrain_iters -= 1
+            self._learn_model.only_update_baseline = False
+
     def _forward_learn(self, inputs: Dict):
         # ===========
         # pre-process
         # ===========
+        self._step_value_pretrain()
         if self._cuda:
             inputs = to_device(inputs, self._device)
         inputs = collate_fn_learn(inputs)
@@ -343,10 +358,14 @@ class DIStarPolicy(Policy):
         # ======
         # update
         # ======
-        total_loss = (
-            total_vtrace_loss + total_upgo_loss + total_critic_loss + total_entropy_loss + total_kl_loss +
-            action_type_kl_loss
-        )
+        
+        if self._only_update_value:
+            total_loss = total_critic_loss
+        else:
+            total_loss = (
+                total_vtrace_loss + total_upgo_loss + total_critic_loss + total_entropy_loss + total_kl_loss +
+                action_type_kl_loss
+            )
         with self.timer:
             self.optimizer.zero_grad()
             total_loss.backward()
