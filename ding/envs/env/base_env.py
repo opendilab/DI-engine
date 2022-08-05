@@ -12,6 +12,7 @@ BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'
 class FinalMeta(type(gym.Env), type(ABC)):
     pass
 
+
 class BaseEnv(gym.Env, ABC, metaclass=FinalMeta):
     """
     Overview:
@@ -183,5 +184,5 @@ def create_model_env(cfg: EasyDict) -> Any:
     return model_env_fn(**cfg)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     pass
