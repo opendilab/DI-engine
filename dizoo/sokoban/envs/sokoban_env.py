@@ -29,14 +29,6 @@ class SokobanEnv(BaseEnv):
             self._init_flag = True
 
             if self._save_replay:
-                if gym.version.VERSION > '0.22.0':
-                    self._env.metadata.update(
-                        {'render_modes': ['human', 'rgb_array', 'tiny_human', 'tiny_rgb_array', 'raw']}
-                        )
-                else:
-                    self._env.metadata.update(
-                        {'render.modes': ['human', 'rgb_array', 'tiny_human', 'tiny_rgb_array', 'raw']}
-                        )
                 self._env = gym.wrappers.RecordVideo(
                     self._env,
                     video_folder=self._replay_path,
