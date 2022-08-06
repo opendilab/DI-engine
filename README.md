@@ -107,9 +107,10 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - base: opendilab/ding:nightly
 - atari: opendilab/ding:nightly-atari
 - mujoco: opendilab/ding:nightly-mujoco
+- dmc: opendilab/ding:nightly-dmc2gym
+- metaworld: opendilab/ding:nightly-metaworld
 - smac: opendilab/ding:nightly-smac
 - grf: opendilab/ding:nightly-grf
-- dmc: opendilab/ding:nightly-dmc2gym
 
 The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
 
