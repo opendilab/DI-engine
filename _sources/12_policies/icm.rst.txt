@@ -13,7 +13,7 @@ The difficulties the algorithm trying to solve:
 1. High-dimensional continuous state space (such as image information) is difficult to establish an intuitive dynamic model, ie :math:`p_\theta(s_{t+1}, a_t)` ;
 
 2. The correlation between the observation in the environment and the agent's own behavior is different, which can be roughly divided into:
-​​
+
     a. Elements that the agent can directly control (such as the position and speed of the vehicle in the autonomous driving scene);
 
     b. Elements which are not controlled by the agent, but will affect the agent (such as the position and speed of his car in the automatic driving scene);
@@ -106,6 +106,7 @@ Therefore, when calculating the forward model, the residual network can better r
 
 
 .. code-block:: python
+
     pred_next_state_feature_orig = torch.cat((encode_state, action), 1)
     pred_next_state_feature_orig = self.forward_net_1(pred_next_state_feature_orig)
     for i in range(4):
@@ -259,7 +260,7 @@ The three lines of the experiment are three seeds, the ids are: 0, 10, 20
    :align: center
 
 References
----------
+------------
 1. Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration by self-supervised prediction[C]//International conference on machine learning. PMLR, 2017: 2778-2787.
 
 2. Burda Y, Edwards H, Storkey A, et al. Exploration by random network distillation[J]. https://arxiv.org/abs/1810.12894v1. arXiv:1810.12894, 2018.

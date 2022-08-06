@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -301,22 +302,22 @@ For the choice of RL policy, MBPO use SAC as its RL component.</p>
 <section id="predictive-model">
 <h3>Predictive Model<a class="headerlink" href="#predictive-model" title="Permalink to this headline">¶</a></h3>
 <p>MBPO utilizes an ensemble of gaussian neural network, each member of the ensemble is:</p>
-<div class="math">
-<p><img src="../_images/math/0fa5e14295d0ecd7a6a4c50572fae2668272b57e.svg" alt="p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t) = N(\mu_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t), \Sigma_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t))"/></p>
-</div><p>The maximum likelihood loss used in model training is:</p>
-<div class="math">
-<p><img src="../_images/math/20cc9e4b56ad4b6fe5c8222d80aa713a02473b2c.svg" alt="L(\theta)=\mathbb{E}\left[log(p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t))\right]"/></p>
-</div></section>
+<div class="math notranslate nohighlight">
+\[p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t) = N(\mu_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t), \Sigma_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t))\]</div>
+<p>The maximum likelihood loss used in model training is:</p>
+<div class="math notranslate nohighlight">
+\[L(\theta)=\mathbb{E}\left[log(p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t))\right]\]</div>
+</section>
 <section id="policy-optimization">
 <h3>Policy Optimization<a class="headerlink" href="#policy-optimization" title="Permalink to this headline">¶</a></h3>
 <p>Policy evaluation step:</p>
-<div class="math">
-<p><img src="../_images/math/c525f474945b48d066ff3617ed7ba663d270516a.svg" alt="Q^\pi(\boldsymbol{s}_t,\boldsymbol{a}_t) = \mathbb{E}_\pi[{\sum}_{t=0}^{\infty}\gamma^t r(\boldsymbol{s}_t,\boldsymbol{a}_t)]"/></p>
-</div><p>Policy improvement step:</p>
-<div class="math">
-<p><img src="../_images/math/3e13995ba0d1e81c7e76050c3e04cc7a4f14f56b.svg" alt="\min J_\pi(\phi, D) = \mathbb{E}_{s_t \sim D}[D_{KL}(\pi \| exp\{Q^\pi - V^\pi\})]"/></p>
-</div><p>Note: This update guarantees that
-<img class="math" src="../_images/math/94a48ee095f46d3a03687d249e9a229c731ed89e.svg" alt="Q^{\pi_{new}}(\boldsymbol{s}_t,\boldsymbol{a}_t) \geq Q^{\pi_{old}}(\boldsymbol{s}_t,\boldsymbol{a}_t)"/>,
+<div class="math notranslate nohighlight">
+\[Q^\pi(\boldsymbol{s}_t,\boldsymbol{a}_t) = \mathbb{E}_\pi[{\sum}_{t=0}^{\infty}\gamma^t r(\boldsymbol{s}_t,\boldsymbol{a}_t)]\]</div>
+<p>Policy improvement step:</p>
+<div class="math notranslate nohighlight">
+\[\min J_\pi(\phi, D) = \mathbb{E}_{s_t \sim D}[D_{KL}(\pi \| exp\{Q^\pi - V^\pi\})]\]</div>
+<p>Note: This update guarantees that
+<span class="math notranslate nohighlight">\(Q^{\pi_{new}}(\boldsymbol{s}_t,\boldsymbol{a}_t) \geq Q^{\pi_{old}}(\boldsymbol{s}_t,\boldsymbol{a}_t)\)</span>,
 please check the proof on this Lemma2 in the Appendix B.2 in the original <a class="reference external" href="https://arxiv.org/abs/1801.01290">paper</a>.</p>
 </section>
 </section>
@@ -331,7 +332,11 @@ please check the proof on this Lemma2 in the Appendix B.2 in the original <a cla
 <section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config of mbpo model is defined as follows:</p>
-<p>The entry MBPO used is defined as follows:</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.world_model.mbpo.</span></span><span class="sig-name descname"><span class="pre">MBPOWorldModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/world_model/mbpo.html#MBPOWorldModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
@@ -463,6 +468,7 @@ please check the proof on this Lemma2 in the Appendix B.2 in the original <a cla
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

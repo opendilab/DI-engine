@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -288,7 +289,7 @@ the sample efficiency and decreases the data correlation by using the following 
 <li><p><strong>Truncated importance sampling with bias correction</strong>, which controls the stability of the off-policy estimator</p></li>
 <li><p><strong>Retrace Q value estimation</strong>, which is an off-policy, low variance, and return-based algorithm, and has been proven to converge</p></li>
 <li><p><strong>Efficient TRPO (Trust Region Policy Optimization)</strong>, which scales well to large problems</p></li>
-<li><p><strong>Stochastic Dueling Networks (SDNs)</strong>, which is designed to estimate both <img class="math" src="../_images/math/85146079767b68ded51f04d41631dcde127e7bd3.svg" alt="V^\pi"/> and <img class="math" src="../_images/math/8fea1e9e0c2afbb223273fc5c2a66e2ccf36bec1.svg" alt="Q^\pi"/> off-policy while maintaining consistency between the two estimates</p></li>
+<li><p><strong>Stochastic Dueling Networks (SDNs)</strong>, which is designed to estimate both <span class="math notranslate nohighlight">\(V^\pi\)</span> and <span class="math notranslate nohighlight">\(Q^\pi\)</span> off-policy while maintaining consistency between the two estimates</p></li>
 </ul>
 <p>You can find more details in the paper <a class="reference external" href="https://arxiv.org/abs/1611.01224">Sample Efficient Actor-Critic with Experience Replay</a>.</p>
 </section>
@@ -307,40 +308,40 @@ the sample efficiency and decreases the data correlation by using the following 
 <p>Loss used in ACER contains policy loss and value loss. They are updated separately, so it’s necessary to control their relative update speeds.</p>
 <section id="retrace-q-value-estimation">
 <h3>Retrace Q-value estimation<a class="headerlink" href="#retrace-q-value-estimation" title="Permalink to this headline">¶</a></h3>
-<p>Given a trajectory generated under the behavior policy <img class="math" src="../_images/math/1f86e503cb1becd4e389bd4557b044555b6eabad.svg" alt="\mu"/>,  we retrieve a trajectory <img class="math" src="../_images/math/6b82eec61e7ce2a50fe65b957dd173b302acb547.svg" alt="{x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}"/>
+<p>Given a trajectory generated under the behavior policy <span class="math notranslate nohighlight">\(\mu\)</span>,  we retrieve a trajectory <span class="math notranslate nohighlight">\({x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}\)</span>
 the Retrace estimator can be expressed recursively as follows:</p>
-<div class="math">
-<p><img src="../_images/math/ce8e99284ab11a70e7d65a6757bec0dd5b55e572.svg" alt="Q^{\text{ret}}(x_t,a_t)=r_t+\gamma\bar{\rho}_{t+1}[Q^{\text{ret}}(x_{t+
-1},a_{t+1})]+\gamma V(x_{t+1})"/></p>
-</div><p>where  <img class="math" src="../_images/math/1def26f55d9a6c0f0c019b8293679278d386c40d.svg" alt="\bar{\rho}_t"/> is the truncated importance weight, <img class="math" src="../_images/math/1754be150ead2632e66077a1c693b136a60345e8.svg" alt="\bar{\rho}_t=\min\{c,\rho\}"/> with <img class="math" src="../_images/math/4915d61d66839b05d8deabbd10601bdb7741da0a.svg" alt="\frac{\pi(a_t|x_t)}{\mu(a_t|x_t)}"/>. <img class="math" src="../_images/math/a8ea0a6a882c734c4ba371876101b1e14dbcf825.svg" alt="\pi"/> is the target policy.
+<div class="math notranslate nohighlight">
+\[Q^{\text{ret}}(x_t,a_t)=r_t+\gamma\bar{\rho}_{t+1}[Q^{\text{ret}}(x_{t+
+1},a_{t+1})]+\gamma V(x_{t+1})\]</div>
+<p>where  <span class="math notranslate nohighlight">\(\bar{\rho}_t\)</span> is the truncated importance weight, <span class="math notranslate nohighlight">\(\bar{\rho}_t=\min\{c,\rho\}\)</span> with <span class="math notranslate nohighlight">\(\frac{\pi(a_t|x_t)}{\mu(a_t|x_t)}\)</span>. <span class="math notranslate nohighlight">\(\pi\)</span> is the target policy.
 Retrace is an off-policy, return based algorithm which has low variance and is proven to converge to the value function of the target policy for any behavior policy.
-We approximate the Q value by neural network <img class="math" src="../_images/math/b01344ca9184a75397122ec9ecb8406b2b790eba.svg" alt="Q_{\theta}"/>. We use a mean squared error loss:</p>
+We approximate the Q value by neural network <span class="math notranslate nohighlight">\(Q_{\theta}\)</span>. We use a mean squared error loss:</p>
 <blockquote>
-<div><div class="math">
-<p><img src="../_images/math/c9edaec8df3cd154768ed576ec2508a128cc0346.svg" alt="{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2."/></p>
-</div></div></blockquote>
+<div><div class="math notranslate nohighlight">
+\[{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.\]</div>
+</div></blockquote>
 </section>
 <section id="policy-gradient">
 <h3>Policy Gradient<a class="headerlink" href="#policy-gradient" title="Permalink to this headline">¶</a></h3>
 <p>To safe-guard against high variance, ACER uses truncated importance weights and introduces
-correction term via the following decomposition of <img class="math" src="../_images/math/490d4abb7dc20c1b8b81c444267c3ae4cc80f715.svg" alt="g^{acer}"/>:</p>
+correction term via the following decomposition of <span class="math notranslate nohighlight">\(g^{acer}\)</span>:</p>
 <a class="reference internal image-reference" href="../_images/ACER_gacer.png"><img alt="../_images/ACER_gacer.png" class="align-center" src="../_images/ACER_gacer.png" style="width: 635.0px; height: 112.0px;" /></a>
 <p>To ensure stability, ACER limits the per-step change to the policy by solving the following linearized KL divergence constraint:</p>
-<div class="math">
-<p><img src="../_images/math/eea353327bbac4b4f0f8b7393f0dbdd6d1ad89da.svg" alt="\begin{split}
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{split}
 &amp;\text{minimize}_z\quad\frac{1}{2}\|g_t^{\text{acer}}-z\|_2^2\\
 &amp;subjec\ to\quad \nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]^\top\le\delta
-\end{split}"/></p>
-</div><p>The <img class="math" src="../_images/math/1b1ee8ca1f8b5f201b688c8533dde8aeb5853a2e.svg" alt="\phi(\theta)"/> is the target policy network and the <img class="math" src="../_images/math/d40cdc65bb90d53ba1fb2cdcd10df71c0007cee8.svg" alt="\phi(\theta_a)"/> is the average policy network.
-By letting <img class="math" src="../_images/math/8225dd99a9dc252c9e51e2a1a522b97c1ce833bc.svg" alt="k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]"/>, the solution can be easily derived in closed form using the KKT condition:</p>
-<div class="math">
-<p><img src="../_images/math/3e71a7e84aef123830a7ac2db35d3469bc83305e.svg" alt="z^*=g_{t}^{\text{acer}}-\max\{0,\frac{k^\top g_t^{\text{acer}}-\delta}{\|k\|_2^2}\}k"/></p>
-</div></section>
+\end{split}\end{split}\]</div>
+<p>The <span class="math notranslate nohighlight">\(\phi(\theta)\)</span> is the target policy network and the <span class="math notranslate nohighlight">\(\phi(\theta_a)\)</span> is the average policy network.
+By letting <span class="math notranslate nohighlight">\(k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]\)</span>, the solution can be easily derived in closed form using the KKT condition:</p>
+<div class="math notranslate nohighlight">
+\[z^*=g_{t}^{\text{acer}}-\max\{0,\frac{k^\top g_t^{\text{acer}}-\delta}{\|k\|_2^2}\}k\]</div>
+</section>
 </section>
 <section id="key-graph-or-network-structure">
 <h2>Key Graph or Network Structure<a class="headerlink" href="#key-graph-or-network-structure" title="Permalink to this headline">¶</a></h2>
-<p>The following graph depicts the SDN structure (picture from paper Sample Efficient Actor-Critic with Experience Replay). In the drawing, <img class="math" src="../_images/math/616e3d0bdb295c1dbf8c96991f2b315aeb16bc59.svg" alt="[u_1, .... , u_n]"/> are assumed
-to be samples from <img class="math" src="../_images/math/cbd3b16b132b3d8bd8f86d297fe51e7b64987f54.svg" alt="\pi_\theta(·|x_t)"/>.</p>
+<p>The following graph depicts the SDN structure (picture from paper Sample Efficient Actor-Critic with Experience Replay). In the drawing, <span class="math notranslate nohighlight">\([u_1, .... , u_n]\)</span> are assumed
+to be samples from <span class="math notranslate nohighlight">\(\pi_\theta(·|x_t)\)</span>.</p>
 <a class="reference internal image-reference" href="../_images/ACER_SDN.png"><img alt="../_images/ACER_SDN.png" class="align-center" src="../_images/ACER_SDN.png" style="width: 692.1px; height: 423.90000000000003px;" /></a>
 </section>
 <section id="pseudo-code">
@@ -783,6 +784,7 @@ skip-v4)</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

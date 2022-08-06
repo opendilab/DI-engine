@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -296,25 +297,25 @@ DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver1
 </section>
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>The DDPG algorithm maintains a parameterized actor function <img class="math" src="../_images/math/189a3c1b51b868839a72932732c83e2dfb523c32.svg" alt="\mu\left(s \mid \theta^{\mu}\right)"/> which specifies the current policy by deterministically mapping states to a specific action. The critic <img class="math" src="../_images/math/3160970b4cda6c56c2d67831baf721ebd6365c46.svg" alt="Q(s, a)"/> is learned using the Bellman equation as in Q-learning. The actor is updated by following the applying the chain rule to the expected return from the start distribution <img class="math" src="../_images/math/eefabc96d97a042138117a80aff32eeb07e4d325.svg" alt="J"/> with respect to the actor parameters:</p>
-<div class="math">
-<p><img src="../_images/math/7c4de8beb4382c8d7a14397e842c3972cb8d1f37.svg" alt="\begin{aligned}
+<p>The DDPG algorithm maintains a parameterized actor function <span class="math notranslate nohighlight">\(\mu\left(s \mid \theta^{\mu}\right)\)</span> which specifies the current policy by deterministically mapping states to a specific action. The critic <span class="math notranslate nohighlight">\(Q(s, a)\)</span> is learned using the Bellman equation as in Q-learning. The actor is updated by following the applying the chain rule to the expected return from the start distribution <span class="math notranslate nohighlight">\(J\)</span> with respect to the actor parameters:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
 \nabla_{\theta^{\mu}} J &amp; \approx \mathbb{E}_{s_{t} \sim \rho^{\beta}}\left[\left.\nabla_{\theta^{\mu}} Q\left(s, a \mid \theta^{Q}\right)\right|_{s=s_{t}, a=\mu\left(s_{t} \mid \theta^{\mu}\right)}\right] \\
 &amp;=\mathbb{E}_{s_{t} \sim \rho^{\beta}}\left[\left.\left.\nabla_{a} Q\left(s, a \mid \theta^{Q}\right)\right|_{s=s_{t}, a=\mu\left(s_{t}\right)} \nabla_{\theta_{\mu}} \mu\left(s \mid \theta^{\mu}\right)\right|_{s=s_{t}}\right]
-\end{aligned}"/></p>
-</div><p>DDPG uses a <strong>replay buffer</strong> to guarantee that the samples are independently and identically distributed.</p>
-<p>To keep neural networks stable in many environments, DDPG uses <strong>“soft” target updates</strong> to update target networks rather than directly copying the weights. Specifically, DDPG creates a copy of the actor and critic networks, <img class="math" src="../_images/math/866576f7d5e18e51b53ce2b6c75c49bfad250008.svg" alt="Q'(s, a|\theta^{Q'})"/> and <img class="math" src="../_images/math/ac7540f737a2f6173e14ac9389f86ca292f34e7f.svg" alt="\mu' \left(s \mid \theta^{\mu'}\right)"/> respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:</p>
-<div class="math">
-<p><img src="../_images/math/2f14fe0ce882f392cb686432e97ecacc5b2a2218.svg" alt="\theta' \leftarrow \tau \theta + (1 - \tau)\theta',"/></p>
-</div><p>where <img class="math" src="../_images/math/18c17b9eb55f9cd2561e42ad986bb05268bcb5ff.svg" alt="\tau&lt;&lt;1"/>. This means that the target values are constrained to change slowly, greatly improving the stability of learning.</p>
+\end{aligned}\end{split}\]</div>
+<p>DDPG uses a <strong>replay buffer</strong> to guarantee that the samples are independently and identically distributed.</p>
+<p>To keep neural networks stable in many environments, DDPG uses <strong>“soft” target updates</strong> to update target networks rather than directly copying the weights. Specifically, DDPG creates a copy of the actor and critic networks, <span class="math notranslate nohighlight">\(Q'(s, a|\theta^{Q'})\)</span> and <span class="math notranslate nohighlight">\(\mu' \left(s \mid \theta^{\mu'}\right)\)</span> respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:</p>
+<div class="math notranslate nohighlight">
+\[\theta' \leftarrow \tau \theta + (1 - \tau)\theta',\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau&lt;&lt;1\)</span>. This means that the target values are constrained to change slowly, greatly improving the stability of learning.</p>
 <p>A major challenge of learning in continuous action spaces is exploration. However, it is an advantage for off-policies algorithms such as DDPG that the problem of exploration could be treated independently from the learning algorithm. Specifically, we constructed an exploration policy by adding noise sampled from a noise process N to actor policy:</p>
-<div class="math">
-<p><img src="../_images/math/9c0e492493f9b50b6ff47da4bf0f5ac8e032a6f9.svg" alt="\mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}"/></p>
-</div></section>
+<div class="math notranslate nohighlight">
+\[\mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}\]</div>
+</section>
 <section id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
-<div class="math">
-<p><img src="../_images/math/a5804b87c1dde88306f6365506024ddb6718947b.svg" alt="\begin{algorithm}[H]
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}:nowrap:\\\begin{split}\begin{algorithm}[H]
     \caption{Deep Deterministic Policy Gradient}
     \label{alg1}
 \begin{algorithmic}[1]
@@ -350,8 +351,9 @@ DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver1
         \ENDIF
     \UNTIL{convergence}
 \end{algorithmic}
-\end{algorithm}"/></p>
-</div></section>
+\end{algorithm}\end{split}\end{aligned}\end{align} \]</div>
+<a class="reference internal image-reference" href="../_images/DDPG.jpg"><img alt="../_images/DDPG.jpg" class="align-center" src="../_images/DDPG.jpg" style="width: 751.5px; height: 556.5px;" /></a>
+</section>
 <section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <dl>
@@ -372,7 +374,7 @@ We configure <code class="docutils literal notranslate"><span class="pre">random
 <li><p>Gaussian noise during collecting transition.</p>
 <blockquote>
 <div><p>For the exploration noise process DDPG uses temporally correlated noise in order to explore well in physical environments that have momentum.
-Specifically, DDPG uses Ornstein-Uhlenbeck process with <img class="math" src="../_images/math/d0c3da21ff3a0962a76d721dd7ccd25d6db046b3.svg" alt="\theta = 0.15"/> and <img class="math" src="../_images/math/bc4ac9a66733ee1d86d7dbe878280b34b749332d.svg" alt="\sigma = 0.2"/>. The Ornstein-Uhlenbeck process models the velocity of a Brownian particle with friction, which results in temporally correlated values centered around 0.
+Specifically, DDPG uses Ornstein-Uhlenbeck process with <span class="math notranslate nohighlight">\(\theta = 0.15\)</span> and <span class="math notranslate nohighlight">\(\sigma = 0.2\)</span>. The Ornstein-Uhlenbeck process models the velocity of a Brownian particle with friction, which results in temporally correlated values centered around 0.
 However, we use Gaussian noise instead of Ornstein-Uhlenbeck noise due to too many hyper-parameters of Ornstein-Uhlenbeck noise.
 We configure <code class="docutils literal notranslate"><span class="pre">collect.noise_sigma</span></code> to control the exploration.</p>
 </div></blockquote>
@@ -725,12 +727,12 @@ such as <code class="docutils literal notranslate"><span class="pre">action</spa
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/3746873cdcbc0e9d0b422a05132ead65f973de48.svg" alt="(B, N0)"/>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, B is batch size.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/8ec79fd7bd1d60ba7d453bbeca7be51e6265c84a.svg" alt="(B, N3)"/>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
@@ -777,11 +779,11 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/cbddc0049cd97e10fd8c48e837236d6162ddf175.svg" alt="(B, N1)"/>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/1097257653eca809ceb5c5a28562cc813ef073c0.svg" alt="(B, N2)"/>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/8ec79fd7bd1d60ba7d453bbeca7be51e6265c84a.svg" alt="(B, N3)"/>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/ac58afe53306c8a1c6eba1487eead690f84095d4.svg" alt="(B, N4)"/>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/2a7dbcce8c7d4363a8f3d116d954dfceba1eac40.svg" alt="(B, )"/>, where B is batch size.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N4)\)</span>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
@@ -1100,6 +1102,7 @@ Spinning-up(1950)</p></td>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

@@ -5,7 +5,7 @@
 
 下面的介绍，首先将从 **基础** 和 **进阶** 两部分开始。 **基础** 部分说明了必须实现的功能，并特别提醒了要注意的细节； **进阶** 则说明了一些拓展功能。
 
-然后介绍 ``DingEnvWrapper`` 这样一个可以快速将 ClassicControl, Box2d, Atari, Mujoco, GymHybrid 等简单环境转换为符合 ``BaseEnv`` 的环境的“神器”。并在最后针对常见问题进行 Q & A。
+然后介绍 ``DingEnvWrapper`` 这样一个可以快速将 ``ClassicControl, Box2d, Atari, Mujoco, GymHybrid`` 等简单环境转换为符合 ``BaseEnv`` 的环境的“神器”。并在最后针对常见问题进行 Q & A。
 
 基础
 ~~~~~~~~~~~~~~
@@ -34,7 +34,7 @@
 
 2. ``seed()``
 
-   ``seed`` 用于设定环境中的随机种子，环境中有两部分随机种子需要设置，一是 **原始环境** 的随机种子，二是各种 **环境变换** 中调用库时的随机种子（例如 ``random`` ``np.random`` 等）。
+   ``seed`` 用于设定环境中的随机种子，环境中有两部分随机种子需要设置，一是 **原始环境** 的随机种子，二是各种 **环境变换** 中调用库时的随机种子（例如 ``random`` , ``np.random`` 等）。
 
    针对第二类，随机库的种子的设置较为简单，直接在环境的 ``seed`` 方法中进行设置。
 
@@ -53,12 +53,11 @@
    
    **静态种子** 用于测试环境（evaluator_env），保证每个 episode 的随机种子相同，即 ``reset`` 时只会采用 ``self._seed`` 这个固定的静态种子数值。需要在 ``seed`` 方法中手动传入 ``dynamic_seed`` 参数为 ``False`` 。
 
-   **动态种子** 用于训练环境（collector_env），尽量使得每个 episode 的随机种子都不相同，即 ``reset`` 时会采用一个随机数发生器 ``100 * np.random.randint(1, 1000)`` 产生（但这个随机数发生器的种子是通过环境的 ``seed`` 方法固定的，因此能保证实验的可复现性）。需要在 ``seed`` 手动传入 ``dynamic_seed`` 参数为 ``True``（或者也可以不传入，因为默认参数为 ``True``）。
+   **动态种子** 用于训练环境（collector_env），尽量使得每个 episode 的随机种子都不相同，即 ``reset`` 时会采用一个随机数发生器 ``100 * np.random.randint(1, 1000)`` 产生（但这个随机数发生器的种子是通过环境的 ``seed`` 方法固定的，因此能保证实验的可复现性）。需要在 ``seed`` 手动传入 ``dynamic_seed`` 参数为 ``True`` （或者也可以不传入，因为默认参数为 ``True`` ）。
 
 3. ``reset()``
 
    在 ``__init__`` 方法中已经介绍了 DI-engine 的 **Lazy Init** 初始化方式，即实际的环境初始化是在 **第一次调用** ``reset`` 方法时进行的。
-
    ``reset`` 方法中会根据 ``self._init_flag`` 判断是否需要实例化实际环境（如果为 ``False`` 则进行实例化；否则代表已经实例化过，直接使用即可），并进行随机种子的设置，然后调用原始环境的 ``reset`` 方法得到初始状态下的观测值 ``obs``，并转换为 ``np.ndarray`` 数据格式（将在 4 中详细讲解），并初始化 ``self._final_eval_reward`` 的值（将在 5 中详细讲解），在 Atari 中 ``self._final_eval_reward`` 指的是一整个 episode 所获得的真实 reward 的累积和，用于评价 agent 在该环境上的性能，不用于训练。
 
    .. code:: python
@@ -85,11 +84,13 @@
 
 4. ``step()``
 
-   ``step`` 方法负责接收当前时刻的 ``action`` ，然后给出当前时刻的 ``reward`` 和 下一时刻的 ``obs``，在 DI-engine中，还需要给出：当前episode是否结束的标志 ``done``（ 此处要求 ``done`` 必须是 ``bool`` 类型，不能是 ``np.bool`` ）、字典形式的其它信息 ``info`` （其中至少包括键 ``self._final_eval_reward`` ）。
+   ``step`` 方法负责接收当前时刻的 ``action`` ，然后给出当前时刻的 ``reward`` 和 下一时刻的 ``obs`` ，在 DI-engine中，还需要给出：当前episode是否结束的标志 ``done`` （ 此处要求 ``done`` 必须是 ``bool`` 类型，不能是 ``np.bool`` ）、字典形式的其它信息 ``info`` （其中至少包括键 ``self._final_eval_reward`` ）。
 
-   在得到 ``reward`` ``obs`` ``done`` ``info`` 等数据后，需要进行处理，转化为 ``np.ndarray`` 格式，以符合 DI-engine 的规范。在每一个时间步中 ``self._final_eval_reward`` 都会累加当前步获得的实际 reward，并在一个 episode 结束（ ``done == True`` ）的时候返回该累加值。
+   在得到 ``reward`` , ``obs`` , ``done`` , ``info`` 等数据后，需要进行处理，转化为 ``np.ndarray`` 格式，以符合 DI-engine 的规范。在每一个时间步中 ``self._final_eval_reward`` 都会累加当前步获得的实际 reward，并在一个 episode 结束（ ``done == True`` ）的时候返回该累加值。
 
-   最终，将上述四个数据放入定义为 ``namedtuple`` 的 ``BaseEnvTimestep`` 中并返回（定义为： ``BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])`` ）
+   最终，将上述四个数据放入定义为 ``namedtuple`` 的 ``BaseEnvTimestep`` 中并返回
+
+   （即定义为： ``BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])`` ）
    
    .. code:: python
 
@@ -110,7 +111,7 @@
 
 5. ``self._final_eval_reward``
 
-   在 Atari 环境中， ``self._final_eval_reward`` 是指一个 episode 的全部 reward 的累加和， ``self._final_eval_reward`` 的数据类型必须是 python 原生类型，不能是 ``np.array``。
+   在 Atari 环境中， ``self._final_eval_reward`` 是指一个 episode 的全部 reward 的累加和， ``self._final_eval_reward`` 的数据类型必须是 python 原生类型，不能是 ``np.array`` 。
 
       - 在 ``reset`` 方法中，将当前 ``self._final_eval_reward`` 置 0；
       - 在 ``step`` 方法中，将每个时间步获得的实际 reward 加到 ``self._final_eval_reward`` 中。
@@ -342,7 +343,8 @@
    - reset/step 方法
    - 相邻两个时间步的 observation 中是否存在不合理的相同引用（即应当通过 deepcopy 来避免相同引用）
    
-   检查工具的实现在 ``ding/envs/env/env_implementation_check.py``；检查工具的使用方法可以参考 ``ding/envs/env/tests/test_env_implementation_check.py`` 的 ``test_an_implemented_env``。
+   检查工具的实现在 ``ding/envs/env/env_implementation_check.py`` 
+   检查工具的使用方法可以参考 ``ding/envs/env/tests/test_env_implementation_check.py`` 的 ``test_an_implemented_env``。
 
 
 
@@ -364,7 +366,7 @@ Q & A
 
    - 如果环境既支持 single-agent，又支持 double-agent 甚至 multi-agent，那么要针对不同的模式分类考虑
    - 在 multi-agent 环境中，action 和 observation 和 agent 个数匹配，但 reward 和 done 却不一定，需要搞清楚 reward 的定义
-   - 注意原始环境要求 action 和 observation 怎样组合在一起（元组、列表、字典、stacked array...）
+   - 注意原始环境要求 action 和 observation 怎样组合在一起（元组、列表、字典、stacked array 等等）
 
 
 2. 混合动作空间的环境应当如何迁移？

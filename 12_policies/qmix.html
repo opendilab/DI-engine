@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -303,399 +304,23 @@ The weights of the mixing network are produced by a separate hypernetwork.</p></
 </section>
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>VDN and QMIX are representative methods that use the idea of factorization of the joint action-value function <img class="math" src="../_images/math/9ded0f6b145f96a362809083f7acfb653c853660.svg" alt="Q_{tot}"/> into individual ones <img class="math" src="../_images/math/38f9dde8c760168c671cc74e0922141ab329d574.svg" alt="Q_a"/> for decentralized execution.</p>
-<p>In order to achieve centralized training with decentralized execution (CTDE), we need to ensure that a global <img class="math" src="../_images/math/f7f1b9d3bb796542d81939888a3e9f8042f53091.svg" alt="argmax"/> performed on <img class="math" src="../_images/math/9ded0f6b145f96a362809083f7acfb653c853660.svg" alt="Q_{tot}"/> yields the same result as a set of individual <img class="math" src="../_images/math/f7f1b9d3bb796542d81939888a3e9f8042f53091.svg" alt="argmax"/> operations performed on each <img class="math" src="../_images/math/38f9dde8c760168c671cc74e0922141ab329d574.svg" alt="Q_a"/>:</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">$\arg \max _{\boldsymbol{u}} Q_{\mathrm{tot}}(\boldsymbol{\tau}, \boldsymbol{u})=\left(\begin{array}{c}\arg \max _{u_{1}} Q_{1}\left(\tau_{1}, u_{1}\right) \\ \vdots \\ \arg \max _{u_{N}} Q_{N}\left(\tau_{n}, u_{N}\right)\end{array}\right)$
-
-</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing \right. inserted.
-&lt;inserted text&gt; 
-                \right .
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Undefined control sequence.
-\&#64;array ...e \&#64;preamerr \z&#64; \&#64;&#64;par \fi \&#64;preamble 
-                                                  
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Extra }, or forgotten $.
-&lt;template&gt; }
-            $}\ifdim \wdz&#64; &gt;\totwidth&#64; \global \totwidth&#64; \wdz&#64; \fi \endtemp...
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-
-! LaTeX Error: \begin{equation*} on input line 30 ended by \end{array}.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Extra \right.
-&lt;argument&gt; ...}, u_{N}\right )\end {array}\right )
-                                                  $\end {split}
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Misplaced \crcr.
-\endsplit -&gt;\crcr 
-                  \egroup \egroup \iftagsleft&#64; \&#64;xp \lendsplit&#64; \else \&#64;xp \...
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Extra }, or forgotten $.
-\endsplit -&gt;\crcr \egroup \egroup 
-                                  \iftagsleft&#64; \&#64;xp \lendsplit&#64; \else \&#64;xp \...
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-
-! LaTeX Error: \begin{equation*} on input line 30 ended by \end{split}.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Display math should end with $$.
-&lt;to be read again&gt; 
-                   \endgroup 
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Misplaced \cr.
-\math&#64;cr&#64;&#64;&#64; -&gt;\cr 
-                  
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Too many }'s.
-\gmeasure&#64; ...savetaglength&#64; \crcr #1\math&#64;cr&#64;&#64;&#64; }
-                                                  }\restorecounters&#64; \if&#64;fle...
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Too many }'s.
-\gmeasure&#64; ...avetaglength&#64; \crcr #1\math&#64;cr&#64;&#64;&#64; }}
-                                                  \restorecounters&#64; \if&#64;fleq...
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-! Extra \endgroup.
-\gmeasure&#64; ...th&#64; \displaywidth \fi \fi \endgroup 
-                                                  
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-
-Overfull \hbox (140.94739pt too wide) in paragraph at lines 31--31
-$[]$ 
-
-! Package amsmath Error: \begin{split} won't work here.
-
-See the amsmath package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.31 ...u_{N}\right)\end{array}\right)$\end{split}
-                                                  
-
-Overfull \hbox (610.70238pt too wide) detected at line 32
-[]
-! Too many }'s.
-\endmathdisplay&#64;a ...&#64; \totwidth&#64; \egroup \egroup 
-                                                  
-l.32 \end{equation*}
-                    
-
-! LaTeX Error: \begin{document} ended by \end{equation*}.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.32 \end{equation*}
-                    
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.32 \end{equation*}
-                    
-! Display math should end with $$.
-&lt;to be read again&gt; 
-                   \endgroup 
-l.32 \end{equation*}
-                    
-! Extra \endgroup.
-&lt;recently read&gt; \endgroup 
-                          
-l.32 \end{equation*}
-                    
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 752 bytes).
-Transcript written on math.log.
-</p>
-</div>
-<p>VDN factorizes the joint action-value function into a sum of individual action-value functions.  <img class="math" src="../_images/math/32f72a431f3026af1b457b07b596c4da14a53728.svg" alt="$Q_{\mathrm{tot}}(\boldsymbol{\tau}, \boldsymbol{u})=\sum_{i=1}^{N} Q_{i}\left(\tau_{i}, u_{i}\right)$"/></p>
-<p>QMIX extends this additive value factorization to represent the joint action-value function as a monotonic function. QMIX is based on monotonicity, a constraint on the relationship between joint action values <img class="math" src="../_images/math/9ded0f6b145f96a362809083f7acfb653c853660.svg" alt="Q_{tot}"/> and individual action values <img class="math" src="../_images/math/38f9dde8c760168c671cc74e0922141ab329d574.svg" alt="Q_a"/>.</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">\frac{\partial Q_{tot}}{\partial Q_{a}} \geq 0， \forall a \in A
-
-</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-
-! Package inputenc Error: Unicode character ， (U+FF0C)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.31 ..._{a}} \geq 0， \forall a \in A\end{split}
-                                                  
-
-! Package inputenc Error: Unicode character ， (U+FF0C)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.31 ..._{a}} \geq 0， \forall a \in A\end{split}
-                                                  
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 528 bytes).
-Transcript written on math.log.
-</p>
-</div>
+<p>VDN and QMIX are representative methods that use the idea of factorization of the joint action-value function <span class="math notranslate nohighlight">\(Q_{tot}\)</span> into individual ones <span class="math notranslate nohighlight">\(Q_a\)</span> for decentralized execution.</p>
+<p>In order to achieve centralized training with decentralized execution (CTDE), we need to ensure that a global <span class="math notranslate nohighlight">\(argmax\)</span> performed on <span class="math notranslate nohighlight">\(Q_{tot}\)</span> yields the same result as a set of individual <span class="math notranslate nohighlight">\(argmax\)</span> operations performed on each <span class="math notranslate nohighlight">\(Q_a\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}$\arg \max _{\boldsymbol{u}} Q_{\mathrm{tot}}(\boldsymbol{\tau}, \boldsymbol{u})=\left(\begin{array}{c}\arg \max _{u_{1}} Q_{1}\left(\tau_{1}, u_{1}\right) \\ \vdots \\ \arg \max _{u_{N}} Q_{N}\left(\tau_{n}, u_{N}\right)\end{array}\right)$\end{split}\]</div>
+<p>VDN factorizes the joint action-value function into a sum of individual action-value functions.  <span class="math notranslate nohighlight">\($Q_{\mathrm{tot}}(\boldsymbol{\tau}, \boldsymbol{u})=\sum_{i=1}^{N} Q_{i}\left(\tau_{i}, u_{i}\right)$\)</span></p>
+<p>QMIX extends this additive value factorization to represent the joint action-value function as a monotonic function. QMIX is based on monotonicity, a constraint on the relationship between joint action values <span class="math notranslate nohighlight">\(Q_{tot}\)</span> and individual action values <span class="math notranslate nohighlight">\(Q_a\)</span>.</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial Q_{tot}}{\partial Q_{a}} \geq 0， \forall a \in A\]</div>
 <p>The overall QMIX architecture including individual agent networks, the mixing network, the hyper-network:</p>
 <img alt="../_images/qmix.png" src="../_images/qmix.png" />
 <p>QMIX trains the mixing network via minimizing the following loss:</p>
-<div class="math">
-<p><img src="../_images/math/f944bcb5e76f98e02fc9e9d154b43f215556de54.svg" alt="y^{tot} = r + \gamma \max_{\textbf{u}^{’}}Q_{tot}(\tau^{'}, \textbf{u}^{'}, s^{'}; \theta^{-})"/></p>
-</div><div class="math">
-<p><img src="../_images/math/3aa29b95ea92e4ac8124837fb4c111d423effdde.svg" alt="\mathcal{L}(\theta) = \sum_{i=1}^{b} [(y_{i}^{tot} - Q_{tot}(\tau, \textbf{u}, s; \theta)^{2}]"/></p>
-</div><p>Each weight of the mixing network is produced by a independent hyper-network, which takes the global state as input and outputs the weight of one layer of the mixing network. More details can be found in the original paper <a class="reference external" href="https://arxiv.org/abs/1803.11485">Rashid et al.(2018)</a>.</p>
-<p>VDN and QMIX are methods that attempt to factorize  <img class="math" src="../_images/math/7e1646fbb86ec8cf04c97af281391f675b9a22e0.svg" alt="Q_tot"/> assuming additivity and monotonicity, respectively. Thus, joint action value functions satisfying those conditions would be well factorized by VDN and QMIX. However, there exist tasks
+<div class="math notranslate nohighlight">
+\[y^{tot} = r + \gamma \max_{\textbf{u}^{’}}Q_{tot}(\tau^{'}, \textbf{u}^{'}, s^{'}; \theta^{-})\]</div>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(\theta) = \sum_{i=1}^{b} [(y_{i}^{tot} - Q_{tot}(\tau, \textbf{u}, s; \theta)^{2}]\]</div>
+<p>Each weight of the mixing network is produced by a independent hyper-network, which takes the global state as input and outputs the weight of one layer of the mixing network. More details can be found in the original paper <a class="reference external" href="https://arxiv.org/abs/1803.11485">Rashid et al.(2018)</a>.</p>
+<p>VDN and QMIX are methods that attempt to factorize  <span class="math notranslate nohighlight">\(Q_tot\)</span> assuming additivity and monotonicity, respectively. Thus, joint action value functions satisfying those conditions would be well factorized by VDN and QMIX. However, there exist tasks
 whose joint action-value functions do not meet the said conditions. <a class="reference external" href="https://arxiv.org/abs/1905.05408">QTRAN (Son et al. 2019)</a>, proposes a factorization method, which is free from such structural constraints via transforming the original joint action-value function into an easily factorizable one.
 QTRAN guarantees more general factorization than VDN or QMIX.</p>
 </section>
@@ -909,12 +534,12 @@ QTRAN guarantees more general factorization than VDN or QMIX.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/6c4e99c49ed4f13304e5217f23964c91cfae5900.svg" alt="(T, B, A, N)"/>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
-<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/e8bdb65fc231c9d71966a9f8653dc3ec644ec7a1.svg" alt="(T, B, M)"/>, where M is global_obs_shape</p></li>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, M)\)</span>, where M is global_obs_shape</p></li>
 <li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/e4fa4a075ce4f3b226b9a2f47c15daf5554e9827.svg" alt="(T, B, A)"/></p></li>
-<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/04725baff8271367dbe8c9f59add9dab2f3f623a.svg" alt="(T, B)"/></p></li>
-<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/9f891b53a8a0ccced97ac9380760b95dd0d9c428.svg" alt="(T, B, A, P)"/>, where P is action_shape</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A)\)</span></p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, P)\)</span>, where P is action_shape</p></li>
 <li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
 </ul>
 </dd>
@@ -1113,6 +738,7 @@ For more details about SMAC, please refer to <a class="reference external" href=
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   
