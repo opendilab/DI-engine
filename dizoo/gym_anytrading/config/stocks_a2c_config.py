@@ -1,11 +1,8 @@
-import sys
-from tkinter.tix import Tree
-sys.path.append( '/home/PJLAB/chenyun/trade_test/DI-engine')
 from easydict import EasyDict
 from ding.entry import serial_pipeline_for_anytrading
 
 stocks_a2c_config = dict(
-    exp_name='stocks_test_v28',
+    exp_name='stocks_test_v32',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -30,9 +27,9 @@ stocks_a2c_config = dict(
         cuda=True,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
-            obs_shape=142,
+            obs_shape=62,
             action_shape=5,
-            encoder_hidden_size_list=[128, 128, 64],
+            encoder_hidden_size_list=[128, 64],
         ),
         learn=dict(
             batch_size=64,
@@ -69,4 +66,4 @@ stocks_a2c_create_config = EasyDict(stocks_a2c_create_config)
 create_config = stocks_a2c_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_for_anytrading([main_config, create_config], seed=0, max_env_step=int(3e6))
+    serial_pipeline_for_anytrading([main_config, create_config], seed=0, max_env_step=int(1e7))

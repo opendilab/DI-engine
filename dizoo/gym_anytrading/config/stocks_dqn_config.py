@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_for_anytrading
 
 stocks_dqn_config = dict(
-    exp_name='stocks_test_v19',
+    exp_name='stocks_test_v31',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -42,6 +42,7 @@ stocks_dqn_config = dict(
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,
+            ignore_done=True,
         ),
         # collect_mode config
         collect=dict(
