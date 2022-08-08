@@ -559,6 +559,7 @@ class FQFHead(nn.Module):
             torch.arange(1, self.quantile_embedding_size + 1, 1).view(1, 1, self.quantile_embedding_size) * math.pi
         )
         # initialize weights_xavier of quantiles_proposal network
+        # NOTE(rjy): quantiles_proposal network mean fraction proposal network
         quantiles_proposal_fc = nn.Linear(hidden_size, num_quantiles)
         torch.nn.init.xavier_uniform_(quantiles_proposal_fc.weight, gain=0.01)
         torch.nn.init.constant_(quantiles_proposal_fc.bias, 0)
@@ -626,21 +627,24 @@ class FQFHead(nn.Module):
         log_q_quantiles = self.quantiles_proposal(
             x.detach()
         )  # (batch_size, num_quantiles), not to update encoder when learning w1_loss(fraction loss)
-        q_quantiles = log_q_quantiles.exp()
+        q_quantiles = log_q_quantiles.exp()     # NOTE(rjy): e^log_q = q
 
         # Calculate entropies of value distributions.
         entropies = -(log_q_quantiles * q_quantiles).sum(dim=-1, keepdim=True)  # (batch_size, 1)
         assert entropies.shape == (batch_size, 1)
 
         # accumalative softmax
+        # NOTE(rjy): because quantiles are still expressed in the form of their respective proportions, e.g. [0.33, 0.33, 0.33] => [0.33, 0.66, 0.99]
         q_quantiles = torch.cumsum(q_quantiles, dim=1)
 
         # quantile_hats: find the optimal condition for τ to minimize W1(Z, τ)
         tau_0 = torch.zeros((batch_size, 1)).to(x)
         q_quantiles = torch.cat((tau_0, q_quantiles), dim=1)  # [batch_size, num_quantiles+1]
 
+        # NOTE(rjy): theta_i = F^(-1)_Z((tau_i+tau_i+1)/2), τ^ = (tau_i+tau_i+1)/2, q_quantiles_hats is τ^
         q_quantiles_hats = (q_quantiles[:, 1:] + q_quantiles[:, :-1]).detach() / 2.  # (batch_size, num_quantiles)
 
+        # NOTE(rjy): reparameterize q_quantiles_hats
         q_quantile_net = self.quantile_net(q_quantiles_hats)  # [batch_size, num_quantiles, hidden_size(64)]
         # x.view[batch_size, 1, hidden_size(64)]
         q_x = (x.view(batch_size, 1, -1) * q_quantile_net)  # [batch_size, num_quantiles, hidden_size(64)]
@@ -654,7 +658,7 @@ class FQFHead(nn.Module):
             )  # [batch_size, num_quantiles-1, hidden_size(64)]
             q_tau_i_x = (x.view(batch_size, 1, -1) * q_tau_i_net)  # [batch_size, (num_quantiles-1), hidden_size(64)]
 
-            q_tau_i = self.Q(q_tau_i_x)  # [batch_size, num_quantiles-1, action_dim(64)]
+            q_tau_i = self.Q(q_tau_i_x)  # [batch_size, num_quantiles-1, action_dim]
 
         return {
             'logit': logit,
