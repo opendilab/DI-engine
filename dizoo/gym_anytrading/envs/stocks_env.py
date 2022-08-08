@@ -20,23 +20,15 @@ class StocksEnv(TradingEnv):
         self.raw_prices = raw_data.loc[:, 'Close'].to_numpy()
         EPS = 1e-10
         self.df = deepcopy(raw_data)
-        # self.df = deepcopy(raw_data).apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)  # normalize
         boundary = int(len(self.df) * self.train_range)
         train_data = raw_data[:boundary].copy()
         boundary = int(len(raw_data) * (1 + self.test_range))
         test_data = raw_data[boundary:].copy()
-        # all_feature_name = ['Close', 'Open', 'High', 'Low', 'Adj Close', 'Volume']
-        # for i in all_feature_name:
-        #     tmp_mean = train_data[i].mean()
-        #     tmp_std = train_data[i].std()
-        #     test_data[i] = (test_data[i] - tmp_mean) / (tmp_std + EPS)
 
         train_data = train_data.apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)
         test_data = test_data.apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)
         self.df.loc[train_data.index, train_data.columns] = train_data
         self.df.loc[test_data.index, test_data.columns] = test_data
-        # print(test_data)
-        # print(train_data)
         # ======================================
 
         # set cost
