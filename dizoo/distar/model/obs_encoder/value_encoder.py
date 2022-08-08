@@ -25,7 +25,7 @@ class ValueEncoder(nn.Module):
                 )
 
         bo_cfg = self.cfg.modules.beginning_order
-        self.encode_modules['beginning_order'] = BeginningBuildOrderEncoder(self.whole_cfg, bo_cfg)
+        self.encode_modules['beginning_order'] = BeginningBuildOrderEncoder(bo_cfg)
         self.scatter_project = fc_block(
             self.cfg.scatter.scatter_input_dim, self.cfg.scatter.scatter_dim, activation=self.act
         )
