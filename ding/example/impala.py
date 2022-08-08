@@ -34,7 +34,6 @@ def main():
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
-        task.use(nstep_reward_enhancer(cfg))
         task.use(data_pusher(cfg, buffer_, group_by_env=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(CkptSaver(cfg, policy, train_freq=100))

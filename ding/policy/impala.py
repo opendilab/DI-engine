@@ -49,7 +49,7 @@ class IMPALAPolicy(Policy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         # (int) the trajectory length to calculate v-trace target
-        unroll_len=32,
+        unroll_len=9,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         learn=dict(
