@@ -27,7 +27,7 @@ stocks_dqn_config = dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            obs_shape=142,
+            obs_shape=62,
             action_shape=5,
             encoder_hidden_size_list=[128],
             head_layer_num=1,
