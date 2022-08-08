@@ -3,6 +3,7 @@ from ditk import logging
 import numpy as np
 from easydict import EasyDict
 from collections import namedtuple
+import gym
 from gym.vector.async_vector_env import AsyncVectorEnv
 
 from ding.envs import BaseEnv, BaseEnvTimestep
@@ -81,9 +82,19 @@ class GymVectorEnvManager(BaseEnvManager):
         timestep_collate_result = {}
         for i in range(self.env_num):
             if i in env_ids_given:
-                timestep_collate_result[i] = BaseEnvTimestep(
-                    timestep[0][i], timestep[1][i], timestep[2][i], timestep[3][i]
-                )
+                # Fix the compatability of API for both gym>=0.24.0 and gym<0.24.0 
+                # https://github.com/openai/gym/pull/2773
+                if gym.version.VERSION >= '0.24.0':
+                    timestepinfo={}
+                    for k,v in timestep[3].items():
+                        timestepinfo[k]=v[i]
+                    timestep_collate_result[i] = BaseEnvTimestep(
+                        timestep[0][i], timestep[1][i], timestep[2][i], timestepinfo
+                    )
+                else:
+                    timestep_collate_result[i] = BaseEnvTimestep(
+                        timestep[0][i], timestep[1][i], timestep[2][i], timestep[3][i]
+                    )
                 self._final_eval_reward[i] += timestep_collate_result[i].reward
                 if timestep_collate_result[i].done:
                     timestep_collate_result[i].info['final_eval_reward'] = self._final_eval_reward[i]
