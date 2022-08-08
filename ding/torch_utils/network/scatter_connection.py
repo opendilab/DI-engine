@@ -93,3 +93,29 @@ class ScatterConnection(nn.Module):
         output = output.reshape(N, B, H, W)
         output = output.permute(1, 0, 2, 3).contiguous()
         return output
+
+
+def scatter_connection_v2(shape, project_embeddings, entity_location, scatter_dim, scatter_type='add'):
+    B, H, W = shape
+    device = entity_location.device
+    entity_num = entity_location.shape[1]
+    index = entity_location.view(-1, 2).long()
+    bias = torch.arange(B).unsqueeze(1).repeat(1, entity_num).view(-1).to(device)
+    bias *= H * W
+    index[:, 0].clamp_(0, W - 1)
+    index[:, 1].clamp_(0, H - 1)
+    index = index[:, 1] * W + index[:, 0]  # entity_location: (x, y), spatial_info: (y, x)
+    index += bias
+    index = index.repeat(scatter_dim, 1)
+    # flat scatter map and project embeddings
+    scatter_map = torch.zeros(scatter_dim, B * H * W, device=device)
+    project_embeddings = project_embeddings.view(-1, scatter_dim).permute(1, 0)
+    if scatter_type == 'cover':
+        scatter_map.scatter_(dim=1, index=index, src=project_embeddings)
+    elif scatter_type == 'add':
+        scatter_map.scatter_add_(dim=1, index=index, src=project_embeddings)
+    else:
+        raise NotImplementedError
+    scatter_map = scatter_map.reshape(scatter_dim, B, H, W)
+    scatter_map = scatter_map.permute(1, 0, 2, 3)
+    return scatter_map
