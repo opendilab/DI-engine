@@ -117,7 +117,7 @@ class DIStarPolicy(Policy):
         ),
         grad_clip=dict(threshold=1.0, ),
         # collect
-        use_value_feature=False,  # TODO(zms): whether to use value feature, this must be False when play against bot
+        use_value_feature=True,  # TODO(zms): whether to use value feature, this must be False when play against bot
         zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
         fake_reward_prob=0.0,  # probablity which set Z to 0
         zero_z_value=1,  # value used for 0Z
@@ -181,12 +181,12 @@ class DIStarPolicy(Policy):
         if self._remain_value_pretrain_iters > 0:
             self._only_update_value = True
             self._remain_value_pretrain_iters -= 1
-            self._learn_model.only_update_baseline = True
+            self._learn_model._model._model.only_update_baseline = True
 
         elif self._remain_value_pretrain_iters == 0:
             self._only_update_value = False
             self._remain_value_pretrain_iters -= 1
-            self._learn_model.only_update_baseline = False
+            self._learn_model._model._model.only_update_baseline = False
 
     def _forward_learn(self, inputs: Dict):
         # ===========

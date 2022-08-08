@@ -13,7 +13,7 @@ class ValueEncoder(nn.Module):
     def __init__(self, cfg):
         super(ValueEncoder, self).__init__()
         self.whole_cfg = cfg
-        self.cfg = cfg.model.value.encoder
+        self.cfg = cfg.encoder
         self.act = build_activation('relu', inplace=True)
         self.encode_modules = nn.ModuleDict()
         for k, item in self.cfg.modules.items():
@@ -47,7 +47,7 @@ class ValueEncoder(nn.Module):
         for i in range(self.resblock_num):
             self.res.append(ResBlock(dim, self.act, norm_type=None))
         self.spatial_fc = fc_block(
-            dim * self.cfg.spatial_y // 8 * self.cfg.spatial_x // 8,
+            dim * self.whole_cfg.spatial_y // 8 * self.whole_cfg.spatial_x // 8,
             self.cfg.spatial.spatial_fc_dim,
             activation=self.act
         )
