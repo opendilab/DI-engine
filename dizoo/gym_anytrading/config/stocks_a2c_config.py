@@ -27,7 +27,7 @@ stocks_a2c_config = dict(
         cuda=True,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
-            obs_shape=62,
+            obs_shape=142,
             action_shape=5,
             encoder_hidden_size_list=[128, 64],
         ),

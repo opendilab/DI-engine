@@ -1,1 +1,2 @@
 from .stocks_dqn_config import stocks_dqn_config, stocks_dqn_create_config
+from .stocks_a2c_config import stocks_a2c_config, stocks_a2c_create_config
