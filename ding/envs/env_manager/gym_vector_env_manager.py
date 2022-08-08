@@ -82,12 +82,12 @@ class GymVectorEnvManager(BaseEnvManager):
         timestep_collate_result = {}
         for i in range(self.env_num):
             if i in env_ids_given:
-                # Fix the compatability of API for both gym>=0.24.0 and gym<0.24.0 
+                # Fix the compatability of API for both gym>=0.24.0 and gym<0.24.0
                 # https://github.com/openai/gym/pull/2773
                 if gym.version.VERSION >= '0.24.0':
-                    timestepinfo={}
-                    for k,v in timestep[3].items():
-                        timestepinfo[k]=v[i]
+                    timestepinfo = {}
+                    for k, v in timestep[3].items():
+                        timestepinfo[k] = v[i]
                     timestep_collate_result[i] = BaseEnvTimestep(
                         timestep[0][i], timestep[1][i], timestep[2][i], timestepinfo
                     )
