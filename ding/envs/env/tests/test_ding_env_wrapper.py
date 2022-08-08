@@ -93,7 +93,7 @@ class TestDingEnvWrapper:
         assert action.shape == ding_env_mujoco.action_space.shape
 
     @pytest.mark.envtest
-    @pytest.mark.parametrize('atari_env_id', ['PongNoFrameskip-v4', 'MontezumaRevengeDeterministic-v4'])
+    @pytest.mark.parametrize('atari_env_id', ['Pong-v4', 'MontezumaRevenge-v4'])
     def test_atari(self, atari_env_id):
         env_cfg = EasyDict(
             env_id=atari_env_id,

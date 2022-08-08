@@ -56,4 +56,6 @@ def main(rl_cfg, seed=0):
 
 
 if __name__ == "__main__":
+    # gym_hybrid environmrnt rendering is using API from "gym.envs.classic_control.rendering"
+    # which is abandoned in gym >= 0.22.0, please check the gym version before rendering. 
     main(rl_cfg=(main_config, create_config),seed=0)
