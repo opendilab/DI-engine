@@ -1,0 +1,783 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dmc2gym &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+      <li>dmc2gym</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/dmc2gym_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="dmc2gym">
+<h1>dmc2gym<a class="headerlink" href="#dmc2gym" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>dmc2gym 是针对<a class="reference external" href="https://github.com/deepmind/dm_control">DeepMind Control Suite</a>的轻量级wrapper，提供标准的 OpenAI Gym 接口。
+DeepMind Control Suite 是一组具有标准化结构和可解释奖励的连续控制任务，旨在作为强化学习agent的性能基准。</p>
+<img alt="../_images/dmc2gym.png" class="align-center" src="../_images/dmc2gym.png" />
+</section>
+<section id="id2">
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>需要安装 <code class="docutils literal notranslate"><span class="pre">gym</span></code>， <code class="docutils literal notranslate"><span class="pre">dm_control</span></code>和 <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code> , 用户可以选择通过下列 pip 命令一键安装。（注意 <code class="docutils literal notranslate"><span class="pre">dm_control</span></code> 如果存在问题请参考官方的<a class="reference external" href="https://github.com/deepmind/dm_control">相关说明</a>）</p>
+<p>注：如果要把相应的包安装到用户目录（例如用户没有 root 权限，需将相应的包安装到用户目录），请在 install 的命令后面加上 <code class="docutils literal notranslate"><span class="pre">--user</span></code>。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Directly</span>
+pip install gym
+pip install dm_control
+pip install git+git://github.com/denisyarats/dmc2gym.git
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dmc2gym</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">dmc2gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">domain_name</span><span class="o">=</span><span class="s1">&#39;point_mass&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="s1">&#39;easy&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>    <span class="c1"># (4,)</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>DI-engine 的镜像配备有框架本身和 dmc2gym 环境，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-dmc2gym</span></code>获取，或访问<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker hub</a>获取更多镜像</p>
+</section>
+</section>
+<section id="id6">
+<h2>环境介绍<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<section id="id7">
+<h3>选择任务<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>dm_control 包含多个domain （即物理模型），而不同domain有不同的task（具有特定 MDP 结构的模型的实例）。我们这里暂时实现了如下 domain 及其 task ：</p>
+<ul>
+<li><p>Ball in cup</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/dmc2gym-ball_in_cup.png"><img alt="../_images/dmc2gym-ball_in_cup.png" class="align-center" src="../_images/dmc2gym-ball_in_cup.png" style="width: 300px;" /></a>
+</div></blockquote>
+<p>平面球杯任务。一个被驱动的平面容器可以在垂直平面上平移，以便摆动并接住一个连接在其底部的球。当球在杯子里时，接球任务的奖励为 1，否则为 0。</p>
+<ul class="simple">
+<li><p>catch</p></li>
+</ul>
+</li>
+<li><p>Cart-pole</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/dmc2gym-cartpole.png"><img alt="../_images/dmc2gym-cartpole.png" class="align-center" src="../_images/dmc2gym-cartpole.png" style="width: 300px;" /></a>
+</div></blockquote>
+<p>符合 <a class="reference external" href="https://ieeexplore.ieee.org/abstract/document/6313077">Barto等人1983年</a>提出的物理模型。通过在其底部向推车施加力来摆动并平衡未驱动的杆。本环境实现了如下任务</p>
+<ul class="simple">
+<li><p>balance: 初始杆靠近立柱</p></li>
+<li><p>swingup: 初始杆指向下方</p></li>
+</ul>
+</li>
+<li><p>Cheetah</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/dmc2gym-cheetah.png"><img alt="../_images/dmc2gym-cheetah.png" class="align-center" src="../_images/dmc2gym-cheetah.png" style="width: 300px;" /></a>
+</div></blockquote>
+<p>平面奔跑的两足动物，基于 <a class="reference external" href="https://www.sciencedirect.com/science/article/abs/pii/S0893608009001026">Wawrzyński等人2009年</a>提出的模型，奖励<code class="docutils literal notranslate"><span class="pre">r</span></code>与前向速度 <code class="docutils literal notranslate"><span class="pre">v</span></code>成线性关系，最大为 10m/s，即 <code class="docutils literal notranslate"><span class="pre">r(v)</span> <span class="pre">=</span> <span class="pre">max(0,</span> <span class="pre">min(v/10,</span> <span class="pre">1))</span></code>。</p>
+<ul class="simple">
+<li><p>run</p></li>
+</ul>
+</li>
+<li><p>Finger</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/dmc2gym-finger.png"><img alt="../_images/dmc2gym-finger.png" class="align-center" src="../_images/dmc2gym-finger.png" style="width: 300px;" /></a>
+</div></blockquote>
+<p>基于 <a class="reference external" href="https://homes.cs.washington.edu/~todorov/papers/TassaRSS10.pdf">Tassa等人2010年</a>提出模型的 3 自由度玩具操纵问题。 平面上用一个“手指”在无其他驱动力的铰链上旋转物体，使得物体的尖端与目标重叠。</p>
+<ul class="simple">
+<li><p>spin: 在此任务中，物体必须不断地旋转。</p></li>
+</ul>
+</li>
+<li><p>Reacher</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/dmc2gym-reacher.png"><img alt="../_images/dmc2gym-reacher.png" class="align-center" src="../_images/dmc2gym-reacher.png" style="width: 300px;" /></a>
+</div></blockquote>
+<p>目标位置随机的简单两连杆平面伸展器。 在杆末端穿透目标球体时奖励为1。</p>
+<ul class="simple">
+<li><p>easy: 目标球体比在困难任务中更大.</p></li>
+</ul>
+</li>
+<li><p>Walker</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/dmc2gym-walker.png"><img alt="../_images/dmc2gym-walker.png" class="align-center" src="../_images/dmc2gym-walker.png" style="width: 300px;" /></a>
+</div></blockquote>
+<p>基于 <a class="reference external" href="https://arxiv.org/abs/1509.02971">Lillicrap等人2015年</a>提出模型的改进的平面步行器。 walk 任务包含一个组件激励快速前进。</p>
+<ul class="simple">
+<li><p>walk</p></li>
+</ul>
+</li>
+</ul>
+<p>通过设置参数<code class="docutils literal notranslate"><span class="pre">domain_name</span></code>,<code class="docutils literal notranslate"><span class="pre">task_name</span></code>进行调用：</p>
+<ul class="simple">
+<li><p>例如</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">DMC2GymEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span>
+    <span class="s2">&quot;domain_name&quot;</span><span class="p">:</span> <span class="s2">&quot;cartpole&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;task_name&quot;</span><span class="p">:</span> <span class="s2">&quot;balance&quot;</span><span class="p">,</span>
+<span class="p">}))</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>相应的状态空间、动作空间、观察空间<code class="docutils literal notranslate"><span class="pre">(dim(S),</span> <span class="pre">dim(A),</span> <span class="pre">dim(O))</span></code>如下表所示：</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 18%" />
+<col style="width: 21%" />
+<col style="width: 21%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Domain</p></th>
+<th class="head"><p>Task</p></th>
+<th class="head"><p>dim(S)</p></th>
+<th class="head"><p>dim(A)</p></th>
+<th class="head"><p>dim(O)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ball in cup</p></td>
+<td><p>catch</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="2"><p>cart-pole</p></td>
+<td><p>balance</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-even"><td><p>swingup</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-odd"><td><p>cheetah</p></td>
+<td><p>run</p></td>
+<td><p>18</p></td>
+<td><p>6</p></td>
+<td><p>17</p></td>
+</tr>
+<tr class="row-even"><td><p>finger</p></td>
+<td><p>spin</p></td>
+<td><p>6</p></td>
+<td><p>2</p></td>
+<td><p>12</p></td>
+</tr>
+<tr class="row-odd"><td><p>reacher</p></td>
+<td><p>easy</p></td>
+<td><p>4</p></td>
+<td><p>2</p></td>
+<td><p>7</p></td>
+</tr>
+<tr class="row-even"><td><p>walker</p></td>
+<td><p>walk</p></td>
+<td><p>18</p></td>
+<td><p>6</p></td>
+<td><p>24</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>dm_control 中的 task 均遵循马尔可夫决策过程( MDP )。</p>
+<ul class="simple">
+<li><p>状态 <code class="docutils literal notranslate"><span class="pre">s</span></code>除空间方向外是一个实数向量 <span class="math notranslate nohighlight">\(\cal{S} \equiv \mathbb{R}^{dim(\cal{S})}\)</span> ，其中空间方向由单位四元数 <span class="math notranslate nohighlight">\(\in SU(2)\)</span> 表示。</p></li>
+<li><p>观察 <code class="docutils literal notranslate"><span class="pre">o(s,</span> <span class="pre">a)</span></code>描述了 agent 可获取的观察结果。我们实现的 task 均为强可观测的，即可以从单个观察中复原状态。仅取决于状态（位置和速度）的观测特征是当前状态的函数。也依赖于控件（例如触摸传感器读数）的观测特征是之前transition的函数。</p></li>
+</ul>
+</div>
+</section>
+<section id="id8">
+<h3>观察空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<section id="id9">
+<h4>基于图像观察<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>即当设置<code class="docutils literal notranslate"><span class="pre">from_pixels=True</span></code>时，观察空间为三通道，长宽分别为height, width的游戏图像</p></li>
+<li><p>可以通过设置<code class="docutils literal notranslate"><span class="pre">height,</span> <span class="pre">width</span></code>参数调整所观察图像尺寸。</p></li>
+<li><p>通过设置<code class="docutils literal notranslate"><span class="pre">channels_first</span></code>来决定观察空间的具体shape</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">channels_first=True</span></code>观察空间shape为 <code class="docutils literal notranslate"><span class="pre">[3,</span> <span class="pre">height,</span> <span class="pre">width]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channels_first=False</span></code>，观察空间shape为 <code class="docutils literal notranslate"><span class="pre">[height,</span> <span class="pre">width,</span> <span class="pre">3]</span></code></p></li>
+</ul>
+</li>
+<li><p>每个channel的单个像素值范围为<code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">255]</span></code>， 数据类型为<code class="docutils literal notranslate"><span class="pre">uint8</span></code></p></li>
+</ul>
+</section>
+<section id="id10">
+<h4>非基于图像观察<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>即当设置<code class="docutils literal notranslate"><span class="pre">from_pixels=False</span></code>时，观察空间维度遵循上述表格的中<code class="docutils literal notranslate"><span class="pre">dim(O)</span></code></p></li>
+<li><p>默认范围为 <code class="docutils literal notranslate"><span class="pre">[-inf,</span> <span class="pre">inf]</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="id11">
+<h3>动作空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>动作空间维度遵循上述表格的中<code class="docutils literal notranslate"><span class="pre">dim(A)</span></code></p></li>
+<li><p>dmc2gym 对动作空间进行了标准化，每个维度动作空间的范围是<code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>，类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
+</ul>
+</section>
+<section id="id12">
+<h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<section id="id13">
+<h4>基于图像观察<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>与 <code class="docutils literal notranslate"><span class="pre">frame_skip</span></code>参数有关，即表示每一步基于<code class="docutils literal notranslate"><span class="pre">frame_skip</span></code>帧的图像，维度为<code class="docutils literal notranslate"><span class="pre">(1,)</span></code></p></li>
+<li><p>范围为<code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">frame_skip]</span></code>，类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>，默认<code class="docutils literal notranslate"><span class="pre">frame_skip</span> <span class="pre">=</span> <span class="pre">1</span></code></p>
+<ul>
+<li><p>即每帧画面的奖励空间为 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>，将 <code class="docutils literal notranslate"><span class="pre">frame_skip</span></code>帧的 reward 叠加在一起作为整体的 reward</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id14">
+<h4>非基于图像观察<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>维度为 <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，范围 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>，类型为 <code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id15">
+<h2>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<section id="id16">
+<h3>中止条件<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<p>控制任务分为 finite-horizon, firstexit 以及 infinite-horizon ， DeepMind Control Suite 属于 infinite-horizon ，所以任务没有中止状态或时间限制。</p>
+</section>
+<section id="id17">
+<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
+</section>
+<section id="id18">
+<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
+<li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
+<li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
+<li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值; 对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置为seed + np_seed, 其中seed为前述的随机库种子的值,
+np_seed = 100 * np.random.randint(1, 1000)。</p></li>
+</ul>
+</section>
+<section id="id19">
+<h3>存储录像<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">dizoo.dmc2gym.envs</span> <span class="kn">import</span> <span class="n">DMC2GymEnv</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">DMC2GymEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span>
+     <span class="s2">&quot;domain_name&quot;</span><span class="p">:</span> <span class="s2">&quot;cartpole&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;task_name&quot;</span><span class="p">:</span> <span class="s2">&quot;balance&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;frame_skip&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+     <span class="s2">&quot;from_pixels&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+ <span class="p">}))</span>
+<span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">314</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
+    <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>完整的示例文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/dmc2gym/entry/dmc2gym_save_replay_example.py">github
+link</a>
+内</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">cartpole_balance_ddpg_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;dmc2gym_cartpole_balance_ddpg_eval&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;dmc2gym_cartpole_balance&#39;</span><span class="p">,</span>
+        <span class="n">domain_name</span><span class="o">=</span><span class="s1">&#39;cartpole&#39;</span><span class="p">,</span>
+        <span class="n">task_name</span><span class="o">=</span><span class="s1">&#39;balance&#39;</span><span class="p">,</span>
+        <span class="n">from_pixels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">norm_obs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">use_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="p">),</span>
+        <span class="n">norm_reward</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">use_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="p">),</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">use_act_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./dmc2gym_cartpole_balance_ddpg_eval/video&#39;</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">2560</span><span class="p">,</span>
+        <span class="n">load_path</span><span class="o">=</span><span class="s2">&quot;./dmc2gym_cartpole_balance_ddpg/ckpt/iteration_10000.pth.tar&quot;</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">twin_critic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">actor_head_hidden_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">critic_head_hidden_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">learning_rate_actor</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+            <span class="n">learning_rate_critic</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="n">actor_update_freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">noise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">cartpole_balance_ddpg_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_balance_ddpg_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">cartpole_balance_ddpg_config</span>
+
+<span class="n">cartpole_balance_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dmc2gym&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.dmc2gym.envs.dmc2gym_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ddpg&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ding.policy.ddpg&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;naive&#39;</span><span class="p">,</span> <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_balance_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_balance_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">cartpole_balance_create_config</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">dmc2gym</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">安装</a><ul>
+<li><a class="reference internal" href="#id3">安装方法</a></li>
+<li><a class="reference internal" href="#id4">验证安装</a></li>
+<li><a class="reference internal" href="#id5">镜像</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id6">环境介绍</a><ul>
+<li><a class="reference internal" href="#id7">选择任务</a></li>
+<li><a class="reference internal" href="#id8">观察空间</a><ul>
+<li><a class="reference internal" href="#id9">基于图像观察</a></li>
+<li><a class="reference internal" href="#id10">非基于图像观察</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id11">动作空间</a></li>
+<li><a class="reference internal" href="#id12">奖励空间</a><ul>
+<li><a class="reference internal" href="#id13">基于图像观察</a></li>
+<li><a class="reference internal" href="#id14">非基于图像观察</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id15">其他</a><ul>
+<li><a class="reference internal" href="#id16">中止条件</a></li>
+<li><a class="reference internal" href="#id17">惰性初始化</a></li>
+<li><a class="reference internal" href="#id18">随机种子</a></li>
+<li><a class="reference internal" href="#id19">存储录像</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>
