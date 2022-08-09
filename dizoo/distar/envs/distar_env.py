@@ -15,6 +15,12 @@ import numpy as np
 import torch
 import os.path as osp
 
+from ding.utils import EasyTimer
+from ding.utils.log_writer_helper import DistributedWriter
+from ding.framework import task
+
+from ditk import logging
+
 from ding.envs import BaseEnv, BaseEnvTimestep
 try:
     from distar.envs.env import SC2Env
@@ -33,6 +39,9 @@ class DIStarEnv(SC2Env, BaseEnv):
 
     def __init__(self, cfg):
         super(DIStarEnv, self).__init__(cfg)
+        self.timer = EasyTimer(cuda=True)
+        self.writer = DistributedWriter.get_instance()
+        self.env_step = 0
 
     def reset(self):
         observations, game_info, map_name = super(DIStarEnv, self).reset()
@@ -52,7 +61,12 @@ class DIStarEnv(SC2Env, BaseEnv):
         # In DI-engine, the return of BaseEnv.step is ('obs', 'reward', 'done', 'info')
         # Here in DI-star, the return is ({'raw_obs': self._obs[agent_idx], 'opponent_obs': opponent_obs,
         # 'action_result': self._action_result[agent_idx]}, reward, episode_complete)
-        next_observations, reward, done = super(DIStarEnv, self).step(actions)
+        with self.timer:
+            next_observations, reward, done = super(DIStarEnv, self).step(actions)
+        self.env_step += 1
+        env_step_time = self.timer.value
+        logging.info("[Actor {}] currrent env step time is {}".format(task.router.node_id, env_step_time))
+        self.writer.add_scalar("env_step_time-total_env_step", env_step_time, self.env_step)
         # next_observations 和 observations 格式一样
         # reward 是 list [policy reward 1, policy reward 2]
         # done 是 一个 bool 值

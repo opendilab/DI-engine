@@ -23,6 +23,7 @@ from ding.rl_utils import td_lambda_data, td_lambda_error, vtrace_data_with_rho,
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from ding.envs.env.base_env import BaseEnvTimestep
+from ding.utils.log_writer_helper import DistributedWriter
 from dizoo.distar.model import Model
 from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, NUM_CUMULATIVE_STAT_ACTIONS, DEFAULT_SPATIAL_SIZE, BEGINNING_ORDER_LENGTH, BEGINNING_ORDER_ACTIONS, UNIT_TO_CUM, UPGRADE_TO_CUM, UNIT_ABILITY_TO_ACTION, QUEUE_ACTIONS, CUMULATIVE_STAT_ACTIONS,\
     Stat, parse_new_game, transform_obs, compute_battle_score
@@ -446,6 +447,10 @@ class DIStarPolicy(Policy):
         # TODO(zms): load teacher_model's state_dict when init policy.
         del t_state_dict
 
+        self.timer = EasyTimer(cuda=self._cuda)
+        self.writer = DistributedWriter.get_instance()
+        self.total_step = 0
+
     def _reset_collect(self, data: Dict):
         self.exceed_loop_flag = False
         self.map_name = data['map_name']
@@ -519,6 +524,7 @@ class DIStarPolicy(Policy):
             self.total_cum_reward = torch.zeros(size=(), dtype=torch.float)
 
     def _forward_collect(self, data):
+        self.total_step += 1
         obs, game_info = self._data_preprocess_collect(data)
         self.obs = obs
         obs = default_collate([obs])
@@ -527,8 +533,11 @@ class DIStarPolicy(Policy):
 
         self._collect_model.eval()
         try:
-            with torch.no_grad():
+            with torch.no_grad(), self.timer:
                 policy_output = self._collect_model.compute_logp_action(**obs)
+            collect_model_forward_time = self.timer.value
+            logging.info("[Actor {}] currrent collect model forward time is {}".format(task.router.node_id, collect_model_forward_time))
+            self.writer.add_scalar("collect_model_forward_time-total_step", collect_model_forward_time, self.total_step)
         except Exception as e:
             logging.error("[Actor {}] got an exception: {} in the collect model".format(task.router.node_id, e))
             bug_time = str(int(time.time()))
@@ -676,8 +685,11 @@ class DIStarPolicy(Policy):
             teacher_model_input = to_device(teacher_model_input, self._device)
 
         self.teacher_model.eval()
-        with torch.no_grad():
+        with torch.no_grad(), self.timer:
             teacher_output = self.teacher_model.compute_teacher_logit(**teacher_model_input)
+        teacher_model_forward_time = self.timer.value
+        logging.info("[Actor {}] currrent teacher model forward time is {}".format(task.router.node_id, teacher_model_forward_time))
+        self.writer.add_scalar("teacher_model_forward_time-total_step", teacher_model_forward_time, self.total_step)
 
         if self._cuda:
             teacher_output = to_device(teacher_output, self._device)

@@ -9,11 +9,13 @@ import torch
 from ding.utils import dicts_to_lists
 from ding.torch_utils import get_shape0, to_tensor, to_ndarray
 from ding.framework import task
+from ding.utils import EasyTimer
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
+from ding.utils.log_writer_helper import DistributedWriter
 from dizoo.distar.envs.fake_data import rl_step_data
 from copy import deepcopy
 
@@ -323,6 +325,9 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
 
 def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
 
+    timer = EasyTimer(cuda=True)
+    writer = DistributedWriter.get_instance()
+
     def _battle_inferencer(ctx: "BattleContext"):
         # Get current env obs.
         obs = env.ready_obs
@@ -333,15 +338,20 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
         # Policy forward.
         inference_output = {}
         actions = {}
-        for env_id in ctx.obs.keys():
-            observations = obs[env_id]
-            inference_output[env_id] = {}
-            actions[env_id] = {}
-            for policy_id, policy_obs in observations.items():
-                # policy.forward
-                output = ctx.current_policies[policy_id].forward(policy_obs)
-                inference_output[env_id][policy_id] = output
-                actions[env_id][policy_id] = output['action']
+        with timer:
+            for env_id in ctx.obs.keys():
+                observations = obs[env_id]
+                inference_output[env_id] = {}
+                actions[env_id] = {}
+                for policy_id, policy_obs in observations.items():
+                    # policy.forward
+                    output = ctx.current_policies[policy_id].forward(policy_obs)
+                    inference_output[env_id][policy_id] = output
+                    actions[env_id][policy_id] = output['action']
+        forward_collect_time = timer.value
+        logging.info("[Actor {}] currrent forward collect time is {}".format(task.router.node_id, forward_collect_time))
+        writer.add_scalar("forward_collect_time-total_env_step", forward_collect_time, ctx.total_envstep_count)
+
         ctx.inference_output = inference_output
         ctx.actions = actions
 
@@ -349,6 +359,9 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
 
 
 def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List, model_info_dict: Dict):
+
+    timer = EasyTimer(cuda=True)
+    writer = DistributedWriter.get_instance()
 
     def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
@@ -383,7 +396,11 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                         done=timestep.done,
                         info=timestep.info[policy_id]
                     )
-                    transition = policy.process_transition(obs=None, model_output=None, timestep=policy_timestep)
+                    with timer:
+                        transition = policy.process_transition(obs=None, model_output=None, timestep=policy_timestep)
+                    process_transition_time = timer.value
+                    logging.info("[Actor {}] currrent process transition time is {}".format(task.router.node_id, process_transition_time))
+                    writer.add_scalar("process_transition_time-total_env_step", process_transition_time, ctx.total_envstep_count)
                     transition = EasyDict(transition)
                     transition.collect_train_iter = ttorch.as_tensor(
                         [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
