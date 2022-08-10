@@ -113,7 +113,7 @@ class MPEEnv(BaseEnv):
                         low=float("-inf"),
                         high=float("inf"),
                         shape=(self._num_agents, self._env.observation_space[0].shape[0] +
-                        self._num_agents * 4 + self._num_landmarks * 2, self._num_agents * (self._num_agents - 1) * 2,),
+                        self._num_agents * 4 + self._num_landmarks * 2 + self._num_agents * (self._num_agents - 1) * 2,),
                         dtype=np.float32,
                     )
                     self._observation_space['global_state'] = agent_specific_global_state
