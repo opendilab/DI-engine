@@ -56,7 +56,7 @@ create_config = dict(
         import_names=['dizoo.mpe.envs.mpe_env'],
         type='mpe',
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='qmix'),
 )
 create_config = EasyDict(create_config)
