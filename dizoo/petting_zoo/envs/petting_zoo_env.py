@@ -32,14 +32,19 @@ class PettingZooEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            import_module(['pettingzoo.{}.{}'.format(self._env_family, self._env_id)])
-            self._env = pettingzoo.__dict__[self._env_family].__dict__[self._env_id].parallel_env(
+            # import_module(['pettingzoo.{}.{}'.format(self._env_family, self._env_id)])
+            # self._env = pettingzoo.__dict__[self._env_family].__dict__[self._env_id].parallel_env(
+            #     N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
+            # )
+            from .my_simple_spread_v2 import parallel_env
+            self._env = parallel_env(
                 N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
             )
-        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
-            np_seed = 100 * np.random.randint(1, 1000)
-            self._env.seed(self._seed + np_seed)
-        elif hasattr(self, '_seed'):
+        # dynamic seed reduces training speed greatly
+        # if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+        #     np_seed = 100 * np.random.randint(1, 1000)
+        #     self._env.seed(self._seed + np_seed)
+        if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         if self._replay_path is not None:
             self._env = gym.wrappers.Monitor(
