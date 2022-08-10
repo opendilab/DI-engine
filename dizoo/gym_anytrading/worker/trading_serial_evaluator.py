@@ -1,12 +1,13 @@
 from typing import Any, Optional, Callable, Tuple
 from collections import deque, namedtuple
+from easydict import EasyDict
 import torch
 import numpy as np
 
 from ding.envs import BaseEnvManager
 from ding.worker import VectorEvalMonitor, InteractionSerialEvaluator
 from ding.torch_utils import to_tensor, to_ndarray
-from ding.utils import SERIAL_EVALUATOR_REGISTRY
+from ding.utils import SERIAL_EVALUATOR_REGISTRY, import_module
 
 
 @SERIAL_EVALUATOR_REGISTRY.register('trading_interaction')
@@ -19,7 +20,16 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
     Property:
         env, policy
     """
-
+    config = dict(
+        # Evaluate every "eval_freq" training iterations.
+        eval_freq=1000,
+        render=dict(
+            # tensorboard video render is disabled by default
+            render_freq=-1,
+            mode='train_iter',
+        ),
+        type='trading_interaction',
+    )
     def __init__(
             self,
             cfg: dict,
@@ -211,3 +221,11 @@ class TradingEvalMonitor(VectorEvalMonitor):
 
     def get_max_episode_profit(self) -> list:
         return sum([list(v) for v in self._max_possible_profit.values()], [])
+
+def create_serial_evaluator(cfg: EasyDict, **kwargs) -> InteractionSerialEvaluator:
+    """
+    Overview:
+        Create a specific collector instance based on the config.
+    """
+    import_module(cfg.get('import_names', []))
+    return SERIAL_EVALUATOR_REGISTRY.build(cfg.type, cfg=cfg, **kwargs)

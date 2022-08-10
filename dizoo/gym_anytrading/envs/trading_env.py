@@ -8,6 +8,7 @@ from enum import Enum
 
 import os
 import gym
+import copy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -226,6 +227,46 @@ class TradingEnv(BaseEnv):
 
     def close(self):
         plt.close()
+
+    # override
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        """
+        Overview:
+            Return a list of all of the environment from input config, used in env manager \
+            (a series of vectorized env), and this method is mainly responsible for envs collecting data.
+            In TradingEnv, this method will rename every env_id and generate different config.
+        Arguments:
+            - cfg (:obj:`dict`): Original input env config, which needs to be transformed into the type of creating \
+                env instance actually and generated the corresponding number of configurations.
+        Returns:
+            - env_cfg_list (:obj:`List[dict]`): List of ``cfg`` including all the config collector envs.
+        .. note::
+            Elements(env config) in collector_env_cfg/evaluator_env_cfg can be different, such as server ip and port.
+        """
+        collector_env_num = cfg.pop('collector_env_num')
+        collector_env_cfg = [copy.deepcopy(cfg) for _ in range(collector_env_num)]
+        for i in range(collector_env_num):
+            collector_env_cfg[i]['env_id'] += ('-' + str(i) + 'e')
+        return collector_env_cfg
+
+    # override
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        """
+        Overview:
+            Return a list of all of the environment from input config, used in env manager \
+            (a series of vectorized env), and this method is mainly responsible for envs evaluating performance.
+            In TradingEnv, this method will rename every env_id and generate different config.
+        Arguments:
+            - cfg (:obj:`dict`): Original input env config, which needs to be transformed into the type of creating \
+                env instance actually and generated the corresponding number of configurations.
+        Returns:
+            - env_cfg_list (:obj:`List[dict]`): List of ``cfg`` including all the config evaluator envs.
+        """
+        evaluator_env_num = cfg.pop('evaluator_env_num')
+        evaluator_env_cfg = [copy.deepcopy(cfg) for _ in range(evaluator_env_num)]
+        for i in range(evaluator_env_num):
+            evaluator_env_cfg[i]['env_id'] += ('-' + str(i) + 'e')
+        return evaluator_env_cfg
 
     @abstractmethod
     def _process_data(self):

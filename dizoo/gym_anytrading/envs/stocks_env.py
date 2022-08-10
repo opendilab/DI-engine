@@ -20,15 +20,18 @@ class StocksEnv(TradingEnv):
         self.raw_prices = raw_data.loc[:, 'Close'].to_numpy()
         EPS = 1e-10
         self.df = deepcopy(raw_data)
-        boundary = int(len(self.df) * self.train_range)
-        train_data = raw_data[:boundary].copy()
-        boundary = int(len(raw_data) * (1 + self.test_range))
-        test_data = raw_data[boundary:].copy()
+        if self.train_range == None or self.test_range == None:
+            self.df = self.df.apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)
+        else:
+            boundary = int(len(self.df) * self.train_range)
+            train_data = raw_data[:boundary].copy()
+            boundary = int(len(raw_data) * (1 + self.test_range))
+            test_data = raw_data[boundary:].copy()
 
-        train_data = train_data.apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)
-        test_data = test_data.apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)
-        self.df.loc[train_data.index, train_data.columns] = train_data
-        self.df.loc[test_data.index, test_data.columns] = test_data
+            train_data = train_data.apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)
+            test_data = test_data.apply(lambda x: (x - x.mean()) / (x.std() + EPS), axis=0)
+            self.df.loc[train_data.index, train_data.columns] = train_data
+            self.df.loc[test_data.index, test_data.columns] = test_data
         # ======================================
 
         # set cost
@@ -59,14 +62,15 @@ class StocksEnv(TradingEnv):
         # =================================
 
         # you can select features you want
-        selected_feature_name = ['Close', 'Diff', 'Open', 'High', 'Low', 'Adj Close', 'Volume']
+        selected_feature_name = ['Close', 'Diff', 'Volume']
         selected_feature = np.column_stack([all_feature[k] for k in selected_feature_name])
         feature_dim_len = len(selected_feature_name)
 
         # validate index
         if start_idx is None:
-            # self.start_idx = np.random.randint(self.window_size, len(self.df) - self._cfg.eps_length)
-            if self._env_id[-1] == 'e':
+            if self.train_range == None or self.test_range == None:
+                self.start_idx = np.random.randint(self.window_size, len(self.df) - self._cfg.eps_length)
+            elif self._env_id[-1] == 'e':
                 boundary = int(len(self.df) * (1 + self.test_range))
                 assert len(self.df) - self._cfg.eps_length > boundary + self.window_size,\
                  "parameter test_range is too large!"

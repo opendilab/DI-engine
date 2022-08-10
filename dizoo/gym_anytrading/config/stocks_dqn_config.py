@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_for_anytrading
 
 stocks_dqn_config = dict(
-    exp_name='stocks_test_v100',
+    exp_name='stocks_test',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -18,16 +18,17 @@ stocks_dqn_config = dict(
         # the path to save result image.
         save_path='./fig/',
         # the raw data file name
-        stocks_data_filename = 'STOCKS_GOOGL',
-        # the stocks range percentage used by train/test
-        train_range = 0.8,
-        test_range = -0.2,
+        stocks_data_filename='STOCKS_GOOGL',
+        # the stocks range percentage used by train/test.
+        # if one of them is None, train & test set will use all data by default.
+        train_range=None,
+        test_range=None,
     ),
     policy=dict(
         # Whether to use cuda for network.
         cuda=True,
         model=dict(
-            obs_shape=142,
+            obs_shape=62,
             action_shape=5,
             encoder_hidden_size_list=[128],
             head_layer_num=1,
@@ -37,7 +38,7 @@ stocks_dqn_config = dict(
         # Reward's future discount factor, aka. gamma.
         discount_factor=0.99,
         # How many steps in td error.
-        nstep=3,
+        nstep=5,
         # learn_mode config
         learn=dict(
             update_per_collect=10,
@@ -77,7 +78,6 @@ stocks_dqn_create_config = dict(
         type='stocks-v0',
         import_names=['dizoo.gym_anytrading.envs.stocks_env'],
     ),
-    # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )

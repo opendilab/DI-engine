@@ -10,7 +10,7 @@ from tensorboardX import SummaryWriter
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
-from dizoo.gym_anytrading.worker import TradingSerialEvaluator
+from dizoo.gym_anytrading.worker import TradingSerialEvaluator, create_serial_evaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
@@ -49,26 +49,20 @@ def serial_pipeline_for_anytrading(
         cfg, create_cfg = input_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
-    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    n_evaluator_episode = cfg.env.n_evaluator_episode
+    stop_value = cfg.env.stop_value
+    cfg = compile_config(
+        cfg, seed=seed, evaluator=TradingSerialEvaluator, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True
+    )
+    cfg.policy.eval.evaluator.n_episode = n_evaluator_episode
+    cfg.policy.eval.evaluator.stop_value = stop_value
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
 
-    # Rename env_id, and set data_range
-    coll_env_num = len(collector_env_cfg)
-    one_env = collector_env_cfg[0]
-    collector_env_cfg = [copy.deepcopy(one_env) for _ in range(coll_env_num)]
-    for i in range(len(collector_env_cfg)):
-        collector_env_cfg[i]['env_id'] = collector_env_cfg[i]['env_id'] + ('-' + str(i) + 'c')
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
-
-    eval_env_num = len(evaluator_env_cfg)
-    one_env = evaluator_env_cfg[0]
-    evaluator_env_cfg = [copy.deepcopy(one_env) for _ in range(eval_env_num)]
-    for i in range(len(evaluator_env_cfg)):
-        evaluator_env_cfg[i]['env_id'] = evaluator_env_cfg[i]['env_id'] + ('-' + str(i) + 'e')
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
 
     collector_env.seed(cfg.seed)
@@ -86,8 +80,12 @@ def serial_pipeline_for_anytrading(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = TradingSerialEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    evaluator = create_serial_evaluator(
+        cfg.policy.eval.evaluator,
+        env=evaluator_env,
+        policy=policy.eval_mode,
+        tb_logger=tb_logger,
+        exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
