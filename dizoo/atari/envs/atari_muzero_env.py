@@ -136,10 +136,12 @@ class AtariMuZeroEnv(BaseEnv):
     def create_collector_envcfg(cfg: dict) -> List[dict]:
         collector_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
+        cfg.max_episode_steps = cfg.collect_max_episode_steps
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_envcfg(cfg: dict) -> List[dict]:
         evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
+        cfg.max_episode_steps = cfg.eval_max_episode_steps
         return [cfg for _ in range(evaluator_env_num)]

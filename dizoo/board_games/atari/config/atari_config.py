@@ -4,8 +4,8 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 game_config = EasyDict(dict(
     env_name='PongNoFrameskip-v4',
     model_type='atari',
-    # device='cuda',
-    device='cpu',
+    device='cuda',
+    # device='cpu',
     # if mcts_ctree=True, using cpp mcts code
     mcts_ctree=True,
     # mcts_ctree=False,
@@ -31,8 +31,6 @@ game_config = EasyDict(dict(
     # debug
     # collector_env_num=1,
     # evaluator_env_num=1,
-    # max_episode_steps=int(1e4),
-    # test_max_episode_steps=int(1e4),
     # num_simulations=6,
     # batch_size=4,
     # game_history_length=20,
@@ -44,8 +42,6 @@ game_config = EasyDict(dict(
 
     collector_env_num=1,
     evaluator_env_num=3,
-    max_episode_steps=int(1.08e5),
-    test_max_episode_steps=int(1.08e5),
     # TODO(pu): how to set proper num_simulations?
     num_simulations=50,
     batch_size=256,
