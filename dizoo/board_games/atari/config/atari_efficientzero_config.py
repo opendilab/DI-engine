@@ -16,6 +16,7 @@ atari_efficientzero_config = dict(
         n_evaluator_episode=evaluator_env_num,
         stop_value=20,
         env_name='PongNoFrameskip-v4',
+        max_episode_steps=int(1.08e5),
         collect_max_episode_steps=int(1.08e4),
         eval_max_episode_steps=int(1.08e5),
         frame_skip=4,
@@ -44,7 +45,9 @@ atari_efficientzero_config = dict(
             downsample=True,
             num_blocks=1,
             # num_channels=64,  # Number of channels in the ResNet, default config in EZ original repo
+            # lstm_hidden_size=512,  # default config in EZ original repo
             num_channels=32,  # Number of channels in the ResNet, for time efficiency
+            lstm_hidden_size=256,  # for time efficiency
             reduced_channels_reward=16,
             reduced_channels_value=16,
             reduced_channels_policy=16,
@@ -53,8 +56,7 @@ atari_efficientzero_config = dict(
             fc_policy_layers=[32],
             reward_support_size=601,
             value_support_size=601,
-            # lstm_hidden_size=512,  # default config in EZ original repo
-            lstm_hidden_size=256,  # for time efficiency
+
 
             bn_mt=0.1,
             proj_hid=1024,

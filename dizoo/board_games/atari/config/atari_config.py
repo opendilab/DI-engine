@@ -49,11 +49,11 @@ game_config = EasyDict(dict(
     total_transitions=int(1e5),
     num_unroll_steps=5,
     td_steps=5,
+    # channels=64,  # Number of channels in the ResNet, config in EZ original repo
     # lstm_hidden_size=512,  # default config in EZ original repo
+    channels=32,  # Number of channels in the ResNet, for time efficiency
     lstm_hidden_size=256,  # for time efficiency
     lstm_horizon_len=5,
-    # channels=64,  # Number of channels in the ResNet, config in EZ original repo
-    channels=32,  # Number of channels in the ResNet, for time efficiency
 
     # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
