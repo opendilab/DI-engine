@@ -372,6 +372,8 @@ def compile_config(
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
         policy_config.update(create_cfg.policy)
         policy_config.collect.collector.update(create_cfg.collector)
+        if 'evaluator' in create_cfg:
+            policy_config.eval.evaluator.update(create_cfg.evaluator)
         policy_config.other.replay_buffer.update(create_cfg.replay_buffer)
 
         policy_config.other.commander = BaseSerialCommander.default_config()
