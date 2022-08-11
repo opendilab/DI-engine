@@ -60,7 +60,7 @@ class LeagueCoordinator:
                     self._traj_num += 1
                     current_traj_num += 1
             logging.info(
-                "[Coordinator {}] recieve {} traj, current send speed is {}, total send speed is {}".format(
+                "[Coordinator {}] recieve {} traj, current send speed is {} traj/s, total send speed is {} traj/s".format(
                     task.router.node_id, current_traj_num, current_traj_num / current_get_data_time,
                     self._traj_num / self._total_get_data_time
                 )
