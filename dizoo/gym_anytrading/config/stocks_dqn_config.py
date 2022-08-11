@@ -1,8 +1,7 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_for_anytrading
 
 stocks_dqn_config = dict(
-    exp_name='stocks_test',
+    exp_name='stocks_dqn_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
@@ -79,10 +78,19 @@ stocks_dqn_create_config = dict(
         import_names=['dizoo.gym_anytrading.envs.stocks_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='dqn'),
+    policy=dict(
+        type='dqn',
+    ),
+    evaluator=dict(
+        eval_freq=1000,
+        type='trading_interaction',
+        import_names=['dizoo.gym_anytrading.worker'],
+        cfg_type='TradingSerialEvaluatorDict'
+        ),
 )
 stocks_dqn_create_config = EasyDict(stocks_dqn_create_config)
 create_config = stocks_dqn_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_for_anytrading([main_config, create_config], seed=0, max_env_step=int(1e7))
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0, max_env_step=int(1e7))

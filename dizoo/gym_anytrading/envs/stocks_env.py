@@ -108,7 +108,7 @@ class StocksEnv(TradingEnv):
         if action == Actions.DOUBLE_BUY and self._position == Positions.SHORT:
             step_reward = np.log(2 - ratio) + cost
 
-        step_reward = to_ndarray([step_reward]).astype(np.float32)
+        step_reward = float(step_reward)
 
         return step_reward
 

@@ -221,11 +221,3 @@ class TradingEvalMonitor(VectorEvalMonitor):
 
     def get_max_episode_profit(self) -> list:
         return sum([list(v) for v in self._max_possible_profit.values()], [])
-
-def create_serial_evaluator(cfg: EasyDict, **kwargs) -> InteractionSerialEvaluator:
-    """
-    Overview:
-        Create a specific collector instance based on the config.
-    """
-    import_module(cfg.get('import_names', []))
-    return SERIAL_EVALUATOR_REGISTRY.build(cfg.type, cfg=cfg, **kwargs)
