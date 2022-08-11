@@ -30,9 +30,47 @@ class LeagueCoordinator:
         self._total_collect_time = None
         self._writer = DistributedWriter.get_instance()
 
+        self._traj_num = 0
+        self._last_get_data_time = None
+        self._total_get_data_time = 0
+        self._pre_collect_finished = False
+
         task.on(EventEnum.ACTOR_GREETING, self._on_actor_greeting)
         task.on(EventEnum.LEARNER_SEND_META, self._on_learner_meta)
         task.on(EventEnum.ACTOR_FINISH_JOB, self._on_actor_job)
+        task.on(EventEnum.ACTOR_SEND_DATA.format(player='main_player_default_0'), self._count_data)
+
+    def _count_data(self, data):
+        if self._last_get_data_time is None:
+            self._last_get_data_time = time()
+
+        if self._total_get_data_time >= 60 * 10 and self._pre_collect_finished is False:
+            self._pre_collect_finished = True
+            self._total_get_data_time = 0
+
+        finish_get_data_time = time()
+        current_get_data_time = finish_get_data_time - self._last_get_data_time
+        self._total_get_data_time += current_get_data_time
+        self._last_get_data_time = finish_get_data_time
+
+        if self._pre_collect_finished:
+            current_traj_num = 0
+            for env_trajectories in data.train_data:
+                for traj in env_trajectories.trajectories:
+                    self._traj_num += 1
+                    current_traj_num += 1
+            logging.info(
+                "[Coordinator {}] recieve {} traj, current send speed is {}, total send speed is {}".format(
+                    task.router.node_id, current_traj_num, current_traj_num / current_get_data_time,
+                    self._traj_num / self._total_get_data_time
+                )
+            )
+            self._writer.add_scalar(
+                "current_traj_speed-total_recv_trajs", current_traj_num / current_get_data_time, self._total_get_data_time
+            )
+            self._writer.add_scalar(
+                "total_traj_speed-total_recv_trajs", self._traj_num / self._total_get_data_time, self._total_get_data_time
+            )
 
     def _on_actor_greeting(self, actor_id):
         logging.info("[Coordinator {}] recieve actor {} greeting".format(task.router.node_id, actor_id))
