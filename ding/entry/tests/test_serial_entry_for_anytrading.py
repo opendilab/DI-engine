@@ -1,10 +1,9 @@
 import os
 import pytest
-import shutil
 from copy import deepcopy
 import numpy as np
 import pandas as pd
-from ding.entry.serial_entry_for_anytrading import serial_pipeline_for_anytrading
+from ding.entry.serial_entry import serial_pipeline
 from dizoo.gym_anytrading.config import stocks_dqn_config, stocks_dqn_create_config
 
 
@@ -34,7 +33,7 @@ def test_stocks_dqn():
     data_path += '/dizoo/gym_anytrading/envs/data/STOCKS_FAKE.csv'
     fake_data.to_csv(data_path, sep=',', index=None)
     try:
-        serial_pipeline_for_anytrading(config, seed=0, max_train_iter=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
