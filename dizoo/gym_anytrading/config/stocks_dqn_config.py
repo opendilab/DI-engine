@@ -82,10 +82,8 @@ stocks_dqn_create_config = dict(
         type='dqn',
     ),
     evaluator=dict(
-        eval_freq=1000,
         type='trading_interaction',
         import_names=['dizoo.gym_anytrading.worker'],
-        cfg_type='TradingSerialEvaluatorDict'
         ),
 )
 stocks_dqn_create_config = EasyDict(stocks_dqn_create_config)

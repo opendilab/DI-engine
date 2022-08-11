@@ -201,10 +201,14 @@ class TradingEnv(BaseEnv):
 
     def render(self) -> None:
         plt.clf()
+        plt.xlabel('trading days')
+        plt.ylabel('profit')
         plt.plot(self._profit_history)
         plt.savefig(self.save_path + str(self._env_id) + "-profit.png")
 
         plt.clf()
+        plt.xlabel('trading days')
+        plt.ylabel('close price')
         window_ticks = np.arange(len(self._position_history))
         eps_price = self.raw_prices[self._start_tick:self._end_tick + 1]
         plt.plot(eps_price)

@@ -81,9 +81,19 @@ is equivalent to maximize $\mathbb{E}_{\tau}[\prod_{buying\ long}(r_{curr}/r_{pr
 The experimental results show that such a defination is better than the original gym-anytrading accumulated reward function :$\sum(r_{curr} - r_{pre})$.
 ### Render Function
 
-- As you see, you can use `render` method to plot the position and profit at one eposide.
+  As you see, you can use `render` method to plot the position and profit at one episode.
   
+    
+  - The position figure:
+    - The x-axis of the position figure is trading days. In this case, it is 252 trading days.
+    - The y-axis of the position figure is the closing price of each day.
+    - Besides, the red inverted triangle, the green positive triangle and the blue circle represent the position of the agent every trading day respectively.
+  
+![position](./position.png)
 
-![position](./position.png)![profit](./profit.png)
-
+  - The profit figure:
+    - Similarly, The x-axis of the profit figure is trading days. In this case, it is 252 trading days. (a pair of pictures keep the same time interval)
+    - The y-axis of the profit figure is the profit of each day. 1.5 means the rate of return is 150%.
+  
+![profit](./profit.png)
 
