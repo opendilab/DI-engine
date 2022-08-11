@@ -39,7 +39,7 @@ class GymHybridEnv(BaseEnv):
                         name_prefix='rl-video-{}'.format(id(self))
                     )
                     self._env.metadata["render.modes"] = ["human", "rgb_array"]
-                
+
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(

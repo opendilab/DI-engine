@@ -9,6 +9,7 @@ from ding.utils import import_module, ENV_REGISTRY
 BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
 
 
+# for solving multiple inheritance metaclass conflict between gym and ABC
 class FinalMeta(type(gym.Env), type(ABC)):
     pass
 

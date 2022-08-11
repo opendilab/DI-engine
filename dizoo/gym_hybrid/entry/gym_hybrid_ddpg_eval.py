@@ -13,10 +13,10 @@ from ding.policy import DDPGPolicy
 from ding.model import QAC
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
-from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import main_config, create_config
+from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 
-def main(rl_cfg, seed=0):
-    main_cfg, create_cfg =rl_cfg
+
+def main(main_cfg, create_cfg, seed=0):
     cfg = compile_config(
         main_cfg,
         BaseEnvManager,
@@ -57,5 +57,5 @@ def main(rl_cfg, seed=0):
 
 if __name__ == "__main__":
     # gym_hybrid environmrnt rendering is using API from "gym.envs.classic_control.rendering"
-    # which is abandoned in gym >= 0.22.0, please check the gym version before rendering. 
-    main(rl_cfg=(main_config, create_config),seed=0)
+    # which is abandoned in gym >= 0.22.0, please check the gym version before rendering.
+    main(gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config, seed=0)

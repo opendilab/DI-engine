@@ -8,6 +8,7 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
 
+
 @ENV_REGISTRY.register('slime_volley')
 class SlimeVolleyEnv(BaseEnv):
 
@@ -44,6 +45,8 @@ class SlimeVolleyEnv(BaseEnv):
             action2 = action2.squeeze()  # 0-dim array
         action1 = SlimeVolleyEnv._process_action(action1)
         action2 = SlimeVolleyEnv._process_action(action2)
+        # gym version >= 0.22.0 only support action in one variable,
+        # So we have to put two actions into one tuple.
         obs1, rew, done, info = self._env.step((action1, action2))
         obs1 = to_ndarray(obs1).astype(np.float32)
         self._final_eval_reward += rew
@@ -103,7 +106,6 @@ class SlimeVolleyEnv(BaseEnv):
                         name_prefix='rl-video-{}'.format(id(self))
                     )
                     self._env.start_video_recorder()
-
 
             ori_shape = self._env.observation_space.shape
             self._observation_space = gym.spaces.Box(
