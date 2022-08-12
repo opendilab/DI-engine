@@ -13,9 +13,6 @@ qbert_trex_ppo_config = dict(
     ),
     reward_model=dict(
         type='trex',
-        algo_for_model='ppo',
-        env_id='Qbert-v4',
-        #'ALE/Qbert-v5' is available. But special setting is needed after gym make.
         min_snippet_length=30,
         max_snippet_length=100,
         checkpoint_min=0,

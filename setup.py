@@ -91,13 +91,13 @@ setup(
     ],
     extras_require={
         'test': [
-            'ale-py',#>=0.7.5',  # atari
-            'autorom',
-            'gym[all]>=0.25.0'
-            'opencv-python', # pypy incompatible
+            #'ale-py',#>=0.7.5',  # atari
+            #'autorom',
+            #'gym[all]>=0.25.0'
+            'opencv-python',  # pypy incompatible
             'coverage>=5',
             'mock>=4.0.3',
-            'pytest~=7.0.1',
+            'pytest~=7.0.1',  # required by gym>=0.25.0
             'pytest-cov~=3.0.0',
             'pytest-mock~=3.6.1',
             'pytest-xdist>=1.34.0',
@@ -117,7 +117,7 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py',#>=0.7.5',  # atari
+            'ale-py',  #>=0.7.5',  # atari
             'autorom',
             'gym[all]>=0.25.0'
             'cmake>=3.18.4',
