@@ -355,7 +355,11 @@ def compile_config(
             create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
             buffer = AdvancedReplayBuffer
         if env is None:
-            env = get_env_cls(create_cfg.env)
+            if 'env' in create_cfg:
+                env = get_env_cls(create_cfg.env)
+            else:
+                env = None
+                create_cfg.env = {'type': 'ding_env_wrapper_generated'}
         if env_manager is None:
             env_manager = get_env_manager_cls(create_cfg.env_manager)
         if policy is None:
