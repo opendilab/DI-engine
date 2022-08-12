@@ -1,0 +1,77 @@
+{% set params = [{ "seed": 0, },
+                  { "seed": 1, },
+                  { "seed": 2, }]
+%}
+{% for p in params %}
+{% set seed = p["seed"] %}
+---
+
+apiVersion: diengine.opendilab.org/v2alpha1
+kind: DIJob
+metadata:
+  name: lxy-pong-dqn-errorclip-seed-{{seed}}
+spec:
+  priority: normal    
+  backoffLimit: 0  
+  cleanPodPolicy: Running    
+  preemptible: false  
+  tasks:
+  - replicas: 1
+    type: none
+    name: serial
+    template:
+      spec:
+        # affinity:
+        #   nodeAffinity:
+        #     requiredDuringSchedulingIgnoredDuringExecution:
+        #       nodeSelectorTerms:
+        #       - matchExpressions:
+        #         - key: kubernetes.io/hostname
+        #           operator: In
+        #           values:
+        #           - sh-idc1-10-140-0-15
+        containers:
+        - name: di-container
+          image: opendilab/ding:nightly-atari
+          imagePullPolicy: Always
+          env:
+          - name: PYTHONUNBUFFERED
+            value: '1'
+          resources:
+            requests:
+              # nvidia.com/gpu-a100: 1  # user-defined resource
+              cpu: 4
+              memory: 60Gi
+            limits:
+              # nvidia.com/gpu-a100: 1
+              cpu: 4
+              memory: 60Gi
+          command: [/bin/bash, -c]
+          args:  # user-defined execution commands
+          - |
+            ls -l
+            export http_proxy=http://10.1.8.5:32680/
+            export https_proxy=http://10.1.8.5:32680/
+            export HTTP_PROXY=http://10.1.8.5:32680/
+            export HTTPS_PROXY=http://10.1.8.5:32680/
+            pip3 uninstall DI-engine -y
+            pip3 install DI-engine
+            cp /mnt/nfs/lixueyan/reward/repo/__init__.py /opt/conda/lib/python3.8/site-packages/ding/rl_utils/
+            cp /mnt/nfs/lixueyan/reward/repo/td.py /opt/conda/lib/python3.8/site-packages/ding/rl_utils/
+            cp /mnt/nfs/lixueyan/reward/repo/dqn.py /opt/conda/lib/python3.8/site-packages/ding/policy/
+            cd /mnt/nfs/lixueyan/reward/errorclip
+            python3 lxy_pong_dqn_errorclip.py {{seed}}
+          volumeMounts:
+          - name: cache-volume
+            mountPath: /dev/shm
+          - name: nfs-volume
+            mountPath: /mnt/nfs/lixueyan
+        volumes:
+        - name: cache-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+        - name: nfs-volume
+          hostPath:
+            path: /mnt/nfs/lixueyan
+{% endfor %}

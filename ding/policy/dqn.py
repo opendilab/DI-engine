@@ -146,12 +146,20 @@ class DQNPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
+        if self._cfg.learn.reward_scale_function == 'consgrad':
+            self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
             update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            update_kwargs={'freq': 1}
         )
+        else:
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='assign',
+                update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            )
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
@@ -191,7 +199,7 @@ class DQNPolicy(Policy):
         # Current q value (main model)
         
         q_value = self._learn_model.forward(data['obs'])['logit']
-        if self._cfg.learn.reward_scale.reward_scale_function == 'popart':
+        if self._cfg.learn.reward_scale_function == 'popart':
             W = list(self._learn_model.parameters())[10]
             b = list(self._learn_model.parameters())[11]
             W.data, b.data = self._popart_update.update(q_value, W.data, b.data)
@@ -220,11 +228,14 @@ class DQNPolicy(Policy):
         # Q-learning update
         # ====================
         self._optimizer.zero_grad()
-        loss.backward()
-        if self._cfg.learn.reward_scale.reward_scale_function == 'consgrad':
+        if self._cfg.learn.reward_scale_function == 'consgrad':
             grad_v_norm = self.g_v(data['next_obs'])
+            self._optimizer.zero_grad()
+            loss.backward()
             for i, p in enumerate(self._learn_model.parameters()):
                 p.grad -= torch.mul(p.grad, grad_v_norm[i]) * grad_v_norm[i]
+        else:
+            loss.backward() # loss is td error
 
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
@@ -239,6 +250,7 @@ class DQNPolicy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
+            'target_q_value': target_q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
@@ -688,16 +700,20 @@ class PopartUpdate(object):
     def __init__(self, shape):
         self._shape = shape
         self._mean = torch.zeros(self._shape)
-        self._var = torch.ones(self._shape)
+        self._v = torch.ones(self._shape)
+        self._std = torch.ones(self._shape)
 
-    def update(self, value, W, b):
-        batch_mean = torch.mean(value, axis=0) # dim = 6
-        batch_var = torch.var(value, axis=0)
-        W_new = torch.reshape(1/batch_var * self._var, (self._shape, 1))
+    def update(self, value, W, b, beta=0.5):
+        batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
+        batch_v = (1-beta) * self._v + beta * torch.var(value)
+        batch_std = torch.sqrt(batch_v - (batch_mean**2))
+        W_new = torch.reshape(1/batch_std * self._std, (self._shape, 1))
         W_new = W * W_new
 
-        b_new = 1/batch_var *(self._var*b + self._mean - batch_mean)
-        self._var = batch_var
+        b_new = 1/batch_std *(self._std*b + self._mean - batch_mean)
+        #add EMA
+        self._std = batch_std
         self._mean = batch_mean
+        self._v = batch_v
 
         return W_new, b_new
