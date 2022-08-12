@@ -91,9 +91,7 @@ setup(
     ],
     extras_require={
         'test': [
-            #'ale-py',#>=0.7.5',  # atari
-            #'autorom',
-            #'gym[all]>=0.25.0'
+            'gym[box2d]>=0.25.0'
             'opencv-python',  # pypy incompatible
             'coverage>=5',
             'mock>=4.0.3',
