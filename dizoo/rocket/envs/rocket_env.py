@@ -19,7 +19,7 @@ class RocketEnv(BaseEnv):
     def __init__(self, cfg: dict = {}) -> None:
         self._cfg = cfg
         self._init_flag = False
-        self._path_to_bg_img = self._cfg.path_to_bg_img
+        # self._path_to_bg_img = self._cfg.path_to_bg_img
         self._save_replay = False
         self._observation_space = gym.spaces.Box(
             low=float("-inf"),
@@ -33,7 +33,7 @@ class RocketEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = Rocket(task = self._cfg.task, max_steps = self._cfg.max_steps,path_to_bg_img = self._path_to_bg_img)
+            self._env = Rocket(task = self._cfg.task, max_steps = self._cfg.max_steps)
             # NOTE(rjy): I don't know what's the use, leave it first
             # if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
             #     self._env = ObsPlusPrevActRewWrapper(self._env)
@@ -51,6 +51,8 @@ class RocketEnv(BaseEnv):
         obs = self._env.reset()
         # obs = [item[key] for item in obs for key in item]   # NOTE(rjy): here obs is a dict, we just need its values
         obs = to_ndarray(obs)
+        if self._save_replay:
+            self._frames = []
         return obs
 
     def close(self) -> None:
@@ -69,13 +71,14 @@ class RocketEnv(BaseEnv):
         # NOTE(rjy): action must be a int
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
+
+        if self._save_replay:
+            self._frames.extend(self._env.render())
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-            info['current_step'] = self._current_step
-            info['max_step'] = self._max_step
             if self._save_replay:
                 path = os.path.join(
-                    self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
+                    self._replay_path, '{}_episode.gif'.format(self._save_replay_count)
                 )
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
@@ -88,6 +91,8 @@ class RocketEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._save_replay = True
+        if not os.path.exists(replay_path):
+            os.makedirs(replay_path)
         self._replay_path = replay_path
         self._save_replay_count = 0
 
