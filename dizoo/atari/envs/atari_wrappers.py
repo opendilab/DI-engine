@@ -9,7 +9,7 @@ from ding.envs import NoopResetWrapper, MaxAndSkipWrapper, EpisodicLifeWrapper, 
 import numpy as np
 from ding.rl_utils.efficientzero.game import Game
 from ding.utils.compression_helper import jpeg_data_compressor
-from gym.wrappers import Monitor
+from gym.wrappers import RecordVideo
 import cv2
 
 
@@ -25,7 +25,7 @@ def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, s
     :param bool warp_frame: wrap the grayscale + resize observation wrapper.
     :return: the wrapped atari environment.
     """
-    assert 'NoFrameskip' in env_id
+    #assert 'NoFrameskip' in env_id
     env = gym.make(env_id)
     env = NoopResetWrapper(env, noop_max=30)
     env = MaxAndSkipWrapper(env, skip=4)
@@ -102,7 +102,8 @@ def wrap_muzero(config, warp_frame=True, save_video=False, save_path=None, video
     if warp_frame:
         env = WarpFrame(env, width=config.obs_shape[1], height=config.obs_shape[2], grayscale=config.gray_scale)
     if save_video:
-        env = Monitor(env, directory=save_path, force=True, video_callable=video_callable, uid=uid)
+        #env = Monitor(env, directory=save_path, force=True, video_callable=video_callable, uid=uid)
+        env = RecordVideo(env, video_folder=save_path, episode_trigger=lambda episode_id: True, name_prefix='rl-video-{}'.format(uid))
     env = JpegWrapper(env, cvt_string=config.cvt_string)
     if config.game_wrapper:
         env = GameWrapper(env)

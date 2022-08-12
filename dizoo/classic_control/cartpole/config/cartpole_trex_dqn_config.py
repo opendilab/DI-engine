@@ -11,8 +11,6 @@ cartpole_trex_dqn_config = dict(
     ),
     reward_model=dict(
         type='trex',
-        algo_for_model='dqn',
-        env_id='CartPole-v0',
         min_snippet_length=5,
         max_snippet_length=100,
         checkpoint_min=0,

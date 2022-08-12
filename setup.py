@@ -48,13 +48,13 @@ setup(
         package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
         for package_name in find_packages(include=('ding.*'))
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         'numpy>=1.18.0',
         'requests>=2.25.1',
         'six',
-        'gym==0.20.0',  # pypy incompatible
-        'torch>=1.1.0,<=1.10.0',  # PyTorch 1.10.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
+        'gym>=0.25.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'torch>=1.1.0,<=1.10.0',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
         'protobuf<=3.20.1',
@@ -91,10 +91,11 @@ setup(
     ],
     extras_require={
         'test': [
-            'opencv-python',
+            'gym[box2d]>=0.25.0',
+            'opencv-python',  # pypy incompatible
             'coverage>=5',
             'mock>=4.0.3',
-            'pytest~=6.2.5',
+            'pytest~=7.0.1',  # required by gym>=0.25.0
             'pytest-cov~=3.0.0',
             'pytest-mock~=3.6.1',
             'pytest-xdist>=1.34.0',
@@ -114,9 +115,9 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py==0.7.0',  # atari
+            'ale-py',  #>=0.7.5',  # atari
             'autorom',
-            'box2d-py',
+            'gym[all]>=0.25.0'
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],
@@ -176,9 +177,9 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )
