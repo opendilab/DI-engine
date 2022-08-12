@@ -283,7 +283,12 @@
 <span class="n">BaseEnvTimestep</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;BaseEnvTimestep&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="BaseEnv"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv">[docs]</a><span class="k">class</span> <span class="nc">BaseEnv</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">):</span>
+<span class="c1"># for solving multiple inheritance metaclass conflict between gym and ABC</span>
+<span class="k">class</span> <span class="nc">FinalMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">ABC</span><span class="p">)):</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="BaseEnv"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv">[docs]</a><span class="k">class</span> <span class="nc">BaseEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">,</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">FinalMeta</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Basic environment class, extended from ``gym.Env``</span>
