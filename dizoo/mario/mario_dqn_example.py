@@ -33,7 +33,8 @@ def wrapped_mario_env():
 
 
 def main():
-    logging.getLogger().setLevel(logging.INFO)
+    filename = '{}/log.txt'.format(main_config.exp_name)
+    logging.getLogger(with_files=[filename]).setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num

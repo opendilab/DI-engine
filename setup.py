@@ -54,7 +54,7 @@ setup(
         'requests>=2.25.1',
         'six',
         'gym>=0.25.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
-        'torch>=1.1.0,<=1.10.0',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
+        #'torch>=1.1.0,<=1.10.0',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
         'protobuf<=3.20.1',
@@ -167,6 +167,9 @@ setup(
         # ],
         'sokoban': [
             'gym-sokoban',
+        ],
+        'mario': [
+            'gym-super-mario-bros==7.3.0',
         ],
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},

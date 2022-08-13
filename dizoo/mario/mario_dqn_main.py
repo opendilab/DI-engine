@@ -5,7 +5,7 @@ from easydict import EasyDict
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
-from ding.envs import SyncSubprocessEnvManager, DingEnvWrapper
+from ding.envs import SyncSubprocessEnvManager, DingEnvWrapper, BaseEnvManager
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
     FinalEvalRewardEnv
 from ding.policy import DQNPolicy
@@ -94,7 +94,7 @@ def main(cfg, seed=0):
                 break
             learner.train(train_data, collector.envstep)
     # evaluate
-    evaluator_env = SubprocessEnvManager(
+    evaluator_env = BaseEnvManager(
         env_fn=[wrapped_mario_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager
     )
     evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
