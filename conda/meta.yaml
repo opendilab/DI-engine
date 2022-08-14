@@ -25,7 +25,11 @@ test:
     - dizoo
 
 about:
-  url: https://github.com/opendilab/DI-engine
+  home: https://github.com/opendilab/DI-engine
   license: Apache-2.0
   license_file: LICENSE
-  summary: DI-engine is a generalized Decision Intelligence engine.
+  summary: DI-engine is a generalized Decision Intelligence engine (https://github.com/opendilab/DI-engine).
+  description: Please refer to https://di-engine-docs.readthedocs.io/en/latest/00_intro/index.html#what-is-di-engine
+  dev_url: https://github.com/opendilab/DI-engine
+  doc_url: https://di-engine-docs.readthedocs.io/en/latest/index.html
+  doc_source_url: https://github.com/opendilab/DI-engine-docs
