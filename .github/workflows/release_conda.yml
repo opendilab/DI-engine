@@ -5,7 +5,7 @@ on: [push]
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags') || contains(github.event.head_commit.message, 'conda'))
     steps:
     - uses: actions/checkout@v2
     - name: publish-to-conda
