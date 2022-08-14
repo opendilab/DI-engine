@@ -83,7 +83,7 @@ setup(
         'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
         'redis',
-        'DI-treetensor>=0.2.1',
+        'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'moviepy',
