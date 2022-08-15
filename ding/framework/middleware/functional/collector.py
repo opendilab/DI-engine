@@ -5,6 +5,7 @@ import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 from ding.torch_utils import get_shape0, to_ndarray
+from ding.torch_utils import to_device
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
@@ -99,6 +100,10 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
 
     env_episode_id = [_ for _ in range(env.env_num)]
     current_id = env.env_num
+    use_cuda_shared_memory = False
+
+    if hasattr(cfg, "env") and hasattr(cfg.env, "manager"):
+        use_cuda_shared_memory = cfg.env.manager.cuda_shared_memory
 
     def _rollout(ctx: "OnlineRLContext"):
         """
@@ -114,16 +119,30 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
                 trajectory stops.
         """
 
-        nonlocal current_id
+        nonlocal current_id, use_cuda_shared_memory
         timesteps = env.step(ctx.action)
         ctx.env_step += len(timesteps)
-        timesteps = [t.tensor() for t in timesteps]
+
+        if not use_cuda_shared_memory:
+            timesteps = [t.tensor() for t in timesteps]
+
         # TODO abnormal env step
         for i, timestep in enumerate(timesteps):
             transition = policy.process_transition(ctx.obs[i], ctx.inference_output[i], timestep)
             transition = ttorch.as_tensor(transition)  # TBD
             transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
             transition.env_data_id = ttorch.as_tensor([env_episode_id[timestep.env_id]])
+
+            # torchrpc currently uses "cuda:0" as the transmission device by default,
+            # so all data on the cpu side is copied to "cuda:0" here. In fact this
+            # copy is unnecessary, because torchrpc can support both cpu side and gpu
+            # side data to communicate using RDMA, but mixing the two transfer types
+            # will cause a bug, see issue:
+            # Because we have copied the large payload "obs" and "next_obs" from the
+            # collector's subprocess to "cuda:0" in advance, the copy operation here
+            # will not have too much overhead.
+            if use_cuda_shared_memory:
+                transition = to_device(transition, "cuda:0")
             transitions.append(timestep.env_id, transition)
             if timestep.done:
                 policy.reset([timestep.env_id])

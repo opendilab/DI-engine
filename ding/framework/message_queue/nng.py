@@ -39,7 +39,7 @@ class NNGMQ(MQ):
             data = topic.encode() + data
             self._sock.send(data)
 
-    def subscribe(self, topic: str) -> None:
+    def subscribe(self, topic: str, fn: Optional[callable] = None, is_once: Optional[bool] = False) -> None:
         return
 
     def unsubscribe(self, topic: str) -> None:

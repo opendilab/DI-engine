@@ -8,19 +8,30 @@ from mpire.pool import WorkerPool
 from ditk import logging
 import tempfile
 import socket
+import enum
 from os import path
-from typing import Callable, Dict, List, Optional, Tuple, Union, Set
+from typing import Callable, Dict, List, Optional, Tuple, Union, Set, Any
 from threading import Thread
 from ding.framework.event_loop import EventLoop
 from ding.utils.design_helper import SingletonMetaclass
 from ding.framework.message_queue import *
 from ding.utils.registry_factory import MQ_REGISTRY
+from easydict import EasyDict
+from ding.framework.message_queue.torch_rpc import DeviceMap, DEFAULT_DEVICE_MAP_NUMS
 
 # Avoid ipc address conflict, random should always use random seed
 random = random.Random()
 
 
+class MQType(int, enum.Enum):
+    NNG = 0
+    REDIS = 1
+    RPC = 2
+
+
 class Parallel(metaclass=SingletonMetaclass):
+
+    _MQtype_dict = {"nng": MQType.NNG, "redis": MQType.REDIS, "torchrpc": MQType.RPC}
 
     def __init__(self) -> None:
         # Init will only be called once in a process
@@ -29,7 +40,6 @@ class Parallel(metaclass=SingletonMetaclass):
         self.node_id = None
         self.local_id = None
         self.labels = set()
-        self._event_loop = EventLoop("parallel_{}".format(id(self)))
         self._retries = 0  # Retries in auto recovery
 
     def _run(
@@ -52,9 +62,18 @@ class Parallel(metaclass=SingletonMetaclass):
         self.auto_recover = auto_recover
         self.max_retries = max_retries
         self._mq = MQ_REGISTRY.get(mq_type)(**kwargs)
+        self.mq_type = self._MQtype_dict[mq_type]
+
+        if self.mq_type != MQType.RPC:
+            self._event_loop = EventLoop("parallel_{}".format(id(self)))
+
         time.sleep(self.local_id * self.startup_interval)
-        self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
-        self._listener.start()
+        if self.mq_type == MQType.RPC:
+            self._mq.listen()
+            self.rpc_name = self._mq.name
+        else:
+            self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
+            self._listener.start()
 
     @classmethod
     def runner(
@@ -72,7 +91,11 @@ class Parallel(metaclass=SingletonMetaclass):
             max_retries: int = float("inf"),
             redis_host: Optional[str] = None,
             redis_port: Optional[int] = None,
-            startup_interval: int = 1
+            init_method: Optional[str] = "env://",
+            startup_interval: int = 1,
+            use_cuda: Optional[bool] = False,
+            local_cuda_devices: Optional[List[str]] = None,
+            cuda_device_map: Optional[List[str]] = None
     ) -> Callable:
         """
         Overview:
@@ -100,7 +123,11 @@ class Parallel(metaclass=SingletonMetaclass):
         """
         all_args = locals()
         del all_args["cls"]
-        args_parsers = {"nng": cls._nng_args_parser, "redis": cls._redis_args_parser}
+        args_parsers = {
+            MQType.NNG: cls._nng_args_parser,
+            MQType.REDIS: cls._redis_args_parser,
+            MQType.RPC: cls._torchrpc_args_parser
+        }
 
         assert n_parallel_workers > 0, "Parallel worker number should bigger than 0"
 
@@ -111,7 +138,7 @@ class Parallel(metaclass=SingletonMetaclass):
             Arguments:
                 - main_process (:obj:`Callable`): The main function, your program start from here.
             """
-            runner_params = args_parsers[mq_type](**all_args)
+            runner_params = args_parsers[cls._MQtype_dict[mq_type]](**all_args)
             params_group = []
             for i, runner_kwargs in enumerate(runner_params):
                 runner_kwargs["local_id"] = i
@@ -297,8 +324,13 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - fn (:obj:`Callable`): Function body.
         """
         if self.is_active:
-            self._mq.subscribe(event)
-        self._event_loop.on(event, fn)
+            if self.mq_type == MQType.RPC:
+                self._mq.subscribe(event, fn)
+            else:
+                self._mq.subscribe(event)
+
+        if hasattr(self, "_event_loop"):
+            self._event_loop.on(event, fn)
 
     def once(self, event: str, fn: Callable) -> None:
         """
@@ -310,8 +342,13 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - fn (:obj:`Callable`): Function body.
         """
         if self.is_active:
-            self._mq.subscribe(event)
-        self._event_loop.once(event, fn)
+            if self.mq_type == MQType.RPC:
+                self._mq.subscribe(event, fn, True)
+            else:
+                self._mq.subscribe(event)
+
+        if hasattr(self, "_event_loop"):
+            self._event_loop.once(event, fn)
 
     def off(self, event: str) -> None:
         """
@@ -322,7 +359,9 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         """
         if self.is_active:
             self._mq.unsubscribe(event)
-        self._event_loop.off(event)
+
+        if hasattr(self, "_event_loop"):
+            self._event_loop.off(event)
 
     def emit(self, event: str, *args, **kwargs) -> None:
         """
@@ -332,13 +371,16 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - event (:obj:`str`): Event name.
         """
         if self.is_active:
-            payload = {"a": args, "k": kwargs}
-            try:
-                data = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
-            except AttributeError as e:
-                logging.error("Arguments are not pickable! Event: {}, Args: {}".format(event, args))
-                raise e
-            self._mq.publish(event, data)
+            if self.mq_type == MQType.RPC:
+                self._mq.publish(event, *args, **kwargs)
+            else:
+                payload = {"a": args, "k": kwargs}
+                try:
+                    data = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+                except AttributeError as e:
+                    logging.error("Arguments are not pickable! Event: {}, Args: {}".format(event, args))
+                    raise e
+                self._mq.publish(event, data)
 
     def _handle_message(self, topic: str, msg: bytes) -> None:
         """
@@ -349,6 +391,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - msg (:obj:`bytes`): Recevied message.
         """
         event = topic
+        assert hasattr(self, "_event_loop") and self._event_loop
+
         if not self._event_loop.listened(event):
             logging.debug("Event {} was not listened in parallel {}".format(event, self.node_id))
             return
@@ -382,10 +426,182 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         logging.info("Stopping parallel worker on node: {}".format(self.node_id))
         self.is_active = False
         time.sleep(0.03)
-        if self._mq:
+        if hasattr(self, "_mq") and self._mq:
             self._mq.stop()
             self._mq = None
         if self._listener:
             self._listener.join(timeout=1)
             self._listener = None
-        self._event_loop.stop()
+        if hasattr(self, "_event_loop"):
+            self._event_loop.stop()
+
+    @classmethod
+    def make_device_maps(cls,
+                         self_id: int,
+                         local_cuda_device: int,
+                         cuda_device_map: Optional[List[str]] = None) -> List[DeviceMap]:
+        dmap = DeviceMap(f"Node_{self_id}")
+        if cuda_device_map:
+            # If the user gave a custom device map, use it.
+            for item in cuda_device_map:
+                remote_node_id, local_device_rank, remote_device_rank = item.split("_")
+                dmap.peer_name_list.append(f"Node_{remote_node_id}")
+                dmap.our_device_list.append(int(local_device_rank))
+                dmap.peer_device_list.append(int(remote_device_rank))
+        else:
+            assert self_id < DEFAULT_DEVICE_MAP_NUMS
+            # If the user does not provide deivce_map and specifies the use of GPU, we default
+            # each process to use GPU:0 for communication. This is a convenient approach in a
+            # container environment.
+            for i in range(DEFAULT_DEVICE_MAP_NUMS):
+                if i == self_id:
+                    continue
+                dmap.peer_name_list.append(f"Node_{i}")
+                dmap.our_device_list.append(local_cuda_device)
+                dmap.peer_device_list.append(0)
+
+        return dmap
+
+    @classmethod
+    def _torchrpc_args_parser(
+            cls,
+            n_parallel_workers: int,
+            attach_to: Optional[List[str]] = None,
+            node_ids: Optional[Union[List[int], int]] = None,
+            init_method: Optional[str] = "env://",
+            use_cuda: Optional[bool] = False,
+            local_cuda_devices: Optional[List[str]] = None,
+            cuda_device_map: Optional[List[str]] = None,
+            remote_parallel_entrance: Optional[Callable] = None,
+            async_rpc: Optional[bool] = True,
+            async_backend_polling: Optional[bool] = False,
+            channels: Optional[List[str]] = None,
+            **kwargs
+    ) -> List[Dict[str, dict]]:
+        import torch
+        assert init_method
+
+        attach_to = attach_to or []
+        node_divice_dict = dict()
+
+        if local_cuda_devices or cuda_device_map:
+            use_cuda = True
+            if local_cuda_devices and not cuda_device_map:
+                logging.warning(
+                    '''If you set local_cuda_devices but not cuda_device_map, torchrpc will use the default
+                    device mapping to map all local GPU devices to the peer GPU-0.'''
+                )
+
+        # From the unique identification of each process when using torchrpc to communicate.
+        local_process_ids = cls.padding_param(node_ids, n_parallel_workers, 0)
+        attach_to = [f"Node_{id}" for id in attach_to]
+        nodes = ["Node_{}".format(id) for id in local_process_ids]
+
+        try:
+            # torchrpc uses "node_id" as global rank, perform necessary checks here.
+            assert local_process_ids
+            assert len(local_process_ids) == n_parallel_workers
+            assert len(set(local_process_ids)) == n_parallel_workers
+        except AssertionError as e:
+            raise RuntimeError(
+                '''Arg "node_ids" must be specified. Please set the number of "node_ids" to be the same as
+                "n_parallel_workers" (Hint: "node_id" is the unique identifier between processes)'''
+            )
+
+        if use_cuda:
+            assert torch.cuda.is_available()
+            if local_cuda_devices:
+                if len(local_cuda_devices) != n_parallel_workers:
+                    raise RuntimeError(
+                        "The length of the \"local_cuda_devices\":[\"{}\"] is != \"n_parallel_workers\":[\"{}\"]".
+                        format(len(local_cuda_devices), n_parallel_workers)
+                    )
+                local_cuda_devices = [int(i) for i in local_cuda_devices]
+            else:
+                gpu_nums = torch.cuda.device_count()
+                if n_parallel_workers > gpu_nums:
+                    raise RuntimeError(
+                        "The number of available GPUS [\"{}\"] is less than n_parallel_workers[\"{}\"]".format(
+                            gpu_nums, n_parallel_workers
+                        )
+                    )
+                local_cuda_devices = cls.padding_param(0, n_parallel_workers, 0)
+
+            dmap_lists = [
+                cls.make_device_maps(node_id, local_cuda_devices[i], cuda_device_map)
+                for i, node_id in enumerate(local_process_ids)
+            ]
+        else:
+            local_cuda_devices = [None for i in range(n_parallel_workers)]
+            dmap_lists = [None for i in range(n_parallel_workers)]
+
+        if channels:
+            list_channels = [channels for i in range(n_parallel_workers)]
+        else:
+            list_channels = [None for i in range(n_parallel_workers)]
+
+        global local_parallel_entrance
+        entrance_fn = remote_parallel_entrance if remote_parallel_entrance else local_parallel_entrance
+        runner_params = []
+        for i in range(n_parallel_workers):
+            runner_kwargs = {
+                **kwargs, "node_id": local_process_ids[i],
+                "n_parallel_workers": n_parallel_workers,
+                "rpc_name": nodes[i],
+                "global_rank": local_process_ids[i],
+                "init_method": init_method,
+                "remote_parallel_entrance": entrance_fn,
+                "attach_to": attach_to,
+                "device_maps": dmap_lists[i],
+                "cuda_device": local_cuda_devices[i],
+                "use_cuda": use_cuda,
+                "async_rpc": async_rpc,
+                "async_backend_polling": async_backend_polling,
+                "channels": list_channels[i]
+            }
+            runner_params.append(runner_kwargs)
+
+        return runner_params
+
+    def get_mq(self):
+        return self._mq
+
+    def judge_use_cuda_shm(self, cfg: EasyDict) -> None:
+        """
+        Overview:
+            Only when torchrpc is used and env uses shared memory, cuda tensor
+            is used as the communication method between env subprocesses and
+            collector process.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Input config dict which is to be used in the following pipeline.
+        """
+        if not hasattr(cfg, "env") or not hasattr(cfg.env, "manager"):
+            return
+
+        if cfg.env.manager.shared_memory:
+            if self.mq_type == MQType.RPC and "collector" in self.labels:
+                cfg.env.manager.cuda_shared_memory = True
+                return
+        cfg.env.manager.cuda_shared_memory = False
+        return
+
+
+def local_parallel_entrance(topic: Union[int, str], *args, **kwargs) -> Any:
+    """
+    Overview:
+        We must provide a method for all RPC methods to obtain the data structure
+        instantiated in the remote process. Because we don't want to and can't pickle
+        data structures such as Task() or Parallel().
+
+        Unlike nng, torchrpc needs to consider thread safety. Class 'Parallel' is a singleton
+        class. At this moment, Parallel() must have been instantiated, because
+        'accept_rpc_connect'will only be executed after local-side init_rpc has completed,
+
+        This function must be picklable, so should not be a local function.
+
+        This function will be called concurrently by multiple threads, and the provider of
+        the RPC method needs to ensure that its own RPC method is thread-safe.
+    Arguments:
+        - topic (Union[int, str]): Recevied topic.
+    """
+    return Parallel().get_mq().rpc_event_router(topic, *args, **kwargs)
