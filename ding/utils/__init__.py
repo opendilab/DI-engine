@@ -11,7 +11,7 @@ from .import_helper import try_import_ceph, try_import_mc, try_import_link, impo
 from .k8s_helper import get_operator_server_kwargs, exist_operator_server, DEFAULT_K8S_COLLECTOR_PORT, \
     DEFAULT_K8S_LEARNER_PORT, DEFAULT_K8S_AGGREGATOR_SLAVE_PORT, DEFAULT_K8S_COORDINATOR_PORT, pod_exec_command, \
     K8sLauncher
-from .lock_helper import LockContext, LockContextType, get_file_lock, get_rw_file_lock
+from .lock_helper import LockContext, LockContextType, get_file_lock, get_rw_file_lock, synchronized
 from .log_helper import build_logger, pretty_print, LoggerFactory
 from .log_writer_helper import DistributedWriter
 from .orchestrator_launcher import OrchestratorLauncher
@@ -36,3 +36,6 @@ if ding.enable_linklink:
 else:
     from .pytorch_ddp_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
         allreduce, broadcast, DistContext, allreduce_async, synchronize
+
+from .comm_perf_helper import TENSOR_SIZE_LIST, DO_PERF, tensor_size_beauty_print, byte_beauty_print, \
+    dtype_2_byte, time_perf_avg, time_perf_once, print_timer_result_csv

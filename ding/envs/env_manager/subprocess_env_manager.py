@@ -1,5 +1,6 @@
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
 from multiprocessing import connection, get_context
+# from torch.multiprocessing import connection, get_context
 from collections import namedtuple
 from ditk import logging
 import platform
@@ -12,6 +13,7 @@ import pickle
 import cloudpickle
 import numpy as np
 import treetensor.numpy as tnp
+import treetensor.torch as ttorch
 from easydict import EasyDict
 from types import MethodType
 from ding.data import ShmBufferContainer, ShmBuffer
@@ -70,6 +72,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         retry_waiting_time=0.1,
         # subprocess specified args
         shared_memory=True,
+        cuda_shared_memory=False,
         copy_on_get=True,
         context='spawn' if platform.system().lower() == 'windows' else 'fork',
         wait_num=2,
@@ -97,6 +100,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         super().__init__(env_fn, cfg)
         self._shared_memory = self._cfg.shared_memory
+        self._cuda_shared_memory = self._cfg.cuda_shared_memory if self._shared_memory else False
         self._copy_on_get = self._cfg.copy_on_get
         self._context = self._cfg.context
         self._wait_num = self._cfg.wait_num
@@ -134,7 +138,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 shape = obs_space.shape
                 dtype = obs_space.dtype
             self._obs_buffers = {
-                env_id: ShmBufferContainer(dtype, shape, copy_on_get=self._copy_on_get)
+                env_id: ShmBufferContainer(
+                    dtype, shape, copy_on_get=self._copy_on_get, is_cuda_buffer=self._cuda_shared_memory
+                )
                 for env_id in range(self.env_num)
             }
         else:
@@ -148,7 +154,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _create_env_subprocess(self, env_id):
         # start a new one
-        ctx = get_context(self._context)
+        if self._cuda_shared_memory:
+            import torch.multiprocessing as mp
+            ctx = mp.get_context('spawn')
+        else:
+            ctx = get_context(self._context)
         self._pipe_parents[env_id], self._pipe_children[env_id] = ctx.Pipe()
         self._subprocesses[env_id] = ctx.Process(
             # target=self.worker_fn,
@@ -705,6 +715,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         retry_waiting_time=0.1,
         # subprocess specified args
         shared_memory=True,
+        cuda_shared_memory=False,
         copy_on_get=True,
         context='spawn' if platform.system().lower() == 'windows' else 'fork',
         wait_num=float("inf"),  # inf mean all the environments
@@ -802,7 +813,7 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
     """
 
     @property
-    def ready_obs(self) -> tnp.array:
+    def ready_obs(self) -> Union[tnp.array, torch.Tensor]:
         """
         Overview:
             Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.
@@ -822,7 +833,10 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
                 )
             time.sleep(0.001)
             sleep_count += 1
-        return tnp.stack([tnp.array(self._ready_obs[i]) for i in self.ready_env])
+        if not self._cuda_shared_memory:
+            return tnp.stack([tnp.array(self._ready_obs[i]) for i in self.ready_env])
+        else:
+            return ttorch.stack([ttorch.tensor(self._ready_obs[i]) for i in self.ready_env])
 
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
         """
@@ -846,5 +860,16 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
             info = make_key_as_identifier(info)
             info = remove_illegal_item(info)
-            new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
+            if not self._cuda_shared_memory:
+                new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
+            else:
+                new_data.append(
+                    ttorch.tensor({
+                        'obs': obs,
+                        'reward': reward,
+                        'done': done,
+                        'info': info,
+                        'env_id': env_id
+                    })
+                )
         return new_data

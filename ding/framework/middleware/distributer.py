@@ -2,8 +2,10 @@ from time import sleep, time
 from dataclasses import fields
 from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 from ditk import logging
-from ding.framework import task
+from ding.framework import task, MQType
 from ding.data import StorageLoader, Storage, ModelLoader
+from ding.utils import LockContext, LockContextType
+
 if TYPE_CHECKING:
     from ding.framework.context import Context
     from torch.nn import Module
@@ -11,7 +13,11 @@ if TYPE_CHECKING:
 
 class ContextExchanger:
 
-    def __init__(self, skip_n_iter: int = 1, storage_loader: Optional[StorageLoader] = None) -> None:
+    def __init__(
+            self,
+            skip_n_iter: int = 1,
+            storage_loader: Optional[StorageLoader] = None,
+    ) -> None:
         """
         Overview:
             Exchange context between processes,
@@ -33,9 +39,16 @@ class ContextExchanger:
         self._event_name = "context_exchanger_{role}"
         self._skip_n_iter = skip_n_iter
         self._storage_loader = storage_loader
+
+        # Both nng and torchrpc use background threads to trigger the receiver's recv action,
+        # there is a race condition between sender and sender, and between senders and receiver.
+        self._put_lock = LockContext(LockContextType.THREAD_LOCK)
+        self._recv_ready = False
+        self._bypass_eventloop = task.router.mq_type == MQType.RPC
+
         for role in task.role:  # Only subscribe to other roles
             if not task.has_role(role):
-                task.on(self._event_name.format(role=role), self.put)
+                task.on(self._event_name.format(role=role), self.put, bypass_eventloop=self._bypass_eventloop)
         if storage_loader:
             task.once("finish", lambda _: storage_loader.shutdown())
 
@@ -62,7 +75,12 @@ class ContextExchanger:
             if self._storage_loader and task.has_role(task.role.COLLECTOR):
                 payload = self._storage_loader.save(payload)
             for role in task.roles:
-                task.emit(self._event_name.format(role=role), payload, only_remote=True)
+                task.emit(
+                    self._event_name.format(role=role),
+                    payload,
+                    only_remote=True,
+                    bypass_eventloop=self._bypass_eventloop
+                )
 
     def __del__(self):
         if self._storage_loader:
@@ -76,12 +94,14 @@ class ContextExchanger:
         """
 
         def callback(payload: Dict):
-            for key, item in payload.items():
-                fn_name = "_put_{}".format(key)
-                if hasattr(self, fn_name):
-                    getattr(self, fn_name)(item)
-                else:
-                    logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
+            with self._put_lock:
+                for key, item in payload.items():
+                    fn_name = "_put_{}".format(key)
+                    if hasattr(self, fn_name):
+                        getattr(self, fn_name)(item)
+                    else:
+                        logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
+                self._recv_ready = True
 
         if isinstance(payload, Storage):
             assert self._storage_loader is not None, "Storage loader is not defined when data is a storage object."
@@ -106,26 +126,29 @@ class ContextExchanger:
         return payload
 
     def merge(self, ctx: "Context"):
+
         if task.has_role(task.role.LEARNER):
             # Learner should always wait for trajs.
             # TODO: Automaticlly wait based on properties, not roles.
-            while len(self._state) == 0:
+            while self._recv_ready is False:
                 sleep(0.01)
         elif ctx.total_step >= self._skip_n_iter:
             start = time()
-            while len(self._state) == 0:
+            while self._recv_ready is False:
                 if time() - start > 60:
                     logging.warning("Timeout when waiting for new context! Node id: {}".format(task.router.node_id))
                     break
                 sleep(0.01)
 
-        for k, v in self._state.items():
-            if not task.has_role(task.role.COLLECTOR) and k.startswith('increment_'):
-                pure_k = k.split('increment_')[-1]
-                setattr(ctx, pure_k, getattr(ctx, pure_k) + v)
-            else:
-                setattr(ctx, k, v)
-        self._state = {}
+        with self._put_lock:
+            for k, v in self._state.items():
+                if not task.has_role(task.role.COLLECTOR) and k.startswith('increment_'):
+                    pure_k = k.split('increment_')[-1]
+                    setattr(ctx, pure_k, getattr(ctx, pure_k) + v)
+                else:
+                    setattr(ctx, k, v)
+            self._state = {}
+            self._recv_ready = False
 
     # Handle each attibute of context
     def _put_trajectories(self, traj: List[Any]):
@@ -150,14 +173,14 @@ class ContextExchanger:
         if task.has_role(task.role.COLLECTOR):
             return episodes
 
-    def _put_trajectory_end_idx(self, trajectory_end_idx: List[str]):
+    def _put_trajectory_end_idx(self, trajectory_end_idx: List[int]):
         if not task.has_role(task.role.LEARNER):
             return
         if "trajectory_end_idx" not in self._state:
             self._state["trajectory_end_idx"] = []
         self._state["trajectory_end_idx"].extend(trajectory_end_idx)
 
-    def _fetch_trajectory_end_idx(self, trajectory_end_idx: List[str]):
+    def _fetch_trajectory_end_idx(self, trajectory_end_idx: List[int]):
         if task.has_role(task.role.COLLECTOR):
             return trajectory_end_idx
 
@@ -178,12 +201,6 @@ class ContextExchanger:
             if 'increment_env_episode' not in self._state:
                 self._state['increment_env_episode'] = 0
             self._state["increment_env_episode"] += increment_env_episode
-
-    def _fetch_env_episode(self, env_episode: int):
-        if task.has_role(task.role.COLLECTOR):
-            increment_env_episode = env_episode - self._local_state['env_episode']
-            self._local_state['env_episode'] = env_episode
-            return increment_env_episode
 
     def _put_train_iter(self, train_iter: int):
         if not task.has_role(task.role.LEARNER):
@@ -211,8 +228,9 @@ class ModelExchanger:
         self._event_name = "model_exchanger"
         self._state_dict_cache: Optional[Union[object, Storage]] = None
         self._is_learner = task.has_role(task.role.LEARNER)
+        self._bypass_eventloop = task.router.mq_type == MQType.RPC
         if not self._is_learner:
-            task.on(self._event_name, self._cache_state_dict)
+            task.on(self._event_name, self._cache_state_dict, bypass_eventloop=self._bypass_eventloop)
         if model_loader:
             task.once("finish", lambda _: model_loader.shutdown())
 
@@ -278,11 +296,13 @@ class ModelExchanger:
         if self._model_loader:
             self._model_loader.save(self._send_callback)
         else:
-            task.emit(self._event_name, self._model.state_dict(), only_remote=True)
+            task.emit(
+                self._event_name, self._model.state_dict(), only_remote=True, bypass_eventloop=self._bypass_eventloop
+            )
 
     def _send_callback(self, storage: Storage):
         if task.running:
-            task.emit(self._event_name, storage, only_remote=True)
+            task.emit(self._event_name, storage, only_remote=True, bypass_eventloop=self._bypass_eventloop)
 
     def __del__(self):
         if self._model_loader:

@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class MQ:
@@ -31,12 +31,15 @@ class MQ:
         """
         raise NotImplementedError
 
-    def subscribe(self, topic: str) -> None:
+    def subscribe(self, topic: str, fn: Optional[callable] = None, is_once: Optional[bool] = False) -> None:
         """
         Overview:
             Subscribe to the topic.
         Arguments:
             - topic (:obj:`str`): Topic
+            - fn (:obj:`Optional[callable]`): The message handler, if the communication library
+                implements event_loop, it can bypass Parallel() and calling this function by itself.
+            - is_once (:obj:`bool`):  Whether Topic will only be called once.
         """
         raise NotImplementedError
 

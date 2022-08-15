@@ -62,6 +62,8 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
         return item
     elif isinstance(item, torch.distributions.Distribution):  # for compatibility
         return item
+    elif isinstance(item, ttorch.Tensor):
+        return item.to(device)
     else:
         raise TypeError("not support item type: {}".format(type(item)))
 
