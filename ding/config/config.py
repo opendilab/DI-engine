@@ -1,5 +1,6 @@
 import os
 import os.path as osp
+import yaml
 import json
 import shutil
 import sys
@@ -7,8 +8,8 @@ import time
 import tempfile
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
-import yaml
 from easydict import EasyDict
+from copy import deepcopy
 
 from ding.utils import deep_merge_dicts
 from ding.envs import get_env_cls, get_env_manager_cls, BaseEnvManager
@@ -346,6 +347,7 @@ def compile_config(
     Returns:
         - cfg (:obj:`EasyDict`): Config after compiling
     """
+    cfg, create_cfg = deepcopy(cfg), deepcopy(create_cfg)
     if auto:
         assert create_cfg is not None
         # for compatibility
