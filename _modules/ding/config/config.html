@@ -274,6 +274,7 @@
   <h1>Source code for ding.config.config</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">osp</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -281,8 +282,8 @@
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">NoReturn</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">deep_merge_dicts</span>
 <span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">get_env_cls</span><span class="p">,</span> <span class="n">get_env_manager_cls</span><span class="p">,</span> <span class="n">BaseEnvManager</span>
@@ -620,6 +621,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        - cfg (:obj:`EasyDict`): Config after compiling</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfg</span><span class="p">,</span> <span class="n">create_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">create_cfg</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">auto</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">create_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="c1"># for compatibility</span>
