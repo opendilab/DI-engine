@@ -31,8 +31,8 @@ class LeagueCoordinator:
         self._writer = DistributedWriter.get_instance()
 
         self._traj_num = 0
-        self._last_get_data_time = None
-        self._total_get_data_time = 0
+        self._last_time = None
+        self._total_recv_time = 0
         self._pre_collect_finished = False
 
         task.on(EventEnum.ACTOR_GREETING, self._on_actor_greeting)
@@ -41,17 +41,17 @@ class LeagueCoordinator:
         task.on(EventEnum.ACTOR_SEND_DATA.format(player='main_player_default_0'), self._count_data)
 
     def _count_data(self, data):
-        if self._last_get_data_time is None:
-            self._last_get_data_time = time()
+        if self._last_time is None:
+            self._last_time = time()
 
-        if self._total_get_data_time >= 60 * 10 and self._pre_collect_finished is False:
+        if self._total_recv_time >= 60 * 10 and self._pre_collect_finished is False:
             self._pre_collect_finished = True
-            self._total_get_data_time = 0
+            self._total_recv_time = 0
 
-        finish_get_data_time = time()
-        current_get_data_time = finish_get_data_time - self._last_get_data_time
-        self._total_get_data_time += current_get_data_time
-        self._last_get_data_time = finish_get_data_time
+        this_time = time()
+        current_time = this_time - self._last_time
+        self._total_recv_time += current_time
+        self._last_time = this_time
 
         if self._pre_collect_finished:
             current_traj_num = 0
@@ -61,15 +61,15 @@ class LeagueCoordinator:
                     current_traj_num += 1
             logging.info(
                 "[Coordinator {}] recieve {} traj, current send speed is {} traj/s, total send speed is {} traj/s".format(
-                    task.router.node_id, current_traj_num, current_traj_num / current_get_data_time,
-                    self._traj_num / self._total_get_data_time
+                    task.router.node_id, current_traj_num, current_traj_num / current_time,
+                    self._traj_num / self._total_recv_time
                 )
             )
             self._writer.add_scalar(
-                "current_traj_speed-total_recv_trajs", current_traj_num / current_get_data_time, self._total_get_data_time
+                "current_traj_speed-total_recv_trajs", current_traj_num / current_time, self._total_recv_time
             )
             self._writer.add_scalar(
-                "total_traj_speed-total_recv_trajs", self._traj_num / self._total_get_data_time, self._total_get_data_time
+                "total_traj_speed-total_recv_trajs", self._traj_num / self._total_recv_time, self._total_recv_time
             )
 
     def _on_actor_greeting(self, actor_id):
