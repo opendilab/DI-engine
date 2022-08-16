@@ -112,11 +112,13 @@ def get_mask(action):
     selected_units_logits_mask = torch.randint(0, 2, size=(MAX_ENTITY_NUM, ), dtype=torch.long)
     target_units_logits_mask = torch.randint(0, 2, size=(MAX_ENTITY_NUM, ), dtype=torch.long)
     target_units_logits_mask[action['target_unit']] = 1
+    cum_action_mask= torch.tensor(1.0,dtype=torch.float)
 
     return {
         'actions_mask': mask,
         'selected_units_logits_mask': selected_units_logits_mask,
         'target_units_logits_mask': target_units_logits_mask,
+        'cum_action_mask': cum_action_mask
     }
 
 
@@ -156,7 +158,7 @@ def rl_step_data(last=False):
         'spatial_info': spatial_info(),
         'entity_info': entity_info(),
         'scalar_info': scalar_info(),
-        'entity_num': torch.randint(5, 100, size=(1, ), dtype=torch.long),
+        'entity_num': torch.randint(5, 100, size=(), dtype=torch.long),
         'selected_units_num': torch.randint(0, MAX_SELECTED_UNITS_NUM, size=(), dtype=torch.long),
         'entity_location': torch.randint(0, H, size=(512, 2), dtype=torch.long),
         'hidden_state': [(torch.zeros(size=(384, )), torch.zeros(size=(384, ))) for _ in range(3)],
