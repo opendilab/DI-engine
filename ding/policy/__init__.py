@@ -15,7 +15,7 @@ from .a2c import A2CPolicy
 from .ppo import PPOPolicy, PPOPGPolicy, PPOOffPolicy
 from .sac import SACPolicy, SACDiscretePolicy, SQILSACPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
-from .impala import IMPALAPolicy
+from .impala import IMPALAPolicy, IMPALAPolicyV2
 from .ngu import NGUPolicy
 from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy

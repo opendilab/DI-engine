@@ -31,7 +31,7 @@ cartpole_impala_config = dict(
             # (float) additional discounting parameter
             lambda_=0.95,
             # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
+            unroll_len=9,
             # (float) clip ratio of importance weights
             rho_clip_ratio=1.0,
             # (float) clip ratio of importance weights
@@ -43,7 +43,7 @@ cartpole_impala_config = dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
             # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
+            unroll_len=9,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             gae_lambda=0.95,
