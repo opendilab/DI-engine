@@ -180,7 +180,7 @@ def rl_step_data(last=False):
     return data
 
 
-def fake_rl_data_batch_with_last(unroll_len=4):
+def fake_rl_traj_with_last(unroll_len=4):
     list_step_data = []
     for i in range(unroll_len):
         step_data = rl_step_data()
@@ -189,8 +189,8 @@ def fake_rl_data_batch_with_last(unroll_len=4):
     return list_step_data
 
 
-def get_fake_rl_trajectory(batch_size=3, unroll_len=4):
-    data_batch = [fake_rl_data_batch_with_last(unroll_len) for _ in range(batch_size)]
+def get_fake_rl_batch(batch_size=3, unroll_len=4):
+    data_batch = [fake_rl_traj_with_last(unroll_len) for _ in range(batch_size)]
     return data_batch
 
 

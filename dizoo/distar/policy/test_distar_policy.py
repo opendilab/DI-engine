@@ -1,7 +1,7 @@
 import pytest
 
 from dizoo.distar.policy import DIStarPolicy
-from dizoo.distar.envs import get_fake_rl_trajectory, get_fake_env_reset_data, get_fake_env_step_data
+from dizoo.distar.envs import get_fake_rl_batch, get_fake_env_reset_data, get_fake_env_step_data
 
 import torch
 from ding.utils import set_pkg_seed
@@ -13,7 +13,7 @@ class TestDIStarPolicy:
     def test_forward_learn(self):
         policy = DIStarPolicy(DIStarPolicy.default_config(), enable_field=['learn'])
         policy = policy.learn_mode
-        data = get_fake_rl_trajectory(batch_size=3)
+        data = get_fake_rl_batch(batch_size=3)
         output = policy.forward(data)
         print(output)
 
