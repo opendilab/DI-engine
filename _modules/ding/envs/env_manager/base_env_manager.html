@@ -283,7 +283,8 @@
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">treetensor.numpy</span> <span class="k">as</span> <span class="nn">tnp</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">one_time_warning</span><span class="p">,</span> <span class="n">make_key_as_identifier</span><span class="p">,</span> <span class="n">WatchDog</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">one_time_warning</span><span class="p">,</span> <span class="n">make_key_as_identifier</span><span class="p">,</span> <span class="n">WatchDog</span><span class="p">,</span> \
+    <span class="n">remove_illegal_item</span>
 <span class="kn">from</span> <span class="nn">ding.envs.env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
 
 
@@ -738,6 +739,7 @@
             <span class="c1"># make the type and content of key as similar as identifier,</span>
             <span class="c1"># in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info</span>
             <span class="n">info</span> <span class="o">=</span> <span class="n">make_key_as_identifier</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">remove_illegal_item</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
             <span class="n">new_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">({</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">reward</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">,</span> <span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="n">env_id</span><span class="p">}))</span>
         <span class="k">return</span> <span class="n">new_data</span>
 

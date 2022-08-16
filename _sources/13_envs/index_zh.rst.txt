@@ -2,7 +2,7 @@
 =====================================
 
 
-下述环境为DI-engine中实现了的环境。每个环境都将从以下几个方面进行介绍：（某些环境可能会缺失部分方面）
+下述环境为DI-engine中实现了的环境。每个环境都将从以下几个方面进行介绍：
 
  - 概述
  - 安装
@@ -42,6 +42,7 @@
    multiagent_particle_zh
    pybullet_zh
    pettingzoo_zh
+   dmc2gym_zh
    
    gym_hybrid_zh
    gym_soccer_zh

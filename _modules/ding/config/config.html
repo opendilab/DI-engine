@@ -631,7 +631,11 @@
             <span class="n">create_cfg</span><span class="o">.</span><span class="n">replay_buffer</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;advanced&#39;</span><span class="p">))</span>
             <span class="n">buffer</span> <span class="o">=</span> <span class="n">AdvancedReplayBuffer</span>
         <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">env</span> <span class="o">=</span> <span class="n">get_env_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;env&#39;</span> <span class="ow">in</span> <span class="n">create_cfg</span><span class="p">:</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="n">get_env_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ding_env_wrapper_generated&#39;</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">env_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">env_manager</span> <span class="o">=</span> <span class="n">get_env_manager_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env_manager</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">policy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

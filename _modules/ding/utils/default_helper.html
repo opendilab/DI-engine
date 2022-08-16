@@ -843,6 +843,23 @@
         <span class="n">new_k</span> <span class="o">=</span> <span class="n">legalization</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
         <span class="n">new_data</span><span class="p">[</span><span class="n">new_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">new_data</span>
+
+
+<span class="k">def</span> <span class="nf">remove_illegal_item</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Remove illegal item in dict info, like str, which is not compatible with Tensor.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data (:obj:`Dict[str, Any]`): The original dict data.</span>
+<span class="sd">    Return:</span>
+<span class="sd">        - new_data (:obj:`Dict[str, Any]`): The new dict data without legal items.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">new_data</span>
 </pre></div>
 
               </article>

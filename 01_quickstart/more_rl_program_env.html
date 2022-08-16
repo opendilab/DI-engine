@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>First Reinforcement Learning Program &mdash; DI-engine 0.1.0 documentation</title>
+  <title>More Reinforcement Learning Program (Customized Env) &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="More Reinforcement Learning Program (Customized Env)" href="more_rl_program_env.html" />
-  <link rel="prev" title="Installation Guide" href="installation.html" />
+  <link rel="next" title="RL Algorithm Taxonomy" href="../02_algo/index.html" />
+  <link rel="prev" title="First Reinforcement Learning Program" href="first_rl_program.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -248,13 +248,13 @@
         
           <li><a href="index.html">Quickstart</a> &gt;</li>
         
-      <li>First Reinforcement Learning Program</li>
+      <li>More Reinforcement Learning Program (Customized Env)</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/01_quickstart/first_rl_program.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/01_quickstart/more_rl_program_env.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -278,16 +278,16 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="first-reinforcement-learning-program">
-<h1>First Reinforcement Learning Program<a class="headerlink" href="#first-reinforcement-learning-program" title="Permalink to this headline">¶</a></h1>
+  <section id="more-reinforcement-learning-program-customized-env">
+<h1>More Reinforcement Learning Program (Customized Env)<a class="headerlink" href="#more-reinforcement-learning-program-customized-env" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<p>CartPole is the ideal learning environment for an introduction to reinforcement learning, and using the DQN algorithm allows CartPole to converge (maintain equilibrium) in a very short time. We will introduce the use of DI-engine based on CartPole + DQN.</p>
-<a class="reference internal image-reference" href="../_images/cartpole_cmp.gif"><img alt="../_images/cartpole_cmp.gif" class="align-center" src="../_images/cartpole_cmp.gif" style="width: 1000px;" /></a>
+<p><a class="reference external" href="https://github.com/Kautenja/gym-super-mario-bros">Super Mario Bros. &amp; Super Mario Bros. 2 (Lost Levels)</a> on The Nintendo Entertainment System (NES) is one of the most popular games in 1980s. How about design a DRL-based AI to explore this classic game? In this tutorial, we will implement an AI-powered Mario (using DQN algorithm) in DI-engine.</p>
+<a class="reference internal image-reference" href="../_images/mario.gif"><img alt="../_images/mario.gif" class="align-center" src="../_images/mario.gif" style="width: 400px;" /></a>
 <section id="using-the-configuration-file">
 <h2>Using the Configuration File<a class="headerlink" href="#using-the-configuration-file" title="Permalink to this headline">¶</a></h2>
-<p>The DI-engine uses a global configuration file to control all variables of the environment and strategy, each of which has a corresponding default configuration that can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">cartpole_dqn_config</a>, in the tutorial we use the default configuration directly:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+<p>DI-engine uses a global configuration file to control all variables of the environment and strategy, each of which has a corresponding default configuration that can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mario/mario_dqn_config.py">mario_dqn_config</a>, in the tutorial we use the default configuration directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.mario.mario_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
 <span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -296,22 +296,54 @@
 </section>
 <section id="initialize-the-environments">
 <h2>Initialize the Environments<a class="headerlink" href="#initialize-the-environments" title="Permalink to this headline">¶</a></h2>
-<p>In reinforcement learning, there may be a difference in the strategy for collecting environment data between the training process and the evaluation process, for example, the training process tends to train one epoch for n steps of collection, while the evaluation process requires completing the whole game to get a score. We recommend that the collection and evaluation environments be initialized separately as follows.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span>
+<p><code class="docutils literal notranslate"><span class="pre">Super</span> <span class="pre">Mario</span> <span class="pre">Bros.</span></code> is a <strong>image input</strong> observation environment, so we don’t just wrapper original gym environment with <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> but need to add some additional wrappers to pre-process observation before sending it to DQN Policy.</p>
+<p>In this tutorial, we use the following 5 wrapper to pre-process data and transform into DI-engine’s environment format. Here are some basic description, and you can find the whole code implementation and comments <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_wrappers/env_wrappers.py">here</a></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MaxAndSkipWrapper</span></code> : Due to consecutive frames don’t vary much, we can skip n-intermediate frames to simplify it without losing much information.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WarpFrameWrapper</span></code> : Transform original RGB image to grayscale image and resize it to standard size for DRL training.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ScaledFloatFrameWrapper</span></code> : Normalize origin image from [0-255] to [0-1], which is beneficial to neural network training.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FrameStackWrapper</span></code> : Stack the consecutive frames. Due to we can’t infer some information like direction speed from a single frame, stacked frames can provide more necessary information.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FinalEvalRewardEnv</span></code> : Record final evaluation reward (i.e., episode return in mario), which is adapted to DI-engine’s environment format.</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you can’t find proper env wrapper, you can define your own wrapper following <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code> format, or you can implement a subclass of DI-engine’s env format according to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/04_best_practice/ding_env.html">Customized Env doc</a>.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># use subprocess env manager to speed up collecting</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
 
-<span class="n">collector_env</span> <span class="o">=</span> <span class="n">BaseEnvManagerV2</span><span class="p">(</span>
-    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;CartPole-v0&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">)],</span>
-    <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+
+<span class="k">def</span> <span class="nf">wrapped_mario_env</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">DingEnvWrapper</span><span class="p">(</span>
+        <span class="c1"># Limit the action-space to 2 dim: 0. walk right, 1. jump right</span>
+        <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;SuperMarioBros-1-1-v0&quot;</span><span class="p">),</span> <span class="p">[[</span><span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">]]),</span>
+        <span class="n">cfg</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;env_wrapper&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">MaxAndSkipWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">WarpFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">84</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FrameStackWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FinalEvalRewardEnv</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+<span class="n">collector_env_num</span><span class="p">,</span> <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span>
+<span class="n">collector_env</span> <span class="o">=</span> <span class="n">SubprocessEnvManagerV2</span><span class="p">(</span>
+    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_mario_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
 <span class="p">)</span>
-<span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManagerV2</span><span class="p">(</span>
-    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;CartPole-v0&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span><span class="p">)],</span>
-    <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+<span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">SubprocessEnvManagerV2</span><span class="p">(</span>
+    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_mario_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>DingEnvWrapper is a unified wrapper of DI-engine for different environment libraries. BaseEnvManagerV2 is a unified external interface for managing multiple environments. so you can use BaseEnvManagerV2 to collect multiple environments in parallel.</p>
+<p>The following parts is the same as <code class="docutils literal notranslate"><span class="pre">CartPole</span> <span class="pre">+</span> <span class="pre">DQN</span></code> example, just select policy and pack the entire training pipeline.</p>
 </div>
 </section>
 <section id="select-policy">
@@ -333,13 +365,14 @@ Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 <p>With the various middleware provided by DI-engine, we can easily build the entire pipeline:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span>
+<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span><span class="p">,</span> <span class="n">nstep_reward_enhancer</span>
 
 <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
     <span class="c1"># Evaluating, we place it on the first place to get the score of the random model as a benchmark value</span>
     <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">interaction_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">))</span>
     <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">eps_greedy_handler</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>  <span class="c1"># Decay probability of explore-exploit</span>
     <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">StepCollector</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">collector_env</span><span class="p">))</span>  <span class="c1"># Collect environmental data</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">nstep_reward_enhancer</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>  <span class="c1"># Prepare nstep reward for training</span>
     <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>  <span class="c1"># Push data to buffer</span>
     <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>  <span class="c1"># Train the model</span>
     <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">CkptSaver</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">train_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>  <span class="c1"># Save the model</span>
@@ -350,10 +383,11 @@ Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 </section>
 <section id="run-the-code">
 <h2>Run the Code<a class="headerlink" href="#run-the-code" title="Permalink to this headline">¶</a></h2>
-<p>The full example can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py">DQN example</a> and can be run via <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">dqn.py</span></code>.
-In addition, we also provide the <a class="reference external" href="https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing">Colab Running Example</a> from the DI-engine installation to training for reference.</p>
-<a class="reference internal image-reference" href="../_images/train_dqn.gif"><img alt="../_images/train_dqn.gif" class="align-center" src="../_images/train_dqn.gif" style="width: 1000px;" /></a>
-<p>Now you have completed your first reinforcement learning task with DI-engine, you can try out more algorithms in the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example">Examples directory</a>, or continue reading the documentation to get a deeper understanding of DI-engine’s <a class="reference external" href="../02_algo/index.html">Algorithm</a>, <a class="reference external" href="../03_system/index.html">System Design</a> and <a class="reference external" href="../04_best_practice/index.html">Best Practices</a>.</p>
+<p>The full example can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mario/mario_dqn_example.py">mario DQN example</a> and can be run via <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">mario_dqn_example.py</span></code>.
+This demo can draw a successful result in a few hours, our super mario can pass level 1-1 as soon as possible without any demage, here are the trained agent replay video and the detailed training curve (evaluation episode return/env interaction step).</p>
+<a class="reference internal image-reference" href="../_images/mario.gif"><img alt="../_images/mario.gif" class="align-center" src="../_images/mario.gif" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="../_images/mario_dqn_curve.png"><img alt="../_images/mario_dqn_curve.png" class="align-center" src="../_images/mario_dqn_curve.png" style="width: 800px;" /></a>
+<p>Now you have completed your <strong>customized env example</strong> with DI-engine, you can try out more algorithms in the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example">Examples directory</a>, or continue reading the documentation to get a deeper understanding of DI-engine’s <a class="reference external" href="../02_algo/index.html">Algorithm</a>, <a class="reference external" href="../03_system/index.html">System Design</a> and <a class="reference external" href="../04_best_practice/index.html">Best Practices</a>.</p>
 </section>
 </section>
 
@@ -365,12 +399,12 @@ In addition, we also provide the <a class="reference external" href="https://col
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="more_rl_program_env.html" class="btn btn-neutral float-right" title="More Reinforcement Learning Program (Customized Env)" accesskey="n"
+    <a href="../02_algo/index.html" class="btn btn-neutral float-right" title="RL Algorithm Taxonomy" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="installation.html" class="btn btn-neutral" title="Installation Guide" accesskey="p"
+    <a href="first_rl_program.html" class="btn btn-neutral" title="First Reinforcement Learning Program" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -400,7 +434,7 @@ In addition, we also provide the <a class="reference external" href="https://col
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">First Reinforcement Learning Program</a><ul>
+<li><a class="reference internal" href="#">More Reinforcement Learning Program (Customized Env)</a><ul>
 <li><a class="reference internal" href="#using-the-configuration-file">Using the Configuration File</a></li>
 <li><a class="reference internal" href="#initialize-the-environments">Initialize the Environments</a></li>
 <li><a class="reference internal" href="#select-policy">Select Policy</a></li>
