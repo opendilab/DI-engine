@@ -5,6 +5,7 @@ from easydict import EasyDict
 import time
 from ditk import logging
 import torch
+import gc
 
 from ding.policy import Policy
 from ding.framework import task, EventEnum
@@ -229,6 +230,7 @@ class StepLeagueActor:
                 job.launch_player] != 0 else 0
             envstep_passed = ctx.total_envstep_count - old_envstep
             real_time_speed = envstep_passed / (time_end - time_begin)
+            gc.collect()
             # log_every_sec(
             #     logging.INFO, 5,
             #     '[Actor {}] total_env_step: {}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
