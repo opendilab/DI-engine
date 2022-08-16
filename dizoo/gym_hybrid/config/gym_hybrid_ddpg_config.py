@@ -11,7 +11,7 @@ gym_hybrid_ddpg_config = dict(
         n_evaluator_episode=5,
         stop_value=1.8,
         # The path to save the game replay
-        # replay_path='gym_hybrid_ddpg_seed0/video',
+        replay_path='gym_hybrid_ddpg_seed0/video',
     ),
     policy=dict(
         cuda=True,
