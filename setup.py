@@ -168,6 +168,9 @@ setup(
         'sokoban': [
             'gym-sokoban',
         ],
+        'mario': [
+            'gym-super-mario-bros>=7.3.0',
+        ],
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},
     classifiers=[
