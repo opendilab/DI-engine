@@ -15,12 +15,15 @@ from dizoo.rocket.config.rocket_ppo_config import main_config, create_config
 import numpy as np
 from tensorboardX import SummaryWriter
 import os
+import torch
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    main_config.exp_name = 'rocket_ppo_nseed'
+    main_config.exp_name = 'rocket_ppo_cuda'
+    main_config.policy.cuda = True
+    print('torch.cuda.is_available(): ',torch.cuda.is_available())
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
-    num_seed = 1
+    num_seed = 5
     for seed_i in range(num_seed):
         tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed'+str(seed_i)))
         with task.start(async_mode=False, ctx=OnlineRLContext()):
