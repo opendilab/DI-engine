@@ -17,7 +17,7 @@ import os
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    main_config.exp_name = 'dmc2gym_sac_state_seed0'
+    main_config.exp_name = 'dmc2gym_sac_state_seed0_817'
     main_config.policy.cuda = True
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
 
@@ -40,24 +40,25 @@ def main():
             policy = SACPolicy(cfg.policy, model=model)
 
             def _add_scalar(ctx):
-                    if ctx.eval_value != -np.inf:
-                        tb_logger.add_scalar('evaluator_step/reward', ctx.eval_value, global_step= ctx.env_step)
-                        collector_rewards = [ctx.trajectories[i]['reward'] for i in range(len(ctx.trajectories))]
-                        collector_mean_reward = sum(collector_rewards) / len(ctx.trajectories)
-                        collector_max_reward = max(collector_rewards)
-                        collector_min_reward = min(collector_rewards)
-                        tb_logger.add_scalar('collecter_step/mean_reward', collector_mean_reward, global_step= ctx.env_step)
-                        tb_logger.add_scalar('collecter_step/max_reward', collector_max_reward, global_step= ctx.env_step)
-                        tb_logger.add_scalar('collecter_step/min_reward', collector_min_reward, global_step= ctx.env_step)
+                if ctx.eval_value != -np.inf:
+                    tb_logger.add_scalar('evaluator_step/reward', ctx.eval_value, global_step= ctx.env_step)
+                    collector_rewards = [ctx.trajectories[i]['reward'] for i in range(len(ctx.trajectories))]
+                    collector_mean_reward = sum(collector_rewards) / len(ctx.trajectories)
+                    collector_max_reward = max(collector_rewards)
+                    collector_min_reward = min(collector_rewards)
+                    tb_logger.add_scalar('collecter_step/mean_reward', collector_mean_reward, global_step= ctx.env_step)
+                    tb_logger.add_scalar('collecter_step/max_reward', collector_max_reward, global_step= ctx.env_step)
+                    tb_logger.add_scalar('collecter_step/min_reward', collector_min_reward, global_step= ctx.env_step)
 
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(
                 StepCollector(cfg, policy.collect_mode, collector_env, random_collect_size=cfg.policy.random_collect_size)
             )
+            task.use(_add_scalar)
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
             task.use(CkptSaver(cfg, policy, train_freq=100))
-            task.use(termination_checker(max_train_iter=10000))
+            task.use(termination_checker(max_env_step=int(10e8)))
             task.run()
 
 
