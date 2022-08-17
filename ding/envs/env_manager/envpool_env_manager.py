@@ -26,7 +26,7 @@ class PoolEnvManager:
         For more examples, you can refer to <https://envpool.readthedocs.io/en/latest/api/atari.html>.
 
         - Atari: "Pong-v5", "SpaceInvaders-v5", "Qbert-v5"
-        - Classic Control: "CartPole-v0", "CartPole-v1", "Pendulum-v0"
+        - Classic Control: "CartPole-v0", "CartPole-v1", "Pendulum-v1"
     '''
 
     @classmethod

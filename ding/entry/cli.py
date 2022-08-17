@@ -183,7 +183,8 @@ def cli(
     def run_single_pipeline(seed, config):
         if config is None:
             config = get_predefined_config(env, policy)
-        config = read_config(config)
+        else:
+            config = read_config(config)
         if exp_name is not None:
             config[0].exp_name = exp_name
 

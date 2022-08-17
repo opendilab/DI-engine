@@ -4,8 +4,8 @@ import pytest
 import torch
 import numpy as np
 
-from ..base_env_manager import BaseEnvManager, EnvState
-from ..gym_vector_env_manager import GymVectorEnvManager
+from ding.envs.env_manager.base_env_manager import BaseEnvManager, EnvState
+from ding.envs.env_manager.gym_vector_env_manager import GymVectorEnvManager
 from gym.vector.async_vector_env import AsyncState
 
 

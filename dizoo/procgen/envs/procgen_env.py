@@ -35,14 +35,14 @@ class ProcgenEnv(BaseEnv):
         self._control_level = self._cfg.control_level
         self._start_level = self._cfg.start_level
         self._num_levels = self._cfg.num_levels
-        self._env_name = 'procgen:procgen-'+self._cfg.env_id+'-v0'
+        self._env_name = 'procgen:procgen-' + self._cfg.env_id + '-v0'
+        # In procgen envs, we use seed to control level, and fix the numpy seed to 0
+        np.random.seed(0)
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             if self._control_level:
-                self._env = gym.make(
-                    self._env_name, start_level=self._start_level, num_levels=self._num_levels
-                )
+                self._env = gym.make(self._env_name, start_level=self._start_level, num_levels=self._num_levels)
             else:
                 self._env = gym.make(self._env_name, start_level=0, num_levels=1)
             self._init_flag = True
@@ -50,17 +50,13 @@ class ProcgenEnv(BaseEnv):
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.close()
             if self._control_level:
-                self._env = gym.make(
-                    self._env_name, start_level=self._start_level, num_levels=self._num_levels
-                )
+                self._env = gym.make(self._env_name, start_level=self._start_level, num_levels=self._num_levels)
             else:
                 self._env = gym.make(self._env_name, start_level=self._seed + np_seed, num_levels=1)
         elif hasattr(self, '_seed'):
             self._env.close()
             if self._control_level:
-                self._env = gym.make(
-                    self._env_name, start_level=self._start_level, num_levels=self._num_levels
-                )
+                self._env = gym.make(self._env_name, start_level=self._start_level, num_levels=self._num_levels)
             else:
                 self._env = gym.make(self._env_name, start_level=self._seed, num_levels=1)
         self._final_eval_reward = 0
@@ -78,7 +74,6 @@ class ProcgenEnv(BaseEnv):
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
-        np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
