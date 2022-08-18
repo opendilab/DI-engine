@@ -137,7 +137,7 @@ def kl_error(
             kl = kl * mask['actions_mask'][head_type]
         if head_type == 'action_type':
             flag = game_steps < action_type_kl_steps
-            action_type_kl = kl * flag
+            action_type_kl = kl * flag * mask['cum_action_mask']
             action_type_kl_loss = action_type_kl.mean()
             kl_loss_dict['kl/extra_at'] = action_type_kl_loss.item()
         kl_loss = kl.mean()

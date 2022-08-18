@@ -536,7 +536,7 @@ class DIStarPolicy(Policy):
             with torch.no_grad(), self.timer:
                 policy_output = self._collect_model.compute_logp_action(**obs)
             collect_model_forward_time = self.timer.value
-            logging.info("[Actor {}] currrent collect model forward time is {}".format(task.router.node_id, collect_model_forward_time))
+            logging.debug("[Actor {}] currrent collect model forward time is {}".format(task.router.node_id, collect_model_forward_time))
             self.writer.add_scalar("collect_model_forward_time-total_step", collect_model_forward_time, self.total_step)
         except Exception as e:
             logging.error("[Actor {}] got an exception: {} in the collect model".format(task.router.node_id, e))
@@ -688,7 +688,7 @@ class DIStarPolicy(Policy):
         with torch.no_grad(), self.timer:
             teacher_output = self.teacher_model.compute_teacher_logit(**teacher_model_input)
         teacher_model_forward_time = self.timer.value
-        logging.info("[Actor {}] currrent teacher model forward time is {}".format(task.router.node_id, teacher_model_forward_time))
+        logging.debug("[Actor {}] currrent teacher model forward time is {}".format(task.router.node_id, teacher_model_forward_time))
         self.writer.add_scalar("teacher_model_forward_time-total_step", teacher_model_forward_time, self.total_step)
 
         if self._cuda:

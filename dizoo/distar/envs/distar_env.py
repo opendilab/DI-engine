@@ -65,7 +65,7 @@ class DIStarEnv(SC2Env, BaseEnv):
             next_observations, reward, done = super(DIStarEnv, self).step(actions)
         self.env_step += 1
         env_step_time = self.timer.value
-        logging.info("[Actor {}] currrent env step time is {}".format(task.router.node_id, env_step_time))
+        logging.debug("[Actor {}] currrent env step time is {}".format(task.router.node_id, env_step_time))
         self.writer.add_scalar("env_step_time-total_env_step", env_step_time, self.env_step)
         # next_observations 和 observations 格式一样
         # reward 是 list [policy reward 1, policy reward 2]

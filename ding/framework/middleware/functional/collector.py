@@ -349,7 +349,7 @@ def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
                     inference_output[env_id][policy_id] = output
                     actions[env_id][policy_id] = output['action']
         forward_collect_time = timer.value
-        logging.info("[Actor {}] currrent forward collect time is {}".format(task.router.node_id, forward_collect_time))
+        logging.debug("[Actor {}] currrent forward collect time is {}".format(task.router.node_id, forward_collect_time))
         writer.add_scalar("forward_collect_time-total_env_step", forward_collect_time, ctx.total_envstep_count)
 
         ctx.inference_output = inference_output
@@ -399,7 +399,7 @@ def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_
                     with timer:
                         transition = policy.process_transition(obs=None, model_output=None, timestep=policy_timestep)
                     process_transition_time = timer.value
-                    logging.info("[Actor {}] currrent process transition time is {}".format(task.router.node_id, process_transition_time))
+                    logging.debug("[Actor {}] currrent process transition time is {}".format(task.router.node_id, process_transition_time))
                     writer.add_scalar("process_transition_time-total_env_step", process_transition_time, ctx.total_envstep_count)
                     transition = EasyDict(transition)
                     transition.collect_train_iter = ttorch.as_tensor(

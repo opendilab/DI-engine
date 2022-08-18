@@ -34,7 +34,7 @@ class LeagueLearnerCommunicator:
 
     def __init__(self, cfg: dict, policy: "Policy", player: "ActivePlayer") -> None:
         self.cfg = cfg
-        self._cache = deque(maxlen=64)
+        self._cache = deque(maxlen=20)
         self.player = player
         self.player_id = player.player_id
         self.policy = policy

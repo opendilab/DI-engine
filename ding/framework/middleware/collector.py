@@ -15,7 +15,7 @@ from .functional import inferencer, rolloutor, TransitionList, BattleTransitionL
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, BattleContext
 
-WAIT_MODEL_TIME = 600000000000000
+WAIT_MODEL_TIME = float('inf')
 
 
 class BattleStepCollector:
