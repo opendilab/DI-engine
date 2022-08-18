@@ -54,7 +54,27 @@ class MountainCar(BaseEnv):
         return obs
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        pass
+
+        # Making sure that input action is of numpy ndarray
+        assert isinstance(action, np.ndarray), type(action)
+        
+        # Take a step of faith into the unknown!
+        # c.f: https://github.com/openai/gym/blob/master/gym/envs/classic_control/mountain_car.py
+        # obs : tuple of (position, velocity)
+        obs, rew, done, info = self._env.step(action)
+
+        # Cummulate reward
+        self._final_eval_reward += rew
+        
+        # 
+        if done:
+            info['final_eval_reward'] = self._final_eval_reward
+        
+        # Making sure we conform to di-engine conventions
+        obs = to_ndarray(obs)                
+        rew = to_ndarray([rew]).astype(np.float32)  
+
+        return BaseEnvTimestep(obs, rew, done, info)
 
     def close(self) -> None:
         # If init flag is False, then reset() was never run, no point closing.
@@ -62,5 +82,9 @@ class MountainCar(BaseEnv):
             self._env.close()
         self._init_flag = False
 
+    def __repr__(self) -> str:
+        return "DI-engine Mountain Car Env({})".format(self._cfg.env_id)
+
 if __name__ == '__main__':
     mtcar = MountainCar()
+    mtcar.reset()
