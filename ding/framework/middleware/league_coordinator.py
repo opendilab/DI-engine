@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from ding.league.player import PlayerMeta
     from ding.league.v2.base_league import Job
 
+PRE_RECV_TIME = 10 * 60
 
 class LeagueCoordinator:
 
@@ -44,7 +45,7 @@ class LeagueCoordinator:
         if self._last_time is None:
             self._last_time = time()
 
-        if self._total_recv_time >= 60 * 10 and self._pre_collect_finished is False:
+        if self._total_recv_time >= PRE_RECV_TIME and self._pre_collect_finished is False:
             self._pre_collect_finished = True
             self._total_recv_time = 0
 
@@ -66,10 +67,10 @@ class LeagueCoordinator:
                 )
             )
             self._writer.add_scalar(
-                "current_traj_speed-total_recv_trajs", current_traj_num / current_time, self._total_recv_time
+                "current_traj_speed-total_recv_trajs", current_traj_num / current_time, self._traj_num
             )
             self._writer.add_scalar(
-                "total_traj_speed-total_recv_trajs", self._traj_num / self._total_recv_time, self._total_recv_time
+                "total_traj_speed-total_recv_trajs", self._traj_num / self._total_recv_time, self._traj_num
             )
 
     def _on_actor_greeting(self, actor_id):
