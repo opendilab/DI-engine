@@ -5,14 +5,14 @@ dmc2gym_sac_config = dict(
     env=dict(
         env_id='dmc2gym-v0',
         domain_name = "cartpole",
-        task_name = "balance",
+        task_name = "swingup",
         frame_skip = 2,
         from_pixels = False,
         channels_first = True,      # obs shape (3, height, width) if True
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=200,
+        stop_value=850,
         # limit_time = None,    # default 10 (s)
     ),
     policy=dict(

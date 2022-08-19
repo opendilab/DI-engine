@@ -43,7 +43,7 @@ def main():
             def _add_scalar(ctx):
                 if ctx.eval_value != -np.inf:
                     tb_logger.add_scalar('evaluator_step/reward', ctx.eval_value, global_step= ctx.env_step)
-                    # tb_logger.add_scalar('collecter_step/reward', ctx.collect_value, global_step= ctx.env_step)
+                    
 
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(StepCollector(cfg, policy.collect_mode, collector_env))
