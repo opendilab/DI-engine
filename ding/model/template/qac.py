@@ -530,6 +530,7 @@ class QACPixel(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType, EasyDict],
+            action_space: str = 'reparameterization',
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
@@ -627,6 +628,11 @@ class QACPixel(nn.Module):
                     activation=activation,
                     norm_type=norm_type
                 )
+
+        if self.twin_critic:
+            self.critic = nn.ModuleList([*self.critic_encoder, *self.critic_head])
+        else:
+            self.critic = nn.ModuleList([self.critic_encoder, self.critic_head])
 
     def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]], mode: str) -> Dict[str, torch.Tensor]:
         """
@@ -735,6 +741,8 @@ class QACPixel(nn.Module):
         """
 
         obs, action = inputs['obs'], inputs['action']
+        if len(action.shape) == 1:  # (B, ) -> (B, 1)
+                action = action.unsqueeze(1)
 
         if self.twin_critic:
             x = [m(obs) for m in self.critic_encoder]

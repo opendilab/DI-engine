@@ -1,11 +1,11 @@
 from easydict import EasyDict
 
 dmc2gym_sac_config = dict(
-    exp_name='dmc2gym_sac_seed0',
+    exp_name='dmc2gym_sacpixel_seed0',
     env=dict(
         env_id='dmc2gym-v0',
         domain_name = "cartpole",
-        task_name = "balance",
+        task_name = "swingup",
         frame_skip = 2,
         from_pixels = True,
         channels_first = True,      # obs shape (3, height, width) if True
@@ -23,9 +23,9 @@ dmc2gym_sac_config = dict(
             obs_shape=(3,100,100),
             action_shape=1,
             twin_critic=True,
-            action_space='reparameterization',
-            actor_head_hidden_size=256,
-            critic_head_hidden_size=256,
+            encoder_hidden_size_list = [128, 128, 64],
+            actor_head_hidden_size=64,
+            critic_head_hidden_size=64,
         ),
         learn=dict(
             update_per_collect=1,
