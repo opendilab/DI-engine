@@ -112,7 +112,7 @@ class MountainCarEnv(BaseEnv):
         self._replay_path = replay_path
 
     def random_action(self) -> np.ndarray:
-        random_action = self._action_space.sample()
+        random_action = self.action_space.sample()
         random_action = to_ndarray([random_action], dtype=np.int64)
         return random_action
 
