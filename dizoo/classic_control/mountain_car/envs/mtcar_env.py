@@ -6,7 +6,20 @@ from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
 @ENV_REGISTRY.register('mountain_car')
-class MountainCar(BaseEnv):
+class MountainCarEnv(BaseEnv):
+
+    """
+    Implementation of DI-engine's version of the Mountain Car deterministic MDP. 
+
+    Important references that contributed to the creation of this env:
+    > Source code of OpenAI's mountain car gym : https://is.gd/y1FkMT
+    > Gym documentation of mountain car : https://is.gd/29S0dt
+    > Based off DI-engine existing implementation of cartpole_env.py
+    > DI-engine's env creation conventions : https://is.gd/ZHLISj
+
+    Only __init__ , step, seed and reset are mandatory & impt.
+    The other methods are generally for convenience.
+    """
 
     def __init__(self, cfg: dict = {}) -> None:
         self._cfg = cfg
@@ -20,7 +33,7 @@ class MountainCar(BaseEnv):
             shape=(2, ),
             dtype=np.float32
         )
-        self._action_space = gym.spaces.Discrete(3)
+        self._action_space = gym.spaces.Discrete(3, start=0)
         self._reward_space = gym.spaces.Box(low=-1, high=0.0, shape=(1, ), dtype=np.float32)
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
@@ -67,10 +80,11 @@ class MountainCar(BaseEnv):
 
         # Making sure that input action is of numpy ndarray
         assert isinstance(action, np.ndarray), type(action)
+
+        # Extract action as int, 0-dim array
+        action = action.squeeze()
         
         # Take a step of faith into the unknown!
-        # c.f: https://github.com/openai/gym/blob/master/gym/envs/classic_control/mountain_car.py
-        # obs : tuple of (position, velocity)
         obs, rew, done, info = self._env.step(action)
 
         # Cummulate reward
@@ -116,32 +130,3 @@ class MountainCar(BaseEnv):
 
     def __repr__(self) -> str:
         return "DI-engine Mountain Car Env"
-
-if __name__ == '__main__':
-    
-    env = MountainCar()
-    env.seed(314, dynamic_seed=False)
-    assert env._seed == 314
-    obs = env.reset()
-    assert obs.shape == (2, )
-    for _ in range(5):
-        env.reset()
-        np.random.seed(314)
-        print('=' * 60)
-        for i in range(10):
-            # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
-            # can generate legal random action.
-            if i < 5:
-                random_action = np.array([env.action_space.sample()])
-            else:
-                random_action = env.random_action()
-            timestep = env.step(random_action)
-            print(timestep)
-            assert isinstance(timestep.obs, np.ndarray)
-            assert isinstance(timestep.done, bool)
-            assert timestep.obs.shape == (4, )
-            assert timestep.reward.shape == (1, )
-            assert timestep.reward >= env.reward_space.low
-            assert timestep.reward <= env.reward_space.high
-    print(env.observation_space, env.action_space, env.reward_space)
-    env.close()
