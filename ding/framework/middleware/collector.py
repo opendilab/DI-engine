@@ -135,6 +135,9 @@ class BattleStepCollector:
             only_finished = True if ctx.env_episode >= ctx.n_episode else False
             if (self.unroll_len > 0 and ctx.env_step - old >= self.unroll_len) or ctx.env_episode >= ctx.n_episode:
                 for transitions in self._transitions_list:
+                    # 每个policy（每个 ctx.trajectories_list 中的一个对象）一个 all_env_data
+                    # 每个 all_env_data 有 num_env 个 ActorEnvTrajectories
+                    # 每个 ActorEnvTrajectories 有一个 list of trajectories，也就是若干个该 env，该policy的trajectory。
                     trajectories = transitions.to_trajectories(only_finished=only_finished)
                     ctx.trajectories_list.append(trajectories)
                 if ctx.env_episode >= ctx.n_episode:

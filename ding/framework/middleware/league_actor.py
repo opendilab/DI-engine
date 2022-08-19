@@ -197,6 +197,7 @@ class StepLeagueActor:
             for idx in main_player_idx:
                 if not job.is_eval and len(ctx.trajectories_list[idx]) > 0:
                     trajectories = ctx.trajectories_list[idx]
+                    gc.collect()
                     self.traj_num += len(trajectories)
                     # log_every_sec(
                     #     logging.INFO, 5,

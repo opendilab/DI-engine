@@ -20,6 +20,7 @@ from dizoo.distar.envs.fake_data import rl_step_data
 from copy import deepcopy
 
 from ditk import logging
+from distar.ctools.utils.file_helper import dumps
 
 
 class TransitionList:
@@ -99,6 +100,12 @@ class BattleTransitionList:
         all_env_data = []
         for env_id in range(self.env_num):
             trajectories = self.get_env_trajectories(env_id, only_finished=only_finished)
+            for i in range(len(trajectories)):
+                trajectories[i] = dumps(trajectories[i], fs_type='nppickle')
+                temp_traj = trajectories[i]
+                trajectories[i] = []
+                del temp_traj
+                
             if len(trajectories) > 0:
                 all_env_data.append(ActorEnvTrajectories(env_id=env_id, trajectories=trajectories))
         return all_env_data
