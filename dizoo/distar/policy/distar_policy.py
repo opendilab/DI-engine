@@ -118,7 +118,7 @@ class DIStarPolicy(Policy):
         ),
         grad_clip=dict(threshold=1.0, ),
         # collect
-        use_value_feature=True,  # TODO(zms): whether to use value feature, this must be False when play against bot
+        use_value_feature=False,  # TODO(zms): whether to use value feature, this must be False when play against bot
         zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
         fake_reward_prob=0.0,  # probablity which set Z to 0
         zero_z_value=1,  # value used for 0Z
@@ -128,7 +128,7 @@ class DIStarPolicy(Policy):
         realtime=False,  #TODO(zms): set from env, need to use only one cfg define policy and env
         model_path='sl_model.pth',
         teacher_model_path='sl_model.pth',
-        value_pretrain_iters=4000,
+        value_pretrain_iters=-1,
     )
 
     def _create_model(

@@ -25,7 +25,7 @@ from ding.framework.middleware.functional.collector import battle_inferencer_for
 env_cfg = dict(
     actor=dict(job_type='train', ),
     env=dict(
-        map_name='KingsCove',
+        map_name='KairosJunction',
         player_ids=['agent1', 'agent2'],
         races=['zerg', 'zerg'],
         map_size_resolutions=[True, True],  # if True, ignore minimap_resolutions

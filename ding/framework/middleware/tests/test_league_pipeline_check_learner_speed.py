@@ -13,10 +13,10 @@ from ding.framework.task import task, Parallel
 from ding.league.v2 import BaseLeague
 from dizoo.distar.config import distar_cfg
 from dizoo.distar.envs.distar_env import DIStarEnv
+from dizoo.distar.envs.fake_data import fake_rl_traj_with_last
 from unittest.mock import patch
 from dizoo.distar.policy.distar_policy import DIStarPolicy
 from ding.utils import DistributedWriter
-from ding.data.buffer.middleware import use_time_check
 
 env_cfg = dict(
     actor=dict(job_type='train', ),
@@ -72,12 +72,6 @@ class PrepareTest():
         return policy
 
 
-def coordinator():
-    DistributedWriter.get_instance(cfg.exp_name + '_coordinator_' + str(task.router.node_id))
-    coordinator_league = BaseLeague(cfg.policy.other.league)
-    task.use(LeagueCoordinator(cfg, coordinator_league))
-
-
 def learner():
     league = BaseLeague(cfg.policy.other.league)
     N_PLAYERS = len(league.active_players_ids)
@@ -89,17 +83,11 @@ def learner():
     DistributedWriter.get_instance(cfg.exp_name + '_' + player.player_id)
 
     buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
-    buffer_.use(use_time_check(buffer_, max_use=cfg.policy.other.replay_buffer.max_use))
+    for _ in range(cfg.policy.other.replay_buffer.replay_buffer_size):
+        buffer_.push(fake_rl_traj_with_last(unroll_len=64))
     policy = PrepareTest.policy_fn()
 
-    task.use(LeagueLearnerCommunicator(cfg, policy.learn_mode, player))
-    task.use(data_pusher(cfg, buffer_))
     task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-
-
-def actor():
-    DistributedWriter.get_instance(cfg.exp_name + '_actor_' + str(task.router.node_id))
-    task.use(StepLeagueActor(cfg, PrepareTest.get_env_supervisor, PrepareTest.collect_policy_fn))
 
 
 def main():
@@ -113,19 +101,14 @@ def main():
       patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar),\
       patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
         print("node id:", task.router.node_id)
-        if task.router.node_id == 0:
-            coordinator()
-        elif task.router.node_id <= N_PLAYERS:
-            learner()
-        else:
-            actor()
+        learner()
         task.run()
 
 
 @pytest.mark.unittest
 def test_league_pipeline():
-    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=1, protocol="tcp", topology="mesh")(main)
 
 
 if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=7, protocol="tcp", topology="mesh")(main)
+    Parallel.runner(n_parallel_workers=1, protocol="tcp", topology="mesh")(main)

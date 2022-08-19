@@ -20,7 +20,7 @@ model:
     enable_baselines: ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
     # ===== Value =====
     value:
-        use_value_feature: True
+        use_value_feature: False
         spatial_x: *SPATIAL_X
         spatial_y: *SPATIAL_Y
         encoder:

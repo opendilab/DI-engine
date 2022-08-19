@@ -100,8 +100,6 @@ def offpolicy_data_fetcher(
             For each key-value pair of dict, batch_size of data will be sampled from the corresponding buffer \
             and assigned to the same key of `ctx.train_data`.
     """
-    writer = DistributedWriter.get_instance()
-    last_train_iter = 0
 
     def _fetch(ctx: "OnlineRLContext"):
         """
@@ -119,7 +117,6 @@ def offpolicy_data_fetcher(
                 ``Dict[str, List[Dict]]]`` type means a dict, in which the value of each key-value pair
                     is a list of data. `train_data` is of this type if the type of `buffer_` is Dict.
         """
-        nonlocal last_train_iter
         try:
             unroll_len = cfg.policy.collect.unroll_len
             if isinstance(buffer_, Buffer):
@@ -156,10 +153,6 @@ def offpolicy_data_fetcher(
             )
             ctx.train_data = None
             return
-        if ctx.train_iter > last_train_iter:
-            last_train_iter = ctx.train_iter
-            logging.info("[Learner {}] after sample, buffer size is {}".format(task.router.node_id, buffer_.count()))
-            writer.add_scalar("after_sample-buffer_size", buffer_.count(), ctx.train_iter)
 
         yield
 

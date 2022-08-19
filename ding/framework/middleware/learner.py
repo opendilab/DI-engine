@@ -5,8 +5,6 @@ from collections import deque
 from ding.framework import task
 from ding.data import Buffer
 from .functional import trainer, offpolicy_data_fetcher, reward_estimator, her_data_enhancer
-from ditk import logging
-from ding.utils import DistributedWriter
 
 if TYPE_CHECKING:
     from ding.framework import Context, OnlineRLContext
@@ -44,23 +42,11 @@ class OffPolicyLearner:
         else:
             self._reward_estimator = None
 
-        self.last_iter_time = None
-        self.total_iter_time = 0
-        self.total_trainning_time = 0
-
-        self.last_train_iter = 0
-
-        self._writer = DistributedWriter.get_instance()
-
     def __call__(self, ctx: "OnlineRLContext") -> None:
         """
         Output of ctx:
             - train_output (:obj:`Deque`): The training output in deque.
         """
-        if self.last_iter_time is None:
-            self.last_iter_time = time.time()
-        begin_trainning_time = time.time()
-
         train_output_queue = []
         for _ in range(self.cfg.policy.learn.update_per_collect):
             self._fetcher(ctx)
@@ -71,43 +57,6 @@ class OffPolicyLearner:
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
         ctx.train_output = train_output_queue
-
-        finish_iter_time = time.time()
-        current_iter_time = finish_iter_time - self.last_iter_time
-        self.total_iter_time += current_iter_time
-
-        self.total_trainning_time += finish_iter_time - begin_trainning_time
-        self.last_iter_time = finish_iter_time
-
-        if ctx.train_iter == 0:
-            self.total_iter_time = 0
-            self.total_trainning_time = 0
-        elif ctx.train_iter > self.last_train_iter:
-            logging.info(
-                "[Learner {}] total epoch speed is {} iter/s, current epoch speed is {} iter/s, total_training speed is {} iter/s, current training speed is {} iter/s"
-                .format(
-                    task.router.node_id, ctx.train_iter / self.total_iter_time,
-                    (ctx.train_iter - self.last_train_iter) / current_iter_time,
-                    ctx.train_iter / self.total_trainning_time,
-                    (ctx.train_iter - self.last_train_iter) / (finish_iter_time - begin_trainning_time)
-                )
-            )
-            self._writer.add_scalar(
-                "total_epoch_speed____train_iter/s-train_iter", ctx.train_iter / self.total_iter_time, ctx.train_iter
-            )
-            self._writer.add_scalar(
-                "current_epoch_speed____train_iter/s-train_iter",
-                (ctx.train_iter - self.last_train_iter) / current_iter_time, ctx.train_iter
-            )
-            self._writer.add_scalar(
-                "total_trainning_speed____train_iter/s-train_iter", 
-                ctx.train_iter / self.total_trainning_time, ctx.train_iter
-            )
-            self._writer.add_scalar(
-                "current_trainning_speed____train_iter/s-train_iter",
-                (ctx.train_iter - self.last_train_iter) / (finish_iter_time - begin_trainning_time), ctx.train_iter
-            )
-            self.last_train_iter = ctx.train_iter
 
 
 class HERLearner:
