@@ -13,6 +13,16 @@ class MountainCar(BaseEnv):
         self._init_flag = False
         self._replay_path = None
 
+        # Following specifications from https://is.gd/29S0dt
+        self._observation_space = gym.spaces.Box(
+            low=np.array([-1.2, -0.07]),
+            high=np.array([0.6, 0.07]),
+            shape=(2, ),
+            dtype=np.float32
+        )
+        self._action_space = gym.spaces.Discrete(3)
+        self._reward_space = gym.spaces.Box(low=-1, high=0.0, shape=(1, ), dtype=np.float32)
+
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
@@ -66,7 +76,7 @@ class MountainCar(BaseEnv):
         # Cummulate reward
         self._final_eval_reward += rew
         
-        # 
+        # Save final cummulative reward when done.
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         
@@ -82,9 +92,56 @@ class MountainCar(BaseEnv):
             self._env.close()
         self._init_flag = False
 
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
+
+    def random_action(self) -> np.ndarray:
+        random_action = self._action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
     def __repr__(self) -> str:
-        return "DI-engine Mountain Car Env({})".format(self._cfg.env_id)
+        return "DI-engine Mountain Car Env"
 
 if __name__ == '__main__':
-    mtcar = MountainCar()
-    mtcar.reset()
+    
+    env = MountainCar()
+    env.seed(314, dynamic_seed=False)
+    assert env._seed == 314
+    obs = env.reset()
+    assert obs.shape == (2, )
+    for _ in range(5):
+        env.reset()
+        np.random.seed(314)
+        print('=' * 60)
+        for i in range(10):
+            # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
+            # can generate legal random action.
+            if i < 5:
+                random_action = np.array([env.action_space.sample()])
+            else:
+                random_action = env.random_action()
+            timestep = env.step(random_action)
+            print(timestep)
+            assert isinstance(timestep.obs, np.ndarray)
+            assert isinstance(timestep.done, bool)
+            assert timestep.obs.shape == (4, )
+            assert timestep.reward.shape == (1, )
+            assert timestep.reward >= env.reward_space.low
+            assert timestep.reward <= env.reward_space.high
+    print(env.observation_space, env.action_space, env.reward_space)
+    env.close()
