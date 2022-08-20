@@ -11,10 +11,9 @@ dmc2gym_sac_config = dict(
         channels_first = True,      # obs shape (3, height, width) if True
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
-        stop_value=200,
-        # time_limit = None,
+        stop_value=850,
+        # limit_time = None,    # default 10 (s)
     ),
     policy=dict(
         cuda=True,
