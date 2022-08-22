@@ -1,7 +1,7 @@
 actor:
   job_type: 'train' # ['train', 'eval', 'train_test', 'eval_test']
 env:
-  map_name: 'KingsCove'
+  map_name: 'KairosJunction'
   player_ids: ['agent1', 'agent2']
   races: ['zerg', 'zerg']
   map_size_resolutions: [True, True] # if True, ignore minimap_resolutions
