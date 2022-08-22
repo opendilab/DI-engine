@@ -701,7 +701,7 @@ class QACPixel(nn.Module):
             >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
             >>> actor_outputs['logit'][1].shape == torch.Size([4, 64]) # sigma
         """
-        
+        obs = obs.to(torch.float32)
         x = self.actor(obs)
         return {'logit': [x['mu'], x['sigma']]}
         
@@ -741,6 +741,7 @@ class QACPixel(nn.Module):
         """
 
         obs, action = inputs['obs'], inputs['action']
+        obs = obs.to(torch.float32)
         if len(action.shape) == 1:  # (B, ) -> (B, 1)
                 action = action.unsqueeze(1)
 
