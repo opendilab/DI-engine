@@ -29,6 +29,7 @@ from dizoo.distar.envs import NUM_UNIT_TYPES, ACTIONS, NUM_CUMULATIVE_STAT_ACTIO
     Stat, parse_new_game, transform_obs, compute_battle_score
 from .utils import collate_fn_learn, kl_error, entropy_error
 
+PRE_TRAIN_ITER = 100
 
 class DIStarPolicy(Policy):
     config = dict(
@@ -177,6 +178,11 @@ class DIStarPolicy(Policy):
         )
         # utils
         self.timer = EasyTimer(cuda=self._cuda)
+        self._train_iter = 0
+        self._timer_all = EasyTimer(cuda=self._cuda)
+        self._total_train_time = 0
+        self._pre_train_finished = False
+        self._writer = DistributedWriter.get_instance()
 
     def _step_value_pretrain(self):
         if self._remain_value_pretrain_iters > 0:
@@ -205,179 +211,198 @@ class DIStarPolicy(Policy):
         # =============
         # create loss show dict
         loss_info_dict = {}
-        with self.timer:
-            model_output = self._learn_model.rl_learn_forward(**inputs)
-        loss_info_dict['model_forward_time'] = self.timer.value
+        with self._timer_all:
+            with self.timer:
+                model_output = self._learn_model.rl_learn_forward(**inputs)
+            loss_info_dict['model_forward_time'] = self.timer.value
 
-        # ===========
-        # preparation
-        # ===========
-        target_policy_logits_dict = model_output['target_logit']  # shape (T,B)
-        baseline_values_dict = model_output['value']  # shape (T+1,B)
-        behavior_action_log_probs_dict = model_output['action_log_prob']  # shape (T,B)
-        teacher_policy_logits_dict = model_output['teacher_logit']  # shape (T,B)
-        masks_dict = model_output['mask']  # shape (T,B)
-        actions_dict = model_output['action']  # shape (T,B)
-        rewards_dict = model_output['reward']  # shape (T,B)
-        game_steps = model_output['step']  # shape (T,B) target_action_log_prob
+            # ===========
+            # preparation
+            # ===========
+            target_policy_logits_dict = model_output['target_logit']  # shape (T,B)
+            baseline_values_dict = model_output['value']  # shape (T+1,B)
+            behavior_action_log_probs_dict = model_output['action_log_prob']  # shape (T,B)
+            teacher_policy_logits_dict = model_output['teacher_logit']  # shape (T,B)
+            masks_dict = model_output['mask']  # shape (T,B)
+            actions_dict = model_output['action']  # shape (T,B)
+            rewards_dict = model_output['reward']  # shape (T,B)
+            game_steps = model_output['step']  # shape (T,B) target_action_log_prob
 
-        flag = rewards_dict['winloss'][-1] == 0
-        for filed in baseline_values_dict.keys():
-            baseline_values_dict[filed][-1] *= flag
+            flag = rewards_dict['winloss'][-1] == 0
+            for filed in baseline_values_dict.keys():
+                baseline_values_dict[filed][-1] *= flag
 
-        # create preparation info dict
-        target_policy_probs_dict = {}
-        target_policy_log_probs_dict = {}
-        target_action_log_probs_dict = {}
-        clipped_rhos_dict = {}
+            # create preparation info dict
+            target_policy_probs_dict = {}
+            target_policy_log_probs_dict = {}
+            target_action_log_probs_dict = {}
+            clipped_rhos_dict = {}
 
-        # ============================================================
-        # get distribution info for behavior policy and target policy
-        # ============================================================
-        for head_type in self.head_types:
-            # take info from correspondent input dict
-            target_policy_logits = target_policy_logits_dict[head_type]
-            actions = actions_dict[head_type]
-            # compute target log_probs, probs(for entropy,kl), target_action_log_probs, log_rhos(for pg_loss, upgo_loss)
-            pi_target = torch.distributions.Categorical(logits=target_policy_logits)
-            target_policy_probs = pi_target.probs
-            target_policy_log_probs = pi_target.logits
-            target_action_log_probs = pi_target.log_prob(actions)
-            behavior_action_log_probs = behavior_action_log_probs_dict[head_type]
-
-            with torch.no_grad():
-                log_rhos = target_action_log_probs - behavior_action_log_probs
-                if head_type == 'selected_units':
-                    log_rhos *= masks_dict['selected_units_mask']
-                    log_rhos = log_rhos.sum(dim=-1)
-                rhos = torch.exp(log_rhos)
-                clipped_rhos = rhos.clamp_(max=1)
-            # save preparation results to correspondent dict
-            target_policy_probs_dict[head_type] = target_policy_probs
-            target_policy_log_probs_dict[head_type] = target_policy_log_probs
-            if head_type == 'selected_units':
-                target_action_log_probs.masked_fill_(~masks_dict['selected_units_mask'], 0)
-                target_action_log_probs = target_action_log_probs.sum(-1)
-            target_action_log_probs_dict[head_type] = target_action_log_probs
-            # log_rhos_dict[head_type] = log_rhos
-            clipped_rhos_dict[head_type] = clipped_rhos
-
-        # ====================
-        # vtrace loss
-        # ====================
-        total_vtrace_loss = 0.
-        vtrace_loss_dict = {}
-
-        for field, baseline in baseline_values_dict.items():
-            baseline_value = baseline_values_dict[field]
-            reward = rewards_dict[field]
+            # ============================================================
+            # get distribution info for behavior policy and target policy
+            # ============================================================
             for head_type in self.head_types:
-                weight = self.vtrace_head_weights[head_type]
+                # take info from correspondent input dict
+                target_policy_logits = target_policy_logits_dict[head_type]
+                actions = actions_dict[head_type]
+                # compute target log_probs, probs(for entropy,kl), target_action_log_probs, log_rhos(for pg_loss, upgo_loss)
+                pi_target = torch.distributions.Categorical(logits=target_policy_logits)
+                target_policy_probs = pi_target.probs
+                target_policy_log_probs = pi_target.logits
+                target_action_log_probs = pi_target.log_prob(actions)
+                behavior_action_log_probs = behavior_action_log_probs_dict[head_type]
+
+                with torch.no_grad():
+                    log_rhos = target_action_log_probs - behavior_action_log_probs
+                    if head_type == 'selected_units':
+                        log_rhos *= masks_dict['selected_units_mask']
+                        log_rhos = log_rhos.sum(dim=-1)
+                    rhos = torch.exp(log_rhos)
+                    clipped_rhos = rhos.clamp_(max=1)
+                # save preparation results to correspondent dict
+                target_policy_probs_dict[head_type] = target_policy_probs
+                target_policy_log_probs_dict[head_type] = target_policy_log_probs
+                if head_type == 'selected_units':
+                    target_action_log_probs.masked_fill_(~masks_dict['selected_units_mask'], 0)
+                    target_action_log_probs = target_action_log_probs.sum(-1)
+                target_action_log_probs_dict[head_type] = target_action_log_probs
+                # log_rhos_dict[head_type] = log_rhos
+                clipped_rhos_dict[head_type] = clipped_rhos
+
+            # ====================
+            # vtrace loss
+            # ====================
+            total_vtrace_loss = 0.
+            vtrace_loss_dict = {}
+
+            for field, baseline in baseline_values_dict.items():
+                baseline_value = baseline_values_dict[field]
+                reward = rewards_dict[field]
+                for head_type in self.head_types:
+                    weight = self.vtrace_head_weights[head_type]
+                    if head_type not in ['action_type', 'delay']:
+                        weight = weight * masks_dict['actions_mask'][head_type]
+                    # if field in ['build_order', 'built_unit', 'effect']:
+                    #    weight = weight * masks_dict[field + '_mask']
+
+                    data_item = vtrace_data_with_rho(
+                        target_action_log_probs_dict[head_type], clipped_rhos_dict[head_type], baseline_value, reward,
+                        weight
+                    )
+                    vtrace_loss_item = vtrace_error_with_rho(data_item, gamma=1.0, lambda_=1.0)
+
+                    vtrace_loss_dict['vtrace/' + field + '/' + head_type] = vtrace_loss_item.item()
+                    total_vtrace_loss += self.loss_weights.vtrace[field] * self.vtrace_head_weights[head_type
+                                                                                                    ] * vtrace_loss_item
+
+            loss_info_dict.update(vtrace_loss_dict)
+
+            # ===========
+            # upgo loss
+            # ===========
+            upgo_loss_dict = {}
+            total_upgo_loss = 0.
+            for head_type in self.head_types:
+                weight = self.upgo_head_weights[head_type]
                 if head_type not in ['action_type', 'delay']:
                     weight = weight * masks_dict['actions_mask'][head_type]
-                # if field in ['build_order', 'built_unit', 'effect']:
-                #    weight = weight * masks_dict[field + '_mask']
 
-                data_item = vtrace_data_with_rho(
-                    target_action_log_probs_dict[head_type], clipped_rhos_dict[head_type], baseline_value, reward,
-                    weight
+                data_item = upgo_data(
+                    target_action_log_probs_dict[head_type], clipped_rhos_dict[head_type], baseline_values_dict['winloss'],
+                    rewards_dict['winloss'], weight
                 )
-                vtrace_loss_item = vtrace_error_with_rho(data_item, gamma=1.0, lambda_=1.0)
+                upgo_loss_item = upgo_error(data_item)
 
-                vtrace_loss_dict['vtrace/' + field + '/' + head_type] = vtrace_loss_item.item()
-                total_vtrace_loss += self.loss_weights.vtrace[field] * self.vtrace_head_weights[head_type
-                                                                                                ] * vtrace_loss_item
+                total_upgo_loss += upgo_loss_item
+                upgo_loss_dict['upgo/' + head_type] = upgo_loss_item.item()
+            total_upgo_loss *= self.loss_weights.upgo.winloss
+            loss_info_dict.update(upgo_loss_dict)
 
-        loss_info_dict.update(vtrace_loss_dict)
+            # ===========
+            # critic loss
+            # ===========
+            total_critic_loss = 0.
+            # field is from ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
+            for field, baseline in baseline_values_dict.items():
+                reward = rewards_dict[field]
+                # Notice: in general, we need to include done when we consider discount factor, but in our implementation
+                # of alphastar, traj_data(with size equal to unroll-len) sent from actor comes from the same episode.
+                # If the game is draw, we don't consider it is actually done
+                # if field in ['build_order', 'built_unit', 'effect']:
+                #    weight = masks_dict[[field + '_mask']]
+                # else:
+                #    weight = None
+                weight = None
 
-        # ===========
-        # upgo loss
-        # ===========
-        upgo_loss_dict = {}
-        total_upgo_loss = 0.
-        for head_type in self.head_types:
-            weight = self.upgo_head_weights[head_type]
-            if head_type not in ['action_type', 'delay']:
-                weight = weight * masks_dict['actions_mask'][head_type]
+                field_data = td_lambda_data(baseline, reward, weight)
+                critic_loss = td_lambda_error(field_data, gamma=self.gammas.baseline[field])
 
-            data_item = upgo_data(
-                target_action_log_probs_dict[head_type], clipped_rhos_dict[head_type], baseline_values_dict['winloss'],
-                rewards_dict['winloss'], weight
-            )
-            upgo_loss_item = upgo_error(data_item)
+                total_critic_loss += self.loss_weights.baseline[field] * critic_loss
+                loss_info_dict['td/' + field] = critic_loss.item()
+                loss_info_dict['reward/' + field] = reward.float().mean().item()
+                loss_info_dict['value/' + field] = baseline.mean().item()
+            loss_info_dict['reward/battle'] = rewards_dict['battle'].float().mean().item()
 
-            total_upgo_loss += upgo_loss_item
-            upgo_loss_dict['upgo/' + head_type] = upgo_loss_item.item()
-        total_upgo_loss *= self.loss_weights.upgo.winloss
-        loss_info_dict.update(upgo_loss_dict)
+            # ============
+            # entropy loss
+            # ============
+            total_entropy_loss, entropy_dict = \
+                entropy_error(target_policy_probs_dict, target_policy_log_probs_dict, masks_dict,
+                            head_weights_dict=self.entropy_head_weights)
 
-        # ===========
-        # critic loss
-        # ===========
-        total_critic_loss = 0.
-        # field is from ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
-        for field, baseline in baseline_values_dict.items():
-            reward = rewards_dict[field]
-            # Notice: in general, we need to include done when we consider discount factor, but in our implementation
-            # of alphastar, traj_data(with size equal to unroll-len) sent from actor comes from the same episode.
-            # If the game is draw, we don't consider it is actually done
-            # if field in ['build_order', 'built_unit', 'effect']:
-            #    weight = masks_dict[[field + '_mask']]
-            # else:
-            #    weight = None
-            weight = None
+            total_entropy_loss *= self.loss_weights.entropy
+            loss_info_dict.update(entropy_dict)
 
-            field_data = td_lambda_data(baseline, reward, weight)
-            critic_loss = td_lambda_error(field_data, gamma=self.gammas.baseline[field])
+            # =======
+            # kl loss
+            # =======
+            total_kl_loss, action_type_kl_loss, kl_loss_dict = \
+                kl_error(target_policy_log_probs_dict, teacher_policy_logits_dict, masks_dict, game_steps,
+                        action_type_kl_steps=self.action_type_kl_steps, head_weights_dict=self.kl_head_weights)
+            total_kl_loss *= self.loss_weights.kl
+            action_type_kl_loss *= self.loss_weights.action_type_kl
+            loss_info_dict.update(kl_loss_dict)
 
-            total_critic_loss += self.loss_weights.baseline[field] * critic_loss
-            loss_info_dict['td/' + field] = critic_loss.item()
-            loss_info_dict['reward/' + field] = reward.float().mean().item()
-            loss_info_dict['value/' + field] = baseline.mean().item()
-        loss_info_dict['reward/battle'] = rewards_dict['battle'].float().mean().item()
+            # ======
+            # update
+            # ======
+            
+            if self._only_update_value:
+                total_loss = total_critic_loss
+            else:
+                total_loss = (
+                    total_vtrace_loss + total_upgo_loss + total_critic_loss + total_entropy_loss + total_kl_loss +
+                    action_type_kl_loss
+                )
+            with self.timer:
+                self.optimizer.zero_grad()
+                total_loss.backward()
+                if self._cfg.learn.multi_gpu:
+                    self.sync_gradients(self._learn_model)
+                gradient = torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), self._cfg.grad_clip.threshold, 2)
+                self.optimizer.step()
 
-        # ============
-        # entropy loss
-        # ============
-        total_entropy_loss, entropy_dict = \
-            entropy_error(target_policy_probs_dict, target_policy_log_probs_dict, masks_dict,
-                          head_weights_dict=self.entropy_head_weights)
-
-        total_entropy_loss *= self.loss_weights.entropy
-        loss_info_dict.update(entropy_dict)
-
-        # =======
-        # kl loss
-        # =======
-        total_kl_loss, action_type_kl_loss, kl_loss_dict = \
-            kl_error(target_policy_log_probs_dict, teacher_policy_logits_dict, masks_dict, game_steps,
-                     action_type_kl_steps=self.action_type_kl_steps, head_weights_dict=self.kl_head_weights)
-        total_kl_loss *= self.loss_weights.kl
-        action_type_kl_loss *= self.loss_weights.action_type_kl
-        loss_info_dict.update(kl_loss_dict)
-
-        # ======
-        # update
-        # ======
+            loss_info_dict['backward_time'] = self.timer.value
+            loss_info_dict['total_loss'] = total_loss
+            loss_info_dict['gradient'] = gradient
+        current_train_time = self._timer_all.value
+        self._train_iter +=1 
+        if self._train_iter >= PRE_TRAIN_ITER and self._pre_train_finished is False:
+            self._pre_train_finished = True
+            self._train_iter = 0
         
-        if self._only_update_value:
-            total_loss = total_critic_loss
+        if self._pre_train_finished:
+            self._total_train_time += current_train_time
+            logging.info(
+                "[Learner] trained {} train_iter in total, current training speed is {} iter/s, total recv speed is {} iter/s".format(
+                    self._train_iter,
+                    1 / current_train_time,
+                    self._train_iter / self._total_train_time
+            ))
+            self._writer.add_scalar("current_train_speed/iter_s", 1 / current_train_time, self._train_iter)
+            self._writer.add_scalar("total_train_speed/iter_s", self._train_iter / self._total_train_time, self._train_iter)
         else:
-            total_loss = (
-                total_vtrace_loss + total_upgo_loss + total_critic_loss + total_entropy_loss + total_kl_loss +
-                action_type_kl_loss
-            )
-        with self.timer:
-            self.optimizer.zero_grad()
-            total_loss.backward()
-            if self._cfg.learn.multi_gpu:
-                self.sync_gradients(self._learn_model)
-            gradient = torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), self._cfg.grad_clip.threshold, 2)
-            self.optimizer.step()
-
-        loss_info_dict['backward_time'] = self.timer.value
-        loss_info_dict['total_loss'] = total_loss
-        loss_info_dict['gradient'] = gradient
+            print('we are now pretraining', self._train_iter)        
         return loss_info_dict
 
     def _monitor_var_learn(self):
