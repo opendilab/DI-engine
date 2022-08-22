@@ -206,7 +206,8 @@ class DIStarPolicy(Policy):
         # create loss show dict
         loss_info_dict = {}
         with self.timer:
-            model_output = self._learn_model.rl_learn_forward(**inputs)
+            with torch.no_grad():
+                model_output = self._learn_model.rl_learn_forward(**inputs)
         loss_info_dict['model_forward_time'] = self.timer.value
 
         # ===========
@@ -366,10 +367,10 @@ class DIStarPolicy(Policy):
             total_loss = (
                 total_vtrace_loss + total_upgo_loss + total_critic_loss + total_entropy_loss + total_kl_loss +
                 action_type_kl_loss
-            )
+            ) * 0
         with self.timer:
             self.optimizer.zero_grad()
-            total_loss.backward()
+            # total_loss.backward()
             if self._cfg.learn.multi_gpu:
                 self.sync_gradients(self._learn_model)
             gradient = torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), self._cfg.grad_clip.threshold, 2)

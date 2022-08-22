@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from ding.framework.middleware.league_actor import ActorData
     from ding.league import ActivePlayer
 
+PRE_RECV_TIME = 10 * 60
 
 @dataclass
 class LearnerModel:
@@ -44,15 +45,18 @@ class LeagueLearnerCommunicator:
         task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._push_data)
 
         self._writer = DistributedWriter.get_instance()
+        
+        self.traj_num = 0
+        self.total_recv_time = 0
+        self.last_time = None
+        self.pre_collect_finished = False
+
         self.last_train_iter = 0
-        self.total_recv_traj = 0
-        self.total_recv_traj_time = 0
-        self.last_recv_traj_time = None
         self.total_network_delay = 0
 
     def _push_data(self, data: "ActorData"):
-        if self.last_recv_traj_time is None:
-            self.last_recv_traj_time = time()
+        if self.last_time is None:
+            self.last_time = time()
 
         current_recv_traj = 0
 
@@ -61,51 +65,61 @@ class LeagueLearnerCommunicator:
                 self._cache.append(traj)
                 current_recv_traj += 1
 
-        self.total_recv_traj += current_recv_traj
+        if self.total_recv_time >= PRE_RECV_TIME and self.pre_collect_finished is False:
+            self.pre_collect_finished = True
+            self.total_recv_time = 0
+            self.traj_num = 0
 
         if current_recv_traj > 0:
-            current_recv_traj_time = time()
-            self.total_recv_traj_time += current_recv_traj_time - self.last_recv_traj_time
+            self.traj_num += current_recv_traj
+            this_time = time()
+            current_time = this_time - self.last_time
+            self.total_recv_time += current_time
+            self.last_time = this_time
 
             # TODO
-            network_delay = current_recv_traj_time - data.meta.send_wall_time
+            network_delay = this_time - data.meta.send_wall_time
             self.total_network_delay += network_delay
 
-            log_every_sec(
-                logging.INFO, 5,
-                "[Learner {}] receive {} trajectories of player {} from actor! Current recv speed: {} s/traj, Total recv speed: {} s/traj, Current network_delay: {} s/traj, Total network_delay: {} s/traj \n"
-                .format(
-                    task.router.node_id,
-                    current_recv_traj,
-                    self.player_id,
-                    (current_recv_traj_time - self.last_recv_traj_time) / current_recv_traj,
-                    self.total_recv_traj_time / self.total_recv_traj,
-                    network_delay / current_recv_traj,
-                    self.total_network_delay / self.total_recv_traj,
+            if self.pre_collect_finished:
+                log_every_sec(
+                    logging.INFO, 5,
+                    "[Learner {}] receive {} trajectories of player {} from actor! Current recv speed: {} traj/s, Total recv speed: {} traj/s, Current network_delay: {} traj/s, Total network_delay: {} traj/s \n"
+                    .format(
+                        task.router.node_id,
+                        current_recv_traj,
+                        self.player_id,
+                        current_recv_traj / current_time,
+                        self.traj_num /self.total_recv_time,
+                        current_recv_traj / network_delay,
+                        self.traj_num / self.total_network_delay,
+                    )
                 )
-            )
 
-            self._writer.add_scalar(
-                "current_recv_traj_speed____s/traj-traj",
-                (current_recv_traj_time - self.last_recv_traj_time) / current_recv_traj, 
-                self.total_recv_traj
-            )
-            self._writer.add_scalar(
-                "total_recv_traj_speed____s/traj-traj", 
-                self.total_recv_traj_time / self.total_recv_traj,
-                self.total_recv_traj
-            )
-            self._writer.add_scalar(
-                "current_network_delay____s/traj-traj", 
-                network_delay / current_recv_traj, 
-                self.total_recv_traj
-            )
-            self._writer.add_scalar(
-                "total_network_delay____s/traj-traj", 
-                self.total_network_delay / self.total_recv_traj,
-                self.total_recv_traj
-            )
-            self.last_recv_traj_time = current_recv_traj_time
+                self._writer.add_scalar(
+                    "current_recv_traj_speed____traj/s-traj",
+                    current_recv_traj / current_time, 
+                    self.traj_num
+                )
+                self._writer.add_scalar(
+                    "traj_num_speed____traj/s-traj", 
+                    self.traj_num /self.total_recv_time,
+                    self.traj_num
+                )
+                self._writer.add_scalar(
+                    "current_network_delay____traj/s-traj", 
+                    current_recv_traj / network_delay, 
+                    self.traj_num
+                )
+                self._writer.add_scalar(
+                    "total_network_delay____traj/s-traj", 
+                    self.traj_num / self.total_network_delay,
+                    self.traj_num
+                )
+                
+            else:
+                print('we are now pre collecting')
+                print(self.total_recv_time)
         # if isinstance(data.train_data, list):
         #     self._cache.extend(data.train_data)
         # else:
