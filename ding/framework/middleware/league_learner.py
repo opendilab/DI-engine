@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from ding.league import ActivePlayer
 
 PRE_RECV_TIME = 10 * 60
+SEND_MODEL_FREQ_TIME = 30
 
 @dataclass
 class LearnerModel:
@@ -53,6 +54,10 @@ class LeagueLearnerCommunicator:
 
         self.last_train_iter = 0
         self.total_network_delay = 0
+
+        self.last_send_model_time = None
+        self.total_send_model_time = 0
+        self.send_model_num = 0
 
     def _push_data(self, data: "ActorData"):
         if self.last_time is None:
@@ -139,10 +144,19 @@ class LeagueLearnerCommunicator:
         self._cache.clear()
         sleep(0.0001)
         yield
+        if self.last_send_model_time is None:
+            self.last_send_model_time = time()
+        
+        this_send_model_time = time()
+        current_send_model_time = this_send_model_time - self.last_send_model_time
+        self.total_send_model_time += current_send_model_time
+        self.last_send_model_time = this_send_model_time
+
         log_every_sec(logging.INFO, 20, "[Learner {}] ctx.train_iter {}".format(task.router.node_id, ctx.train_iter))
         self.player.total_agent_step = ctx.train_iter
-        if self.player.is_trained_enough():
-            logging.info('{1} [Learner {0}] trained enough! {1} \n\n'.format(task.router.node_id, "-" * 40))
+        
+        if self.total_send_model_time // SEND_MODEL_FREQ_TIME > self.send_model_num:
+            logging.info('{1} [Learner {0}] send model! {1} \n\n'.format(task.router.node_id, "-" * 40))
             storage = FileStorage(
                 path=os.path.join(self.prefix, "{}_{}_ckpt.pth".format(self.player_id, ctx.train_iter))
             )
@@ -156,6 +170,7 @@ class LeagueLearnerCommunicator:
                 player_id=self.player_id, state_dict=self.policy.state_dict(), train_iter=ctx.train_iter
             )
             task.emit(EventEnum.LEARNER_SEND_MODEL, learner_model)
+            self.send_model_num = self.total_send_model_time // SEND_MODEL_FREQ_TIME
 
 
 # class OffPolicyLeagueLearner:
