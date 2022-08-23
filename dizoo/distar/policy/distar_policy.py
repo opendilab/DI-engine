@@ -9,7 +9,12 @@ from functools import partial
 from copy import deepcopy
 import os.path as osp
 from typing import Any
+from ditk import logging
+import pickle
+import os
+import time
 
+from ding.framework import task
 from ding.model import model_wrap
 from ding.policy import Policy
 from ding.torch_utils import to_device, levenshtein_distance, l2_distance, hamming_distance
@@ -28,7 +33,7 @@ class DIStarPolicy(Policy):
     config = dict(
         type='distar',
         on_policy=False,
-        cuda=False,
+        cuda=True,
         learning_rate=1e-5,
         model=dict(),
         # learn
@@ -112,7 +117,7 @@ class DIStarPolicy(Policy):
         ),
         grad_clip=dict(threshold=1.0, ),
         # collect
-        use_value_feature=False,  # TODO(zms): whether to use value feature, this must be False when play against bot
+        use_value_feature=True,  # TODO(zms): whether to use value feature, this must be False when play against bot
         zero_z_exceed_loop=True,  # set Z to 0 if game passes the game loop in Z
         fake_reward_prob=0.0,  # probablity which set Z to 0
         zero_z_value=1,  # value used for 0Z
@@ -122,6 +127,7 @@ class DIStarPolicy(Policy):
         realtime=False,  #TODO(zms): set from env, need to use only one cfg define policy and env
         model_path='sl_model.pth',
         teacher_model_path='sl_model.pth',
+        value_pretrain_iters=4000,
     )
 
     def _create_model(
@@ -144,7 +150,9 @@ class DIStarPolicy(Policy):
         self._learn_model = model_wrap(self._model, 'base')
         # TODO(zms): maybe initialize state_dict inside learner
         learn_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
-        learn_state_dict = torch.load(learn_model_path)
+
+        learn_state_dict = torch.load(learn_model_path, map_location=self._device)
+        
         self._load_state_dict_learn(learn_state_dict)
 
         self.head_types = ['action_type', 'delay', 'queued', 'target_unit', 'selected_units', 'target_location']
@@ -156,6 +164,8 @@ class DIStarPolicy(Policy):
         self.upgo_head_weights = self._cfg.upgo_head_weights
         self.entropy_head_weights = self._cfg.entropy_head_weights
         self.kl_head_weights = self._cfg.kl_head_weights
+        self._only_update_value = False
+        self._remain_value_pretrain_iters = self._cfg.value_pretrain_iters
 
         # optimizer
         self.optimizer = Adam(
@@ -165,15 +175,27 @@ class DIStarPolicy(Policy):
             eps=1e-5,
         )
         # utils
-        self.timer = EasyTimer(cuda=self._cfg.cuda)
+        self.timer = EasyTimer(cuda=self._cuda)
+
+    def _step_value_pretrain(self):
+        if self._remain_value_pretrain_iters > 0:
+            self._only_update_value = True
+            self._remain_value_pretrain_iters -= 1
+            self._learn_model._model._model.only_update_baseline = True
+
+        elif self._remain_value_pretrain_iters == 0:
+            self._only_update_value = False
+            self._remain_value_pretrain_iters -= 1
+            self._learn_model._model._model.only_update_baseline = False
 
     def _forward_learn(self, inputs: Dict):
         # ===========
         # pre-process
         # ===========
-        inputs = collate_fn_learn(inputs)
-        if self._cfg.cuda:
+        self._step_value_pretrain()
+        if self._cuda:
             inputs = to_device(inputs, self._device)
+        inputs = collate_fn_learn(inputs)
 
         self._learn_model.train()
 
@@ -336,15 +358,19 @@ class DIStarPolicy(Policy):
         # ======
         # update
         # ======
-        total_loss = (
-            total_vtrace_loss + total_upgo_loss + total_critic_loss + total_entropy_loss + total_kl_loss +
-            action_type_kl_loss
-        )
+        
+        if self._only_update_value:
+            total_loss = total_critic_loss
+        else:
+            total_loss = (
+                total_vtrace_loss + total_upgo_loss + total_critic_loss + total_entropy_loss + total_kl_loss +
+                action_type_kl_loss
+            )
         with self.timer:
             self.optimizer.zero_grad()
             total_loss.backward()
             if self._cfg.learn.multi_gpu:
-                self.sync_gradients()
+                self.sync_gradients(self._learn_model)
             gradient = torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), self._cfg.grad_clip.threshold, 2)
             self.optimizer.step()
 
@@ -371,10 +397,12 @@ class DIStarPolicy(Policy):
         self._learn_model.load_state_dict(_state_dict['model'], strict=False)
         if 'optimizer' in _state_dict:
             self.optimizer.load_state_dict(_state_dict['optimizer'])
+        del _state_dict
 
     def _load_state_dict_collect(self, _state_dict: Dict) -> None:
         #TODO(zms): need to load state_dict after collect, which is very dirty and need to rewrite
-
+        if not self._cuda:
+            _state_dict = to_device(_state_dict, self._device)
         if 'map_name' in _state_dict:
             # map_names.append(_state_dict['map_name'])
             self.fake_reward_prob = _state_dict['fake_reward_prob']
@@ -383,13 +411,17 @@ class DIStarPolicy(Policy):
         _state_dict = {k: v for k, v in _state_dict['model'].items() if 'value_networks' not in k}
 
         self._collect_model.load_state_dict(_state_dict, strict=False)
+        del _state_dict
 
     def _init_collect(self):
         self._collect_model = model_wrap(self._model, 'base')
         # TODO(zms): maybe initialize state_dict inside actor
         collect_model_path = osp.join(osp.dirname(__file__), self._cfg.model_path)
-        collect_state_dict = torch.load(collect_model_path)
+        
+        collect_state_dict = torch.load(collect_model_path, self._device)
+
         self._load_state_dict_collect(collect_state_dict)
+        del collect_state_dict
 
         self.only_cum_action_kl = False
         self.z_path = self._cfg.z_path
@@ -402,13 +434,17 @@ class DIStarPolicy(Policy):
         self.cum_type = 'action'  # observation or action
         self.realtime = self._cfg.realtime
         self.teacher_model = model_wrap(Model(self._cfg.model), 'base')
-        if self._cfg.cuda:
+        if self._cuda:
             self.teacher_model = self.teacher_model.cuda()
         teacher_model_path = osp.join(osp.dirname(__file__), self._cfg.teacher_model_path)
-        t_state_dict = torch.load(teacher_model_path)
+        print("self._cuda is ", self._cuda)
+
+        t_state_dict = torch.load(teacher_model_path, self._device)
+        
         teacher_state_dict = {k: v for k, v in t_state_dict['model'].items() if 'value_networks' not in k}
         self.teacher_model.load_state_dict(teacher_state_dict)
         # TODO(zms): load teacher_model's state_dict when init policy.
+        del t_state_dict
 
     def _reset_collect(self, data: Dict):
         self.exceed_loop_flag = False
@@ -486,14 +522,25 @@ class DIStarPolicy(Policy):
         obs, game_info = self._data_preprocess_collect(data)
         self.obs = obs
         obs = default_collate([obs])
-        if self._cfg.cuda:
+        if self._cuda:
             obs = to_device(obs, self._device)
 
         self._collect_model.eval()
-        with torch.no_grad():
-            policy_output = self._collect_model.compute_logp_action(**obs)
+        try:
+            with torch.no_grad():
+                policy_output = self._collect_model.compute_logp_action(**obs)
+        except Exception as e:
+            logging.error("[Actor {}] got an exception: {} in the collect model".format(task.router.node_id, e))
+            bug_time = str(int(time.time()))
+            file_name = 'bug_obs_' + bug_time + '.pkl'
+            with open(os.path.join(os.path.dirname(__file__), file_name), 'wb+') as f:
+                pickle.dump(self.obs, f)
+            model_path_name = 'bug_model_' + bug_time + '.pth'
+            model_path = os.path.join(os.path.dirname(__file__), model_path_name)
+            torch.save(self._collect_model.state_dict(), model_path)
+            raise e
 
-        if self._cfg.cuda:
+        if self._cuda:
             policy_output = to_device(policy_output, self._device)
         policy_output = default_decollate(policy_output)[0]
         self.policy_output = self._data_postprocess_collect(policy_output, game_info)
@@ -625,14 +672,14 @@ class DIStarPolicy(Policy):
                 teacher_model_input['action_info']['selected_units'], dim=0
             )
 
-        if self._cfg.cuda:
+        if self._cuda:
             teacher_model_input = to_device(teacher_model_input, self._device)
 
         self.teacher_model.eval()
         with torch.no_grad():
             teacher_output = self.teacher_model.compute_teacher_logit(**teacher_model_input)
 
-        if self._cfg.cuda:
+        if self._cuda:
             teacher_output = to_device(teacher_output, self._device)
         teacher_output = self.decollate_output(teacher_output)
         self.teacher_hidden_state = teacher_output['hidden_state']

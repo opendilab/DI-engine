@@ -1,5 +1,5 @@
 from collections import defaultdict
-from time import sleep
+from time import sleep, time
 from threading import Lock
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -22,8 +22,11 @@ class LeagueCoordinator:
         self.league = league
         self._lock = Lock()
         self._total_send_jobs = 0
+        self._total_recv_jobs = 0
         self._eval_frequency = 10
         self._running_jobs = dict()
+        self._last_collect_time = None
+        self._total_collect_time = None
 
         task.on(EventEnum.ACTOR_GREETING, self._on_actor_greeting)
         task.on(EventEnum.LEARNER_SEND_META, self._on_learner_meta)
@@ -31,6 +34,10 @@ class LeagueCoordinator:
 
     def _on_actor_greeting(self, actor_id):
         logging.info("[Coordinator {}] recieve actor {} greeting".format(task.router.node_id, actor_id))
+        if self._last_collect_time is None:
+            self._last_collect_time = time()
+        if self._total_collect_time is None:
+            self._total_collect_time = 0
         with self._lock:
             player_num = len(self.league.active_players_ids)
             player_id = self.league.active_players_ids[self._total_send_jobs % player_num]
@@ -52,8 +59,16 @@ class LeagueCoordinator:
         self.league.create_historical_player(player_meta)
 
     def _on_actor_job(self, job: "Job"):
+        self._total_recv_jobs += 1
+        old_time = self._last_collect_time
+        self._last_collect_time = time()
+        self._total_collect_time += self._last_collect_time - old_time
         logging.info(
-            "[Coordinator {}] recieve actor finished job, player {}".format(task.router.node_id, job.launch_player)
+            "[Coordinator {}] recieve actor finished job, player {}, recieve {} jobs in total, collect job speed is {} s/job"
+            .format(
+                task.router.node_id, job.launch_player, self._total_recv_jobs,
+                self._total_collect_time / self._total_recv_jobs
+            )
         )
         self.league.update_payoff(job)
 
@@ -63,5 +78,5 @@ class LeagueCoordinator:
     def __call__(self, ctx: "Context") -> None:
         sleep(1)
         log_every_sec(
-            logging.INFO, 30, "[Coordinator {}] running jobs {}".format(task.router.node_id, self._running_jobs)
+            logging.INFO, 600, "[Coordinator {}] running jobs {}".format(task.router.node_id, self._running_jobs)
         )

@@ -54,6 +54,17 @@ class MainPlayer(ActivePlayer):
         p = pfsp(win_rates, weighting='variance')
         return self._get_opponent(historical, p)
 
+    def _sl_branch(self):
+        """
+        Overview:
+            Select one opponent, whose ckpt is sl_model.pth
+        """
+        historical = self._get_players(
+            lambda p: isinstance(p, HistoricalPlayer) and p.player_id == 'main_player_default_0_pretrain_historical'
+        )
+        main_opponent = self._get_opponent(historical)
+        return main_opponent
+
     def _verification_branch(self):
         """
         Overview:

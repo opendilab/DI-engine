@@ -9,6 +9,7 @@ from ding.utils import deep_merge_dicts
 from ding.league.metric import LeagueMetricEnv
 from ding.framework.storage import Storage
 from typing import TYPE_CHECKING
+from ditk import logging
 if TYPE_CHECKING:
     from ding.league import Player, PlayerMeta
 
@@ -195,6 +196,8 @@ class BaseLeague:
             "result": job.result
         }
         self.payoff.update(job_info)
+
+        logging.info("show the current payoff {}".format(self.payoff._data))
         # Update player rating
         home_id, away_id = job_info['player_id']
         home_player, away_player = self.get_player_by_id(home_id), self.get_player_by_id(away_id)

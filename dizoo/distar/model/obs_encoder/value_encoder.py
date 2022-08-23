@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ding.torch_utils import fc_block, build_activation, conv2d_block, ResBlock, same_shape, sequence_mask, \
-    Transformer, scatter_connection
+    Transformer, scatter_connection_v2
 from dizoo.distar.envs import BEGIN_ACTIONS
 from .spatial_encoder import SpatialEncoder
 from .scalar_encoder import BeginningBuildOrderEncoder
@@ -13,7 +13,7 @@ class ValueEncoder(nn.Module):
     def __init__(self, cfg):
         super(ValueEncoder, self).__init__()
         self.whole_cfg = cfg
-        self.cfg = cfg.model.value.encoder
+        self.cfg = cfg.encoder
         self.act = build_activation('relu', inplace=True)
         self.encode_modules = nn.ModuleDict()
         for k, item in self.cfg.modules.items():
@@ -25,7 +25,7 @@ class ValueEncoder(nn.Module):
                 )
 
         bo_cfg = self.cfg.modules.beginning_order
-        self.encode_modules['beginning_order'] = BeginningBuildOrderEncoder(self.whole_cfg, bo_cfg)
+        self.encode_modules['beginning_order'] = BeginningBuildOrderEncoder(bo_cfg)
         self.scatter_project = fc_block(
             self.cfg.scatter.scatter_input_dim, self.cfg.scatter.scatter_dim, activation=self.act
         )
@@ -47,7 +47,7 @@ class ValueEncoder(nn.Module):
         for i in range(self.resblock_num):
             self.res.append(ResBlock(dim, self.act, norm_type=None))
         self.spatial_fc = fc_block(
-            dim * self.cfg.spatial_y // 8 * self.cfg.spatial_x // 8,
+            dim * self.whole_cfg.spatial_y // 8 * self.whole_cfg.spatial_x // 8,
             self.cfg.spatial.spatial_fc_dim,
             activation=self.act
         )
@@ -71,7 +71,7 @@ class ValueEncoder(nn.Module):
         project_embedding = project_embedding * unit_mask.unsqueeze(dim=2)
         entity_location = torch.cat([x['unit_x'].unsqueeze(dim=-1), x['unit_y'].unsqueeze(dim=-1)], dim=-1)
         b, c, h, w = x['own_units_spatial'].shape
-        scatter_map = scatter_connection(
+        scatter_map = scatter_connection_v2(
             (b, h, w), project_embedding, entity_location, self.scatter_dim, self.scatter_type
         )
         spatial_x = torch.cat([scatter_map, x['own_units_spatial'].float(), x['enemy_units_spatial'].float()], dim=1)

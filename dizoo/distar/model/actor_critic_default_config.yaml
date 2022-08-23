@@ -20,7 +20,9 @@ model:
     enable_baselines: ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
     # ===== Value =====
     value:
-        use_value_feature: False
+        use_value_feature: True
+        spatial_x: *SPATIAL_X
+        spatial_y: *SPATIAL_Y
         encoder:
             modules:
                 enemy_unit_counts_bow:
@@ -54,6 +56,8 @@ model:
                     head_dim: 8
                     output_dim: 64
                     activation: 'relu'
+                    spatial_x: *SPATIAL_X
+                    spatial_y: *SPATIAL_Y
                 cumulative_stat:
                     arc: fc
                     input_dim: *NUM_CUMULATIVE_STAT_ACTIONS

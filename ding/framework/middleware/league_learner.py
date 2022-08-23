@@ -16,7 +16,7 @@ from ding.worker.learner.base_learner import BaseLearner
 
 if TYPE_CHECKING:
     from ding.policy import Policy
-    from ding.framework import Context
+    from ding.framework import Context, BattleContext
     from ding.framework.middleware.league_actor import ActorData
     from ding.league import ActivePlayer
 
@@ -32,7 +32,7 @@ class LeagueLearnerCommunicator:
 
     def __init__(self, cfg: dict, policy: "Policy", player: "ActivePlayer") -> None:
         self.cfg = cfg
-        self._cache = deque(maxlen=50)
+        self._cache = deque(maxlen=20)
         self.player = player
         self.player_id = player.player_id
         self.policy = policy
@@ -54,13 +54,13 @@ class LeagueLearnerCommunicator:
         # else:
         #     self._cache.append(data.train_data)
 
-    def __call__(self, ctx: "Context"):
-        log_every_sec(logging.INFO, 5, "[Learner {}] pour data into the ctx".format(task.router.node_id))
+    def __call__(self, ctx: "BattleContext"):
+        # log_every_sec(logging.INFO, 5, "[Learner {}] pour data into the ctx".format(task.router.node_id))
         ctx.trajectories = list(self._cache)
         self._cache.clear()
-        sleep(0.1)
+        sleep(0.0001)
         yield
-        log_every_sec(logging.INFO, 5, "[Learner {}] ctx.train_iter {}".format(task.router.node_id, ctx.train_iter))
+        log_every_sec(logging.INFO, 20, "[Learner {}] ctx.train_iter {}".format(task.router.node_id, ctx.train_iter))
         self.player.total_agent_step = ctx.train_iter
         if self.player.is_trained_enough():
             logging.info('{1} [Learner {0}] trained enough! {1} \n\n'.format(task.router.node_id, "-" * 40))

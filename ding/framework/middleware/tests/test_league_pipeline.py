@@ -15,6 +15,7 @@ from dizoo.distar.config import distar_cfg
 from dizoo.distar.envs.distar_env import DIStarEnv
 from unittest.mock import patch
 from dizoo.distar.policy.distar_policy import DIStarPolicy
+from ding.data.buffer.middleware import use_time_check
 
 env_cfg = dict(
     actor=dict(job_type='train', ),
@@ -70,32 +71,49 @@ class PrepareTest():
         return policy
 
 
+def coordinator():
+    coordinator_league = BaseLeague(cfg.policy.other.league)
+    task.use(LeagueCoordinator(cfg, coordinator_league))
+
+
+def learner():
+    league = BaseLeague(cfg.policy.other.league)
+    N_PLAYERS = len(league.active_players_ids)
+
+    cfg.policy.collect.unroll_len = 1
+    player = league.active_players[task.router.node_id % N_PLAYERS]
+    del league
+
+    buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
+    buffer_.use(use_time_check(buffer_, max_use=cfg.policy.other.replay_buffer.max_use))
+    policy = PrepareTest.policy_fn()
+
+    task.use(LeagueLearnerCommunicator(cfg, policy.learn_mode, player))
+    task.use(data_pusher(cfg, buffer_))
+    task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
+
+
+def actor():
+    task.use(StepLeagueActor(cfg, PrepareTest.get_env_supervisor, PrepareTest.collect_policy_fn))
+
+
 def main():
     logging.getLogger().setLevel(logging.INFO)
     league = BaseLeague(cfg.policy.other.league)
     N_PLAYERS = len(league.active_players_ids)
+    del league
     print("League: n_players =", N_PLAYERS)
 
-    with task.start(async_mode=True, ctx=BattleContext()),\
+    with task.start(async_mode=False, ctx=BattleContext()),\
       patch("ding.framework.middleware.collector.battle_inferencer", battle_inferencer_for_distar),\
       patch("ding.framework.middleware.collector.battle_rolloutor", battle_rolloutor_for_distar):
         print("node id:", task.router.node_id)
         if task.router.node_id == 0:
-            task.use(LeagueCoordinator(cfg, league))
+            coordinator()
         elif task.router.node_id <= N_PLAYERS:
-            cfg.policy.collect.unroll_len = 1
-            buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
-            player = league.active_players[task.router.node_id % N_PLAYERS]
-
-            buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
-            policy = PrepareTest.policy_fn()
-
-            task.use(LeagueLearnerCommunicator(cfg, policy.learn_mode, player))
-            task.use(data_pusher(cfg, buffer_))
-            task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
+            learner()
         else:
-            task.use(StepLeagueActor(cfg, PrepareTest.get_env_supervisor, PrepareTest.collect_policy_fn))
-
+            actor()
         task.run()
 
 

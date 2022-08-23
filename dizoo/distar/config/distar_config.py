@@ -48,7 +48,7 @@ distar_cfg = EasyDict(
                 },
                 'multi_gpu': False,
                 'epoch_per_collect': 10,
-                'batch_size': 3,
+                'batch_size': 4,
                 'learning_rate': 1e-05,
                 'value_weight': 0.5,
                 'entropy_weight': 0.0,
@@ -80,9 +80,7 @@ distar_cfg = EasyDict(
                 'discount_factor': 1.0,
                 'gae_lambda': 1.0,
                 'n_episode': 1,
-                'n_rollout_samples': 64,
-                'n_sample': 64,
-                'unroll_len': 4
+                'unroll_len': 16
             },
             'eval': {
                 'evaluator': {
@@ -95,7 +93,8 @@ distar_cfg = EasyDict(
             'other': {
                 'replay_buffer': {
                     'type': 'naive',
-                    'replay_buffer_size': 20,
+                    'replay_buffer_size': 6,
+                    'max_use': 2,
                     'deepcopy': False,
                     'enable_track_used_data': False,
                     'periodic_thruput_seconds': 60,
@@ -105,13 +104,14 @@ distar_cfg = EasyDict(
                     'player_category': ['default'],
                     'path_policy': 'league_demo/ckpt',
                     'active_players': {
-                        'main_player': 2
+                        'main_player': 1
                     },
                     'main_player': {
                         'one_phase_step': 10,  # 20
                         'branch_probs': {
                             'pfsp': 0.0,
-                            'sp': 1.0
+                            'sp': 0.0,
+                            'sl': 1.0
                         },
                         'strong_win_rate': 0.7
                     },
@@ -132,7 +132,10 @@ distar_cfg = EasyDict(
                         'mutate_prob': 0.5
                     },
                     'use_pretrain': False,
-                    'use_pretrain_init_historical': False,
+                    'use_pretrain_init_historical': True,
+                    'pretrain_checkpoint_path': {
+                        'default': 'sl_model.pth', 
+                    },
                     'payoff': {
                         'type': 'battle',
                         'decay': 0.99,

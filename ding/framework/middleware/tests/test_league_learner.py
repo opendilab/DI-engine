@@ -17,7 +17,7 @@ from ding.framework.middleware.tests.mock_for_test import DIStarMockPolicy
 from ding.league.v2 import BaseLeague
 from ding.utils import log_every_sec
 from dizoo.distar.config import distar_cfg
-from dizoo.distar.envs import fake_rl_data_batch_with_last
+from dizoo.distar.envs import fake_rl_traj_with_last
 from dizoo.distar.envs.distar_env import DIStarEnv
 from distar.ctools.utils import read_config
 
@@ -66,7 +66,7 @@ def actor_mocker(league):
         log_every_sec(logging.INFO, 5, "Actor: actor player: {}".format(player.player_id))
         for _ in range(24):
             meta = ActorDataMeta(player_total_env_step=0, actor_id=0, send_wall_time=time.time())
-            data = fake_rl_data_batch_with_last()
+            data = fake_rl_traj_with_last()
             actor_data = ActorData(meta=meta, train_data=[ActorEnvTrajectories(env_id=0, trajectories=[data])])
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
         sleep(9)
