@@ -9,3 +9,4 @@ from .optimizer_helper import Adam, RMSprop, calculate_grad_norm, calculate_grad
 from .nn_test_helper import is_differentiable
 from .math_helper import cov
 from .dataparallel import DataParallel
+from .reshape_helper import fold_batch, unfold_batch, unsqueeze_repeat

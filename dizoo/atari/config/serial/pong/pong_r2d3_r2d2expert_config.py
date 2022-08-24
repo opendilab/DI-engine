@@ -13,7 +13,8 @@ pong_r2d3_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        env_id='Pong-v4',
+        #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
     policy=dict(
@@ -104,7 +105,8 @@ expert_pong_r2d3_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        env_id='Pong-v4',
+        #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
     policy=dict(

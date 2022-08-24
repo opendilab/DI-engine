@@ -24,6 +24,7 @@ class CartPoleEnv(BaseEnv):
             dtype=np.float32
         )
         self._action_space = gym.spaces.Discrete(2)
+        self._action_space.seed(0)  # default seed
         self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
     def reset(self) -> np.ndarray:
@@ -42,8 +43,10 @@ class CartPoleEnv(BaseEnv):
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
+            self._action_space.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+            self._action_space.seed(self._seed)
         self._observation_space = self._env.observation_space
         self._final_eval_reward = 0
         obs = self._env.reset()

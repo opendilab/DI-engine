@@ -52,7 +52,7 @@ class ResBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            Return the redisual block output
+            Return the residual block output
         Arguments:
             - x (:obj:`torch.Tensor`): the input tensor
         Returns:

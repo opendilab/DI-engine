@@ -4,9 +4,9 @@ import pickle
 import random
 import easydict
 import torch
+import os
 from typing import Optional, List, Any
 from functools import partial
-import os
 from copy import deepcopy
 
 from ding.config import compile_config, read_config

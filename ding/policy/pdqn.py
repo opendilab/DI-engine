@@ -254,6 +254,7 @@ class PDQNPolicy(Policy):
         return {
             'cur_lr': self._dis_optimizer.defaults['lr'],
             'q_loss': dis_loss.item(),
+            'total_loss': (cont_loss + dis_loss).item(),
             'continuous_loss': cont_loss.item(),
             'q_value': q_pi_action_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
@@ -435,11 +436,11 @@ class PDQNPolicy(Policy):
         """
         return 'pdqn', ['ding.model.template.pdqn']
 
-    def _monitor_vars_learn(self) -> List[str]:  # TODO
+    def _monitor_vars_learn(self) -> List[str]:
         r"""
         Overview:
             Return variables' names if variables are to used in monitor.
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        return ['cur_lr', 'q_loss', 'continuous_loss', 'q_value', 'reward', 'target_q_value']
+        return ['cur_lr', 'total_loss', 'q_loss', 'continuous_loss', 'q_value', 'reward', 'target_q_value']

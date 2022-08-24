@@ -29,11 +29,11 @@ def main(cfg, seed=0):
     # You can either use `PendulumEnv` or `DingEnvWrapper` to make a pendulum env and therefore an env manager.
     # == Use `DingEnvWrapper`
     collector_env = BaseEnvManager(
-        env_fn=[lambda: DingEnvWrapper(env=gym.make('Pendulum-v0'), cfg=cfg.env) for _ in range(collector_env_num)],
+        env_fn=[lambda: DingEnvWrapper(env=gym.make('Pendulum-v1'), cfg=cfg.env) for _ in range(collector_env_num)],
         cfg=cfg.env.manager
     )
     evaluator_env = BaseEnvManager(
-        env_fn=[lambda: DingEnvWrapper(env=gym.make('Pendulum-v0'), cfg=cfg.env) for _ in range(evaluator_env_num)],
+        env_fn=[lambda: DingEnvWrapper(env=gym.make('Pendulum-v1'), cfg=cfg.env) for _ in range(evaluator_env_num)],
         cfg=cfg.env.manager
     )
     # == Use `PendulumEnv`

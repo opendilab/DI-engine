@@ -3,7 +3,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_dyna
 
 # environment hypo
-env_id = 'Pendulum-v0'
+env_id = 'Pendulum-v1'
 obs_shape = 3
 action_shape = 1
 
@@ -43,7 +43,7 @@ main_config = dict(
             ignore_done=True,
             target_theta=0.005,
             discount_factor=0.99,
-            auto_alpha=True,
+            auto_alpha=False,
             value_network=False,
         ),
         collect=dict(

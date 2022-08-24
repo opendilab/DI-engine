@@ -1,8 +1,8 @@
 import argparse
 import torch
+import os
 from typing import Union, Optional, List, Any
 from functools import partial
-import os
 from copy import deepcopy
 
 from ding.config import compile_config, read_config
@@ -46,7 +46,7 @@ def collect_episodic_demo_data_for_trex(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg.env.collector_env_num = 1

@@ -205,7 +205,7 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
 
         obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
         inference_output = policy.forward(obs, **ctx.collect_kwargs)
-        ctx.action = [v['action'].numpy() for v in inference_output.values()]  # TBD
+        ctx.action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
         ctx.inference_output = inference_output
 
     return _inference

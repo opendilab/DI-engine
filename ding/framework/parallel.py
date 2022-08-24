@@ -288,6 +288,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def listen(self):
         self._mq.listen()
         while True:
+            if not self._mq:
+                break
             msg = self._mq.recv()
             # msg is none means that the message queue is no longer being listened to,
             # especially if the message queue is already closed

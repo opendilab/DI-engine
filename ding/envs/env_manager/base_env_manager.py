@@ -9,7 +9,8 @@ from ditk import logging
 import enum
 import time
 import treetensor.numpy as tnp
-from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog
+from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog, \
+    remove_illegal_item
 from ding.envs.env import BaseEnvTimestep
 
 
@@ -103,11 +104,21 @@ class BaseEnvManager(object):
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn[0]()
-        self._env_ref.reset()
-        self._observation_space = self._env_ref.observation_space
-        self._action_space = self._env_ref.action_space
-        self._reward_space = self._env_ref.reward_space
-        self._env_ref.close()
+        try:
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+        except:
+            # For some environment,
+            # we have to reset before getting observation description.
+            # However, for dmc-mujoco, we should not reset the env at the main thread,
+            # when using in a subprocess mode, which would cause opengl rendering bugs,
+            # leading to no response subprocesses.
+            self._env_ref.reset()
+            self._observation_space = self._env_ref.observation_space
+            self._action_space = self._env_ref.action_space
+            self._reward_space = self._env_ref.reward_space
+            self._env_ref.close()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
 
@@ -378,6 +389,10 @@ class BaseEnvManager(object):
         else:
             raise TypeError("invalid seed arguments type: {}".format(type(seed)))
         self._env_dynamic_seed = dynamic_seed
+        try:
+            self._action_space.seed(seed[0])
+        except Exception:  # TODO(nyz) deal with nested action_space like SMAC
+            pass
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
         """
@@ -450,6 +465,7 @@ class BaseEnvManagerV2(BaseEnvManager):
             # make the type and content of key as similar as identifier,
             # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
             info = make_key_as_identifier(info)
+            info = remove_illegal_item(info)
             new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
         return new_data
 

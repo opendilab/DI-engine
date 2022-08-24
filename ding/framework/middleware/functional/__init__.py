@@ -5,7 +5,7 @@ from .collector import inferencer, rolloutor, TransitionList, BattleTransitionLi
     battle_inferencer, battle_rolloutor, battle_inferencer_for_distar, battle_rolloutor_for_distar
 from .evaluator import interaction_evaluator
 from .termination_checker import termination_checker
-from .pace_controller import pace_controller
+from .ctx_helper import final_ctx_saver
 
 # algorithm
 from .explorer import eps_greedy_handler, eps_greedy_masker

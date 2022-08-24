@@ -9,6 +9,8 @@ def staleness_check(buffer_: 'Buffer', max_staleness: int = float("inf")) -> Cal
         This middleware aims to check staleness before each sample operation,
         staleness = train_iter_sample_data - train_iter_data_collected, means how old/off-policy the data is,
         If data's staleness is greater(>) than max_staleness, this data will be removed from buffer as soon as possible.
+    Arguments:
+        - max_staleness (:obj:`int`): The maximum legal span between the time of collecting and time of sampling.
     """
 
     def push(next: Callable, data: Any, *args, **kwargs) -> Any:

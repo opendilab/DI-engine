@@ -51,14 +51,14 @@ dmc2gym_env_info = {
     },
     "cartpole": {
         "balance": {
-            "observation_space": dmc2gym_observation_space(8),
-            "state_space": dmc2gym_state_space(8),
+            "observation_space": dmc2gym_observation_space(5),
+            "state_space": dmc2gym_state_space(5),
             "action_space": dmc2gym_action_space(1),
             "reward_space": dmc2gym_reward_space()
         },
         "swingup": {
-            "observation_space": dmc2gym_observation_space(8),
-            "state_space": dmc2gym_state_space(8),
+            "observation_space": dmc2gym_observation_space(5),
+            "state_space": dmc2gym_state_space(5),
             "action_space": dmc2gym_action_space(1),
             "reward_space": dmc2gym_reward_space()
         }
@@ -145,7 +145,10 @@ class DMC2GymEnv(BaseEnv):
             )
 
             if self._replay_path is not None:
-                self._env.metadata.update({'render.modes': ["rgb_array"]})
+                if gym.version.VERSION > '0.22.0':
+                    self._env.metadata.update({'render_modes': ["rgb_array"]})
+                else:
+                    self._env.metadata.update({'render.modes': ["rgb_array"]})
                 self._env = gym.wrappers.RecordVideo(
                     self._env,
                     video_folder=self._replay_path,
@@ -164,7 +167,12 @@ class DMC2GymEnv(BaseEnv):
 
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+
+        if self._cfg["from_pixels"]:
+            obs = to_ndarray(obs).astype(np.uint8)
+        else:
+            obs = to_ndarray(obs).astype(np.float32)
+
         return obs
 
     def close(self) -> None:
@@ -183,7 +191,12 @@ class DMC2GymEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
+
+        if self._cfg["from_pixels"]:
+            obs = to_ndarray(obs).astype(np.uint8)
+        else:
+            obs = to_ndarray(obs).astype(np.float32)
+
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
