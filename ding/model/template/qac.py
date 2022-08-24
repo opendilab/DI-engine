@@ -277,6 +277,255 @@ class QAC(nn.Module):
         return {'q_value': x}
 
 
+@MODEL_REGISTRY.register('qac_pixel')
+class QACPixel(nn.Module):
+    r"""
+    Overview:
+        The QACPixel network, which is used for image input.
+    Interfaces:
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+    """
+    mode = ['compute_actor', 'compute_critic']
+
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType, EasyDict],
+            action_space: str = 'reparameterization',
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            twin_critic: bool = False,
+            actor_head_hidden_size: int = 64,
+            actor_head_layer_num: int = 1,
+            critic_head_hidden_size: int = 64,
+            critic_head_layer_num: int = 1,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
+    ) -> None:
+        """
+        Overview:
+            Initailize the QAC Model according to input arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's shape, such as 128, (156, ).
+            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's shape, such as 4, (3, ), \
+                EasyDict({'action_type_shape': 3, 'action_args_shape': 4}).
+            - action_space (:obj:`str`): The type of action space, \
+                including [``regression``, ``reparameterization``, ``hybrid``].
+            - twin_critic (:obj:`bool`): Whether to use twin critic, one of tricks in TD3.
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.
+            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for actor head.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for critic head.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \
+                after each FC layer, if ``None`` then default set to ``nn.ReLU()``.
+            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
+                see ``ding.torch_utils.network`` for more details.
+        """
+        super(QACPixel, self).__init__()
+        # only accept pixel input
+        if len(obs_shape) == 3:
+            encoder_cls = ConvEncoder
+            global_encoder_cls = ConvEncoder
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
+                    format(obs_shape)
+            )
+
+        obs_shape: int = squeeze(obs_shape)
+        action_shape = squeeze(action_shape)
+        self.action_shape = action_shape
+
+        # now only support action_space == 'reparameterization'
+        if actor_head_hidden_size is None:
+            actor_head_hidden_size = encoder_hidden_size_list[-1]
+        assert actor_head_hidden_size == encoder_hidden_size_list[-1], 'hidden size did not match'
+        self.actor = nn.Sequential(
+            encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
+            ReparameterizationHead(
+                actor_head_hidden_size,
+                action_shape,
+                actor_head_layer_num,
+                sigma_type='conditioned',
+                activation=activation,
+                norm_type=norm_type
+            )
+        )
+
+        critic_head_input_size = encoder_hidden_size_list[-1] + action_shape
+        self.twin_critic = twin_critic
+        if self.twin_critic:
+            self.critic_encoder = nn.ModuleList()
+            self.critic_head = nn.ModuleList()
+            for _ in range(2):
+                self.critic_encoder.append(
+                    global_encoder_cls(
+                        obs_shape,
+                        encoder_hidden_size_list,
+                        activation=activation,
+                        norm_type=norm_type
+                    ),
+                )
+                self.critic_head.append(
+                    nn.Sequential(
+                        nn.Linear(critic_head_input_size, critic_head_hidden_size), activation,
+                        RegressionHead(
+                            critic_head_hidden_size,
+                            1,
+                            critic_head_layer_num,
+                            final_tanh=False,
+                            activation=activation,
+                            norm_type=norm_type
+                        )
+                    )
+                )
+
+        else:
+            self.critic_encoder = global_encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation,
+                                                     norm_type=norm_type)
+            self.critic_head = nn.Sequential(
+                nn.Linear(critic_head_input_size, critic_head_hidden_size), activation,
+                RegressionHead(
+                    critic_head_hidden_size,
+                    1,
+                    critic_head_layer_num,
+                    final_tanh=False,
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
+
+        if self.twin_critic:
+            self.critic = nn.ModuleList([*self.critic_encoder, *self.critic_head])
+        else:
+            self.critic = nn.ModuleList([self.critic_encoder, self.critic_head])
+
+    def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]], mode: str) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            The unique execution (forward) method of QAC method, and one can indicate different modes to implement \
+            different computation graph, including ``compute_actor`` and ``compute_critic`` in QAC.
+        Mode compute_actor:
+            Arguments:
+                - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
+            Returns:
+                - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.
+        Mode compute_critic:
+            Arguments:
+                - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
+            Returns:
+                - output (:obj:`Dict`): Output dict data, including q_value tensor.
+
+        .. note::
+            For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.
+        """
+        assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
+        return getattr(self, mode)(inputs)
+
+    def compute_actor(self, obs: torch.Tensor) -> Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]:
+        """
+        Overview:
+            The forward computation graph of compute_actor mode, uses observation tensor to produce actor output,
+            such as ``action``, ``logit`` and so on.
+        Arguments:
+            - obs (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data, \
+                i.e. ``(B, obs_shape)``.
+        Returns:
+            - outputs (:obj:`Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]`): Actor output varying \
+                from action_space: ``regression``, ``reparameterization``, ``hybrid``.
+
+        ReturnsKeys (either):
+            - regression action_space
+                - action (:obj:`torch.Tensor`): Continuous action with same size as ``action_shape``, usually in DDPG.
+            - reparameterization action_space
+                - logit (:obj:`Dict[str, torch.Tensor]`): Reparameterization logit, usually in SAC.
+
+                    - mu (:obj:`torch.Tensor`): Mean of parameterization gaussion distribution.
+                    - sigma (:obj:`torch.Tensor`): Standard variation of parameterization gaussion distribution.
+            - hybrid action_space
+                - logit (:obj:`torch.Tensor`): Discrete action type logit.
+                - action_args (:obj:`torch.Tensor`): Continuous action arguments.
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``obs_shape``.
+            - action (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.
+            - logit.mu (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.
+            - logit.sigma (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size.
+            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \
+                ``action_shape.action_type_shape``.
+            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \
+                ``action_shape.action_args_shape``.
+        Examples:
+            >>> # Regression mode
+            >>> model = QAC(64, 64, 'regression')
+            >>> obs = torch.randn(4, 64)
+            >>> actor_outputs = model(obs,'compute_actor')
+            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
+            >>> # Reparameterization Mode
+            >>> model = QAC(64, 64, 'reparameterization')
+            >>> obs = torch.randn(4, 64)
+            >>> actor_outputs = model(obs,'compute_actor')
+            >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
+            >>> actor_outputs['logit'][1].shape == torch.Size([4, 64]) # sigma
+        """
+        # if obs is pixel, transforme uint8 -> float32
+        obs = obs.to(torch.float32)
+        x = self.actor(obs)
+        return {'logit': [x['mu'], x['sigma']]}
+
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            The forward computation graph of compute_critic mode, uses observation and action tensor to produce critic
+            output, such as ``q_value``.
+        Arguments:
+            - inputs (:obj:`Dict[str, torch.Tensor]`): Dict strcture of input data, including ``obs`` and ``action`` \
+                tensor, also contains ``logit`` tensor in hybrid action_space.
+        Returns:
+            - outputs (:obj:`Dict[str, torch.Tensor]`): Critic output, such as ``q_value``.
+
+        ArgumentsKeys:
+            - obs: (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data.
+            - action (:obj:`Union[torch.Tensor, Dict]`): Continuous action with same size as ``action_shape``.
+            - logit (:obj:`torch.Tensor`): Discrete action logit, only in hybrid action_space.
+            - action_args (:obj:`torch.Tensor`): Continuous action arguments, only in hybrid action_space.
+        ReturnKeys:
+            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``.
+            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \
+                ``action_shape.action_type_shape``.
+            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \
+                ``action_shape.action_args_shape``.
+            - action (:obj:`torch.Tensor`): :math:`(B, N4)`, where B is batch size and N4 is ``action_shape``.
+            - q_value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size.
+
+        Examples:
+            >>> inputs = {'obs': torch.randn(4, 8), 'action': torch.randn(4, 1)}
+            >>> model = QAC(obs_shape=(8, ),action_shape=1, action_space='regression')
+            >>> model(inputs, mode='compute_critic')['q_value']  # q value
+            ... tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
+        """
+
+        obs, action = inputs['obs'], inputs['action']
+        # if obs is pixel, transforme uint8 -> float32
+        obs = obs.to(torch.float32)
+        if len(action.shape) == 1:  # (B, ) -> (B, 1)
+            action = action.unsqueeze(1)
+
+        if self.twin_critic:
+            x = [m(obs) for m in self.critic_encoder]
+            x = [torch.cat([x1, action], dim=1) for x1 in x]
+            x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
+
+        else:
+            x = self.critic_encoder(obs)
+            x = torch.cat([x, action], dim=1)
+            x = self.critic_head(x)['pred']
+
+        return {'q_value': x}
+
+
 @MODEL_REGISTRY.register('discrete_qac')
 class DiscreteQAC(nn.Module):
     r"""
@@ -331,7 +580,7 @@ class DiscreteQAC(nn.Module):
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                format(agent_obs_shape)
+                    format(agent_obs_shape)
             )
         if isinstance(global_obs_shape, int) or len(global_obs_shape) == 1:
             global_encoder_cls = FCEncoder
@@ -340,7 +589,7 @@ class DiscreteQAC(nn.Module):
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                format(global_obs_shape)
+                    format(global_obs_shape)
             )
 
         self.actor = nn.Sequential(
@@ -513,246 +762,4 @@ class DiscreteQAC(nn.Module):
             x = [m(inputs['obs'])['logit'] for m in self.critic]
         else:
             x = self.critic(inputs['obs'])['logit']
-        return {'q_value': x}
-
-
-@MODEL_REGISTRY.register('qac_pixel')
-class QACPixel(nn.Module):
-    r"""
-    Overview:
-        The QACPixel network, which is used for image input.
-    Interfaces:
-        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
-    """
-    mode = ['compute_actor', 'compute_critic']
-
-    def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType, EasyDict],
-            action_space: str = 'reparameterization',
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            twin_critic: bool = False,
-            actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 1,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-    ) -> None:
-        """
-        Overview:
-            Initailize the QAC Model according to input arguments.
-        Arguments:
-            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's shape, such as 128, (156, ).
-            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's shape, such as 4, (3, ), \
-                EasyDict({'action_type_shape': 3, 'action_args_shape': 4}).
-            - action_space (:obj:`str`): The type of action space, \
-                including [``regression``, ``reparameterization``, ``hybrid``].
-            - twin_critic (:obj:`bool`): Whether to use twin critic, one of tricks in TD3.
-            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.
-            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
-                for actor head.
-            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.
-            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
-                for critic head.
-            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \
-                after each FC layer, if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
-                see ``ding.torch_utils.network`` for more details.
-        """
-        super(QACPixel, self).__init__()
-        # only accept pixel input
-        if len(obs_shape) == 3:
-            encoder_cls = ConvEncoder
-            global_encoder_cls = ConvEncoder
-        else:
-            raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                format(obs_shape)
-            )
-        
-        obs_shape: int = squeeze(obs_shape)
-        action_shape = squeeze(action_shape)
-        self.action_shape = action_shape
-
-        # default action_space == 'reparameterization' for sac
-        if actor_head_hidden_size is None:
-            actor_head_hidden_size = encoder_hidden_size_list[-1]
-        assert actor_head_hidden_size == encoder_hidden_size_list[-1] ,'hidden size didnt match'
-        self.actor = nn.Sequential(
-            encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
-            ReparameterizationHead(
-                actor_head_hidden_size,
-                action_shape,
-                actor_head_layer_num,
-                sigma_type='conditioned',
-                activation=activation,
-                norm_type=norm_type
-            )
-        )
-
-        critic_head_hidden_size = encoder_hidden_size_list[-1] + action_shape
-        self.twin_critic = twin_critic
-        if self.twin_critic:
-            # self.critic = nn.ModuleList()
-            self.critic_encoder = nn.ModuleList()
-            self.critic_head = nn.ModuleList()
-            for _ in range(2):
-                self.critic_encoder.append(
-                        global_encoder_cls(
-                            obs_shape, 
-                            encoder_hidden_size_list, 
-                            activation=activation, 
-                            norm_type=norm_type
-                        ),
-                )
-                self.critic_head.append(
-                        RegressionHead(
-                            critic_head_hidden_size,
-                            1,
-                            critic_head_layer_num,
-                            final_tanh=False,
-                            activation=activation,
-                            norm_type=norm_type
-                        )
-                    )
-                
-        else:
-            self.critic_encoder = global_encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
-            self.critic_head = RegressionHead(
-                    critic_head_hidden_size,
-                    1,
-                    critic_head_layer_num,
-                    final_tanh=False,
-                    activation=activation,
-                    norm_type=norm_type
-                )
-
-        if self.twin_critic:
-            self.critic = nn.ModuleList([*self.critic_encoder, *self.critic_head])
-        else:
-            self.critic = nn.ModuleList([self.critic_encoder, self.critic_head])
-
-    def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]], mode: str) -> Dict[str, torch.Tensor]:
-        """
-        Overview:
-            The unique execution (forward) method of QAC method, and one can indicate different modes to implement \
-            different computation graph, including ``compute_actor`` and ``compute_critic`` in QAC.
-        Mode compute_actor:
-            Arguments:
-                - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
-            Returns:
-                - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.
-        Mode compute_critic:
-            Arguments:
-                - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
-            Returns:
-                - output (:obj:`Dict`): Output dict data, including q_value tensor.
-
-        .. note::
-            For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.
-        """
-        assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
-        return getattr(self, mode)(inputs)
-
-    def compute_actor(self, obs: torch.Tensor) -> Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]:
-        """
-        Overview:
-            The forward computation graph of compute_actor mode, uses observation tensor to produce actor output,
-            such as ``action``, ``logit`` and so on.
-        Arguments:
-            - obs (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data, \
-                i.e. ``(B, obs_shape)``.
-        Returns:
-            - outputs (:obj:`Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]`): Actor output varying \
-                from action_space: ``regression``, ``reparameterization``, ``hybrid``.
-
-        ReturnsKeys (either):
-            - regression action_space
-                - action (:obj:`torch.Tensor`): Continuous action with same size as ``action_shape``, usually in DDPG.
-            - reparameterization action_space
-                - logit (:obj:`Dict[str, torch.Tensor]`): Reparameterization logit, usually in SAC.
-
-                    - mu (:obj:`torch.Tensor`): Mean of parameterization gaussion distribution.
-                    - sigma (:obj:`torch.Tensor`): Standard variation of parameterization gaussion distribution.
-            - hybrid action_space
-                - logit (:obj:`torch.Tensor`): Discrete action type logit.
-                - action_args (:obj:`torch.Tensor`): Continuous action arguments.
-        Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``obs_shape``.
-            - action (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.
-            - logit.mu (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.
-            - logit.sigma (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size.
-            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \
-                ``action_shape.action_type_shape``.
-            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \
-                ``action_shape.action_args_shape``.
-        Examples:
-            >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
-            >>> obs = torch.randn(4, 64)
-            >>> actor_outputs = model(obs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
-            >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
-            >>> obs = torch.randn(4, 64)
-            >>> actor_outputs = model(obs,'compute_actor')
-            >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
-            >>> actor_outputs['logit'][1].shape == torch.Size([4, 64]) # sigma
-        """
-        obs = obs.to(torch.float32)
-        x = self.actor(obs)
-        return {'logit': [x['mu'], x['sigma']]}
-        
-
-    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """
-        Overview:
-            The forward computation graph of compute_critic mode, uses observation and action tensor to produce critic
-            output, such as ``q_value``.
-        Arguments:
-            - inputs (:obj:`Dict[str, torch.Tensor]`): Dict strcture of input data, including ``obs`` and ``action`` \
-                tensor, also contains ``logit`` tensor in hybrid action_space.
-        Returns:
-            - outputs (:obj:`Dict[str, torch.Tensor]`): Critic output, such as ``q_value``.
-
-        ArgumentsKeys:
-            - obs: (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data.
-            - action (:obj:`Union[torch.Tensor, Dict]`): Continuous action with same size as ``action_shape``.
-            - logit (:obj:`torch.Tensor`): Discrete action logit, only in hybrid action_space.
-            - action_args (:obj:`torch.Tensor`): Continuous action arguments, only in hybrid action_space.
-        ReturnKeys:
-            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-        Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``.
-            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \
-                ``action_shape.action_type_shape``.
-            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \
-                ``action_shape.action_args_shape``.
-            - action (:obj:`torch.Tensor`): :math:`(B, N4)`, where B is batch size and N4 is ``action_shape``.
-            - q_value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size.
-
-        Examples:
-            >>> inputs = {'obs': torch.randn(4, 8), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(8, ),action_shape=1, action_space='regression')
-            >>> model(inputs, mode='compute_critic')['q_value']  # q value
-            ... tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
-        """
-
-        obs, action = inputs['obs'], inputs['action']
-        obs = obs.to(torch.float32)
-        if len(action.shape) == 1:  # (B, ) -> (B, 1)
-                action = action.unsqueeze(1)
-
-        if self.twin_critic:
-            x = [m(obs) for m in self.critic_encoder]
-            x = [torch.cat([x1, action], dim=1) for x1 in x]
-            x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
-
-        else:
-            x = self.critic_encoder(obs)
-            x = torch.cat([x, action], dim=1)
-            x = self.critic_head(x)['pred']
-
         return {'q_value': x}

@@ -1,6 +1,6 @@
 # general
 from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN
-from .qac import QAC, DiscreteQAC
+from .qac import QAC, QACPixel, DiscreteQAC
 from .pdqn import PDQN
 from .vac import VAC
 from .bc import DiscreteBC, ContinuousBC

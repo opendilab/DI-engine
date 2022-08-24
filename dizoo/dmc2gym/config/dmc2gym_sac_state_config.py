@@ -4,11 +4,11 @@ dmc2gym_sac_config = dict(
     exp_name='dmc2gym_sac_seed0',
     env=dict(
         env_id='dmc2gym-v0',
-        domain_name = "cartpole",
-        task_name = "swingup",
-        frame_skip = 2,
-        from_pixels = False,
-        channels_first = True,      # obs shape (3, height, width) if True
+        domain_name="cartpole",
+        task_name="swingup",
+        frame_skip=2,
+        from_pixels=False,
+        channels_first=True,  # obs shape (3, height, width) if True
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
@@ -16,6 +16,7 @@ dmc2gym_sac_config = dict(
         # limit_time = None,    # default 10 (s)
     ),
     policy=dict(
+        model_type='state',
         cuda=True,
         random_collect_size=10000,
         model=dict(
@@ -67,8 +68,8 @@ dmc2gym_sac_create_config = dict(
 dmc2gym_sac_create_config = EasyDict(dmc2gym_sac_create_config)
 create_config = dmc2gym_sac_create_config
 
-
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c dmc2gym_sac_config.py -s 0`
     from ding.entry import serial_pipeline
+
     serial_pipeline([main_config, create_config], seed=0)
