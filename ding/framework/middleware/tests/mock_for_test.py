@@ -10,16 +10,6 @@ from ding.torch_utils import to_device
 from ding.league.player import PlayerMeta
 from ding.league.v2 import BaseLeague, Job
 from ding.framework.storage import FileStorage
-from ding.policy import PPOPolicy
-from distar.diengine.dizoo.envs.distar_env import DIStarEnv
-from distar.diengine.dizoo.policy.distar_policy import DIStarPolicy
-from ding.envs import BaseEnvManager
-import treetensor.torch as ttorch
-from ding.envs import BaseEnvTimestep
-from distar.diengine.dizoo.envs.fake_data import rl_step_data
-
-if TYPE_CHECKING:
-    from ding.framework import BattleContext
 
 obs_dim = [2, 2]
 action_space = 1
@@ -175,65 +165,3 @@ class MockLogger():
 
     def flush(*args):
         pass
-
-
-class DIStarMockPolicy(DIStarPolicy):
-
-    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        print("Call forward_learn:", flush=True)
-        return super()._forward_learn(data)
-
-    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
-        print("Call forward_collect:", flush=True)
-        return super()._forward_collect(data)
-
-
-class DIStarMockPPOPolicy(PPOPolicy):
-
-    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        pass
-
-    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
-        return DIStarEnv.random_action(data)
-
-
-class DIstarCollectMode:
-
-    def __init__(self) -> None:
-        self._cfg = EasyDict(dict(collect=dict(n_episode=1)))
-        self._race = 'zerg'
-
-    def load_state_dict(self, state_dict):
-        return
-
-    def get_attribute(self, name: str) -> Any:
-        if hasattr(self, '_get_' + name):
-            return getattr(self, '_get_' + name)()
-        elif hasattr(self, '_' + name):
-            return getattr(self, '_' + name)
-        else:
-            raise NotImplementedError
-
-    def reset(self, data_id: Optional[List[int]] = None) -> None:
-        pass
-
-    def forward(self, policy_obs: Dict[int, Any]) -> Dict[int, Any]:
-        # print("Call forward_collect:")
-        return_data = {}
-        return_data['action'] = DIStarEnv.random_action(policy_obs)
-        return_data['logit'] = [1]
-        return_data['value'] = [0]
-
-        return return_data
-
-    def process_transition(self, obs, model_output, timestep) -> dict:
-        step_data = rl_step_data()
-        step_data['done'] = timestep.done
-        return step_data
-
-
-class DIStarMockPolicyCollect:
-
-    def __init__(self):
-
-        self.collect_mode = DIstarCollectMode()
