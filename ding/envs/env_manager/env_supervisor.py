@@ -79,7 +79,9 @@ class EnvSupervisor(Supervisor):
             - retry_waiting_time (:obj:`Optional[float]`): Wait time on each retry.
             - shared_memory (:obj:`bool`): Use shared memory in multiprocessing.
             - copy_on_get (:obj:`bool`): Use copy on get in multiprocessing.
-            - return_original_data (:obj:`bool`): Return original observation or processed observation.
+            - return_original_data (:obj:`bool`): Return original observation, 
+                so that the attribute self._ready_obs is not a tnp.array but only the original observation,
+                and the property self.ready_obs is a dict in which the key is the env_id.
         """
         if kwargs:
             logging.warning("Unknown parameters on env supervisor: {}".format(kwargs))
@@ -258,7 +260,6 @@ class EnvSupervisor(Supervisor):
             >>> timesteps = env_manager.step(action)
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
-        # TODO(zms): change it here or in env?
         if self._return_original_data:
             return {i: self._ready_obs[i] for i in active_env}
         active_env.sort()
@@ -415,7 +416,6 @@ class EnvSupervisor(Supervisor):
                         remain_payloads[p.req_id] = p
             # make the type and content of key as similar as identifier,
             # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
-            # TODO(zms): change it here or in DI-star env?
             if not self._return_original_data:
                 info = make_key_as_identifier(info)
                 payload.data = tnp.array(
