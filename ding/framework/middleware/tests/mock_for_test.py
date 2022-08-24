@@ -11,12 +11,12 @@ from ding.league.player import PlayerMeta
 from ding.league.v2 import BaseLeague, Job
 from ding.framework.storage import FileStorage
 from ding.policy import PPOPolicy
-from dizoo.distar.envs.distar_env import DIStarEnv
-from dizoo.distar.policy.distar_policy import DIStarPolicy
+from distar.diengine.dizoo.envs.distar_env import DIStarEnv
+from distar.diengine.dizoo.policy.distar_policy import DIStarPolicy
 from ding.envs import BaseEnvManager
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvTimestep
-from dizoo.distar.envs.fake_data import rl_step_data
+from distar.diengine.dizoo.envs.fake_data import rl_step_data
 
 if TYPE_CHECKING:
     from ding.framework import BattleContext
