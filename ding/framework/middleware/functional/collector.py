@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any, Dict
 from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
-from ding.envs import BaseEnvManager
+from ding.envs.env_manager.base_env_manager import BaseEnvManager
 from ding.envs.env.base_env import BaseEnvTimestep
 from ding.policy import Policy
 import torch
@@ -14,7 +14,6 @@ from ding.framework import task
 from ding.framework import OnlineRLContext, BattleContext
 from collections import deque
 from ding.framework.middleware.functional.actor_data import ActorEnvTrajectories
-from dizoo.distar.envs.fake_data import rl_step_data
 from copy import deepcopy
 
 from ditk import logging
