@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from dizoo.classic_control.mountain_car.envs import MountainCarEnv
 
+
 @pytest.mark.envtest
 class TestMountainCarEnv:
 
