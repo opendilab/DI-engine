@@ -38,6 +38,11 @@ def cpu_loads(x):
 
 
 def my_pickle_loads(msg):
+    """
+        Overview:
+            This method allows you to recieve gpu tensors from gpu bug freely, if you are in an only-cpu node.
+            refrence: https://github.com/pytorch/pytorch/issues/16797
+    """
     if not torch.cuda.is_available():
         payload = cpu_loads(msg)
     else:
