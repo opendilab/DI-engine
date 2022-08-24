@@ -45,7 +45,7 @@ class MountainCarEnv(BaseEnv):
         # Instantiate environment if not already done so
         if not self._init_flag:
             self._env = gym.make('MountainCar-v0')
-        self._init_flag = True
+            self._init_flag = True
 
         # Check if we have a valid replay path and save replay video accordingly
         if self._replay_path is not None:
