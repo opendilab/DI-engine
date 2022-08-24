@@ -107,6 +107,9 @@ class C51Policy(DQNPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'c51dqn', ['ding.model.template.q_learning']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -255,5 +258,3 @@ class C51Policy(DQNPolicy):
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'c51dqn', ['ding.model.template.q_learning']

@@ -138,6 +138,9 @@ class RainbowDQNPolicy(DQNPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'rainbowdqn', ['ding.model.template.q_learning']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -286,9 +289,6 @@ class RainbowDQNPolicy(DQNPolicy):
         """
         data = get_nstep_return_data(traj, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'rainbowdqn', ['ding.model.template.q_learning']
 
     def _reset_noise(self, model: torch.nn.Module):
         r"""

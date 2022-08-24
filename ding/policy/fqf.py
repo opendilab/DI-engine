@@ -103,6 +103,9 @@ class FQFPolicy(DQNPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'fqf', ['ding.model.template.q_learning']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -257,5 +260,3 @@ class FQFPolicy(DQNPolicy):
         self._fraction_loss_optimizer.load_state_dict(state_dict['optimizer_fraction_loss'])
         self._quantile_loss_optimizer.load_state_dict(state_dict['optimizer_quantile_loss'])
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'fqf', ['ding.model.template.q_learning']

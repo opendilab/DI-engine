@@ -107,6 +107,19 @@ class CollaQPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For collaq, ``ding.model.qmix.qmix``
+        """
+        return 'collaq', ['ding.model.template.qmix']
+
     def _init_learn(self) -> None:
         """
         Overview:
@@ -418,19 +431,6 @@ class CollaQPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         return get_train_sample(data, self._unroll_len)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For collaq, ``ding.model.qmix.qmix``
-        """
-        return 'collaq', ['ding.model.template.qmix']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
