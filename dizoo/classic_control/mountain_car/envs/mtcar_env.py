@@ -5,9 +5,9 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
+
 @ENV_REGISTRY.register('mountain_car')
 class MountainCarEnv(BaseEnv):
-
     """
     Implementation of DI-engine's version of the Mountain Car deterministic MDP. 
 
@@ -28,10 +28,7 @@ class MountainCarEnv(BaseEnv):
 
         # Following specifications from https://is.gd/29S0dt
         self._observation_space = gym.spaces.Box(
-            low=np.array([-1.2, -0.07]),
-            high=np.array([0.6, 0.07]),
-            shape=(2, ),
-            dtype=np.float32
+            low=np.array([-1.2, -0.07]), high=np.array([0.6, 0.07]), shape=(2, ), dtype=np.float32
         )
         self._action_space = gym.spaces.Discrete(3, start=0)
         self._reward_space = gym.spaces.Box(low=-1, high=0.0, shape=(1, ), dtype=np.float32)
@@ -64,14 +61,14 @@ class MountainCarEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
             self._action_space.seed(self._seed)
-        
+
         # Get first observation from original environment
         obs = self._env.reset()
 
         # Convert to numpy array as output
         obs = to_ndarray(obs).astype(np.float32)
 
-        # Init final reward : cumulative sum of the real rewards obtained by a whole episode, 
+        # Init final reward : cumulative sum of the real rewards obtained by a whole episode,
         # used to evaluate the agent Performance on this environment, not used for training.
         self._final_eval_reward = 0.
         return obs
@@ -83,20 +80,20 @@ class MountainCarEnv(BaseEnv):
 
         # Extract action as int, 0-dim array
         action = action.squeeze()
-        
+
         # Take a step of faith into the unknown!
         obs, rew, done, info = self._env.step(action)
 
         # Cummulate reward
         self._final_eval_reward += rew
-        
+
         # Save final cummulative reward when done.
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        
+
         # Making sure we conform to di-engine conventions
-        obs = to_ndarray(obs)                
-        rew = to_ndarray([rew]).astype(np.float32)  
+        obs = to_ndarray(obs)
+        rew = to_ndarray([rew]).astype(np.float32)
 
         return BaseEnvTimestep(obs, rew, done, info)
 
