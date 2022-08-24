@@ -35,4 +35,3 @@ class TestRocketEnv:
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
 
-# test_hover()

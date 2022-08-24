@@ -6,7 +6,7 @@ rocket_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        stop_value=300,
+        stop_value=330,
         task='hover',
         max_steps=800,
         replay_path='rocket_onppo_seed0/video',
@@ -29,8 +29,8 @@ rocket_ppo_config = dict(
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
-            adv_norm=True,
-            value_norm=True,
+            adv_norm=False,
+            value_norm=False,
             learner=dict(hook=dict(save_ckpt_after_iter=100)),
         ),
         collect=dict(
@@ -58,4 +58,4 @@ create_config = rocket_ppo_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c rocket_hover_ppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-    serial_pipeline_onpolicy((main_config, create_config), seed=0)
+    serial_pipeline_onpolicy((main_config, create_config), seed=i)
