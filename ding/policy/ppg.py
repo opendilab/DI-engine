@@ -730,7 +730,7 @@ class PPGOffPolicy(Policy):
             by import_names path.
         """
         return 'ppg', ['ding.model.template.ppg']
-        
+
     def _init_learn(self) -> None:
         r"""
         Overview:

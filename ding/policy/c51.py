@@ -257,4 +257,3 @@ class C51Policy(DQNPolicy):
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
-

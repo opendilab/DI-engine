@@ -76,7 +76,7 @@ class DTPolicy(DQNPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'dt', ['ding.model.template.decision_transformer']
-        
+
     def _init_learn(self) -> None:
         r"""
             Overview:

@@ -259,4 +259,3 @@ class FQFPolicy(DQNPolicy):
         self._target_model.load_state_dict(state_dict['target_model'])
         self._fraction_loss_optimizer.load_state_dict(state_dict['optimizer_fraction_loss'])
         self._quantile_loss_optimizer.load_state_dict(state_dict['optimizer_quantile_loss'])
-
