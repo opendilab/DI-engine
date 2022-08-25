@@ -368,32 +368,26 @@ class QACPixel(nn.Module):
                     ),
                 )
                 self.critic_head.append(
-                    nn.Sequential(
-                        nn.Linear(critic_head_input_size, critic_head_hidden_size), activation,
-                        RegressionHead(
-                            critic_head_hidden_size,
-                            1,
-                            critic_head_layer_num,
-                            final_tanh=False,
-                            activation=activation,
-                            norm_type=norm_type
-                        )
+                    RegressionHead(
+                        critic_head_input_size,
+                        1,
+                        critic_head_layer_num,
+                        final_tanh=False,
+                        activation=activation,
+                        norm_type=norm_type
                     )
                 )
 
         else:
             self.critic_encoder = global_encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation,
                                                      norm_type=norm_type)
-            self.critic_head = nn.Sequential(
-                nn.Linear(critic_head_input_size, critic_head_hidden_size), activation,
-                RegressionHead(
-                    critic_head_hidden_size,
-                    1,
-                    critic_head_layer_num,
-                    final_tanh=False,
-                    activation=activation,
-                    norm_type=norm_type
-                )
+            self.critic_head = RegressionHead(
+                critic_head_input_size,
+                1,
+                critic_head_layer_num,
+                final_tanh=False,
+                activation=activation,
+                norm_type=norm_type
             )
 
         if self.twin_critic:

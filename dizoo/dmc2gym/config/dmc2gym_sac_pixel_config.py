@@ -9,19 +9,17 @@ dmc2gym_sac_config = dict(
         frame_skip=2,
         from_pixels=True,
         channels_first=True,  # obs shape (3, height, width) if True
-        collector_env_num=1,
+        collector_env_num=16,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
+        use_act_scale=True,
         stop_value=1e6,
         manager=dict(shared_memory=False, ),
-        # time_limit = None,
     ),
     policy=dict(
         model_type='pixel',
         cuda=True,
         random_collect_size=10000,
-        # random_collect_size=10,  # for debug
         model=dict(
             obs_shape=(3, 100, 100),
             action_shape=1,
@@ -36,13 +34,11 @@ dmc2gym_sac_config = dict(
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
             learning_rate_alpha=3e-4,
-            # ignore_done=False,  # TODO
             ignore_done=True,
             target_theta=0.005,
             discount_factor=0.99,
             alpha=0.2,
             reparameterization=True,
-            # auto_alpha=False,  # TODO
             auto_alpha=True,
 
         ),
@@ -65,7 +61,6 @@ dmc2gym_sac_create_config = dict(
         import_names=['dizoo.dmc2gym.envs.dmc2gym_env'],
     ),
     env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),  # for debug
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -75,9 +70,8 @@ dmc2gym_sac_create_config = dict(
 dmc2gym_sac_create_config = EasyDict(dmc2gym_sac_create_config)
 create_config = dmc2gym_sac_create_config
 
-
 # if __name__ == "__main__":
-#     # or you can enter `ding -m serial -c dmc2gym_sac_config.py -s 0`
+#     # or you can enter `ding -m serial -c dmc2gym_sac_pixel_config.py -s 0`
 #     from ding.entry import serial_pipeline
 #     serial_pipeline([main_config, create_config], seed=0)
 
@@ -92,6 +86,6 @@ if __name__ == "__main__":
         parser.add_argument('--seed', '-s', type=int, default=seed)
         args = parser.parse_args()
 
-        main_config.exp_name = 'dmc2gym_sac_pixel_rbs1e5_' + 'seed' + f'{args.seed}'
+        main_config.exp_name = 'dmc2gym_sac_pixel_rbs1e5' + 'seed' + f'{args.seed}'
         serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed,
                         max_env_step=int(5e6))
