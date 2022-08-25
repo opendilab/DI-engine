@@ -56,8 +56,8 @@ class BaseSerialCommander(object):
             Step the commander
         """
         # Update info
-        # learn_info = self._learner.learn_info
-        learn_info = {'learner_train_iter': self._learner.train_iter}
+        learn_info = self._learner.learn_info
+        learn_info['learner_train_iter'] = self._learner.train_iter
         collector_info = {'envstep': self._collector.envstep}
         self._info.update(learn_info)
         self._info.update(collector_info)

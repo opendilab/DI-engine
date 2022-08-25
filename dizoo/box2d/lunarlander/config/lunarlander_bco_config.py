@@ -46,7 +46,7 @@ lunarlander_bco_config = dict(
             # Get "n_sample" samples per collect.
             n_episode=100,
             model_path=
-            '/mnt/nfs/lisong/workdir/BCO/lunarlander/lunarlander_bco/lunarlander_dqn_seed0/ckpt/ckpt_best.pth.tar',
+            model_path='abs model path',
             data_path='abs data path',
             # Cut trajectories into pieces with length "unroll_len".
         ),

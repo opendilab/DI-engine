@@ -40,7 +40,7 @@ halfcheetah_bco_config = dict(
             n_episode=100,
             # control the number (alpha*n_episode) of post-demonstration environment interactions at each iteration.
             # Notice: alpha * n_episode > collector_env_num
-            model_path='/mnt/nfs/lisong/workdir/BCO/mujoco/halfcheetah_sac/ckpt_best.pth.tar',
+            model_path='abs model path',
             data_path='abs data path',
             noise=True,
             noise_sigma=dict(
