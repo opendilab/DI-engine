@@ -7,8 +7,8 @@ takeoffaviary_ppo_config = dict(
         env_id='takeoff-aviary-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=2,
-        evaluator_env_num=2,
+        collector_env_num=1,
+        evaluator_env_num=1,
         use_act_scale=True,
         n_evaluator_episode=2,
         stop_value=0,
@@ -16,6 +16,7 @@ takeoffaviary_ppo_config = dict(
     policy=dict(
         cuda=True,
         recompute_adv=True,
+        load_path="./takeoffaviary_ppo_seed0/ckpt/ckpt_best.pth.tar",
         model=dict(
             obs_shape=12,
             action_shape=4,
@@ -23,12 +24,14 @@ takeoffaviary_ppo_config = dict(
         ),
         action_space='continuous',
         learn=dict(
-            epoch_per_collect=10,
+            #是否share encoder
+            #liujie
+            epoch_per_collect=10,  #reduce
             batch_size=64,
-            learning_rate=3e-4,
+            learning_rate=3e-4,  #tune; pytorch lr scheduler
             value_weight=0.5,
-            entropy_weight=0.0,
-            clip_ratio=0.2,
+            entropy_weight=0.0,  #0.001
+            clip_ratio=0.2,  #0.1
             adv_norm=True,
             value_norm=True,
         ),
@@ -39,6 +42,7 @@ takeoffaviary_ppo_config = dict(
             gae_lambda=0.97,
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
+        #eval=dict(evaluator=dict(eval_freq=5, )),
     ),
 )
 takeoffaviary_ppo_config = EasyDict(takeoffaviary_ppo_config)
@@ -49,7 +53,7 @@ takeoffaviary_ppo_create_config = dict(
         type='gym_pybullet_drones',
         import_names=['dizoo.gym_pybullet_drones.envs.gym_pybullet_drones_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo', ),
 )
 takeoffaviary_ppo_create_config = EasyDict(takeoffaviary_ppo_create_config)

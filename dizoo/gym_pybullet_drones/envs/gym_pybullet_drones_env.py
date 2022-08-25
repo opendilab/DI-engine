@@ -2,49 +2,92 @@ from typing import Optional, Callable
 import gym
 from gym.spaces import Box
 import numpy as np
+
+import gym_pybullet_drones
+from gym_pybullet_drones.utils.enums import DroneModel, Physics
+from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType
+
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
-
-import gym_pybullet_drones
 
 # from gym_pybullet_drones.utils.Logger import Logger
 # from gym_pybullet_drones.envs.single_agent_rl.TakeoffAviary import TakeoffAviary
 # from gym_pybullet_drones.utils.utils import sync, str2bool
 
+
 def gym_pybullet_drones_observation_space(dim, minimum=-np.inf, maximum=np.inf, dtype=np.float32) -> Callable:
-    lower_bound=np.repeat(minimum, dim).astype(dtype)
-    upper_bound=np.repeat(maximum, dim).astype(dtype)
-    lower_bound[2]=0.0
+    lower_bound = np.repeat(minimum, dim).astype(dtype)
+    upper_bound = np.repeat(maximum, dim).astype(dtype)
+    lower_bound[2] = 0.0
     return Box(lower_bound, upper_bound, dtype=dtype)
+
 
 def gym_pybullet_drones_action_space(dim, minimum=-1, maximum=1, dtype=np.float32) -> Box:
     return Box(np.repeat(minimum, dim).astype(dtype), np.repeat(maximum, dim).astype(dtype), dtype=dtype)
 
-def gym_pybullet_drones_reward_space(minimum=-10000, maximum=0, dtype=np.float32) -> Callable:
-    return Box(
-        np.repeat(minimum, 1).astype(dtype),
-        np.repeat(maximum, 1).astype(dtype),
-        dtype=dtype
-    )
 
-gym_pybullet_drones_env_info={
+def gym_pybullet_drones_reward_space(minimum=-10000, maximum=0, dtype=np.float32) -> Callable:
+    return Box(np.repeat(minimum, 1).astype(dtype), np.repeat(maximum, 1).astype(dtype), dtype=dtype)
+
+
+gym_pybullet_drones_env_info = {
     "takeoff-aviary-v0": {
-        "observation_space": gym_pybullet_drones_observation_space(12,minimum=-1,maximum=1),
-        "action_space": gym_pybullet_drones_action_space(4,minimum=-1,maximum=1),
+        "observation_space": gym_pybullet_drones_observation_space(12, minimum=-1, maximum=1),
+        "action_space": gym_pybullet_drones_action_space(4, minimum=-1, maximum=1),
         "reward_space": gym_pybullet_drones_reward_space()
     },
 }
+
 
 @ENV_REGISTRY.register('gym_pybullet_drones')
 class GymPybulletDronesEnv(BaseEnv):
 
     def __init__(self, cfg: dict = {}) -> None:
 
+        if "num_drones" not in cfg:
+            self.env_kwargs = {
+                'drone_model': DroneModel.CF2X,
+                'initial_xyzs': None,
+                'initial_rpys': None,
+                'physics': Physics.PYB,
+                'freq': 240,
+                'aggregate_phy_steps': 1,
+                'gui': False,
+                'record': False,
+                'obs': ObservationType.KIN,
+                'act': ActionType.RPM
+            }
+        else:
+            self.env_kwargs = {
+                'drone_model': DroneModel.CF2X,
+                'num_drones': 2,
+                'neighbourhood_radius': np.inf,
+                'initial_xyzs': None,
+                'initial_rpys': None,
+                'physics': Physics.PYB,
+                'freq': 240,
+                'aggregate_phy_steps': 1,
+                'gui': False,
+                'record': False,
+                'obs': ObservationType.KIN,
+                'act': ActionType.RPM
+            }
+
+        for k, _ in self.env_kwargs.items():
+            if k in cfg:
+                self.env_kwargs[k] = cfg[k]
+
+        if "print_debug_info" in cfg:
+            self.print_debug_info = cfg["print_debug_info"]
+        else:
+            self.print_debug_info = False
+
         self._cfg = cfg
         self._env_id = cfg.env_id
         self._init_flag = False
         self._replay_path = None
+
         self._observation_space = gym_pybullet_drones_env_info[cfg.env_id]["observation_space"]
         self._action_space = gym_pybullet_drones_env_info[cfg.env_id]["action_space"]
         self._reward_space = gym_pybullet_drones_env_info[cfg.env_id]["reward_space"]
@@ -52,7 +95,8 @@ class GymPybulletDronesEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
 
-            self._env = gym.make(self._env_id)
+            self._env = gym.make(self._env_id, **self.env_kwargs)
+            #self._env = gym.make(self._env_id)
 
             if self._replay_path is not None:
                 if gym.version.VERSION > '0.22.0':
@@ -94,6 +138,8 @@ class GymPybulletDronesEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         action = action.astype('float32')
         obs, rew, done, info = self._env.step(action)
+        if self.print_debug_info:
+            self._env.render()
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
@@ -129,7 +175,6 @@ class GymPybulletDronesEnv(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
-
 
     def __repr__(self) -> str:
         return "DI-engine gym_pybullet_drones Env: " + self._cfg["env_id"]
