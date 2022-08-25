@@ -45,13 +45,8 @@ class LeagueLearnerCommunicator:
         for env_trajectories in data.train_data:
             for traj in env_trajectories.trajectories:
                 self._cache.append(traj)
-        # if isinstance(data.train_data, list):
-        #     self._cache.extend(data.train_data)
-        # else:
-        #     self._cache.append(data.train_data)
 
     def __call__(self, ctx: "BattleContext"):
-        # log_every_sec(logging.INFO, 5, "[Learner {}] pour data into the ctx".format(task.router.node_id))
         ctx.trajectories = list(self._cache)
         self._cache.clear()
         sleep(0.0001)

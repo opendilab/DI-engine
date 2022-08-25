@@ -129,7 +129,3 @@ def _main():
 @pytest.mark.unittest
 def test_league_learner():
     Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(_main)
-
-
-if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(_main)
