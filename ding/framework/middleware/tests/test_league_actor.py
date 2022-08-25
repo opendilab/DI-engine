@@ -3,7 +3,7 @@ import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
-from ding.framework.middleware.league_learner import LearnerModel
+from ding.framework.middleware.league_learner_communicator import LearnerModel
 from ding.framework.middleware.tests.mock_for_test import league_cfg
 from ding.framework.middleware import LeagueActor, StepLeagueActor
 from ding.framework.middleware.functional import ActorData

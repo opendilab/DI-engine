@@ -17,7 +17,7 @@ from ding.utils.sparse_logging import log_every_sec
 if TYPE_CHECKING:
     from ding.league.v2.base_league import Job
     from ding.framework import BattleContext
-    from ding.framework.middleware.league_learner import LearnerModel
+    from ding.framework.middleware.league_learner_communicator import LearnerModel
 
 
 class StepLeagueActor:
