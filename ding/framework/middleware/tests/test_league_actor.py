@@ -4,7 +4,7 @@ from copy import deepcopy
 from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner import LearnerModel
-from ding.framework.middleware.tests.league_config import cfg
+from ding.framework.middleware.tests.mock_for_test import league_cfg
 from ding.framework.middleware import LeagueActor, StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
