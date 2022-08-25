@@ -10,8 +10,6 @@ cartpole_trex_ppo_onpolicy_config = dict(
     ),
     reward_model=dict(
         type='trex',
-        algo_for_model='ppo',
-        env_id='CartPole-v0',
         min_snippet_length=5,
         max_snippet_length=100,
         checkpoint_min=0,

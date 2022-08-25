@@ -34,7 +34,7 @@ pendulum_ddpg_config = dict(
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(evaluator=dict(eval_freq=100, ), ),
+        eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(replay_buffer=dict(
             replay_buffer_size=20000,
             max_use=16,

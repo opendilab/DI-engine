@@ -183,7 +183,8 @@ def cli(
     def run_single_pipeline(seed, config):
         if config is None:
             config = get_predefined_config(env, policy)
-        config = read_config(config)
+        else:
+            config = read_config(config)
         if exp_name is not None:
             config[0].exp_name = exp_name
 
@@ -261,6 +262,9 @@ def cli(
         elif mode == 'eval':
             from .application_entry import eval
             eval(config, seed, load_path=load_path, replay_path=replay_path)
+
+    if mode is None:
+        raise RuntimeError("Please indicate at least one argument.")
 
     if isinstance(seed, (list, tuple)):
         assert len(seed) > 0, "Please input at least 1 seed"

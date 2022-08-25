@@ -195,7 +195,8 @@ class SampleSerialCollector(ISerialCollector):
             n_sample: Optional[int] = None,
             train_iter: int = 0,
             drop_extra: bool = True,
-            policy_kwargs: Optional[dict] = None
+            policy_kwargs: Optional[dict] = None,
+            level_seeds: Optional[List] = None,
     ) -> List[Any]:
         """
         Overview:
@@ -205,6 +206,8 @@ class SampleSerialCollector(ISerialCollector):
             - train_iter (:obj:`int`): The number of training iteration when calling collect method.
             - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.
             - policy_kwargs (:obj:`dict`): The keyword args for policy forward.
+            - level_seeds (:obj:`dict`): Used in PLR, represents the seed of the environment that \
+                generate the data
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
@@ -262,6 +265,8 @@ class SampleSerialCollector(ISerialCollector):
                         transition = self._policy.process_transition(
                             self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                         )
+                        if level_seeds is not None:
+                            transition['seed'] = level_seeds[env_id]
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
                     self._traj_buffer[env_id].append(transition)

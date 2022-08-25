@@ -16,7 +16,8 @@ pitfall_ppo_rnd_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        env_id='PitfallNoFrameskip-v4',
+        env_id='Pitfall-v4',
+        #'ALE/Pitfall-v5' is available. But special setting is needed after gym make.
         obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
         stop_value=int(1e5),
         frame_stack=4,

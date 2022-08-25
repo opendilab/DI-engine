@@ -1,3 +1,33 @@
+2022.08.12(v0.4.1)
+- env: add gym trading env (#424)
+- env: add board games env (tictactoe, gomuku, chess) (#356)
+- env: add sokoban env (#397) (#429)
+- env: add BC and DQN demo for gfootball (#418) (#423)
+- env: add discrete pendulum env (#395)
+- algo: add STEVE model-based algorithm (#363)
+- algo: add PLR algorithm (#408)
+- algo: plugin ST-DIM in PPO (#379)
+- feature: add final result saving in training pipeline
+- fix: random policy randomness bug
+- fix: action_space seed compalbility bug
+- fix: discard message sent by self in redis mq (#354)
+- fix: remove pace controller (#400)
+- fix: import error in serial_pipeline_trex (#410)
+- fix: unittest hang and fail bug (#413)
+- fix: DREX collect data unittest bug
+- fix: remove unused import cv2
+- fix: ding CLI env/policy option bug
+- style: upgrade Python version from 3.6-3.8 to 3.7-3.9
+- style: upgrade gym version from 0.20.0 to 0.25.0
+- style: upgrade torch version from 1.10.0 to 1.12.0
+- style: upgrade mujoco bin from 2.0.0 to 2.1.0
+- style: add buffer api description (#371)
+- style: polish VAE comments (#404)
+- style: unittest for FQF (#412)
+- style: add metaworld dockerfile (#432)
+- style: remove opencv requirement in default setting
+- style: update long description in setup.py
+
 2022.06.21(v0.4.0)
 - env: add MAPPO/MASAC all configs in SMAC (#310) **(SOTA results in SMAC!!!)**
 - env: add dmc2gym env (#344) (#360)

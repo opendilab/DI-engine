@@ -1,5 +1,6 @@
 import os
 import os.path as osp
+import yaml
 import json
 import shutil
 import sys
@@ -7,8 +8,8 @@ import time
 import tempfile
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
-import yaml
 from easydict import EasyDict
+from copy import deepcopy
 
 from ding.utils import deep_merge_dicts
 from ding.envs import get_env_cls, get_env_manager_cls, BaseEnvManager
@@ -161,7 +162,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
 def read_config_directly(path: str) -> dict:
     """
     Overview:
-        Read configuration from a file path(now only suport python file) and directly return results.
+        Read configuration from a file path(now only support python file) and directly return results.
     Arguments:
         - path (:obj:`str`): Path of configuration file
     Returns:
@@ -346,6 +347,7 @@ def compile_config(
     Returns:
         - cfg (:obj:`EasyDict`): Config after compiling
     """
+    cfg, create_cfg = deepcopy(cfg), deepcopy(create_cfg)
     if auto:
         assert create_cfg is not None
         # for compatibility
@@ -355,7 +357,11 @@ def compile_config(
             create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
             buffer = AdvancedReplayBuffer
         if env is None:
-            env = get_env_cls(create_cfg.env)
+            if 'env' in create_cfg:
+                env = get_env_cls(create_cfg.env)
+            else:
+                env = None
+                create_cfg.env = {'type': 'ding_env_wrapper_generated'}
         if env_manager is None:
             env_manager = get_env_manager_cls(create_cfg.env_manager)
         if policy is None:
@@ -372,6 +378,8 @@ def compile_config(
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
         policy_config.update(create_cfg.policy)
         policy_config.collect.collector.update(create_cfg.collector)
+        if 'evaluator' in create_cfg:
+            policy_config.eval.evaluator.update(create_cfg.evaluator)
         policy_config.other.replay_buffer.update(create_cfg.replay_buffer)
 
         policy_config.other.commander = BaseSerialCommander.default_config()

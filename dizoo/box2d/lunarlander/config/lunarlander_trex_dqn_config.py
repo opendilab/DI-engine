@@ -14,8 +14,6 @@ lunarlander_trex_dqn_config = dict(
     ),
     reward_model=dict(
         type='trex',
-        algo_for_model='dqn',
-        env_id='LunarLander-v2',
         min_snippet_length=30,
         max_snippet_length=100,
         checkpoint_min=1000,
