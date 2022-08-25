@@ -1,19 +1,29 @@
+from operator import length_hint
 import os
+import time
+import copy
 import pickle
+from tokenize import String
+from xmlrpc.client import Boolean
 import torch
+import torch.nn as nn
 from functools import partial
 from tensorboardX import SummaryWriter
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
 from typing import Union, Optional, List, Any, Tuple, Dict
+
+from ding.model.common.head import DiscreteHead, RegressionHead, ReparameterizationHead
 from ding.worker import BaseLearner, BaseSerialCommander, InteractionSerialEvaluator, create_serial_collector
 from ding.config import read_config, compile_config
 from ding.utils import set_pkg_seed
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.policy.common_utils import default_preprocess_learn
 from ding.policy import create_policy
+from ding.utils import SequenceType, squeeze
+from ding.model.common.encoder import FCEncoder, ConvEncoder
+from torch.distributions import Independent, Normal
 from ding.utils.data.dataset import BCODataset
-from ding.world_model.ibm import InverseDynamicsModel
-
+from ding.world_model.idm import InverseDynamicsModel
 
 def load_expertdata(data: Dict[str, torch.Tensor]) -> BCODataset:
     """
@@ -145,25 +155,24 @@ def serial_pipeline_bco(
     # ==========
     learner.call_hook('before_run')
     collect_episode = int(cfg.policy.collect.n_episode * cfg.bco.alpha)
-    # agent_data = list()
-    for epoch in range(cfg.policy.learn.train_epoch):
+    init_episode = True
+    while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        if cfg.policy.continuous:
-            collect_kwargs = {'eps': 0}
-        if epoch == 0:
+            
+        if init_episode:
             new_data = collector.collect(
                 n_episode=cfg.policy.collect.n_episode, train_iter=learner.train_iter, policy_kwargs=collect_kwargs
             )
+            init_episode = False
         else:
             new_data = collector.collect(
                 n_episode=collect_episode, train_iter=learner.train_iter, policy_kwargs=collect_kwargs
             )
-        # agent_data = agent_data + new_data
         learn_dataset = load_agentdata(new_data)
         learn_dataloader = DataLoader(learn_dataset, cfg.bco.learn.idm_batch_size)
         for i, train_data in enumerate(learn_dataloader):
@@ -173,7 +182,8 @@ def serial_pipeline_bco(
                 cfg.bco.learn.idm_learning_rate,
                 cfg.bco.learn.idm_weight_decay,
             )
-        tb_logger.add_scalar("idm_loss", idm_loss, learner.train_iter)
+        # tb_logger.add_scalar("learner_iter/idm_loss", idm_loss, learner.train_iter)
+        # tb_logger.add_scalar("learner_step/idm_loss", idm_loss, collector.envstep)
         # Generate state transitions from demonstrated state trajectories by IDM
         expert_action_data = learned_model.predict_action(expert_learn_dataset.obs)['action']
         post_expert_dataset = BCODataset(
@@ -186,10 +196,11 @@ def serial_pipeline_bco(
         )  # post_expert_dataset: Only obs and action are reserved for BC. next_obs are deleted
         expert_learn_dataloader = DataLoader(post_expert_dataset, cfg.policy.learn.batch_size)
         # Improve policy using BC
-        for i, train_data in enumerate(expert_learn_dataloader):
-            learner.train(train_data, collector.envstep)
-        if cfg.policy.learn.lr_decay:
-            learner.policy.get_attribute('lr_scheduler').step()
+        for epoch in range(cfg.policy.learn.train_epoch):
+            for i, train_data in enumerate(expert_learn_dataloader):
+                learner.train(train_data, collector.envstep)
+            if cfg.policy.learn.lr_decay:
+                learner.policy.get_attribute('lr_scheduler').step()
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 

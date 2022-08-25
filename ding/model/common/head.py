@@ -957,6 +957,76 @@ class RegressionHead(nn.Module):
         return {'pred': x}
 
 
+class RegressionMaskedHead(nn.Module):
+    """
+        Overview:
+            The ``RegressionHead`` used to output actions Q-value.
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``pred``.
+        Interfaces:
+            ``__init__``, ``forward``.
+    """
+
+    def __init__(
+            self,
+            hidden_size: int,
+            output_size: int,
+            layer_num: int = 2,
+            final_tanh: Optional[bool] = False,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
+    ) -> None:
+        """
+        Overview:
+            Init the ``RegressionMaskedHead`` layers according to the provided arguments.
+        Arguments:
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``RegressionHead``.
+            - output_size (:obj:`int`): The number of outputs.
+            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
+            - final_tanh (:obj:`bool`): If ``True`` apply ``tanh`` to output. Default ``False``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+        """
+        super(RegressionMaskedHead, self).__init__()
+        self.main = MLP(hidden_size, hidden_size, hidden_size, layer_num, activation=activation, norm_type=norm_type)
+        self.last = nn.Linear(hidden_size, output_size)  # for convenience of special initialization
+        self.final_tanh = final_tanh
+        if self.final_tanh:
+            self.tanh = nn.Tanh()
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        """
+        Overview:
+            Use encoded embedding tensor to run MLP with ``RegressionHead`` and return the prediction dictionary.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keyword ``pred`` (:obj:`torch.Tensor`),``mask`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - pred: :math:`(B, M)`, mask: :math:`(B, M)`, where ``M = output_size``.
+
+        Examples:
+            >>> head = RegressionMaskedHead(64, 64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['pred'].shape == torch.Size([4, 64])
+            >>> assert outputs['mask'].shape == torch.Size([4, 64])
+        """
+        x = self.main(x)
+        x = self.last(x)
+        if self.final_tanh:
+            mask = x.ge(-1) & x.le(1)
+            x = self.tanh(x)
+
+        if x.shape[-1] == 1 and len(x.shape) > 1:
+            x = x.squeeze(-1)
+        return {'pred': x, 'mask': mask}
+
+
 class ReparameterizationHead(nn.Module):
     """
         Overview:
@@ -1122,6 +1192,7 @@ head_cls_map = {
     'quantile': QuantileHead,
     # continuous
     'regression': RegressionHead,
+    'regression_masked': RegressionMaskedHead,
     'reparameterization': ReparameterizationHead,
     # multi
     'multi': MultiHead,

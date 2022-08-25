@@ -11,6 +11,8 @@ cartpole_bco_config = dict(
     ),
     policy=dict(
         cuda=True,
+        continuous=False,
+        loss_type='l1_loss',
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -18,17 +20,23 @@ cartpole_bco_config = dict(
             dueling=True,
         ),
         learn=dict(
-            train_epoch=200,  # If train_epoch is 1, the algorithm will be BCO(0)
-            batch_size=32,
-            learning_rate=0.01,
+            train_epoch=20,
+            batch_size=128,
+            learning_rate=0.001,
             weight_decay=1e-4,
-            lr_decay=False,
+            momentum=0.9,
+            decay_epoch=30,
+            decay_rate=1,
+            warmup_lr=1e-4,
+            warmup_epoch=3,
+            optimizer='SGD',
+            lr_decay=True,
         ),
         collect=dict(
             n_episode=10,
             # control the number (alpha*n_episode) of post-demonstration environment interactions at each iteration.
             # Notice: alpha * n_episode > collector_env_num
-            model_path='/home/cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar',
+            model_path='abs model path',
             data_path='abs data path',
         ),
         eval=dict(evaluator=dict(eval_freq=40, )),

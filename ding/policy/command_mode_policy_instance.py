@@ -347,7 +347,7 @@ class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('bc_command')
-class BCCommandModePolicy(BehaviourCloningPolicy, CommandModePolicy):
+class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
 
     def _init_command(self) -> None:
         r"""
@@ -355,7 +355,10 @@ class BCCommandModePolicy(BehaviourCloningPolicy, CommandModePolicy):
             Command mode init method. Called by ``self.__init__``.
             Set the eps_greedy rule according to the config for command
         """
-        if not self._cfg.continuous:
+        if self._cfg.continuous:
+            noise_cfg = self._cfg.collect.noise_sigma
+            self.epsilon_greedy = get_epsilon_greedy_fn(noise_cfg.start, noise_cfg.end, noise_cfg.decay, noise_cfg.type)
+        else:
             eps_cfg = self._cfg.other.eps
             self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
@@ -368,10 +371,12 @@ class BCCommandModePolicy(BehaviourCloningPolicy, CommandModePolicy):
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        # Decay according to `learner_train_iter`
-        # step = command_info['learner_train_iter']
-        # Decay according to `envstep`
-        if not self._cfg.continuous:
+        if self._cfg.continuous:
+            # Decay according to `learner_train_iter`
+            step = command_info['learner_train_iter']
+            return {'sigma': self.epsilon_greedy(step)}
+        else:
+            # Decay according to `envstep`
             step = command_info['envstep']
             return {'eps': self.epsilon_greedy(step)}
 
@@ -380,3 +385,4 @@ class BCCommandModePolicy(BehaviourCloningPolicy, CommandModePolicy):
 
     def _get_setting_eval(self, command_info: dict) -> dict:
         return {}
+

@@ -1,5 +1,6 @@
 from typing import Any, Tuple, Callable, Optional, List, Dict
 from abc import ABC
+from ding.rl_utils.exploration import GaussianNoise
 
 import numpy as np
 import torch
@@ -776,6 +777,8 @@ class ActionNoiseWrapper(IModelWrapper):
         self.action_range = action_range
 
     def forward(self, *args, **kwargs):
+        sigma = kwargs.pop('sigma')
+        self.noise_generator = GaussianNoise(mu=0, sigma=sigma)
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         if 'action' in output or 'action_args' in output:
