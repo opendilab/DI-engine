@@ -70,6 +70,7 @@ class RocketEnv(BaseEnv):
             action = action.squeeze()  # 0-dim array
         # NOTE(rjy): action must be a int
         obs, rew, done, info = self._env.step(action)
+        self._env.render()
         self._final_eval_reward += rew
 
         if self._save_replay:
