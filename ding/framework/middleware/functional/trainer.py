@@ -5,7 +5,8 @@ import numpy as np
 from ding.policy import Policy
 from ding.framework import task
 
-from ding.framework import OnlineRLContext, OfflineRLContext, BattleContext
+if TYPE_CHECKING:
+    from ding.framework import OnlineRLContext, OfflineRLContext, BattleContext
 
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     """

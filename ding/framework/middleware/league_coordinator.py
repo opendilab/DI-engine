@@ -59,6 +59,11 @@ class LeagueCoordinator:
         self.league.create_historical_player(player_meta)
 
     def _on_actor_job(self, job: "Job"):
+        if self._last_collect_time is None:
+            self._last_collect_time = time()
+        if self._total_collect_time is None:
+            self._total_collect_time = 0
+        
         self._total_recv_jobs += 1
         old_time = self._last_collect_time
         self._last_collect_time = time()

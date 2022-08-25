@@ -2,10 +2,10 @@ import pytest
 import time
 from unittest.mock import patch
 from ding.framework import task, Parallel
-from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import LeagueCoordinator
-from ding.league.v2 import BaseLeague, Job
+from ding.league.v2 import Job
 from ding.framework import EventEnum
+from ding.league.player import PlayerMeta
 
 
 class MockLeague:
@@ -36,7 +36,7 @@ def _main():
         if task.router.node_id == 0:
             with patch("ding.league.BaseLeague", MockLeague):
                 league = MockLeague()
-                coordinator = LeagueCoordinator(league)
+                coordinator = LeagueCoordinator(None, league)
                 time.sleep(3)
                 assert league.update_payoff_cnt == 3
                 assert league.update_active_player_cnt == 3
@@ -55,8 +55,9 @@ def _main():
             assert task.router.node_id == res[-1].actor_id
         elif task.router.node_id == 2:
             # test LEARNER_SEND_META
-            for _ in range(3):
-                task.emit(EventEnum.LEARNER_SEND_META, {"meta": task.router.node_id})
+            for i in range(3):
+                player_meta = PlayerMeta(player_id="test_player_{}".format(i), checkpoint=None)
+                task.emit(EventEnum.LEARNER_SEND_META, player_meta)
             time.sleep(3)
         elif task.router.node_id == 3:
             # test ACTOR_FINISH_JOB
@@ -70,8 +71,4 @@ def _main():
 
 @pytest.mark.unittest
 def test_coordinator():
-    Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(_main)
-
-
-if __name__ == "__main__":
     Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(_main)
