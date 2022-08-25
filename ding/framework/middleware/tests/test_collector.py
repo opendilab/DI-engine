@@ -89,8 +89,7 @@ def test_episode_collector():
     assert len(ctx.episodes) == 16
 
 
-@pytest.mark.unittest
-def test_battle_transition_list():
+def test_battle_transition():
     env_num = 2
     unroll_len = 32
     transition_list = BattleTransitionList(env_num, unroll_len)
@@ -182,17 +181,13 @@ def test_battle_transition_list():
         assert transition.obs == i
         i += 1
 
-    # print(env_0_result)
-    # print(env_1_result)
-    # print(transition_list._transitions[0])
-    # print(transition_list._transitions[1])
-
-    transition_list_2.clear_newest_episode(env_id=0)
-    transition_list_2.clear_newest_episode(env_id=1)
-
+    transition_list_2.clear_newest_episode(env_id=0, before_append=True)
+    transition_list_2.clear_newest_episode(env_id=1, before_append=True)
     assert len(transition_list_2._transitions[0]) == 2
     assert len(transition_list_2._transitions[1]) == 1
 
 
-if __name__ == '__main__':
-    test_battle_transition_list()
+@pytest.mark.unittest
+def test_battle_transition_list():
+    with task.start():
+        test_battle_transition()
