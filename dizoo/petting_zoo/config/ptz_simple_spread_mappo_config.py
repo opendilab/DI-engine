@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-n_agent = 5
+n_agent = 3
 n_landmark = n_agent
 collector_env_num = 8
 evaluator_env_num = 8
@@ -11,7 +11,7 @@ main_config = dict(
         env_id='simple_spread_v2',
         n_agent=n_agent,
         n_landmark=n_landmark,
-        max_cycles=100,
+        max_cycles=25,
         agent_obs_only=False,
         agent_specific_global_state=True,
         continuous_actions=False,
@@ -62,12 +62,7 @@ main_config = dict(
             env_num=evaluator_env_num,
             evaluator=dict(eval_freq=50, ),
         ),
-        other=dict(eps=dict(
-            type='exp',
-            start=1.0,
-            end=0.05,
-            decay=100000,
-        ), ),
+        other=dict(),
     ),
 )
 main_config = EasyDict(main_config)
