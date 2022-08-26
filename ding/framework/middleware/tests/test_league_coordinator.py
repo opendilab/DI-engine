@@ -51,7 +51,7 @@ def _main():
             )
             for _ in range(3):
                 task.emit(EventEnum.ACTOR_GREETING, task.router.node_id)
-            time.sleep(3)
+            time.sleep(5)
             assert task.router.node_id == res[-1].actor_id
         elif task.router.node_id == 2:
             # test LEARNER_SEND_META
@@ -72,7 +72,3 @@ def _main():
 @pytest.mark.unittest
 def test_coordinator():
     Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(_main)
-
-
-if __name__ == "__main__":
-    test_coordinator()

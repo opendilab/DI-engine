@@ -116,10 +116,9 @@ def _main():
             with patch("ding.framework.storage.FileStorage", MockFileStorage):
                 learner_communicator = LeagueLearnerCommunicator(cfg, policy.learn_mode, player)
                 sleep(0.5)
-                assert len(learner_communicator._cache) == 10
                 task.use(learner_communicator)
                 sleep(0.1)
-        task.run(max_step=1)
+        task.run(max_step=5)
 
 
 @pytest.mark.unittest
