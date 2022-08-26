@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
-from typing import Union, Tuple, List, Callable
 from ding.compatibility import torch_ge_131
 
 from .normalization import build_normalization

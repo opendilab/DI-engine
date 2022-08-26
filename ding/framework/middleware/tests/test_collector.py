@@ -8,7 +8,6 @@ from ding.framework.middleware import StepCollector, EpisodeCollector
 from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
 from ding.framework.middleware import BattleTransitionList
 from easydict import EasyDict
-import copy
 
 
 @pytest.mark.unittest

@@ -102,9 +102,10 @@ class BattleTransitionList:
 
     def _cut_trajectory_from_episode(self, episode: list) -> List[List]:
         # first we cut complete trajectories (list of transitions whose length equal to unroll_len)
-        # then we gather the transitions in the tail of episode, and fill up the trajectory with the tail transitions in Trajectory(t-1)
-        # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len, we fill up the trajectory
-        # with the first element of episode.
+        # then we gather the transitions in the tail of episode, 
+        # and fill up the trajectory with the tail transitions in Trajectory(t-1)
+        # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len, 
+        # we fill up the trajectory with the first element of episode.
         return_episode = []
         i = 0
         num_complele_trajectory, num_tail_transitions = divmod(len(episode), self._unroll_len)
@@ -137,7 +138,7 @@ class BattleTransitionList:
         # If call this method before append, and the last episode of this env is done,
         # it means that the env had some error at the first step of the newest episode,
         # and we should not delete the last episode because it is a normal episode.
-        if before_append == True and len(self._done_episode[env_id]) > 0 and self._done_episode[env_id][-1] == True:
+        if before_append is True and len(self._done_episode[env_id]) > 0 and self._done_episode[env_id][-1] == True:
             return 0
         if len(self._transitions[env_id]) > 0:
             newest_episode = self._transitions[env_id].pop()
@@ -158,7 +159,8 @@ class BattleTransitionList:
             self._done_episode[env_id][-1] = True
             if len(self._transitions[env_id][-1]) < self._unroll_len:
                 logging.warning(
-                    'The length of the newest finished episode in node {}, env {}, is {}, which is shorter than unroll_len: {}, and need to be dropped'
+                    'The length of the newest finished episode in node {}, env {}, is {}, '\
+                        'which is shorter than unroll_len: {}, and need to be dropped'
                     .format(task.router.node_id, env_id, len(self._transitions[env_id][-1]), self._unroll_len)
                 )
                 return False

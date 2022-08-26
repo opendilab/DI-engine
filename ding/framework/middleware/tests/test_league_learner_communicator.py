@@ -12,7 +12,7 @@ from ding.framework.context import BattleContext
 from ding.framework import EventEnum
 from ding.framework.task import task, Parallel
 from ding.framework.middleware import LeagueLearnerCommunicator, LearnerModel
-from ding.framework.middleware.functional.actor_data import *
+from ding.framework.middleware.functional.actor_data import ActorData, ActorDataMeta, ActorEnvTrajectories
 from ding.framework.middleware.tests.mock_for_test import league_cfg
 
 from ding.model import VAC
