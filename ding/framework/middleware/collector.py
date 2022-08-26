@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING, Callable
 import time
 from ditk import logging
 
@@ -124,8 +124,15 @@ WAIT_MODEL_TIME = float('inf')
 class BattleStepCollector:
 
     def __init__(
-        self, cfg: EasyDict, env: BaseEnvManager, unroll_len: int, model_dict: Dict, model_info_dict: Dict,
-        player_policy_collect_dict: Dict, agent_num: int
+        self,
+        cfg: EasyDict,
+        env: BaseEnvManager,
+        unroll_len: int,
+        model_dict: Dict,
+        model_info_dict: Dict,
+        player_policy_collect_dict: Dict,
+        agent_num: int,
+        last_step_fn: Callable = None
     ):
         self.cfg = cfg
         self.end_flag = False
@@ -142,7 +149,7 @@ class BattleStepCollector:
 
         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env))
         self._transitions_list = [
-            BattleTransitionList(self.env.env_num, self.unroll_len) for _ in range(self.agent_num)
+            BattleTransitionList(self.env.env_num, self.unroll_len, last_step_fn) for _ in range(self.agent_num)
         ]
         self._battle_rolloutor = task.wrap(
             battle_rolloutor(self.cfg, self.env, self._transitions_list, self.model_info_dict)

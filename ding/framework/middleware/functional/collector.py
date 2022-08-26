@@ -102,9 +102,9 @@ class BattleTransitionList:
 
     def _cut_trajectory_from_episode(self, episode: list) -> List[List]:
         # first we cut complete trajectories (list of transitions whose length equal to unroll_len)
-        # then we gather the transitions in the tail of episode, 
+        # then we gather the transitions in the tail of episode,
         # and fill up the trajectory with the tail transitions in Trajectory(t-1)
-        # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len, 
+        # If we don't have Trajectory(t-1), i.e. the length of the whole episode is smaller than unroll_len,
         # we fill up the trajectory with the first element of episode.
         return_episode = []
         i = 0

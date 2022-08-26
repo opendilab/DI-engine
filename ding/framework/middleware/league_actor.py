@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 class StepLeagueActor:
 
-    def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
+    def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable, last_step_fn: Callable = None):
         self.cfg = cfg
         self.env_fn = env_fn
         self.env_num = env_fn().env_num
@@ -40,6 +40,7 @@ class StepLeagueActor:
         self.model_dict_lock = Lock()
         self.model_info_dict = {}
         self.agent_num = 2
+        self.last_step_fn = last_step_fn
 
         self.traj_num = 0
         self.total_time = 0
@@ -76,7 +77,7 @@ class StepLeagueActor:
         collector = task.wrap(
             BattleStepCollector(
                 cfg.policy.collect.collector, env, self.unroll_len, self.model_dict, self.model_info_dict,
-                self.player_policy_collect_dict, self.agent_num
+                self.player_policy_collect_dict, self.agent_num, self.last_step_fn
             )
         )
         self._collectors[player_id] = collector
