@@ -69,7 +69,7 @@ class LeagueCoordinator:
         self._last_collect_time = time()
         self._total_collect_time += self._last_collect_time - old_time
         logging.info(
-            "[Coordinator {}] recieve finished job of player {}, "\ 
+            "[Coordinator {}] recieve finished job of player {}, "\
             "recieve {} jobs in total, collect job speed is {} s/job"
             .format(
                 task.router.node_id, job.launch_player, self._total_recv_jobs,
