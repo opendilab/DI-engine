@@ -27,7 +27,8 @@ main_config = dict(
         random_collect_size=0,
         model=dict(
             agent_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
-            global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
+            global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
+            n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
             # SAC concerned
             twin_critic=True,
@@ -46,7 +47,6 @@ main_config = dict(
             learning_rate_alpha=5e-5,
             target_theta=0.005,
             discount_factor=0.99,
-
             alpha=0.2,
             auto_alpha=True,
             log_space=True,
@@ -64,13 +64,13 @@ main_config = dict(
         ),
         other=dict(
             eps=dict(
-            type='linear',
-            start=1,
-            end=0.05,
-            decay=100000,
-        ),
-            replay_buffer=dict(replay_buffer_size=int(1e6),)
+                type='linear',
+                start=1,
+                end=0.05,
+                decay=100000,
             ),
+            replay_buffer=dict(replay_buffer_size=int(1e6), )
+        ),
     ),
 )
 

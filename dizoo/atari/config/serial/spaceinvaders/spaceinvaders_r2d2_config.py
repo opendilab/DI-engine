@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-collector_env_num=8
-evaluator_env_num=5
+collector_env_num = 8
+evaluator_env_num = 5
 spaceinvaders_r2d2_config = dict(
     exp_name='spaceinvaders_r2d2_seed0',
     env=dict(
@@ -61,7 +61,7 @@ spaceinvaders_r2d2_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=10000, 
+                replay_buffer_size=10000,
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

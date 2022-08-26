@@ -85,7 +85,6 @@ hopper_trex_sac_create_config = dict(
 hopper_trex_sac_create_config = EasyDict(hopper_trex_sac_create_config)
 create_config = hopper_trex_sac_create_config
 
-
 if __name__ == '__main__':
     # Users should first run ``hopper_sac_config.py`` to save models (or checkpoints).
     # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step

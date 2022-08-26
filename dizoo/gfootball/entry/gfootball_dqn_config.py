@@ -59,4 +59,3 @@ if __name__ == '__main__':
     from dizoo.gfootball.model.q_network.football_q_network import FootballNaiveQ
     football_naive_q = FootballNaiveQ()
     serial_pipeline((main_config, create_config), model=football_naive_q, seed=0, max_env_step=int(5e6))
-    

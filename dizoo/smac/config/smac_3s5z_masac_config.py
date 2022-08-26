@@ -83,7 +83,6 @@ smac_3s5z_masac_default_create_config = dict(
 smac_3s5z_masac_default_create_config = EasyDict(smac_3s5z_masac_default_create_config)
 create_config = smac_3s5z_masac_default_create_config
 
-
 if __name__ == '__main__':
 
     from ding.entry import serial_pipeline

@@ -39,7 +39,6 @@ cartpole_ngu_config = dict(
         # means the rescale value for the last non-zero reward, only used when last_nonzero_reward_rescale is True
         # please refer to ngu_reward_model for details.
         last_nonzero_reward_weight=1,
-
         intrinsic_reward_type='add',
         learning_rate=5e-4,
         obs_shape=4,
@@ -94,12 +93,13 @@ cartpole_ngu_config = dict(
                 end=0.05,
                 decay=1e4,
             ),
-            replay_buffer=dict(replay_buffer_size=int(1e4),
-                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                               alpha=0.6,
-                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                               beta=0.4,
-                               )
+            replay_buffer=dict(
+                replay_buffer_size=int(1e4),
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                alpha=0.6,
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )

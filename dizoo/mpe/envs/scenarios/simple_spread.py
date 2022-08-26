@@ -4,6 +4,7 @@ from dizoo.mpe.envs.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
+
     def make_world(self, args):
         world = World()
         world.world_length = args.episode_length
@@ -50,8 +51,7 @@ class Scenario(BaseScenario):
         occupied_landmarks = 0
         min_dists = 0
         for l in world.landmarks:
-            dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos)))
-                     for a in world.agents]
+            dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
             min_dists += min(dists)
             rew -= min(dists)
             if min(dists) < 0.1:
@@ -73,8 +73,7 @@ class Scenario(BaseScenario):
         # Agents are rewarded based on minimum agent distance to each landmark, penalized for collisions
         rew = 0
         for l in world.landmarks:
-            dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos)))
-                     for a in world.agents]
+            dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
             rew -= min(dists)
 
         if agent.collide:

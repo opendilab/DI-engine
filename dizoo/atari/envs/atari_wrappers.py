@@ -220,4 +220,3 @@ class GameWrapper(gym.Wrapper):
 
     def legal_actions(self):
         return [_ for _ in range(self.env.action_space.n)]
-

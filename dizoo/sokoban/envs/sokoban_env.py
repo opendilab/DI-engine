@@ -76,7 +76,7 @@ class SokobanEnv(BaseEnv):
             replay_path = './video'
         self._save_replay = True
         self._replay_path = replay_path
-    
+
     def __repr__(self) -> str:
         return "DI-engine Sokoban Env({})".format(self._cfg.env_id)
 

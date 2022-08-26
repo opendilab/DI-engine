@@ -70,7 +70,6 @@ hopper_gcl_create_config = dict(
 hopper_gcl_create_config = EasyDict(hopper_gcl_create_config)
 create_config = hopper_gcl_create_config
 
-
 if __name__ == '__main__':
     from ding.entry import serial_pipeline_guided_cost
     serial_pipeline_guided_cost((main_config, create_config), seed=0)

@@ -81,10 +81,19 @@ class PettingZooEnv(BaseEnv):
                             dtype=np.float32
                         ),
                         'global_state': gym.spaces.Box(
-                            low=float("-inf"), high=float("inf"), shape=(4*self._num_agents+2*self._num_landmarks+2*self._num_agents*(self._num_agents-1), ), dtype=np.float32
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(
+                                4 * self._num_agents + 2 * self._num_landmarks + 2 * self._num_agents *
+                                (self._num_agents - 1),
+                            ),
+                            dtype=np.float32
                         ),
                         'agent_alone_state': gym.spaces.Box(
-                            low=float("-inf"), high=float("inf"), shape=(self._num_agents, 4+2*self._num_landmarks+2*(self._num_agents-1)), dtype=np.float32
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, 4 + 2 * self._num_landmarks + 2 * (self._num_agents - 1)),
+                            dtype=np.float32
                         ),
                         'agent_alone_padding_state': gym.spaces.Box(
                             low=float("-inf"),
@@ -106,7 +115,10 @@ class PettingZooEnv(BaseEnv):
                     agent_specifig_global_state = gym.spaces.Box(
                         low=float("-inf"),
                         high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0] + 4*self._num_agents+2*self._num_landmarks+2*self._num_agents*(self._num_agents-1)),
+                        shape=(
+                            self._num_agents, self._env.observation_space('agent_0').shape[0] + 4 * self._num_agents +
+                            2 * self._num_landmarks + 2 * self._num_agents * (self._num_agents - 1)
+                        ),
                         dtype=np.float32
                     )
                     self._observation_space['global_state'] = agent_specifig_global_state
@@ -223,7 +235,9 @@ class PettingZooEnv(BaseEnv):
         #               - global_state info
         if self._agent_specific_global_state:
             ret['global_state'] = np.concatenate(
-                [ret['agent_state'], np.expand_dims(ret['global_state'], axis=0).repeat(self._num_agents, axis=0)], axis=1
+                [ret['agent_state'],
+                 np.expand_dims(ret['global_state'], axis=0).repeat(self._num_agents, axis=0)],
+                axis=1
             )
         # agent_alone_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2).
         #                    Stacked observation. Exclude other agents' positions from agent_state. Contains
@@ -297,6 +311,7 @@ from pettingzoo.mpe.scenarios.simple_spread import Scenario
 
 
 class raw_env(SimpleEnv):
+
     def __init__(self, N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False):
         assert 0. <= local_ratio <= 1., "local_ratio is a proportion. Must be between 0 and 1."
         scenario = Scenario()

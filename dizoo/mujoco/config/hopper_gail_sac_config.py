@@ -85,7 +85,6 @@ hopper_gail_sac_create_config = dict(
 hopper_gail_sac_create_config = EasyDict(hopper_gail_sac_create_config)
 create_config = hopper_gail_sac_create_config
 
-
 if __name__ == "__main__":
     # or you can enter `ding -m serial_gail -c hopper_gail_sac_config.py -s 0`
     # then input the config you used to generate your expert model in the path mentioned above

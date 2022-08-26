@@ -9,16 +9,14 @@ bigfish_ppg_default_config = dict(
         evaluator_env_num=10,
         n_evaluator_episode=50,
         stop_value=40,
-        manager=dict(
-            shared_memory=True,
-        ),
+        manager=dict(shared_memory=True, ),
     ),
     policy=dict(
         cuda=True,
         model=dict(
             obs_shape=[3, 64, 64],
             action_shape=15,
-            encoder_hidden_size_list=[16,32,32],
+            encoder_hidden_size_list=[16, 32, 32],
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
             impala_cnn_encoder=True,
@@ -36,8 +34,7 @@ bigfish_ppg_default_config = dict(
         ),
         collect=dict(n_sample=16384, ),
         eval=dict(evaluator=dict(eval_freq=96, )),
-        other=dict(
-        ),
+        other=dict(),
     ),
 )
 bigfish_ppg_default_config = EasyDict(bigfish_ppg_default_config)

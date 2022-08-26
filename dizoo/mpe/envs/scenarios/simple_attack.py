@@ -2,27 +2,29 @@ import numpy as np
 from dizoo.mpe.envs.core import World, Agent, Landmark
 from dizoo.mpe.envs.scenario import BaseScenario
 
+
 class Scenario(BaseScenario):
+
     def make_world(self, args):
         world = World()
         # set any world properties first
         #world.dim_c = 2
-        num_good_agents = args.num_good_agents#1
-        num_adversaries = args.num_adversaries#3
+        num_good_agents = args.num_good_agents  #1
+        num_adversaries = args.num_adversaries  #3
         num_agents = num_adversaries + num_good_agents
-        num_landmarks = args.num_landmarks#3
-        assert num_landmarks==num_agents, ("should use the same number!")
+        num_landmarks = args.num_landmarks  #3
+        assert num_landmarks == num_agents, ("should use the same number!")
         # add agents
         world.agents = [Agent() for i in range(num_agents)]
         for i, agent in enumerate(world.agents):
             agent.name = 'agent %d' % i
             agent.collide = True
             agent.silent = True
-            agent.adversary = True if i < num_adversaries else False # adversary first
-            agent.size = 0.075 #if agent.adversary else 0.05
-            agent.accel = 3.0 #if agent.adversary else 4.0
+            agent.adversary = True if i < num_adversaries else False  # adversary first
+            agent.size = 0.075  #if agent.adversary else 0.05
+            agent.accel = 3.0  #if agent.adversary else 4.0
             #agent.accel = 20.0 if agent.adversary else 25.0
-            agent.max_speed = 1.0 #if agent.adversary else 1.3
+            agent.max_speed = 1.0  #if agent.adversary else 1.3
         # add landmarks
         world.landmarks = [Landmark() for i in range(num_landmarks)]
         for i, landmark in enumerate(world.landmarks):
@@ -53,7 +55,6 @@ class Scenario(BaseScenario):
                 landmark.state.p_vel = np.zeros(world.dim_p)
                 world.agents[i].goal = landmark
 
-
     def benchmark_data(self, agent, world):
         # returns data for benchmarking purposes
         if agent.adversary:
@@ -64,7 +65,6 @@ class Scenario(BaseScenario):
             return collisions
         else:
             return 0
-
 
     def is_collision(self, agent1, agent2):
         delta_pos = agent1.state.p_pos - agent2.state.p_pos
@@ -79,7 +79,6 @@ class Scenario(BaseScenario):
     # return all adversarial agents
     def adversaries(self, world):
         return [agent for agent in world.agents if agent.adversary]
-
 
     def reward(self, agent, world):
         # Agents are rewarded based on minimum agent distance to each landmark
@@ -103,13 +102,13 @@ class Scenario(BaseScenario):
         rew -= goal_dist
         if goal_dist < agent.goal.size:
             rew += 0.5
-      
-        adversaries = self.adversaries(world)       
+
+        adversaries = self.adversaries(world)
         for adv in adversaries:
             adv_dist = np.sqrt(np.sum(np.square(agent.state.p_pos - adv.state.p_pos)))
-            if adv_dist < 0.15: # adv distance
+            if adv_dist < 0.15:  # adv distance
                 rew -= 0.1
-            if agent.collide: # collide
+            if agent.collide:  # collide
                 if adv_dist < (agent.size + adv.size):
                     rew -= 0.5
                 self.agent_failed = True
@@ -138,7 +137,7 @@ class Scenario(BaseScenario):
                 for adv in adversaries:
                     if self.is_collision(ag, adv):
                         rew -= 0.5
-        
+
         for p in range(world.dim_p):
             x = abs(agent.state.p_pos[p])
             rew -= bound(x)
@@ -156,7 +155,8 @@ class Scenario(BaseScenario):
         other_pos = []
         other_vel = []
         for other in world.agents:
-            if other is agent: continue
+            if other is agent:
+                continue
             #comm.append(other.state.c)
             other_pos.append(other.state.p_pos - agent.state.p_pos)
             other_vel.append(other.state.p_vel)

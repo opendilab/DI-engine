@@ -19,10 +19,10 @@ logging.basicConfig(level=logging.WARNING)
 @ENV_REGISTRY.register('mpe')
 class MPEEnv(BaseEnv):
     # Now only supports simple_spread
-    
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._init_flag = False # whether the environment begins
+        self._init_flag = False  # whether the environment begins
         self._replay_path = None
         self._scenario_name = self._cfg.env_id
         self._num_agents = self._cfg.n_agent
@@ -31,23 +31,21 @@ class MPEEnv(BaseEnv):
         self._agent_specific_global_state = self._cfg.get('agent_specific_global_state', False)
         logging.debug('env.init')
 
-
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             create_args = EasyDict(
-                scenario_name = self._scenario_name,
-                num_agents = self._num_agents,
-                num_landmarks = self._num_landmarks,
-                episode_length = self._max_cycles,
+                scenario_name=self._scenario_name,
+                num_agents=self._num_agents,
+                num_landmarks=self._num_landmarks,
+                episode_length=self._max_cycles,
             )
             # load scenario from args
             scenario = load(create_args.scenario_name + ".py").Scenario()
             # create world
             world = scenario.make_world(create_args)
             # create multiagent environment
-            self._env = MultiAgentEnv(world, scenario.reset_world,
-                                scenario.reward, scenario.observation, scenario.info)
-        # dynamic seed, different seed in each training env    
+            self._env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.info)
+        # dynamic seed, different seed in each training env
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
@@ -61,59 +59,65 @@ class MPEEnv(BaseEnv):
         if not self._init_flag:
             # set _action_space
             self._agents = self._env.agents
-            self._action_space = gym.spaces.Dict({'agent' + str(i): self._env.action_space[i] for i in range(self._num_agents)})
+            self._action_space = gym.spaces.Dict(
+                {'agent' + str(i): self._env.action_space[i]
+                 for i in range(self._num_agents)}
+            )
             single_agent_obs_space = self._env.action_space[0]
             if isinstance(single_agent_obs_space, gym.spaces.Discrete):
-                self._action_dim = (single_agent_obs_space.n,)
+                self._action_dim = (single_agent_obs_space.n, )
             else:
                 raise Exception('Only support `Discrete` obs space for single agent.')
-            
+
             # set _observation_space
             if not self._cfg.agent_obs_only:
-                self._observation_space = gym.spaces.Dict({
-                    'agent_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space[0].shape[0]),
-                        dtype=np.float32
-                    ),
-                    'global_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents * 4 + self._num_landmarks * 2, self._num_agents * (self._num_agents - 1) * 2,),
-                        dtype=np.float32,
-                    ),
-                    'agent_alone_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, 4 + self._num_landmarks * 2 + (self._num_agents - 1) * 2),
-                        dtype=np.float32,
-                    ),
-                    'agent_alone_padding_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space[0].shape[0]),
-                        dtype=np.float32,
-                    ),
-                    'action_mask':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._action_dim[0]),
-                        dtype=np.float32,
-                    )
-                })
+                self._observation_space = gym.spaces.Dict(
+                    {
+                        'agent_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, self._env.observation_space[0].shape[0]),
+                            dtype=np.float32
+                        ),
+                        'global_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(
+                                self._num_agents * 4 + self._num_landmarks * 2,
+                                self._num_agents * (self._num_agents - 1) * 2,
+                            ),
+                            dtype=np.float32,
+                        ),
+                        'agent_alone_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, 4 + self._num_landmarks * 2 + (self._num_agents - 1) * 2),
+                            dtype=np.float32,
+                        ),
+                        'agent_alone_padding_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, self._env.observation_space[0].shape[0]),
+                            dtype=np.float32,
+                        ),
+                        'action_mask': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, self._action_dim[0]),
+                            dtype=np.float32,
+                        )
+                    }
+                )
                 # whether use agent specific global state:
                 if self._agent_specific_global_state:
                     agent_specific_global_state = gym.spaces.Box(
                         low=float("-inf"),
                         high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space[0].shape[0] +
-                        self._num_agents * 4 + self._num_landmarks * 2 + self._num_agents * (self._num_agents - 1) * 2,),
+                        shape=(
+                            self._num_agents,
+                            self._env.observation_space[0].shape[0] + self._num_agents * 4 + self._num_landmarks * 2 +
+                            self._num_agents * (self._num_agents - 1) * 2,
+                        ),
                         dtype=np.float32,
                     )
                     self._observation_space['global_state'] = agent_specific_global_state
@@ -122,21 +126,24 @@ class MPEEnv(BaseEnv):
                 self._observation_space = gym.spaces.Box(
                     low=float("-inf"),
                     high=float("inf"),
-                    shape=(self._num_agents, self._env.observation_space[0].shape[0]), 
+                    shape=(self._num_agents, self._env.observation_space[0].shape[0]),
                     dtype=np.float32,
                 )
             # set reward_space
-            self._reward_space = gym.spaces.Dict({
-                'agent' + str(i): gym.spaces.Box(
-                    low=float("-inf"),
-                    high=float("inf"),
-                    shape=(1,),
-                    dtype=np.float32,
-                ) for i in range(self._num_agents)
-            })
+            self._reward_space = gym.spaces.Dict(
+                {
+                    'agent' + str(i): gym.spaces.Box(
+                        low=float("-inf"),
+                        high=float("inf"),
+                        shape=(1, ),
+                        dtype=np.float32,
+                    )
+                    for i in range(self._num_agents)
+                }
+            )
             self._init_flag = True
         self._final_eval_reward = 0.
-        self._step_count = 0    # env step counter
+        self._step_count = 0  # env step counter
         obs_n = self._process_obs(obs)
         logging.debug('env reset')
         return obs_n
@@ -146,16 +153,16 @@ class MPEEnv(BaseEnv):
             self._env.close()
         self._init_flag = False
         logging.debug('env close')
-            
+
     def render(self) -> None:
         self._env.render()
-    
+
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
         logging.debug('env seed')
-    
+
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         logging.debug('env step start')
         logging.debug(f'origin action: {action}')
@@ -164,9 +171,7 @@ class MPEEnv(BaseEnv):
         action = self._process_action(action)
 
         obs, rew, done, info = self._env.step(action)
-        info = {
-            'individual_reward'+str(i): info[i]['individual_reward'] for i in range(self._num_agents)
-        }
+        info = {'individual_reward' + str(i): info[i]['individual_reward'] for i in range(self._num_agents)}
         obs_n = self._process_obs(obs)
         # all agents' reward is originally the sum of the reward
         rew_n = np.array(rew[0])
@@ -216,10 +221,8 @@ class MPEEnv(BaseEnv):
         #               - global_state info
         if self._agent_specific_global_state:
             ret['global_state'] = np.concatenate(
-                [
-                    ret['agent_state'],
-                    np.expand_dims(ret['global_state'], axis=0).repeat(self._num_agents, axis=0)
-                ],
+                [ret['agent_state'],
+                 np.expand_dims(ret['global_state'], axis=0).repeat(self._num_agents, axis=0)],
                 axis=1
             )
         # agent_alone_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2).
@@ -258,12 +261,14 @@ class MPEEnv(BaseEnv):
         return action_list
 
     def random_action(self) -> np.ndarray:
-        random_action_array = np.array([self._action_space['agent'+str(i)].sample() for i in range(self._num_agents)], dtype=np.int64)
+        random_action_array = np.array(
+            [self._action_space['agent' + str(i)].sample() for i in range(self._num_agents)], dtype=np.int64
+        )
         return random_action_array
 
     def __repr__(self) -> str:
         return "DI-engine MPE Env"
-    
+
     @property
     def agents(self) -> List[str]:
         return self._agents

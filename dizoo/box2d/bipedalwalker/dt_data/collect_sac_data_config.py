@@ -1,7 +1,6 @@
 from email import policy
 from easydict import EasyDict
 
-
 # learn learner
 # collect
 # other replay buffer
@@ -37,9 +36,7 @@ bipedalwalker_sac_config = dict(
             # NOTE
             learner=dict(
                 train_iterations=int(1e9),
-                dataloader=dict(
-                    num_workers=0,
-                ),
+                dataloader=dict(num_workers=0, ),
                 log_policy=True,
                 hook=dict(
                     load_ckpt_before_run='/mnt/nfs/wangzilin/bipedalwalker_sac_seed0/ckpt/ckpt_best.pth.tar',
@@ -65,8 +62,10 @@ bipedalwalker_sac_config = dict(
             n_sample=128,
             unroll_len=1,
             data_type='naive',
-            save_path='/home/wangzilin/projects/decision_transformer/DI-engine/dizoo/box2d/bipedalwalker/dt_data/data/sac_data_1000eps.pkl',
-            data_path='/home/wangzilin/projects/decision_transformer/DI-engine/dizoo/box2d/bipedalwalker/dt_data/data/sac_data_10eps.pkl',
+            save_path=
+            '/home/wangzilin/projects/decision_transformer/DI-engine/dizoo/box2d/bipedalwalker/dt_data/data/sac_data_1000eps.pkl',
+            data_path=
+            '/home/wangzilin/projects/decision_transformer/DI-engine/dizoo/box2d/bipedalwalker/dt_data/data/sac_data_10eps.pkl',
         ),
         other=dict(
             replay_buffer=dict(
@@ -92,9 +91,7 @@ bipedalwalker_sac_config = dict(
                         average_range=5,
                         print_freq=200,
                     ),
-                    periodic_thruput=dict(
-                        seconds=60,
-                    ),
+                    periodic_thruput=dict(seconds=60, ),
                 ),
                 cfg_type='AdvancedReplayBufferDict',
             ),
@@ -113,7 +110,7 @@ bipedalwalker_sac_create_config = dict(
         type='sac',
         import_names=['ding.policy.sac'],
     ),
-    replay_buffer=dict(type='naive',),
+    replay_buffer=dict(type='naive', ),
 )
 
 bipedalwalker_sac_create_config = EasyDict(bipedalwalker_sac_create_config)

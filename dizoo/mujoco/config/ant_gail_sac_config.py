@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-
 obs_shape = 111
 act_shape = 8
 ant_sac_gail_config = dict(

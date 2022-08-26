@@ -114,7 +114,8 @@ class TestMPEEnv:
             )
             assert timestep.obs['agent_state'].shape == env.observation_space['agent_state'].shape
             assert timestep.obs['global_state'].shape == (
-                n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2
+                n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
+                n_landmark * 2 + n_agent * (n_agent - 1) * 2
             )
             assert timestep.obs['global_state'].shape == env.observation_space['global_state'].shape
             assert timestep.obs['agent_alone_state'].shape == (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2)

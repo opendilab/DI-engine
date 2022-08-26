@@ -4,6 +4,7 @@ from dizoo.mpe.envs.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
+
     def make_world(self, args):
         world = World()
         world.world_length = args.episode_length
@@ -13,8 +14,7 @@ class Scenario(BaseScenario):
         world.collaborative = True
         # add agents
         world.num_agents = args.num_agents  # 2
-        assert world.num_agents == 2, (
-            "only 2 agents is supported, check the config.py.")
+        assert world.num_agents == 2, ("only 2 agents is supported, check the config.py.")
         world.agents = [Agent() for i in range(world.num_agents)]
         for i, agent in enumerate(world.agents):
             agent.name = 'agent %d' % i

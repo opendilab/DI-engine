@@ -6,11 +6,11 @@ import random
 
 class Scenario(BaseScenario):
 
-    def make_world(self,args):
+    def make_world(self, args):
         world = World()
         # set any world properties first
         world.dim_c = 2
-        num_agents = args.num_agents#3
+        num_agents = args.num_agents  #3
         world.num_agents = num_agents
         num_adversaries = 1
         num_landmarks = num_agents - 1
@@ -93,15 +93,13 @@ class Scenario(BaseScenario):
         # Calculate positive reward for agents
         good_agents = self.good_agents(world)
         if shaped_reward:  # distance-based agent reward
-            pos_rew = -min(
-                [np.sqrt(np.sum(np.square(a.state.p_pos - a.goal_a.state.p_pos))) for a in good_agents])
+            pos_rew = -min([np.sqrt(np.sum(np.square(a.state.p_pos - a.goal_a.state.p_pos))) for a in good_agents])
         else:  # proximity-based agent reward (binary)
             pos_rew = 0
             if min([np.sqrt(np.sum(np.square(a.state.p_pos - a.goal_a.state.p_pos))) for a in good_agents]) \
                     < 2 * agent.goal_a.size:
                 pos_rew += 5
-            pos_rew -= min(
-                [np.sqrt(np.sum(np.square(a.state.p_pos - a.goal_a.state.p_pos))) for a in good_agents])
+            pos_rew -= min([np.sqrt(np.sum(np.square(a.state.p_pos - a.goal_a.state.p_pos))) for a in good_agents])
         return pos_rew + adv_rew
 
     def adversary_reward(self, agent, world):
@@ -115,7 +113,6 @@ class Scenario(BaseScenario):
                 adv_rew += 5
             return adv_rew
 
-
     def observation(self, agent, world):
         # get positions of all entities in this agent's reference frame
         entity_pos = []
@@ -128,7 +125,8 @@ class Scenario(BaseScenario):
         # communication of all other agents
         other_pos = []
         for other in world.agents:
-            if other is agent: continue
+            if other is agent:
+                continue
             other_pos.append(other.state.p_pos - agent.state.p_pos)
 
         if not agent.adversary:
