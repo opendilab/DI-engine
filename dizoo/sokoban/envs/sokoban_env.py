@@ -29,7 +29,12 @@ class SokobanEnv(BaseEnv):
             self._init_flag = True
 
             if self._save_replay:
-                self._env = gym.wrappers.Monitor(self._env, self._replay_path)
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
+                )
 
             self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
             self._observation_space = self._env.observation_space

@@ -10,6 +10,8 @@ pendulum_dqn_config = dict(
         n_evaluator_episode=5,
         stop_value=-250,
         continuous=False,
+        # The path to save the game replay
+        # replay_path='./pendulum_dqn_seed0/video',
     ),
     policy=dict(
         cuda=False,

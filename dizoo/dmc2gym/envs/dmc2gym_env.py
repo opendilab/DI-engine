@@ -145,7 +145,10 @@ class DMC2GymEnv(BaseEnv):
             )
 
             if self._replay_path is not None:
-                self._env.metadata.update({'render.modes': ["rgb_array"]})
+                if gym.version.VERSION > '0.22.0':
+                    self._env.metadata.update({'render_modes': ["rgb_array"]})
+                else:
+                    self._env.metadata.update({'render.modes': ["rgb_array"]})
                 self._env = gym.wrappers.RecordVideo(
                     self._env,
                     video_folder=self._replay_path,

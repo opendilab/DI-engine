@@ -14,7 +14,7 @@ class PendulumEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._act_scale = cfg.act_scale
-        self._env = gym.make('Pendulum-v0')
+        self._env = gym.make('Pendulum-v1')
         self._init_flag = False
         self._replay_path = None
         if 'continuous' in cfg.keys():
@@ -36,7 +36,7 @@ class PendulumEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make('Pendulum-v0')
+            self._env = gym.make('Pendulum-v1')
             if self._replay_path is not None:
                 self._env = gym.wrappers.RecordVideo(
                     self._env,

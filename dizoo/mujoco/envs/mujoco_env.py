@@ -36,6 +36,14 @@ class MujocoEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env()
+            if self._replay_path is not None:
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
+                )
+
             self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
@@ -48,11 +56,6 @@ class MujocoEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        if self._replay_path is not None:
-            self._env = gym.wrappers.Monitor(
-                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-            )
-            self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
         return obs

@@ -4,6 +4,7 @@ The code is adapted from https://github.com/nikhilbarhate99/min-decision-transfo
 from typing import Union, Optional, List, Any, Tuple
 from functools import partial
 from tensorboardX import SummaryWriter
+from copy import deepcopy
 from torch.utils.data import DataLoader
 
 from ding.envs import get_vec_env_setting, create_env_manager
@@ -49,7 +50,7 @@ def serial_pipeline_dt(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
