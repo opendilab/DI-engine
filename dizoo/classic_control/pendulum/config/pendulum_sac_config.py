@@ -33,9 +33,7 @@ pendulum_sac_config = dict(
             discount_factor=0.99,
             auto_alpha=True,
         ),
-        collect=dict(
-            n_sample=10,
-        ),
+        collect=dict(n_sample=10, ),
         eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
     ),

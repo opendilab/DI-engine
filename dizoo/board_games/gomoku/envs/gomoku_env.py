@@ -10,19 +10,18 @@ from ding.utils import ENV_REGISTRY
 
 @ENV_REGISTRY.register('gomoku')
 class GomokuEnv(BaseGameEnv):
+
     def __init__(self, cfg: dict = None, board_size: int = 15):
         self.cfg = cfg
         self.board_size = board_size
         self.players = [1, 2]
-        self.board_markers = [
-            str(i + 1) for i in range(self.board_size)
-        ]
+        self.board_markers = [str(i + 1) for i in range(self.board_size)]
         self.total_num_actions = self.board_size * self.board_size
 
     @property
     def current_player(self):
         return self._current_player
-    
+
     @property
     def to_play(self):
         return self.players[0] if self.current_player == self.players[1] else self.players[1]
@@ -41,7 +40,7 @@ class GomokuEnv(BaseGameEnv):
             low=0, high=2, shape=(self.board_size, self.board_size, 3), dtype=np.int32
         )
         self._action_space = gym.spaces.Discrete(self.board_size ** 2)
-        self._reward_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
+        self._reward_space = gym.spaces.Box(low=0, high=1, shape=(1, ), dtype=np.float32)
 
         self._current_player = self.players[start_player]
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
@@ -125,9 +124,7 @@ class GomokuEnv(BaseGameEnv):
                     x, y = i, j
                     count = 0
                     for _ in range(5):
-                        if (x not in range(self.board_size)) or (
-                                y not in range(self.board_size)
-                        ):
+                        if (x not in range(self.board_size)) or (y not in range(self.board_size)):
                             break
                         if self.board[x][y] != player:
                             break
@@ -174,13 +171,8 @@ class GomokuEnv(BaseGameEnv):
                     )
                 )
                 choice = self.coord_to_action(row - 1, col - 1)
-                if (
-                        choice in self.legal_actions
-                        and 1 <= row
-                        and 1 <= col
-                        and row <= self.board_size
-                        and col <= self.board_size
-                ):
+                if (choice in self.legal_actions and 1 <= row and 1 <= col and row <= self.board_size
+                        and col <= self.board_size):
                     break
                 else:
                     print("Wrong input, try again")
@@ -248,5 +240,3 @@ class GomokuEnv(BaseGameEnv):
 
     def __repr__(self) -> str:
         return "DI-engine Gomoku Env"
-
-

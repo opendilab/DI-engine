@@ -85,7 +85,6 @@ walker2d_trex_sac_create_config = dict(
 walker2d_trex_sac_create_config = EasyDict(walker2d_trex_sac_create_config)
 create_config = walker2d_trex_sac_create_config
 
-
 if __name__ == '__main__':
     # Users should first run ``walker2d_sac_config.py`` to save models (or checkpoints).
     # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
