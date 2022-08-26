@@ -32,14 +32,17 @@ class PettingZooEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
+            # In order to align with the simple spread in Multiagent Particle Env (MPE), 
+            # instead of adopting the pettingzoo interface directly, 
+            # we have redefined the way rewards are calculated
+            
             # import_module(['pettingzoo.{}.{}'.format(self._env_family, self._env_id)])
             # self._env = pettingzoo.__dict__[self._env_family].__dict__[self._env_id].parallel_env(
             #     N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
             # )
-            # from .my_simple_spread_v2 import parallel_env
 
             # init parallel_env wrapper
-            _env = make_env(raw_env)
+            _env = make_env(simple_spread_raw_env)
             parallel_env = parallel_wrapper_fn(_env)
             # init env
             self._env = parallel_env(
@@ -310,7 +313,7 @@ from pettingzoo.mpe._mpe_utils.simple_env import SimpleEnv, make_env
 from pettingzoo.mpe.scenarios.simple_spread import Scenario
 
 
-class raw_env(SimpleEnv):
+class simple_spread_raw_env(SimpleEnv):
 
     def __init__(self, N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False):
         assert 0. <= local_ratio <= 1., "local_ratio is a proportion. Must be between 0 and 1."
