@@ -161,7 +161,7 @@ class BattleStepCollector:
 
     def _update_policies(self, player_id_set) -> None:
         for player_id in player_id_set:
-            # for this player, if in the beginning of actor's lifetime, 
+            # for this player, if in the beginning of actor's lifetime,
             # actor didn't recieve any new model, use initial model instead.
             if self.model_info_dict.get(player_id) is None:
                 self.model_info_dict[player_id] = PlayerModelInfo(
@@ -174,7 +174,9 @@ class BattleStepCollector:
                 update_player_id_set.add(player_id)
         while True:
             time_now = time.time()
-            time_list = [time_now - self.model_info_dict[player_id].get_new_model_time for player_id in update_player_id_set]
+            time_list = [
+                time_now - self.model_info_dict[player_id].get_new_model_time for player_id in update_player_id_set
+            ]
             if any(x >= WAIT_MODEL_TIME for x in time_list):
                 for index, player_id in enumerate(update_player_id_set):
                     if time_list[index] >= WAIT_MODEL_TIME:

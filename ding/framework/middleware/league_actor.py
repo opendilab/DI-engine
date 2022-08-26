@@ -136,9 +136,7 @@ class StepLeagueActor:
             if player.player_id == job.launch_player:
                 main_player = player
         assert main_player, "[Actor {}] cannot find active player.".format(task.router.node_id)
-        assert current_policies, "[Actor {}] current_policies should not be None".format(
-            task.router.node_id
-        )
+        assert current_policies, "[Actor {}] current_policies should not be None".format(task.router.node_id)
 
         return main_player, current_policies
 
@@ -151,7 +149,7 @@ class StepLeagueActor:
         log_every_sec(
             logging.INFO, 5, '[Actor {}] job of player {} begins.'.format(task.router.node_id, job.launch_player)
         )
-        
+
         ctx.player_id_list = [player.player_id for player in job.players]
         main_player_idx = [idx for idx, player in enumerate(job.players) if player.player_id == job.launch_player]
         self.agent_num = len(job.players)
@@ -212,7 +210,7 @@ class StepLeagueActor:
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
                 break
-    
+
         self.total_episode_num += ctx.env_episode
         logging.info(
             '[Actor {}] finish {} episodes till now, speed is {} episode/s'.format(
@@ -224,5 +222,6 @@ class StepLeagueActor:
                 task.router.node_id, self.traj_num, self.traj_num / self.total_episode_num
             )
         )
+
 
 #TODO: EpisodeLeagueActor

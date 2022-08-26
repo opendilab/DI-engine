@@ -169,7 +169,7 @@ class Transformer(nn.Module):
         layer_num: int = 3,
         dropout_ratio: float = 0.,
         activation: nn.Module = nn.ReLU(),
-        ln_type = 'pre'
+        ln_type='pre'
     ):
         r"""
         Overview:
@@ -193,7 +193,9 @@ class Transformer(nn.Module):
         self.dropout = nn.Dropout(dropout_ratio)
         for i in range(layer_num):
             layers.append(
-                TransformerLayer(dims[i], head_dim, hidden_dim, dims[i + 1], head_num, mlp_num, self.dropout, self.act, ln_type)
+                TransformerLayer(
+                    dims[i], head_dim, hidden_dim, dims[i + 1], head_num, mlp_num, self.dropout, self.act, ln_type
+                )
             )
         self.main = nn.Sequential(*layers)
 

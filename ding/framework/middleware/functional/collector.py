@@ -303,7 +303,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
                     transitions_list[policy_id].clear_newest_episode(env_id, before_append=True)
                     policy.reset([env_id])
                 continue
-            
+
             episode_long_enough = True
             for policy_id, policy in enumerate(ctx.current_policies):
                 policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
@@ -315,7 +315,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
                 transition.collect_train_iter = ttorch.as_tensor(
                     [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
                 )
-                
+
                 episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
 
             if timestep.done:

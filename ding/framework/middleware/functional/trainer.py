@@ -8,6 +8,7 @@ from ding.framework import task
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext, BattleContext
 
+
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     """
     Overview:

@@ -20,6 +20,7 @@ from ding.policy.ppo import PPOPolicy
 
 PLAYER_ID = "test_player"
 
+
 def prepare_test():
     global league_cfg
     cfg = deepcopy(league_cfg)
@@ -42,7 +43,7 @@ class MockFileStorage:
 
     def __init__(self, path: str) -> None:
         self.path = path
-    
+
     def save(self, data: Any) -> bool:
         assert isinstance(data, dict)
 
@@ -59,14 +60,11 @@ class MockPlayer:
 
 def coordinator_mocker():
 
-    test_cases = {
-        "on_learner_meta": False
-    }
+    test_cases = {"on_learner_meta": False}
 
     def on_learner_meta(player_meta):
         assert player_meta.player_id == PLAYER_ID
         test_cases["on_learner_meta"] = True
-
 
     task.on(EventEnum.LEARNER_SEND_META.format(player=PLAYER_ID), on_learner_meta)
 
@@ -79,15 +77,13 @@ def coordinator_mocker():
 
 def actor_mocker():
 
-    test_cases = {
-        "on_learner_model": False
-    }
+    test_cases = {"on_learner_model": False}
 
     def on_learner_model(learner_model):
         assert isinstance(learner_model, LearnerModel)
         assert learner_model.player_id == PLAYER_ID
         test_cases["on_learner_model"] = True
-    
+
     task.on(EventEnum.LEARNER_SEND_MODEL.format(player=PLAYER_ID), on_learner_model)
 
     def _actor_mocker(ctx):
@@ -98,7 +94,7 @@ def actor_mocker():
             data = []
             actor_data = ActorData(meta=meta, train_data=[ActorEnvTrajectories(env_id=0, trajectories=[data])])
             task.emit(EventEnum.ACTOR_SEND_DATA.format(player=player.player_id), actor_data)
-        
+
         sleep(0.8)
         assert all(test_cases.values())
 
