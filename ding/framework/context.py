@@ -75,3 +75,38 @@ class OfflineRLContext(Context):
         self.last_eval_iter = -1
 
         self.keep('train_iter', 'last_eval_iter')
+
+
+class BattleContext(Context):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.__dict__ = self
+        # collect target paras
+        self.n_episode = None
+
+        #collect process paras
+        self.env_episode = 0
+        self.env_step = 0
+        self.total_envstep_count = 0
+        self.train_iter = 0
+        self.collect_kwargs = {}
+        self.current_policies = []
+
+        #job paras
+        self.player_id_list = []
+        self.job_finish = False
+
+        #data
+        self.obs = None
+        self.actions = None
+        self.inference_output = {}
+        self.trajectories = None
+
+        #Return data paras
+        self.episodes = []
+        self.episode_info = []
+        self.trajectories_list = []
+        self.train_data = None
+
+        self.keep('train_iter')

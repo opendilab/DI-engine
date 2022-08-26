@@ -22,7 +22,7 @@ def pfsp(win_rates: np.ndarray, weighting: str) -> np.ndarray:
         raise KeyError("invalid weighting arg: {} in pfsp".format(weighting))
 
     assert isinstance(win_rates, np.ndarray)
-    assert win_rates.shape[0] >= 1, win_rates.shape
+    assert win_rates.shape[0] >= 1, "win rate is {}".format(win_rates)
     # all zero win rates case, return uniform selection prob
     if win_rates.sum() < 1e-8:
         return np.full_like(win_rates, 1.0 / len(win_rates))

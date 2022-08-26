@@ -6,6 +6,8 @@ from ding.framework import OnlineRLContext, task
 from ding.framework.middleware import TransitionList, inferencer, rolloutor
 from ding.framework.middleware import StepCollector, EpisodeCollector
 from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
+from ding.framework.middleware import BattleTransitionList
+from easydict import EasyDict
 
 
 @pytest.mark.unittest
@@ -84,3 +86,107 @@ def test_episode_collector():
             collector = EpisodeCollector(cfg, policy, env, random_collect_size=8)
             collector(ctx)
     assert len(ctx.episodes) == 16
+
+
+def test_battle_transition():
+    env_num = 2
+    unroll_len = 32
+    transition_list = BattleTransitionList(env_num, unroll_len)
+    len_env_0 = 48
+    len_env_1 = 72
+
+    for i in range(len_env_0):
+        timestep = EasyDict({'obs': i, 'done': False})
+        transition_list.append(env_id=0, transition=timestep)
+
+    transition_list.append(env_id=0, transition=EasyDict({'obs': len_env_0, 'done': True}))
+
+    for i in range(len_env_1):
+        timestep = EasyDict({'obs': i, 'done': False})
+        transition_list.append(env_id=1, transition=timestep)
+
+    transition_list.append(env_id=1, transition=EasyDict({'obs': len_env_1, 'done': True}))
+
+    len_env_0_2 = 12
+    len_env_1_2 = 72
+
+    for i in range(len_env_0_2):
+        timestep = EasyDict({'obs': i, 'done': False})
+        transition_list.append(env_id=0, transition=timestep)
+
+    transition_list.append(env_id=0, transition=EasyDict({'obs': len_env_0_2, 'done': True}))
+
+    for i in range(len_env_1_2):
+        timestep = EasyDict({'obs': i, 'done': False})
+        transition_list.append(env_id=1, transition=timestep)
+
+    transition_list_2 = copy.deepcopy(transition_list)
+
+    env_0_result = transition_list.get_env_trajectories(env_id=0)
+    env_1_result = transition_list.get_env_trajectories(env_id=1)
+
+    # print(env_0_result)
+    # print(env_1_result)
+
+    assert len(env_0_result) == 3
+    assert len(env_1_result) == 4
+
+    for trajectory in env_0_result:
+        assert len(trajectory) == unroll_len
+    for trajectory in env_1_result:
+        assert len(trajectory) == unroll_len
+    #env_0
+    i = 0
+    trajectory = env_0_result[0]
+    for transition in trajectory:
+        assert transition.obs == i
+        i += 1
+
+    trajectory = env_0_result[1]
+    i = len_env_0 - unroll_len + 1
+    for transition in trajectory:
+        assert transition.obs == i
+        i += 1
+
+    trajectory = env_0_result[2]
+    test_number = 0
+    for i, transition in enumerate(trajectory):
+        if i < unroll_len - len_env_0_2 - 1:
+            assert transition.obs == 0
+        else:
+            assert transition.obs == test_number
+            test_number += 1
+
+    #env_1
+    i = 0
+    for trajectory in env_1_result[:2]:
+        assert len(trajectory) == unroll_len
+        for transition in trajectory:
+            assert transition.obs == i
+            i += 1
+
+    trajectory = env_1_result[2]
+    assert len(trajectory) == unroll_len
+
+    i = len_env_1 - unroll_len + 1
+    for transition in trajectory:
+        assert transition.obs == i
+        i += 1
+
+    trajectory = env_1_result[3]
+    assert len(trajectory) == unroll_len
+    i = 0
+    for transition in trajectory:
+        assert transition.obs == i
+        i += 1
+
+    transition_list_2.clear_newest_episode(env_id=0, before_append=True)
+    transition_list_2.clear_newest_episode(env_id=1, before_append=True)
+    assert len(transition_list_2._transitions[0]) == 2
+    assert len(transition_list_2._transitions[1]) == 1
+
+
+@pytest.mark.unittest
+def test_battle_transition_list():
+    with task.start():
+        test_battle_transition()

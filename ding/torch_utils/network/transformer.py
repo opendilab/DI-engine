@@ -89,7 +89,7 @@ class TransformerLayer(nn.Module):
 
     def __init__(
             self, input_dim: int, head_dim: int, hidden_dim: int, output_dim: int, head_num: int, mlp_num: int,
-            dropout: nn.Module, activation: nn.Module
+            dropout: nn.Module, activation: nn.Module, ln_type
     ) -> None:
         r"""
         Overview:
@@ -117,6 +117,7 @@ class TransformerLayer(nn.Module):
         layers.append(self.dropout)
         self.mlp = nn.Sequential(*layers)
         self.layernorm2 = build_normalization('LN')(output_dim)
+        self.ln_type = ln_type
 
     def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -128,10 +129,22 @@ class TransformerLayer(nn.Module):
             - output (:obj:`Tuple[torch.Tensor, torch.Tensor]`): predict value and mask
         """
         x, mask = inputs
-        a = self.dropout(self.attention(x, mask))
-        x = self.layernorm1(x + a)
-        m = self.dropout(self.mlp(x))
-        x = self.layernorm2(x + m)
+        if self.ln_type == "pre":
+            a = self.attention(self.layernorm1(x), mask)
+            if self.dropout:
+                a = self.dropout(a)
+            x = x + a
+            m = self.mlp(self.layernorm2(x))
+            if self.dropout:
+                m = self.dropout(m)
+            x = x + m
+        elif self.ln_type == "post":
+            a = self.dropout(self.attention(x, mask))
+            x = self.layernorm1(x + a)
+            m = self.dropout(self.mlp(x))
+            x = self.layernorm2(x + m)
+        else:
+            raise NotImplementedError(self.ln_type)
         return (x, mask)
 
 
@@ -156,6 +169,7 @@ class Transformer(nn.Module):
         layer_num: int = 3,
         dropout_ratio: float = 0.,
         activation: nn.Module = nn.ReLU(),
+        ln_type='pre'
     ):
         r"""
         Overview:
@@ -179,7 +193,9 @@ class Transformer(nn.Module):
         self.dropout = nn.Dropout(dropout_ratio)
         for i in range(layer_num):
             layers.append(
-                TransformerLayer(dims[i], head_dim, hidden_dim, dims[i + 1], head_num, mlp_num, self.dropout, self.act)
+                TransformerLayer(
+                    dims[i], head_dim, hidden_dim, dims[i + 1], head_num, mlp_num, self.dropout, self.act, ln_type
+                )
             )
         self.main = nn.Sequential(*layers)
 

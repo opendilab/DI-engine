@@ -6,7 +6,7 @@ from ding.policy import Policy
 from ding.framework import task
 
 if TYPE_CHECKING:
-    from ding.framework import OnlineRLContext, OfflineRLContext
+    from ding.framework import OnlineRLContext, OfflineRLContext, BattleContext
 
 
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:
@@ -18,7 +18,7 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
         - policy (:obj:`Policy`): The policy to be trained in step-by-step mode.
     """
 
-    def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
+    def _train(ctx: Union["OnlineRLContext", "OfflineRLContext", "BattleContext"]):
         """
         Input of ctx:
             - train_data (:obj:`Dict`): The data used to update the network. It will train only if \

@@ -4,6 +4,7 @@ from ditk import logging
 import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay
+from ding.utils.sparse_logging import log_every_sec
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
@@ -111,7 +112,8 @@ def offpolicy_data_fetcher(
             assert buffered_data is not None
         except (ValueError, AssertionError):
             # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
-            logging.warning(
+            log_every_sec(
+                logging.WARNING, 10,
                 "Replay buffer's data is not enough to support training, so skip this training for waiting more data."
             )
             ctx.train_data = None

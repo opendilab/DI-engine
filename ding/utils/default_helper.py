@@ -1,10 +1,13 @@
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any, Dict
-import copy
-from ditk import logging
-import random
 from functools import lru_cache  # in python3.9, we can change to cache
+from easydict import EasyDict
+import os
+import copy
+import random
 import numpy as np
 import torch
+import yaml
+from ditk import logging
 
 
 def lists_to_dicts(
@@ -569,6 +572,21 @@ def make_key_as_identifier(data: Dict[str, Any]) -> Dict[str, Any]:
         new_k = legalization(k)
         new_data[new_k] = data[k]
     return new_data
+
+
+def read_yaml_config(path: str) -> EasyDict:
+    """
+    Overview:
+        Read yaml configuration from given path.
+    Arguments:
+        - path (:obj:`str`): Path of source yaml.
+    Returns:
+        - cfg (:obj:`EasyDict`): Config data from this file with dict type.
+    """
+    assert os.path.exists(path), path
+    with open(path, "r") as f:
+        config = yaml.safe_load(f)
+    return EasyDict(config)
 
 
 def remove_illegal_item(data: Dict[str, Any]) -> Dict[str, Any]:

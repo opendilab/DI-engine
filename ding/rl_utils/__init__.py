@@ -12,11 +12,11 @@ from .td import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_e
     fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss, evaluate_quantile_at_action, \
     q_nstep_sql_td_error, dqfd_nstep_td_error, dqfd_nstep_td_data, q_v_1step_td_error, q_v_1step_td_data,\
     dqfd_nstep_td_error_with_rescale, discount_cumsum
-from .vtrace import vtrace_loss, compute_importance_weights
-from .upgo import upgo_loss
+from .upgo import upgo_data, upgo_error
 from .adder import get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
 from .value_rescale import value_transform, value_inv_transform
-from .vtrace import vtrace_data, vtrace_error
+from .vtrace import vtrace_data, vtrace_error, vtrace_loss, vtrace_data_with_rho, vtrace_error_with_rho, \
+    compute_importance_weights
 from .beta_function import beta_function_map
 from .retrace import compute_q_retraces
 from .acer import acer_policy_error, acer_value_error, acer_trust_region_update
