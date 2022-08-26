@@ -65,7 +65,9 @@ def collect_episodic_demo_data_for_drex(
         assert state_dict_path is not None
         state_dict = torch.load(state_dict_path, map_location='cpu')
     policy.collect_mode.load_state_dict(state_dict)
-    collector = EpisodeSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy, exp_name=cfg.exp_name)
+    collector = EpisodeSerialCollector(
+        cfg.policy.collect.collector, collector_env, collect_demo_policy, exp_name=cfg.exp_name
+    )
 
     policy_kwargs = {'eps': noise}
 
