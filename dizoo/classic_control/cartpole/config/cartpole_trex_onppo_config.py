@@ -19,7 +19,7 @@ cartpole_trex_ppo_onpolicy_config = dict(
         update_per_collect=1,
         expert_model_path='abs model path',
         reward_model_path='abs data path + ./cartpole.params',
-        offline_data_path='abs data path',
+        data_path='abs data path',
     ),
     policy=dict(
         cuda=False,
