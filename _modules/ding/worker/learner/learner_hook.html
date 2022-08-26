@@ -1,0 +1,826 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.worker.learner.learner_hook &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.worker.learner.learner_hook</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.worker.learner.learner_hook</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numbers</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="kn">import</span> <span class="nn">ding</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">allreduce</span><span class="p">,</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">get_rank</span>
+
+
+<div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.Hook">[docs]</a><span class="k">class</span> <span class="nc">Hook</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Abstract class for hooks.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        __init__, __call__</span>
+<span class="sd">    Property:</span>
+<span class="sd">        name, priority</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Hook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.Hook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">priority</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init method for hooks. Set name and priority.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): The name of hook</span>
+<span class="sd">            - priority (:obj:`float`): The priority used in ``call_hook``&#39;s calling sequence. \</span>
+<span class="sd">                Lower value means higher priority.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">assert</span> <span class="n">priority</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;invalid priority value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">priority</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="n">priority</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">priority</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Should be overwritten by subclass.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - engine (:obj:`Any`): For LearnerHook, it should be ``BaseLearner`` or its subclass.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="LearnerHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LearnerHook">[docs]</a><span class="k">class</span> <span class="nc">LearnerHook</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Abstract class for hooks used in Learner.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        __init__</span>
+<span class="sd">    Property:</span>
+<span class="sd">        name, priority, position</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Subclass should implement ``self.__call__``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;before_run&#39;</span><span class="p">,</span> <span class="s1">&#39;after_run&#39;</span><span class="p">,</span> <span class="s1">&#39;before_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;after_iter&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="LearnerHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LearnerHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init LearnerHook.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - position (:obj:`str`): The position to call hook in learner. \</span>
+<span class="sd">                Must be in [&#39;before_run&#39;, &#39;after_run&#39;, &#39;before_iter&#39;, &#39;after_iter&#39;].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">position</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">position</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">position</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_position</span></div>
+
+
+<div class="viewcode-block" id="LoadCkptHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LoadCkptHook">[docs]</a><span class="k">class</span> <span class="nc">LoadCkptHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Hook to load checkpoint</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        __init__, __call__</span>
+<span class="sd">    Property:</span>
+<span class="sd">        name, priority, position</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LoadCkptHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LoadCkptHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init LoadCkptHook.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ext_args (:obj:`EasyDict`): Extended arguments. Use ``ext_args.freq`` to set ``load_ckpt_freq``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_path</span> <span class="o">=</span> <span class="n">ext_args</span><span class="p">[</span><span class="s1">&#39;load_path&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LoadCkptHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LoadCkptHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load checkpoint to learner. Checkpoint info includes policy state_dict and iter num.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - engine (:obj:`BaseLearner`): The BaseLearner to load checkpoint to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_path</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>  <span class="c1"># not load</span>
+            <span class="k">return</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;last_iter&#39;</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="p">:</span>
+            <span class="n">last_iter</span> <span class="o">=</span> <span class="n">state_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;last_iter&#39;</span><span class="p">)</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">last_iter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">last_iter</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> load ckpt in </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="SaveCkptHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.SaveCkptHook">[docs]</a><span class="k">class</span> <span class="nc">SaveCkptHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Hook to save checkpoint</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        __init__, __call__</span>
+<span class="sd">    Property:</span>
+<span class="sd">        name, priority, position</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SaveCkptHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.SaveCkptHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            init SaveCkptHook</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ext_args (:obj:`EasyDict`): extended_args, use ext_args.freq to set save_ckpt_freq</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext_args</span> <span class="o">==</span> <span class="p">{}:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">ext_args</span><span class="o">.</span><span class="n">freq</span></div>
+
+<div class="viewcode-block" id="SaveCkptHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.SaveCkptHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Save checkpoint in corresponding path.</span>
+<span class="sd">            Checkpoint info includes policy state_dict and iter num.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - engine (:obj:`BaseLearner`): the BaseLearner which needs to save checkpoint</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">engine</span><span class="o">.</span><span class="n">last_iter</span><span class="o">.</span><span class="n">val</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span> <span class="o">==</span> <span class="s1">&#39;learner&#39;</span><span class="p">:</span>
+                <span class="n">dirname</span> <span class="o">=</span> <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/ckpt&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dirname</span> <span class="o">=</span> <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/ckpt_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="n">ckpt_name</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">ckpt_name</span> <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">ckpt_name</span> <span class="k">else</span> <span class="s1">&#39;iteration_</span><span class="si">{}</span><span class="s1">.pth.tar&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">last_iter</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">ckpt_name</span><span class="p">)</span>
+            <span class="n">state_dict</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+            <span class="n">state_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;last_iter&#39;</span><span class="p">:</span> <span class="n">engine</span><span class="o">.</span><span class="n">last_iter</span><span class="o">.</span><span class="n">val</span><span class="p">})</span>
+            <span class="n">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">)</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> save ckpt in </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="LogShowHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook">[docs]</a><span class="k">class</span> <span class="nc">LogShowHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Hook to show log</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        __init__, __call__</span>
+<span class="sd">    Property:</span>
+<span class="sd">        name, priority, position</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LogShowHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            init LogShowHook</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ext_args (:obj:`EasyDict`): extended_args, use ext_args.freq to set freq</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext_args</span> <span class="o">==</span> <span class="p">{}:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">ext_args</span><span class="o">.</span><span class="n">freq</span></div>
+
+<div class="viewcode-block" id="LogShowHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Show log, update record and tb_logger if rank is 0 and at interval iterations,</span>
+<span class="sd">            clear the log buffer for all learners regardless of rank</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - engine (:obj:`BaseLearner`): the BaseLearner</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Only show log for rank 0 learner</span>
+        <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">rank</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">:</span>
+                <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="c1"># For &#39;scalar&#39; type variables: log_buffer -&gt; tick_monitor -&gt; monitor_time.step</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">[</span><span class="s1">&#39;scalar&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">monitor</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="n">iters</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">last_iter</span><span class="o">.</span><span class="n">val</span>
+        <span class="k">if</span> <span class="n">iters</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;=== Training Iteration </span><span class="si">{}</span><span class="s2"> Result ===&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iters</span><span class="p">))</span>
+            <span class="c1"># For &#39;scalar&#39; type variables: tick_monitor -&gt; var_dict -&gt; text_logger &amp; tb_logger</span>
+            <span class="n">var_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">log_vars</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">monitor_vars</span><span class="p">()</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="s1">&#39;avg&#39;</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">log_vars</span><span class="p">:</span>
+                <span class="n">k_attr</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">attr</span>
+                <span class="n">var_dict</span><span class="p">[</span><span class="n">k_attr</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">monitor</span><span class="p">,</span> <span class="n">attr</span><span class="p">)[</span><span class="n">k</span><span class="p">]()</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">get_tabulate_vars_hor</span><span class="p">(</span><span class="n">var_dict</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">engine</span><span class="o">.</span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_iter/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">iters</span><span class="p">)</span>
+                <span class="n">engine</span><span class="o">.</span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_step/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">_collector_envstep</span><span class="p">)</span>
+            <span class="c1"># For &#39;histogram&#39; type variables: log_buffer -&gt; tb_var_dict -&gt; tb_logger</span>
+            <span class="n">tb_var_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">[</span><span class="s1">&#39;histogram&#39;</span><span class="p">]:</span>
+                <span class="n">new_k</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span>
+                <span class="n">tb_var_dict</span><span class="p">[</span><span class="n">new_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">[</span><span class="s1">&#39;histogram&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tb_var_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">engine</span><span class="o">.</span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_histogram</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">iters</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">:</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="LogReduceHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook">[docs]</a><span class="k">class</span> <span class="nc">LogReduceHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Hook to reduce the distributed(multi-gpu) logs</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        __init__, __call__</span>
+<span class="sd">    Property:</span>
+<span class="sd">        name, priority, position</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LogReduceHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            init LogReduceHook</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ext_args (:obj:`EasyDict`): extended_args, use ext_args.freq to set log_reduce_freq</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LogReduceHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            reduce the logs from distributed(multi-gpu) learners</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - engine (:obj:`BaseLearner`): the BaseLearner</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Overview:</span>
+<span class="sd">                aggregate the information from all ranks(usually use sync allreduce)</span>
+<span class="sd">            Arguments:</span>
+<span class="sd">                - data (:obj:`dict`): Data that needs to be reduced. \</span>
+<span class="sd">                    Could be dict, torch.Tensor, numbers.Integral or numbers.Real.</span>
+<span class="sd">            Returns:</span>
+<span class="sd">                - new_data (:obj:`dict`): data after reduce</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">new_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">aggregate</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">new_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">aggregate</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+                <span class="n">new_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_linklink</span><span class="p">:</span>
+                    <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_rank</span><span class="p">())</span>
+                    <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
+                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">):</span>
+                <span class="n">new_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">scalar_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_linklink</span><span class="p">:</span>
+                    <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_rank</span><span class="p">())</span>
+                    <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
+                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid type in reduce: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="n">new_data</span>
+
+        <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span> <span class="o">=</span> <span class="n">aggregate</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">)</span></div></div>
+
+
+<span class="n">hook_mapping</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;load_ckpt&#39;</span><span class="p">:</span> <span class="n">LoadCkptHook</span><span class="p">,</span>
+    <span class="s1">&#39;save_ckpt&#39;</span><span class="p">:</span> <span class="n">SaveCkptHook</span><span class="p">,</span>
+    <span class="s1">&#39;log_show&#39;</span><span class="p">:</span> <span class="n">LogShowHook</span><span class="p">,</span>
+    <span class="s1">&#39;log_reduce&#39;</span><span class="p">:</span> <span class="n">LogReduceHook</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">register_learner_hook</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hook_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Add a new LearnerHook class to hook_mapping, so you can build one instance with `build_learner_hook_by_cfg`.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - name (:obj:`str`): name of the register hook</span>
+<span class="sd">        - hook_type (:obj:`type`): the register hook_type you implemented that realize LearnerHook</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; class HookToRegister(LearnerHook):</span>
+<span class="sd">        &gt;&gt;&gt;     def __init__(*args, **kargs):</span>
+<span class="sd">        &gt;&gt;&gt;         ...</span>
+<span class="sd">        &gt;&gt;&gt;         ...</span>
+<span class="sd">        &gt;&gt;&gt;     def __call__(*args, **kargs):</span>
+<span class="sd">        &gt;&gt;&gt;         ...</span>
+<span class="sd">        &gt;&gt;&gt;         ...</span>
+<span class="sd">        &gt;&gt;&gt; ...</span>
+<span class="sd">        &gt;&gt;&gt; register_learner_hook(&#39;name_of_hook&#39;, HookToRegister)</span>
+<span class="sd">        &gt;&gt;&gt; ...</span>
+<span class="sd">        &gt;&gt;&gt; hooks = build_learner_hook_by_cfg(cfg)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">hook_type</span><span class="p">,</span> <span class="n">LearnerHook</span><span class="p">)</span>
+    <span class="n">hook_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">hook_type</span>
+
+
+<span class="n">simplified_hook_mapping</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;log_show_after_iter&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="n">hook_mapping</span><span class="p">[</span><span class="s1">&#39;log_show&#39;</span><span class="p">]</span>
+    <span class="p">(</span><span class="s1">&#39;log_show&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;after_iter&#39;</span><span class="p">,</span> <span class="n">ext_args</span><span class="o">=</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="n">freq</span><span class="p">})),</span>
+    <span class="s1">&#39;load_ckpt_before_run&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">path</span><span class="p">:</span> <span class="n">hook_mapping</span><span class="p">[</span><span class="s1">&#39;load_ckpt&#39;</span><span class="p">]</span>
+    <span class="p">(</span><span class="s1">&#39;load_ckpt&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;before_run&#39;</span><span class="p">,</span> <span class="n">ext_args</span><span class="o">=</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;load_path&#39;</span><span class="p">:</span> <span class="n">path</span><span class="p">})),</span>
+    <span class="s1">&#39;save_ckpt_after_iter&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="n">hook_mapping</span><span class="p">[</span><span class="s1">&#39;save_ckpt&#39;</span><span class="p">]</span>
+    <span class="p">(</span><span class="s1">&#39;save_ckpt_after_iter&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;after_iter&#39;</span><span class="p">,</span> <span class="n">ext_args</span><span class="o">=</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="n">freq</span><span class="p">})),</span>
+    <span class="s1">&#39;save_ckpt_after_run&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">hook_mapping</span><span class="p">[</span><span class="s1">&#39;save_ckpt&#39;</span><span class="p">](</span><span class="s1">&#39;save_ckpt_after_run&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;after_run&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;log_reduce_after_iter&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">hook_mapping</span><span class="p">[</span><span class="s1">&#39;log_reduce&#39;</span><span class="p">](</span><span class="s1">&#39;log_reduce_after_iter&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;after_iter&#39;</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">find_char</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">flag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">reverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">num</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">iterable_obj</span> <span class="o">=</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span> <span class="k">if</span> <span class="n">reverse</span> <span class="k">else</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">iterable_obj</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">flag</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="n">num</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">build_learner_hook_by_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Build the learner hooks in hook_mapping by config.</span>
+<span class="sd">        This function is often used to initialize ``hooks`` according to cfg,</span>
+<span class="sd">        while add_learner_hook() is often used to add an existing LearnerHook to `hooks`.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Config dict. Should be like {&#39;hook&#39;: xxx}.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - hooks (:obj:`Dict[str, List[Hook]`): Keys should be in [&#39;before_run&#39;, &#39;after_run&#39;, &#39;before_iter&#39;, \</span>
+<span class="sd">            &#39;after_iter&#39;], each value should be a list containing all hooks in this position.</span>
+<span class="sd">    Note:</span>
+<span class="sd">        Lower value means higher priority.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">LearnerHook</span><span class="o">.</span><span class="n">positions</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">simplified_hook_mapping</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="n">find_char</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+            <span class="n">hook</span> <span class="o">=</span> <span class="n">simplified_hook_mapping</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">priority</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">priority</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">priority</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;priority&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">ext_args</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ext_args&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">hook</span> <span class="o">=</span> <span class="n">hook_mapping</span><span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">type</span><span class="p">](</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">ext_args</span><span class="o">=</span><span class="n">ext_args</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="n">pos</span><span class="p">]))):</span>
+            <span class="k">if</span> <span class="n">priority</span> <span class="o">&gt;=</span> <span class="n">hooks</span><span class="p">[</span><span class="n">pos</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">priority</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">break</span>
+        <span class="n">hooks</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">hook</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hooks</span>
+
+
+<span class="k">def</span> <span class="nf">add_learner_hook</span><span class="p">(</span><span class="n">hooks</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]],</span> <span class="n">hook</span><span class="p">:</span> <span class="n">LearnerHook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Add a learner hook(:obj:`LearnerHook`) to hooks(:obj:`Dict[str, List[Hook]`)</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - hooks (:obj:`Dict[str, List[Hook]`): You can refer to ``build_learner_hook_by_cfg``&#39;s return ``hooks``.</span>
+<span class="sd">        - hook (:obj:`LearnerHook`): The LearnerHook which will be added to ``hooks``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">position</span>
+    <span class="n">priority</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">priority</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="n">position</span><span class="p">]))):</span>
+        <span class="k">if</span> <span class="n">priority</span> <span class="o">&gt;=</span> <span class="n">hooks</span><span class="p">[</span><span class="n">position</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">priority</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">break</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">LearnerHook</span><span class="p">)</span>
+    <span class="n">hooks</span><span class="p">[</span><span class="n">position</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">hook</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">merge_hooks</span><span class="p">(</span><span class="n">hooks1</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]],</span> <span class="n">hooks2</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Merge two hooks dict, which have the same keys, and each value is sorted by hook priority with stable method.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - hooks1 (:obj:`Dict[str, List[Hook]`): hooks1 to be merged.</span>
+<span class="sd">        - hooks2 (:obj:`Dict[str, List[Hook]`): hooks2 to be merged.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - new_hooks (:obj:`Dict[str, List[Hook]`): New merged hooks dict.</span>
+<span class="sd">    Note:</span>
+<span class="sd">        This merge function uses stable sort method without disturbing the same priority hook.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">hooks1</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">hooks2</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">new_hooks</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">hooks1</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">new_hooks</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">hooks1</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">hooks2</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">priority</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_hooks</span>
+
+
+<span class="k">def</span> <span class="nf">show_hooks</span><span class="p">(</span><span class="n">hooks</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">hooks</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">[</span><span class="n">k</span><span class="p">]]))</span>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/jquery.js"></script>
+  <script src="../../../../_static/underscore.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

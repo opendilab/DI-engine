@@ -290,6 +290,21 @@
 <h2>advantage_estimator<a class="headerlink" href="#advantage-estimator" title="Permalink to this headline">¶</a></h2>
 <section id="gae-estimator">
 <h3>gae_estimator<a class="headerlink" href="#gae-estimator" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.framework.middleware.functional.advantage_estimator.gae_estimator">
+<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.advantage_estimator.</span></span><span class="sig-name descname"><span class="pre">gae_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.policy.base_policy.Policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/advantage_estimator.html#gae_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.advantage_estimator.gae_estimator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate value using observation of input data, then call function <cite>gae</cite> to get advantage.         The processed data will be pushed into <cite>buffer_</cite> if <cite>buffer_</cite> is not None,         otherwise it will be assigned to <cite>ctx.train_data</cite>.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config which should contain the following keys:             <cite>cfg.policy.collect.discount_factor</cite>, <cite>cfg.policy.collect.gae_lambda</cite>.</p></li>
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): Policy in <cite>policy.collect_mode</cite>, used to get model to calculate value.</p></li>
+<li><p>buffer_ (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Buffer]</span></code>): The <cite>buffer_</cite> to push the processed data in if <cite>buffer_</cite> is not None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>

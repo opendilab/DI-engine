@@ -288,42 +288,783 @@
 <p>Some descriptions referred to  <a class="reference external" href="https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py">openai atari wrappers</a></p>
 <section id="noopresetwrapper">
 <h3>NoopResetWrapper<a class="headerlink" href="#noopresetwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.NoopResetWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">NoopResetWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noop_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Sample initial states by taking random number of no-ops on reset.         No-op is assumed to be action 0.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>noop_max (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the maximum value of no-ops to run.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.NoopResetWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noop_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>noop_max (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the maximum value of no-ops to run.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.NoopResetWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Resets the state of the environment and returns an initial observation.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the initial observation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="maxandskipwrapper">
 <h3>MaxAndSkipWrapper<a class="headerlink" href="#maxandskipwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.MaxAndSkipWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">MaxAndSkipWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return only every <cite>skip</cite>-th frame (frameskipping) using most         recent raw observations (for max pooling across time steps)</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>skip (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): number of <cite>skip</cite>-th frame.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.MaxAndSkipWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>skip (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): number of <cite>skip</cite>-th frame.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.MaxAndSkipWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipWrapper.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action,                  sum reward, and max over last observations.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the given action to step with.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>max_frame (<code class="xref py py-obj docutils literal notranslate"><span class="pre">np.array</span></code>) : max over last observations</p></li>
+<li><p>total_reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>) : amount of reward returned after previous action</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>) : whether the episode has ended, in which case further step()                  calls will return undefined results</p></li>
+<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>) : contains auxiliary diagnostic information (helpful for                  debugging, and sometimes learning)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="warpframewrapper">
 <h3>WarpFrameWrapper<a class="headerlink" href="#warpframewrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.WarpFrameWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">WarpFrameWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrameWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrameWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Warp frames to 84x84 as done in the Nature paper and later work.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size=84</span></code>, <code class="docutils literal notranslate"><span class="pre">obs_space</span></code>,  <code class="docutils literal notranslate"><span class="pre">self.observation_space</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.WarpFrameWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrameWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrameWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.WarpFrameWrapper.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrameWrapper.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrameWrapper.observation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Returns the current observation from a frame</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>frame (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the frame to get observation from</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Framed observation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="scaledfloatframewrapper">
 <h3>ScaledFloatFrameWrapper<a class="headerlink" href="#scaledfloatframewrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ScaledFloatFrameWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ScaledFloatFrameWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrameWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrameWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Normalize observations to 0~1.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ScaledFloatFrameWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrameWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrameWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; setup the properties.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ScaledFloatFrameWrapper.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrameWrapper.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrameWrapper.observation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Returns the scaled observation</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>observation(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Float</span></code>): The original observation</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Float</span></code>): The Scaled Float observation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="cliprewardwrapper">
 <h3>ClipRewardWrapper<a class="headerlink" href="#cliprewardwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ClipRewardWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ClipRewardWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Clip the reward to {+1, 0, -1} by its sign.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_range</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ClipRewardWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; setup the properties.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ClipRewardWrapper.reward">
+<span class="sig-name descname"><span class="pre">reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardWrapper.reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardWrapper.reward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>reward(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Float</span></code>): Raw Reward</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>reward(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Float</span></code>): Clipped Reward</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="framestackwrapper">
 <h3>FrameStackWrapper<a class="headerlink" href="#framestackwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStackWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">FrameStackWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStackWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStackWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Stack latest n frames(usually 4 in Atari) as one observation.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">_get_ob</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>n_frame (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of frames to stack.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">observation_space</span></code>, <code class="docutils literal notranslate"><span class="pre">frames</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStackWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStackWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStackWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; setup the properties.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>n_frame (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of frames to stack.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStackWrapper._get_ob">
+<span class="sig-name descname"><span class="pre">_get_ob</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStackWrapper._get_ob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStackWrapper._get_ob" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The original wrapper use <cite>LazyFrames</cite> but since we use np buffer, it has no effect</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStackWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStackWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStackWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Resets the state of the environment and append new observation to frames</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">self._get_ob()</span></code>: observation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStackWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStackWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStackWrapper.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward,                  and max over last observations, and append new observation to frames</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the given action to step with.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">self._get_ob()</span></code> : observation</p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>) : amount of reward returned after previous action</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>) : whether the episode has ended, in which case further                  step() calls will return undefined results</p></li>
+<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>) : contains auxiliary diagnostic information (helpful                  for debugging, and sometimes learning)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="obstransposewrapper">
 <h3>ObsTransposeWrapper<a class="headerlink" href="#obstransposewrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsTransposeWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ObsTransposeWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Transpose observation to put channel to first dim.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">observation_space</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsTransposeWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;                  setup the properties.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsTransposeWrapper.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.observation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Returns the transposed observation</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[tuple,</span> <span class="pre">np.ndarray]</span></code>): The original observation</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[tuple,</span> <span class="pre">np.ndarray]</span></code>): The transposed observation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="runningmeanstd">
 <h3>RunningMeanStd<a class="headerlink" href="#runningmeanstd" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">RunningMeanStd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wrapper to update new variable, new mean, and new count</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">update</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">std</span></code>, <code class="docutils literal notranslate"><span class="pre">_epsilon</span></code>, <code class="docutils literal notranslate"><span class="pre">_shape</span></code>, <code class="docutils literal notranslate"><span class="pre">_mean</span></code>, <code class="docutils literal notranslate"><span class="pre">_var</span></code>, <code class="docutils literal notranslate"><span class="pre">_count</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate                  signature; setup the properties.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>epsilon (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Float</span></code>): the epsilon used for self for the std output</p></li>
+<li><p>shape (:obj: <cite>np.array</cite>): the np array shape used for the expression                  of this wrapper on attibutes of mean and variance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.mean">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mean</span></span><em class="property"><span class="pre">:</span> <span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.mean" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Property <code class="docutils literal notranslate"><span class="pre">mean</span></code> gotten  from <code class="docutils literal notranslate"><span class="pre">self._mean</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties:                  <code class="docutils literal notranslate"><span class="pre">_mean</span></code>, <code class="docutils literal notranslate"><span class="pre">_var</span></code>, <code class="docutils literal notranslate"><span class="pre">_count</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.std">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">std</span></span><em class="property"><span class="pre">:</span> <span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.std" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Property <code class="docutils literal notranslate"><span class="pre">std</span></code> calculated  from <code class="docutils literal notranslate"><span class="pre">self._var</span></code> and the epsilon value of <code class="docutils literal notranslate"><span class="pre">self._epsilon</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.update" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Update mean, variable, and count</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>: the batch</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="obsnormwrapper">
 <h3>ObsNormWrapper<a class="headerlink" href="#obsnormwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ObsNormWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Normalize observations according to running mean and std.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_count</span></code>, <code class="docutils literal notranslate"><span class="pre">clip_range</span></code>, <code class="docutils literal notranslate"><span class="pre">rms</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;                  setup the properties according to running mean and std.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormWrapper.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormWrapper.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormWrapper.observation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get obeservation</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Original observation</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Normalized new observation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>kwargs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Reset with this key argumets</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): New observation after reset</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormWrapper.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward,                  and update <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, and also update the <code class="docutils literal notranslate"><span class="pre">self.rms</span></code> property                      once after integrating with the input <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the given action to step with.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">self.observation(observation)</span></code> : normalized observation after the                  input action and updated <code class="docutils literal notranslate"><span class="pre">self.rms</span></code></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>) : amount of reward returned after previous action</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>) : whether the episode has ended, in which case further                  step() calls will return undefined results</p></li>
+<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>) : contains auxiliary diagnostic information (helpful                  for debugging, and sometimes learning)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="rewardnormwrapper">
 <h3>RewardNormWrapper<a class="headerlink" href="#rewardnormwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">RewardNormWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_discount</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Normalize reward according to running std.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cum_reward</span></code>, <code class="docutils literal notranslate"><span class="pre">reward_discount</span></code>, <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, <code class="docutils literal notranslate"><span class="pre">rms</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_discount</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;                  setup the properties according to running mean and std.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties (<cite>NumType</cite> ones to 0,                 and <code class="docutils literal notranslate"><span class="pre">self.rms</span></code> as reset rms wrapper)</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>kwargs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Reset with this key argumets</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormWrapper.reward">
+<span class="sig-name descname"><span class="pre">reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormWrapper.reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormWrapper.reward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Normalize reward if <code class="docutils literal notranslate"><span class="pre">data_count</span></code> is more than 30</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>reward(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Float</span></code>): Raw Reward</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>reward(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Float</span></code>): Normalized Reward</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormWrapper.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward,                  and update <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, and also update the <code class="docutils literal notranslate"><span class="pre">self.rms</span></code> and <code class="docutils literal notranslate"><span class="pre">self.cum_reward</span></code>                      properties once after integrating with the input <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the given action to step with.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation : normalized observation after the input action and updated <code class="docutils literal notranslate"><span class="pre">self.rms</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">self.reward(reward)</span></code> : amount of reward returned after previous action                  (normalized) and update <code class="docutils literal notranslate"><span class="pre">self.cum_reward</span></code></p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>) : whether the episode has ended, in which case further                  step() calls will return undefined results</p></li>
+<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>) : contains auxiliary diagnostic information (helpful for                 debugging, and sometimes learning)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="ramwrapper">
 <h3>RamWrapper<a class="headerlink" href="#ramwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">RamWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wrap ram env into image-like env</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p>n_frame (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of frames to stack.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">observation_space</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): New observation after reset and reshaped</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward and                 reshape the observation.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the given action to step with.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">obs.reshape(128,</span> <span class="pre">1,</span> <span class="pre">1).astype(np.float32)</span></code> : reshaped observation after                 step with type restriction.</p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>) : amount of reward returned after previous action</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>) : whether the episode has ended, in which case further                 step() calls will return undefined results</p></li>
+<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>) : contains auxiliary diagnostic information (helpful for                 debugging, and sometimes learning)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="episodiclifewrapper">
 <h3>EpisodicLifeWrapper<a class="headerlink" href="#episodiclifewrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">EpisodicLifeWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Make end-of-life == end-of-episode, but only reset on true game over. It helps             the value estimation.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lives</span></code>, <code class="docutils literal notranslate"><span class="pre">was_real_done</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; set                 lives to 0 at set done.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calls the Gym environment reset, only when lives are exhausted. This way all states are                 still reachable even though lives are episodic, and the learner need not know about                     any of this behind-the-scenes.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): New observation after reset with no-op step to advance from terminal/lost                 life state in case of not <code class="docutils literal notranslate"><span class="pre">self.was_real_done</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeWrapper.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward; set                 <code class="docutils literal notranslate"><span class="pre">self.was_real_done</span></code> as done, and step according to lives i.e. check                     current lives, make loss of life terminal, then update lives to                         handle bonus lives.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the given action to step with.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): normalized observation after the input action and updated <code class="docutils literal notranslate"><span class="pre">self.rms</span></code></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>) : amount of reward returned after previous action</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>) : whether the episode has ended, in which case further step()                 calls will return undefined results</p></li>
+<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>) : contains auxiliary diagnostic information (helpful for debugging,                 and sometimes learning)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="fireresetwrapper">
 <h3>FireResetWrapper<a class="headerlink" href="#fireresetwrapper" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FireResetWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">FireResetWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Take fire action at environment reset.
+Related discussion: <a class="reference external" href="https://github.com/openai/baselines/issues/240">https://github.com/openai/baselines/issues/240</a></p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code>, <code class="docutils literal notranslate"><span class="pre">new_shape</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FireResetWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">gym.Env</span></code>): the environment to wrap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FireResetWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties i.e. reset with action 1</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 </section>

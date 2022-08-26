@@ -290,9 +290,40 @@
 <h2>collector<a class="headerlink" href="#collector" title="Permalink to this headline">¶</a></h2>
 <section id="inferencer">
 <h3>inferencer<a class="headerlink" href="#inferencer" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.framework.middleware.functional.collector.inferencer">
+<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.collector.</span></span><span class="sig-name descname"><span class="pre">inferencer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.policy.base_policy.Policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/collector.html#inferencer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.collector.inferencer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The middleware that executes the inference process.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): The policy to be inferred.</p></li>
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseEnvManager</span></code>): The env where the inference process is performed.             The env.ready_obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">tnp.array</span></code>) will be used as model input.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="rolloutor">
 <h3>rolloutor<a class="headerlink" href="#rolloutor" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.framework.middleware.functional.collector.rolloutor">
+<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.collector.</span></span><span class="sig-name descname"><span class="pre">rolloutor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.policy.base_policy.Policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transitions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.framework.middleware.functional.collector.TransitionList</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/collector.html#rolloutor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.collector.rolloutor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The middleware that executes the transition process in the env.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): The policy to be used during transition.</p></li>
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseEnvManager</span></code>): The env for the collection, the BaseEnvManager object or                 its derivatives are supported.</p></li>
+<li><p>transitions (<code class="xref py py-obj docutils literal notranslate"><span class="pre">TransitionList</span></code>): The transition information which will be filled             in this process, including <cite>obs</cite>, <cite>next_obs</cite>, <cite>action</cite>, <cite>logit</cite>, <cite>value</cite>, <cite>reward</cite>             and <cite>done</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>

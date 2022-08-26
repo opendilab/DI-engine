@@ -287,21 +287,216 @@
 <p>Please Reference ding/worker/collector/base_serial_collector.py for usage</p>
 <section id="iserialcollector">
 <h3>ISerialCollector<a class="headerlink" href="#iserialcollector" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.ISerialCollector">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.collector.base_serial_collector.</span></span><span class="sig-name descname"><span class="pre">ISerialCollector</span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#ISerialCollector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.ISerialCollector" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Abstract baseclass for serial collector.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>default_config, reset_env, reset_policy, reset, collect</p>
+</dd>
+<dt>Property:</dt><dd><p>envstep</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.ISerialCollector.collect">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">collect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">per_collect_target</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#ISerialCollector.collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.ISerialCollector.collect" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Collect the corresponding data according to the specified target and return.                 There are different definitions in episode and sample mode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.ISerialCollector.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#ISerialCollector.default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.ISerialCollector.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get collector’s default config. We merge collector’s default config with other default configs                and user’s config to get the final config.</p>
+</dd>
+<dt>Return:</dt><dd><p>cfg: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): collector’s default config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.ISerialCollector.envstep">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">envstep</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#ding.worker.collector.base_serial_collector.ISerialCollector.envstep" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get the total envstep num.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.ISerialCollector.reset">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#ISerialCollector.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.ISerialCollector.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset collector’s policy and environment. Use new policy and environment to collect data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.ISerialCollector.reset_env">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">reset_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#ISerialCollector.reset_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.ISerialCollector.reset_env" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset collector’s environment. In some case, we need collector use the same policy to collect                 data in different environments. We can use reset_env to reset the environment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.ISerialCollector.reset_policy">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">reset_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#ISerialCollector.reset_policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.ISerialCollector.reset_policy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset collector’s policy. In some case, we need collector work in this same environment but use                different policy to collect data. We can use reset_policy to reset the policy.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="create-serial-collector">
-<h3>create_serial_collector<a class="headerlink" href="#create-serial-collector" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.worker.collector.base_serial_collector.create_serial_collector">
+<span id="create-serial-collector"></span><h3>create_serial_collector<a class="headerlink" href="#module-ding.worker.collector.base_serial_collector.create_serial_collector" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Create a specific collector instance based on the config.</p>
+</dd>
+</dl>
 </section>
-<section id="get-serial-collector-cls">
-<h3>get_serial_collector_cls<a class="headerlink" href="#get-serial-collector-cls" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.worker.collector.base_serial_collector.get_serial_collector_cls">
+<span id="get-serial-collector-cls"></span><h3>get_serial_collector_cls<a class="headerlink" href="#module-ding.worker.collector.base_serial_collector.get_serial_collector_cls" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get the specific collector class according to the config.</p>
+</dd>
+</dl>
 </section>
 <section id="cachepool">
 <h3>CachePool<a class="headerlink" href="#cachepool" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.CachePool">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.collector.base_serial_collector.</span></span><span class="sig-name descname"><span class="pre">CachePool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deepcopy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#CachePool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.CachePool" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>CachePool is the repository of cache items.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>__init__, update, __getitem__, reset</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.CachePool.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#CachePool.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.CachePool.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get item in cache pool.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>idx (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The index of the item we need to get.</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): The item we get.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.CachePool.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deepcopy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#CachePool.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.CachePool.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialization method.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>name (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): name of cache</p></li>
+<li><p>env_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): number of environments</p></li>
+<li><p>deepcopy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to deepcopy data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.CachePool.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#CachePool.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.CachePool.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset the cache pool.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>idx (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The index of the position we need to reset.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.CachePool.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#CachePool.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.CachePool.update" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Update elements in cache pool.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): A dict containing update index-value pairs. Key is index in cache pool,                 and value is the new element.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="trajbuffer">
 <h3>TrajBuffer<a class="headerlink" href="#trajbuffer" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.TrajBuffer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.collector.base_serial_collector.</span></span><span class="sig-name descname"><span class="pre">TrajBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxlen</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#TrajBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.TrajBuffer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>TrajBuffer is used to store traj_len pieces of transitions.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>__init__, append</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.TrajBuffer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxlen</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#TrajBuffer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.TrajBuffer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialization trajBuffer.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>maxlen (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The maximum length of trajectory buffer.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_collector.TrajBuffer.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_collector.html#TrajBuffer.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_collector.TrajBuffer.append" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Append data to trajBuffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="to-tensor-transitions">
-<h3>to_tensor_transitions<a class="headerlink" href="#to-tensor-transitions" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.worker.collector.base_serial_collector.to_tensor_transitions">
+<span id="to-tensor-transitions"></span><h3>to_tensor_transitions<a class="headerlink" href="#module-ding.worker.collector.base_serial_collector.to_tensor_transitions" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>transitions collected data to tensor.</p>
+</dd>
+<dt>Argument:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): the data that will be transited to tensor.</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): the data that can be transited to tensor.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>In order to save memory, If there are next_obs in the passed data, we do special             treatment on next_obs so that the next_obs of each state in the data fragment is             the next state’s obs and the next_obs of the last state is its own next_obs,             and we make transform_scalar is False.</p>
+</div>
 </section>
 </section>
 </section>
@@ -352,11 +547,11 @@
 <li><a class="reference internal" href="#">worker.collector.base_serial_collector</a><ul>
 <li><a class="reference internal" href="#base-serial-collector">base_serial_collector</a><ul>
 <li><a class="reference internal" href="#iserialcollector">ISerialCollector</a></li>
-<li><a class="reference internal" href="#create-serial-collector">create_serial_collector</a></li>
-<li><a class="reference internal" href="#get-serial-collector-cls">get_serial_collector_cls</a></li>
+<li><a class="reference internal" href="#module-ding.worker.collector.base_serial_collector.create_serial_collector">create_serial_collector</a></li>
+<li><a class="reference internal" href="#module-ding.worker.collector.base_serial_collector.get_serial_collector_cls">get_serial_collector_cls</a></li>
 <li><a class="reference internal" href="#cachepool">CachePool</a></li>
 <li><a class="reference internal" href="#trajbuffer">TrajBuffer</a></li>
-<li><a class="reference internal" href="#to-tensor-transitions">to_tensor_transitions</a></li>
+<li><a class="reference internal" href="#module-ding.worker.collector.base_serial_collector.to_tensor_transitions">to_tensor_transitions</a></li>
 </ul>
 </li>
 </ul>
