@@ -289,7 +289,7 @@
 <span class="sd">        Push episodes or trajectories into the buffer.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - cfg (:obj:`EasyDict`): Config.</span>
-<span class="sd">        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.</span>
+<span class="sd">        - buffer (:obj:`Buffer`): Buffer to push the data in.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_push</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
@@ -320,7 +320,9 @@
 
 
 <div class="viewcode-block" id="offpolicy_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offpolicy_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offpolicy_data_fetcher</span><span class="p">(</span>
-        <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Buffer</span><span class="p">]]</span>
+        <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+        <span class="n">buffer_</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Buffer</span><span class="p">]],</span>
+        <span class="n">data_shortage_warning</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -328,7 +330,7 @@
 <span class="sd">        a list of buffers, or a dict of buffers.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.</span>
-<span class="sd">        - buffer\_ (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \</span>
+<span class="sd">        - buffer (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \</span>
 <span class="sd">            The buffer where the data is fetched from. \</span>
 <span class="sd">            ``Buffer`` type means a buffer.\</span>
 <span class="sd">            ``List[Tuple[Buffer, float]]`` type means a list of tuple. In each tuple there is a buffer and a float. \</span>
@@ -337,6 +339,7 @@
 <span class="sd">            ``Dict[str, Buffer]`` type means a dict in which the value of each element is a buffer. \</span>
 <span class="sd">            For each key-value pair of dict, batch_size of data will be sampled from the corresponding buffer \</span>
 <span class="sd">            and assigned to the same key of `ctx.train_data`.</span>
+<span class="sd">        - data_shortage_warning (:obj:`bool`): Whether to output warning when data shortage occurs in fetching.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
@@ -384,10 +387,12 @@
 
             <span class="k">assert</span> <span class="n">buffered_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
-            <span class="c1"># You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Replay buffer&#39;s data is not enough to support training, so skip this training for waiting more data.&quot;</span>
-            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">data_shortage_warning</span><span class="p">:</span>
+                <span class="c1"># You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.</span>
+                <span class="c1"># Fetcher will skip this this attempt.</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Replay buffer&#39;s data is not enough to support training, so skip this training to wait more data.&quot;</span>
+                <span class="p">)</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">return</span>
 
@@ -473,7 +478,7 @@
 <span class="sd">        Push trajectories into the buffer in sqil learning pipeline.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - cfg (:obj:`EasyDict`): Config.</span>
-<span class="sd">        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.</span>
+<span class="sd">        - buffer (:obj:`Buffer`): Buffer to push the data in.</span>
 <span class="sd">        - expert (:obj:`bool`): Whether the pushed data is expert data or not. \</span>
 <span class="sd">            In each element of the pushed data, the reward will be set to 1 if this attribute is `True`, otherwise 0.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
