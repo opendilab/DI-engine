@@ -72,3 +72,6 @@ def _main():
 @pytest.mark.unittest
 def test_coordinator():
     Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(_main)
+
+if __name__ == "__main__":
+    test_coordinator()

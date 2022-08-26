@@ -127,5 +127,5 @@ def _main():
 
 
 @pytest.mark.unittest
-def test_league_learner():
+def test_league_learner_communicator():
     Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh")(_main)

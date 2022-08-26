@@ -5,7 +5,7 @@ from ding.envs import BaseEnvManager
 from ding.framework.context import BattleContext
 from ding.framework.middleware.league_learner_communicator import LearnerModel
 from ding.framework.middleware.tests.mock_for_test import league_cfg
-from ding.framework.middleware import LeagueActor, StepLeagueActor
+from ding.framework.middleware import StepLeagueActor
 from ding.framework.middleware.functional import ActorData
 from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
@@ -20,8 +20,8 @@ from ding.framework import EventEnum
 
 
 def prepare_test():
-    global cfg
-    cfg = deepcopy(cfg)
+    global league_cfg
+    cfg = deepcopy(league_cfg)
 
     def env_fn():
         env = BaseEnvManager(
@@ -51,7 +51,7 @@ def _main():
     ACTOR_ID = 0
 
     with task.start(async_mode=True, ctx=BattleContext()):
-        league_actor = LeagueActor(cfg, env_fn, policy_fn)
+        league_actor = StepLeagueActor(cfg, env_fn, policy_fn)
 
         def test_actor():
             testcases = {
@@ -105,8 +105,4 @@ def _main():
 
 @pytest.mark.unittest
 def test_league_actor():
-    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)
-
-
-if __name__ == '__main__':
     Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)

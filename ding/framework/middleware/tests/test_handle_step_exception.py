@@ -1,6 +1,6 @@
 from ding.framework.context import BattleContext
 from ding.framework.middleware.functional.collector import BattleTransitionList
-from ding.framework.middleware.functional import battle_rolloutor_for_distar
+from ding.framework.middleware.functional import battle_rolloutor
 import pytest
 from unittest.mock import Mock
 from ding.envs import BaseEnvTimestep
@@ -41,7 +41,7 @@ def test_handle_step_exception():
 
     ctx.actions = {0: {}}
     ctx.obs = {0: {0: {}}}
-    rolloutor = battle_rolloutor_for_distar(cfg=EasyDict(), env=MockEnvManager(), transitions_list=transitions_list, model_info_dict=None)
+    rolloutor = battle_rolloutor(cfg=EasyDict(), env=MockEnvManager(), transitions_list=transitions_list, model_info_dict=None)
     rolloutor(ctx)
 
     assert len(transitions_list[0]._transitions[0]) == 0

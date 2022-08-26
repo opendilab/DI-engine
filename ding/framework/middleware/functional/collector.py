@@ -56,13 +56,14 @@ class TransitionList:
 
 class BattleTransitionList:
 
-    def __init__(self, env_num: int, unroll_len: int) -> None:
+    def __init__(self, env_num: int, unroll_len: int, last_step_fn: Callable = None) -> None:
         # for each env, we have a deque to buffer episodes,
         # and a deque to tell each episode is finished or not
         self.env_num = env_num
         self._transitions = [deque() for _ in range(env_num)]
         self._done_episode = [deque() for _ in range(env_num)]
         self._unroll_len = unroll_len
+        self._last_step_fn = last_step_fn
         # TODO(zms): last transition + 1
 
     def get_env_trajectories(self, env_id: int, only_finished: bool = False) -> List[List]:
@@ -110,11 +111,10 @@ class BattleTransitionList:
         num_complele_trajectory, num_tail_transitions = divmod(len(episode), self._unroll_len)
         for i in range(num_complele_trajectory):
             trajectory = episode[i * self._unroll_len:(i + 1) * self._unroll_len]
-            # TODO(zms): 测试专用，之后去掉
-            last_step = deepcopy(trajectory[-1])
-            for k in ['mask', 'action_info', 'teacher_logit', 'behaviour_logp', 'selected_units_num', 'reward', 'step']:
-                last_step.pop(k)
-            trajectory.append(last_step)
+            if self._last_step_fn:
+                last_step = deepcopy(trajectory[-1])
+                last_step = self._last_step_fn(last_step)
+                trajectory.append(last_step)
             return_episode.append(trajectory)
 
         if num_tail_transitions > 0:
@@ -124,11 +124,10 @@ class BattleTransitionList:
                 for _ in range(self._unroll_len - len(trajectory)):
                     initial_elements.append(trajectory[0])
                 trajectory = initial_elements + trajectory
-            # TODO(zms): 测试专用，之后去掉
-            last_step = deepcopy(trajectory[-1])
-            for k in ['mask', 'action_info', 'teacher_logit', 'behaviour_logp', 'selected_units_num', 'reward', 'step']:
-                last_step.pop(k)
-            trajectory.append(last_step)
+            if self._last_step_fn:
+                last_step = deepcopy(trajectory[-1])
+                last_step = self._last_step_fn(last_step)
+                trajectory.append(last_step)
             return_episode.append(trajectory)
 
         return return_episode  # list of trajectories
@@ -267,11 +266,6 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager):
     def _battle_inferencer(ctx: "BattleContext"):
         # Get current env obs.
         obs = env.ready_obs
-        # the role of remain_episode is to mask necessary rollouts, avoid processing unnecessary data
-        # new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
-        # ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
-        # ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
-        # obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
 
         # Policy forward.
         if cfg.transform_obs:
@@ -297,7 +291,21 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
         timesteps = env.step(ctx.actions)
         ctx.total_envstep_count += len(timesteps)
         ctx.env_step += len(timesteps)
+
+        if isinstance(timesteps, list):
+            new_time_steps = {}
+            for env_id, timestep in enumerate(timesteps):
+                new_time_steps[env_id] = timestep
+            timesteps = new_time_steps
+
         for env_id, timestep in timesteps.items():
+            if isinstance(timestep.info, dict) and timestep.info.get('abnormal'):
+                for policy_id, policy in enumerate(ctx.current_policies):
+                    transitions_list[policy_id].clear_newest_episode(env_id, before_append=True)
+                    policy.reset([env_id])
+                continue
+            
+            episode_long_enough = True
             for policy_id, policy in enumerate(ctx.current_policies):
                 policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                 policy_timestep = type(timestep)(*policy_timestep_data)
@@ -308,92 +316,12 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, transitions_list: List,
                 transition.collect_train_iter = ttorch.as_tensor(
                     [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
                 )
-                transitions_list[policy_id].append(env_id, transition)
-                if timestep.done:
+                
+                episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
+
+            if timestep.done:
+                for policy_id, policy in enumerate(ctx.current_policies):
                     policy.reset([env_id])
-                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
-
-            if timestep.done:
-                # ctx.ready_env_id.remove(env_id)
-                ctx.env_episode += 1
-
-    return _battle_rolloutor
-
-
-def battle_inferencer_for_distar(cfg: EasyDict, env: BaseEnvManager):
-
-    def _battle_inferencer(ctx: "BattleContext"):
-        # Get current env obs.
-        obs = env.ready_obs
-        assert isinstance(obs, dict)
-
-        ctx.obs = obs
-
-        # Policy forward.
-        inference_output = {}
-        actions = {}
-        for env_id in ctx.obs.keys():
-            observations = obs[env_id]
-            inference_output[env_id] = {}
-            actions[env_id] = {}
-            for policy_id, policy_obs in observations.items():
-                # policy.forward
-                output = ctx.current_policies[policy_id].forward(policy_obs)
-                inference_output[env_id][policy_id] = output
-                actions[env_id][policy_id] = output['action']
-        ctx.inference_output = inference_output
-        ctx.actions = actions
-
-    return _battle_inferencer
-
-
-def battle_rolloutor_for_distar(cfg: EasyDict, env: BaseEnvManager, transitions_list: List, model_info_dict: Dict):
-
-    def _battle_rolloutor(ctx: "BattleContext"):
-        timesteps = env.step(ctx.actions)
-
-        ctx.total_envstep_count += len(timesteps)
-        ctx.env_step += len(timesteps)
-
-        # for env_id, timestep in timesteps.items():
-        # TODO(zms): make sure a standard
-        # If for each step, the env manager can't get the obs of all envs, we need to use dict here.
-        for env_id, timestep in enumerate(timesteps):
-            if timestep.info.get('abnormal'):
-                # TODO(zms): cannot get exact env_step of a episode because for each observation,
-                # in most cases only one of two policies has a obs.
-                # ctx.total_envstep_count -= transitions_list[0].length(env_id)
-                # ctx.env_step -= transitions_list[0].length(env_id)
-
-                # 1st case when env step has bug and need to reset.
-
-                # TODO(zms): if it is first step of the episode, do not delete the last episode in the TransitionList
-                for policy_id, policy in enumerate(ctx.current_policies):
-                    transitions_list[policy_id].clear_newest_episode(env_id, before_append=True)
-                    policy.reset(env.ready_obs[0][policy_id])
-                continue
-
-            episode_long_enough = True
-            for policy_id, policy in enumerate(ctx.current_policies):
-                if timestep.obs.get(policy_id):
-                    policy_timestep = BaseEnvTimestep(
-                        obs=timestep.obs.get(policy_id),
-                        reward=timestep.reward[policy_id],
-                        done=timestep.done,
-                        info=timestep.info[policy_id]
-                    )
-                    transition = policy.process_transition(obs=None, model_output=None, timestep=policy_timestep)
-                    transition = EasyDict(transition)
-                    transition.collect_train_iter = ttorch.as_tensor(
-                        [model_info_dict[ctx.player_id_list[policy_id]].update_train_iter]
-                    )
-
-                    # 2nd case when the number of transitions in one of all the episodes is shorter than unroll_len
-                    episode_long_enough = episode_long_enough and transitions_list[policy_id].append(env_id, transition)
-
-            if timestep.done:
-                for policy_id, policy in enumerate(ctx.current_policies):
-                    policy.reset(env.ready_obs[0][policy_id])
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
 
             if not episode_long_enough:

@@ -39,16 +39,11 @@ class StepLeagueActor:
         self.model_dict = {}
         self.model_dict_lock = Lock()
         self.model_info_dict = {}
+        self.agent_num = 2
 
         self.traj_num = 0
         self.total_time = 0
         self.total_episode_num = 0
-
-        self.agent_num = 2
-
-        self.collect_time = {}
-
-        # self._gae_estimator = gae_estimator(cfg, policy_fn().collect_mode)
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
@@ -85,7 +80,6 @@ class StepLeagueActor:
             )
         )
         self._collectors[player_id] = collector
-        self.collect_time[player_id] = 0
         return collector
 
     def _get_policy(self, player: "PlayerMeta", duplicate: bool = False) -> "Policy.collect_function":
@@ -99,9 +93,10 @@ class StepLeagueActor:
                 player_policy = self.player_policy_dict.get(player_id)
                 duplicate_policy: "Policy.collect_function" = self.policy_fn()
                 del duplicate_policy._collect_model
-                del duplicate_policy.teacher_model
                 duplicate_policy._collect_model = player_policy._collect_model
-                duplicate_policy.teacher_model = player_policy.teacher_model
+                if getattr(player_policy, 'teacher_model') and getattr(duplicate_policy, 'teacher_model'):
+                    del duplicate_policy.teacher_model
+                    duplicate_policy.teacher_model = player_policy.teacher_model
                 return duplicate_policy.collect_mode
         else:
             policy: "Policy.collect_function" = self.policy_fn()
@@ -109,12 +104,9 @@ class StepLeagueActor:
 
             policy_collect_mode = policy.collect_mode
             self.player_policy_collect_dict[player_id] = policy_collect_mode
+            # TODO(zms): not only historical players, but also other players should
+            # update the policies to the checkpoint in job
             if "historical" in player.player_id:
-                print(
-                    '[Actor {}] recieved historical player {}, checkpoint.path is {}'.format(
-                        task.router.node_id, player.player_id, player.checkpoint.path
-                    )
-                )
                 policy_collect_mode.load_state_dict(player.checkpoint.load())
 
             return policy_collect_mode
@@ -143,16 +135,10 @@ class StepLeagueActor:
                 current_policies.append(self._get_policy(player, duplicate=True))
             if player.player_id == job.launch_player:
                 main_player = player
-        assert main_player, "[Actor {}] can not find active player.".format(task.router.node_id)
-
-        if current_policies is not None:
-            #TODO(zms): make it more general, should we have the restriction of 1 policies
-            # assert len(current_policies) > 1, "[Actor {}] battle collector needs more than 1 policies".format(
-            #     task.router.node_id
-            # )
-            pass
-        else:
-            raise RuntimeError('[Actor {}] current_policies should not be None'.format(task.router.node_id))
+        assert main_player, "[Actor {}] cannot find active player.".format(task.router.node_id)
+        assert current_policies, "[Actor {}] current_policies should not be None".format(
+            task.router.node_id
+        )
 
         return main_player, current_policies
 
@@ -165,13 +151,13 @@ class StepLeagueActor:
         log_every_sec(
             logging.INFO, 5, '[Actor {}] job of player {} begins.'.format(task.router.node_id, job.launch_player)
         )
-        # TODO(zms): when get job, update the policies to the checkpoint in job
+        
         ctx.player_id_list = [player.player_id for player in job.players]
         main_player_idx = [idx for idx, player in enumerate(job.players) if player.player_id == job.launch_player]
         self.agent_num = len(job.players)
         collector = self._get_collector(job.launch_player)
 
-        main_player, ctx.current_policies = self._get_current_policies(job)
+        _, ctx.current_policies = self._get_current_policies(job)
 
         ctx.n_episode = self.cfg.policy.collect.n_episode
         assert ctx.n_episode >= self.env_num, "[Actor {}] Please make sure n_episode >= env_num".format(
@@ -185,7 +171,6 @@ class StepLeagueActor:
 
         while True:
             time_begin = time.time()
-            old_envstep = ctx.total_envstep_count
             collector(ctx)
 
             if ctx.job_finish is True:
@@ -216,11 +201,6 @@ class StepLeagueActor:
                 )
             )
 
-            self.collect_time[job.launch_player] += time_end - time_begin
-            total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[
-                job.launch_player] != 0 else 0
-            envstep_passed = ctx.total_envstep_count - old_envstep
-            real_time_speed = envstep_passed / (time_end - time_begin)
             gc.collect()
 
             if ctx.job_finish is True:
@@ -232,6 +212,7 @@ class StepLeagueActor:
                 ctx.episode_info = [[] for _ in range(self.agent_num)]
                 logging.info('[Actor {}] job finish, send job\n'.format(task.router.node_id))
                 break
+    
         self.total_episode_num += ctx.env_episode
         logging.info(
             '[Actor {}] finish {} episodes till now, speed is {} episode/s'.format(
@@ -244,143 +225,4 @@ class StepLeagueActor:
             )
         )
 
-
-# class LeagueActor:
-
-#     def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
-#         self.cfg = cfg
-#         self.env_fn = env_fn
-#         self.env_num = env_fn().env_num
-#         self.policy_fn = policy_fn
-#         self.n_rollout_samples = self.cfg.policy.collect.n_rollout_samples
-#         self._collectors: Dict[str, BattleEpisodeCollector] = {}
-#         self.player_policy_collect_dict: Dict[str, "Policy.collect_function"] = {}
-#         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
-#         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
-#         self.job_queue = queue.Queue()
-#         self.model_dict = {}
-#         self.model_dict_lock = Lock()
-
-#         self.agent_num = 2
-#         self.collect_time = {}
-
-#     def _on_learner_model(self, learner_model: "LearnerModel"):
-#         """
-#         If get newest learner model, put it inside model_queue.
-#         """
-#         log_every_sec(logging.INFO, 5, "[Actor {}] receive model from learner \n".format(task.router.node_id))
-#         with self.model_dict_lock:
-#             self.model_dict[learner_model.player_id] = learner_model
-
-#     def _on_league_job(self, job: "Job"):
-#         """
-#         Deal with job distributed by coordinator, put it inside job_queue.
-#         """
-#         self.job_queue.put(job)
-
-#     def _get_collector(self, player_id: str):
-#         if self._collectors.get(player_id):
-#             return self._collectors.get(player_id)
-#         cfg = self.cfg
-#         env = self.env_fn()
-#         collector = task.wrap(
-#             BattleEpisodeCollector(
-#                 cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.player_policy_collect_dict,
-#                 self.agent_num
-#             )
-#         )
-#         self._collectors[player_id] = collector
-#         self.collect_time[player_id] = 0
-#         return collector
-
-#     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
-#         player_id = player.player_id
-#         if self.player_policy_collect_dict.get(player_id):
-#             return self.player_policy_collect_dict.get(player_id)
-#         policy: "Policy.collect_function" = self.policy_fn().collect_mode
-#         self.player_policy_collect_dict[player_id] = policy
-#         if "historical" in player.player_id:
-#             policy.load_state_dict(player.checkpoint.load())
-
-#         return policy
-
-#     def _get_job(self):
-#         if self.job_queue.empty():
-#             task.emit(EventEnum.ACTOR_GREETING, task.router.node_id)
-#         job = None
-
-#         try:
-#             job = self.job_queue.get(timeout=10)
-#         except queue.Empty:
-#             logging.warning("[Actor {}] no Job got from coordinator".format(task.router.node_id))
-
-#         return job
-
-#     def _get_current_policies(self, job):
-#         current_policies = []
-#         main_player: "PlayerMeta" = None
-#         for player in job.players:
-#             current_policies.append(self._get_policy(player))
-#             if player.player_id == job.launch_player:
-#                 main_player = player
-#         assert main_player, "[Actor {}] cannot find active player.".format(task.router.node_id)
-
-#         if current_policies is not None:
-#             assert len(current_policies) > 1, "battle collector needs more than 1 policies"
-#             for p in current_policies:
-#                 p.reset()
-#         else:
-#             raise RuntimeError('current_policies should not be None')
-
-#         return main_player, current_policies
-
-#     def __call__(self, ctx: "BattleContext"):
-
-#         job = self._get_job()
-#         if job is None:
-#             return
-
-#         ctx.player_id_list = [player.player_id for player in job.players]
-#         self.agent_num = len(job.players)
-#         collector = self._get_collector(job.launch_player)
-
-#         main_player, ctx.current_policies = self._get_current_policies(job)
-
-#         ctx.n_episode = self.cfg.policy.collect.n_episode
-#         assert ctx.n_episode >= self.env_num, "[Actor {}] Please make sure n_episode >= env_num".format(
-#             task.router.node_id
-#         )
-
-#         ctx.episode_info = [[] for _ in range(self.agent_num)]
-#         ctx.remain_episode = ctx.n_episode
-#         while True:
-#             old_envstep = ctx.total_envstep_count
-#             time_begin = time.time()
-#             collector(ctx)
-#             meta_data = ActorDataMeta(
-#                 player_total_env_step=ctx.total_envstep_count, actor_id=task.router.node_id, send_wall_time=time.time()
-#             )
-
-#             if not job.is_eval and len(ctx.episodes[0]) > 0:
-#                 actor_data = ActorData(meta=meta_data, train_data=ctx.episodes[0])
-#                 task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
-#             ctx.episodes = []
-#             time_end = time.time()
-#             self.collect_time[job.launch_player] += time_end - time_begin
-#             total_collect_speed = ctx.total_envstep_count / self.collect_time[job.launch_player] if self.collect_time[
-#                 job.launch_player] != 0 else 0
-#             envstep_passed = ctx.total_envstep_count - old_envstep
-#             real_time_speed = envstep_passed / (time_end - time_begin)
-#             log_every_sec(
-#                 logging.INFO, 5,
-#                 '[Actor {}] total_env_step:{}, current job env_step: {}, total_collect_speed: {} env_step/s, real-time collect speed: {} env_step/s'
-#                 .format(
-#                     task.router.node_id, ctx.total_envstep_count, ctx.env_step, total_collect_speed, real_time_speed
-#                 )
-#             )
-
-#             if ctx.job_finish is True:
-#                 job.result = [e['result'] for e in ctx.episode_info[0]]
-#                 task.emit(EventEnum.ACTOR_FINISH_JOB, job)
-#                 ctx.episode_info = [[] for _ in range(self.agent_num)]
-#                 break
+#TODO: EpisodeLeagueActor
