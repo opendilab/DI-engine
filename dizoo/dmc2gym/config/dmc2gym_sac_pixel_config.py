@@ -1,18 +1,25 @@
 from easydict import EasyDict
 
 dmc2gym_sac_config = dict(
-    exp_name='dmc2gym_sacpixel_seed0',
+    exp_name='dmc2gym_sac_pixel_seed0',
     env=dict(
         env_id='dmc2gym-v0',
         domain_name="cartpole",
         task_name="swingup",
-        frame_skip=2,
-        from_pixels=True,
-        channels_first=True,  # obs shape (3, height, width) if True
+        frame_skip=8,
+        warp_frame=True,
+        scale=True,
+        clip_rewards=False,
+        frame_stack=3,
+        from_pixels=True,  # pixel obs
+        channels_first=False,  # obs shape (height, width, 3)
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        use_act_scale=True,
+        # for debug
+        # collector_env_num=1,
+        # evaluator_env_num=1,
+        # n_evaluator_episode=1,
         stop_value=1e6,
         manager=dict(shared_memory=False, ),
     ),
@@ -20,17 +27,29 @@ dmc2gym_sac_config = dict(
         model_type='pixel',
         cuda=True,
         random_collect_size=10000,
+        # random_collect_size=1,  # for debug
         model=dict(
-            obs_shape=(3, 100, 100),
+            obs_shape=(3, 84, 84),
             action_shape=1,
             twin_critic=True,
-            encoder_hidden_size_list=[128, 128, 64],
-            actor_head_hidden_size=64,
-            critic_head_hidden_size=64,
+            encoder_hidden_size_list=[256, 256, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
+
+            share_conv_encoder=False,
+            embed_action=False,
+
+            # share_conv_encoder=False,
+            # embed_action=True,
+
+            # share_conv_encoder=True,
+            # embed_action=True,
         ),
         learn=dict(
             update_per_collect=1,
-            batch_size=256,
+            # batch_size=256,
+            # debug
+            batch_size=4,
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
             learning_rate_alpha=3e-4,
@@ -40,7 +59,6 @@ dmc2gym_sac_config = dict(
             alpha=0.2,
             reparameterization=True,
             auto_alpha=True,
-
         ),
         collect=dict(
             n_sample=1,
@@ -61,6 +79,7 @@ dmc2gym_sac_create_config = dict(
         import_names=['dizoo.dmc2gym.envs.dmc2gym_env'],
     ),
     env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='base'),  # for debug
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -86,6 +105,6 @@ if __name__ == "__main__":
         parser.add_argument('--seed', '-s', type=int, default=seed)
         args = parser.parse_args()
 
-        main_config.exp_name = 'dmc2gym_sac_pixel_rbs1e5' + 'seed' + f'{args.seed}'
+        main_config.exp_name = 'dmc2gym_sac_pixel_scef-ecf' + 'seed' + f'{args.seed}'
         serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed,
-                        max_env_step=int(5e6))
+                        max_env_step=int(3e6))
