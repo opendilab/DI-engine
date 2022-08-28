@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-n_agent = 5
+n_agent = 3
 n_landmark = n_agent
 collector_env_num = 8
 evaluator_env_num = 8
@@ -11,7 +11,7 @@ main_config = dict(
         env_id='simple_spread_v2',
         n_agent=n_agent,
         n_landmark=n_landmark,
-        max_cycles=100,
+        max_cycles=25,
         agent_obs_only=False,
         continuous_actions=False,
         collector_env_num=collector_env_num,
@@ -54,10 +54,10 @@ main_config = dict(
 main_config = EasyDict(main_config)
 create_config = dict(
     env=dict(
-        import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
+        import_names=['dizoo.petting_zoo.envs.petting_zoo_simple_spread_env'],
         type='petting_zoo',
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='qmix'),
 )
 create_config = EasyDict(create_config)

@@ -27,7 +27,6 @@ class TestChessEnv:
                     else:
                         print('draw')
                     break
-
             """player 2"""
             action = env.random_action()
             print('player 2 (computer player): ', action)
@@ -39,4 +38,3 @@ class TestChessEnv:
                 else:
                     print('draw')
                 break
-

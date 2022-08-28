@@ -33,7 +33,10 @@ memory_len_r2d2_gtrxl_config = dict(
             target_update_theta=0.001,
             init_memory='zero',  # 'zero' or 'old', how to initialize the transformer memory
         ),
-        collect=dict(each_iter_n_sample=32, env_num=8, ),
+        collect=dict(
+            each_iter_n_sample=32,
+            env_num=8,
+        ),
         eval=dict(env_num=1, evaluator=dict(eval_freq=10, )),
         other=dict(
             eps=dict(

@@ -3,7 +3,6 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 8
 expert_replay_buffer_size = int(5e3)
-
 """
 agent config
 """
@@ -92,7 +91,6 @@ pong_r2d3_create_config = dict(
 )
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
-
 """
 export config
 """
@@ -121,9 +119,7 @@ expert_pong_r2d3_config = dict(
         discount_factor=0.997,
         burnin_step=20,
         nstep=5,
-        learn=dict(
-            expert_replay_buffer_size=expert_replay_buffer_size,
-        ),
+        learn=dict(expert_replay_buffer_size=expert_replay_buffer_size, ),
         collect=dict(
             # NOTE: It is important that set key traj_len_inf=True here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
