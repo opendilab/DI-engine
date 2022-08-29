@@ -9,21 +9,18 @@ import torch
 import torch.nn as nn
 from functools import partial
 from tensorboardX import SummaryWriter
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from typing import Union, Optional, List, Any, Tuple, Dict
 
-from ding.model.common.head import DiscreteHead, RegressionHead, ReparameterizationHead
 from ding.worker import BaseLearner, BaseSerialCommander, InteractionSerialEvaluator, create_serial_collector
 from ding.config import read_config, compile_config
 from ding.utils import set_pkg_seed
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.policy.common_utils import default_preprocess_learn
 from ding.policy import create_policy
-from ding.utils import SequenceType, squeeze
-from ding.model.common.encoder import FCEncoder, ConvEncoder
-from torch.distributions import Independent, Normal
 from ding.utils.data.dataset import BCODataset
 from ding.world_model.idm import InverseDynamicsModel
+
 
 def load_expertdata(data: Dict[str, torch.Tensor]) -> BCODataset:
     """
@@ -147,8 +144,8 @@ def serial_pipeline_bco(
         cfg.policy.other.commander, learner, collector, evaluator, None, policy=policy.command_mode
     )
     learned_model = InverseDynamicsModel(
-        cfg.policy.model.obs_shape, cfg.policy.model.action_shape, cfg.policy.continuous,
-        cfg.bco.model.idm_encoder_hidden_size_list
+        cfg.policy.model.obs_shape, cfg.policy.model.action_shape, cfg.bco.model.idm_encoder_hidden_size_list,
+        cfg.bco.model.action_space
     )
     # ==========
     # Main loop
@@ -163,7 +160,7 @@ def serial_pipeline_bco(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-            
+
         if init_episode:
             new_data = collector.collect(
                 n_episode=cfg.policy.collect.n_episode, train_iter=learner.train_iter, policy_kwargs=collect_kwargs

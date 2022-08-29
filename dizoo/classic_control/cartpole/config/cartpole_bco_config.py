@@ -49,7 +49,7 @@ cartpole_bco_config = dict(
     ),
     bco=dict(
         learn=dict(idm_batch_size=32, idm_learning_rate=0.001, idm_weight_decay=1e-4, idm_train_epoch=10),
-        model=dict(idm_encoder_hidden_size_list=[60, 80, 100, 40], ),
+        model=dict(idm_encoder_hidden_size_list=[60, 80, 100, 40], action_space='discrete'),
         alpha=0.8,
     )
 )

@@ -373,7 +373,8 @@ class BaseLearner(object):
         ret = {
             'learner_step': self._last_iter.val,
             'priority_info': self.priority_info,
-            'learner_done': self._learner_done
+            'learner_done': self._learner_done,
+            'learner_train_iter': self._learner.train_iter
         }
         return ret
 

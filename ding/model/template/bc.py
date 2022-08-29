@@ -6,7 +6,7 @@ from easydict import EasyDict
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
-        MultiHead, RegressionHead, RegressionMaskedHead, ReparameterizationHead
+        MultiHead, RegressionHead, ReparameterizationHead
 
 
 @MODEL_REGISTRY.register('discrete_bc')
@@ -139,23 +139,11 @@ class ContinuousBC(nn.Module):
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.action_space = action_space
-        assert self.action_space in ['regression', 'regression_masked', 'reparameterization']
+        assert self.action_space in ['regression', 'reparameterization']
         if self.action_space == 'regression':
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 RegressionHead(
-                    actor_head_hidden_size,
-                    action_shape,
-                    actor_head_layer_num,
-                    final_tanh=True,
-                    activation=activation,
-                    norm_type=norm_type
-                )
-            )
-        elif self.action_space == 'regression_masked':
-            self.actor = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
-                RegressionMaskedHead(
                     actor_head_hidden_size,
                     action_shape,
                     actor_head_layer_num,
@@ -189,9 +177,6 @@ class ContinuousBC(nn.Module):
         if self.action_space == 'regression':
             x = self.actor(inputs)
             return {'action': x['pred']}
-        elif self.action_space == 'regression_masked':
-            x = self.actor(inputs)
-            return {'action': x['pred'],'mask':x['mask']}
         elif self.action_space == 'reparameterization':
             x = self.actor(inputs)
             return {'logit': [x['mu'], x['sigma']]}
