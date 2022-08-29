@@ -778,7 +778,8 @@ class ActionNoiseWrapper(IModelWrapper):
 
     def forward(self, *args, **kwargs):
         sigma = kwargs.pop('sigma')
-        self.noise_generator = GaussianNoise(mu=0, sigma=sigma)
+        if sigma is not None:
+            self.noise_generator.sigma = sigma
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         if 'action' in output or 'action_args' in output:

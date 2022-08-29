@@ -48,6 +48,7 @@ class BehaviourCloningPolicy(Policy):
             weight_decay=1e-4,
             ce_label_smooth=False,
             show_accuracy=False,
+            tanh_mask=False,  # if actions always converge to 1 or -1, use this. 
         ),
         collect=dict(
             unroll_len=1,
@@ -124,23 +125,26 @@ class BehaviourCloningPolicy(Policy):
         with self._timer:
             obs, action = data['obs'], data['action'].squeeze()
             if self._cfg.continuous:
-                if self._cfg.model.action_space == 'regression_masked':
-                    output = self._learn_model.forward(data['obs'])
-                    mu, mask = output['action'], output['mask']
-                    # percent of data being masked
-                    mask_percent = 1 - mask.sum().item() / (mu.shape[0] * mu.shape[1])
-                    # if 80% data are masked, ignore the mask.
+                if self._cfg.learn.tanh_mask:
+                    '''
+                    We mask the action out of range of [tanh(-1),tanh(1)], model will learn information
+                    and produce action in [-1,1]. So the action won't always converge to -1 or 1.
+                    '''
+                    mu = self._eval_model.forward(data['obs'])['action']
+                    bound = 1 - 2 / (math.exp(2) + 1)
+                    mask = mu.ge(-bound) & mu.le(bound)
+                    mask_percent = 1 - mask.sum().item() / mu.numel()
                     if mask_percent > 0.8:
                         loss = self._loss(mu, action.detach())
                     else:
                         loss = self._loss(mu.masked_select(mask), action.masked_select(mask).detach())
                 else:
                     mu = self._learn_model.forward(data['obs'])['action']
-                    # when we use bco, action is predicted by idm, gradient is not expected.
+                    # When we use bco, action is predicted by idm, gradient is not expected.
                     loss = self._loss(mu, action.detach())
             else:
                 a_logit = self._learn_model.forward(obs)
-                # when we use bco, action is predicted by idm, gradient is not expected.
+                # When we use bco, action is predicted by idm, gradient is not expected.
                 loss = self._loss(a_logit['logit'], action.detach())
 
                 if self._cfg.learn.show_accuracy:

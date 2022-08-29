@@ -20,21 +20,20 @@ class InverseDynamicsModel(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            continuous: Boolean,
             encoder_hidden_size_list: SequenceType = [60, 80, 100, 40],
             action_space: String = "regression",
             activation: Optional[nn.Module] = nn.LeakyReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        """
+        r"""
         Overview:
             Init the Inverse Dynamics (encoder + head) Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
-            - continuous(:obj:`Boolean`): whether action is continuous. eg: continuous:True, discrete: False.
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
+            - action_space (:obj:`String`): TAction space, such as 'regression', 'reparameterization', 'discrete'.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
                 if ``None`` then default set it to ``nn.LeakyReLU()`` refer to https://arxiv.org/abs/1805.01954
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
@@ -55,83 +54,80 @@ class InverseDynamicsModel(nn.Module):
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own Model".format(obs_shape)
             )
-        self.continuous = continuous
         self.action_space = action_space
-        assert self.action_space in ['regression', 'reparameterization']
-        if self.continuous:
-            if self.action_space == "regression":
-                self.header = RegressionHead(
-                    encoder_hidden_size_list[-1],
-                    action_shape,
-                    final_tanh=False,
-                    activation=activation,
-                    norm_type=norm_type
-                )
-            elif self.action_space == "reparameterization":
-                self.header = ReparameterizationHead(
-                    encoder_hidden_size_list[-1],
-                    action_shape,
-                    sigma_type='conditioned',
-                    activation=activation,
-                    norm_type=norm_type
-                )
-        else:
+        assert self.action_space in ['regression', 'reparameterization', 'discrete']
+        if self.action_space == "regression":
+            self.header = RegressionHead(
+                encoder_hidden_size_list[-1],
+                action_shape,
+                final_tanh=False,
+                activation=activation,
+                norm_type=norm_type
+            )
+        elif self.action_space == "reparameterization":
+            self.header = ReparameterizationHead(
+                encoder_hidden_size_list[-1],
+                action_shape,
+                sigma_type='conditioned',
+                activation=activation,
+                norm_type=norm_type
+            )
+        elif self.action_space == "discrete":
             self.header = DiscreteHead(
                 encoder_hidden_size_list[-1], action_shape, activation=activation, norm_type=norm_type
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        if self.continuous:
-            if self.action_space == "regression":
-                x = self.encoder(x)
-                x = self.header(x)
-                return {'action': x['pred']}
-            elif self.action_space == "reparameterization":
-                x = self.encoder(x)
-                x = self.header(x)
-                mu, sigma = x['mu'], x['sigma']
-                dist = Independent(Normal(mu, sigma), 1)
-                pred = dist.rsample()
-                action = torch.tanh(pred)
-                return {'logit': [mu, sigma], 'action': action}
-        else:
+        if self.action_space == "regression":
+            x = self.encoder(x)
+            x = self.header(x)
+            return {'action': x['pred']}
+        elif self.action_space == "reparameterization":
+            x = self.encoder(x)
+            x = self.header(x)
+            mu, sigma = x['mu'], x['sigma']
+            dist = Independent(Normal(mu, sigma), 1)
+            pred = dist.rsample()
+            action = torch.tanh(pred)
+            return {'logit': [mu, sigma], 'action': action}
+        elif self.action_space == "discrete":
             x = self.encoder(x)
             x = self.header(x)
             return x
 
     def predict_action(self, x: torch.Tensor) -> Dict:
-        if self.continuous:
-            return self.forward(x)
-        else:
+        if self.action_space == "discrete":
             res = nn.Softmax(dim=-1)
             action = torch.argmax(res(self.forward(x)['logit']), -1)
             return {'action': action}
+        else:
+            return self.forward(x)
 
     def train(self, training_set, n_epoch, learning_rate, weight_decay):
-        '''
-        train transition model, given pair of states return action (s0,s1 ---> a0)
-        Input:
-        training_set: states transition
-        n_epoch: number of epoches
-        learning_rate: learning rate for optimizer
-        weight_decay: weight decay for optimizer
-        return:
-        loss: trained transition model
-        '''
-        if self.continuous:
+        r"""
+        Overview:
+            Train idm model, given pair of states return action (s_t,s_t+1,a_t)
+
+        Arguments:
+            - training_set (:obj:`dict`):states transition
+            - n_epoch (:obj:`int`): number of epoches
+            - learning_rate (:obj:`float`): learning rate for optimizer
+            - weight_decay (:obj:`float`): weight decay for optimizer    
+        """
+        if self.action_space == "discrete":
+            criterion = nn.CrossEntropyLoss()
+        else:
             # criterion = nn.MSELoss()
             criterion = nn.L1Loss()
-        else:
-            criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
         loss_list = []
         for itr in range(n_epoch):
             data = training_set['obs']
             y = training_set['action']
-            if self.continuous:
-                y_pred = self.forward(data)['action']
-            else:
+            if self.action_space == "discrete":
                 y_pred = self.forward(data)['logit']
+            else:
+                y_pred = self.forward(data)['action']
             loss = criterion(y_pred, y)
             optimizer.zero_grad()
             loss.backward()

@@ -20,7 +20,7 @@ halfcheetah_bco_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
-            action_space='regression_masked',
+            action_space='regression',
             actor_head_hidden_size=128,
         ),
         learn=dict(
@@ -35,6 +35,7 @@ halfcheetah_bco_config = dict(
             optimizer='SGD',
             lr_decay=True,
             momentum=0.9,
+            tanh_mask=True,
         ),
         collect=dict(
             n_episode=100,

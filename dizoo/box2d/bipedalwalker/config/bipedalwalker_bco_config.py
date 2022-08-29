@@ -23,7 +23,7 @@ bipedalwalker_bco_config = dict(
             obs_shape=24,
             action_shape=4,
             action_space='regression',
-            actor_head_hidden_size=128,
+            actor_head_hidden_size=·128,
         ),
         learn=dict(
             train_epoch=30,
