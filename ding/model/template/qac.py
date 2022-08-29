@@ -289,20 +289,20 @@ class QACPixel(nn.Module):
     mode = ['compute_actor', 'compute_critic']
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType, EasyDict],
-            action_space: str = 'reparameterization',
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            twin_critic: bool = False,
-            actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 1,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            share_conv_encoder: bool = False,
-            embed_action: bool = False,
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType, EasyDict],
+        action_space: str = 'reparameterization',
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        twin_critic: bool = False,
+        actor_head_hidden_size: int = 64,
+        actor_head_layer_num: int = 1,
+        critic_head_hidden_size: int = 64,
+        critic_head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        share_conv_encoder: bool = False,
+        embed_action: bool = False,
     ) -> None:
         """
         Overview:
@@ -324,6 +324,8 @@ class QACPixel(nn.Module):
                 after each FC layer, if ``None`` then default set to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
                 see ``ding.torch_utils.network`` for more details.
+            - share_conv_encoder (:obj:`bool`): Whether to share conv encoder in twin critic.
+            - embed_action (:obj:`bool`): Whether to use embed_action layer in critic.
         """
         super(QACPixel, self).__init__()
         self.share_conv_encoder = share_conv_encoder
@@ -335,8 +337,7 @@ class QACPixel(nn.Module):
             global_encoder_cls = ConvEncoder
         else:
             raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                    format(obs_shape)
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
             )
 
         obs_shape: int = squeeze(obs_shape)
@@ -368,36 +369,33 @@ class QACPixel(nn.Module):
         if self.twin_critic:
             if self.share_conv_encoder:
                 self.critic_encoder = global_encoder_cls(
-                    obs_shape,
-                    encoder_hidden_size_list,
-                    activation=activation,
-                    norm_type=norm_type
+                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
                 )
             else:
                 self.critic_encoder = nn.ModuleList()
-               
+
             self.critic_head = nn.ModuleList()
             for _ in range(2):
                 if not self.share_conv_encoder:
-                    self.critic_encoder.append(global_encoder_cls(
-                        obs_shape,
-                        encoder_hidden_size_list,
-                        activation=activation,
-                        norm_type=norm_type
-                    ))
-                self.critic_head.append(
-                        RegressionHead(
-                            critic_head_input_size,
-                            1,
-                            critic_head_layer_num,
-                            final_tanh=False,
-                            activation=activation,
-                            norm_type=norm_type
+                    self.critic_encoder.append(
+                        global_encoder_cls(
+                            obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
                         )
                     )
+                self.critic_head.append(
+                    RegressionHead(
+                        critic_head_input_size,
+                        1,
+                        critic_head_layer_num,
+                        final_tanh=False,
+                        activation=activation,
+                        norm_type=norm_type
+                    )
+                )
         else:
-            self.critic_encoder = global_encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation,
-                                                     norm_type=norm_type)
+            self.critic_encoder = global_encoder_cls(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+            )
             self.critic_head = RegressionHead(
                 critic_head_input_size,
                 1,
@@ -410,6 +408,9 @@ class QACPixel(nn.Module):
             # if not share conv encoder, and not use embed_action
             if not self.share_conv_encoder and not self.embed_action:
                 self.critic = nn.ModuleList([*self.critic_encoder, *self.critic_head])
+            # if share conv encoder and not use embed_action
+            elif self.share_conv_encoder and not self.embed_action:
+                self.critic = nn.ModuleList([self.critic_encoder, *self.critic_head])
             # if not share conv encoder and use embed_action
             elif not self.share_conv_encoder and self.embed_action:
                 self.critic = nn.ModuleList([self.embed_action, *self.critic_encoder, *self.critic_head])
@@ -534,6 +535,12 @@ class QACPixel(nn.Module):
                 x = [m(obs) for m in self.critic_encoder]
                 x = [torch.cat([x1, action], dim=1) for x1 in x]
                 x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
+            # if share conv encoder and not use embed_action
+            elif self.share_conv_encoder and not self.embed_action:
+                # TODO(pu): detach() is right?
+                x = self.critic_encoder(obs)
+                x = [torch.cat([x_value, action], dim=1) for x_value in [x, x.detach()]]
+                x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
             # if not share conv encoder and use embed_action
             elif not self.share_conv_encoder and self.embed_action:
                 x = [m(obs) for m in self.critic_encoder]
@@ -608,7 +615,7 @@ class DiscreteQAC(nn.Module):
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                    format(agent_obs_shape)
+                format(agent_obs_shape)
             )
         if isinstance(global_obs_shape, int) or len(global_obs_shape) == 1:
             global_encoder_cls = FCEncoder
@@ -617,7 +624,7 @@ class DiscreteQAC(nn.Module):
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
-                    format(global_obs_shape)
+                format(global_obs_shape)
             )
 
         self.actor = nn.Sequential(

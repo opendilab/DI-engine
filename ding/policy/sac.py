@@ -294,7 +294,7 @@ class SACDiscretePolicy(Policy):
             if self._twin_critic:
                 # find min one as target q value
                 target_value = (
-                        prob * (torch.min(target_q_value[0], target_q_value[1]) - self._alpha * log_prob.squeeze(-1))
+                    prob * (torch.min(target_q_value[0], target_q_value[1]) - self._alpha * log_prob.squeeze(-1))
                 ).sum(dim=-1)
             else:
                 target_value = (prob * (target_q_value - self._alpha * log_prob.squeeze(-1))).sum(dim=-1)
@@ -1073,15 +1073,15 @@ class SACPolicy(Policy):
         alpha_loss = ['alpha_loss'] if self._auto_alpha else []
         value_loss = ['value_loss'] if self._value_network else []
         return [
-                   'alpha_loss',
-                   'policy_loss',
-                   'critic_loss',
-                   'cur_lr_q',
-                   'cur_lr_p',
-                   'target_q_value',
-                   'alpha',
-                   'td_error',
-               ] + twin_critic + alpha_loss + value_loss
+            'alpha_loss',
+            'policy_loss',
+            'critic_loss',
+            'cur_lr_q',
+            'cur_lr_p',
+            'target_q_value',
+            'alpha',
+            'td_error',
+        ] + twin_critic + alpha_loss + value_loss
 
 
 @POLICY_REGISTRY.register('sqil_sac')
@@ -1581,18 +1581,18 @@ class SQILSACPolicy(SACPolicy):
         cos_similarity = ['cos_similarity'] if self._monitor_cos else []
         entropy = ['entropy'] if self._monitor_entropy else []
         return [
-                   'alpha_loss',
-                   'policy_loss',
-                   'critic_loss',
-                   'cur_lr_q',
-                   'cur_lr_p',
-                   'target_q_value',
-                   'alpha',
-                   'td_error',
-                   'agent_td_error',
-                   'expert_td_error',
-                   'mu',
-                   'sigma',
-                   'q_value0',
-                   'q_value1',
-               ] + twin_critic + alpha_loss + value_loss + cos_similarity + entropy
+            'alpha_loss',
+            'policy_loss',
+            'critic_loss',
+            'cur_lr_q',
+            'cur_lr_p',
+            'target_q_value',
+            'alpha',
+            'td_error',
+            'agent_td_error',
+            'expert_td_error',
+            'mu',
+            'sigma',
+            'q_value0',
+            'q_value1',
+        ] + twin_critic + alpha_loss + value_loss + cos_similarity + entropy

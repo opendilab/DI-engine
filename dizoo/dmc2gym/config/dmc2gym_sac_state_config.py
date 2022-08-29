@@ -13,10 +13,6 @@ dmc2gym_sac_config = dict(
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        # for debug
-        # collector_env_num=1,
-        # evaluator_env_num=1,
-        # n_evaluator_episode=1,
         stop_value=1e6,
         manager=dict(shared_memory=False, ),
     ),
@@ -24,7 +20,6 @@ dmc2gym_sac_config = dict(
         model_type='state',
         cuda=True,
         random_collect_size=10000,
-        # random_collect_size=1,  # for debug
         model=dict(
             obs_shape=5,
             action_shape=1,
@@ -34,6 +29,7 @@ dmc2gym_sac_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
+            ignore_done=True,
             update_per_collect=1,
             batch_size=256,
             learning_rate_q=1e-3,
@@ -43,7 +39,6 @@ dmc2gym_sac_config = dict(
             discount_factor=0.99,
             alpha=0.2,
             reparameterization=True,
-            ignore_done=True,
             auto_alpha=True,
         ),
         collect=dict(
@@ -65,7 +60,6 @@ dmc2gym_sac_create_config = dict(
         import_names=['dizoo.dmc2gym.envs.dmc2gym_env'],
     ),
     env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),  # for debug
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -79,6 +73,7 @@ create_config = dmc2gym_sac_create_config
 #     # or you can enter `ding -m serial -c dmc2gym_sac_state_config.py -s 0`
 #     from ding.entry import serial_pipeline
 #     serial_pipeline([main_config, create_config], seed=0)
+
 if __name__ == "__main__":
     import copy
     import argparse

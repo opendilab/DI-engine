@@ -16,10 +16,6 @@ dmc2gym_sac_config = dict(
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        # for debug
-        # collector_env_num=1,
-        # evaluator_env_num=1,
-        # n_evaluator_episode=1,
         stop_value=1e6,
         manager=dict(shared_memory=False, ),
     ),
@@ -27,7 +23,6 @@ dmc2gym_sac_config = dict(
         model_type='pixel',
         cuda=True,
         random_collect_size=10000,
-        # random_collect_size=1,  # for debug
         model=dict(
             obs_shape=(3, 84, 84),
             action_shape=1,
@@ -36,8 +31,14 @@ dmc2gym_sac_config = dict(
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
 
+            # different option about whether to share_conv_encoder in two Q networks
+            # and whether to use embed_action
+
             share_conv_encoder=False,
             embed_action=False,
+
+            # share_conv_encoder=True,
+            # embed_action=False,
 
             # share_conv_encoder=False,
             # embed_action=True,
@@ -46,14 +47,12 @@ dmc2gym_sac_config = dict(
             # embed_action=True,
         ),
         learn=dict(
+            ignore_done=True,
             update_per_collect=1,
-            # batch_size=256,
-            # debug
-            batch_size=4,
+            batch_size=256,
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
             learning_rate_alpha=3e-4,
-            ignore_done=True,
             target_theta=0.005,
             discount_factor=0.99,
             alpha=0.2,
@@ -79,7 +78,6 @@ dmc2gym_sac_create_config = dict(
         import_names=['dizoo.dmc2gym.envs.dmc2gym_env'],
     ),
     env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),  # for debug
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
