@@ -4,8 +4,6 @@ nstep = 3
 lunarlander_bco_config = dict(
     exp_name='lunarlander_bco_seed0',
     env=dict(
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # Env number respectively for collector and evaluator.
         collector_env_num=8,
         evaluator_env_num=8,
         env_id='LunarLander-v2',
@@ -38,17 +36,12 @@ lunarlander_bco_config = dict(
             optimizer='SGD',
             lr_decay=True,
             momentum=0.9,
-            # Frequency of target network update.
         ),
         # collect_mode config
         collect=dict(
-            # You can use either "n_sample" or "n_episode" in collector.collect.
-            # Get "n_sample" samples per collect.
             n_episode=100,
-            model_path=
-            model_path='abs model path',
-            data_path='abs data path',
-            # Cut trajectories into pieces with length "unroll_len".
+            model_path='abs model path',  # expert model path
+            data_path='abs data path',  # expert data path
         ),
         # eval_mode config
         eval=dict(evaluator=dict(eval_freq=50, )),
@@ -80,7 +73,6 @@ lunarlander_bco_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),
     policy=dict(type='bc'),
     collector=dict(type='episode'),
 )

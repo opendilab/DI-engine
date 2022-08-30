@@ -41,8 +41,8 @@ halfcheetah_bco_config = dict(
             n_episode=100,
             # control the number (alpha*n_episode) of post-demonstration environment interactions at each iteration.
             # Notice: alpha * n_episode > collector_env_num
-            model_path='abs model path',
-            data_path='abs data path',
+            model_path='abs model path',  # expert model path
+            data_path='abs data path',  # expert data path
             noise=True,
             noise_sigma=dict(
                 start=0.5,
@@ -85,7 +85,7 @@ create_config = halfcheetah_bco_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_bco
-    from dizoo.mujoco.config import halfcheetah_sac_config, halfcheetah_sac_create_config
+    from dizoo.mujoco.config.halfcheetah_sac_config import halfcheetah_sac_config, halfcheetah_sac_create_config
     expert_main_config = halfcheetah_sac_config
     expert_create_config = halfcheetah_sac_create_config
     serial_pipeline_bco(

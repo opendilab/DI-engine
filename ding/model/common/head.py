@@ -1122,7 +1122,6 @@ head_cls_map = {
     'quantile': QuantileHead,
     # continuous
     'regression': RegressionHead,
-    'regression_masked': RegressionMaskedHead,
     'reparameterization': ReparameterizationHead,
     # multi
     'multi': MultiHead,

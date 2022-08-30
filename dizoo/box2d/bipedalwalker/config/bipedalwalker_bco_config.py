@@ -23,7 +23,7 @@ bipedalwalker_bco_config = dict(
             obs_shape=24,
             action_shape=4,
             action_space='regression',
-            actor_head_hidden_size=·128,
+            actor_head_hidden_size=128,
         ),
         learn=dict(
             train_epoch=30,
@@ -37,13 +37,14 @@ bipedalwalker_bco_config = dict(
             optimizer='SGD',
             lr_decay=True,
             momentum=0.9,
+            tanh_mask=True,
         ),
         collect=dict(
             n_episode=100,
             # control the number (alpha*n_episode) of post-demonstration environment interactions at each iteration.
             # Notice: alpha * n_episode > collector_env_num
-            model_path='abs model path',
-            data_path='abs data path',
+            model_path='abs model path',  # expert model path
+            data_path='abs data path',  # expert data path
             noise=True,
             noise_sigma=dict(
                 start=0.5,
@@ -77,7 +78,7 @@ bipedalwalker_bco_create_config = dict(
         type='bipedalwalker',
         import_names=['dizoo.box2d.bipedalwalker.envs.bipedalwalker_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='bc'),
     collector=dict(type='episode'),
 )

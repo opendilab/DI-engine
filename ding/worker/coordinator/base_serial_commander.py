@@ -1,5 +1,4 @@
 from collections import namedtuple
-from ding.worker import learner
 from easydict import EasyDict
 import copy
 
