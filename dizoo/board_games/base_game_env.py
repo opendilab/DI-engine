@@ -54,4 +54,3 @@ class BaseGameEnv(BaseEnv):
         while int(choice) not in self.legal_actions():
             choice = input("Illegal action. Enter another action : ")
         return int(choice)
-

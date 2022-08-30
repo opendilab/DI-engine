@@ -222,19 +222,14 @@ class SMACEnv(SC2Env, BaseEnv):
         self._map_name = map_inst.name
 
         self._step_mul = max(1, self._default_step_mul or map_inst.step_mul)
-        self._score_index = get_default(self._default_score_index,
-                                        map_inst.score_index)
-        self._score_multiplier = get_default(self._default_score_multiplier,
-                                             map_inst.score_multiplier)
-        self._episode_length = get_default(self._default_episode_length,
-                                           map_inst.game_steps_per_episode)
+        self._score_index = get_default(self._default_score_index, map_inst.score_index)
+        self._score_multiplier = get_default(self._default_score_multiplier, map_inst.score_multiplier)
+        self._episode_length = get_default(self._default_episode_length, map_inst.game_steps_per_episode)
         if self._episode_length <= 0 or self._episode_length > MAX_STEP_COUNT:
             self._episode_length = MAX_STEP_COUNT
 
         # Create the game. Set the first instance as the host.
-        create = sc_pb.RequestCreateGame(
-            disable_fog=self._disable_fog,
-            realtime=self._realtime)
+        create = sc_pb.RequestCreateGame(disable_fog=self._disable_fog, realtime=self._realtime)
 
         if self._battle_net_map:
             create.battlenet_map_name = map_inst.battle_net
@@ -256,8 +251,11 @@ class SMACEnv(SC2Env, BaseEnv):
                 create.player_setup.add(type=sc_pb.Participant)
             else:
                 create.player_setup.add(
-                    type=sc_pb.Computer, race=random.choice(p.race),
-                    difficulty=p.difficulty, ai_build=random.choice(p.build))
+                    type=sc_pb.Computer,
+                    race=random.choice(p.race),
+                    difficulty=p.difficulty,
+                    ai_build=random.choice(p.build)
+                )
         if self._num_agents > 1:
             self._controllers[1].create_game(create)
         else:
@@ -267,8 +265,7 @@ class SMACEnv(SC2Env, BaseEnv):
         agent_players = [p for p in self._players if isinstance(p, Agent)]
         self.sanitized_names = crop_and_deduplicate_names(p.name for p in agent_players)
         join_reqs = []
-        for p, name, interface in zip(agent_players, self.sanitized_names,
-                                      self._interface_options):
+        for p, name, interface in zip(agent_players, self.sanitized_names, self._interface_options):
             join = sc_pb.RequestJoinGame(options=interface)
             join.race = random.choice(p.race)
             join.player_name = name
@@ -277,21 +274,20 @@ class SMACEnv(SC2Env, BaseEnv):
                 join.server_ports.game_port = self._ports[0]
                 join.server_ports.base_port = self._ports[1]
                 for i in range(self._num_agents - 1):
-                    join.client_ports.add(game_port=self._ports[i * 2 + 2],
-                                          base_port=self._ports[i * 2 + 3])
+                    join.client_ports.add(game_port=self._ports[i * 2 + 2], base_port=self._ports[i * 2 + 3])
             join_reqs.append(join)
 
         # Join the game. This must be run in parallel because Join is a blocking
         # call to the game that waits until all clients have joined.
-        self._parallel.run((c.join_game, join)
-                           for c, join in zip(self._controllers, join_reqs))
+        self._parallel.run((c.join_game, join) for c, join in zip(self._controllers, join_reqs))
 
         self._game_info = self._parallel.run(c.game_info for c in self._controllers)
         for g, interface in zip(self._game_info, self._interface_options):
             if g.options.render != interface.render:
                 logging.warning(
                     "Actual interface options don't match requested options:\n"
-                    "Requested:\n%s\n\nActual:\n%s", interface, g.options)
+                    "Requested:\n%s\n\nActual:\n%s", interface, g.options
+                )
 
         # original pysc2 case
         # if require_features:

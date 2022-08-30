@@ -74,7 +74,6 @@ hopper_td3_bc_create_config = dict(
 hopper_td3_bc_create_config = EasyDict(hopper_td3_bc_create_config)
 create_config = hopper_td3_bc_create_config
 
-
 # if __name__ == "__main__":
 #     # or you can enter `ding -m serial -c hopper_td3_bc_config.py -s 0`
 #     from ding.entry import serial_pipeline

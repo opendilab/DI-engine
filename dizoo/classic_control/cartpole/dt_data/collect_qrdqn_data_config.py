@@ -32,22 +32,20 @@ main_config = dict(
         learn=dict(
             learner=dict(
                 train_iterations=1000000000,
-                dataloader=dict(
-                    num_workers=0,
-                ),
+                dataloader=dict(num_workers=0, ),
                 log_policy=True,
                 hook=dict(
                     # load_ckpt_before_run='./cartpole/ckpt/ckpt_best.pth.tar',
-                    load_ckpt_before_run='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/ckpt/ckpt_best.pth.tar',
-
+                    load_ckpt_before_run=
+                    '/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/ckpt/ckpt_best.pth.tar',
                     log_show_after_iter=100,
                     save_ckpt_after_iter=10000,
                     save_ckpt_after_run=False,
                 ),
                 cfg_type='BaseLearnerDict',
                 # load_path='./cartpole/ckpt/ckpt_best.pth.tar',
-                load_path='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/ckpt/ckpt_best.pth.tar',
-
+                load_path=
+                '/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/ckpt/ckpt_best.pth.tar',
             ),
             multi_gpu=False,
             update_per_collect=3,
@@ -70,7 +68,8 @@ main_config = dict(
             # save
             # data_type='hdf5',
             data_type='naive',  # TODO
-            save_path='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/cartpole/qrdqn_data_10eps.pkl',
+            save_path=
+            '/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/cartpole/qrdqn_data_10eps.pkl',
             # load
             data_path='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/cartpole/qrdqn_data.pkl',
         ),
@@ -107,9 +106,7 @@ main_config = dict(
                         average_range=5,
                         print_freq=200,
                     ),
-                    periodic_thruput=dict(
-                        seconds=60,
-                    ),
+                    periodic_thruput=dict(seconds=60, ),
                 ),
                 cfg_type='AdvancedReplayBufferDict',
             ),
