@@ -21,7 +21,7 @@ class MountainCarEnv(BaseEnv):
     The other methods are generally for convenience.
     """
 
-    def __init__(self, cfg: dict = {}) -> None:
+    def __init__(self, cfg: EasyDict) -> None:
         self._cfg = cfg
         self._init_flag = False
         self._replay_path = None
