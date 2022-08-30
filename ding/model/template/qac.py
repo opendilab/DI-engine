@@ -303,6 +303,7 @@ class QACPixel(nn.Module):
         norm_type: Optional[str] = None,
         share_conv_encoder: bool = False,
         embed_action: bool = False,
+        embed_action_density: float = 1,
     ) -> None:
         """
         Overview:
@@ -330,6 +331,7 @@ class QACPixel(nn.Module):
         super(QACPixel, self).__init__()
         self.share_conv_encoder = share_conv_encoder
         self.embed_action = embed_action
+        self.embed_action_density = embed_action_density
 
         # only accept pixel input
         if len(obs_shape) == 3:
@@ -361,8 +363,8 @@ class QACPixel(nn.Module):
         )
         if self.embed_action:
             # NOTE: Ensure that the information density of state and action match
-            self.embed_action = torch.nn.Linear(action_shape, encoder_hidden_size_list[-1])
-            critic_head_input_size = encoder_hidden_size_list[-1] * 2
+            self.embed_action = torch.nn.Linear(action_shape, int(encoder_hidden_size_list[-1] * (self.embed_action_density / (1 - self.embed_action_density)) ))
+            critic_head_input_size = int(encoder_hidden_size_list[-1] * (1 / (1-self.embed_action_density)))
         else:
             critic_head_input_size = encoder_hidden_size_list[-1] + action_shape
         self.twin_critic = twin_critic
@@ -533,25 +535,25 @@ class QACPixel(nn.Module):
             # if not share conv encoder, and not use embed_action
             if not self.share_conv_encoder and not self.embed_action:
                 x = [m(obs) for m in self.critic_encoder]
-                x = [torch.cat([x1, action], dim=1) for x1 in x]
+                x = [torch.cat([xi, action], dim=1) for xi in x]
                 x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
             # if share conv encoder and not use embed_action
             elif self.share_conv_encoder and not self.embed_action:
-                # TODO(pu): detach() is right?
+                # TODO(pu): .clone().detach() is right?
                 x = self.critic_encoder(obs)
-                x = [torch.cat([x_value, action], dim=1) for x_value in [x, x.detach()]]
-                x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
+                x = [m(torch.cat([x, action], dim=1))['pred'] for m in self.critic_head]
             # if not share conv encoder and use embed_action
             elif not self.share_conv_encoder and self.embed_action:
                 x = [m(obs) for m in self.critic_encoder]
-                x = [torch.cat([x_value, self.embed_action(action)], dim=1) for x_value in x]
+                action_embedding = self.embed_action(action).clone().detach()
+                x = [torch.cat([xi, action_embedding], dim=1) for xi in x]
                 x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
             # if share conv encoder and use embed_action
             elif self.share_conv_encoder and self.embed_action:
-                # TODO(pu): detach() is right?
+                # TODO(pu): .clone().detach() is right?
                 x = self.critic_encoder(obs)
-                x = [torch.cat([x_value, self.embed_action(action)], dim=1) for x_value in [x, x.detach()]]
-                x = [m(xi)['pred'] for m, xi in [(self.critic_head[0], x[0]), (self.critic_head[1], x[1])]]
+                action_embedding = self.embed_action(action).clone().detach()
+                x = [m(torch.cat([x, action_embedding], dim=1))['pred'] for m in self.critic_head]
 
         else:
             x = self.critic_encoder(obs)

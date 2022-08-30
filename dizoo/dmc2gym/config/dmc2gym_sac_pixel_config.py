@@ -1,5 +1,6 @@
 from easydict import EasyDict
-
+import os
+# os.environ['MUJOCO_GL']="egl"
 dmc2gym_sac_config = dict(
     exp_name='dmc2gym_sac_pixel_seed0',
     env=dict(
@@ -13,9 +14,12 @@ dmc2gym_sac_config = dict(
         frame_stack=3,
         from_pixels=True,  # pixel obs
         channels_first=False,  # obs shape (height, width, 3)
-        collector_env_num=16,
+        collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
+        # collector_env_num=1,
+        # evaluator_env_num=1,
+        # n_evaluator_episode=1,
         stop_value=1e6,
         manager=dict(shared_memory=False, ),
     ),
@@ -23,6 +27,7 @@ dmc2gym_sac_config = dict(
         model_type='pixel',
         cuda=True,
         random_collect_size=10000,
+        # random_collect_size=10,
         model=dict(
             obs_shape=(3, 84, 84),
             action_shape=1,
@@ -34,8 +39,8 @@ dmc2gym_sac_config = dict(
             # different option about whether to share_conv_encoder in two Q networks
             # and whether to use embed_action
 
-            share_conv_encoder=False,
-            embed_action=False,
+            # share_conv_encoder=False,
+            # embed_action=False,
 
             # share_conv_encoder=True,
             # embed_action=False,
@@ -43,13 +48,15 @@ dmc2gym_sac_config = dict(
             # share_conv_encoder=False,
             # embed_action=True,
 
-            # share_conv_encoder=True,
-            # embed_action=True,
+            share_conv_encoder=True,
+            embed_action=True,
+            embed_action_density=0.1,
         ),
         learn=dict(
             ignore_done=True,
             update_per_collect=1,
             batch_size=256,
+            # batch_size=4,  # debug
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
             learning_rate_alpha=3e-4,
@@ -78,6 +85,7 @@ dmc2gym_sac_create_config = dict(
         import_names=['dizoo.dmc2gym.envs.dmc2gym_env'],
     ),
     env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='base'),  # debug
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -103,6 +111,6 @@ if __name__ == "__main__":
         parser.add_argument('--seed', '-s', type=int, default=seed)
         args = parser.parse_args()
 
-        main_config.exp_name = 'dmc2gym_sac_pixel_scef-ecf' + 'seed' + f'{args.seed}'
+        main_config.exp_name = 'dmc2gym_sac_pixel_scet-eat01-detach' + 'seed' + f'{args.seed}'
         serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed,
                         max_env_step=int(3e6))

@@ -852,9 +852,10 @@ class SACPolicy(Policy):
 
         # 4. update q network
         self._optimizer_q.zero_grad()
-        loss_dict['critic_loss'].backward()
         if self._twin_critic:
-            loss_dict['twin_critic_loss'].backward()
+            (loss_dict['critic_loss'] + loss_dict['twin_critic_loss']).backward()
+        else:
+            loss_dict['critic_loss'].backward()
         self._optimizer_q.step()
 
         # 5. evaluate to get action distribution
