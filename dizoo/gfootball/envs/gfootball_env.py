@@ -100,8 +100,14 @@ class GfootballEnv(BaseEnv):
             self._env.seed(self._seed)
         if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
             # for NGU
-            return {'obs': {'processed_obs': self.obs, 'raw_obs': self._football_obs}, 'prev_action': self.prev_action,
-                    'prev_reward_extrinsic': self.prev_reward_extrinsic}
+            return {
+                'obs': {
+                    'processed_obs': self.obs,
+                    'raw_obs': self._football_obs
+                },
+                'prev_action': self.prev_action,
+                'prev_reward_extrinsic': self.prev_reward_extrinsic
+            }
         else:
             return {'processed_obs': self.obs, 'raw_obs': self._football_obs}
 
@@ -135,17 +141,18 @@ class GfootballEnv(BaseEnv):
             # for NGU
             self.prev_action = action
             self.prev_reward_extrinsic = self.reward
-            obs = {'obs': {'processed_obs': self.obs, 'raw_obs': self._football_obs}, 'prev_action': self.prev_action,
-                   'prev_reward_extrinsic': self.prev_reward_extrinsic}
+            obs = {
+                'obs': {
+                    'processed_obs': self.obs,
+                    'raw_obs': self._football_obs
+                },
+                'prev_action': self.prev_action,
+                'prev_reward_extrinsic': self.prev_reward_extrinsic
+            }
         else:
             obs = {'processed_obs': self.obs, 'raw_obs': self._football_obs}
 
-        return GfootballEnv.timestep(
-            obs,
-            reward=self.reward,
-            done=self._is_done,
-            info=info
-        )
+        return GfootballEnv.timestep(obs, reward=self.reward, done=self._is_done, info=info)
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed

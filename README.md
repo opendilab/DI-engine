@@ -9,7 +9,7 @@
 ![Conda](https://anaconda.org/opendilab/di-engine/badges/version.svg)
 ![Conda update](https://anaconda.org/opendilab/di-engine/badges/latest_release_date.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/DI-engine)
-![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com/PaParaZz1/54c5c44eeb94734e276b2ed5770eba8d/raw/c27503982a466fb609c87bff22d8673c4491ea47/badges.json)
+![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com/PaParaZz1/54c5c44eeb94734e276b2ed5770eba8d/raw/85b94a54933a9369f8843cc2cea3546152a75661/badges.json)
 
 ![Loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/loc.json)
 ![Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/comments.json)
@@ -32,7 +32,7 @@
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
-Updated on 2022.06.21 DI-engine-v0.4.0
+Updated on 2022.08.14 DI-engine-v0.4.1
 
 
 ## Introduction to DI-engine (beta)
@@ -83,8 +83,8 @@ Have fun with exploration and exploitation.
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Feature](#feature)
-  - [&#8627; Algorithm Versatility](#algorithm-versatility)
-  - [&#8627; Environment Versatility](#environment-versatility)
+  - [Algorithm Versatility](#algorithm-versatility)
+  - [Environment Versatility](#environment-versatility)
 - [Feedback and Contribution](#feedback-and-contribution)
 - [Supporters](#supporters)
   - [&#8627; Stargazers](#-stargazers)
@@ -235,7 +235,8 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 | 24 |[multiagent_mujoco](https://github.com/schroederdewitt/multiagent_mujoco)       |  ![continuous](https://img.shields.io/badge/-continous-green) ![marl](https://img.shields.io/badge/-MARL-yellow) | ![original](./dizoo/mujoco/mujoco.gif)                    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/multiagent_mujoco/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/mujoco_zh.html) |
 | 25 |bitflip                                | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![sparse](https://img.shields.io/badge/-sparse%20reward-orange)  | ![original](./dizoo/bitflip/bitflip.gif)    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/bitflip/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/bitflip_zh.html) |
 | 26 |[sokoban](https://github.com/mpSchrader/gym-sokoban) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![Game 2](https://github.com/mpSchrader/gym-sokoban/raw/default/docs/Animations/solved_4.gif?raw=true) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/sokoban/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/sokoban_zh.html) |
-
+| 27 |[gym_anytrading](https://github.com/AminHP/gym-anytrading) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/gym_anytrading/envs/position.png) | dizoo link <br>环境指南 |
+| 28 |[mario](https://github.com/Kautenja/gym-super-mario-bros) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/mario/mario.gif) | dizoo link <br>环境指南 |
 
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space
 

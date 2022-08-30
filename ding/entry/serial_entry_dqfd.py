@@ -52,7 +52,7 @@ def serial_pipeline_dqfd(
         cfg, create_cfg = read_config(input_cfg)
         expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
         expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     expert_create_cfg.policy.type = expert_create_cfg.policy.type + '_command'

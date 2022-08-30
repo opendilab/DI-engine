@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-
 obs_shape = 17
 act_shape = 6
 walker2d_sac_gail_config = dict(

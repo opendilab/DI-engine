@@ -14,7 +14,7 @@ class PendulumEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._act_scale = cfg.act_scale
-        self._env = gym.make('Pendulum-v0')
+        self._env = gym.make('Pendulum-v1')
         self._init_flag = False
         self._replay_path = None
         if 'continuous' in cfg.keys():
@@ -25,8 +25,7 @@ class PendulumEnv(BaseEnv):
             low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32
         )
         if self._continuous:
-            self._action_space = gym.spaces.Box(
-                low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
+            self._action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
         else:
             self._discrete_action_num = 11
             self._action_space = gym.spaces.Discrete(self._discrete_action_num)
@@ -37,7 +36,7 @@ class PendulumEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make('Pendulum-v0')
+            self._env = gym.make('Pendulum-v1')
             if self._replay_path is not None:
                 self._env = gym.wrappers.RecordVideo(
                     self._env,
@@ -72,11 +71,10 @@ class PendulumEnv(BaseEnv):
         assert isinstance(action, np.ndarray), type(action)
         # if require discrete env, convert actions to [-1 ~ 1] float actions
         if not self._continuous:
-            action = (action / (self._discrete_action_num-1)) * 2 - 1
+            action = (action / (self._discrete_action_num - 1)) * 2 - 1
         # scale into [-2, 2]
         if self._act_scale:
-            action = affine_transform(
-                action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
+            action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs).astype(np.float32)
@@ -118,6 +116,7 @@ class PendulumEnv(BaseEnv):
 
 @ENV_REGISTRY.register('mbpendulum')
 class MBPendulumEnv(PendulumEnv):
+
     def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
         """
         Overview:

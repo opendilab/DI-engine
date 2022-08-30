@@ -8,7 +8,8 @@ spaceinvaders_a2c_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='SpaceInvadersNoFrameskip-v4',
+        env_id='SpaceInvaders-v4',
+        #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
     policy=dict(
@@ -59,5 +60,5 @@ create_config = spaceinvaders_a2c_create_config
 
 if __name__ == '__main__':
     # or you can enter ding -m serial_onpolicy -c spaceinvaders_a2c_config.py -s 0
-    from ding.entry import serial_pipeline_onpolicy
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
