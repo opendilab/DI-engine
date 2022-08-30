@@ -16,6 +16,7 @@ class SokobanEnv(BaseEnv):
         self._cfg = cfg
         self._env_id = cfg.env_id
         self._init_flag = False
+        self._save_replay = False
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -26,6 +27,14 @@ class SokobanEnv(BaseEnv):
         if not self._init_flag:
             self._env = self._make_env(only_info=False)
             self._init_flag = True
+
+            if self._save_replay:
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
+                )
 
             self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
             self._observation_space = self._env.observation_space
@@ -66,6 +75,12 @@ class SokobanEnv(BaseEnv):
         if self._init_flag:
             self._env.close()
         self._init_flag = False
+
+    def enable_save_replay(self, replay_path) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._save_replay = True
+        self._replay_path = replay_path
 
     def __repr__(self) -> str:
         return "DI-engine Sokoban Env({})".format(self._cfg.env_id)

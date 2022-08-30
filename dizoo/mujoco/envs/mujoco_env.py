@@ -36,6 +36,14 @@ class MujocoEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env()
+            if self._replay_path is not None:
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
+                )
+
             self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
@@ -48,11 +56,6 @@ class MujocoEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        if self._replay_path is not None:
-            self._env = gym.wrappers.Monitor(
-                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-            )
-            self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
         return obs
@@ -124,6 +127,7 @@ class MujocoEnv(BaseEnv):
 
 @ENV_REGISTRY.register('mbmujoco')
 class MBMujocoEnv(MujocoEnv):
+
     def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
         """
         Overview:
@@ -170,13 +174,13 @@ class MBMujocoEnv(MujocoEnv):
             return done
         elif self._cfg.env_id in ['Ant-v2', 'AntTruncatedObs-v2']:
             x = next_obs[:, 0]
-            not_done = 	torch.isfinite(next_obs).all(axis=-1) \
+            not_done =  torch.isfinite(next_obs).all(axis=-1) \
                         * (x >= 0.2) \
                         * (x <= 1.0)
             done = ~not_done
             return done
         elif self._cfg.env_id in ['Humanoid-v2', 'HumanoidTruncatedObs-v2']:
-            z = next_obs[:,0]
+            z = next_obs[:, 0]
             done = (z < 1.0) + (z > 2.0)
             return done
         else:

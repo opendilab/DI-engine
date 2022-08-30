@@ -14,6 +14,7 @@ from dizoo.board_games.base_game_env import BaseGameEnv
 
 @ENV_REGISTRY.register('tictactoe')
 class TicTacToeEnv(BaseGameEnv):
+
     def __init__(self):
         self.board_size = 3
         self.players = [1, 2]
@@ -39,7 +40,7 @@ class TicTacToeEnv(BaseGameEnv):
             low=0, high=2, shape=(self.board_size, self.board_size, 3), dtype=np.uint8
         )
         self._action_space = gym.spaces.Discrete(self.board_size ** 2)
-        self._reward_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
+        self._reward_space = gym.spaces.Box(low=0, high=1, shape=(1, ), dtype=np.float32)
 
         self._current_player = self.players[start_player]
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
@@ -160,17 +161,13 @@ class TicTacToeEnv(BaseGameEnv):
         for i in range(3):
             if abs(sum(board[i, :])) == 2:
                 ind = np.where(board[i, :] == 0)[0][0]
-                action = np.ravel_multi_index(
-                    (np.array([i]), np.array([ind])), (3, 3)
-                )[0]
+                action = np.ravel_multi_index((np.array([i]), np.array([ind])), (3, 3))[0]
                 if self.current_player_to_compute_expert_action * sum(board[i, :]) > 0:
                     return action
 
             if abs(sum(board[:, i])) == 2:
                 ind = np.where(board[:, i] == 0)[0][0]
-                action = np.ravel_multi_index(
-                    (np.array([ind]), np.array([i])), (3, 3)
-                )[0]
+                action = np.ravel_multi_index((np.array([ind]), np.array([i])), (3, 3))[0]
                 if self.current_player_to_compute_expert_action * sum(board[:, i]) > 0:
                     return action
 
@@ -179,17 +176,13 @@ class TicTacToeEnv(BaseGameEnv):
         anti_diag = np.fliplr(board).diagonal()
         if abs(sum(diag)) == 2:
             ind = np.where(diag == 0)[0][0]
-            action = np.ravel_multi_index(
-                (np.array([ind]), np.array([ind])), (3, 3)
-            )[0]
+            action = np.ravel_multi_index((np.array([ind]), np.array([ind])), (3, 3))[0]
             if self.current_player_to_compute_expert_action * sum(diag) > 0:
                 return action
 
         if abs(sum(anti_diag)) == 2:
             ind = np.where(anti_diag == 0)[0][0]
-            action = np.ravel_multi_index(
-                (np.array([ind]), np.array([2 - ind])), (3, 3)
-            )[0]
+            action = np.ravel_multi_index((np.array([ind]), np.array([2 - ind])), (3, 3))[0]
             if self.current_player_to_compute_expert_action * sum(anti_diag) > 0:
                 return action
 
@@ -208,7 +201,6 @@ class TicTacToeEnv(BaseGameEnv):
                 row = int(
                     input(
                         f"Enter the row (1, 2, or 3, from up to bottom) to play for the player {self.current_player}: "
-
                     )
                 )
                 col = int(
@@ -217,13 +209,8 @@ class TicTacToeEnv(BaseGameEnv):
                     )
                 )
                 choice = self.coord_to_action(row - 1, col - 1)
-                if (
-                        choice in self.legal_actions
-                        and 1 <= row
-                        and 1 <= col
-                        and row <= self.board_size
-                        and col <= self.board_size
-                ):
+                if (choice in self.legal_actions and 1 <= row and 1 <= col and row <= self.board_size
+                        and col <= self.board_size):
                     break
                 else:
                     print("Wrong input, try again")

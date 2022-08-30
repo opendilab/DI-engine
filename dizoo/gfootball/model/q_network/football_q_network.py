@@ -118,7 +118,7 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
 
         if len(player_data[k].shape) == 3:
             # TODO(pu): to be compatible with serial_entry_bc
-            # ``res = policy._forward_eval(bat['obs'])`` 
+            # ``res = policy._forward_eval(bat['obs'])``
             player_data[k].squeeze_(0)
         attr.append(player_data[k])
     attr = torch.cat(attr, dim=-1)

@@ -12,10 +12,11 @@ bipedalwalker_ppo_config = dict(
         stop_value=300,
         rew_clip=True,
         # The path to save the game replay
-        replay_path=None,
+        # replay_path='./bipedalwalker_ppo_seed0/video',
     ),
     policy=dict(
         cuda=False,
+        load_path="./bipedalwalker_ppo_seed0/ckpt/ckpt_best.pth.tar",
         action_space='continuous',
         model=dict(
             action_space='continuous',

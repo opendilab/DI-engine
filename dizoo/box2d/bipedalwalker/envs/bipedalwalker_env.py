@@ -16,7 +16,10 @@ class BipedalWalkerEnv(BaseEnv):
         self._init_flag = False
         self._act_scale = cfg.act_scale
         self._rew_clip = cfg.rew_clip
-        self._replay_path = cfg.replay_path
+        if "replay_path" in cfg:
+            self._replay_path = cfg.replay_path
+        else:
+            self._replay_path = None
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:

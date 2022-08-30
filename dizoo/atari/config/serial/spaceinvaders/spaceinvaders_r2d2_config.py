@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-collector_env_num=8
-evaluator_env_num=5
+collector_env_num = 8
+evaluator_env_num = 5
 spaceinvaders_r2d2_config = dict(
     exp_name='spaceinvaders_r2d2_seed0',
     env=dict(
@@ -9,7 +9,8 @@ spaceinvaders_r2d2_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         stop_value=int(1e6),
-        env_id='SpaceInvadersNoFrameskip-v4',
+        env_id='SpaceInvaders-v4',
+        #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
@@ -61,7 +62,7 @@ spaceinvaders_r2d2_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=10000, 
+                replay_buffer_size=10000,
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

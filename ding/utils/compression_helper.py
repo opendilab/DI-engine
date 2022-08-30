@@ -1,7 +1,6 @@
 import pickle
 import zlib
 import lz4.block
-import cv2
 import numpy as np
 
 
@@ -44,6 +43,13 @@ def jpeg_data_compressor(data):
     Arguments:
         data (:obj:`np.array`): the observation numpy arr.
     """
+    try:
+        import cv2
+    except ImportError:
+        from ditk import logging
+        import sys
+        logging.warning("Please install opencv-python first.")
+        sys.exit(1)
     img_str = cv2.imencode('.jpg', data)[1].tobytes()
 
     return img_str
@@ -107,6 +113,13 @@ def jpeg_data_decompressor(compressed_data, gray_scale=False):
         gray_scale (:obj:`bool`): if the observation is gray, ``gray_scale=True``,
             if the observation is RGB, ``gray_scale=False``.
     """
+    try:
+        import cv2
+    except ImportError:
+        from ditk import logging
+        import sys
+        logging.warning("Please install opencv-python first.")
+        sys.exit(1)
     nparr = np.frombuffer(compressed_data, np.uint8)
     if gray_scale:
         arr = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)

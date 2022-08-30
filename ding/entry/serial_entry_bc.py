@@ -3,6 +3,7 @@ import os
 import torch
 from functools import partial
 from tensorboardX import SummaryWriter
+from copy import deepcopy
 from torch.utils.data import DataLoader
 
 from ding.envs import get_vec_env_setting, create_env_manager
@@ -39,7 +40,7 @@ def serial_pipeline_bc(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
     # Env, Policy

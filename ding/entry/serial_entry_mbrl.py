@@ -4,6 +4,7 @@ import os
 from functools import partial
 
 from tensorboardX import SummaryWriter
+from copy import deepcopy
 
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     get_buffer_cls, create_serial_collector
@@ -26,7 +27,7 @@ def mbrl_entry_setup(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
