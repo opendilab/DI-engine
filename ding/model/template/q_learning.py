@@ -665,8 +665,8 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
 
         # NOTE(rjy): the initial input shape will be (T, B, N),
         #            means encoder or head should process B trajectorys, each trajectory has T timestep,
-        #            but T and B dimension can be both treated as batch_size in encoder and head, 
-        #            i.e., independent and parallel processing, 
+        #            but T and B dimension can be both treated as batch_size in encoder and head,
+        #            i.e., independent and parallel processing,
         #            so here we need such fn to reshape for encoder or head
         x = x.reshape(T * B, *x.shape[2:])
         x = forward_fn(x)
@@ -812,7 +812,8 @@ class DRQN(nn.Module):
             x['next_state'] = next_state
             return x
         else:
-            # NOTE(rjy): in r2d2, 
+            # NOTE(rjy): In order to better explain why rnn needs saved_state and which states need to be stored, let's take r2d2 as an example
+            # in r2d2,
             # 1) data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
             # 2) data['main_obs'] = data['obs'][bs:-self._nstep]
             # 3) data['target_obs'] = data['obs'][bs + self._nstep:]
@@ -840,13 +841,13 @@ class DRQN(nn.Module):
             if self.res_link:
                 x = x + a
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
-            # NOTE(rjy): x['next_state'] is the hidden state of the last timestep inputted to lstm  
+            # NOTE(rjy): x['next_state'] is the hidden state of the last timestep inputted to lstm
             # the last timestep state including the hidden state (h) and the cell state (c)
             # shape: {list: B{dict: 2{Tensor:(1, 1, head_hidden_size}}}
             x['next_state'] = prev_state
             # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
             # This key is used in qtran, the algorithm requires to retain all h_{t} during training
-            x['hidden_state'] = torch.cat(hidden_state_list, dim=0)    
+            x['hidden_state'] = torch.cat(hidden_state_list, dim=0)
             if saved_state_timesteps is not None:
                 # the selected saved hidden states, including the hidden state (h) and the cell state (c)
                 # NOTE(rjy): in r2d2, set 'saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]',

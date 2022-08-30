@@ -627,7 +627,7 @@ class FQFHead(nn.Module):
         log_q_quantiles = self.quantiles_proposal(
             x.detach()
         )  # (batch_size, num_quantiles), not to update encoder when learning w1_loss(fraction loss)
-        q_quantiles = log_q_quantiles.exp()     # NOTE(rjy): e^log_q = q
+        q_quantiles = log_q_quantiles.exp()  # NOTE(rjy): e^log_q = q
 
         # Calculate entropies of value distributions.
         entropies = -(log_q_quantiles * q_quantiles).sum(dim=-1, keepdim=True)  # (batch_size, 1)
