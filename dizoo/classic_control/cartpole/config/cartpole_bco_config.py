@@ -36,8 +36,8 @@ cartpole_bco_config = dict(
             n_episode=10,
             # control the number (alpha*n_episode) of post-demonstration environment interactions at each iteration.
             # Notice: alpha * n_episode > collector_env_num
-            model_path='abs model path',
-            data_path='abs data path',
+            model_path='abs model path',  # epxert model path
+            data_path='abs data path',  # expert data path
         ),
         eval=dict(evaluator=dict(eval_freq=40, )),
         other=dict(eps=dict(

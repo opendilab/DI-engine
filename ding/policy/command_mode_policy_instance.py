@@ -377,8 +377,8 @@ class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
         if self._cfg.continuous:
-            # Decay according to `learner_train_iter`
-            step = command_info['learner_train_iter']
+            # Decay according to `learner_step`
+            step = command_info['learner_step']
             return {'sigma': self.epsilon_greedy(step)}
         else:
             # Decay according to `envstep`
@@ -390,4 +390,3 @@ class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
 
     def _get_setting_eval(self, command_info: dict) -> dict:
         return {}
-

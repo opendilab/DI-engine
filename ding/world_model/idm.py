@@ -1,8 +1,7 @@
-from tokenize import String
-from xmlrpc.client import Boolean
 import torch
 import torch.nn as nn
 from typing import Union, Optional, Dict
+import numpy as np
 
 from ding.model.common.head import DiscreteHead, RegressionHead, ReparameterizationHead
 from ding.utils import SequenceType, squeeze
@@ -21,7 +20,7 @@ class InverseDynamicsModel(nn.Module):
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
             encoder_hidden_size_list: SequenceType = [60, 80, 100, 40],
-            action_space: String = "regression",
+            action_space: str = "regression",
             activation: Optional[nn.Module] = nn.LeakyReLU(),
             norm_type: Optional[str] = None
     ) -> None:
@@ -33,7 +32,7 @@ class InverseDynamicsModel(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
-            - action_space (:obj:`String`): TAction space, such as 'regression', 'reparameterization', 'discrete'.
+            - action_space (:obj:`String`): Action space, such as 'regression', 'reparameterization', 'discrete'.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
                 if ``None`` then default set it to ``nn.LeakyReLU()`` refer to https://arxiv.org/abs/1805.01954
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
@@ -48,14 +47,16 @@ class InverseDynamicsModel(nn.Module):
                 obs_shape * 2, encoder_hidden_size_list, activation=activation, norm_type=norm_type
             )
         elif len(obs_shape) == 3:
-            obs_shape[0] = obs_shape[0] * 2
+            # FC encoder: obs and obs[next] ,so first channel need multiply 2
+            obs_shape = (obs_shape[0] * 2, *obs_shape[1:])
             self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own Model".format(obs_shape)
             )
         self.action_space = action_space
-        assert self.action_space in ['regression', 'reparameterization', 'discrete']
+        assert self.action_space in ['regression', 'reparameterization',
+                                     'discrete'], "not supported action_space: {}".format(self.action_space)
         if self.action_space == "regression":
             self.header = RegressionHead(
                 encoder_hidden_size_list[-1],
@@ -103,7 +104,7 @@ class InverseDynamicsModel(nn.Module):
         else:
             return self.forward(x)
 
-    def train(self, training_set, n_epoch, learning_rate, weight_decay):
+    def train(self, training_set: dict, n_epoch: int, learning_rate: float, weight_decay: float):
         r"""
         Overview:
             Train idm model, given pair of states return action (s_t,s_t+1,a_t)
@@ -133,5 +134,5 @@ class InverseDynamicsModel(nn.Module):
             loss.backward()
             optimizer.step()
             loss_list.append(loss.item())
-        last_loss = loss_list[-1]
-        return last_loss
+        loss = np.mean(loss_list)
+        return loss

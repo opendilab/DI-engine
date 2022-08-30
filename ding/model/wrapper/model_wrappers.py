@@ -1,7 +1,5 @@
 from typing import Any, Tuple, Callable, Optional, List, Dict
 from abc import ABC
-from ding.rl_utils.exploration import GaussianNoise
-
 import numpy as np
 import torch
 from ding.torch_utils import get_tensor_data

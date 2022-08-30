@@ -131,10 +131,10 @@ class BehaviourCloningPolicy(Policy):
                     and produce action in [-1,1]. So the action won't always converge to -1 or 1.
                     '''
                     mu = self._eval_model.forward(data['obs'])['action']
-                    bound = 1 - 2 / (math.exp(2) + 1)
+                    bound = 1 - 2 / (math.exp(2) + 1)  # tanh(1): (e-e**(-1))/(e+e**(-1))
                     mask = mu.ge(-bound) & mu.le(bound)
                     mask_percent = 1 - mask.sum().item() / mu.numel()
-                    if mask_percent > 0.8:
+                    if mask_percent > 0.8:  # if 80% data are masked, there is too little data to learn. So we use all data.
                         loss = self._loss(mu, action.detach())
                     else:
                         loss = self._loss(mu.masked_select(mask), action.masked_select(mask).detach())
