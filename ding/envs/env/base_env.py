@@ -10,7 +10,7 @@ BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'
 
 
 # for solving multiple inheritance metaclass conflict between gym and ABC
-class FinalMeta(type(gym.Env), type(ABC)):
+class FinalMeta(type(ABC), type(gym.Env)):
     pass
 
 

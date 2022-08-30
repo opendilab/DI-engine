@@ -1,7 +1,6 @@
 from easydict import EasyDict
 from copy import deepcopy
 
-
 halfcheetah_dt_config = dict(
     exp_name='halfcheetah_medium_expert_dt_seed0',
     env=dict(
@@ -18,10 +17,10 @@ halfcheetah_dt_config = dict(
         stop_value=6000,
         cuda=True,
         env_name='HalfCheetah-v3',
-        rtg_target=6000, # max target return to go
-        max_eval_ep_len=1000, # max lenght of one episode
-        num_eval_ep=10 ,    # num of evaluation episode
-        batch_size= 64,
+        rtg_target=6000,  # max target return to go
+        max_eval_ep_len=1000,  # max lenght of one episode
+        num_eval_ep=10,  # num of evaluation episode
+        batch_size=64,
         wt_decay=1e-4,
         warmup_steps=10000,
         num_updates_per_iter=100,
@@ -50,10 +49,8 @@ halfcheetah_dt_config = dict(
             kappa=1.0,
             min_q_weight=4.0,
         ),
-        collect=dict(
-            unroll_len=1,
-        ),
-        eval=dict(evaluator=dict(evalu_freq=100,),),
+        collect=dict(unroll_len=1, ),
+        eval=dict(evaluator=dict(evalu_freq=100, ), ),
         other=dict(
             eps=dict(
                 type='exp',
@@ -61,9 +58,7 @@ halfcheetah_dt_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=1000,
-            ),
+            replay_buffer=dict(replay_buffer_size=1000, ),
         ),
     ),
 )
@@ -81,9 +76,7 @@ halfcheetah_dt_create_config = dict(
 halfcheetah_dt_create_config = EasyDict(halfcheetah_dt_create_config)
 create_config = halfcheetah_dt_create_config
 
-
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_dt
     config = deepcopy([main_config, create_config])
     serial_pipeline_dt(config, seed=0, max_train_iter=1000)
-

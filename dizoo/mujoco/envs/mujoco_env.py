@@ -127,6 +127,7 @@ class MujocoEnv(BaseEnv):
 
 @ENV_REGISTRY.register('mbmujoco')
 class MBMujocoEnv(MujocoEnv):
+
     def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
         """
         Overview:
@@ -173,13 +174,13 @@ class MBMujocoEnv(MujocoEnv):
             return done
         elif self._cfg.env_id in ['Ant-v2', 'AntTruncatedObs-v2']:
             x = next_obs[:, 0]
-            not_done = 	torch.isfinite(next_obs).all(axis=-1) \
+            not_done =  torch.isfinite(next_obs).all(axis=-1) \
                         * (x >= 0.2) \
                         * (x <= 1.0)
             done = ~not_done
             return done
         elif self._cfg.env_id in ['Humanoid-v2', 'HumanoidTruncatedObs-v2']:
-            z = next_obs[:,0]
+            z = next_obs[:, 0]
             done = (z < 1.0) + (z > 2.0)
             return done
         else:

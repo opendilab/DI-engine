@@ -20,7 +20,7 @@ gfootball_bc_config = dict(
         # env_name="11_vs_11_stochastic",  # default: medium
         # env_name="11_vs_11_hard_stochastic",
         save_replay_gif=False,
-        manager=dict(shared_memory=False,),
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         env_name='gfootball',
@@ -54,8 +54,8 @@ gfootball_bc_config = dict(
                 decay=10000,
             ),
             replay_buffer=dict(replay_buffer_size=int(1e6), ),
-            ),
         ),
+    ),
 )
 gfootball_bc_config = EasyDict(gfootball_bc_config)
 main_config = gfootball_bc_config

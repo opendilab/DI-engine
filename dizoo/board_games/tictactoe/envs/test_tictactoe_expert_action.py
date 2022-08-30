@@ -5,6 +5,7 @@ import numpy as np
 
 @pytest.mark.envtest
 class TestExpertAction:
+
     def test_expert_action(self):
         env = TicTacToeEnv()
         env.reset()
@@ -18,7 +19,7 @@ class TestExpertAction:
         # case 2
         env.board = np.array([[1, 2, 1], [2, 2, 0], [1, 0, 0]])
         env.current_player = 1
-        assert env.expert_action() in [5,7]
+        assert env.expert_action() in [5, 7]
         # case 3
         env.board = np.array([[1, 2, 1], [1, 2, 2], [0, 0, 1]])
         env.current_player = 2
@@ -27,4 +28,3 @@ class TestExpertAction:
         env.board = np.array([[1, 2, 1], [1, 0, 2], [0, 0, 0]])
         env.current_player = 2
         assert 6 == env.expert_action()
-

@@ -23,7 +23,6 @@ seed = 0
 gfootball_bc_config.exp_name = 'gfootball_bc_kaggle5th_seed0'
 demo_transitions = int(3e5)  # key hyper-parameter
 data_path_transitions = dir_path + f'/gfootball_kaggle5th_{demo_transitions}-demo-transitions.pkl'
-
 """
 phase 1: collect demo data utilizing ``FootballKaggle5thPlaceModel``
 """
@@ -37,22 +36,27 @@ create_cfg.policy.type = create_cfg.policy.type + '_command'
 cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
 
 football_kaggle_5th_place_model = FootballKaggle5thPlaceModel()
-expert_policy = create_policy(cfg.policy, model=football_kaggle_5th_place_model,
-                              enable_field=['learn', 'collect', 'eval', 'command'])
+expert_policy = create_policy(
+    cfg.policy, model=football_kaggle_5th_place_model, enable_field=['learn', 'collect', 'eval', 'command']
+)
 
 # collect expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
 collect_config = [deepcopy(gfootball_bc_config), deepcopy(gfootball_bc_create_config)]
 collect_demo_data(
-    collect_config, seed=seed, expert_data_path=data_path_transitions, collect_count=demo_transitions,
-    model=football_kaggle_5th_place_model, state_dict=state_dict,
+    collect_config,
+    seed=seed,
+    expert_data_path=data_path_transitions,
+    collect_count=demo_transitions,
+    model=football_kaggle_5th_place_model,
+    state_dict=state_dict,
 )
-
 """
 phase 2: BC training
 """
 bc_config = [deepcopy(gfootball_bc_config), deepcopy(gfootball_bc_create_config)]
 bc_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 football_naive_q = FootballNaiveQ()
-_, converge_stop_flag = serial_pipeline_bc(bc_config, seed=seed, data_path=data_path_transitions,
-                                           model=football_naive_q)
+_, converge_stop_flag = serial_pipeline_bc(
+    bc_config, seed=seed, data_path=data_path_transitions, model=football_naive_q
+)
