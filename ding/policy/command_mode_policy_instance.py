@@ -43,7 +43,6 @@ from .cql import CQLPolicy, CQLDiscretePolicy
 from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
-from .bc import BehaviourCloningPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):

@@ -77,6 +77,10 @@ class IBCPolicy(BehaviourCloningPolicy):
             # obs: (B, O)
             # action: (B, A)
             obs, action = data['obs'], data['action']
+            if len(obs.shape) == 1:
+                obs = obs.unsqueeze(-1)
+            if len(action.shape) == 1:
+                action = action.unsqueeze(-1)
 
             # (B, N, O), (B, N, A)
             obs, negatives = self._stochastic_optimizer.sample(obs, self._learn_model)

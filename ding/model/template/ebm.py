@@ -1,5 +1,6 @@
-"""Vanilla DFO and EBM are adapted from https://github.com/kevinzakka/ibc.
-   MCMC is adapted from https://github.com/google-research/ibc.
+"""
+Vanilla DFO and EBM are adapted from https://github.com/kevinzakka/ibc.
+MCMC is adapted from https://github.com/google-research/ibc.
 """
 from typing import Callable, Tuple
 
@@ -11,8 +12,7 @@ import torch.nn.functional as F
 from abc import ABC, abstractmethod
 
 from ding.utils import MODEL_REGISTRY, STOCHASTIC_OPTIMIZER_REGISTRY
-from ding.torch_utils import unsqueeze_repeat, fold_batch, unfold_batch
-from ding.torch_utils.network.gtrxl import PositionalEmbedding
+from ding.torch_utils import unsqueeze_repeat
 from ding.model.wrapper import IModelWrapper
 from ..common import RegressionHead
 
@@ -49,7 +49,6 @@ class StochasticOptimizer(ABC):
         obs: (B, O)
         return: (B, N, O), (B, N, A).
         """
-        # TODO: do not use np.random
         action_bounds = self.action_bounds.cpu().numpy()
         size = (obs.shape[0], num_samples, action_bounds.shape[1])
         action_samples = np.random.uniform(action_bounds[0, :], action_bounds[1, :], size=size)
