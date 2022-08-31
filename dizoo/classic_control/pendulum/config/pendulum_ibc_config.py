@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-cuda = True
+cuda = False
 multi_gpu = False
 
 main_config = dict(
