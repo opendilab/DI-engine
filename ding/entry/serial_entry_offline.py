@@ -51,8 +51,8 @@ def serial_pipeline_offline(
     if cfg.policy.learn.multi_gpu:
         sampler, shuffle = DistributedSampler(dataset), False
     dataloader = DataLoader(
-        dataset, 
-        cfg.policy.learn.batch_size // get_world_size(), 
+        dataset,
+        cfg.policy.learn.batch_size // get_world_size(),
         shuffle=shuffle,
         sampler=sampler,
         collate_fn=lambda x: x,

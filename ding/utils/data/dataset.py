@@ -15,9 +15,10 @@ from ding.rl_utils import discount_cumsum
 
 @dataclass
 class DatasetStatistics:
-    mean: np.ndarray # obs
+    mean: np.ndarray  # obs
     std: np.ndarray  # obs
     action_bounds: np.ndarray
+
 
 @DATASET_REGISTRY.register('naive')
 class NaiveRLDataset(Dataset):
@@ -78,7 +79,7 @@ class D4RLDataset(Dataset):
             trans_data['reward'] = torch.tensor(dataset['rewards'][i])
             trans_data['done'] = dataset['terminals'][i]
             self._data.append(trans_data)
-    
+
     def _cal_statistics(self, dataset, env, eps=1e-3, add_action_buffer=True):
         self._mean = dataset['observations'].mean(0, keepdims=True)
         self._std = dataset['observations'].std(0, keepdims=True) + eps
@@ -102,7 +103,7 @@ class D4RLDataset(Dataset):
     @property
     def std(self):
         return self._std
-    
+
     @property
     def action_bounds(self) -> np.ndarray:
         return self._action_bounds

@@ -1,5 +1,5 @@
 """Vanilla DFO and EBM are adapted from https://github.com/kevinzakka/ibc.
-   MCMC is adapted from https://github.com/google-research/ibc. 
+   MCMC is adapted from https://github.com/google-research/ibc.
 """
 from typing import Callable, Tuple
 
@@ -18,14 +18,14 @@ from ..common import RegressionHead
 
 
 def create_stochastic_optimizer(stochastic_optimizer_config):
-    return STOCHASTIC_OPTIMIZER_REGISTRY.build(
-        stochastic_optimizer_config.pop("type"),
-        **stochastic_optimizer_config
-    )
+    return STOCHASTIC_OPTIMIZER_REGISTRY.build(stochastic_optimizer_config.pop("type"), **stochastic_optimizer_config)
+
 
 def no_ebm_grad():
     """Wrapper that disables energy based model gradients"""
+
     def ebm_disable_grad_wrapper(func: Callable):
+
         def wrapper(*args, **kwargs):
             ebm = args[-1]
             assert isinstance(ebm, IModelWrapper) or\
@@ -35,8 +35,11 @@ def no_ebm_grad():
             result = func(*args, **kwargs)
             ebm.requires_grad_(True)
             return result
+
         return wrapper
+
     return ebm_disable_grad_wrapper
+
 
 class StochasticOptimizer(ABC):
 
@@ -90,6 +93,7 @@ class StochasticOptimizer(ABC):
 
 @STOCHASTIC_OPTIMIZER_REGISTRY.register('dfo')
 class DFO(StochasticOptimizer):
+
     def __init__(
         self,
         noise_scale: float = 0.33,
@@ -147,6 +151,7 @@ class DFO(StochasticOptimizer):
 
 @STOCHASTIC_OPTIMIZER_REGISTRY.register('ardfo')
 class AutoRegressiveDFO(DFO):
+
     def __init__(
         self,
         noise_scale: float = 0.33,
@@ -178,18 +183,17 @@ class AutoRegressiveDFO(DFO):
 
                 # Resample with replacement.
                 idxs = torch.multinomial(probs, self.inference_samples, replacement=True)
-                action_samples = action_samples[
-                    torch.arange(action_samples.size(0)).unsqueeze(-1), idxs]
+                action_samples = action_samples[torch.arange(action_samples.size(0)).unsqueeze(-1), idxs]
 
                 # Add noise and clip to target bounds.
-                action_samples[..., j] = action_samples[..., j
-                    ] + torch.randn_like(action_samples[..., j]) * noise_scale
+                action_samples[..., j] = action_samples[..., j] + torch.randn_like(action_samples[..., j]) * noise_scale
 
-                action_samples[..., j] = action_samples[..., j
-                    ].clamp(min=self.action_bounds[0, j], max=self.action_bounds[1, j])
+                action_samples[..., j] = action_samples[..., j].clamp(
+                    min=self.action_bounds[0, j], max=self.action_bounds[1, j]
+                )
 
             noise_scale *= self.noise_shrink
-        
+
         # (B, N)
         energies = ebm.forward(obs, action_samples)[..., -1]
         probs = F.softmax(-1.0 * energies, dim=-1)
@@ -202,6 +206,7 @@ class AutoRegressiveDFO(DFO):
 class MCMC(StochasticOptimizer):
 
     class BaseScheduler(ABC):
+
         @abstractmethod
         def get_rate(self, index):
             raise NotImplementedError
@@ -216,7 +221,7 @@ class MCMC(StochasticOptimizer):
         def get_rate(self, index):
             """Get learning rate. Assumes calling sequentially."""
             del index
-            lr = self._latest_lr 
+            lr = self._latest_lr
             self._latest_lr *= self._decay
             return lr
 
@@ -233,9 +238,9 @@ class MCMC(StochasticOptimizer):
             """Get learning rate for index."""
             if index == -1:
                 return self._init
-            return ((self._init - self._final) *
-                    ((1 - (float(index) / float(self._num_steps-1))) ** (self._power))
-                    ) + self._final
+            return (
+                (self._init - self._final) * ((1 - (float(index) / float(self._num_steps - 1))) ** (self._power))
+            ) + self._final
 
     def __init__(
         self,
@@ -257,9 +262,9 @@ class MCMC(StochasticOptimizer):
             # num_steps,
         ),
         cuda: bool = False,
-        ## langevin_step
+        # langevin_step
         noise_scale: float = 0.5,
-        grad_clip = None,
+        grad_clip=None,
         delta_action_clip: float = 0.5,
         add_grad_penalty: bool = True,
         grad_norm_type: str = 'inf',
@@ -283,11 +288,11 @@ class MCMC(StochasticOptimizer):
         self.grad_margin = grad_margin
         self.grad_loss_weight = grad_loss_weight
         self.device = torch.device('cuda' if cuda else "cpu")
-    
+
     @staticmethod
     def _gradient_wrt_act(
-            obs: torch.Tensor, 
-            action: torch.Tensor, 
+            obs: torch.Tensor,
+            action: torch.Tensor,
             ebm: nn.Module,
             create_graph: bool = False,
     ) -> torch.Tensor:
@@ -298,16 +303,11 @@ class MCMC(StochasticOptimizer):
         """
         action = nn.Parameter(action)
         energy = ebm.forward(obs, action).sum()
-        # `create_graph` set to `True` when second order derivative 
+        # `create_graph` set to `True` when second order derivative
         #  is needed i.e, d(de/da)/d_param
         return torch.autograd.grad(energy, action, create_graph=create_graph)[0]
 
-    def grad_penalty(
-            self, 
-            obs: torch.Tensor, 
-            action: torch.Tensor, 
-            ebm: nn.Module
-    ) -> torch.Tensor:
+    def grad_penalty(self, obs: torch.Tensor, action: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
         """
         Calculate gradient penalty.
         obs: (B, N+1, O), action: (B, N+1, A)
@@ -326,7 +326,7 @@ class MCMC(StochasticOptimizer):
                 '2': 2,
                 'inf': float('inf'),
             }
-            ord = grad_norm_type_to_ord[grad_norm_type] 
+            ord = grad_norm_type_to_ord[grad_norm_type]
             return torch.linalg.norm(de_dact, ord, dim=-1)
 
         # (B, N+1)
@@ -341,13 +341,7 @@ class MCMC(StochasticOptimizer):
     # can not use @torch.no_grad() during the inference
     # because we need to calculate gradient w.r.t inputs as MCMC updates.
     @no_ebm_grad()
-    def _langevin_step(
-            self, 
-            obs: torch.Tensor, 
-            action: torch.Tensor, 
-            stepsize: float, 
-            ebm: nn.Module
-    ) -> torch.Tensor:
+    def _langevin_step(self, obs: torch.Tensor, action: torch.Tensor, stepsize: float, ebm: nn.Module) -> torch.Tensor:
         """
         Run one langevin MCMC step.
         obs: (B, N, O), action: (B, N, A)
@@ -360,25 +354,23 @@ class MCMC(StochasticOptimizer):
             de_dact = de_dact.clamp(min=-self.grad_clip, max=self.grad_clip)
 
         gradient_scale = 0.5
-        de_dact = (gradient_scale * l_lambda * de_dact +
-             torch.randn_like(de_dact) * l_lambda * self.noise_scale)
-        
+        de_dact = (gradient_scale * l_lambda * de_dact + torch.randn_like(de_dact) * l_lambda * self.noise_scale)
+
         delta_action = stepsize * de_dact
-        delta_action_clip = self.delta_action_clip * 0.5 * (
-            self.action_bounds[1] - self.action_bounds[0])
+        delta_action_clip = self.delta_action_clip * 0.5 * (self.action_bounds[1] - self.action_bounds[0])
         delta_action = delta_action.clamp(min=-delta_action_clip, max=delta_action_clip)
 
         action = action - delta_action
         action = action.clamp(min=self.action_bounds[0], max=self.action_bounds[1])
-        
+
         return action
 
     @no_ebm_grad()
     def _langevin_action_gives_obs(
-            self, 
-            obs: torch.Tensor, 
-            action: torch.Tensor, 
-            ebm: nn.Module, 
+            self,
+            obs: torch.Tensor,
+            action: torch.Tensor,
+            ebm: nn.Module,
             scheduler: BaseScheduler = None
     ) -> torch.Tensor:
         """
@@ -416,8 +408,8 @@ class MCMC(StochasticOptimizer):
         # (B, N, O), (B, N, A)
         obs, uniform_action_samples = self._sample(obs, self.inference_samples)
         action_samples = self._langevin_action_gives_obs(
-            obs, 
-            uniform_action_samples, 
+            obs,
+            uniform_action_samples,
             ebm,
         )
 
@@ -425,7 +417,7 @@ class MCMC(StochasticOptimizer):
         if self.optimize_again:
             self.again_stepsize_scheduler['num_steps'] = self.iters
             action_samples = self._langevin_action_gives_obs(
-                obs, 
+                obs,
                 action_samples,
                 ebm,
                 scheduler=MCMC.PolynomialScheduler(**self.again_stepsize_scheduler),
@@ -435,10 +427,9 @@ class MCMC(StochasticOptimizer):
         return self._get_best_action_sample(obs, action_samples, ebm)
 
 
-
 @MODEL_REGISTRY.register('ebm')
 class EBM(nn.Module):
-    
+
     def __init__(
         self,
         obs_shape: int,
@@ -448,10 +439,9 @@ class EBM(nn.Module):
         **kwargs,
     ):
         super().__init__()
-        input_size = obs_shape + action_shape 
+        input_size = obs_shape + action_shape
         self.net = nn.Sequential(
-            nn.Linear(input_size, hidden_size), 
-            nn.ReLU(),
+            nn.Linear(input_size, hidden_size), nn.ReLU(),
             RegressionHead(
                 hidden_size,
                 1,
@@ -481,9 +471,9 @@ class AutoregressiveEBM(nn.Module):
         **kwargs,
     ):
         super().__init__()
-        self.ebm_list = nn.ModuleList() 
+        self.ebm_list = nn.ModuleList()
         for i in range(action_shape):
-            self.ebm_list.append(EBM(obs_shape, i+1, hidden_size, hidden_layer_num))
+            self.ebm_list.append(EBM(obs_shape, i + 1, hidden_size, hidden_layer_num))
 
     def forward(self, obs, action):
         # obs: (B, N, O)
@@ -493,6 +483,6 @@ class AutoregressiveEBM(nn.Module):
         # (B, N)
         output_list = []
         for i, ebm in enumerate(self.ebm_list):
-            output_list.append(ebm(obs, action[..., :i+1]))
+            output_list.append(ebm(obs, action[..., :i + 1]))
         # (B, N, A)
         return torch.stack(output_list, axis=-1)

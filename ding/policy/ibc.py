@@ -5,8 +5,6 @@ from easydict import EasyDict
 import torch
 import torch.nn.functional as F
 
-from easydict import EasyDict
-
 from ding.model import model_wrap
 from ding.torch_utils import to_device
 from ding.utils.data import default_collate, default_decollate
@@ -45,13 +43,13 @@ class IBCPolicy(BehaviourCloningPolicy):
                 beta2=0.999,
             ),
         ),
-        collect=dict(normalize_states=True,),
+        collect=dict(normalize_states=True, ),
         eval=dict(evaluator=dict(eval_freq=10000, )),
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'ebm', ['ding.model.template.ebm']
-    
+
     def _init_learn(self):
         self._timer = EasyTimer(cuda=self._cfg.cuda)
         self._sync_timer = EasyTimer(cuda=self._cfg.cuda)
@@ -66,7 +64,7 @@ class IBCPolicy(BehaviourCloningPolicy):
             create_stochastic_optimizer(self._cfg.model.stochastic_optim)
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
-    
+
     def _forward_learn(self, data):
         with self._timer:
             data = default_collate(data)
@@ -107,7 +105,7 @@ class IBCPolicy(BehaviourCloningPolicy):
             loss_dict['ebm_loss'] = loss.item()
 
             if isinstance(self._stochastic_optimizer, MCMC):
-                grad_penalty = self._stochastic_optimizer.grad_penalty(obs, targets, self._learn_model) 
+                grad_penalty = self._stochastic_optimizer.grad_penalty(obs, targets, self._learn_model)
                 loss += grad_penalty
                 loss_dict['grad_penalty'] = grad_penalty.item()
             loss_dict['total_loss'] = loss.item()

@@ -8,6 +8,7 @@ from ding.model.template.ebm import DFO, AutoRegressiveDFO, MCMC
 # batch, negative_samples, obs_shape, action_shape
 B, N, O, A = 32, 1024, 11, 3
 
+
 @pytest.mark.unittest
 class TestEBM:
 
@@ -17,6 +18,7 @@ class TestEBM:
         ebm = EBM(O, A)
         energy = ebm(obs, action)
         assert energy.shape == (B, N)
+
 
 @pytest.mark.unittest
 class TestDFO:
@@ -35,6 +37,7 @@ class TestDFO:
         action = self.opt.infer(obs, self.ebm)
         assert action.shape == (B, A)
 
+
 @pytest.mark.unittest
 class TestAutoregressiveEBM:
 
@@ -44,6 +47,7 @@ class TestAutoregressiveEBM:
         arebm = AutoregressiveEBM(O, A)
         energy = arebm(obs, action)
         assert energy.shape == (B, N, A)
+
 
 @pytest.mark.unittest
 class TestAutoregressiveDFO:
