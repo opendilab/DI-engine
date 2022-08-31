@@ -2,7 +2,6 @@ from typing import Optional, Callable, Tuple
 from collections import namedtuple
 import numpy as np
 import torch
-import torch.distributed as dist
 
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray
@@ -24,7 +23,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
     config = dict(
         # Evaluate every "eval_freq" training iterations.
         eval_freq=1000,
-        multi_gpu=False,
         render=dict(
             # tensorboard video render is disabled by default
             render_freq=-1,
@@ -189,15 +187,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
             - return_info (:obj:`dict`): Current evaluation return information.
         '''
-        if self._cfg.multi_gpu:
-            train_iter *= dist.get_world_size()
-            envstep *= dist.get_world_size()
-            stop_flag_tensor = torch.tensor([0]).cuda()
-            if dist.get_rank() != 0:
-                # waiting for the rank0 evaluator to finish
-                dist.all_reduce(stop_flag_tensor)
-                return bool(stop_flag_tensor[0]), []
-
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
@@ -293,9 +282,4 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-
-        if self._cfg.multi_gpu and dist.get_rank() == 0:
-            stop_flag_tensor[0] += int(stop_flag)
-            dist.all_reduce(stop_flag_tensor)
-
         return stop_flag, return_info

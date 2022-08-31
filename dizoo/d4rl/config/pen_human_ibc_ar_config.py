@@ -33,7 +33,7 @@ main_config = dict(
             data_type='d4rl',
             data_path=None,
         ),
-        eval=dict(evaluator=dict(eval_freq=1000, multi_gpu=multi_gpu, )),
+        eval=dict(evaluator=dict(eval_freq=1000,)),
     ),
 )
 main_config = EasyDict(main_config)

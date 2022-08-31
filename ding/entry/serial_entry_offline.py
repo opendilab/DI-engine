@@ -11,7 +11,7 @@ from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
-from ding.utils import set_pkg_seed
+from ding.utils import set_pkg_seed, get_world_size, get_rank
 from ding.utils.data import create_dataset
 
 
@@ -51,7 +51,7 @@ def serial_pipeline_offline(
         sampler, shuffle = DistributedSampler(dataset), False
     dataloader = DataLoader(
         dataset, 
-        cfg.policy.learn.batch_size, 
+        cfg.policy.learn.batch_size // get_world_size(), 
         shuffle=shuffle,
         sampler=sampler,
         collate_fn=lambda x: x,
@@ -88,8 +88,8 @@ def serial_pipeline_offline(
         for train_data in tqdm(dataloader):
             learner.train(train_data)
 
-        # Evaluate policy at most once per epoch
-        if evaluator.should_eval(learner.train_iter):
+        # Evaluate policy at most once per epoch.
+        if get_rank() == 0 and evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
 
         if stop or learner.train_iter >= max_train_iter:
