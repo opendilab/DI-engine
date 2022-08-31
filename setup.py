@@ -89,6 +89,12 @@ setup(
         'moviepy',
     ],
     extras_require={
+        'jax': [
+            'jax>=0.1.55',
+            'jaxlib>=0.1.37',
+            'optax',
+            'dm-haiku',
+        ],
         'test': [
             'gym[box2d]>=0.25.0',
             'opencv-python',  # pypy incompatible
