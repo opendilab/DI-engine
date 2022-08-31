@@ -415,6 +415,30 @@ class D4RLTrajectoryDataset(Dataset):
         return timesteps, states, actions, returns_to_go, traj_mask
 
 
+@DATASET_REGISTRY.register('bco')
+class BCODataset(Dataset):
+
+    def __init__(self, data=None):
+        if data is None:
+            raise ValueError('Dataset can not be empty!')
+        else:
+            self._data = data
+
+    def __len__(self):
+        return len(self._data['obs'])
+
+    def __getitem__(self, idx):
+        return {k: self._data[k][idx] for k in self._data.keys()}
+
+    @property
+    def obs(self):
+        return self._data['obs']
+
+    @property
+    def action(self):
+        return self._data['action']
+
+
 def hdf5_save(exp_data, expert_data_path):
     try:
         import h5py
