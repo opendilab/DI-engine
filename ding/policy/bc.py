@@ -40,7 +40,7 @@ class BehaviourCloningPolicy(Policy):
             ce_label_smooth=False,
             show_accuracy=False,
         ),
-        collect=dict(unroll_len=1, ),
+        collect=dict(unroll_len=1, normalize_states=False,),
         eval=dict(),
         other=dict(replay_buffer=dict(replay_buffer_size=10000, )),
     )
@@ -157,7 +157,7 @@ class BehaviourCloningPolicy(Policy):
                 data = {0: data}
                 data_id = list(data.keys())
             data = default_collate(list(data.values()))
-        if self.cfg.collect.normalize_states:
+        if self._cfg.collect.normalize_states:
             # normalize states when learn from offline dataset
             data = (data - self._mean) / self._std
         if self._cuda:
@@ -198,7 +198,7 @@ class BehaviourCloningPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self.cfg.collect.normalize_states:
+        if self._cfg.collect.normalize_states:
             # normalize states when learn from offline dataset
             data = (data - self._mean) / self._std
         if self._cuda:

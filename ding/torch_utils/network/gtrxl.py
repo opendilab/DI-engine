@@ -40,19 +40,6 @@ class PositionalEmbedding(nn.Module):
         pos_embedding = torch.cat([sinusoid_inp.sin(), sinusoid_inp.cos()], dim=-1)
         return pos_embedding.unsqueeze(1)
 
-    @staticmethod
-    def generate_pos_seq(seq_len: int):
-        """
-        Overview:
-            Compute positional sequence.
-        Arguments:
-            - seq_len: (:obj:`int`): positional sequence length
-        Returns:
-            - pos_seq: (:obj:`torch.Tensor`): positional sequence,
-              a 1D integer sequence as [seq_len-1, seq_len-2, ..., 1, 0],
-        """
-        return torch.arange(seq_len - 1, -1, -1.0, dtype=torch.float)
-
 
 class GRUGatingUnit(torch.nn.Module):
     """
