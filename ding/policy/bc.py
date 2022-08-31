@@ -40,7 +40,10 @@ class BehaviourCloningPolicy(Policy):
             ce_label_smooth=False,
             show_accuracy=False,
         ),
-        collect=dict(unroll_len=1, normalize_states=False,),
+        collect=dict(
+            unroll_len=1,
+            normalize_states=False,
+        ),
         eval=dict(),
         other=dict(replay_buffer=dict(replay_buffer_size=10000, )),
     )

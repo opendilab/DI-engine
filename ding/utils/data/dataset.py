@@ -146,9 +146,8 @@ class HDF5Dataset(Dataset):
         action_max = self._data['action'].max(0)
         action_min = self._data['action'].min(0)
         buffer = 0.05 * (action_max - action_min)
-        action_max += buffer
-        action_min -= buffer
-        # TODO: clip within the allowed action range
+        action_max = action_max.astype(float) + buffer
+        action_min = action_max.astype(float) - buffer
         self._action_bounds = np.stack([action_min, action_max], axis=0)
 
     def _normalize_states(self, eps=1e-3):
