@@ -30,6 +30,8 @@ class MAVAC(nn.Module):
             action_space: str = 'discrete',
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
+            sigma_type: Optional[str] = 'independent',
+            bound_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:
@@ -57,6 +59,7 @@ class MAVAC(nn.Module):
         global_obs_shape: int = squeeze(global_obs_shape)
         action_shape: int = squeeze(action_shape)
         self.global_obs_shape, self.agent_obs_shape, self.action_shape = global_obs_shape, agent_obs_shape, action_shape
+        self.action_space = action_space
         # Encoder Type
         if isinstance(agent_obs_shape, int) or len(agent_obs_shape) == 1:
             encoder_cls = FCEncoder
@@ -89,14 +92,27 @@ class MAVAC(nn.Module):
                 critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
             )
         )
-
-        actor_head_cls = DiscreteHead
-        self.actor_head = nn.Sequential(
-            nn.Linear(agent_obs_shape, actor_head_hidden_size), activation,
-            actor_head_cls(
-                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+        assert self.action_space in ['discrete', 'continuous'], self.action_space
+        if self.action_space == 'discrete':
+            self.actor_head = nn.Sequential(
+                nn.Linear(agent_obs_shape, actor_head_hidden_size), activation,
+                DiscreteHead(
+                    actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+                )
             )
-        )
+        elif self.action_space == 'continuous':
+            self.actor_head = nn.Sequential(
+                nn.Linear(agent_obs_shape, actor_head_hidden_size), activation,
+                ReparameterizationHead(
+                    actor_head_hidden_size,
+                    action_shape,
+                    actor_head_layer_num,
+                    sigma_type=sigma_type,
+                    activation=activation,
+                    norm_type=norm_type,
+                    bound_type=bound_type
+                )
+            )
         # must use list, not nn.ModuleList
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
@@ -178,13 +194,18 @@ class MAVAC(nn.Module):
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
         """
-        action_mask = x['action_mask']
-        x = x['agent_state']
-
-        x = self.actor_encoder(x)
-        x = self.actor_head(x)
-        logit = x['logit']
-        logit[action_mask == 0.0] = -99999999
+        if self.action_space == 'discrete':
+            action_mask = x['action_mask']
+            x = x['agent_state']
+            x = self.actor_encoder(x)
+            x = self.actor_head(x)
+            logit = x['logit']
+            logit[action_mask == 0.0] = -99999999
+        elif self.action_space == 'continuous':
+            x = x['agent_state']
+            x = self.actor_encoder(x)
+            x = self.actor_head(x)
+            logit = x
         return {'logit': logit}
 
     def compute_critic(self, x: Dict) -> Dict:
@@ -252,5 +273,5 @@ class MAVAC(nn.Module):
         """
         logit = self.compute_actor(x)['logit']
         value = self.compute_critic(x)['value']
-        action_mask = x['action_mask']
+        #action_mask = x['action_mask']
         return {'logit': logit, 'value': value}
