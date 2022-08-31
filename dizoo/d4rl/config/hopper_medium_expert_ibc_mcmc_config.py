@@ -17,7 +17,7 @@ main_config = dict(
         model=dict(
             obs_shape=11,
             action_shape=3,
-            stochastic_optim=dict(type='mcmc', cuda=True,)
+            stochastic_optim=dict(type='mcmc', cuda=cuda,)
         ),
         learn=dict(
             multi_gpu=multi_gpu,
