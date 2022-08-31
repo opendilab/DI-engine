@@ -812,7 +812,8 @@ class DRQN(nn.Module):
             x['next_state'] = next_state
             return x
         else:
-            # NOTE(rjy): In order to better explain why rnn needs saved_state and which states need to be stored, let's take r2d2 as an example
+            # In order to better explain why rnn needs saved_state and which states need to be stored,
+            # let's take r2d2 as an example
             # in r2d2,
             # 1) data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
             # 2) data['main_obs'] = data['obs'][bs:-self._nstep]
@@ -850,8 +851,9 @@ class DRQN(nn.Module):
             x['hidden_state'] = torch.cat(hidden_state_list, dim=0)
             if saved_state_timesteps is not None:
                 # the selected saved hidden states, including the hidden state (h) and the cell state (c)
-                # NOTE(rjy): in r2d2, set 'saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]',
-                #            then saved_state will record the hidden_state for main_obs and target_obs to initialize their lstm (h c)
+                # in r2d2, set 'saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]',
+                # then saved_state will record the hidden_state for main_obs and target_obs to 
+                # initialize their lstm (h c)
                 x['saved_state'] = saved_state
             return x
 
