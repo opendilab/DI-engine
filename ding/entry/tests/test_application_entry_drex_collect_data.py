@@ -1,18 +1,18 @@
 from easydict import EasyDict
-import pytest
 from copy import deepcopy
-import os
 from itertools import product
 
-from ding.config import compile_config
+import pytest
+import os
 import torch
 
+from ding.entry import serial_pipeline
+from ding.entry.application_entry_drex_collect_data import collect_episodic_demo_data_for_drex, drex_collecting_data
+from ding.config import compile_config
 from dizoo.classic_control.cartpole.config.cartpole_drex_dqn_config import cartpole_drex_dqn_config,\
      cartpole_drex_dqn_create_config
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config,\
      cartpole_dqn_create_config
-from ding.entry.application_entry_drex_collect_data import collect_episodic_demo_data_for_drex, drex_collecting_data
-from ding.entry import serial_pipeline
 
 
 @pytest.mark.unittest
@@ -68,6 +68,7 @@ def test_drex_collecting_data():
     args.cfg[0].reward_model.bc_iterations = 6
     args.cfg[0].reward_model.num_trajs_per_bin = 8
     args.cfg[0].bc_iteration = 1000  # for unittest
+    args.cfg[1].policy.type = 'bc'
     drex_collecting_data(args=args)
     os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
     os.popen('rm -rf {}'.format(args.cfg[0].reward_model.offline_data_path))

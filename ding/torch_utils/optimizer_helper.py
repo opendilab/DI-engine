@@ -184,9 +184,14 @@ class Adam(torch.optim.Adam):
         state = self.state[p]
         state['thre_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
         # others
-        state['step'] = 0
-        #TODO
-        #wait torch upgrad to 1.4, 1.3.1 didn't support memory format state['step'] = 0
+        if torch.__version__ < "1.12.0":
+            state['step'] = 0
+            #TODO
+            #wait torch upgrad to 1.4, 1.3.1 didn't support memory format state['step'] = 0
+        else:
+            state['step'] = torch.zeros((1, ), dtype=torch.float, device=p.device) \
+                if self.defaults['capturable'] else torch.tensor(0.)
+
         state['exp_avg'] = torch.zeros_like(p.data)
         # Exponential moving average of squared gradient values
         state['exp_avg_sq'] = torch.zeros_like(p.data)

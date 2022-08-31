@@ -31,4 +31,3 @@ if __name__ == "__main__":
 
     eval_ckpt(args)
     generate(args)
-

@@ -1,8 +1,8 @@
 import argparse
 import torch
+import os
 from typing import Union, Optional, List, Any
 from functools import partial
-import os
 from copy import deepcopy
 
 from ding.config import compile_config, read_config
@@ -20,13 +20,12 @@ def collect_episodic_demo_data_for_trex(
     seed: int,
     collect_count: int,
     rank: int,
-    save_cfg_path: str,
     env_setting: Optional[List[Any]] = None,
     model: Optional[torch.nn.Module] = None,
     state_dict: Optional[dict] = None,
     state_dict_path: Optional[str] = None,
 ):
-    r"""
+    """
     Overview:
         Collect episodic demonstration data by the trained policy for trex specifically.
     Arguments:
@@ -35,23 +34,20 @@ def collect_episodic_demo_data_for_trex(
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
         - collect_count (:obj:`int`): The count of collected data.
-        - rank (:obj:`int`) the episode ranking.
-        - save_cfg_path(:obj:'str') where to save the collector config
+        - rank (:obj:`int`): The episode ranking.
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
-        - state_dict_path (:obj:'str') the abs path of the state dict
+        - state_dict_path (:obj:'str') The abs path of the state dict.
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type += '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg.env.collector_env_num = 1
-    if not os.path.exists(save_cfg_path):
-        os.mkdir(save_cfg_path)
     cfg = compile_config(
         cfg,
         collector=EpisodeSerialCollector,
@@ -60,7 +56,7 @@ def collect_episodic_demo_data_for_trex(
         auto=True,
         create_cfg=create_cfg,
         save_cfg=True,
-        save_path=save_cfg_path + '/collect_demo_data_config.py'
+        save_path='collect_demo_data_config.py'
     )
 
     # Create components: env, policy, collector
@@ -77,7 +73,9 @@ def collect_episodic_demo_data_for_trex(
         assert state_dict_path is not None
         state_dict = torch.load(state_dict_path, map_location='cpu')
     policy.collect_mode.load_state_dict(state_dict)
-    collector = EpisodeSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
+    collector = EpisodeSerialCollector(
+        cfg.policy.collect.collector, collector_env, collect_demo_policy, exp_name=cfg.exp_name
+    )
 
     policy_kwargs = None if not hasattr(cfg.policy.other, 'eps') \
         else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
@@ -107,13 +105,11 @@ def trex_collecting_data(args=None):
         cfg, create_cfg = read_config(args.cfg)
     else:
         cfg, create_cfg = deepcopy(args.cfg)
-    create_cfg.policy.type = create_cfg.policy.type + '_command'
-    compiled_cfg = compile_config(cfg, seed=args.seed, auto=True, create_cfg=create_cfg, save_cfg=False)
-    data_path = compiled_cfg.reward_model.data_path
-    expert_model_path = compiled_cfg.reward_model.expert_model_path
-    checkpoint_min = compiled_cfg.reward_model.checkpoint_min
-    checkpoint_max = compiled_cfg.reward_model.checkpoint_max
-    checkpoint_step = compiled_cfg.reward_model.checkpoint_step
+    data_path = cfg.exp_name
+    expert_model_path = cfg.reward_model.expert_model_path  # directory path
+    checkpoint_min = cfg.reward_model.checkpoint_min
+    checkpoint_max = cfg.reward_model.checkpoint_max
+    checkpoint_step = cfg.reward_model.checkpoint_step
     checkpoints = []
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         checkpoints.append(str(i))
@@ -130,7 +126,6 @@ def trex_collecting_data(args=None):
             deepcopy(args.cfg),
             seed,
             state_dict_path=model_path,
-            save_cfg_path=data_path,
             collect_count=num_per_ckpt,
             rank=(int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step) + 1
         )

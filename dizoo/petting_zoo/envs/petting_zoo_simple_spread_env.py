@@ -21,7 +21,7 @@ class PettingZooEnv(BaseEnv):
         self._replay_path = None
         self._env_family = self._cfg.env_family
         self._env_id = self._cfg.env_id
-        # self._num_agents = self._cfg.n_agent
+        self._num_agents = self._cfg.n_agent
         self._num_landmarks = self._cfg.n_landmark
         self._continuous_actions = self._cfg.get('continuous_actions', False)
         self._max_cycles = self._cfg.get('max_cycles', 25)
@@ -32,14 +32,27 @@ class PettingZooEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            import_module(['pettingzoo.{}.{}'.format(self._env_family, self._env_id)])
-            self._env = pettingzoo.__dict__[self._env_family].__dict__[self._env_id].parallel_env(
+            # In order to align with the simple spread in Multiagent Particle Env (MPE), 
+            # instead of adopting the pettingzoo interface directly, 
+            # we have redefined the way rewards are calculated
+            
+            # import_module(['pettingzoo.{}.{}'.format(self._env_family, self._env_id)])
+            # self._env = pettingzoo.__dict__[self._env_family].__dict__[self._env_id].parallel_env(
+            #     N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
+            # )
+
+            # init parallel_env wrapper
+            _env = make_env(simple_spread_raw_env)
+            parallel_env = parallel_wrapper_fn(_env)
+            # init env
+            self._env = parallel_env(
                 N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
             )
-        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
-            np_seed = 100 * np.random.randint(1, 1000)
-            self._env.seed(self._seed + np_seed)
-        elif hasattr(self, '_seed'):
+        # dynamic seed reduces training speed greatly
+        # if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+        #     np_seed = 100 * np.random.randint(1, 1000)
+        #     self._env.seed(self._seed + np_seed)
+        if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         if self._replay_path is not None:
             self._env = gym.wrappers.Monitor(
@@ -47,9 +60,7 @@ class PettingZooEnv(BaseEnv):
             )
         obs = self._env.reset()
         if not self._init_flag:
-            # Because agents cannot be accessed before reset
             self._agents = self._env.agents
-            self._num_agents = len(self._env.agents)
 
             self._action_space = gym.spaces.Dict({agent: self._env.action_space(agent) for agent in self._agents})
             single_agent_obs_space = self._env.action_space(self._agents[0])
@@ -63,59 +74,65 @@ class PettingZooEnv(BaseEnv):
             # only for env 'simple_spread_v2', n_agent = 5
             # now only for the case that each agent in the team have the same obs structure and corresponding shape.
             if not self._cfg.agent_obs_only:
-                self._observation_space = gym.spaces.Dict({
-                    'agent_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
-                        dtype=np.float32
-                    ) ,
-                    'global_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(70,),
-                        dtype=np.float32
-                    ),
-                    'agent_alone_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, 22),
-                        dtype=np.float32
-                    ),
-                    'agent_alone_padding_state':
-                    gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]), # (self._num_agents, 30)
-                        dtype=np.float32
-                    ),
-                    'action_mask':
-                        gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._action_dim[0]), # (self._num_agents, 5)
-                        dtype=np.float32
-                    )})
+                self._observation_space = gym.spaces.Dict(
+                    {
+                        'agent_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents,
+                                   self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
+                            dtype=np.float32
+                        ),
+                        'global_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(
+                                4 * self._num_agents + 2 * self._num_landmarks + 2 * self._num_agents *
+                                (self._num_agents - 1),
+                            ),
+                            dtype=np.float32
+                        ),
+                        'agent_alone_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, 4 + 2 * self._num_landmarks + 2 * (self._num_agents - 1)),
+                            dtype=np.float32
+                        ),
+                        'agent_alone_padding_state': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents,
+                                   self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
+                            dtype=np.float32
+                        ),
+                        'action_mask': gym.spaces.Box(
+                            low=float("-inf"),
+                            high=float("inf"),
+                            shape=(self._num_agents, self._action_dim[0]),  # (self._num_agents, 5)
+                            dtype=np.float32
+                        )
+                    }
+                )
                 # whether use agent_specific_global_state. It is usually used in AC multiagent algos, e.g., mappo, masac, etc.
                 if self._agent_specific_global_state:
                     agent_specifig_global_state = gym.spaces.Box(
-                        low = float("-inf"),
-                        high = float("inf"),
-                        shape = (self._num_agents, self._env.observation_space('agent_0').shape[0] + 70),
-                        dtype = np.float32
+                        low=float("-inf"),
+                        high=float("inf"),
+                        shape=(
+                            self._num_agents, self._env.observation_space('agent_0').shape[0] + 4 * self._num_agents +
+                            2 * self._num_landmarks + 2 * self._num_agents * (self._num_agents - 1)
+                        ),
+                        dtype=np.float32
                     )
                     self._observation_space['global_state'] = agent_specifig_global_state
             else:
                 # for case when env.agent_obs_only=True
                 self._observation_space = gym.spaces.Box(
-                        low=float("-inf"),
-                        high=float("inf"),
-                        shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),  # (self._num_agents, 30)
-                        dtype=np.float32
-                    )
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=(self._num_agents, self._env.observation_space('agent_0').shape[0]),
+                    dtype=np.float32
+                )
 
             self._reward_space = gym.spaces.Dict(
                 {
@@ -165,7 +182,7 @@ class PettingZooEnv(BaseEnv):
         # collide_penalty = self._cfg.get('collide_penal', self._num_agent)
         # rew_n += collide_sum * (1.0 - collide_penalty)
         # rew_n = rew_n / (self._cfg.get('max_cycles', 25) * self._num_agent)
-        self._final_eval_reward += rew_n
+        self._final_eval_reward += rew_n.item()
 
         # occupied_landmarks = info['n'][0][3]
         # if self._step_count >= self._max_step or occupied_landmarks >= self._n_agent \
@@ -221,10 +238,8 @@ class PettingZooEnv(BaseEnv):
         #               - global_state info
         if self._agent_specific_global_state:
             ret['global_state'] = np.concatenate(
-                [
-                    ret['agent_state'],
-                    np.expand_dims(ret['global_state'], axis=0).repeat(5, axis=0)
-                ],
+                [ret['agent_state'],
+                 np.expand_dims(ret['global_state'], axis=0).repeat(self._num_agents, axis=0)],
                 axis=1
             )
         # agent_alone_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2).
@@ -291,3 +306,52 @@ class PettingZooEnv(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
+
+
+from pettingzoo.utils.conversions import parallel_wrapper_fn
+from pettingzoo.mpe._mpe_utils.simple_env import SimpleEnv, make_env
+from pettingzoo.mpe.scenarios.simple_spread import Scenario
+
+
+class simple_spread_raw_env(SimpleEnv):
+
+    def __init__(self, N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False):
+        assert 0. <= local_ratio <= 1., "local_ratio is a proportion. Must be between 0 and 1."
+        scenario = Scenario()
+        world = scenario.make_world(N)
+        super().__init__(scenario, world, max_cycles, continuous_actions, local_ratio)
+        self.metadata['name'] = "simple_spread_v2"
+
+    def _execute_world_step(self):
+        # set action for each agent
+        for i, agent in enumerate(self.world.agents):
+            action = self.current_actions[i]
+            scenario_action = []
+            if agent.movable:
+                mdim = self.world.dim_p * 2 + 1
+                if self.continuous_actions:
+                    scenario_action.append(action[0:mdim])
+                    action = action[mdim:]
+                else:
+                    scenario_action.append(action % mdim)
+                    action //= mdim
+            if not agent.silent:
+                scenario_action.append(action)
+            self._set_action(scenario_action, agent, self.action_spaces[agent.name])
+
+        self.world.step()
+
+        global_reward = 0.
+        if self.local_ratio is not None:
+            global_reward = float(self.scenario.global_reward(self.world))
+
+        for agent in self.world.agents:
+            agent_reward = float(self.scenario.reward(agent, self.world))
+            if self.local_ratio is not None:
+                # we changed reward calc way to keep same with mpe
+                # reward = global_reward * (1 - self.local_ratio) + agent_reward * self.local_ratio
+                reward = global_reward + agent_reward
+            else:
+                reward = agent_reward
+
+            self.rewards[agent.name] = reward

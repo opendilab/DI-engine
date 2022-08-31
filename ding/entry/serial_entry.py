@@ -4,10 +4,11 @@ import torch
 from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
+from copy import deepcopy
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
-    create_serial_collector
+    create_serial_collector, create_serial_evaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
@@ -41,7 +42,7 @@ def serial_pipeline(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
@@ -67,8 +68,12 @@ def serial_pipeline(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = InteractionSerialEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    evaluator = create_serial_evaluator(
+        cfg.policy.eval.evaluator,
+        env=evaluator_env,
+        policy=policy.eval_mode,
+        tb_logger=tb_logger,
+        exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
@@ -87,7 +92,7 @@ def serial_pipeline(
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            stop, eval_info = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
@@ -112,4 +117,18 @@ def serial_pipeline(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
+    import time
+    import pickle
+    import numpy as np
+    with open(os.path.join(cfg.exp_name, 'result.pkl'), 'wb') as f:
+        eval_value_raw = [d['final_eval_reward'] for d in eval_info]
+        final_data = {
+            'stop': stop,
+            'env_step': collector.envstep,
+            'train_iter': learner.train_iter,
+            'eval_value': np.mean(eval_value_raw),
+            'eval_value_raw': eval_value_raw,
+            'finish_time': time.ctime(),
+        }
+        pickle.dump(final_data, f)
     return policy

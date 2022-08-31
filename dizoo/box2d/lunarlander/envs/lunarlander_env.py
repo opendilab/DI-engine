@@ -17,6 +17,7 @@ class LunarLanderEnv(BaseEnv):
         self._init_flag = False
         # env_id: LunarLander-v2, LunarLanderContinuous-v2
         self._env_id = cfg.env_id
+        self._replay_path = None
         if 'Continuous' in self._env_id:
             self._act_scale = cfg.act_scale  # act_scale only works in continous env
         else:
@@ -25,6 +26,13 @@ class LunarLanderEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
+            if self._replay_path is not None:
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
+                )
             if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._observation_space = self._env.observation_space

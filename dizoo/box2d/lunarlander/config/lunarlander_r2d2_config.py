@@ -26,8 +26,8 @@ lunarlander_r2d2_config = dict(
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
-        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=40,
+        # i.e., <the whole sequence length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=40,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect <n_sample> sequence
@@ -46,6 +46,7 @@ lunarlander_r2d2_config = dict(
             # unless the episode enters the 'done' state.
             # In each collect phase, we collect a total of <n_sample> sequence samples.
             n_sample=32,
+            unroll_len=2 + 40,
             traj_len_inf=True,
             env_num=collector_env_num,
         ),

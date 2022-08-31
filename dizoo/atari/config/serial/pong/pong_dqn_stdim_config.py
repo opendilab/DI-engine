@@ -7,7 +7,8 @@ pong_dqn_stdim_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        env_id='Pong-v4',
+        #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
     policy=dict(
@@ -20,12 +21,12 @@ pong_dqn_stdim_config = dict(
         ),
         aux_model=dict(
             encode_shape=64,
-            heads = [1, 1],
-            loss_type = 'infonce',
-            temperature = 1.0,
+            heads=[1, 1],
+            loss_type='infonce',
+            temperature=1.0,
         ),
-        # the ratio of the auxiliary loss to the TD loss
-        aux_loss_ratio = 0.05,
+        # the weight of the auxiliary loss to the TD loss
+        aux_loss_weight=0.003,
         nstep=3,
         discount_factor=0.99,
         learn=dict(

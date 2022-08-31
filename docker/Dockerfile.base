@@ -3,7 +3,7 @@ FROM pytorch/pytorch:1.7.1-cuda11.0-cudnn8-runtime as base
 WORKDIR /ding
 
 RUN apt update \
-    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales -y \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils -y \
     && apt clean \
     && rm -rf /var/cache/apt/* \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
@@ -16,6 +16,7 @@ ENV LC_ALL      en_US.UTF-8
 ADD setup.py setup.py
 ADD dizoo dizoo
 ADD ding ding
+ADD README.md README.md
 
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
@@ -32,7 +33,7 @@ RUN apt-get update && \
     python3.8 python3-pip python3.8-dev
 
 RUN apt update \
-    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales -y \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils -y \
     && apt clean \
     && rm -rf /var/cache/apt/* \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
@@ -45,6 +46,7 @@ ENV LC_ALL      en_US.UTF-8
 ADD setup.py setup.py
 ADD dizoo dizoo
 ADD ding ding
+ADD README.md README.md
 
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \

@@ -3,7 +3,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_dyna
 
 # environment hypo
-env_id = 'Pendulum-v0'
+env_id = 'Pendulum-v1'
 obs_shape = 3
 action_shape = 1
 

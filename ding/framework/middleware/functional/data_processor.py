@@ -1,14 +1,12 @@
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
-from collections import deque
 from ditk import logging
 import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay
-from ding.framework import task
 
 if TYPE_CHECKING:
-    from ding.framework import Context, OnlineRLContext, OfflineRLContext
+    from ding.framework import OnlineRLContext, OfflineRLContext
 
 
 def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = None):
@@ -17,7 +15,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         Push episodes or trajectories into the buffer.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
-        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
+        - buffer (:obj:`Buffer`): Buffer to push the data in.
     """
 
     def _push(ctx: "OnlineRLContext"):
@@ -48,7 +46,9 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
 
 
 def offpolicy_data_fetcher(
-        cfg: EasyDict, buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]
+        cfg: EasyDict,
+        buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
+        data_shortage_warning: bool = False,
 ) -> Callable:
     """
     Overview:
@@ -56,7 +56,7 @@ def offpolicy_data_fetcher(
         a list of buffers, or a dict of buffers.
     Arguments:
         - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
-        - buffer\_ (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
+        - buffer (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
             The buffer where the data is fetched from. \
             ``Buffer`` type means a buffer.\
             ``List[Tuple[Buffer, float]]`` type means a list of tuple. In each tuple there is a buffer and a float. \
@@ -65,6 +65,7 @@ def offpolicy_data_fetcher(
             ``Dict[str, Buffer]`` type means a dict in which the value of each element is a buffer. \
             For each key-value pair of dict, batch_size of data will be sampled from the corresponding buffer \
             and assigned to the same key of `ctx.train_data`.
+        - data_shortage_warning (:obj:`bool`): Whether to output warning when data shortage occurs in fetching.
     """
 
     def _fetch(ctx: "OnlineRLContext"):
@@ -112,10 +113,12 @@ def offpolicy_data_fetcher(
 
             assert buffered_data is not None
         except (ValueError, AssertionError):
-            # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
-            logging.warning(
-                "Replay buffer's data is not enough to support training, so skip this training for waiting more data."
-            )
+            if data_shortage_warning:
+                # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
+                # Fetcher will skip this this attempt.
+                logging.warning(
+                    "Replay buffer's data is not enough to support training, so skip this training to wait more data."
+                )
             ctx.train_data = None
             return
 
@@ -126,7 +129,7 @@ def offpolicy_data_fetcher(
                 index = [d.index for d in buffered_data]
                 meta = [d.meta for d in buffered_data]
                 # such as priority
-                if isinstance(ctx.train_output, deque):
+                if isinstance(ctx.train_output, List):
                     priority = ctx.train_output.pop()['priority']
                 else:
                     priority = ctx.train_output['priority']
@@ -201,7 +204,7 @@ def sqil_data_pusher(cfg: EasyDict, buffer_: Buffer, expert: bool) -> Callable:
         Push trajectories into the buffer in sqil learning pipeline.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
-        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
+        - buffer (:obj:`Buffer`): Buffer to push the data in.
         - expert (:obj:`bool`): Whether the pushed data is expert data or not. \
             In each element of the pushed data, the reward will be set to 1 if this attribute is `True`, otherwise 0.
     """
