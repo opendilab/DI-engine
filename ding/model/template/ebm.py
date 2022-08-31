@@ -239,17 +239,19 @@ class MCMC(StochasticOptimizer):
 
     def __init__(
         self,
-        iters: int = 50,
-        use_langevin_negative_samples: bool = False,
+        iters: int = 100,
+        use_langevin_negative_samples: bool = True,
         train_samples: int = 8,
         inference_samples: int = 512,
         stepsize_scheduler: dict = dict(
             init=0.5,
-            decay=0.8,
+            final=1e-5,
+            power=2.0,
+            # num_steps,
         ),
         optimize_again: bool = True,
         again_stepsize_scheduler: dict = dict(
-            init=1e-4,
+            init=1e-5,
             final=1e-5,
             power=2.0,
             # num_steps,
@@ -258,8 +260,8 @@ class MCMC(StochasticOptimizer):
         ## langevin_step
         noise_scale: float = 0.5,
         grad_clip = None,
-        delta_action_clip: float = 0.1,
-        add_grad_penalty: bool = False,
+        delta_action_clip: float = 0.5,
+        add_grad_penalty: bool = True,
         grad_norm_type: str = 'inf',
         grad_margin: float = 1.0,
         grad_loss_weight: float = 1.0,
@@ -267,8 +269,6 @@ class MCMC(StochasticOptimizer):
     ):
         self.iters = iters
         self.use_langevin_negative_samples = use_langevin_negative_samples
-        # TODO(zzh): multigpu pipeline, langevin negative sampling is slow on single gpu.
-        assert not self.use_langevin_negative_samples, "MULTIGPU NotImplemented"
         self.train_samples = train_samples
         self.inference_samples = inference_samples
         self.stepsize_scheduler = stepsize_scheduler
@@ -387,7 +387,8 @@ class MCMC(StochasticOptimizer):
         return: (B, N, A)
         """
         if not scheduler:
-            scheduler = MCMC.ExponentialScheduler(**self.stepsize_scheduler)
+            self.stepsize_scheduler['num_steps'] = self.iters
+            scheduler = MCMC.PolynomialScheduler(**self.stepsize_scheduler)
         stepsize = scheduler.get_rate(-1)
         for i in range(self.iters):
             action = self._langevin_step(obs, action, stepsize, ebm)

@@ -21,7 +21,7 @@ main_config = dict(
         ),
         learn=dict(
             multi_gpu=multi_gpu,
-            train_epoch=2000,
+            train_epoch=1000,
             batch_size=256,
             optim=dict(learning_rate=1e-5,),
             learner=dict(hook=dict(log_show_after_iter=100)),
