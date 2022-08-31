@@ -37,6 +37,7 @@ bipedalwalker_bco_config = dict(
             optimizer='SGD',
             lr_decay=True,
             momentum=0.9,
+            tanh_mask=True,
         ),
         collect=dict(
             n_episode=100,
