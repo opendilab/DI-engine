@@ -113,7 +113,7 @@ class InverseDynamicsModel(nn.Module):
             - training_set (:obj:`dict`):states transition
             - n_epoch (:obj:`int`): number of epoches
             - learning_rate (:obj:`float`): learning rate for optimizer
-            - weight_decay (:obj:`float`): weight decay for optimizer    
+            - weight_decay (:obj:`float`): weight decay for optimizer
         """
         if self.action_space == "discrete":
             criterion = nn.CrossEntropyLoss()

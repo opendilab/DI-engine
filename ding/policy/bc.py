@@ -48,7 +48,7 @@ class BehaviourCloningPolicy(Policy):
             weight_decay=1e-4,
             ce_label_smooth=False,
             show_accuracy=False,
-            tanh_mask=False,  # if actions always converge to 1 or -1, use this. 
+            tanh_mask=False,  # if actions always converge to 1 or -1, use this.
         ),
         collect=dict(
             unroll_len=1,
@@ -134,7 +134,7 @@ class BehaviourCloningPolicy(Policy):
                     bound = 1 - 2 / (math.exp(2) + 1)  # tanh(1): (e-e**(-1))/(e+e**(-1))
                     mask = mu.ge(-bound) & mu.le(bound)
                     mask_percent = 1 - mask.sum().item() / mu.numel()
-                    if mask_percent > 0.8:  # if 80% data are masked, there is too little data to learn. So we use all data.
+                    if mask_percent > 0.8:  # if there is too little data to learn(<80%). So we use all data.
                         loss = self._loss(mu, action.detach())
                     else:
                         loss = self._loss(mu.masked_select(mask), action.masked_select(mask).detach())
