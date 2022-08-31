@@ -9,7 +9,7 @@ PettingZoo
 - `Atari <https://www.pettingzoo.ml/atari>`_：多人 Atari 2600 游戏，包括合作、竞争以及混合等场景
 - `Butterfly <https://www.pettingzoo.ml/butterfly>`_：PettingZoo 团队自己开发的需要高度协调的合作性图形游戏
 - `Classic <https://www.pettingzoo.ml/classic>`_：经典游戏，包括纸牌、棋盘游戏等
-- `MAgent <https://www.pettingzoo.ml/magent>`_：可配置的，具有大量数量粒子智能体的环境，源于 https://github.com/openai/multiagent-particle-envs
+- `MAgent <https://github.com/geek-ai/MAgent>`_：可配置的，具有大量数量粒子智能体的环境，源于 https://github.com/geek-ai/MAgent
 - `MPE <https://www.pettingzoo.ml/mpe>`_：一组简单的非图形通信任务，源于 https://github.com/openai/multiagent-particle-envs
 - `SISL <https://www.pettingzoo.ml/sisl>`_：3 个合作环境，源于 https://github.com/sisl/MADRL
 
@@ -209,10 +209,6 @@ hub <https://hub.docker.com/repository/docker/opendilab/ding>`_ 获取更多镜�
 
 -  训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的\ ``seed``\ 方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过\ ``seed``\ 方法指定。
 
-存储录像
---------
-
-在环境创建之后，重置之前，调用\ ``enable_save_replay``\ 方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用\ ``gym.wrapper.Monitor``\ 实现，依赖\ ``ffmpeg``\ ）
 
 DI-zoo 可运行代码示例
 ======================
@@ -223,8 +219,8 @@ DI-zoo 可运行代码示例
 .. code:: python
 
     from easydict import EasyDict
-    
-    n_agent = 5
+
+    n_agent = 3
     n_landmark = n_agent
     collector_env_num = 8
     evaluator_env_num = 8
@@ -235,7 +231,7 @@ DI-zoo 可运行代码示例
             env_id='simple_spread_v2',
             n_agent=n_agent,
             n_landmark=n_landmark,
-            max_cycles=100,
+            max_cycles=25,
             agent_obs_only=False,
             agent_specific_global_state=True,
             continuous_actions=False,
@@ -252,7 +248,8 @@ DI-zoo 可运行代码示例
                 action_space='discrete',
                 agent_num=n_agent,
                 agent_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
-                global_obs_shape=n_agent * 4 + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
+                global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
+                n_landmark * 2 + n_agent * (n_agent - 1) * 2,
                 action_shape=5,
             ),
             learn=dict(
@@ -286,18 +283,13 @@ DI-zoo 可运行代码示例
                 env_num=evaluator_env_num,
                 evaluator=dict(eval_freq=50, ),
             ),
-            other=dict(eps=dict(
-                type='exp',
-                start=1.0,
-                end=0.05,
-                decay=100000,
-            ), ),
+            other=dict(),
         ),
     )
     main_config = EasyDict(main_config)
     create_config = dict(
         env=dict(
-            import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
+            import_names=['dizoo.petting_zoo.envs.petting_zoo_simple_spread_env'],
             type='petting_zoo',
         ),
         env_manager=dict(type='subprocess'),
@@ -306,12 +298,19 @@ DI-zoo 可运行代码示例
     create_config = EasyDict(create_config)
     ptz_simple_spread_mappo_config = main_config
     ptz_simple_spread_mappo_create_config = create_config
-    
+
     if __name__ == '__main__':
         # or you can enter `ding -m serial_onpolicy -c ptz_simple_spread_mappo_config.py -s 0`
         from ding.entry import serial_pipeline_onpolicy
         serial_pipeline_onpolicy((main_config, create_config), seed=0)
 
+
 基准算法性能
 ============
-TODO
+
+-  simple_spread_v2
+
+   - qmix & masac & mappo
+
+   .. image:: images/simple_spread.png
+     :align: center

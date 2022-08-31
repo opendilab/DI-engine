@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>第一个强化学习程序 &mdash; DI-engine 0.1.0 documentation</title>
+  <title>更多强化学习项目 (定制化环境) &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="更多强化学习项目 (定制化环境)" href="more_rl_program_env_zh.html" />
-  <link rel="prev" title="安装说明" href="installation_zh.html" />
+  <link rel="next" title="强化学习算法分类" href="../02_algo/index_zh.html" />
+  <link rel="prev" title="第一个强化学习程序" href="first_rl_program_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -248,13 +248,13 @@
         
           <li><a href="index_zh.html">快速开始</a> &gt;</li>
         
-      <li>第一个强化学习程序</li>
+      <li>更多强化学习项目 (定制化环境)</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/01_quickstart/first_rl_program_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/01_quickstart/more_rl_program_env_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -279,50 +279,76 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>第一个强化学习程序<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>更多强化学习项目 (定制化环境)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<p>CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在很短的时间内让 CartPole 收敛（保持平衡）。
-我们将基于 CartPole + DQN 介绍一下 DI-engine 的用法。</p>
-<a class="reference internal image-reference" href="../_images/cartpole_cmp.gif"><img alt="../_images/cartpole_cmp.gif" class="align-center" src="../_images/cartpole_cmp.gif" style="width: 1000px;" /></a>
-<section id="id2">
-<h2>使用配置文件<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<p>DI-engine 使用一个全局的配置文件来控制环境和策略的所有变量，每个环境和策略都有对应的默认配置，可以在
-<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">cartpole_dqn_config</a>
-看到完整的配置，在教程里我们直接使用默认配置：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+<p>任天堂系统（NES）上的 <a class="reference external" href="https://github.com/Kautenja/gym-super-mario-bros">超级马里奥兄弟 &amp; 超级马里奥兄弟2</a> 是1980年代最受欢迎的游戏之一。 来设计一个基于 DRL 的 AI 来探索这款经典游戏怎么样? 在本教程中，我们将在 DI-engine 中实现一个由人工智能控制的马里奥（使用 DQN 算法）。</p>
+<a class="reference internal image-reference" href="../_images/mario.gif"><img alt="../_images/mario.gif" class="align-center" src="../_images/mario.gif" style="width: 400px;" /></a>
+<section id="id3">
+<h2>使用配置文件<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>DI-engine 使用全局配置文件来控制环境和策略的所有变量，每个变量都有对应的默认配置可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mario/mario_dqn_config.py">mario_dqn_config</a> 中找到，在本次教程中我们直接使用默认配置：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.mario.mario_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
 <span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="id3">
-<h2>初始化采集环境和评估环境<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<p>在强化学习中，训练阶段和评估阶段采集环境数据的策略可能有区别，例如训练阶段往往是采集 n 个步骤就训练一次，
-而评估阶段则需要完成整局游戏才能得到评分。我们推荐将采集和评估环境分开初始化：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span>
+<section id="id4">
+<h2>初始化环境<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">超级马里奥兄弟</span></code> 是一个 <strong>图像输入</strong> 观察环境, 所以我们不只是通过 <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 封装原始的 gym 环境，而是需要添加一些额外的 Wrapper 在发送给DQN    Policy 之前对观测进行预处理。
+在本教程中，我们使用以下5个 Wrapper 来预处理数据并转换为 DI-engine 的环境格式，下列是一些基本描述，你可以在这里找到 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_wrappers/env_wrappers.py">完整代码实现和注释</a></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MaxAndSkipWrapper</span></code> : 由于连续帧变化不大，我们可以跳过n个中间帧来简化它而不会损失太多信息。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WarpFrameWrapper</span></code> : 将原始RGB图像转换为灰度图，并将其调整为标准大小以进行DRL训练。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ScaledFloatFrameWrapper</span></code> : 将原始图像从[0-255]归一化到[0-1]，有利于神经网络训练。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FrameStackWrapper</span></code> : 堆叠连续的帧。由于我们无法从单帧推断方向、速度等信息，堆叠帧可以提供更多的必要信息。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FinalEvalRewardEnv</span></code> : 记录最终的evaluation reward（即马里奥中的episode return），适配DI-engine的环境格式。</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>如果找不到合适的 Env Wrapper， 您可以按照 <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code> 格式定义自己的 Wrapper ，也可以根据 <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/04_best_practice/ding_env.html">Customized Env doc</a> 实现符合 DI-engine 的环境格式</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># use subprocess env manager to speed up collecting</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
 
-<span class="n">collector_env</span> <span class="o">=</span> <span class="n">BaseEnvManagerV2</span><span class="p">(</span>
-    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;CartPole-v0&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">)],</span>
-    <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+
+<span class="k">def</span> <span class="nf">wrapped_mario_env</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">DingEnvWrapper</span><span class="p">(</span>
+        <span class="c1"># Limit the action-space to 2 dim: 0. walk right, 1. jump right</span>
+        <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;SuperMarioBros-1-1-v0&quot;</span><span class="p">),</span> <span class="p">[[</span><span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">]]),</span>
+        <span class="n">cfg</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;env_wrapper&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">MaxAndSkipWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">WarpFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">84</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FrameStackWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FinalEvalRewardEnv</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+<span class="n">collector_env_num</span><span class="p">,</span> <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span>
+<span class="n">collector_env</span> <span class="o">=</span> <span class="n">SubprocessEnvManagerV2</span><span class="p">(</span>
+    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_mario_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
 <span class="p">)</span>
-<span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManagerV2</span><span class="p">(</span>
-    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;CartPole-v0&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span><span class="p">)],</span>
-    <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+<span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">SubprocessEnvManagerV2</span><span class="p">(</span>
+    <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_mario_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>DingEnvWrapper 是 DI-engine 对不同环境库的统一封装。BaseEnvManagerV2 管理多个环境的统一对外接口，
-利用 BaseEnvManagerV2 可以同时对多个环境进行并行采集。</p>
+<p>以下内容与 <code class="docutils literal notranslate"><span class="pre">CartPole</span> <span class="pre">+</span> <span class="pre">DQN</span></code> 示例相同, 只需要选择策略并搭建整个训练管线</p>
 </div>
 </section>
-<section id="id4">
-<h2>选择策略<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
-<p>DI-engine 覆盖了大部分强化学习策略，使用它们只需要选择正确的策略和模型即可。
-由于 DQN 是一个 off-policy 策略，所以我们还需要实例化一个 buffer 模块。</p>
+<section id="id6">
+<h2>选择策略<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>DI-engine 涵盖了大部分强化学习策略，使用它们只需要选择正确的策略和模型。由于 DQN 是 Off-Policy 类型算法，我们还需要实例化一个缓冲区模块。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
 <span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
@@ -333,31 +359,34 @@
 </pre></div>
 </div>
 </section>
-<section id="id5">
-<h2>构建训练管线<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
-<p>利用 DI-engine 提供的各类中间件，我们可以很容易的构建整个训练管线：</p>
+<section id="id7">
+<h2>构建管线<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>借助 DI-engine 提供的各种中间件，我们可以轻松构建整个训练管线：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span>
+<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span><span class="p">,</span> <span class="n">nstep_reward_enhancer</span>
 
 <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
-    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">interaction_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">))</span>  <span class="c1"># 评估流程，放在第一个是为了获得随机模型的评分作为基准值</span>
-    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">eps_greedy_handler</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>  <span class="c1"># 衰减探索-利用的概率</span>
-    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">StepCollector</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">collector_env</span><span class="p">))</span>  <span class="c1"># 采集环境数据</span>
-    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>  <span class="c1"># 将数据保存到 buffer</span>
-    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>  <span class="c1"># 训练模型</span>
-    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">CkptSaver</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">train_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>  <span class="c1"># 保存模型</span>
-    <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>  <span class="c1"># 在评估流程中，如果发现模型表现已经超过了收敛值，这里将提前结束</span>
+    <span class="c1"># Evaluating, we place it on the first place to get the score of the random model as a benchmark value</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">interaction_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">))</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">eps_greedy_handler</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>  <span class="c1"># Decay probability of explore-exploit</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">StepCollector</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">collector_env</span><span class="p">))</span>  <span class="c1"># Collect environmental data</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">nstep_reward_enhancer</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>  <span class="c1"># Prepare nstep reward for training</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>  <span class="c1"># Push data to buffer</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>  <span class="c1"># Train the model</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">CkptSaver</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">train_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>  <span class="c1"># Save the model</span>
+    <span class="c1"># In the evaluation process, if the model is found to have exceeded the convergence value, it will end early here</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
-<section id="id6">
-<h2>运行代码<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<p>代码完整的示例代码可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py">DQN example</a> 中找到，通过 <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">dqn.py</span></code> 即可运行代码。
-此外，我们提供了从 DI-engine 安装到训练的全过程 <a class="reference external" href="https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing">Colab 运行示例</a> 作为参考。</p>
-<a class="reference internal image-reference" href="../_images/train_dqn.gif"><img alt="../_images/train_dqn.gif" class="align-center" src="../_images/train_dqn.gif" style="width: 1000px;" /></a>
-<p>至此您已经完成了 DI-engine 的第一个强化学习任务，您可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example">示例目录</a> 中尝试更多的算法，
-或继续阅读文档来深入了解 DI-engine 的 <a class="reference external" href="../02_algo/index_zh.html">算法</a>， <a class="reference external" href="../03_system/index_zh.html">系统设计</a> 和 <a class="reference external" href="../04_best_practice/index_zh.html">最佳实践</a>。</p>
+<section id="id8">
+<h2>运行代码<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>完整的示例可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mario/mario_dqn_example.py">马里奥DQN示例</a> 中找到，并且可以通过 <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">mario_dqn_example.py</span></code> 运行，
+这个示例可以在1～2小时内给出顺利的结果，我们的超级马里奥可以很快地通过1-1关卡且不收到任何伤害，下图是训练好的智能体的回放视频和详细的训练曲线。</p>
+<a class="reference internal image-reference" href="../_images/mario.gif"><img alt="../_images/mario.gif" class="align-center" src="../_images/mario.gif" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="../_images/mario_dqn_curve.png"><img alt="../_images/mario_dqn_curve.png" class="align-center" src="../_images/mario_dqn_curve.png" style="width: 800px;" /></a>
+<p>现在您已经完成了使用 DI-engine 的 <strong>定制化环境示例</strong> , 您可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example">示例目录</a> 中尝试更多算法, 或继续阅读文档以更深入地了解 DI-engine 的  <a class="reference external" href="../02_algo/index.html">算法</a>, <a class="reference external" href="../03_system/index.html">系统设计</a>  和 <a class="reference external" href="../04_best_practice/index.html">最佳实践</a>.</p>
 </section>
 </section>
 
@@ -369,12 +398,12 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="more_rl_program_env_zh.html" class="btn btn-neutral float-right" title="更多强化学习项目 (定制化环境)" accesskey="n"
+    <a href="../02_algo/index_zh.html" class="btn btn-neutral float-right" title="强化学习算法分类" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="installation_zh.html" class="btn btn-neutral" title="安装说明" accesskey="p"
+    <a href="first_rl_program_zh.html" class="btn btn-neutral" title="第一个强化学习程序" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -404,12 +433,12 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">第一个强化学习程序</a><ul>
-<li><a class="reference internal" href="#id2">使用配置文件</a></li>
-<li><a class="reference internal" href="#id3">初始化采集环境和评估环境</a></li>
-<li><a class="reference internal" href="#id4">选择策略</a></li>
-<li><a class="reference internal" href="#id5">构建训练管线</a></li>
-<li><a class="reference internal" href="#id6">运行代码</a></li>
+<li><a class="reference internal" href="#">更多强化学习项目 (定制化环境)</a><ul>
+<li><a class="reference internal" href="#id3">使用配置文件</a></li>
+<li><a class="reference internal" href="#id4">初始化环境</a></li>
+<li><a class="reference internal" href="#id6">选择策略</a></li>
+<li><a class="reference internal" href="#id7">构建管线</a></li>
+<li><a class="reference internal" href="#id8">运行代码</a></li>
 </ul>
 </li>
 </ul>

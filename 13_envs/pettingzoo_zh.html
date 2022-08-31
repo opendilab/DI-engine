@@ -287,7 +287,7 @@
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/atari">Atari</a>：多人 Atari 2600 游戏，包括合作、竞争以及混合等场景</p></li>
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/butterfly">Butterfly</a>：PettingZoo 团队自己开发的需要高度协调的合作性图形游戏</p></li>
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/classic">Classic</a>：经典游戏，包括纸牌、棋盘游戏等</p></li>
-<li><p><a class="reference external" href="https://www.pettingzoo.ml/magent">MAgent</a>：可配置的，具有大量数量粒子智能体的环境，源于 <a class="reference external" href="https://github.com/openai/multiagent-particle-envs">https://github.com/openai/multiagent-particle-envs</a></p></li>
+<li><p><a class="reference external" href="https://github.com/geek-ai/MAgent">MAgent</a>：可配置的，具有大量数量粒子智能体的环境，源于 <a class="reference external" href="https://github.com/geek-ai/MAgent">https://github.com/geek-ai/MAgent</a></p></li>
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/mpe">MPE</a>：一组简单的非图形通信任务，源于 <a class="reference external" href="https://github.com/openai/multiagent-particle-envs">https://github.com/openai/multiagent-particle-envs</a></p></li>
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/sisl">SISL</a>：3 个合作环境，源于 <a class="reference external" href="https://github.com/sisl/MADRL">https://github.com/sisl/MADRL</a></p></li>
 </ul>
@@ -467,10 +467,6 @@ hub</a> 获取更多镜像</p>
 <li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 </ul>
 </section>
-<section id="id30">
-<h3>存储录像<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
-<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>）</p>
-</section>
 </section>
 <section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
@@ -478,7 +474,7 @@ hub</a> 获取更多镜像</p>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">ptz_simple_spread_mappo_config.py</span></code>，使用如下的 demo 即可运行：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 
-<span class="n">n_agent</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">n_agent</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">n_landmark</span> <span class="o">=</span> <span class="n">n_agent</span>
 <span class="n">collector_env_num</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="mi">8</span>
@@ -489,7 +485,7 @@ hub</a> 获取更多镜像</p>
         <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;simple_spread_v2&#39;</span><span class="p">,</span>
         <span class="n">n_agent</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
         <span class="n">n_landmark</span><span class="o">=</span><span class="n">n_landmark</span><span class="p">,</span>
-        <span class="n">max_cycles</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">max_cycles</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
         <span class="n">agent_obs_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">agent_specific_global_state</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -506,7 +502,8 @@ hub</a> 获取更多镜像</p>
             <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
             <span class="n">agent_num</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
             <span class="n">agent_obs_shape</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="n">global_obs_shape</span><span class="o">=</span><span class="n">n_agent</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_agent</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">global_obs_shape</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_agent</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
+            <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_agent</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
             <span class="n">action_shape</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -540,18 +537,13 @@ hub</a> 获取更多镜像</p>
             <span class="n">env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
             <span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
-            <span class="n">start</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-            <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
-            <span class="n">decay</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
-        <span class="p">),</span> <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
     <span class="p">),</span>
 <span class="p">)</span>
 <span class="n">main_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">main_config</span><span class="p">)</span>
 <span class="n">create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.petting_zoo.envs.petting_zoo_env&#39;</span><span class="p">],</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.petting_zoo.envs.petting_zoo_simple_spread_env&#39;</span><span class="p">],</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;petting_zoo&#39;</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
@@ -568,9 +560,16 @@ hub</a> 获取更多镜像</p>
 </pre></div>
 </div>
 </section>
-<section id="id31">
-<h2>基准算法性能<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
+<section id="id30">
+<h2>基准算法性能<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>simple_spread_v2</p>
+<ul class="simple">
+<li><p>qmix &amp; masac &amp; mappo</p></li>
+</ul>
+<img alt="../_images/simple_spread.png" class="align-center" src="../_images/simple_spread.png" />
+</li>
+</ul>
 </section>
 </section>
 
@@ -643,11 +642,10 @@ hub</a> 获取更多镜像</p>
 <li><a class="reference internal" href="#id27">惰性初始化</a></li>
 <li><a class="reference internal" href="#id28">随机种子</a></li>
 <li><a class="reference internal" href="#id29">训练和测试环境的区别</a></li>
-<li><a class="reference internal" href="#id30">存储录像</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
-<li><a class="reference internal" href="#id31">基准算法性能</a></li>
+<li><a class="reference internal" href="#id30">基准算法性能</a></li>
 </ul>
 </li>
 </ul>

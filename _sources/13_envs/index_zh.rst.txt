@@ -39,7 +39,6 @@
    gfootball_zh
    overcooked_zh
    bsuite_zh
-   multiagent_particle_zh
    pybullet_zh
    pettingzoo_zh
    dmc2gym_zh
