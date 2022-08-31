@@ -1,6 +1,5 @@
 from typing import Any, Tuple, Callable, Optional, List, Dict
 from abc import ABC
-
 import numpy as np
 import torch
 from ding.torch_utils import get_tensor_data
@@ -776,6 +775,11 @@ class ActionNoiseWrapper(IModelWrapper):
         self.action_range = action_range
 
     def forward(self, *args, **kwargs):
+        # if noise sigma need decay, update noise kwargs.
+        if 'sigma' in kwargs:
+            sigma = kwargs.pop('sigma')
+            if sigma is not None:
+                self.noise_generator.sigma = sigma
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         if 'action' in output or 'action_args' in output:
