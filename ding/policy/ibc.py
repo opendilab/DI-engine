@@ -24,9 +24,9 @@ class IBCPolicy(BehaviourCloningPolicy):
         https://arxiv.org/abs/2109.00137.pdf
 
     .. note::
-        The code is adapted from the pytorch version of IBC https://github.com/kevinzakka/ibc, 
+        The code is adapted from the pytorch version of IBC https://github.com/kevinzakka/ibc,
             which only supports the derivative-free optimization (dfo) variants.
-        This implementation moves a step forward and supports all variants of energy-based model 
+        This implementation moves a step forward and supports all variants of energy-based model
             mentioned in the paper (dfo, autoregressive dfo, and mcmc).
     """
 
@@ -46,7 +46,6 @@ class IBCPolicy(BehaviourCloningPolicy):
                 beta2=0.999,
             ),
         ),
-        collect=dict(normalize_states=True, ),
         eval=dict(evaluator=dict(eval_freq=10000, )),
     )
 
@@ -149,8 +148,6 @@ class IBCPolicy(BehaviourCloningPolicy):
             data_id = list(data.keys())
             data = default_collate(list(data.values()))
 
-        if self.cfg.collect.normalize_states:
-            data = (data - self._mean) / self._std
         if self._cuda:
             data = to_device(data, self._device)
 
@@ -169,9 +166,7 @@ class IBCPolicy(BehaviourCloningPolicy):
             output = default_decollate(output)
             return {i: d for i, d in zip(data_id, output)}
 
-    def set_norm_statistics(self, statistics: EasyDict) -> None:
-        self._mean = statistics.mean
-        self._std = statistics.std
+    def set_statistic(self, statistics: EasyDict) -> None:
         self._stochastic_optimizer.set_action_bounds(statistics.action_bounds)
 
     # =================================================================== #

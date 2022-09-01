@@ -18,7 +18,9 @@ from ..common import RegressionHead
 
 
 def create_stochastic_optimizer(device, stochastic_optimizer_config):
-    return STOCHASTIC_OPTIMIZER_REGISTRY.build(stochastic_optimizer_config.pop("type"), device=device, **stochastic_optimizer_config)
+    return STOCHASTIC_OPTIMIZER_REGISTRY.build(
+        stochastic_optimizer_config.pop("type"), device=device, **stochastic_optimizer_config
+    )
 
 
 def no_ebm_grad():

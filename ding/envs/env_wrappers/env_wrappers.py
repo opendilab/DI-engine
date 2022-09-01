@@ -616,6 +616,45 @@ class ObsNormWrapper(gym.ObservationWrapper):
         return self.observation(observation)
 
 
+@ENV_WRAPPER_REGISTRY.register('obs_offline_norm')
+class ObsNormOfflineWrapper(gym.ObservationWrapper):
+    """
+    Overview:
+       Normalize observations according to the mean and std in the offline dataset.
+    Interface:
+        ``__init__``, ``observation``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+
+        - ``clip_range``
+    """
+
+    def __init__(self, env, mean, std):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \
+                setup the properties according to dataset mean and std.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+        self.mean = mean
+        self.std = std
+        self.clip_range = (-3, 3)
+
+    def observation(self, observation):
+        """
+        Overview:
+            Get obeservation
+        Arguments:
+            - observation (:obj:`Any`): Original observation
+        Returns:
+            - observation (:obj:`Any`): Normalized new observation
+
+        """
+        return np.clip((observation - self.mean) / self.std, self.clip_range[0], self.clip_range[1])
+
+
 @ENV_WRAPPER_REGISTRY.register('reward_norm')
 class RewardNormWrapper(gym.RewardWrapper):
     """

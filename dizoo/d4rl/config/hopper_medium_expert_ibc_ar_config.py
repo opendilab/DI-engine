@@ -7,6 +7,10 @@ main_config = dict(
     exp_name='hopper_medium_expert_ibc_ar_seed0',
     env=dict(
         env_id='hopper-medium-expert-v0',
+        norm_obs=dict(
+            use_norm=True, 
+            offline_stats=dict(use_offline_stats=True, ),
+        ),
         evaluator_env_num=8,
         n_evaluator_episode=8,
         use_act_scale=True,
@@ -27,7 +31,6 @@ main_config = dict(
             learner=dict(hook=dict(log_show_after_iter=1000)),
         ),
         collect=dict(
-            normalize_states=True,
             data_type='d4rl',
             data_path=None,
         ),

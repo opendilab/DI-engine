@@ -59,6 +59,11 @@ def serial_pipeline_offline(
         pin_memory=cfg.policy.cuda,
     )
     # Env, Policy
+    try:
+        if cfg.env.norm_obs.use_norm and cfg.env.norm_obs.offline_stats.use_offline_stats:
+            cfg.env.norm_obs.offline_stats.update({'mean': dataset.mean, 'std': dataset.std})
+    except (KeyError, AttributeError):
+        pass
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env, collect=False)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     # Random seed
@@ -66,9 +71,9 @@ def serial_pipeline_offline(
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'eval'])
 
-    # Normalization for state in offlineRL dataset.
-    if cfg.policy.collect.get('normalize_states', None) and hasattr(policy, 'set_norm_statistics'):
-        policy.set_norm_statistics(dataset.statistics)
+    if hasattr(policy, 'set_statistic'):
+        # useful for setting action bounds for ibc
+        policy.set_statistic(dataset.statistics)
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))

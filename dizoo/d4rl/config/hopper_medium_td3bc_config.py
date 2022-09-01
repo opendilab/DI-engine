@@ -6,6 +6,10 @@ main_config = dict(
     exp_name='hopper_medium_td3-bc_seed0',
     env=dict(
         env_id='hopper-medium-v0',
+        norm_obs=dict(
+            use_norm=True, 
+            offline_stats=dict(use_offline_stats=True, ),
+        ),
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -30,10 +34,8 @@ main_config = dict(
                 'max': 0.5
             },
             alpha=2.5,
-            normalize_states=True,
         ),
         collect=dict(
-            normalize_states=True,
             data_type='d4rl',
             data_path=None,
         ),
