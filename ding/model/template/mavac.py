@@ -273,5 +273,4 @@ class MAVAC(nn.Module):
         """
         logit = self.compute_actor(x)['logit']
         value = self.compute_critic(x)['value']
-        #action_mask = x['action_mask']
         return {'logit': logit, 'value': value}

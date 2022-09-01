@@ -1,5 +1,8 @@
 from easydict import EasyDict
 
+collector_env_num = 8
+evaluator_env_num = 8
+
 main_config = dict(
     exp_name='multi_mujoco_ant_2x4_ppo',
     env=dict(
@@ -8,8 +11,8 @@ main_config = dict(
         agent_obsk=2,
         add_agent_id=False,
         episode_limit=1000,
-        collector_env_num=8,
-        evaluator_env_num=8,
+        collector_env_num=collector_env_num,
+        evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         stop_value=6000,
     ),
@@ -60,8 +63,8 @@ main_config = dict(
             grad_clip_value=10,
             ignore_done=False,
         ),
-        collect=dict(env_num=8, n_sample=3200),
-        eval=dict(env_num=8, evaluator=dict(eval_freq=50, )),
+        collect=dict(env_num=collector_env_num, n_sample=3200),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=200, )),
     ),
 )
 main_config = EasyDict(main_config)
@@ -70,7 +73,7 @@ create_config = dict(
         type='mujoco_multi',
         import_names=['dizoo.multiagent_mujoco.envs.multi_mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
 )
 create_config = EasyDict(create_config)
