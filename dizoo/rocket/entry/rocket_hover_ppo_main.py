@@ -8,8 +8,8 @@ from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, gae_estimator, \
-    termination_checker
+from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
+    gae_estimator, termination_checker
 from ding.utils import set_pkg_seed
 from dizoo.rocket.envs.rocket_env import RocketEnv
 from dizoo.rocket.config.rocket_hover_ppo_config import main_config, create_config
@@ -47,14 +47,14 @@ def main():
 
             def _add_scalar(ctx):
                 if ctx.eval_value != -np.inf:
-                    tb_logger.add_scalar('evaluator_step/reward', ctx.eval_value, global_step= ctx.env_step)
+                    tb_logger.add_scalar('evaluator_step/reward', ctx.eval_value, global_step=ctx.env_step)
                     collector_rewards = [ctx.trajectories[i]['reward'] for i in range(len(ctx.trajectories))]
                     collector_mean_reward = sum(collector_rewards) / len(ctx.trajectories)
                     collector_max_reward = max(collector_rewards)
                     collector_min_reward = min(collector_rewards)
-                    tb_logger.add_scalar('collecter_step/mean_reward', collector_mean_reward, global_step= ctx.env_step)
-                    tb_logger.add_scalar('collecter_step/max_reward', collector_max_reward, global_step= ctx.env_step)
-                    tb_logger.add_scalar('collecter_step/min_reward', collector_min_reward, global_step= ctx.env_step)
+                    tb_logger.add_scalar('collecter_step/mean_reward', collector_mean_reward, global_step=ctx.env_step)
+                    tb_logger.add_scalar('collecter_step/max_reward', collector_max_reward, global_step=ctx.env_step)
+                    tb_logger.add_scalar('collecter_step/min_reward', collector_min_reward, global_step=ctx.env_step)
 
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(StepCollector(cfg, policy.collect_mode, collector_env))

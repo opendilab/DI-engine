@@ -32,7 +32,7 @@ class RocketEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = Rocket(task = self._cfg.task, max_steps = self._cfg.max_steps)
+            self._env = Rocket(task=self._cfg.task, max_steps=self._cfg.max_steps)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -90,7 +90,6 @@ class RocketEnv(BaseEnv):
         self._replay_path = replay_path
         self._save_replay_count = 0
 
-
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
         random_action = to_ndarray([random_action], dtype=np.int64)
@@ -110,9 +109,6 @@ class RocketEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "DI-engine Rocket Env"
-    
-    def close(self):
-        pass
 
     @staticmethod
     def display_frames_as_gif(frames: list, path: str) -> None:

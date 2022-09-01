@@ -58,4 +58,4 @@ create_config = rocket_ppo_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c rocket_landing_ppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-    serial_pipeline_onpolicy((main_config, create_config), seed=2)
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
