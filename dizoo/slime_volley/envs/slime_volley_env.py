@@ -3,25 +3,10 @@ import gym
 from typing import Any, Union, List, Optional
 import copy
 import slimevolleygym
-
+from gym.envs.registration import registry
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
-
-
-class GymSelfPlayMonitor(gym.wrappers.Monitor):
-
-    def step(self, *args, **kwargs):
-        self._before_step(*args, **kwargs)
-        observation, reward, done, info = self.env.step(*args, **kwargs)
-        done = self._after_step(observation, reward, done, info)
-
-        return observation, reward, done, info
-
-    def _before_step(self, *args, **kwargs):
-        if not self.enabled:
-            return
-        self.stats_recorder.before_step(args[0])
 
 
 @ENV_REGISTRY.register('slime_volley')
@@ -60,7 +45,9 @@ class SlimeVolleyEnv(BaseEnv):
             action2 = action2.squeeze()  # 0-dim array
         action1 = SlimeVolleyEnv._process_action(action1)
         action2 = SlimeVolleyEnv._process_action(action2)
-        obs1, rew, done, info = self._env.step(action1, action2)
+        # gym version >= 0.22.0 only support action in one variable,
+        # So we have to put two actions into one tuple.
+        obs1, rew, done, info = self._env.step((action1, action2))
         obs1 = to_ndarray(obs1).astype(np.float32)
         self._final_eval_reward += rew
         # info ('ale.lives', 'ale.otherLives', 'otherObs', 'state', 'otherState')
@@ -104,10 +91,22 @@ class SlimeVolleyEnv(BaseEnv):
     def reset(self):
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
+
             if self._replay_path is not None:
-                self._env = GymSelfPlayMonitor(
-                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-                )
+                if gym.version.VERSION > '0.22.0':
+                    # Gym removed classic control rendering to support using pygame instead.
+                    # And thus, slime_volleyball currently do not support rendering.
+                    self._env.metadata.update({'render_modes': ["human"]})
+                else:
+                    self._env.metadata.update({'render.modes': ["human"]})
+                    self._env = gym.wrappers.RecordVideo(
+                        self._env,
+                        video_folder=self._replay_path,
+                        episode_trigger=lambda episode_id: True,
+                        name_prefix='rl-video-{}'.format(id(self))
+                    )
+                    self._env.start_video_recorder()
+
             ori_shape = self._env.observation_space.shape
             self._observation_space = gym.spaces.Box(
                 low=float("-inf"),

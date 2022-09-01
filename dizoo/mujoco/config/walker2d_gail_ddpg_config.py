@@ -84,7 +84,6 @@ walker2d_gail_ddpg_create_config = dict(
 walker2d_gail_ddpg_create_config = EasyDict(walker2d_gail_ddpg_create_config)
 create_config = walker2d_gail_ddpg_create_config
 
-
 if __name__ == "__main__":
     # or you can enter `ding -m serial_gail -c walker2d_gail_ddpg_config.py -s 0`
     # then input the config you used to generate your expert model in the path mentioned above

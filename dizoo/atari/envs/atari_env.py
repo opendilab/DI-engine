@@ -1,4 +1,4 @@
-from typing import Any, List, Union, Sequence
+from typing import Any, List, Union, Sequence, Optional
 import copy
 import numpy as np
 import gym
@@ -16,10 +16,18 @@ class AtariEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
+        self._replay_path = None
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env()
+            if self._replay_path is not None:
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
+                )
             if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._observation_space = self._env.observation_space
@@ -59,6 +67,11 @@ class AtariEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
 
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()

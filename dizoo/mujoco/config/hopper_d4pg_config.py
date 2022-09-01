@@ -64,7 +64,6 @@ hopper_d4pg_create_config = dict(
 hopper_d4pg_create_config = EasyDict(hopper_d4pg_create_config)
 create_config = hopper_d4pg_create_config
 
-
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c hopper_d4pg_config.py -s 0`
     from ding.entry import serial_pipeline
