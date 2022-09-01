@@ -92,7 +92,5 @@ if __name__ == "__main__":
     expert_main_config = bipedalwalker_sac_config
     expert_create_config = bipedalwalker_sac_create_config
     serial_pipeline_gail(
-        [main_config, create_config], [expert_main_config, expert_create_config],
-        seed=0,
-        collect_data=True
+        [main_config, create_config], [expert_main_config, expert_create_config], seed=0, collect_data=True
     )

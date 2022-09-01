@@ -84,11 +84,17 @@ class GfootballAcademyEnv(BaseEnv):
         obs_space_low = self._env.observation_space.low[0][:self.obs_dim]
         obs_space_high = self._env.observation_space.high[0][:self.obs_dim]
 
-        self._action_space =  gym.spaces.Dict({agent_i: gym.spaces.Discrete(self._env.action_space.nvec[1]) for agent_i in range(self.n_agents)})
-        self._observation_space = gym.spaces.Dict({agent_i:
-            gym.spaces.Box(low=obs_space_low, high=obs_space_high, dtype=self._env.observation_space.dtype)
-            for agent_i in range(self.n_agents)
-        })
+        self._action_space = gym.spaces.Dict(
+            {agent_i: gym.spaces.Discrete(self._env.action_space.nvec[1])
+             for agent_i in range(self.n_agents)}
+        )
+        self._observation_space = gym.spaces.Dict(
+            {
+                agent_i:
+                gym.spaces.Box(low=obs_space_low, high=obs_space_high, dtype=self._env.observation_space.dtype)
+                for agent_i in range(self.n_agents)
+            }
+        )
         self._reward_space = gym.spaces.Box(low=0, high=100, shape=(1, ), dtype=np.float32)  # TODO(pu)
 
         self.n_actions = self.action_space[0].n

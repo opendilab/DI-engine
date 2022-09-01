@@ -14,7 +14,6 @@ import numpy as np
 from ding.torch_utils import tensor_to_list, one_hot, to_ndarray
 from ding.utils import MODEL_REGISTRY
 from ding.torch_utils import to_tensor, to_dtype
-
 """
 Readable Reminder
 *********************
@@ -151,7 +150,6 @@ SLIDE_AREA = [[-0.65, 0], [-0.42, 0.42]]
 takenSelfFactor = 0.5
 passFactors = {Action.HighPass: [1.0, 1.2, 3.0], Action.ShortPass: [1.1, 1.5, 1.5], Action.LongPass: [1.0, 1.2, 2]}
 
-
 # top right/ Bottom left corner are:
 #   [1, -0.42] and [-1, 0.42], respectively.
 
@@ -225,7 +223,6 @@ class Processer(object):
             self._score_diff = self._obs['score'][0] - self._obs['score'][1]
         else:
             self._score_diff = self._obs['score']
-
 
         self._curPos = self._obs['left_team'][self._obs['active']]
         self._curDir = self._obs['left_team_direction'][self._obs['active']]
@@ -780,7 +777,7 @@ class FootballRuleBaseModel(torch.nn.Module):
         for d in data:
             # the rew obs in one timestep
             if isinstance(d['steps_left'], torch.Tensor):
-                d={k: v.cpu() for k, v in d.items()}
+                d = {k: v.cpu() for k, v in d.items()}
                 d = to_ndarray(d)
                 for k in ['active', 'designated', 'ball_owned_player', 'ball_owned_team']:
                     d[k] = int(d[k])

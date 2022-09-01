@@ -4,7 +4,6 @@ import os
 from easydict import EasyDict
 
 import torch
-import numpy as np
 
 from ding.entry import serial_pipeline
 from ding.entry import serial_pipeline_preference_based_irl
@@ -19,16 +18,18 @@ from ding.torch_utils import is_differentiable
 
 @pytest.mark.unittest
 def test_serial_pipeline_trex():
+    exp_name = 'test_serial_pipeline_trex_expert'
     config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
     config[0].policy.learn.learner.hook.save_ckpt_after_iter = 100
+    config[0].exp_name = exp_name
     expert_policy = serial_pipeline(config, seed=0)
 
+    exp_name = 'test_serial_pipeline_trex_collect'
     config = [deepcopy(cartpole_trex_offppo_config), deepcopy(cartpole_trex_offppo_create_config)]
-    config[0].reward_model.data_path = './cartpole_trex_offppo_seed0'
-    config[0].reward_model.data_path = os.path.abspath(config[0].reward_model.data_path)
-    config[0].reward_model.reward_model_path = config[0].reward_model.data_path + '/cartpole.params'
-    config[0].reward_model.expert_model_path = './cartpole_offppo_seed0'
-    config[0].reward_model.expert_model_path = os.path.abspath(config[0].reward_model.expert_model_path)
+    config[0].exp_name = exp_name
+    config[0].reward_model.data_path = exp_name
+    config[0].reward_model.reward_model_path = exp_name + '/cartpole.params'
+    config[0].reward_model.expert_model_path = 'test_serial_pipeline_trex_expert'
     config[0].reward_model.checkpoint_max = 100
     config[0].reward_model.checkpoint_step = 100
     config[0].reward_model.num_snippets = 100
@@ -36,9 +37,10 @@ def test_serial_pipeline_trex():
     trex_collecting_data(args=args)
     try:
         serial_pipeline_preference_based_irl(config, seed=0, max_train_iter=1)
-        os.popen('rm -rf {}'.format(config[0].reward_model.data_path))
     except Exception:
         assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf test_serial_pipeline_trex*')
 
 
 B = 4

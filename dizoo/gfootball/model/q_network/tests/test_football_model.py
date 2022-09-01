@@ -42,4 +42,4 @@ class TestModel:
             inputs = to_tensor(inputs)
             outputs = model(inputs)
             assert outputs['logit'].shape == (B, 19)
-            assert outputs['action'].shape == (B,)
+            assert outputs['action'].shape == (B, )

@@ -263,6 +263,9 @@ def cli(
             from .application_entry import eval
             eval(config, seed, load_path=load_path, replay_path=replay_path)
 
+    if mode is None:
+        raise RuntimeError("Please indicate at least one argument.")
+
     if isinstance(seed, (list, tuple)):
         assert len(seed) > 0, "Please input at least 1 seed"
         if len(seed) == 1:  # necessary

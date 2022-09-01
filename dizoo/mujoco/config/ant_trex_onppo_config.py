@@ -15,8 +15,6 @@ ant_trex_ppo_config = dict(
     ),
     reward_model=dict(
         type='trex',
-        algo_for_model='ppo',
-        env_id='Ant-v3',
         min_snippet_length=10,
         max_snippet_length=100,
         checkpoint_min=100,

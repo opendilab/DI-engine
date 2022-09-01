@@ -12,7 +12,7 @@ from ding.framework.middleware import multistep_trainer, StepCollector, interact
     termination_checker
 from ding.utils import set_pkg_seed
 from dizoo.rocket.envs.rocket_env import RocketEnv
-from dizoo.rocket.config.rocket_ppo_config import main_config, create_config
+from dizoo.rocket.config.rocket_hover_ppo_config import main_config, create_config
 import numpy as np
 from tensorboardX import SummaryWriter
 import os

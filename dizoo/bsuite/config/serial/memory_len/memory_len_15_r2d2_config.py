@@ -41,9 +41,7 @@ memory_len_r2d2_config = dict(
                 end=0.05,
                 decay=1e5,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=50000,
-            ),
+            replay_buffer=dict(replay_buffer_size=50000, ),
         ),
     ),
 )
