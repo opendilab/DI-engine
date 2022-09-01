@@ -296,7 +296,7 @@
 </section>
 <section id="initialize-the-environments">
 <h2>Initialize the Environments<a class="headerlink" href="#initialize-the-environments" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Super</span> <span class="pre">Mario</span> <span class="pre">Bros.</span></code> is a <strong>image input</strong> observation environment, so we don’t just wrapper original gym environment with <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> but need to add some additional wrappers to pre-process observation before sending it to DQN Policy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Super</span> <span class="pre">Mario</span> <span class="pre">Bros.</span></code> is an <strong>image input</strong> observation environment, so we don’t just wrapper original gym environment with <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> but need to add some additional wrappers to pre-process observation before sending it to DQN Policy.</p>
 <p>In this tutorial, we use the following 5 wrapper to pre-process data and transform into DI-engine’s environment format. Here are some basic description, and you can find the whole code implementation and comments <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_wrappers/env_wrappers.py">here</a></p>
 <blockquote>
 <div><ul class="simple">

@@ -284,7 +284,7 @@
 <h2>问题定义与研究动机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>离线强化学习（Offline Reinforcement Learning, Offline RL），又称作批量强化学习（Batch Reinforcement Learning, BRL），是强化学习的一种变体，主要研究的是如何利用预先收集的大规模静态数据集来训练强化学习智能体。
 利用静态数据集意味着在智能体的训练过程中，Offline RL 不进行任何形式的在线交互与探索，这也是它和其它常见的强化学习方法最显著的区别。方便起见，在本文后续的阐述中，我们将非离线的强化学习（包含 On-policy 和 Off-policy）称为在线强化学习（Online RL）。</p>
-<a class="reference internal image-reference" href="../_images/offline_no_words.png"><img alt="../_images/offline_no_words.png" class="align-center" src="../_images/offline_no_words.png" style="width: 841.5px; height: 196.5px;" /></a>
+<a class="reference internal image-reference" href="../_images/offline_no_words.png"><img alt="../_images/offline_no_words.png" class="align-center" src="../_images/offline_no_words.png" style="width: 1376.5px; height: 385.5px;" /></a>
 <p>在该图中，(a)是标准的 On-policy RL，智能体采用当前策略 <span class="math notranslate nohighlight">\(\pi_k\)</span> 与环境进行交互，只使用当前策略产生的数据来更新网络。
 (b)是 Off-policy RL，它会将历史所有策略与环境交互的数据存储在经验池 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 中。即 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 中包含了策略 <span class="math notranslate nohighlight">\(\pi_0, \pi_1, ..., \pi_k\)</span> 在不同时刻与环境交互产生的数据，这些数据都会被用于更新网络 <span class="math notranslate nohighlight">\(\pi_{k+1}\)</span>。
 (c)是 Offline RL，它所使用的数据集 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 中的数据来自某些（可能未知）的行为策略 <span class="math notranslate nohighlight">\(\pi_{\beta}\)</span> 。该数据集 <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> 是提前一次性收集好的，不会在训练过程中发生改变。

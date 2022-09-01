@@ -30,7 +30,7 @@ in the tutorial we use the default configuration directly:
 Initialize the Environments
 ------------------------------
 
-``Super Mario Bros.`` is a **image input** observation environment, so we don't just wrapper original gym environment with ``DingEnvWrapper`` \
+``Super Mario Bros.`` is an **image input** observation environment, so we don't just wrapper original gym environment with ``DingEnvWrapper`` \
 but need to add some additional wrappers to pre-process observation before sending it to DQN Policy.
 
 In this tutorial, we use the following 5 wrapper to pre-process data and transform into DI-engine's environment format. Here are some basic description, \

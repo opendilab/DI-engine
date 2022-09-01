@@ -26,7 +26,7 @@ Markov Decision Process/MDP
 **Markov Decision Process (MDP)** is the ideal mathematical model of reinforcement learning and the commonest one.
 
 - Markov property：State :math:`s_t` is Markov, iff :math:`P[s_{t+1}|s_t] = P[s_{t+1}|s_1, ..., s_t]` .
-- A Markov process is a memoryless random process, i.e., a sequence of random states S_1,　S_2... with the Markov process.
+- A Markov process is a memoryless random process, i.e., a sequence of random states :math:`S_1`,　:math:`S_2`... with the Markov process.
 - Markov process is a binary tuple :math:`(S, P)` , satisfying: :math:`S` a finite set of states, :math:`P` is a probability transition matrix. There are no rewards or actions in a Markov process. A Markov process that takes actions and rewards into account is called an MDP.
 - MDP is a tuple :math:`(S, A, P, R, \gamma)`， :math:`S` is a finite set of states, :math:`A` is a finite set of actions， :math:`P` is a state transition probability matrix, :math:`R` is a reward function， :math:`\gamma` is a discount factor used to calculate the accumulated rewards. Unlike the Markov process, the state transfer probability of the Markov decision process is :math:`P(s_{t+1}|s_t, a_t)` . :math:`P(s_{t+1}|s_t, a_t)` .
 - The goal of reinforcement learning is to seek an optimal policy based on an MDP.  The so-called policy :math:`\pi(a|s)` refers to the mapping of states to actions. In reinforcement learning, we only discuss Markov decision processes with finite state space.
@@ -94,7 +94,7 @@ Return and reward
 
 :math:`G_t = R_{t+1}+\gamma * R_{t+2}+{\gamma}^2 * R_{t+3}+ ...`
 
-:math:`\gamma` The discount factor reflects the ratio between the value of future rewards and that at the present moment. A value close to 0 indicates a tendency towards a 'myopic' assessment and a value close to indicates a more forward-looking interest and confidence in the future. The introduction of the discount factor is not only easy to express mathematically, but also avoids falling into an infinite loop and reduces the uncertainty of future benefits.
+:math:`\gamma` The discount factor reflects the ratio between the value of future rewards and that at the present moment. A value close to 0 indicates a tendency towards a 'myopic' assessment and a value close to 1 indicates a more forward-looking interest and confidence in the future. The introduction of the discount factor is not only easy to express mathematically, but also avoids falling into an infinite loop and reduces the uncertainty of future benefits.
 
 Other difficulties in dealing with reward functions may exist in different environments, such as sparse rewards where the environment does not give feedback in every state and only acquires rewards after a period of trajectory has elapsed. Therefore, the design and processing of reward functions in reinforcement learning are important directions that have a significant impact on the effectiveness of reinforcement learning.
 
@@ -147,7 +147,7 @@ For a grid reinforcement learning environment，the estimation of the value func
 
 Policy Gradients
 ------------------------
-In some situations，a stocatic policy is better than a deterministic policy. As a result, value-based reinforcement learning cannot learn such policy and a policy-based approach to reinforcement learning is therefore proposed.
+In some situations, a stochastic policy is better than a deterministic policy. As a result, value-based reinforcement learning cannot learn such policy and a policy-based approach to reinforcement learning is therefore proposed.
 
 Unlike value-based reinforcement learning, policy-based reinforcement learning parameterises the policy and represent it by using linear or non-linear functions to find the optimal parameters that maximize the expectation of the cumulative reward, the goal of reinforcement learning.
 
@@ -155,7 +155,7 @@ In the value-based approach, we iteratively compute the value function and then 
 
 Compared to the value-based approach, the policy gradient reinforcement learning tends to converge to a local minimum, which is not sufficient when evaluating an individual policy and has a large variance.
 
-For a more detailed understanding of the policy based approach, please refer to the specific algorithms in our documentation：　`Hans On
+For a more detailed understanding of the policy based approach, please refer to the specific algorithms in our documentation：　`Hands On
 RL <../hands_on/index.html>`__
 
 
