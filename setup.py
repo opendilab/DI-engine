@@ -87,7 +87,6 @@ setup(
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'moviepy',
-        'hbutils',
         'tqdm',
     ],
     extras_require={

@@ -23,8 +23,11 @@ class IBCPolicy(BehaviourCloningPolicy):
         Implicit Behavior Cloning
         https://arxiv.org/abs/2109.00137.pdf
 
-    Config:
-        TODO
+    .. note::
+        The code is adapted from the pytorch version of IBC https://github.com/kevinzakka/ibc, 
+            which only supports the derivative-free optimization (dfo) variants.
+        This implementation moves a step forward and supports all variants of energy-based model 
+            mentioned in the paper (dfo, autoregressive dfo, and mcmc).
     """
 
     config = dict(
@@ -54,14 +57,14 @@ class IBCPolicy(BehaviourCloningPolicy):
         self._timer = EasyTimer(cuda=self._cfg.cuda)
         self._sync_timer = EasyTimer(cuda=self._cfg.cuda)
         optim_cfg = self._cfg.learn.optim
-        self._optimizer = torch.optim.Adam(
+        self._optimizer = torch.optim.AdamW(
             self._model.parameters(),
             lr=optim_cfg.learning_rate,
             weight_decay=optim_cfg.weight_decay,
             betas=(optim_cfg.beta1, optim_cfg.beta2),
         )
         self._stochastic_optimizer: StochasticOptimizer = \
-            create_stochastic_optimizer(self._cfg.model.stochastic_optim)
+            create_stochastic_optimizer(self._device, self._cfg.model.stochastic_optim)
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
 

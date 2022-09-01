@@ -9,7 +9,7 @@ main_config = dict(
         env_id='hopper-medium-expert-v0',
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        use_act_scale=False,
+        use_act_scale=True,
         stop_value=6000,
     ),
     policy=dict(
@@ -17,7 +17,7 @@ main_config = dict(
         model=dict(
             obs_shape=11,
             action_shape=3,
-            stochastic_optim=dict(type='ardfo', cuda=cuda,)
+            stochastic_optim=dict(type='ardfo',)
         ),
         learn=dict(
             multi_gpu=multi_gpu,

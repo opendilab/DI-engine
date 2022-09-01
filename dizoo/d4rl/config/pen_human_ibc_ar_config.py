@@ -9,7 +9,7 @@ main_config = dict(
         env_id='pen-human-v0',
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        use_act_scale=False,
+        use_act_scale=True,
         stop_value=1e10,
     ),
     policy=dict(
@@ -19,7 +19,7 @@ main_config = dict(
             action_shape=24,
             hidden_size=128,
             hidden_layer_num=4,
-            stochastic_optim=dict(type='ardfo', cuda=cuda,)
+            stochastic_optim=dict(type='ardfo',)
         ),
         learn=dict(
             multi_gpu=multi_gpu,

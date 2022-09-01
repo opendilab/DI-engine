@@ -17,8 +17,8 @@ from ding.model.wrapper import IModelWrapper
 from ..common import RegressionHead
 
 
-def create_stochastic_optimizer(stochastic_optimizer_config):
-    return STOCHASTIC_OPTIMIZER_REGISTRY.build(stochastic_optimizer_config.pop("type"), **stochastic_optimizer_config)
+def create_stochastic_optimizer(device, stochastic_optimizer_config):
+    return STOCHASTIC_OPTIMIZER_REGISTRY.build(stochastic_optimizer_config.pop("type"), device=device, **stochastic_optimizer_config)
 
 
 def no_ebm_grad():
@@ -28,8 +28,7 @@ def no_ebm_grad():
 
         def wrapper(*args, **kwargs):
             ebm = args[-1]
-            assert isinstance(ebm, IModelWrapper) or\
-                   isinstance(ebm, nn.Module),\
+            assert isinstance(ebm, (IModelWrapper, nn.Module)),\
                    'Make sure ebm is the last positional arguments.'
             ebm.requires_grad_(False)
             result = func(*args, **kwargs)
@@ -100,7 +99,7 @@ class DFO(StochasticOptimizer):
         iters: int = 3,
         train_samples: int = 8,
         inference_samples: int = 16384,
-        cuda: bool = False,
+        device: str = 'cpu',
     ):
         self.action_bounds = None
         self.noise_scale = noise_scale
@@ -108,7 +107,7 @@ class DFO(StochasticOptimizer):
         self.iters = iters
         self.train_samples = train_samples
         self.inference_samples = inference_samples
-        self.device = torch.device('cuda' if cuda else "cpu")
+        self.device = device
 
     def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
         """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
@@ -158,9 +157,9 @@ class AutoRegressiveDFO(DFO):
         iters: int = 3,
         train_samples: int = 8,
         inference_samples: int = 4096,
-        cuda: bool = False,
+        device: str = 'cpu',
     ):
-        super().__init__(noise_scale, noise_shrink, iters, train_samples, inference_samples, cuda)
+        super().__init__(noise_scale, noise_shrink, iters, train_samples, inference_samples, device)
 
     @torch.no_grad()
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
@@ -260,7 +259,7 @@ class MCMC(StochasticOptimizer):
             power=2.0,
             # num_steps,
         ),
-        cuda: bool = False,
+        device: str = 'cpu',
         # langevin_step
         noise_scale: float = 0.5,
         grad_clip=None,
@@ -278,6 +277,7 @@ class MCMC(StochasticOptimizer):
         self.stepsize_scheduler = stepsize_scheduler
         self.optimize_again = optimize_again
         self.again_stepsize_scheduler = again_stepsize_scheduler
+        self.device = device
 
         self.noise_scale = noise_scale
         self.grad_clip = grad_clip
@@ -286,7 +286,6 @@ class MCMC(StochasticOptimizer):
         self.grad_norm_type = grad_norm_type
         self.grad_margin = grad_margin
         self.grad_loss_weight = grad_loss_weight
-        self.device = torch.device('cuda' if cuda else "cpu")
 
     @staticmethod
     def _gradient_wrt_act(

@@ -9,7 +9,7 @@ main_config = dict(
         env_id='kitchen-complete-v0',
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        use_act_scale=False,
+        use_act_scale=True,
         stop_value=1e10,
     ),
     policy=dict(
@@ -17,7 +17,7 @@ main_config = dict(
         model=dict(
             obs_shape=60,
             action_shape=9,
-            stochastic_optim=dict(type='mcmc', cuda=cuda,)
+            stochastic_optim=dict(type='mcmc',)
         ),
         learn=dict(
             multi_gpu=multi_gpu,
