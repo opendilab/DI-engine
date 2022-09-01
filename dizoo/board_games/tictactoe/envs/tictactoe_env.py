@@ -56,6 +56,7 @@ class TicTacToeEnv(BaseGameEnv):
     def step(self, action):
         if self.battle_mode == 'two_player_mode':
             timestep = self._player_step(action)
+            # self.board
             return timestep
         elif self.battle_mode == 'one_player_mode':
             # player 1 battle with expert player 2
@@ -123,6 +124,17 @@ class TicTacToeEnv(BaseGameEnv):
         return BaseEnvTimestep(obs, reward, done, info)
 
     def current_state(self):
+        """
+        Overview:
+            obtain the state from the view of current player.
+            self.board is nd-array, 0 indicates that no stones is placed here,
+            1 indicates that player 1's stone is placed here, 2 indicates player 2's stone is placed here
+        Returns:
+            - current_state (:obj:`array`):
+                the 0 dim means which positions is occupied by self.current_player,
+                the 1 dim indicates which positions are occupied by self.to_play,
+                the 2 dim indicates which player is the to_play player, 1 means player 1, 2 means player 2
+        """
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
         board_opponent_player = np.where(self.board == self.to_play, 1, 0)
         board_to_play = np.full((self.board_size, self.board_size), self.current_player)

@@ -586,7 +586,7 @@ class GameBuffer(Buffer):
         return policy_re_context
 
     # @profile
-    def prepare_reward_value(self, reward_value_context, model):
+    def compute_target_reward_value(self, reward_value_context, model):
         """
         Overview:
             prepare reward and value targets from the context of rewards and values
@@ -784,13 +784,13 @@ class GameBuffer(Buffer):
         return batch_value_prefixs, batch_values
 
     # @profile
-    def prepare_policy_reanalyzed(self, policy_re_context, model):
+    def compute_target_policy_reanalyzed(self, policy_re_context, model):
         """
-        prepare policy targets from the reanalyzed context of policies
+        compute policy targets from the reanalyzed context of policies
         """
-        batch_policies_re = []
+        batch_target_policies_re = []
         if policy_re_context is None:
-            return batch_policies_re
+            return batch_target_policies_re
 
         # for two_player board games
         policy_obs_lst, policy_mask, state_index_lst, indices, child_visits, traj_lens, action_mask_history, \
@@ -981,21 +981,30 @@ class GameBuffer(Buffer):
 
                     policy_index += 1
 
-                batch_policies_re.append(target_policies)
+                batch_target_policies_re.append(target_policies)
 
-        batch_policies_re = np.array(batch_policies_re)
+        batch_target_policies_re = np.array(batch_target_policies_re)
 
-        return batch_policies_re
+        return batch_target_policies_re
 
     # @profile
-    def prepare_policy_non_reanalyzed(self, policy_non_re_context):
+    def compute_target_policy_non_reanalyzed(self, policy_non_re_context):
         """
         Overview:
             prepare policy targets from the non-reanalyzed context of policies
+        Arguments:
+            - policy_non_re_context (:obj:`List`): List containing:
+                - state_index_lst
+                - child_visits
+                - traj_lens
+                - action_mask_history
+                - to_play_history
+        Returns:
+            - batch_target_policies_non_re
         """
-        batch_policies_non_re = []
+        batch_target_policies_non_re = []
         if policy_non_re_context is None:
-            return batch_policies_non_re
+            return batch_target_policies_non_re
 
         state_index_lst, child_visits, traj_lens, action_mask_history, to_play_history = policy_non_re_context
 
@@ -1040,7 +1049,7 @@ class GameBuffer(Buffer):
                     if current_index < traj_len:
                         # target_policies.append(child_visit[current_index])
                         policy_mask.append(1)
-                        # already is a distribution
+                        # child_visit is already a distribution
                         distributions = child_visit[current_index]
                         if self.config.mcts_ctree:
                             """
@@ -1063,20 +1072,22 @@ class GameBuffer(Buffer):
                                 # distributions = [visit_count / sum_visits for visit_count in distributions]
                                 for index, legal_action in enumerate(legal_actions[policy_index]):
                                     # try:
+                                    # only the action in ``legal_action`` the policy logits is nonzero
                                     policy_tmp[legal_action] = distributions[index]
                                     # except Exception as error:
                                     #     print(error)
                                 target_policies.append(policy_tmp)
 
                     else:
+                        # the invalid target policy
                         target_policies.append([0 for _ in range(self.config.action_space_size)])
                         policy_mask.append(0)
 
                     policy_index += 1
 
-                batch_policies_non_re.append(target_policies)
-        batch_policies_non_re = np.asarray(batch_policies_non_re)
-        return batch_policies_non_re
+                batch_target_policies_non_re.append(target_policies)
+        batch_target_policies_non_re = np.asarray(batch_target_policies_non_re)
+        return batch_target_policies_non_re
 
     # @profile
     def sample_train_data(self, batch_size, policy):
@@ -1092,14 +1103,14 @@ class GameBuffer(Buffer):
         reward_value_context, policy_re_context, policy_non_re_context, inputs_batch = input_context
 
         # target reward, value
-        batch_value_prefixs, batch_values = self.prepare_reward_value(reward_value_context, policy._target_model)
+        batch_value_prefixs, batch_values = self.compute_target_reward_value(reward_value_context, policy._target_model)
         # target policy
-        batch_policies_re = self.prepare_policy_reanalyzed(policy_re_context, policy._target_model)
-        batch_policies_non_re = self.prepare_policy_non_reanalyzed(policy_non_re_context)
+        batch_target_policies_re = self.compute_target_policy_reanalyzed(policy_re_context, policy._target_model)
+        batch_target_policies_non_re = self.compute_target_policy_non_reanalyzed(policy_non_re_context)
         if self.config.revisit_policy_search_rate < 1:
-            batch_policies = np.concatenate([batch_policies_re, batch_policies_non_re])
+            batch_policies = np.concatenate([batch_target_policies_re, batch_target_policies_non_re])
         else:
-            batch_policies = batch_policies_re
+            batch_policies = batch_target_policies_re
         targets_batch = [batch_value_prefixs, batch_values, batch_policies]
         # a batch contains the inputs and the targets
         train_data = [inputs_batch, targets_batch, self]

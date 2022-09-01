@@ -425,6 +425,8 @@ class MuZeroCollector(ISerialCollector):
                 game_histories[i].store_search_stats(distributions_dict[i], value_dict[i])
                 if two_player_game:
                     # for two_player board games
+                    # append a transition tuple, including a_t, o_{t+1}, r_{t}, action_mask_{t}, to_play_{t}
+                    # in ``game_histories[i].init``, we have append o_{t} in ``self.obs_history``
                     game_histories[i].append(
                         actions[i], to_ndarray(obs['observation']), clip_reward, action_mask[i], to_play[i]
                     )
@@ -565,11 +567,15 @@ class MuZeroCollector(ISerialCollector):
                         } for i in range(self.len_pool())
                     ]
                 )
-                # np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img',
+                np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img',
+                        self.replay_buffer.buffer)
+                one_episode_replay_buffer_img = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img.npy',
+                        allow_pickle=True)
+
+                # np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/tictactoe/config/one_episode_replay_buffer_tictactoe_2-player-mode',
                 #         self.replay_buffer.buffer)
-                # one_episode_replay_buffer_img = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config
-                # /one_episode_replay_buffer_img.npy',
-                #         allow_pickle=True)
+                # one_episode_replay_buffer_tictactoe_2playermode = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/tictactoe/config/one_episode_replay_buffer_tictactoe_2-player-mode.npy', allow_pickle=True)
+
                 del self.trajectory_pool[:]
                 break
         # log

@@ -5,11 +5,11 @@ from easydict import EasyDict
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 # debug
-collector_env_num = 1
-evaluator_env_num = 1
+# collector_env_num = 2
+# evaluator_env_num = 2
 
-# collector_env_num = 8
-# evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 5
 tictactoe_efficientzero_config = dict(
     exp_name='data_ez_ptree/tictactoe_2pl_efficientzero_seed0',
     env=dict(
@@ -22,6 +22,9 @@ tictactoe_efficientzero_config = dict(
         battle_mode='two_player_mode',
         # battle_mode='one_player_mode',
         manager=dict(shared_memory=False, ),
+        max_episode_steps=int(1.08e5),
+        collect_max_episode_steps=int(1.08e4),
+        eval_max_episode_steps=int(1.08e5),
     ),
     policy=dict(
         model_path=None,
@@ -58,13 +61,14 @@ tictactoe_efficientzero_config = dict(
         # learn_mode config
         learn=dict(
             # debug
-            update_per_collect=2,
-            batch_size=4,
+            # update_per_collect=2,
+            # batch_size=5,
 
             # one_player_mode, board_size=3, episode_length=3**2/2=4.5
             # collector_env_num=8,  update_per_collect=5*8=40
             # update_per_collect=int(3 ** 2 / 2 * collector_env_num),
-            # batch_size=256,
+            update_per_collect=int(40),
+            batch_size=256,
 
             learning_rate=0.2,
             # Frequency of target network update.

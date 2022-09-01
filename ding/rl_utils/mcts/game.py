@@ -111,7 +111,7 @@ class GameHistory:
     def append(self, action, obs, reward, action_mask=None, to_play=None):
         """
         Overview:
-            append a transition tuple, including a_t, o_{t+1}, r_{t+1}, action_mask_t, to_play_t
+            append a transition tuple, including a_t, o_{t+1}, r_{t}, action_mask_{t}, to_play_{t}
         """
         self.action_history.append(action)
         self.obs_history.append(obs)
@@ -219,7 +219,7 @@ class GameHistory:
 
             obs:            game_history_length + stack + num_unroll_steps, 20+4+5
             action:         game_history_length -> 20
-            reward:         game_history_length + stack + num_unroll_steps + td_steps -1  20+5+5-1
+            reward:         game_history_length + num_unroll_steps + td_steps -1  20+5+5-1
             root_values:    game_history_length + num_unroll_steps + td_steps -> 20 +5+5
             child_visits：  game_history_length + num_unroll_steps -> 20+5
             to_play:        game_history_length -> 20

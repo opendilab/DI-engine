@@ -36,8 +36,8 @@ class Node:
         self.hidden_state_index_y = 0
 
     def expand(
-        self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
-        policy_logits: List[float]
+            self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
+            policy_logits: List[float]
     ):
         self.to_play = to_play
         if self.legal_actions is None:
@@ -76,6 +76,8 @@ class Node:
         """
         Overview:
             get mean q
+        Arguments:
+            - is_root (:obj:`int`):
         """
         total_unsigned_q = 0.0
         total_visits = 0
@@ -85,6 +87,7 @@ class Node:
             if child.visit_count > 0:
                 true_reward = child.value_prefix - parent_value_prefix
                 if self.is_reset == 1:
+                    # TODO(pu)
                     true_reward = child.value_prefix
                 # TODO(pu): only one step bootstrap?
                 q_of_s_a = true_reward + discount * child.value
@@ -93,6 +96,7 @@ class Node:
         if is_root and total_visits > 0:
             mean_q = total_unsigned_q / total_visits
         else:
+            # if is not root node,
             # TODO(pu): why parent_q?
             mean_q = (parent_q + total_unsigned_q) / (total_visits + 1)
         return mean_q
@@ -331,15 +335,16 @@ def batch_back_propagate(
             back_propagate(results.search_paths[i], min_max_stats_lst.stats_lst[i], to_play[i], values[i], discount)
 
 
-def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, mean_q: float) -> int:
+def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, mean_q: float,
+                 players: int) -> int:
     max_score = -np.inf
     epsilon = 0.000001
     max_index_lst = []
     for a in root.legal_actions:
         child = root.get_child(a)
-        temp_score = ucb_score(
+        temp_score = compute_ucb_score(
             child, min_max_stats, mean_q, root.is_reset, root.visit_count - 1, root.value_prefix, pb_c_base, pb_c_int,
-            discount
+            discount, players
         )
         if max_score < temp_score:
             max_score = temp_score
@@ -355,18 +360,25 @@ def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, dis
     return action
 
 
-def ucb_score(
-    child: Node,
-    min_max_stats,
-    parent_mean_q,
-    is_reset: int,
-    total_children_visit_counts: float,
-    parent_value_prefix: float,
-    pb_c_base: float,
-    pb_c_init: float,
-    discount: float,
-    players=1
+def compute_ucb_score(
+        child: Node,
+        min_max_stats,
+        parent_mean_q,
+        is_reset: int,
+        total_children_visit_counts: float,
+        parent_value_prefix: float,
+        pb_c_base: float,
+        pb_c_init: float,
+        discount: float,
+        players=1
 ):
+    """
+    Overview:
+        calculate the pUCB score.
+    Arguments:
+        - child (:obj:`Any`): a child node
+        - players (:obj:`int`): one/two_player mode board games
+    """
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))
 
@@ -380,19 +392,20 @@ def ucb_score(
         if players == 1:
             value_score = true_reward + discount * child.value
         elif players == 2:
-            value_score = true_reward + discount * -child.value
+            value_score = true_reward + discount * (-child.value)
 
     value_score = min_max_stats.normalize(value_score)
     if value_score < 0:
         value_score = 0
     if value_score > 1:
         value_score = 1
-    ucb_score = prior_score + value_score
-    return ucb_score
+    compute_ucb_score = prior_score + value_score
+    return compute_ucb_score
 
 
 def batch_traverse(
-    roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults, virtual_to_play
+        roots, pb_c_base: int, pb_c_init: float, discount: float, min_max_stats_lst, results: SearchResults,
+        virtual_to_play
 ):
     last_action = 0
     parent_q = 0.0
@@ -402,6 +415,10 @@ def batch_traverse(
     results.nodes = [None for i in range(results.num)]
     results.hidden_state_index_x_lst = [None for i in range(results.num)]
     results.hidden_state_index_y_lst = [None for i in range(results.num)]
+    if virtual_to_play is not None and virtual_to_play[0] is not None:
+        players = 2
+    else:
+        players = 1
 
     results.search_paths = {i: [] for i in range(results.num)}
     for i in range(results.num):
@@ -409,20 +426,23 @@ def batch_traverse(
         is_root = 1
         search_len = 0
         results.search_paths[i].append(node)
-        # if node.expanded is False:
-        #     print(i,node)
+
+        # MCTS stage 1:
+        # Each simulation starts from the internal root state s0, and finishes when the simulation reaches a leaf node s_l.
         while node.expanded:
+
+            mean_q = node.get_mean_q(is_root, parent_q, discount)
+            is_root = 0
+            parent_q = mean_q
+
+            # select action according to the pUCT rule
+            action = select_child(node, min_max_stats_lst.stats_lst[i], pb_c_base, pb_c_init, discount, mean_q, players)
             if virtual_to_play is not None and virtual_to_play[i] is not None:
                 # Players play turn by turn
                 if virtual_to_play[i] == 1:
                     virtual_to_play[i] = 2
                 else:
                     virtual_to_play[i] = 1
-
-            mean_q = node.get_mean_q(is_root, parent_q, discount)
-            is_root = 0
-            parent_q = mean_q
-            action = select_child(node, min_max_stats_lst.stats_lst[i], pb_c_base, pb_c_init, discount, mean_q)
             node.best_action = action
             # move to child node according to action
             node = node.get_child(action)
@@ -430,26 +450,14 @@ def batch_traverse(
             results.search_paths[i].append(node)
             search_len += 1
 
-            # TODO(pu): why?
-            parent = results.search_paths[i][len(results.search_paths[i]) - 2]
-            if parent.hidden_state_index_x is None:
-                print(parent)
+            # note this return the parent node of the current searched node
+            parent = results.search_paths[i][len(results.search_paths[i]) - 1 - 1]
 
             results.hidden_state_index_x_lst[i] = parent.hidden_state_index_x
             results.hidden_state_index_y_lst[i] = parent.hidden_state_index_y
             results.last_actions[i] = last_action
             results.search_lens[i] = search_len
             results.nodes[i] = node
-
-    # TODO(pu)
-    if None in results.hidden_state_index_x_lst:
-        none_index = [i for i, v in enumerate(results.hidden_state_index_x_lst) if v is None]
-        for index in none_index:
-            results.hidden_state_index_x_lst[index] = 0
-            results.hidden_state_index_y_lst[index] = index
-            results.last_actions[index] = last_action
-            results.search_lens[index] = search_len
-            results.nodes[index] = node
 
     # print(f'env {i} one simulation done!')
     return results.hidden_state_index_x_lst, results.hidden_state_index_y_lst, results.last_actions, virtual_to_play

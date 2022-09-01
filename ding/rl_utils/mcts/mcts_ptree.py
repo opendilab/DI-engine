@@ -52,10 +52,12 @@ class EfficientZeroMCTSPtree(object):
             device = self.config.device
             pb_c_base, pb_c_init, discount = self.config.pb_c_base, self.config.pb_c_init, self.config.discount
             # the data storage of hidden states: storing the states of all the tree nodes
+            # hidden_state_roots.shape  (2, 12, 3, 3)
             hidden_state_pool = [hidden_state_roots]
             # 1 x batch x 64
             # ez related
             # the data storage of value prefix hidden states in LSTM
+            # reward_hidden_state_roots[0].shape  (1, 2, 64)
             reward_hidden_state_c_pool = [reward_hidden_state_roots[0]]
             reward_hidden_state_h_pool = [reward_hidden_state_roots[1]]
 
@@ -76,27 +78,29 @@ class EfficientZeroMCTSPtree(object):
                 results = tree.SearchResults(num=num)
 
                 # traverse to select actions for each root
-                # hidden_state_index_x_lst: the first index of leaf node states in hidden_state_pool
-                # hidden_state_index_y_lst: the second index of leaf node states in hidden_state_pool
+                # hidden_state_index_x_lst: the first index of leaf node states in hidden_state_pool, i.e. the search deepth index
+                # hidden_state_index_y_lst: the second index of leaf node states in hidden_state_pool, i.e. the batch root node index, max is env_num
                 # the hidden state of the leaf node is hidden_state_pool[x, y]; value prefix states are the same
-                # hidden_state_index_y_lst is env_num
                 hidden_state_index_x_lst, hidden_state_index_y_lst, last_actions, virtual_to_play = tree.batch_traverse(
                     roots, pb_c_base, pb_c_init, discount, min_max_stats_lst, results, virtual_to_play
                 )
-                # obtain the search horizon for leaf nodes
+                # obtain the search horizon for leaf nodes (not expanded)
                 # TODO(pu)
                 search_lens = results.search_lens
 
                 # obtain the states for leaf nodes
                 for ix, iy in zip(hidden_state_index_x_lst, hidden_state_index_y_lst):
-                    hidden_states.append(hidden_state_pool[ix][iy])
-                    hidden_states_c_reward.append(reward_hidden_state_c_pool[ix][0][iy])
-                    hidden_states_h_reward.append(reward_hidden_state_h_pool[ix][0][iy])
+                    hidden_states.append(hidden_state_pool[ix][iy])  # hidden_state_pool[ix][iy] shape (12,3,3)
+                    hidden_states_c_reward.append(reward_hidden_state_c_pool[ix][0][iy]) # reward_hidden_state_c_pool[ix][0][iy] shape (64,)
+                    hidden_states_h_reward.append(reward_hidden_state_h_pool[ix][0][iy]) # reward_hidden_state_h_pool[ix][0][iy] shape (64,)
 
                 hidden_states = torch.from_numpy(np.asarray(hidden_states)).to(device).float()
-                hidden_states_c_reward = torch.from_numpy(np.asarray(hidden_states_c_reward)).to(device).unsqueeze(0)
-                hidden_states_h_reward = torch.from_numpy(np.asarray(hidden_states_h_reward)).to(device).unsqueeze(0)
+                hidden_states_c_reward = torch.from_numpy(np.asarray(hidden_states_c_reward)).to(device).unsqueeze(0)  # shape (1,1, 64)
+                hidden_states_h_reward = torch.from_numpy(np.asarray(hidden_states_h_reward)).to(device).unsqueeze(0)  # shape (1,1, 64)
                 last_actions = torch.from_numpy(np.asarray(last_actions)).to(device).unsqueeze(1).long()
+
+                # MCTS stage 2:
+                # Expansion: At the final time-step l of the simulation, the reward and state are computed by the dynamics function
 
                 # evaluation for leaf nodes
                 network_output = model.recurrent_inference(
@@ -105,24 +109,26 @@ class EfficientZeroMCTSPtree(object):
 
                 # TODO(pu)
                 if not model.training:
+                    network_output.hidden_state = network_output.hidden_state.detach().cpu().numpy()
+                    network_output.reward_hidden_state = (
+                        network_output.reward_hidden_state[0].detach().cpu().numpy(),
+                        network_output.reward_hidden_state[1].detach().cpu().numpy()
+                    )
                     # if not in training, obtain the scalars of the value/reward
                     network_output.value = inverse_scalar_transform(network_output.value,
                                                                     self.config.support_size).detach().cpu().numpy()
                     network_output.value_prefix = inverse_scalar_transform(
                         network_output.value_prefix, self.config.support_size
                     ).detach().cpu().numpy()
-                    network_output.hidden_state = network_output.hidden_state.detach().cpu().numpy()
-                    network_output.reward_hidden_state = (
-                        network_output.reward_hidden_state[0].detach().cpu().numpy(),
-                        network_output.reward_hidden_state[1].detach().cpu().numpy()
-                    )
+
                     network_output.policy_logits = network_output.policy_logits.detach().cpu().numpy()
 
                 hidden_state_nodes = network_output.hidden_state
-                value_prefix_pool = network_output.value_prefix.reshape(-1).tolist()
-                value_pool = network_output.value.reshape(-1).tolist()
-                policy_logits_pool = network_output.policy_logits.tolist()
                 reward_hidden_state_nodes = network_output.reward_hidden_state
+
+                value_pool = network_output.value.reshape(-1).tolist()
+                value_prefix_pool = network_output.value_prefix.reshape(-1).tolist()
+                policy_logits_pool = network_output.policy_logits.tolist()
 
                 hidden_state_pool.append(hidden_state_nodes)
                 # reset 0
@@ -136,7 +142,12 @@ class EfficientZeroMCTSPtree(object):
 
                 reward_hidden_state_c_pool.append(reward_hidden_state_nodes[0])
                 reward_hidden_state_h_pool.append(reward_hidden_state_nodes[1])
+
+                # increase the index of leaf node
                 hidden_state_index_x += 1
+
+                # MCTS stage 3:
+                # Backup: At the end of the simulation, the statistics along the trajectory are updated.
 
                 # backpropagation along the search path to update the attributes
                 tree.batch_back_propagate(

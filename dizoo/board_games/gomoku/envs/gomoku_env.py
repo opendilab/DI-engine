@@ -123,7 +123,8 @@ class GomokuEnv(BaseGameEnv):
             self.board is nd-array, 0 indicates that no stones is placed here,
             1 indicates that player 1's stone is placed here, 2 indicates player 2's stone is placed here
         Arguments:
-            - raw_obs (:obj:`array`): the 0 dim means which positions is occupied by self.current_player,
+            - raw_obs (:obj:`array`):
+                the 0 dim means which positions is occupied by self.current_player,
                 the 1 dim indicates which positions are occupied by self.to_play,
                 the 2 dim indicates which player is the to_play player, 1 means player 1, 2 means player 2
         """

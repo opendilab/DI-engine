@@ -4,12 +4,13 @@ import sys
 sys.path.extend(['/Users/puyuan/code/DI-engine', '/Users/puyuan/code/EfficientZero'])
 
 one_episode_replay_buffer_img_ez = np.load(
-    'dizoo/board_games/atari/config/one_episode_replay_buffer_img_ez.npy', allow_pickle=True
+    '/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img_ez.npy', allow_pickle=True
 )
 
 one_episode_replay_buffer_img = np.load(
-    'dizoo/board_games/atari/config/one_episode_replay_buffer_img.npy', allow_pickle=True
+    '/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img.npy', allow_pickle=True
 )
+
 """
 Note: please refer to ding/rl_utils/mcts/game.py for details.
 
@@ -18,7 +19,7 @@ game_history element shape:
 
     obs: game_history_length + stack + num_unroll_steps, 20+4 +5
     action: game_history_length -> 20
-    reward: game_history_length + stack + num_unroll_steps + td_steps -1  20 +5+5-1
+    reward: game_history_length  + num_unroll_steps + td_steps -1  20 +5+5-1
     root_values:  game_history_length + num_unroll_steps + td_steps -> 20 +5+5
     child_visits： game_history_length + num_unroll_steps -> 20 +5
     to_play: game_history_length -> 20
@@ -65,7 +66,7 @@ for one_episode_game_histories in [one_episode_replay_buffer_img_ez, one_episode
     )
 
     print(one_episode_game_histories[0].obs_history.shape)
-    print(one_episode_game_histories[0].rewards.shape)
+    print(one_episode_game_histories[0].reward_history.shape)
 
     all_same = np.array(one_episode_game_histories[0].obs_history[0] == one_episode_game_histories[0].obs_history[0]
                         ).astype(int).sum()
@@ -74,7 +75,7 @@ for one_episode_game_histories in [one_episode_replay_buffer_img_ez, one_episode
     """
     for i in range(13):
         print(
-            np.array(one_episode_game_histories[0].rewards[16 + i] == one_episode_game_histories[1].rewards[i]
+            np.array(one_episode_game_histories[0].reward_history[16 + i] == one_episode_game_histories[1].reward_history[i]
                      ).astype(int)
         )
     """
