@@ -1,11 +1,14 @@
 import pytest
 import copy
 import gym
-import jax
-import jax.numpy as jnp
-from ding.agent.jax import NNState
-from ding.agent.jax import DQNNetwork, DQNAgent
-from ding.jax_utils import collate_fn_jax, to_raw
+try:
+    import jax
+    import jax.numpy as jnp
+    from ding.agent.jax import NNState
+    from ding.agent.jax import DQNNetwork, DQNAgent
+    from ding.jax_utils import collate_fn_jax, to_raw
+except ImportError:  # for compatibility with Windows
+    pass
 
 
 @pytest.mark.unittest

@@ -6,12 +6,12 @@ name: platform_test
 on: [push, pull_request]
 
 jobs:
-  test_unittest:
+  test_mac:
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest]
         python-version: [3.7, 3.8, 3.9]
 
     steps:
@@ -25,5 +25,27 @@ jobs:
         run: |
           python -m pip install .
           python -m pip install ".[test,k8s,jax]"
+          python -m pip uninstall pytest-timeouts -y
+          make platformtest
+
+  test_windows:
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: do_platform_test
+        timeout-minutes: 30
+        run: |
+          python -m pip install .
+          python -m pip install ".[test,k8s]"
           python -m pip uninstall pytest-timeouts -y
           make platformtest
