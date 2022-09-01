@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Callable
 import os
 import pickle
+import dataclasses
 from ding.framework import task
 if TYPE_CHECKING:
     from ding.framework import Context
@@ -16,7 +17,7 @@ def final_ctx_saver(name: str) -> Callable:
                     'train_iter': ctx.train_iter,
                     'eval_value': ctx.eval_value,
                 }
-                if 'env_step' in ctx:
+                if 'env_step' in dataclasses.asdict(ctx):
                     final_data['env_step'] = ctx.env_step
                     final_data['env_episode'] = ctx.env_episode
                 pickle.dump(final_data, f)

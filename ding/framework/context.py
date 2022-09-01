@@ -1,19 +1,18 @@
 import numpy as np
+import dataclasses
+from typing import Any
 
 
-class Context(dict):
+@dataclasses.dataclass
+class Context:
     """
     Overview:
         Context is an object that pass contextual data between middlewares, whose life cycle
         is only one training iteration. It is a dict that reflect itself, so you can set
         any properties as you wish.
     """
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.__dict__ = self
-        self._kept_keys = set()
-        self.total_step = 0
+    _kept_keys: set = dataclasses.field(default_factory=set)
+    total_step: int = 0
 
     def renew(self) -> 'Context':  # noqa
         """
@@ -23,8 +22,8 @@ class Context(dict):
         total_step = self.total_step
         ctx = type(self)()
         for key in self._kept_keys:
-            if key in self:
-                ctx[key] = self[key]
+            if key in dataclasses.asdict(self):
+                setattr(ctx, key, getattr(self, key))
         ctx.total_step = total_step + 1
         return ctx
 
@@ -37,41 +36,40 @@ class Context(dict):
             self._kept_keys.add(key)
 
 
+# TODO: Restrict data to specific types
+@dataclasses.dataclass
 class OnlineRLContext(Context):
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.__dict__ = self
-        # common
-        self.total_step = 0
-        self.env_step = 0
-        self.env_episode = 0
-        self.train_iter = 0
-        self.train_data = None
-        # collect
-        self.collect_kwargs = {}
-        self.trajectories = None
-        self.episodes = None
-        self.trajectory_end_idx = []
-        # eval
-        self.eval_value = -np.inf
-        self.last_eval_iter = -1
+    # common
+    total_step: int = 0
+    env_step: int = 0
+    env_episode: int = 0
+    train_iter: int = 0
+    train_data: Any = None
+    # collect
+    collect_kwargs: Any = dataclasses.field(default_factory=dict)
+    trajectories: Any = None
+    episodes: Any = None
+    trajectory_end_idx: Any = dataclasses.field(default_factory=list)
+    # eval
+    eval_value: float = -np.inf
+    last_eval_iter: int = -1
 
+    def __post_init__(self):
         self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')
 
 
+@dataclasses.dataclass
 class OfflineRLContext(Context):
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.__dict__ = self
-        # common
-        self.total_step = 0
-        self.train_epoch = 0
-        self.train_iter = 0
-        self.train_data = None
-        # eval
-        self.eval_value = -np.inf
-        self.last_eval_iter = -1
+    # common
+    total_step: int = 0
+    train_epoch: int = 0
+    train_iter: int = 0
+    train_data: Any = None
+    # eval
+    eval_value: float = -np.inf
+    last_eval_iter: int = -1
 
+    def __post_init__(self):
         self.keep('train_iter', 'last_eval_iter')
