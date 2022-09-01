@@ -18,20 +18,20 @@ class MAVAC(nn.Module):
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
     def __init__(
-            self,
-            agent_obs_shape: Union[int, SequenceType],
-            global_obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType],
-            agent_num: int,
-            actor_head_hidden_size: int = 256,
-            actor_head_layer_num: int = 2,
-            critic_head_hidden_size: int = 512,
-            critic_head_layer_num: int = 1,
-            action_space: str = 'discrete',
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            sigma_type: Optional[str] = 'independent',
-            bound_type: Optional[str] = None,
+        self,
+        agent_obs_shape: Union[int, SequenceType],
+        global_obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        agent_num: int,
+        actor_head_hidden_size: int = 256,
+        actor_head_layer_num: int = 2,
+        critic_head_hidden_size: int = 512,
+        critic_head_layer_num: int = 1,
+        action_space: str = 'discrete',
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        sigma_type: Optional[str] = 'independent',
+        bound_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:
@@ -97,7 +97,11 @@ class MAVAC(nn.Module):
             self.actor_head = nn.Sequential(
                 nn.Linear(agent_obs_shape, actor_head_hidden_size), activation,
                 DiscreteHead(
-                    actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+                    actor_head_hidden_size,
+                    action_shape,
+                    actor_head_layer_num,
+                    activation=activation,
+                    norm_type=norm_type
                 )
             )
         elif self.action_space == 'continuous':
