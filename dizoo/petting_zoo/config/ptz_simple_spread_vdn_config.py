@@ -55,7 +55,7 @@ ptz_simple_spread_vdn_config = EasyDict(ptz_simple_spread_vdn_config)
 main_config = ptz_simple_spread_vdn_config
 ptz_simple_spread_vdn_create_config = dict(
     env=dict(
-        import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
+        import_names=['dizoo.petting_zoo.envs.petting_zoo_simple_spread_env'],
         type='petting_zoo',
     ),
     env_manager=dict(type='subprocess'),

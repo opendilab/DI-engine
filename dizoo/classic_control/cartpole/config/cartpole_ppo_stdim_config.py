@@ -1,4 +1,3 @@
-
 from easydict import EasyDict
 
 collector_env_num = 8

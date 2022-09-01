@@ -14,7 +14,6 @@ import torch.nn.functional as F
 from dizoo.gfootball.model.bots.TamakEriFever.handyrl_core.model import BaseModel, Dense
 from dizoo.gfootball.model.bots.TamakEriFever.football.util import *
 
-
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseA as rulebaseA
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseB as rulebaseB
 # import dizoo.gfootball.model.TamakEriFever.football.rulebaseC as rulebaseC
@@ -216,6 +215,7 @@ class ResNetBasicBlock(ResNetResidualBlock):
 
 
 class FootballNet(BaseModel):
+
     class FootballEncoder(nn.Module):
 
         def __init__(self, filters):

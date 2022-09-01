@@ -1,1 +1,1 @@
-from dizoo.box2d.bipedalwalker.config import * 
+from dizoo.box2d.bipedalwalker.config import *

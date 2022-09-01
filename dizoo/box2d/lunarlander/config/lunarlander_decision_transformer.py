@@ -2,7 +2,6 @@ from easydict import EasyDict
 import torch
 from copy import deepcopy
 
-
 lunarlander_dt_config = dict(
     exp_name='data_dt/lunarlander_dt_1000eps_rtgt300_meel1000_seed0_debug',
     env=dict(
@@ -19,14 +18,14 @@ lunarlander_dt_config = dict(
         rtg_target=300,  # max target reward_to_go
         max_eval_ep_len=1000,  # max len of one episode  # TODO
         num_eval_ep=10,  # num of evaluation episodes
-        batch_size= 64, # training batch size
+        batch_size=64,  # training batch size
         wt_decay=1e-4,
         warmup_steps=10000,
         num_updates_per_iter=100,
         context_len=20,  # TODO
         n_blocks=3,
         embed_dim=128,
-        n_heads =1,
+        n_heads=1,
         dropout_p=0.1,
         log_dir='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_log_1000eps',
         model=dict(
@@ -35,7 +34,7 @@ lunarlander_dt_config = dict(
             n_blocks=3,
             h_dim=128,
             context_len=20,
-            n_heads =1,
+            n_heads=1,
             drop_p=0.1,
             continuous=False,  # TODO
         ),
@@ -48,9 +47,7 @@ lunarlander_dt_config = dict(
             kappa=1.0,
             min_q_weight=4.0,
         ),
-        collect=dict(
-            unroll_len=1,
-        ),
+        collect=dict(unroll_len=1, ),
         eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(
             eps=dict(
@@ -75,9 +72,7 @@ lunarlander_dt_create_config = dict(
 lunarlander_dt_create_config = EasyDict(lunarlander_dt_create_config)
 create_config = lunarlander_dt_create_config
 
-
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_dt, collect_demo_data, eval, serial_pipeline
     config = deepcopy([main_config, create_config])
     serial_pipeline_dt(config, seed=0, max_train_iter=1000)
-    

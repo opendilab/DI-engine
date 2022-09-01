@@ -4,7 +4,9 @@ import gym
 from gym.envs.mujoco.ant import AntEnv
 from gym.envs.mujoco.humanoid import HumanoidEnv
 
+
 def gym_env_register(id, max_episode_steps=1000):
+
     def register(gym_env):
         spec = {
             'id': id,
@@ -13,6 +15,7 @@ def gym_env_register(id, max_episode_steps=1000):
         }
         gym.register(**spec)
         return gym_env
+
     return register
 
 
@@ -26,12 +29,16 @@ class AntTruncatedObsEnv(AntEnv):
         Otherwise identical to Ant-v2 from\
         <https://github.com/openai/gym/blob/master/gym/envs/mujoco/ant.py>.
     """
+
     def _get_obs(self):
-        return np.concatenate([
-            self.sim.data.qpos.flat[2:],
-            self.sim.data.qvel.flat,
-            # np.clip(self.sim.data.cfrc_ext, -1, 1).flat,
-        ])
+        return np.concatenate(
+            [
+                self.sim.data.qpos.flat[2:],
+                self.sim.data.qvel.flat,
+                # np.clip(self.sim.data.cfrc_ext, -1, 1).flat,
+            ]
+        )
+
 
 @gym_env_register('HumanoidTruncatedObs-v2')
 class HumanoidTruncatedObsEnv(HumanoidEnv):
@@ -44,12 +51,16 @@ class HumanoidTruncatedObsEnv(HumanoidEnv):
         Otherwise identical to Humanoid-v2 from\
         <https://github.com/openai/gym/blob/master/gym/envs/mujoco/humanoid.py>.
     """
+
     def _get_obs(self):
         data = self.sim.data
-        return np.concatenate([data.qpos.flat[2:],
-                               data.qvel.flat,
-                               # data.cinert.flat,
-                               # data.cvel.flat,
-                               # data.qfrc_actuator.flat,
-                               # data.cfrc_ext.flat
-                               ])
+        return np.concatenate(
+            [
+                data.qpos.flat[2:],
+                data.qvel.flat,
+                # data.cinert.flat,
+                # data.cvel.flat,
+                # data.qfrc_actuator.flat,
+                # data.cfrc_ext.flat
+            ]
+        )

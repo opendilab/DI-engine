@@ -31,14 +31,11 @@ lunarlander_dqn_config = dict(
             # NOTE
             learner=dict(
                 train_iterations=1000000000,
-                dataloader=dict(
-                    num_workers=0,
-                ),
+                dataloader=dict(num_workers=0, ),
                 log_policy=True,
                 hook=dict(
                     # load_ckpt_before_run='./lunarlander/ckpt/ckpt_best.pth.tar',
                     load_ckpt_before_run='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
-
                     log_show_after_iter=100,
                     save_ckpt_after_iter=10000,
                     save_ckpt_after_run=False,
@@ -63,7 +60,7 @@ lunarlander_dqn_config = dict(
             # NOTE
             # save
             # data_type='hdf5',
-            data_type='naive', 
+            data_type='naive',
             save_path='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/data/dqn_data_1000eps.pkl',  # TODO(pu)
             # load
             data_path='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/data/dqn_data_10eps.pkl',  # TODO(pu)
@@ -78,7 +75,7 @@ lunarlander_dqn_config = dict(
                 end=0.1,
                 decay=50000,
             ),
-            # NOTE 
+            # NOTE
             replay_buffer=dict(
                 type='advanced',
                 # replay_buffer_size=100000,
@@ -103,9 +100,7 @@ lunarlander_dqn_config = dict(
                         average_range=5,
                         print_freq=200,
                     ),
-                    periodic_thruput=dict(
-                        seconds=60,
-                    ),
+                    periodic_thruput=dict(seconds=60, ),
                 ),
                 cfg_type='AdvancedReplayBufferDict',
             ),
@@ -126,4 +121,3 @@ lunarlander_dqn_create_config = dict(
 )
 lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
 create_config = lunarlander_dqn_create_config
-

@@ -27,7 +27,6 @@ gfootball_bc_config.exp_name = 'gfootball_bc_rule_seed0_100eps_epc1000_bs512'
 demo_transitions = int(3e5)  # key hyper-parameter
 
 data_path_transitions = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
-
 """
 phase 1: collect demo data utilizing rule model
 """
@@ -39,8 +38,7 @@ else:
 cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
 football_rule_base_model = FootballRuleBaseModel()
-expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
-                              enable_field=['learn', 'collect', 'eval'])
+expert_policy = create_policy(cfg.policy, model=football_rule_base_model, enable_field=['learn', 'collect', 'eval'])
 
 # collect rule/expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
@@ -55,10 +53,13 @@ collect_config = [deepcopy(gfootball_bc_config), deepcopy(gfootball_bc_create_co
 
 # collect demo data
 collect_demo_data(
-    collect_config, seed=seed, expert_data_path=data_path_transitions, collect_count=demo_transitions,
-    model=football_rule_base_model, state_dict=state_dict,
+    collect_config,
+    seed=seed,
+    expert_data_path=data_path_transitions,
+    collect_count=demo_transitions,
+    model=football_rule_base_model,
+    state_dict=state_dict,
 )
-
 """
 phase 2: BC training
 """
@@ -66,8 +67,9 @@ bc_config = [deepcopy(gfootball_bc_config), deepcopy(gfootball_bc_create_config)
 bc_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
 football_naive_q = FootballNaiveQ()
 
-_, converge_stop_flag = serial_pipeline_bc(bc_config, seed=seed, data_path=data_path_transitions,
-                                           model=football_naive_q)
+_, converge_stop_flag = serial_pipeline_bc(
+    bc_config, seed=seed, data_path=data_path_transitions, model=football_naive_q
+)
 
 if bc_config[0].policy.show_train_test_accuracy:
     """

@@ -42,7 +42,6 @@ montezuma_ppo_rnd_config = dict(
         # means the rescale value for the last non-zero reward, only used when last_nonzero_reward_rescale is True
         # please refer to ngu_reward_model for details.
         last_nonzero_reward_weight=1,
-
         intrinsic_reward_type='add',
         learning_rate=0.001,
         obs_shape=[4, 84, 84],
