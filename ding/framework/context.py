@@ -22,7 +22,7 @@ class Context:
         total_step = self.total_step
         ctx = type(self)()
         for key in self._kept_keys:
-            if key in dataclasses.asdict(self):
+            if self.has_attr(key):
                 setattr(ctx, key, getattr(self, key))
         ctx.total_step = total_step + 1
         return ctx
@@ -34,6 +34,9 @@ class Context:
         """
         for key in keys:
             self._kept_keys.add(key)
+
+    def has_attr(self, key):
+        return hasattr(self, key)
 
 
 # TODO: Restrict data to specific types

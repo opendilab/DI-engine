@@ -17,7 +17,7 @@ def final_ctx_saver(name: str) -> Callable:
                     'train_iter': ctx.train_iter,
                     'eval_value': ctx.eval_value,
                 }
-                if 'env_step' in dataclasses.asdict(ctx):
+                if ctx.has_attr('env_step'):
                     final_data['env_step'] = ctx.env_step
                     final_data['env_episode'] = ctx.env_episode
                 pickle.dump(final_data, f)
