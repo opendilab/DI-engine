@@ -1,9 +1,8 @@
 import pytest
 import pickle
 import numpy as np
-from ding.framework import Context
+from ding.framework import Context, OnlineRLContext, OfflineRLContext
 from dataclasses import dataclass
-from ding.framework import OnlineRLContext, OfflineRLContext
 
 
 @dataclass
