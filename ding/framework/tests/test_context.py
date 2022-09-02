@@ -63,5 +63,3 @@ if __name__ == "__main__":
     test_pickable()
     test_online()
     test_offline()
-
-# TODO: evaluator Offline Context 有个 ctx.env_step 是本不应该有的
