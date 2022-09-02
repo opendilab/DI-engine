@@ -54,7 +54,3 @@ def fake_offline_rl_context():
         last_eval_iter=random.randint(0, 100),
     )
     return ctx
-
-
-if __name__ == "__main__":
-    print(fake_online_rl_context())

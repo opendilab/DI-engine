@@ -57,9 +57,3 @@ def test_offline():
     _ctx = ctx.renew()
     assert _ctx.train_iter == 1
     assert _ctx.eval_value == -np.inf
-
-
-if __name__ == "__main__":
-    test_pickable()
-    test_online()
-    test_offline()
