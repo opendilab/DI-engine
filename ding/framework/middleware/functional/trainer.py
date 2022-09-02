@@ -3,10 +3,10 @@ from easydict import EasyDict
 from ditk import logging
 import numpy as np
 from ding.policy import Policy
-from ding.framework import task
+from ding.framework import task, OfflineRLContext
 
 if TYPE_CHECKING:
-    from ding.framework import OnlineRLContext, OfflineRLContext
+    from ding.framework import OnlineRLContext
 
 
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:
