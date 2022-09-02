@@ -11,8 +11,7 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 
-# from gym_pybullet_drones.utils.Logger import Logger
-# from gym_pybullet_drones.envs.single_agent_rl.TakeoffAviary import TakeoffAviary
+from gym_pybullet_drones.utils.Logger import Logger
 # from gym_pybullet_drones.utils.utils import sync, str2bool
 
 
@@ -59,6 +58,7 @@ class GymPybulletDronesEnv(BaseEnv):
                 'act': ActionType.RPM
             }
         else:
+            #TODO for multi drones envs
             self.env_kwargs = {
                 'drone_model': DroneModel.CF2X,
                 'num_drones': 2,
@@ -83,6 +83,16 @@ class GymPybulletDronesEnv(BaseEnv):
         else:
             self.print_debug_info = False
 
+        if "output_folder" in cfg:
+            self.output_folder = cfg["output_folder"]
+        else:
+            self.output_folder = "./results"
+
+        if "plot_observation" in cfg:
+            self.plot_observation = cfg["plot_observation"]
+        else:
+            self.plot_observation = False
+
         self._cfg = cfg
         self._env_id = cfg.env_id
         self._init_flag = False
@@ -92,24 +102,19 @@ class GymPybulletDronesEnv(BaseEnv):
         self._action_space = gym_pybullet_drones_env_info[cfg.env_id]["action_space"]
         self._reward_space = gym_pybullet_drones_env_info[cfg.env_id]["reward_space"]
 
+        self.env_step_count = 0
+
     def reset(self) -> np.ndarray:
         if not self._init_flag:
 
             self._env = gym.make(self._env_id, **self.env_kwargs)
-            #self._env = gym.make(self._env_id)
 
-            if self._replay_path is not None:
-                if gym.version.VERSION > '0.22.0':
-                    self._env.metadata.update({'render_modes': ["rgb_array"]})
-                else:
-                    self._env.metadata.update({'render.modes': ["rgb_array"]})
-                self._env = gym.wrappers.RecordVideo(
-                    self._env,
-                    video_folder=self._replay_path,
-                    episode_trigger=lambda episode_id: True,
-                    name_prefix='rl-video-{}'.format(id(self))
+            if self.plot_observation:
+                self.observation_logger = Logger(
+                    logging_freq_hz=int(self._env.SIM_FREQ / self._env.AGGR_PHY_STEPS),
+                    num_drones=1,
+                    output_folder=self.output_folder
                 )
-                self._env.start_video_recorder()
 
             self._init_flag = True
 
@@ -122,6 +127,19 @@ class GymPybulletDronesEnv(BaseEnv):
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
+        self.env_step_count = 0
+        if self.plot_observation:
+            self.observation_logger.log(
+                drone=0,
+                timestamp=self.env_step_count / self._env.SIM_FREQ,
+                state=np.hstack([obs[0:3], np.zeros(4), obs[3:15],
+                                 np.resize(np.zeros(4), (4))]),
+                control=np.zeros(12)
+            )
+        if self.print_debug_info:
+            if self.env_step_count % self._env.SIM_FREQ == 0:
+                self._env.render()
+        self.env_step_count += 1
 
         return obs
 
@@ -138,11 +156,24 @@ class GymPybulletDronesEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         action = action.astype('float32')
         obs, rew, done, info = self._env.step(action)
+        if self.plot_observation:
+            self.observation_logger.log(
+                drone=0,
+                timestamp=self.env_step_count / self._env.SIM_FREQ,
+                state=np.hstack([obs[0:3], np.zeros(4), obs[3:15],
+                                 np.resize(action, (4))]),
+                control=np.zeros(12)
+            )
+
         if self.print_debug_info:
-            self._env.render()
+            if self.env_step_count % self._env.SIM_FREQ == 0:
+                self._env.render()
+        self.env_step_count += 1
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
+            if self.print_debug_info:
+                self.plot_observation_curve()
 
         obs = to_ndarray(obs).astype(np.float32)
 
@@ -178,3 +209,7 @@ class GymPybulletDronesEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "DI-engine gym_pybullet_drones Env: " + self._cfg["env_id"]
+
+    def plot_observation_curve(self) -> None:
+        if self.plot_observation:
+            self.observation_logger.plot()

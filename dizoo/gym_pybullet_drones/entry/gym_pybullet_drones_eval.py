@@ -33,6 +33,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     cfg.env['record'] = True
     cfg.env['gui'] = True
+    cfg.env['print_debug_info'] = True
+    cfg.env['plot_observation'] = True
 
     evaluator_env = BaseEnvManager(
         env_fn=[lambda: GymPybulletDronesEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
