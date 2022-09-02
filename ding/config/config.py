@@ -460,7 +460,7 @@ def compile_config(
             os.mkdir(cfg.exp_name)
         except FileExistsError:
             pass
-        save_project_state(cfg.exp_name)
+        # save_project_state(cfg.exp_name)
         save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
     return cfg

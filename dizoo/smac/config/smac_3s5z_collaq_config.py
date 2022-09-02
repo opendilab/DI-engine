@@ -5,8 +5,8 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='smac_3s5z_collaq_seed0',
     env=dict(
-        exp_name='smac_3s5z_collaq_seed0',
         map_name='3s5z',
         difficulty=7,
         reward_only_positive=True,
@@ -23,6 +23,10 @@ main_config = dict(
         ),
     ),
     policy=dict(
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=True,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=True,
         model=dict(
             agent_num=agent_num,
             obs_shape=150,
