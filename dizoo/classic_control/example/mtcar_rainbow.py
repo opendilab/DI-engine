@@ -11,21 +11,20 @@ from ding.framework.middleware import OffPolicyLearner, StepCollector, interacti
 
 
 def main():
-
     """
     This is an example of the Rainbow algorithm implemented on the Mountain Car (discrete action space) environment.
     """
 
     # Config
-    # Why compile_config? : 
+    # Why compile_config? :
     cfg = compile_config(mtcar_rainbow_config, create_cfg=mtcar_rainbow_create_config, auto=True)
 
     # Environment
     # Get number of collector & evaluator env
-    coll_env_num, eval_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num    
+    coll_env_num, eval_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
     # Instantiate collector and evaluator environment
-    coll_env = BaseEnvManagerV2(env_fn=[ lambda: MountainCarEnv() for _ in range(coll_env_num)], cfg=cfg.env.manager)
-    eval_env = BaseEnvManagerV2(env_fn=[ lambda: MountainCarEnv() for _ in range(eval_env_num)], cfg=cfg.env.manager)
+    coll_env = BaseEnvManagerV2(env_fn=[lambda: MountainCarEnv() for _ in range(coll_env_num)], cfg=cfg.env.manager)
+    eval_env = BaseEnvManagerV2(env_fn=[lambda: MountainCarEnv() for _ in range(eval_env_num)], cfg=cfg.env.manager)
 
     # Policy
     model = RainbowDQN(**cfg.policy.model)
@@ -45,11 +44,12 @@ def main():
         # Train the model
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         # Save the model
-        task.use(CkptSaver(cfg, policy, train_freq=100))  
+        task.use(CkptSaver(cfg, policy, train_freq=100))
         # In the evaluation process, if the model is found to have exceeded the convergence value, it will end early here
         task.run()
 
     return
+
 
 if __name__ == '__main__':
     main()
