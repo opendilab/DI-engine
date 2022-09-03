@@ -15,6 +15,7 @@ from ding.utils import ENV_REGISTRY
 
 @ENV_REGISTRY.register('Chess')
 class ChessEnv(BaseGameEnv):
+
     def __init__(self, cfg=None):
         self.cfg = cfg
         self.current_player_index = 0
@@ -28,10 +29,15 @@ class ChessEnv(BaseGameEnv):
         self._agent_selector = agent_selector(self.agents)
 
         self._action_spaces = {name: spaces.Discrete(8 * 8 * 73) for name in self.agents}
-        self._observation_spaces = {name: spaces.Dict({
-            'observation': spaces.Box(low=0, high=1, shape=(8, 8, 111), dtype=bool),
-            'action_mask': spaces.Box(low=0, high=1, shape=(4672,), dtype=np.int8)
-        }) for name in self.agents}
+        self._observation_spaces = {
+            name: spaces.Dict(
+                {
+                    'observation': spaces.Box(low=0, high=1, shape=(8, 8, 111), dtype=bool),
+                    'action_mask': spaces.Box(low=0, high=1, shape=(4672, ), dtype=np.int8)
+                }
+            )
+            for name in self.agents
+        }
 
         self.rewards = None
         self.dones = None
@@ -156,11 +162,7 @@ class ChessEnv(BaseGameEnv):
         while True:
             try:
                 print(f"Current available actions for the player {self.to_play()} are:{self.legal_moves()}")
-                choice = int(
-                    input(
-                        f"Enter the index of next move for the player {self.to_play()}: "
-                    )
-                )
+                choice = int(input(f"Enter the index of next move for the player {self.to_play()}: "))
                 if choice in self.legal_moves():
                     break
             except KeyboardInterrupt:

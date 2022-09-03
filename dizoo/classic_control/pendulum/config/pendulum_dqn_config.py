@@ -18,7 +18,7 @@ pendulum_dqn_config = dict(
         load_path='pendulum_dqn_seed0/ckpt/ckpt_best.pth.tar',  # necessary for eval
         model=dict(
             obs_shape=3,
-            action_shape=11,    # mean the action shape is 11, 11 discrete actions
+            action_shape=11,  # mean the action shape is 11, 11 discrete actions
             encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
@@ -50,10 +50,7 @@ pendulum_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
-    replay_buffer=dict(
-        type='deque',
-        import_names=['ding.data.buffer.deque_buffer_wrapper']
-    ),
+    replay_buffer=dict(type='deque', import_names=['ding.data.buffer.deque_buffer_wrapper']),
 )
 pendulum_dqn_create_config = EasyDict(pendulum_dqn_create_config)
 create_config = pendulum_dqn_create_config

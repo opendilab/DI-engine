@@ -12,7 +12,6 @@ from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgOb
 from gym_minigrid.window import Window
 from ding.envs import ObsPlusPrevActRewWrapper
 
-
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
@@ -64,7 +63,7 @@ class MiniGridEnv(BaseEnv):
             self._observation_space.dtype = np.dtype('float32')
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
         )
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -92,7 +91,7 @@ class MiniGridEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1,):
+        if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))

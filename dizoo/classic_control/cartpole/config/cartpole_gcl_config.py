@@ -46,11 +46,7 @@ cartpole_gcl_ppo_onpolicy_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
-        eval=dict(
-            evaluator=dict(
-                eval_freq=50,
-            ),
-        ),
+        eval=dict(evaluator=dict(eval_freq=50, ), ),
     ),
 )
 cartpole_gcl_ppo_onpolicy_config = EasyDict(cartpole_gcl_ppo_onpolicy_config)

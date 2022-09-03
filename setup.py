@@ -53,7 +53,7 @@ setup(
         'numpy>=1.18.0',
         'requests>=2.25.1',
         'six',
-        'gym>=0.25.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gym>=0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
@@ -63,10 +63,11 @@ setup(
         'seaborn',
         'yapf==0.29.0',
         'responses~=0.12.1',
-        'MarkupSafe==2.0.1', 
-        'jinja2<3.1.0', 
+        'MarkupSafe==2.0.1',
+        'jinja2<3.1.0',
         'flask~=1.1.2',
         'lz4',
+        'scipy',
         'cloudpickle',
         'tabulate',
         'sortedcontainers',
@@ -75,10 +76,8 @@ setup(
         'urllib3>=1.26.5',
         'readerwriterlock',
         'enum_tools',
-        'scipy',
         'trueskill',
         'h5py',
-        'rich',
         'mpire>=2.3.5',
         'pynng',
         'pettingzoo==1.12.0',
@@ -88,7 +87,6 @@ setup(
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'moviepy',
-        'hbutils',
     ],
     extras_require={
         'test': [
@@ -116,7 +114,7 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py',  #>=0.7.5',  # atari
+            'ale-py',  # >=0.7.5',  # atari
             'autorom',
             'gym[all]>=0.25.0'
             'cmake>=3.18.4',
@@ -165,6 +163,9 @@ setup(
         ],
         # 'dmc2gym': [
         #    'dmc2gym @ git+https://github.com/denisyarats/dmc2gym@master#egg=dmc2gym',
+        # ],
+        # 'rocket_recycling': [
+        #    'rocket_recycling @ git+https://github.com/nighood/rocket-recycling@master#egg=rocket_recycling',
         # ],
         'sokoban': [
             'gym-sokoban',

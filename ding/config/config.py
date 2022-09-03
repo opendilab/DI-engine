@@ -6,6 +6,8 @@ import shutil
 import sys
 import time
 import tempfile
+import subprocess
+import datetime
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
 from easydict import EasyDict
@@ -308,6 +310,20 @@ env_config_template = dict(manager=dict(), )
 env_config_template = EasyDict(env_config_template)
 
 
+def save_project_state(exp_name: str) -> None:
+
+    def _fn(cmd: str):
+        return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.strip().decode("utf-8")
+
+    short_sha = _fn("git describe --always")
+    log = _fn("git log --stat -n 5")
+    diff = _fn("git diff")
+    with open(os.path.join(exp_name, "git_log.txt"), "w") as f:
+        f.write(short_sha + '\n\n' + log)
+    with open(os.path.join(exp_name, "git_diff.txt"), "w") as f:
+        f.write(diff)
+
+
 def compile_config(
         cfg: EasyDict,
         env_manager: type = None,
@@ -442,11 +458,13 @@ def compile_config(
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:
-        if not os.path.exists(cfg.exp_name):
-            try:
-                os.mkdir(cfg.exp_name)
-            except FileExistsError:
-                pass
+        if os.path.exists(cfg.exp_name):
+            cfg.exp_name += datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
+        try:
+            os.mkdir(cfg.exp_name)
+        except FileExistsError:
+            pass
+        save_project_state(cfg.exp_name)
         save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
     return cfg

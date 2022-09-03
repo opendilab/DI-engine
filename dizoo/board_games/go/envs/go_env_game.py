@@ -27,6 +27,7 @@ def get_image(path):
 
 @ENV_REGISTRY.register('Go')
 class GoEnv(BaseGameEnv):
+
     def __init__(self, board_size: int = 19, komi: float = 7.5):
         # board_size: a int, representing the board size (board has a board_size x board_size shape)
         # komi: a float, representing points given to the second player.
@@ -42,13 +43,19 @@ class GoEnv(BaseGameEnv):
         self.screen = None
 
         self._observation_space = self._convert_to_dict(
-            [spaces.Dict({'observation': spaces.Box(low=0, high=1, shape=(self._N, self._N, 17), dtype=bool),
-                          'action_mask': spaces.Box(low=0, high=1, shape=((self._N * self._N) + 1,),
-                                                    dtype=np.int8)})
-             for _ in range(self.num_agents)])
+            [
+                spaces.Dict(
+                    {
+                        'observation': spaces.Box(low=0, high=1, shape=(self._N, self._N, 17), dtype=bool),
+                        'action_mask': spaces.Box(low=0, high=1, shape=((self._N * self._N) + 1, ), dtype=np.int8)
+                    }
+                ) for _ in range(self.num_agents)
+            ]
+        )
 
         self._action_space = self._convert_to_dict(
-            [spaces.Discrete(self._N * self._N + 1) for _ in range(self.num_agents)])
+            [spaces.Discrete(self._N * self._N + 1) for _ in range(self.num_agents)]
+        )
 
         self._agent_selector = agent_selector(self.agents)
 
@@ -59,11 +66,14 @@ class GoEnv(BaseGameEnv):
         go.N = self._N
         go.ALL_COORDS = [(i, j) for i in range(self._N) for j in range(self._N)]
         go.EMPTY_BOARD = np.zeros([self._N, self._N], dtype=np.int8)
-        go.NEIGHBORS = {(x, y): list(filter(self._check_bounds, [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])) for
-                        x, y in go.ALL_COORDS}
+        go.NEIGHBORS = {
+            (x, y): list(filter(self._check_bounds, [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]))
+            for x, y in go.ALL_COORDS
+        }
         go.DIAGONALS = {
             (x, y): list(filter(self._check_bounds, [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]))
-            for x, y in go.ALL_COORDS}
+            for x, y in go.ALL_COORDS
+        }
         return
 
     def _check_bounds(self, c):
@@ -212,11 +222,7 @@ class GoEnv(BaseGameEnv):
         while True:
             try:
                 print(f"Current available actions for the player {self.to_play()} are:{self.legal_moves()}")
-                choice = int(
-                    input(
-                        f"Enter the index of next move for the player {self.to_play()}: "
-                    )
-                )
+                choice = int(input(f"Enter the index of next move for the player {self.to_play()}: "))
                 if choice in self.legal_moves():
                     break
             except KeyboardInterrupt:
