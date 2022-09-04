@@ -48,11 +48,17 @@ def serial_pipeline_offline(
     # Dataset
     dataset = create_dataset(cfg)
     sampler, shuffle = None, True
-    if cfg.policy.learn.multi_gpu:
+    if get_world_size() > 1:
         sampler, shuffle = DistributedSampler(dataset), False
     dataloader = DataLoader(
         dataset,
+        # Dividing by get_world_size() here simply to make multigpu
+        # settings mathmatically equivalent to the singlegpu setting.
+        # If the training efficiency is the bottleneck, feel free to
+        # use the original batch size per gpu and increase learning rate
+        # correspondingly.
         cfg.policy.learn.batch_size // get_world_size(),
+        # cfg.policy.learn.batch_size
         shuffle=shuffle,
         sampler=sampler,
         collate_fn=lambda x: x,
@@ -75,8 +81,11 @@ def serial_pipeline_offline(
         # useful for setting action bounds for ibc
         policy.set_statistic(dataset.statistics)
 
-    # Main components
-    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    # Otherwise, directory may conflicts in the multigpu settings.
+    if get_rank() == 0:
+        tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    else:
+        tb_logger = None
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -89,13 +98,13 @@ def serial_pipeline_offline(
     stop = False
 
     for epoch in tqdm(range(cfg.policy.learn.train_epoch)):
-        if cfg.policy.learn.multi_gpu:
+        if get_world_size() > 1:
             dataloader.sampler.set_epoch(epoch)
         for train_data in tqdm(dataloader):
             learner.train(train_data)
 
         # Evaluate policy at most once per epoch.
-        if get_rank() == 0 and evaluator.should_eval(learner.train_iter):
+        if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
 
         if stop or learner.train_iter >= max_train_iter:

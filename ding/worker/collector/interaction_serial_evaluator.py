@@ -2,10 +2,12 @@ from typing import Optional, Callable, Tuple
 from collections import namedtuple
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
+from ding.utils import get_world_size, get_rank
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 
 
@@ -49,15 +51,24 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         self._cfg = cfg
         self._exp_name = exp_name
         self._instance_name = instance_name
-        if tb_logger is not None:
-            self._logger, _ = build_logger(
-                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
-            )
-            self._tb_logger = tb_logger
+
+        # Logger (Monitor will be initialized in policy setter)
+        # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
+        if get_rank() == 0:
+            if tb_logger is not None:
+                self._logger, _ = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
+                )
+                self._tb_logger = tb_logger
+            else:
+                self._logger, self._tb_logger = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name
+                )
         else:
-            self._logger, self._tb_logger = build_logger(
-                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+            self._logger, _ = build_logger(
+                './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
             )
+            self._tb_logger = None
         self.reset(policy, env)
 
         self._timer = EasyTimer()
@@ -134,8 +145,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             return
         self._end_flag = True
         self._env.close()
-        self._tb_logger.flush()
-        self._tb_logger.close()
+        if self._tb_logger:
+            self._tb_logger.flush()
+            self._tb_logger.close()
 
     def __del__(self):
         """
@@ -187,6 +199,17 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
             - return_info (:obj:`dict`): Current evaluation return information.
         '''
+        # multigpu case
+        if get_world_size() > 1:
+            # sum up envstep to rank0
+            envstep_tensor = torch.tensor(envstep).cuda()
+            dist.reduce(envstep_tensor, dst=0)
+            if dist.get_rank() != 0:
+                # blocking untill the rank0 evaluator finishes
+                stop_flag_tensor = torch.tensor(False).cuda()
+                dist.broadcast(stop_flag_tensor, src=0)
+                return stop_flag_tensor.item(), []
+
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
@@ -282,4 +305,10 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
+
+        if get_world_size() > 1 and get_rank() == 0:
+            # broadcast the stop_flag to other ranks
+            stop_flag_tensor = torch.tensor(stop_flag).cuda()
+            dist.broadcast(stop_flag_tensor, src=0)
+
         return stop_flag, return_info

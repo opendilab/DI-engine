@@ -18,8 +18,6 @@ def train(args):
     if not config[0].policy.learn.multi_gpu:
         serial_pipeline_offline(config, seed=args.seed)
     else:
-        # TODO: use context manager or `torch.distributed.launch` to 
-        # TODO: launch multiprocessing outside of this script.
         os.environ["MASTER_ADDR"] = "localhost"
         os.environ["MASTER_PORT"] = "29600"
         mp.spawn(offline_worker, nprocs=torch.cuda.device_count(), args=(config, args))
