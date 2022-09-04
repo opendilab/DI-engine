@@ -300,7 +300,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 self._logger.info(
                     "[DI-engine serial pipeline] " +
                     "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
-                    ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
+                    ", so your RL agent is converged, you can refer to " +
+                    "'log/evaluator/evaluator_logger.txt' for details."
                 )
 
         if get_world_size() > 1:
