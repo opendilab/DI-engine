@@ -276,13 +276,13 @@ def cli(
             else:
                 multi_exp_root = exp_name
             if not os.path.exists(multi_exp_root):
-                os.mkdir(multi_exp_root)
+                os.makedirs(multi_exp_root)
             abs_config_path = os.path.abspath(config)
             origin_root = os.getcwd()
             for s in seed:
                 seed_exp_root = os.path.join(multi_exp_root, 'seed{}'.format(s))
                 if not os.path.exists(seed_exp_root):
-                    os.mkdir(seed_exp_root)
+                    os.makedirs(seed_exp_root)
                 os.chdir(seed_exp_root)
                 run_single_pipeline(s, abs_config_path)
                 os.chdir(origin_root)
