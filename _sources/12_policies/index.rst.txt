@@ -96,3 +96,9 @@ All pages relative to our algorithms are grouped by category and follow the stru
 
     mbpo
     vpn
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Generalization
+
+    plr

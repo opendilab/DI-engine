@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>RL Env Examples &mdash; DI-engine 0.1.0 documentation</title>
+  <title>PLR &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="Atari" href="atari.html" />
-  <link rel="prev" title="PLR" href="../12_policies/plr.html" />
+  <link rel="next" title="RL Env Examples" href="../13_envs/index.html" />
+  <link rel="prev" title="VPN" href="vpn.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -198,8 +198,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">RL Env Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
 <ul>
@@ -246,13 +246,15 @@
       </li>
 
         
-      <li>RL Env Examples</li>
+          <li><a href="index.html">RL Algorithms Cheat Sheet</a> &gt;</li>
+        
+      <li>PLR</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/13_envs/index.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/12_policies/plr.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -276,41 +278,87 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="rl-env-examples">
-<h1>RL Env Examples<a class="headerlink" href="#rl-env-examples" title="Permalink to this headline">¶</a></h1>
-<p>The following environments are those implemented in DI-engine(You can find more environments in Chinese version. English version has only a few environments). Each environment will be introduced from the following aspects: (Some aspects may be missing in some environments)</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Overview</p></li>
-<li><p>Installation</p></li>
-<li><p>Space before transformation (Original environment)</p></li>
-<li><p>Key Facts</p></li>
-<li><p>Space after transformation (RL environment)</p></li>
-<li><p>Other</p></li>
-<li><p>DI-zoo runnable code example DI-zoo code example</p></li>
-<li><p>Benchmark algorithm performance Algorithm Benchmark</p></li>
-<li><p>References</p></li>
-</ul>
-</div></blockquote>
-<p>Environments:</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="atari.html">Atari</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mujoco.html">Mujoco</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cartpole.html">Cartpole</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pendulum.html">Pendulum</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lunarlander.html">LunarLander</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipedalwalker.html">BipedalWalker</a></li>
-<li class="toctree-l1"><a class="reference internal" href="minigrid.html">MiniGrid</a></li>
-<li class="toctree-l1"><a class="reference internal" href="slime_volleyball.html">Slime Volleyball</a></li>
-<li class="toctree-l1"><a class="reference internal" href="procgen.html">Procgen</a></li>
-<li class="toctree-l1"><a class="reference internal" href="smac.html">SMAC</a></li>
-<li class="toctree-l1"><a class="reference internal" href="overcooked.html">Overcooked</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bsuite.html">Bsuite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gym_hybrid.html">gym hybrid</a></li>
-</ul>
+  <section id="plr">
+<h1>PLR<a class="headerlink" href="#plr" title="Permalink to this headline">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>PLR was proposed in <a class="reference external" href="https://arxiv.org/abs/2010.03934">Prioritized Level Replay</a>.  PLR is a method for sampling training levels that exploits the differences in learning potential among levels to improve both sample efficiency and generalization.</p>
+</section>
+<section id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>PLR supports the <strong>multi-level environments</strong>.</p></li>
+<li><p>PLR updates <strong>policy</strong> and <strong>level score</strong> at the same time.</p></li>
+<li><p>In the implementation of DI-engine, PLR is combined with <strong>PPG</strong> algorithm.</p></li>
+<li><p>PLR supports <strong>Policy entropy</strong>, <strong>Policy min-margin</strong>, <strong>Policy least-confidence</strong>, <strong>1-step TD error</strong> and <strong>GAE</strong> score function.</p></li>
+</ol>
+</section>
+<section id="key-graphs">
+<h2>Key Graphs<a class="headerlink" href="#key-graphs" title="Permalink to this headline">¶</a></h2>
+<p>Game levels are determined by a random seed and can vary in navigational layout, visual appearance, and starting positions of entities.
+PLR selectively samples the next training level based on an estimated learning potential of replaying each level anew. The next level is either sampled from a distribution with support over unseen levels (top), which could be the environment’s (perhaps implicit) full training-level distribution, or alternatively, sampled from the replay distribution, which prioritizes levels based on future learning potential (bottom).</p>
+<a class="reference internal image-reference" href="../_images/PLR_pic.png"><img alt="../_images/PLR_pic.png" class="align-center" src="../_images/PLR_pic.png" style="height: 250px;" /></a>
+</section>
+<section id="key-equations">
+<h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
+<p>The Scoring Levels for Learning Potential is:</p>
+<a class="reference internal image-reference" href="../_images/PLR_Score.png"><img alt="../_images/PLR_Score.png" class="align-center" src="../_images/PLR_Score.png" style="height: 250px;" /></a>
+<p>Given level scores, we use normalized outputs of a prioritization function <span class="math notranslate nohighlight">\(h\)</span> evaluated over these scores and tuned using a temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> to define the score-prioritized distribution <span class="math notranslate nohighlight">\(P_{S}\left(\Lambda_{\text {train }}\right)\)</span> over the training levels, under which</p>
+<div class="math notranslate nohighlight">
+\[P_{S}\left(l_{i} \mid \Lambda_{\text {seen }}, S\right)=\frac{h\left(S_{i}\right)^{1 / \beta}}{\sum_{j} h\left(S_{j}\right)^{1 / \beta}}\]</div>
+<div class="math notranslate nohighlight">
+\[h\left(S_{i}\right)=1 / \operatorname{rank}\left(S_{i}\right)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\operatorname{rank}\left(S_{i}\right)\)</span> is the rank of level score <span class="math notranslate nohighlight">\(S_{i}\)</span> among all scores sorted in descending order.</p>
+<p>As the scores used to parameterize <span class="math notranslate nohighlight">\(P_{S}\)</span> are a function of the state of the policy at the time the associated level was last played, they come to reflect a gradually more off-policy measure the longer they remain without an update through replay. We mitigate this drift towards “off-policy-ness” by explicitly mixing the sampling distribution with a staleness prioritized distribution <span class="math notranslate nohighlight">\(P_{C}\)</span> :</p>
+<div class="math notranslate nohighlight">
+\[P_{C}\left(l_{i} \mid \Lambda_{\text {seen }}, C, c\right)=\frac{c-C_{i}}{\sum_{C_{j} \in C} c-C_{j}}\]</div>
+<div class="math notranslate nohighlight">
+\[P_{\text {replay }}\left(l_{i}\right)=(1-\rho) \cdot P_{S}\left(l_{i} \mid \Lambda_{\text {seen }}, S\right)+\rho \cdot P_{C}\left(l_{i} \mid \Lambda_{\text {seen }}, C, c\right)\]</div>
+</section>
+<section id="pseudo-code">
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<p>Policy-gradient training loop with PLR</p>
+<img alt="../_images/PLR_1.png" src="../_images/PLR_1.png" />
+<p>Experience collection with PLR</p>
+<img alt="../_images/PLR_2.png" src="../_images/PLR_2.png" />
+</section>
+<section id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Benchmark of PLR algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 43%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">BigFish</div>
 </div>
-<p><a class="reference external" href="./index_zh.html">Chinese version doc</a> includes more environments that you may be interested in.</p>
+</td>
+<td><img alt="../_images/PLR_result.png" src="../_images/PLR_result.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/procgen/entry/bigfish_plr_config.py">config_link_p</a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>Minqi Jiang, Edward Grefenstette, Tim Rocktaschel: “Prioritized Level Replay”, 2021; arXiv:2010.03934.</p>
+</section>
+<section id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>[facebookresearch](<a class="reference external" href="https://github.com/facebookresearch/level-replay">https://github.com/facebookresearch/level-replay</a>)</p></li>
+</ul>
+</section>
 </section>
 
 
@@ -321,12 +369,12 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="atari.html" class="btn btn-neutral float-right" title="Atari" accesskey="n"
+    <a href="../13_envs/index.html" class="btn btn-neutral float-right" title="RL Env Examples" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="../12_policies/plr.html" class="btn btn-neutral" title="PLR" accesskey="p"
+    <a href="vpn.html" class="btn btn-neutral" title="VPN" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -356,7 +404,17 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">RL Env Examples</a></li>
+<li><a class="reference internal" href="#">PLR</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
+<li><a class="reference internal" href="#key-graphs">Key Graphs</a></li>
+<li><a class="reference internal" href="#key-equations">Key Equations</a></li>
+<li><a class="reference internal" href="#pseudo-code">Pseudo-code</a></li>
+<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#other-public-implementations">Other Public Implementations</a></li>
+</ul>
+</li>
 </ul>
 
             </div>
@@ -377,6 +435,7 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

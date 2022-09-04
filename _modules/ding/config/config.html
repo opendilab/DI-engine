@@ -735,7 +735,7 @@
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">):</span>
             <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;_%y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="n">save_project_state</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
