@@ -60,10 +60,9 @@ class StochasticOptimizer(ABC):
             - tiled_obs (:obj:`torch.Tensor`): Observation of shape (B, N, O).
             - action (:obj:`torch.Tensor`): Action of shape (B, N, A).
         """
-        action_bounds = self.action_bounds.cpu().numpy()
-        size = (obs.shape[0], num_samples, action_bounds.shape[1])
-        action_samples = np.random.uniform(action_bounds[0, :], action_bounds[1, :], size=size)
-        action_samples = torch.as_tensor(action_samples, dtype=torch.float32).to(self.device)
+        size = (obs.shape[0], num_samples, self.action_bounds.shape[1])
+        low, high = self.action_bounds[0, :], self.action_bounds[1, :]
+        action_samples = low + (high - low) * torch.rand(size).to(self.device)
         tiled_obs = unsqueeze_repeat(obs, num_samples, 1)
         return tiled_obs, action_samples
 
@@ -473,7 +472,7 @@ class EBM(nn.Module):
         # obs: (B, N, O)
         # action: (B, N, A)
         # return: (B, N)
-        x = torch.concat([obs, action], -1)
+        x = torch.cat([obs, action], -1)
         x = self.net(x)
         return x['pred']
 
