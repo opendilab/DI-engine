@@ -5,9 +5,10 @@ from ding.envs import BaseEnvManagerV2
 from ding.model import RainbowDQN
 from ding.policy import RainbowDQNPolicy
 from ding.data import DequeBuffer
+from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, eps_greedy_handler, CkptSaver
+from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, eps_greedy_handler, CkptSaver, nstep_reward_enhancer
 
 
 def main():
@@ -16,7 +17,6 @@ def main():
     """
 
     # Config
-    # Why compile_config? :
     cfg = compile_config(mtcar_rainbow_config, create_cfg=mtcar_rainbow_create_config, auto=True)
 
     # Environment
@@ -29,6 +29,7 @@ def main():
     # Policy
     model = RainbowDQN(**cfg.policy.model)
     buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
+    buffer_.use(PriorityExperienceReplay(buffer_, IS_weight=True))
     policy = RainbowDQNPolicy(cfg.policy, model=model)
 
     # Pipeline
@@ -39,6 +40,8 @@ def main():
         task.use(eps_greedy_handler(cfg))
         # Collect environmental data
         task.use(StepCollector(cfg, policy.collect_mode, coll_env))
+        # Enable nstep
+        task.use(nstep_reward_enhancer(cfg))
         # Push data to buffer
         task.use(data_pusher(cfg, buffer_))
         # Train the model
