@@ -616,17 +616,17 @@ class ObsNormWrapper(gym.ObservationWrapper):
         return self.observation(observation)
 
 
-@ENV_WRAPPER_REGISTRY.register('obs_offline_norm')
-class ObsNormOfflineWrapper(gym.ObservationWrapper):
+@ENV_WRAPPER_REGISTRY.register('static_obs_norm')
+class StaticObsNormWrapper(gym.ObservationWrapper):
     """
     Overview:
-       Normalize observations according to the mean and std in the offline dataset.
+       Normalize observations according to the mean and std in the fixed dataset.
     Interface:
         ``__init__``, ``observation``
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
 
-        - ``clip_range``
+        - ``mean``, ``std``, ``clip_range``
     """
 
     def __init__(self, env, mean, std):
@@ -636,6 +636,8 @@ class ObsNormOfflineWrapper(gym.ObservationWrapper):
                 setup the properties according to dataset mean and std.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
+            - mean (:obj:`numpy.ndarray`): the mean of observation in the dataset.
+            - std (:obj:`numpy.ndarray`): the standard deviation of observation in the dataset.
         """
         super().__init__(env)
         self.mean = mean

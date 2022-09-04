@@ -35,6 +35,7 @@ class IBCPolicy(BehaviourCloningPolicy):
         cuda=False,
         on_policy=False,
         continuous=True,
+        model=dict(stochastic_optim=dict(type='mcmc', )),
         learn=dict(
             train_epoch=30,
             batch_size=256,
@@ -79,11 +80,15 @@ class IBCPolicy(BehaviourCloningPolicy):
             # obs: (B, O)
             # action: (B, A)
             obs, action = data['obs'], data['action']
+            # When action/observation space is 1, the action/observation dimension will
+            # be squeezed in the first place, therefore unsqueeze there to make the data
+            # compatiable with the ibc pipeline.
             if len(obs.shape) == 1:
                 obs = obs.unsqueeze(-1)
             if len(action.shape) == 1:
                 action = action.unsqueeze(-1)
 
+            # N refers to the number of negative samples, i.e. self._stochastic_optimizer.inference_samples.
             # (B, N, O), (B, N, A)
             obs, negatives = self._stochastic_optimizer.sample(obs, self._learn_model)
 
@@ -152,11 +157,8 @@ class IBCPolicy(BehaviourCloningPolicy):
             data = to_device(data, self._device)
 
         self._eval_model.eval()
-        with torch.set_grad_enabled(isinstance(self._stochastic_optimizer, MCMC)):
-            # Gradient should be disabled except for MCMC optimizer,
-            # which follows gradient descent on the input space to find the best action.
-            output = self._stochastic_optimizer.infer(data, self._eval_model)
-            output = dict(action=output)
+        output = self._stochastic_optimizer.infer(data, self._eval_model)
+        output = dict(action=output)
 
         if self._cuda:
             output = to_device(output, 'cpu')

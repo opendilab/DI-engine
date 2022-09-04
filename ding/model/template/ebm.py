@@ -3,6 +3,7 @@ Vanilla DFO and EBM are adapted from https://github.com/kevinzakka/ibc.
 MCMC is adapted from https://github.com/google-research/ibc.
 """
 from typing import Callable, Tuple
+from functools import wraps
 
 import numpy as np
 import torch
@@ -17,7 +18,7 @@ from ding.model.wrapper import IModelWrapper
 from ..common import RegressionHead
 
 
-def create_stochastic_optimizer(device, stochastic_optimizer_config):
+def create_stochastic_optimizer(device: str, stochastic_optimizer_config: dict):
     return STOCHASTIC_OPTIMIZER_REGISTRY.build(
         stochastic_optimizer_config.pop("type"), device=device, **stochastic_optimizer_config
     )
@@ -28,6 +29,7 @@ def no_ebm_grad():
 
     def ebm_disable_grad_wrapper(func: Callable):
 
+        @wraps(func)
         def wrapper(*args, **kwargs):
             ebm = args[-1]
             assert isinstance(ebm, (IModelWrapper, nn.Module)),\
@@ -45,10 +47,18 @@ def no_ebm_grad():
 class StochasticOptimizer(ABC):
 
     def _sample(self, obs: torch.Tensor, num_samples: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Helper method for drawing action samples from the uniform random distribution
-        and tiling observations to the same shape as action samples.
-        obs: (B, O)
-        return: (B, N, O), (B, N, A).
+        """
+        Overview:
+            Helper method for drawing action samples from the uniform random distribution \
+                and tiling observations to the same shape as action samples.
+
+        Arguments:
+            - obs (:obj:`torch.Tensor`): Observation of shape (B, O).
+            - num_samples (:obj:`int`): The number of negative samples (N).
+
+        Returns:
+            - tiled_obs (:obj:`torch.Tensor`): Observation of shape (B, N, O).
+            - action (:obj:`torch.Tensor`): Action of shape (B, N, A).
         """
         action_bounds = self.action_bounds.cpu().numpy()
         size = (obs.shape[0], num_samples, action_bounds.shape[1])
@@ -60,9 +70,16 @@ class StochasticOptimizer(ABC):
     @staticmethod
     @torch.no_grad()
     def _get_best_action_sample(obs: torch.Tensor, action_samples: torch.Tensor, ebm: nn.Module):
-        """Return target with highest probability (lowest energy).
-        obs: (B, N, O), action_samples: (B, N, A)
-        return: (B, A).
+        """
+        Overview:
+            Return one action for each batch with highest probability (lowest energy).
+
+        Arguments:
+            - obs (:obj:`torch.Tensor`): Observation of shape (B, N, O).
+            - action_samples (:obj:`torch.Tensor`): Action of shape (B, N, A).
+
+        Returns:
+            - best_action_samples (:obj:`torch.Tensor`): Action of shape (B, A).
         """
         # (B, N)
         energies = ebm.forward(obs, action_samples)
@@ -72,21 +89,44 @@ class StochasticOptimizer(ABC):
         return action_samples[torch.arange(action_samples.size(0)), best_idxs]
 
     def set_action_bounds(self, action_bounds: np.ndarray):
+        """
+        Overview:
+            Set action bounds calculated from the dataset statistics.
+
+        Arguments:
+            - action_bounds (:obj:`np.ndarray`): Array of shape (2, A), \
+                where action_bounds[0] is lower bound and action_bounds[1] is upper bound.
+        """
         self.action_bounds = torch.as_tensor(action_bounds, dtype=torch.float32).to(self.device)
 
     @abstractmethod
     def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
-        obs: (B, O)
-        return: (B, N, O), (B, N, A).
+        """
+        Overview:
+            Create tiled observations and sample counter-negatives for InfoNCE loss.
+
+        Arguments:
+            - obs (:obj:`torch.Tensor`): Observation of shape (B, O).
+            - ebm (:obj:`torch.nn.Module`): Energy based model.
+
+        Returns:
+            - tiled_obs (:obj:`torch.Tensor`): Observation of shape (B, N, O).
+            - action (:obj:`torch.Tensor`): Action of shape (B, N, A).
+
+        .. note:: In the case of derivative-free optimization, this function will simply call _sample.
         """
         raise NotImplementedError
 
     @abstractmethod
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
-        """Optimize for the best action conditioned on the current observation.
-        obs: (B, O)
-        return: (B, A).
+        """
+        Overview:
+            Optimize for the best action conditioned on the current observation.
+        Arguments:
+            - obs (:obj:`torch.Tensor`): Observation of shape (B, O).
+            - ebm (:obj:`torch.nn.Module`): Energy based model.
+        Returns:
+            - best_action_samples (:obj:`torch.Tensor`): Action of shape (B, A).
         """
         raise NotImplementedError
 
@@ -112,19 +152,10 @@ class DFO(StochasticOptimizer):
         self.device = device
 
     def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
-        obs: (B, O)
-        return: (B, N, O), (B, N, A).
-        """
-        del ebm
         return self._sample(obs, self.train_samples)
 
     @torch.no_grad()
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
-        """Optimize for the best action conditioned on the current observation.
-        obs: (B, O)
-        return: (B, A).
-        """
         noise_scale = self.noise_scale
 
         # (B, N, O), (B, N, A)
@@ -165,10 +196,6 @@ class AutoRegressiveDFO(DFO):
 
     @torch.no_grad()
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
-        """Optimize for the best action conditioned on the current observation.
-        obs: (B, O)
-        return: (B, A).
-        """
         noise_scale = self.noise_scale
 
         # (B, N, O), (B, N, A)
@@ -298,10 +325,10 @@ class MCMC(StochasticOptimizer):
     ) -> torch.Tensor:
         """
         Calculate gradient w.r.t action.
-        obs: (B, N, O), action: (B, N, A)
+        obs: (B, N, O), action: (B, N, A).
         return: (B, N, A).
         """
-        action = nn.Parameter(action)
+        action = action.requires_grad_(True)
         energy = ebm.forward(obs, action).sum()
         # `create_graph` set to `True` when second order derivative
         #  is needed i.e, d(de/da)/d_param
@@ -310,11 +337,11 @@ class MCMC(StochasticOptimizer):
     def grad_penalty(self, obs: torch.Tensor, action: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
         """
         Calculate gradient penalty.
-        obs: (B, N+1, O), action: (B, N+1, A)
-        return: loss
+        obs: (B, N+1, O), action: (B, N+1, A).
+        return: loss.
         """
         if not self.add_grad_penalty:
-            return torch.tensor(0.)
+            return 0.
         # (B, N+1, A), this gradient is differentiable w.r.t model parameters
         de_dact = MCMC._gradient_wrt_act(obs, action, ebm, create_graph=True)
 
@@ -389,10 +416,6 @@ class MCMC(StochasticOptimizer):
 
     @no_ebm_grad()
     def sample(self, obs: torch.Tensor, ebm: nn.Module) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Create tiled observations and sample counter-negatives for feeding to the InfoNCE objective.
-        obs: (B, O)
-        return: (B, N, O), (B, N, A)
-        """
         obs, uniform_action_samples = self._sample(obs, self.train_samples)
         if not self.use_langevin_negative_samples:
             return obs, uniform_action_samples
@@ -401,10 +424,6 @@ class MCMC(StochasticOptimizer):
 
     @no_ebm_grad()
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
-        """Optimize for the best action conditioned on the current observation.
-        obs: (B, O)
-        return: (B, A).
-        """
         # (B, N, O), (B, N, A)
         obs, uniform_action_samples = self._sample(obs, self.inference_samples)
         action_samples = self._langevin_action_gives_obs(

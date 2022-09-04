@@ -2,7 +2,7 @@ from typing import Dict
 import gym
 import numpy as np
 from ditk import logging
-from ding.envs import ObsNormWrapper, ObsNormOfflineWrapper, RewardNormWrapper
+from ding.envs import ObsNormWrapper, StaticObsNormWrapper, RewardNormWrapper
 
 try:
     import d4rl  # register d4rl enviroments with open ai gym
@@ -32,7 +32,7 @@ def wrap_d4rl(
         if norm_obs is not None and norm_obs.use_norm:
             offline_stats = norm_obs.get('offline_stats', dict(use_offline_stats=False))
             if offline_stats.use_offline_stats:
-                env = ObsNormOfflineWrapper(env, offline_stats.mean, offline_stats.std)
+                env = StaticObsNormWrapper(env, offline_stats.mean, offline_stats.std)
             else:
                 env = ObsNormWrapper(env)
         if norm_reward is not None and norm_reward.use_norm:
@@ -43,7 +43,7 @@ def wrap_d4rl(
         if norm_obs is not None and norm_obs.use_norm:
             offline_stats = norm_obs.get('offline_stats', dict(use_offline_stats=False))
             if offline_stats.use_offline_stats:
-                wrapper_info = ObsNormOfflineWrapper.__name__ + '\n'
+                wrapper_info = StaticObsNormWrapper.__name__ + '\n'
             else:
                 wrapper_info = ObsNormWrapper.__name__ + '\n'
         if norm_reward is not None and norm_reward.use_norm:
