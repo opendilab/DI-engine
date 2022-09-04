@@ -205,7 +205,7 @@ class CollaQPolicy(Policy):
                 - cur_lr (:obj:`float`): Current learning rate
                 - total_loss (:obj:`float`): The calculated loss
         """
-        data = self._data_preprocess_learn(data)
+        data = self._data_preprocess_learn(data, self.cfg.priority_IS_weight, self.cfg.priority)
         # ====================
         # CollaQ forward
         # ====================
