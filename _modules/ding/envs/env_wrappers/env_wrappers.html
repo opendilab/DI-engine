@@ -890,6 +890,47 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span></div></div>
 
 
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;static_obs_norm&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">StaticObsNormWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       Normalize observations according to the mean and std in the fixed dataset.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``observation``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
+
+<span class="sd">        - ``mean``, ``std``, ``clip_range``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \</span>
+<span class="sd">                setup the properties according to dataset mean and std.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">            - mean (:obj:`numpy.ndarray`): the mean of observation in the dataset.</span>
+<span class="sd">            - std (:obj:`numpy.ndarray`): the standard deviation of observation in the dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">mean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clip_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get obeservation</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - observation (:obj:`Any`): Original observation</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - observation (:obj:`Any`): Normalized new observation</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">observation</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+
 <div class="viewcode-block" id="RewardNormWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;reward_norm&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RewardNormWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">RewardWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
