@@ -461,7 +461,7 @@ def compile_config(
         if os.path.exists(cfg.exp_name):
             cfg.exp_name += datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
         try:
-            os.mkdir(cfg.exp_name)
+            os.makedirs(cfg.exp_name)
         except FileExistsError:
             pass
         save_project_state(cfg.exp_name)
