@@ -40,3 +40,4 @@ from .policy_factory import PolicyFactory, get_random_policy
 from .pdqn import PDQNPolicy
 
 from .bc import BehaviourCloningPolicy
+from .ibc import IBCPolicy
