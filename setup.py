@@ -53,7 +53,7 @@ setup(
         'numpy>=1.18.0',
         'requests>=2.25.1',
         'six',
-        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gym>=0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
@@ -163,6 +163,9 @@ setup(
         ],
         # 'dmc2gym': [
         #    'dmc2gym @ git+https://github.com/denisyarats/dmc2gym@master#egg=dmc2gym',
+        # ],
+        # 'rocket_recycling': [
+        #    'rocket_recycling @ git+https://github.com/nighood/rocket-recycling@master#egg=rocket_recycling',
         # ],
         'sokoban': [
             'gym-sokoban',
