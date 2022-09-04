@@ -1,3 +1,4 @@
+from ditk import logging
 from dizoo.classic_control.mountain_car.config.mtcar_rainbow_config import mtcar_rainbow_config, mtcar_rainbow_create_config
 from ding.config import compile_config
 from dizoo.classic_control.mountain_car.envs.mtcar_env import MountainCarEnv
@@ -15,6 +16,9 @@ def main():
     """
     This is an example of the Rainbow algorithm implemented on the Mountain Car (discrete action space) environment.
     """
+
+    # Set logging level
+    logging.getLogger().setLevel(logging.INFO)
 
     # Config
     cfg = compile_config(mtcar_rainbow_config, create_cfg=mtcar_rainbow_create_config, auto=True)
