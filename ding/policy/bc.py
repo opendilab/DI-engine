@@ -1,8 +1,10 @@
 import math
 import torch
 import torch.nn as nn
+import copy
+from torch.optim import Adam, SGD, AdamW
+from torch.optim.lr_scheduler import LambdaLR
 import logging
-from torch.optim import Adam, AdamW
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 from easydict import EasyDict
@@ -36,26 +38,62 @@ class BehaviourCloningPolicy(Policy):
             update_per_collect=1,
             batch_size=32,
             learning_rate=1e-5,
-            weight_decay=None,
+            lr_decay=False,
+            decay_epoch=30,
+            decay_rate=0.1,
+            warmup_lr=1e-4,
+            warmup_epoch=3,
+            optimizer='SGD',
+            momentum=0.9,
+            weight_decay=1e-4,
             ce_label_smooth=False,
             show_accuracy=False,
+            tanh_mask=False,  # if actions always converge to 1 or -1, use this.
         ),
-        collect=dict(unroll_len=1, ),
+        collect=dict(
+            unroll_len=1,
+            noise=False,
+            noise_sigma=0.2,
+            noise_range=dict(
+                min=-0.5,
+                max=0.5,
+            ),
+        ),
         eval=dict(),
         other=dict(replay_buffer=dict(replay_buffer_size=10000, )),
     )
 
     def _init_learn(self):
-        if self._cfg.learn.weight_decay is None:
-            self._optimizer = Adam(
+        assert self._cfg.learn.optimizer in ['SGD', 'Adam']
+        if self._cfg.learn.optimizer == 'SGD':
+            self._optimizer = SGD(
                 self._model.parameters(),
                 lr=self._cfg.learn.learning_rate,
+                weight_decay=self._cfg.learn.weight_decay,
+                momentum=self._cfg.learn.momentum
             )
-        else:
-            self._optimizer = AdamW(
-                self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
-            )
+        elif self._cfg.learn.optimizer == 'Adam':
+            if self._cfg.learn.weight_decay is None:
+                self._optimizer = Adam(
+                    self._model.parameters(),
+                    lr=self._cfg.learn.learning_rate,
+                )
+            else:
+                self._optimizer = AdamW(
+                    self._model.parameters(),
+                    lr=self._cfg.learn.learning_rate,
+                    weight_decay=self._cfg.learn.weight_decay
+                )
+        if self._cfg.learn.lr_decay:
 
+            def lr_scheduler_fn(epoch):
+                if epoch <= self._cfg.learn.warmup_epoch:
+                    return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
+                else:
+                    ratio = (epoch - self._cfg.learn.warmup_epoch) // self._cfg.learn.decay_epoch
+                    return math.pow(self._cfg.learn.decay_rate, ratio)
+
+            self._lr_scheduler = LambdaLR(self._optimizer, lr_scheduler_fn)
         self._timer = EasyTimer(cuda=True)
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
@@ -85,16 +123,29 @@ class BehaviourCloningPolicy(Policy):
             data = to_device(data, self._device)
         self._learn_model.train()
         with self._timer:
-            if self.cfg.eval.evaluator.cfg_type == 'MetricSerialEvaluatorDict':
-                obs, action = data
-            else:
-                obs, action = data['obs'], data['action'].squeeze()
+            obs, action = data['obs'], data['action'].squeeze()
             if self._cfg.continuous:
-                mu = self._eval_model.forward(data['obs'])['action']
-                loss = self._loss(mu, action)
+                if self._cfg.learn.tanh_mask:
+                    '''
+                    We mask the action out of range of [tanh(-1),tanh(1)], model will learn information
+                    and produce action in [-1,1]. So the action won't always converge to -1 or 1.
+                    '''
+                    mu = self._eval_model.forward(data['obs'])['action']
+                    bound = 1 - 2 / (math.exp(2) + 1)  # tanh(1): (e-e**(-1))/(e+e**(-1))
+                    mask = mu.ge(-bound) & mu.le(bound)
+                    mask_percent = 1 - mask.sum().item() / mu.numel()
+                    if mask_percent > 0.8:  # if there is too little data to learn(<80%). So we use all data.
+                        loss = self._loss(mu, action.detach())
+                    else:
+                        loss = self._loss(mu.masked_select(mask), action.masked_select(mask).detach())
+                else:
+                    mu = self._learn_model.forward(data['obs'])['action']
+                    # When we use bco, action is predicted by idm, gradient is not expected.
+                    loss = self._loss(mu, action.detach())
             else:
                 a_logit = self._learn_model.forward(obs)
-                loss = self._loss(a_logit['logit'], action)
+                # When we use bco, action is predicted by idm, gradient is not expected.
+                loss = self._loss(a_logit['logit'], action.detach())
 
                 if self._cfg.learn.show_accuracy:
                     # Calculate the overall accuracy and the accuracy of each class
@@ -113,7 +164,6 @@ class BehaviourCloningPolicy(Policy):
                             f'{action_accuracy.item()}, '
                             f'(nan means the action does not appear in the mini-batch)'
                         )
-
         forward_time = self._timer.value
         with self._timer:
             self._optimizer.zero_grad()
@@ -179,12 +229,22 @@ class BehaviourCloningPolicy(Policy):
         """
         self._unroll_len = self._cfg.collect.unroll_len
         if self._cfg.continuous:
-            self._collect_model = model_wrap(self._model, wrapper_name='base')
+            # self._collect_model = model_wrap(self._model, wrapper_name='base')
+            self._collect_model = model_wrap(
+                self._model,
+                wrapper_name='action_noise',
+                noise_type='gauss',
+                noise_kwargs={
+                    'mu': 0.0,
+                    'sigma': self._cfg.collect.noise_sigma.start
+                },
+                noise_range=self._cfg.collect.noise_range
+            )
         else:
             self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
+    def _forward_collect(self, data: Dict[int, Any], **kwargs) -> Dict[int, Any]:
         r"""
         Overview:
             Forward function for collect mode with eps_greedy
@@ -200,9 +260,10 @@ class BehaviourCloningPolicy(Policy):
         self._collect_model.eval()
         with torch.no_grad():
             if self._cfg.continuous:
-                output = self._collect_model.forward(data)
+                # output = self._collect_model.forward(data)
+                output = self._collect_model.forward(data, **kwargs)
             else:
-                output = self._collect_model.forward(data, eps=eps)
+                output = self._collect_model.forward(data, **kwargs)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

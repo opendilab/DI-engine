@@ -42,7 +42,6 @@ pong_ppo_rnd_config = dict(
         # means the rescale value for the last non-zero reward, only used when last_nonzero_reward_rescale is True
         # please refer to ngu_reward_model for details.
         last_nonzero_reward_weight=1,
-
         intrinsic_reward_type='add',
         learning_rate=1e-4,
         obs_shape=[4, 84, 84],
@@ -123,9 +122,7 @@ pong_ppo_rnd_create_config = dict(
 pong_ppo_rnd_create_config = EasyDict(pong_ppo_rnd_create_config)
 create_config = pong_ppo_rnd_create_config
 
-
 if __name__ == "__main__":
     # or you can enter `ding -m serial_ngu -c pong_ngu_config.py -s 0`
     from ding.entry import serial_pipeline_ngu
     serial_pipeline_ngu([main_config, create_config], seed=0)
-
