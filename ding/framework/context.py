@@ -1,6 +1,6 @@
 import numpy as np
 import dataclasses
-from typing import Any
+from typing import Union, Dict, List
 
 
 @dataclasses.dataclass
@@ -48,17 +48,20 @@ class OnlineRLContext(Context):
     env_step: int = 0
     env_episode: int = 0
     train_iter: int = 0
-    train_data: Any = None
+    train_data: Union[Dict, List] = None
     # collect
-    collect_kwargs: Any = dataclasses.field(default_factory=dict)
-    trajectories: Any = None
-    episodes: Any = None
-    trajectory_end_idx: Any = dataclasses.field(default_factory=list)
+    collect_kwargs: Dict = dataclasses.field(default_factory=dict)
+    trajectories: List = dataclasses.field(default_factory=list)
+    episodes: List = dataclasses.field(default_factory=list)
+    trajectory_end_idx: List = dataclasses.field(default_factory=list)
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
 
     def __post_init__(self):
+        # This method is called just after __init__ method. Here, concretely speaking,
+        # this method is called just after the object initialize its fields.
+        # We use this method here to keep the fields needed for each iteration.
         self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')
 
 
@@ -69,10 +72,13 @@ class OfflineRLContext(Context):
     total_step: int = 0
     train_epoch: int = 0
     train_iter: int = 0
-    train_data: Any = None
+    train_data: Union[Dict, List] = None
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
 
     def __post_init__(self):
+        # This method is called just after __init__ method. Here, concretely speaking,
+        # this method is called just after the object initialize its fields.
+        # We use this method here to keep the fields needed for each iteration.
         self.keep('train_iter', 'last_eval_iter')
