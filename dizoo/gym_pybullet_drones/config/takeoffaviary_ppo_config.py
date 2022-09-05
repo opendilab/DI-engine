@@ -12,15 +12,16 @@ takeoffaviary_ppo_config = dict(
         use_act_scale=True,
         n_evaluator_episode=2,
         stop_value=0,
+        action_type="PID",
     ),
     policy=dict(
         cuda=True,
         recompute_adv=True,
         #load_path="./takeoffaviary_ppo_seed0/ckpt/ckpt_best.pth.tar",
-        load_path="./ckpt_best-reward-1st-20.pth.tar",
+        #load_path="./ckpt_best-reward-1st-20.pth.tar",
         model=dict(
             obs_shape=12,
-            action_shape=4,
+            action_shape=3,
             action_space='continuous',
         ),
         action_space='continuous',
@@ -42,8 +43,8 @@ takeoffaviary_ppo_config = dict(
             discount_factor=0.99,
             gae_lambda=0.97,
         ),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
-        #eval=dict(evaluator=dict(eval_freq=5, )),
+        #eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=5, )),
     ),
 )
 takeoffaviary_ppo_config = EasyDict(takeoffaviary_ppo_config)

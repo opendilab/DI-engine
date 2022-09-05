@@ -22,8 +22,37 @@ def gym_pybullet_drones_observation_space(dim, minimum=-np.inf, maximum=np.inf, 
     return Box(lower_bound, upper_bound, dtype=dtype)
 
 
-def gym_pybullet_drones_action_space(dim, minimum=-1, maximum=1, dtype=np.float32) -> Box:
-    return Box(np.repeat(minimum, dim).astype(dtype), np.repeat(maximum, dim).astype(dtype), dtype=dtype)
+def gym_pybullet_drones_action_space(drone_num=1, minimum=-1, maximum=1, dtype=np.float32) -> Callable:
+
+    def _gym_pybullet_drones_action_space(action_type) -> Box:
+        if action_type in [ActionType.RPM, ActionType.DYN, ActionType.VEL]:
+            return Box(
+                np.repeat(minimum, 4 * drone_num).astype(dtype),
+                np.repeat(maximum, 4 * drone_num).astype(dtype),
+                dtype=dtype
+            )
+        elif action_type == ActionType.PID:
+            return Box(
+                np.repeat(minimum, 3 * drone_num).astype(dtype),
+                np.repeat(maximum, 3 * drone_num).astype(dtype),
+                dtype=dtype
+            )
+        elif action_type == ActionType.TUN:
+            return Box(
+                np.repeat(minimum, 6 * drone_num).astype(dtype),
+                np.repeat(maximum, 6 * drone_num).astype(dtype),
+                dtype=dtype
+            )
+        elif action_type in [ActionType.ONE_D_DYN, ActionType.ONE_D_PID, ActionType.ONE_D_RPM]:
+            return Box(
+                np.repeat(minimum, 3 * drone_num).astype(dtype),
+                np.repeat(maximum, 3 * drone_num).astype(dtype),
+                dtype=dtype
+            )
+        else:
+            raise ValueError('Invalid action type.')
+
+    return _gym_pybullet_drones_action_space
 
 
 def gym_pybullet_drones_reward_space(minimum=-10000, maximum=0, dtype=np.float32) -> Callable:
@@ -33,10 +62,31 @@ def gym_pybullet_drones_reward_space(minimum=-10000, maximum=0, dtype=np.float32
 gym_pybullet_drones_env_info = {
     "takeoff-aviary-v0": {
         "observation_space": gym_pybullet_drones_observation_space(12, minimum=-1, maximum=1),
-        "action_space": gym_pybullet_drones_action_space(4, minimum=-1, maximum=1),
+        "action_space": gym_pybullet_drones_action_space(drone_num=1, minimum=-1, maximum=1),
         "reward_space": gym_pybullet_drones_reward_space()
     },
 }
+
+
+def action_type(action_str):
+    if action_str == "PID":
+        return ActionType.PID
+    elif action_str == "DYN":
+        return ActionType.DYN
+    elif action_str == "VEL":
+        return ActionType.VEL
+    elif action_str == "RPM":
+        return ActionType.RPM
+    elif action_str == "TUN":
+        return ActionType.TUN
+    elif action_str == "ONE_D_DYN":
+        return ActionType.ONE_D_DYN
+    elif action_str == "ONE_D_PID":
+        return ActionType.ONE_D_PID
+    elif action_str == "ONE_D_RPM":
+        return ActionType.ONE_D_RPM
+    else:
+        raise ValueError('Invalid action type.')
 
 
 @ENV_REGISTRY.register('gym_pybullet_drones')
@@ -78,6 +128,12 @@ class GymPybulletDronesEnv(BaseEnv):
             if k in cfg:
                 self.env_kwargs[k] = cfg[k]
 
+        if "action_type" in cfg:
+            self.env_kwargs["act"] = action_type(cfg["action_type"])
+        else:
+            self.env_kwargs["act"] = ActionType.RPM
+        self.action_type = self.env_kwargs["act"]
+
         if "print_debug_info" in cfg:
             self.print_debug_info = cfg["print_debug_info"]
         else:
@@ -99,7 +155,7 @@ class GymPybulletDronesEnv(BaseEnv):
         self._replay_path = None
 
         self._observation_space = gym_pybullet_drones_env_info[cfg.env_id]["observation_space"]
-        self._action_space = gym_pybullet_drones_env_info[cfg.env_id]["action_space"]
+        self._action_space = gym_pybullet_drones_env_info[cfg.env_id]["action_space"](self.action_type)
         self._reward_space = gym_pybullet_drones_env_info[cfg.env_id]["reward_space"]
 
         self.env_step_count = 0
