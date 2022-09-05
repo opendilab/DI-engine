@@ -65,7 +65,8 @@ class PPG(nn.Module):
     def compute_actor_critic(self, x: torch.Tensor) -> Dict:
         """
         .. note::
-            ``compute_actor_critic`` interface aims to save computation when shares encoder
+            ``compute_actor_critic`` interface aims to save computation when shares encoder.
+
         ReturnsKeys:
             - necessary: ``value``, ``logit``
         """
