@@ -406,7 +406,7 @@ class MuZeroCollector(ISerialCollector):
                 distributions_dict = {k: v['distributions'] for k, v in policy_output.items()}
                 value_dict = {k: v['value'] for k, v in policy_output.items()}
                 pred_value_dict = {k: v['pred_value'] for k, v in policy_output.items()}
-                visit_entropy_dict = {k: v['visit_entropy'] for k, v in policy_output.items()}
+                visit_entropy_dict = {k: v['visit_count_distribution_entropy'] for k, v in policy_output.items()}
 
                 # Interact with env.
                 timesteps = self._env.step(actions)
@@ -433,7 +433,7 @@ class MuZeroCollector(ISerialCollector):
                 else:
                     game_histories[i].append(actions[i], to_ndarray(obs['observation']), clip_reward)
 
-                # NOTE: the position of code snippt is very important.
+                # NOTE: the position of code snippet is very important.
                 # the obs['action_mask'] and obs['to_play'] is corresponding to next action
                 if two_player_game:
                     action_mask[i] = to_ndarray(obs['action_mask'])
@@ -567,10 +567,10 @@ class MuZeroCollector(ISerialCollector):
                         } for i in range(self.len_pool())
                     ]
                 )
-                np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img',
-                        self.replay_buffer.buffer)
-                one_episode_replay_buffer_img = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img.npy',
-                        allow_pickle=True)
+                # np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img',
+                #         self.replay_buffer.buffer)
+                # one_episode_replay_buffer_img = np.load('/Users/puyuan/code/DI-engine/dizoo/board_games/atari/config/one_episode_replay_buffer_img.npy',
+                #         allow_pickle=True)
 
                 # np.save('/Users/puyuan/code/DI-engine/dizoo/board_games/tictactoe/config/one_episode_replay_buffer_tictactoe_2-player-mode',
                 #         self.replay_buffer.buffer)

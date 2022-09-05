@@ -26,7 +26,7 @@ class Node:
         self.visit_count = 0
         self.value_sum = 0
         self.best_action = -1
-        self.to_play = 0
+        self.to_play = 0  # default one_player_mode
         self.value_prefix = 0.0
         self.children = {}
         self.children_index = []
@@ -176,6 +176,8 @@ class Roots:
             # TODO(pu): why hidden_state_index_x=0, hidden_state_index_y=i?
             if to_play is None:
                 self.roots[i].expand(0, 0, i, value_prefixs[i], policies[i])
+            elif to_play is [None]:
+                print('debug')
             else:
                 self.roots[i].expand(to_play[i], 0, i, value_prefixs[i], policies[i])
 
@@ -286,7 +288,7 @@ def back_propagate(search_path, min_max_stats, to_play, value: float, discount: 
         for i in range(path_len - 1, -1, -1):
             node = search_path[i]
             # to_play related
-            node.value_sum += bootstrap_value if node.to_play == to_play else -bootstrap_value
+            node.value_sum += bootstrap_value if node.to_play == to_play else - bootstrap_value
 
             node.visit_count += 1
 
@@ -301,7 +303,7 @@ def back_propagate(search_path, min_max_stats, to_play, value: float, discount: 
             if is_reset == 1:
                 true_reward = node.value_prefix
             # to_play related
-            bootstrap_value = (-true_reward if node.to_play == to_play else true_reward) + discount * bootstrap_value
+            bootstrap_value = (- true_reward if node.to_play == to_play else true_reward) + discount * bootstrap_value
 
         min_max_stats.clear()
         root = search_path[0]
@@ -399,8 +401,9 @@ def compute_ucb_score(
         value_score = 0
     if value_score > 1:
         value_score = 1
-    compute_ucb_score = prior_score + value_score
-    return compute_ucb_score
+    ucb_score = prior_score + value_score
+
+    return ucb_score
 
 
 def batch_traverse(

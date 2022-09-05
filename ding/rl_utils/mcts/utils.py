@@ -138,8 +138,8 @@ def select_action(visit_counts, temperature=1, deterministic=True):
     else:
         action_pos = np.random.choice(len(visit_counts), p=action_probs)
 
-    count_entropy = entropy(action_probs, base=2)
-    return action_pos, count_entropy
+    visit_count_distribution_entropy = entropy(action_probs, base=2)
+    return action_pos, visit_count_distribution_entropy
 
 
 def prepare_observation_lst(observation_lst):

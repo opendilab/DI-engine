@@ -68,8 +68,8 @@ class EfficientZeroMCTSPtree(object):
 
             horizons = self.config.lstm_horizon_len
 
+            virtual_to_play = copy.deepcopy(to_play)
             for index_simulation in range(self.config.num_simulations):
-                virtual_to_play = to_play
                 hidden_states = []
                 hidden_states_c_reward = []
                 hidden_states_h_reward = []

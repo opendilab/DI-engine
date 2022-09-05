@@ -560,14 +560,14 @@ class EfficientZeroPolicy(Policy):
                 # select the argmax, not sampling
                 # TODO(pu):
                 # only legal actions have visit counts
-                action, visit_entropy = select_action(distributions, temperature=temperature[i], deterministic=False)
+                action, visit_count_distribution_entropy = select_action(distributions, temperature=temperature[i], deterministic=False)
                 # action, _ = select_action(distributions, temperature=1, deterministic=True)
                 # TODO(pu): transform to the real action index in legal action set
                 action = np.where(action_mask[i] == 1.0)[0][action]
                 output[env_id] = {
                     'action': action,
                     'distributions': distributions,
-                    'visit_entropy': visit_entropy,
+                    'visit_count_distribution_entropy': visit_count_distribution_entropy,
                     'value': value,
                     'pred_value': pred_values_pool[i],
                     'policy_logits': policy_logits_pool[i],
@@ -679,6 +679,8 @@ class EfficientZeroPolicy(Policy):
             'target_value',
             'predicted_value_prefixs',
             'predicted_values',
+
+            'visit_count_distribution_entropy',
             # 'target_policy',
             # 'predicted_policies'
             # 'td_data',

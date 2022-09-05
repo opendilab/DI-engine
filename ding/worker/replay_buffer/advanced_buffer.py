@@ -487,7 +487,7 @@ class AdvancedReplayBuffer(IBuffer):
             Set sumtree and mintree's weight of the input data according to its priority.
             If input data does not have key "priority", it would set to ``self._max_priority`` instead.
         Arguments:
-            - data (:obj:`Dict`): The data whose priority(weight) in segement tree should be set/updated.
+            - data (:obj:`Dict`): The data whose priority(weight) in segament tree should be set/updated.
         """
         if 'priority' not in data.keys() or data['priority'] is None:
             data['priority'] = self._max_priority
@@ -522,7 +522,7 @@ class AdvancedReplayBuffer(IBuffer):
         # Uniformly sample within each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
         if sample_range is None:
-            # Rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
+            # Rescale to [0, S), where S is the sum of all data's' priority (root value of sum tree)
             mass *= self._sum_tree.reduce()
         else:
             # Rescale to [a, b)

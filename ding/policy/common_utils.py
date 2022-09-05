@@ -21,7 +21,7 @@ def default_preprocess_learn(
     if use_priority and use_priority_IS_weight:
         if 'priority_IS' in data:
             data['weight'] = data['priority_IS']
-        else:  # for compability
+        else:  # for compatibility
             data['weight'] = data['IS']
     else:
         data['weight'] = data.get('weight', None)

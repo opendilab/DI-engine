@@ -5,11 +5,11 @@ from easydict import EasyDict
 from dizoo.board_games.tictactoe.config.tictactoe_config import game_config
 
 # debug
-# collector_env_num = 2
-# evaluator_env_num = 2
+collector_env_num = 2
+evaluator_env_num = 2
 
-collector_env_num = 8
-evaluator_env_num = 5
+# collector_env_num = 8
+# evaluator_env_num = 5
 tictactoe_efficientzero_config = dict(
     exp_name='data_ez_ptree/tictactoe_2pl_efficientzero_seed0',
     env=dict(
@@ -67,6 +67,7 @@ tictactoe_efficientzero_config = dict(
             # one_player_mode, board_size=3, episode_length=3**2/2=4.5
             # collector_env_num=8,  update_per_collect=5*8=40
             # update_per_collect=int(3 ** 2 / 2 * collector_env_num),
+
             update_per_collect=int(40),
             batch_size=256,
 

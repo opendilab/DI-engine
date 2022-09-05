@@ -4,8 +4,8 @@ from ding.rl_utils.mcts.game_base_config import GameBaseConfig, DiscreteSupport
 game_config = EasyDict(dict(
     env_name='tictactoe',
     model_type='board_game',
-    # device='cuda',
-    device='cpu',
+    device='cuda',
+    # device='cpu',
     mcts_ctree=False,
     # TODO: mcts_ctree now only support env_num=1, because in cpp MCTS root node,
     #  we must specify the one same action mask,

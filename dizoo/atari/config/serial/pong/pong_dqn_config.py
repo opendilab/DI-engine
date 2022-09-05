@@ -12,7 +12,10 @@ pong_dqn_config = dict(
     ),
     policy=dict(
         cuda=True,
-        priority=False,
+        # priority=False,
+        # debug
+        priority=True,
+        priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
