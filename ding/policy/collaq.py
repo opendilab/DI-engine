@@ -443,9 +443,9 @@ class CollaQPolicy(Policy):
 
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For collaq, ``ding.model.qmix.qmix``
+            by import_names path. For collaq, ``ding.model.collaq.CollaQ`` .
         """
-        return 'collaq', ['ding.model.template.qmix']
+        return 'collaq', ['ding.model.template.collaq']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

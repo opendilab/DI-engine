@@ -48,7 +48,7 @@ def collect_episodic_demo_data_for_drex(
     """
     cfg.env.collector_env_num = 1
     if not os.path.exists(save_cfg_path):
-        os.mkdir(save_cfg_path)
+        os.makedirs(save_cfg_path)
 
     # Create components: env, policy, collector
     if env_setting is None:

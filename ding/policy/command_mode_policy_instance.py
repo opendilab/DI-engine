@@ -32,6 +32,8 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
+from .bc import BehaviourCloningPolicy
+from .ibc import IBCPolicy
 
 from .dqfd import DQFDPolicy
 from .r2d3 import R2D3Policy
@@ -41,7 +43,6 @@ from .cql import CQLPolicy, CQLDiscretePolicy
 from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
-from .bc import BehaviourCloningPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -348,6 +349,11 @@ class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('sqil_sac_command')
 class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ibc_command')
+class IBCCommandModePolicy(IBCPolicy, DummyCommandModePolicy):
     pass
 
 

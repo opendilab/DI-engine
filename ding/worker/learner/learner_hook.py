@@ -159,7 +159,7 @@ class SaveCkptHook(LearnerHook):
                 dirname = './{}/ckpt_{}'.format(engine.exp_name, engine.instance_name)
             if not os.path.exists(dirname):
                 try:
-                    os.mkdir(dirname)
+                    os.makedirs(dirname)
                 except FileExistsError:
                     pass
             ckpt_name = engine.ckpt_name if engine.ckpt_name else 'iteration_{}.pth.tar'.format(engine.last_iter.val)
