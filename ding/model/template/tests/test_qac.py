@@ -4,6 +4,7 @@ import pytest
 from itertools import product
 
 from ding.model.template import QAC, MAQAC, DiscreteQAC
+from ding.model.template.qac import QACPixel
 from ding.torch_utils import is_differentiable
 from ding.utils import squeeze
 
@@ -133,3 +134,38 @@ class TestMAQAC:
         value = model(data, mode='compute_critic')['q_value']
         assert value.shape == (B, agent_num, action_shape)
         self.output_check(model.critic, value, action_shape)
+
+
+B = 4
+embedding_size = 64
+action_shape_args = [(6, ), [1,]]
+args = list(product(*[action_shape_args, [True, False]]))
+
+@pytest.mark.unittest
+@pytest.mark.parametrize('action_shape, twin', args)
+class TestQACPiexl:
+
+    def test_qacpixel(self, action_shape, twin):
+        inputs = {'obs': torch.randn(B, 3, 100, 100), 'action': torch.randn(B, squeeze(action_shape))}
+        model = QACPixel(
+            obs_shape=(3,100,100 ),
+            action_shape=action_shape,
+            critic_head_hidden_size=embedding_size,
+            actor_head_hidden_size=embedding_size,
+            twin_critic=twin,
+        )
+        # compute_q
+        q = model(inputs, mode='compute_critic')['q_value']
+        if twin:
+            is_differentiable(q[0].sum(), model.critic[0])
+            is_differentiable(q[1].sum(), model.critic[1])
+        else:
+            is_differentiable(q.sum(), model.critic_head)
+
+        # compute_action
+        print(model)
+        # action_space == 'reparameterization':
+        (mu, sigma) = model(inputs['obs'], mode='compute_actor')['logit']
+        assert mu.shape == (B, *action_shape)
+        assert sigma.shape == (B, *action_shape)
+        is_differentiable(mu.sum() + sigma.sum(), model.actor)
