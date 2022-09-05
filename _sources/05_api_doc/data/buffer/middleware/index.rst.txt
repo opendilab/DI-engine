@@ -1,5 +1,5 @@
 data.buffer.middleware
-=================
+========================
 
 .. toctree::
     :maxdepth: 4

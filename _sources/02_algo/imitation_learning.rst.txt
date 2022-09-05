@@ -14,9 +14,9 @@ Research Direction
 Behavioral Cloning (BC)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-BC was first proposed in [1], which proposes a supervised learning method, which directly establishes the state-action mapping relationship by fitting expert data.
+BC was first proposed in [1]_, which proposes a supervised learning method, which directly establishes the state-action mapping relationship by fitting expert data.
 
-The biggest advantage of BC is that it is simple and efficient, but once the agent encounters some never-before-seen state, it may make fatal mistakes - a problem called "state distribution drift". To solve this problem, DAgger [2] proposed a method to dynamically update the dataset: collect the real state-action pairs encountered with the policy currently being trained, and add these new expert data to the dataset for subsequent policy update. In a recent study, IBC [3] proposed implicit action cloning, the key of which is that the neural network accepts both observations and actions, and outputs a energy value that is low for expert actions and high for non-expert actions, thereby turning behavioral cloning into an energy-based modeling problem.
+The biggest advantage of BC is that it is simple and efficient, but once the agent encounters some never-before-seen state, it may make fatal mistakes - a problem called "state distribution drift". To solve this problem, DAgger [2]_ proposed a method to dynamically update the dataset: collect the real state-action pairs encountered with the policy currently being trained, and add these new expert data to the dataset for subsequent policy update. In a recent study, IBC [3]_ proposed implicit action cloning, the key of which is that the neural network accepts both observations and actions, and outputs a energy value that is low for expert actions and high for non-expert actions, thereby turning behavioral cloning into an energy-based modeling problem.
 
 The current research hotspots of BC algorithms mainly focus on two aspects: meta-learning and behavior cloning using VR devices.
 
@@ -26,15 +26,15 @@ Inverse Reinforcement Learning (IRL)
 
 Inverse reinforcement learning (IRL) is the problem of inferring the reward function of an agent, given its policy or observed behavior. Specifically, IRL first learns a reward function from expert data, and then uses this reward function for subsequent RL training. IRL can theoretically outperform expert data.
 
-From the specific work above, Ziebart et al. [4] first proposed maximum entropy IRL, which utilizes the maximum entropy distribution to better characterize multimodal behavior for more efficient optimization. In 2016, Finn et al. [5] proposed a model-based approach to IRL called guided cost learning, capable of learning arbitrary nonlinear cost functions, such as neural networks, without meticulous feature engineering, and formulate an efficient sample-based approximation for MaxEnt IOC. Subsequently, Hester et al. proposed DQfD [6], which requires only a small amount of expert data, and significantly accelerates the training process through pre-training and a specially designed loss function. T-REX [7] propose a novel reward-learning-from-observation algorithm, that extrapolates beyond a set of (approximately) ranked demonstrations in order to infer high-quality reward functions from a set of potentially poor demonstrations.
+From the specific work above, Ziebart et al. [4]_ first proposed maximum entropy IRL, which utilizes the maximum entropy distribution to better characterize multimodal behavior for more efficient optimization. In 2016, Finn et al. [5]_ proposed a model-based approach to IRL called guided cost learning, capable of learning arbitrary nonlinear cost functions, such as neural networks, without meticulous feature engineering, and formulate an efficient sample-based approximation for MaxEnt IOC. Subsequently, Hester et al. proposed DQfD [6]_, which requires only a small amount of expert data, and significantly accelerates the training process through pre-training and a specially designed loss function. T-REX [7]_ propose a novel reward-learning-from-observation algorithm, that extrapolates beyond a set of (approximately) ranked demonstrations in order to infer high-quality reward functions from a set of potentially poor demonstrations.
 
 
 Adversarial Structured IL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The main goal of the Adversarial Structured IL approach is to improve the efficiency of IRL. Even if the IRL algorithm learns a very good reward function, in order to get the final near-optimal policy, it still needs to perform a reinforcement learning step. If the policy can be learned directly from the expert data, the efficiency can be greatly improved. Based on this idea, GAIL [8] combines generative network (GAN) and maximum entropy IRL to learn approximate optimal policies without human annotated expert data.
+The main goal of the Adversarial Structured IL approach is to improve the efficiency of IRL. Even if the IRL algorithm learns a very good reward function, in order to get the final near-optimal policy, it still needs to perform a reinforcement learning step. If the policy can be learned directly from the expert data, the efficiency can be greatly improved. Based on this idea, GAIL [8]_ combines generative network (GAN) and maximum entropy IRL to learn approximate optimal policies without human annotated expert data.
 
-On this basis, many works have made related improvements to GAIL. For example, InfoGail [9] replaced GAN with WGAN and achieved better performance. There are also some recent works such as GoalGAIL [10], TRGAIL [11] and DGAIL [12] which combine other methods such as post-hoc relabeling and DDPG to achieve faster convergence and better final performance.
+On this basis, many works have made related improvements to GAIL. For example, InfoGail [9]_ replaced GAN with WGAN and achieved better performance. There are also some recent works such as GoalGAIL [10]_, TRGAIL [11]_ and DGAIL [12]_ which combine other methods such as post-hoc relabeling and DDPG to achieve faster convergence and better final performance.
 
 
 Future Study

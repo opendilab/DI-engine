@@ -49,7 +49,7 @@ The default config is defined as follows:
 
 The network interface CollaQ used is defined as follows:
 
-    .. autoclass:: ding.model.template.qmix.CollaQ
+    .. autoclass:: ding.model.template.collaq.CollaQ
         :members: forward
         :noindex:
 

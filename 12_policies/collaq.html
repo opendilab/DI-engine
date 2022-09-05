@@ -501,6 +501,65 @@
 
 </div></blockquote>
 <p>The network interface CollaQ used is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.collaq.</span></span><span class="sig-name descname"><span class="pre">CollaQ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alone_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ally_feature_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/collaq.html#CollaQ"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>CollaQ network</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward, _setup_global_encoder</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/collaq.html#CollaQ.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation graph of collaQ network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): input data dict with keys [‘obs’, ‘prev_state’, ‘action’]</dt><dd><ul>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent local state(obs)</p></li>
+<li><p>agent_alone_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent’s local state alone,                     in smac setting is without ally feature(obs_along)</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): global state(obs)</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): previous rnn state, should include 3 parts:                     one hidden state of q_network, and two hidden state if q_alone_network for obs and obs_alone inputs</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or None): if action is None, use argmax q_value index as action to                    calculate <code class="docutils literal notranslate"><span class="pre">agent_q_act</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>single_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether single_step forward, if so, add timestep dim before forward and                remove it after forward</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): output data dict with keys [‘total_q’, ‘logit’, ‘next_state’]</dt><dd><ul>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): total q_value, which is the result of mixer network</p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent q_value</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): next rnn state</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, M)\)</span>, where M is global_obs_shape</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A)\)</span></p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, P)\)</span>, where P is action_shape</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
 <p>The Benchmark result of CollaQ in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.</p>
 </section>
 <section id="benchmark">

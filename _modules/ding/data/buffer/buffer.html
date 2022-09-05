@@ -424,18 +424,17 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Buffer.use"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.use">[docs]</a>    <span class="k">def</span> <span class="nf">use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Buffer&quot;</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use algorithm middleware to modify the behavior of the buffer.</span>
 <span class="sd">            Every middleware should be a callable function, it will receive three argument parts, including:</span>
-<span class="sd">            1. The buffer instance, you can use this instance to visit every thing of the buffer,</span>
-<span class="sd">               including the storage.</span>
-<span class="sd">            2. The functions called by the user, there are three methods named `push`, `sample` and `clear`,</span>
+<span class="sd">            1. The buffer instance, you can use this instance to visit every thing of the buffer, including the storage.</span>
+<span class="sd">            2. The functions called by the user, there are three methods named `push` , `sample` and `clear` , \</span>
 <span class="sd">               so you can use these function name to decide which action to choose.</span>
-<span class="sd">            3. The remaining arguments passed by the user to the original function, will be passed in *args.</span>
+<span class="sd">            3. The remaining arguments passed by the user to the original function, will be passed in `*args` .</span>
 
 <span class="sd">            Each middleware handler should return two parts of the value, including:</span>
-<span class="sd">            1. The first value is `done` (True or False), if done==True, the middleware chain will stop immediately,</span>
+<span class="sd">            1. The first value is `done` (True or False), if done==True, the middleware chain will stop immediately, \</span>
 <span class="sd">               no more middleware will be executed during this execution</span>
 <span class="sd">            2. The remaining values, will be passed to the next middleware or the default function in the buffer.</span>
 <span class="sd">        Arguments:</span>

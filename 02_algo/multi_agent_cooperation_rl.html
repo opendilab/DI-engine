@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Imitation Learning &mdash; DI-engine 0.1.0 documentation</title>
+  <title>Multi-Agent Reinforcement Learning &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="Exploration Mechanisms in Reinforcement Learning" href="exploration_rl.html" />
-  <link rel="prev" title="Model-Based Reinforcement Learning" href="model_based_rl.html" />
+  <link rel="next" title="Offline Reinforcement Learning" href="offline_rl.html" />
+  <link rel="prev" title="Exploration Mechanisms in Reinforcement Learning" href="exploration_rl.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -248,13 +248,13 @@
         
           <li><a href="index.html">RL Algorithm Taxonomy</a> &gt;</li>
         
-      <li>Imitation Learning</li>
+      <li>Multi-Agent Reinforcement Learning</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/02_algo/imitation_learning.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/02_algo/multi_agent_cooperation_rl.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -278,79 +278,87 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="imitation-learning">
-<h1>Imitation Learning<a class="headerlink" href="#imitation-learning" title="Permalink to this headline">¶</a></h1>
+  <section id="multi-agent-reinforcement-learning">
+<h1>Multi-Agent Reinforcement Learning<a class="headerlink" href="#multi-agent-reinforcement-learning" title="Permalink to this headline">¶</a></h1>
 <section id="problem-definition-and-research-motivation">
 <h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this headline">¶</a></h2>
-<p>Imitation Learning (IL) generally refers to a large class of learning methods in which an agent extracts knowledge from expert data and then imitates the behavior contained in these expert data. Due to the inherent characteristics of IL. It has two main characteristics: it usually requires a large amount of training data, and generally requires that the quality of the training data is good enough. In general, IL can be divided into three directions: IRL (inverse reinforcement learning), BC (behavioral cloning), Adversarial Structured IL, Below we briefly analyze each research direction in this field.</p>
+<p>In many real-world scenarios, people need to control multiple agents that exist at the same time to complete specific tasks, such as traffic control, robot collaboration, autonomous driving, and multiplayer online games. Therefore, the research on reinforcement learning has gradually extended from the field of single agent to multi-agent reinforcement learning (MARL). In recent years, deep reinforcement learning has shown great potential in multi-agent environments and games, such as the sub-environment <a class="reference external" href="https://github.com/oxwhirl/smac">SMAC</a> of StarCraft II, the football game <a class="reference external" href="https://github.com/google-research/football">Gfootball</a> , and autonomous driving environments such as <a class="reference external" href="https://carla.org/">Carla</a> .</p>
+<a class="reference internal image-reference" href="../_images/smac.gif"><img alt="../_images/smac.gif" class="align-center" src="../_images/smac.gif" style="width: 230.0px; height: 132.5px;" /></a>
+<p>In MARL, the policy controls multiple agents to interact with the environment simultaneously, and the goal is still to maximize the cumulative reward. In this case, the state transition function and the reward function of the environment are conditioned on the joint action of all agents rather than the single action of one agent. Therefore, in the process of policy learning, the update of each agent’s policy needs to consider the current policies of other agents.</p>
+<a class="reference internal image-reference" href="../_images/MARL_summary.png"><img alt="../_images/MARL_summary.png" class="align-center" src="../_images/MARL_summary.png" style="width: 260.5px; height: 227.0px;" /></a>
+<p>In this figure 1, <span class="math notranslate nohighlight">\(system\)</span> represents a multi-agent environment, <span class="math notranslate nohighlight">\(Agent_i\)</span> represents the ith agent, <span class="math notranslate nohighlight">\(a_i\)</span> represents the action taken by the ith agent, <span class="math notranslate nohighlight">\(r_i\)</span> represents the local reward obtained by the ith agent.
+During the training process, each agent interacts with the environment separately, and the system feeds back a joint reward.</p>
+<p>In general, the main difference between multi-agent reinforcement learning and single-agent reinforcement learning lies in the following four points:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>The non-stationary of the environment: While the agent is making a decision, other agents are also taking actions, and the change of the environment state is related to the joint action of all the agents. Therefore, the value evaluation of the actions of a single agent will change with the actions of other agents, which will lead to non-stationary in MARL training.</p></li>
+<li><p>Limitations of information acquisition by agents: In some environments (such as SMAC), each agent may not be able to obtain global state information, but only local observation information. However, it is impossible to know the observation information, actions and other information of other agents.</p></li>
+<li><p>Individual goal consistency: The goal of each agent may be the optimal global return or the optimal local return.</p></li>
+<li><p>Scalability: Large-scale multi-agent systems may involve high-dimensional state space and action space, which poses certain challenges for model expression ability, algorithm learning ability and hardware computing power in real scenarios.</p></li>
+</ol>
+</div></blockquote>
 </section>
 <section id="research-direction">
 <h2>Research Direction<a class="headerlink" href="#research-direction" title="Permalink to this headline">¶</a></h2>
-<section id="behavioral-cloning-bc">
-<h3>Behavioral Cloning (BC)<a class="headerlink" href="#behavioral-cloning-bc" title="Permalink to this headline">¶</a></h3>
-<p>BC was first proposed in <a class="footnote-reference brackets" href="#id13" id="id1">1</a>, which proposes a supervised learning method, which directly establishes the state-action mapping relationship by fitting expert data.</p>
-<p>The biggest advantage of BC is that it is simple and efficient, but once the agent encounters some never-before-seen state, it may make fatal mistakes - a problem called “state distribution drift”. To solve this problem, DAgger <a class="footnote-reference brackets" href="#id14" id="id2">2</a> proposed a method to dynamically update the dataset: collect the real state-action pairs encountered with the policy currently being trained, and add these new expert data to the dataset for subsequent policy update. In a recent study, IBC <a class="footnote-reference brackets" href="#id15" id="id3">3</a> proposed implicit action cloning, the key of which is that the neural network accepts both observations and actions, and outputs a energy value that is low for expert actions and high for non-expert actions, thereby turning behavioral cloning into an energy-based modeling problem.</p>
-<p>The current research hotspots of BC algorithms mainly focus on two aspects: meta-learning and behavior cloning using VR devices.</p>
-</section>
-<section id="inverse-reinforcement-learning-irl">
-<h3>Inverse Reinforcement Learning (IRL)<a class="headerlink" href="#inverse-reinforcement-learning-irl" title="Permalink to this headline">¶</a></h3>
-<p>Inverse reinforcement learning (IRL) is the problem of inferring the reward function of an agent, given its policy or observed behavior. Specifically, IRL first learns a reward function from expert data, and then uses this reward function for subsequent RL training. IRL can theoretically outperform expert data.</p>
-<p>From the specific work above, Ziebart et al. <a class="footnote-reference brackets" href="#id16" id="id4">4</a> first proposed maximum entropy IRL, which utilizes the maximum entropy distribution to better characterize multimodal behavior for more efficient optimization. In 2016, Finn et al. <a class="footnote-reference brackets" href="#id17" id="id5">5</a> proposed a model-based approach to IRL called guided cost learning, capable of learning arbitrary nonlinear cost functions, such as neural networks, without meticulous feature engineering, and formulate an efficient sample-based approximation for MaxEnt IOC. Subsequently, Hester et al. proposed DQfD <a class="footnote-reference brackets" href="#id18" id="id6">6</a>, which requires only a small amount of expert data, and significantly accelerates the training process through pre-training and a specially designed loss function. T-REX <a class="footnote-reference brackets" href="#id19" id="id7">7</a> propose a novel reward-learning-from-observation algorithm, that extrapolates beyond a set of (approximately) ranked demonstrations in order to infer high-quality reward functions from a set of potentially poor demonstrations.</p>
-</section>
-<section id="adversarial-structured-il">
-<h3>Adversarial Structured IL<a class="headerlink" href="#adversarial-structured-il" title="Permalink to this headline">¶</a></h3>
-<p>The main goal of the Adversarial Structured IL approach is to improve the efficiency of IRL. Even if the IRL algorithm learns a very good reward function, in order to get the final near-optimal policy, it still needs to perform a reinforcement learning step. If the policy can be learned directly from the expert data, the efficiency can be greatly improved. Based on this idea, GAIL <a class="footnote-reference brackets" href="#id20" id="id8">8</a> combines generative network (GAN) and maximum entropy IRL to learn approximate optimal policies without human annotated expert data.</p>
-<p>On this basis, many works have made related improvements to GAIL. For example, InfoGail <a class="footnote-reference brackets" href="#id21" id="id9">9</a> replaced GAN with WGAN and achieved better performance. There are also some recent works such as GoalGAIL <a class="footnote-reference brackets" href="#id22" id="id10">10</a>, TRGAIL <a class="footnote-reference brackets" href="#id23" id="id11">11</a> and DGAIL <a class="footnote-reference brackets" href="#id24" id="id12">12</a> which combine other methods such as post-hoc relabeling and DDPG to achieve faster convergence and better final performance.</p>
-</section>
+<p>For MARL cooperation tasks, the simplest idea is to directly apply single-agent reinforcement learning methods to multi-agent systems. Specifically, each agent regards other agents as part of the environment, and then utilize the single agent reinforcement learning paradigms. This is the basic idea of independent Q-learning, independent PPO, but due to the non-stationarity of the environment and the locality of agent observation, these methods are difficult to achieve good results.</p>
+<p>At present, the cooperative tasks in MARL mainly adopt the CTDE paradigm (centralized training and decentralized execution), which mainly include two types of learning methods, Valued-based MARL and Actor-Critic MARL. Please refer to Figure 2 for details:</p>
+<a class="reference internal image-reference" href="../_images/MARL_cooperation_algo.png"><img alt="../_images/MARL_cooperation_algo.png" class="align-center" src="../_images/MARL_cooperation_algo.png" style="width: 384.5px; height: 215.5px;" /></a>
+<p><strong>Valued-based MARL</strong></p>
+<p>For Valued-based MARL, the main idea is the factorization of the joint action-value function <span class="math notranslate nohighlight">\(Q_tot\)</span> into individual ones <span class="math notranslate nohighlight">\(Q_a\)</span> for decentralized execution. In order to achieve CTDE, we need to ensure that factorization satisfy the IGM assumption: the a global argmax performed on <span class="math notranslate nohighlight">\(Q_tot\)</span> yields the same result as a set of individual argmax operations performed on each <span class="math notranslate nohighlight">\(Q_a\)</span>. There are mainly QMIX, WQMIX, QTRAN and other methods:</p>
+<ul class="simple">
+<li><p>QMIX: The core of QMIX is to learn a monotonic Q-value mixed network, and the Q-value of each agent is summed by nonlinear transformation to generate <span class="math notranslate nohighlight">\(Q_tot\)</span>. For details, please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/qmix.rst">QMIX</a> <a class="footnote-reference brackets" href="#id8" id="id1">2</a></p></li>
+<li><p>WQMIX: The core of WQMIX is the same as that of QMIX, and it also learns a Q-value mixed network, but it learns a Q-value mixed network that can break through the monotonicity limit through the weighted projection method. For details, please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/wqmix.rst">WQMIX</a> <a class="footnote-reference brackets" href="#id7" id="id2">1</a></p></li>
+<li><p>QTRAN: QTRAN breaks through the monotonicity limitation by learning independent action-value networks, hybrid action-value networks, and global state-value networks. For details, please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/qtran.rst">QTRAN</a> <a class="footnote-reference brackets" href="#id10" id="id3">4</a></p></li>
+<li><p>QPLEX: QPLEX decomposes the joint Q-value <span class="math notranslate nohighlight">\(Q_tot\)</span> and the Q-value of each agent <span class="math notranslate nohighlight">\(Q_i\)</span> using a Dueling structure, respectively. The IGM consistency is transformed into an easy-to-implement advantage function value range constraint, which facilitates the learning of value functions with a linear decomposition structure. For details, please refer to <a class="reference external" href="https://arxiv.org/abs/2008.01062">QPLEX</a> <a class="footnote-reference brackets" href="#id16" id="id4">10</a></p></li>
+</ul>
+<p><strong>Actor-Critic MARL</strong></p>
+<p>For Actor-Critic MARL, the main idea is to use the policy gradient theorem to update the policy networks while learning a fully centralized state-action value function and use it to guide the optimization of decentralized policies.</p>
+<ul class="simple">
+<li><p>COMA: COMA uses counterfactual baselines to address the challenge of credit assignment across multiple agents and a critic network to efficiently compute counterfactual baselines. For details, please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/coma.rst">COMA</a> <a class="footnote-reference brackets" href="#id11" id="id5">5</a></p></li>
+<li><p>MAPPO: The basic idea of MAPPO is the same as that of PPO, but the input to the Actor network is the Local observation of each agent, and the input to the Critic network is the Agent specific global state of each agent. For details, please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/best_practice/maac.rst">MAPPO</a> <a class="footnote-reference brackets" href="#id12" id="id6">6</a></p></li>
+</ul>
 </section>
 <section id="future-study">
 <h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this headline">¶</a></h2>
-<p>There are still many challenges in imitation learning, mainly including the following:</p>
-<ul class="simple">
-<li><p>Generally speaking, it is for a specific task, and there is a lack of imitation learning methods that can be applied to multiple tasks;</p></li>
-<li><p>For situations where the data is not optimal, it is difficult to surpass the data to achieve optimal results;</p></li>
-<li><p>Mainly focus on the research of observation, without combining multi-modal factors such as speech and natural language;</p></li>
-<li><p>The local optimum can be found, but the global optimum can often not be found.</p></li>
-</ul>
+<ol class="arabic simple">
+<li><p>For some environments with more agents and more complex environments, such as some sub-environments of Multi-Agent Petting Zoo, there are nearly a hundred agents, and pure MARL cooperation may not be able to achieve good results, which requires real-time communication between agents to share information.</p></li>
+<li><p>For some practical situations, such as automatic driving, the bandwidth pressure required to obtain the real-time global state is too large, especially when the number of vehicles is large, it is almost impossible to obtain the real-time global state, and the CTDE method cannot be used for training.</p></li>
+</ol>
+<p>In the above cases 1 and 2, the method of MARL Communication between multiple agents can be used to further improve the learning efficiency.</p>
+<p>In the future, MARL can be combined with Offline RL techniques to further improve sample efficiency. At the same time, MARL can also be applied to many fields such as agent behavior analysis, agent modeling, human-machine collaboration and so on.</p>
 </section>
-<section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <dl class="footnote brackets">
-<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>Michael Bain and Claude Sammut. 1999. A framework for behavioural cloning. In <em>Machine Intelligence 15</em>. Oxford University Press, 103-129.</p>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
+<dd><p>ashid, Tabish, et al. “Weighted qmix: Expanding monotonic value function factorisation for deep multi-agent reinforcement learning.” arXiv preprint arXiv:2006.10800 (2020).</p>
 </dd>
-<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
-<dd><p>Stéphane Ross, Geoffffrey Gordon, and Drew Bagnell. 2011. A reduction of imitation learning and structured prediction to no-regret online learning. In <em>Proceedings of the fourteenth international conference on artifificial intelligence and</em> <em>statistics</em>. JMLR Workshop and Conference Proceedings, 627-635.</p>
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id1">2</a></span></dt>
+<dd><p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p>
 </dd>
-<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
-<dd><p>Florence, P. , Lynch, C. , Zeng, A. , Ramirez, O. , Wahid, A. , &amp; Downs, L. , et al. (2021). Implicit behavioral cloning.</p>
+<dt class="label" id="id9"><span class="brackets">3</span></dt>
+<dd><p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p>
 </dd>
-<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
-<dd><p>Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, and Anind K Dey. 2008. Maximum entropy inverse reinforcement learning.. In <em>Aaai</em>, Vol. 8. Chicago, IL, USA, 1433-1438.</p>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id3">4</a></span></dt>
+<dd><p>Kyunghwan Son, Daewoo Kim, Wan Ju Kang, David Earl Hostallero, Yung Yi. QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. International Conference on Machine Learning. PMLR, 2019.</p>
 </dd>
-<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
-<dd><p>Chelsea Finn, Sergey Levine, and Pieter Abbeel. 2016. Guided cost learning: Deep inverse optimal control via policy optimization. In <em>International conference on machine learning</em>. PMLR, 49-58.</p>
+<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dd><p>Jakob Foerster, Gregory Farquhar, Triantafyllos Afouras, Nantas Nardelli, Shimon Whiteson. Counterfactual Multi-Agent Policy Gradients. In Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence, 2018.</p>
 </dd>
-<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
-<dd><p>Todd Hester, Matej Vecerik, Olivier Pietquin, Marc Lanctot, Tom Schaul, Bilal Piot, Dan Horgan, John Quan, Andrew Sendonaris, Gabriel Dulac-Arnold, Ian Osband, John Agapiou, Joel Z. Leibo, and Audrunas Gruslys. 2017. Deep Q learning from Demonstrations. <em>arXiv:1704.03732 [cs]</em> (Nov. 2017). <a class="reference external" href="http://arxiv.org/abs/1704.03732">http://arxiv.org/abs/1704.03732</a> arXiv: 1704.03732.</p>
+<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
+<dd><p>Yu, C., Velu, A., Vinitsky, E., Wang, Y., Bayen, A., and Wu, Y. The surprising effectiveness of mappo in cooperative, multi-agent games. arXiv preprint arXiv:2103.01955, 2021.</p>
 </dd>
-<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id7">7</a></span></dt>
-<dd><p>Daniel Brown, Wonjoon Goo, Prabhat Nagarajan, and Scott Niekum. 2019. Extrapolating beyond suboptimal demonstrations via inverse reinforcement learning from observations. In <em>International Conference on Machine Learning</em>. PMLR, 783-792.</p>
+<dt class="label" id="id13"><span class="brackets">7</span></dt>
+<dd><p>Jayesh K. Gupta, Maxim Egorov, Mykel Kochenderfer. Cooperative multi-agent control using deep reinforcement learning. International Conference on Autonomous Agents and Multiagent Systems, 2017.</p>
 </dd>
-<dt class="label" id="id20"><span class="brackets"><a class="fn-backref" href="#id8">8</a></span></dt>
-<dd><p>Jonathan Ho and Stefano Ermon. 2016. Generative Adversarial Imitation Learning. In <em>Advances in Neural Information</em> <em>Processing Systems 29</em>, D. D. Lee, M. Sugiyama, U. V. Luxburg, I. Guyon, and R. Garnett (Eds.). Curran Associates, Inc., 4565-4573. <a class="reference external" href="http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf">http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf</a></p>
+<dt class="label" id="id14"><span class="brackets">8</span></dt>
+<dd><p>Ryan Lowe, Yi Wu, Aviv Tamar, Jean Harb, Pieter Abbeel, Igor Mordatch. Multi-agent actor-critic for mixed cooperative-competitive environments. arXiv preprint arXiv:1706.02275, 2017.</p>
 </dd>
-<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id9">9</a></span></dt>
-<dd><p>Yunzhu Li, Jiaming Song, and Stefano Ermon. 2017. InfoGAIL: Interpretable Imitation Learning from Visual Demonstrations. In <em>Advances in Neural Information Processing Systems 30</em>, I. Guyon, U. V. Luxburg, S. Bengio, H. Wallach, R. Fergus, S. Vishwanathan, and R. Garnett (Eds.). Curran Associates, Inc., 3812-3822. <a class="reference external" href="http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf">http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf</a></p>
+<dt class="label" id="id15"><span class="brackets">9</span></dt>
+<dd><p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
 </dd>
-<dt class="label" id="id22"><span class="brackets"><a class="fn-backref" href="#id10">10</a></span></dt>
-<dd><p>Yiming Ding, Carlos Florensa, Mariano Phielipp, and Pieter Abbeel. 2019. Goal-conditioned imitation learning. <em>arXiv</em> <em>preprint arXiv:1906.05838</em> (2019).</p>
-</dd>
-<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id11">11</a></span></dt>
-<dd><p>Akira Kinose and Tadahiro Taniguchi. 2020. Integration of imitation learning using GAIL and reinforcement learning using task-achievement rewards via probabilistic graphical model. <em>Advanced Robotics</em> (June 2020), 1-13. <a class="reference external" href="https://doi.org/10.1080/01691864.2020.1778521">https://doi.org/10.1080/01691864.2020.1778521</a></p>
-</dd>
-<dt class="label" id="id24"><span class="brackets"><a class="fn-backref" href="#id12">12</a></span></dt>
-<dd><p>Guoyu Zuo, Kexin Chen, Jiahao Lu, and Xiangsheng Huang. 2020. Deterministic generative adversarial imitation learning. <em>Neurocomputing</em> 388 (May 2020), 60-69. <a class="reference external" href="https://doi.org/10.1016/j.neucom.2020.01.016">https://doi.org/10.1016/j.neucom.2020.01.016</a></p>
+<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id4">10</a></span></dt>
+<dd><p>Wang, J., Ren, Z., Liu, T., Yu, Y., and Zhang, C. Qplex: Duplex dueling multi-agent q-learning. arXiv preprint arXiv:2008.01062, 2020.</p>
 </dd>
 </dl>
 </section>
@@ -364,12 +372,12 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="exploration_rl.html" class="btn btn-neutral float-right" title="Exploration Mechanisms in Reinforcement Learning" accesskey="n"
+    <a href="offline_rl.html" class="btn btn-neutral float-right" title="Offline Reinforcement Learning" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="model_based_rl.html" class="btn btn-neutral" title="Model-Based Reinforcement Learning" accesskey="p"
+    <a href="exploration_rl.html" class="btn btn-neutral" title="Exploration Mechanisms in Reinforcement Learning" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -399,16 +407,11 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Imitation Learning</a><ul>
+<li><a class="reference internal" href="#">Multi-Agent Reinforcement Learning</a><ul>
 <li><a class="reference internal" href="#problem-definition-and-research-motivation">Problem Definition and Research Motivation</a></li>
-<li><a class="reference internal" href="#research-direction">Research Direction</a><ul>
-<li><a class="reference internal" href="#behavioral-cloning-bc">Behavioral Cloning (BC)</a></li>
-<li><a class="reference internal" href="#inverse-reinforcement-learning-irl">Inverse Reinforcement Learning (IRL)</a></li>
-<li><a class="reference internal" href="#adversarial-structured-il">Adversarial Structured IL</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#research-direction">Research Direction</a></li>
 <li><a class="reference internal" href="#future-study">Future Study</a></li>
-<li><a class="reference internal" href="#reference">Reference</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 </ul>
@@ -431,6 +434,7 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

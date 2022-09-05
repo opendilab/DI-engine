@@ -95,13 +95,13 @@ Sokoban 是一种离散动作空间环境。在该游戏中，智能体需要在
 
 
 终止条件
-----
+---------
 
 -  所有箱子都推到目标点上，或者行动步数到达最大步数 max_step ，则当前环境 episode 结束。默认 max_step 为 120 步，可在 config 中调节。
 
 
 内置环境
-----
+---------
 
 -  Sokoban 内置了 9 个环境，分别为 ``Sokoban-v0``, ``Sokoban-v1``， ``Sokoban-v2``， ``Sokoban-small-v0``， ``Sokoban-small-v1``， ``Sokoban-large-v0``， ``Sokoban-large-v1``， ``Sokoban-large-v2``， ``Sokoban-huge-v0``。环境仅有房间大小和箱子数量差异，房间内部环境均为随机生成。
 

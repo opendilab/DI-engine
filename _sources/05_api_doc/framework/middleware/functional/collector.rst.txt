@@ -1,5 +1,5 @@
 framework.middleware.functional.collector
-======================
+===========================================
 
 collector
 -------------------

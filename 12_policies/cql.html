@@ -669,51 +669,6 @@ an exponential weighted average of Q-values of actions from the chosen <span cla
 <dt>Overview:</dt><dd><p>Policy class of CQL algorithm in discrete environments.</p>
 </dd>
 </dl>
-<p>Config:
-== ==================== ======== ============== ======================================== =======================
-ID Symbol               Type     Default Value  Description                              Other(Shape)
-== ==================== ======== ============== ======================================== =======================
-1  <code class="docutils literal notranslate"><span class="pre">type</span></code>             str      qrdqn          | RL policy register name, refer to      | this arg is optional,</p>
-<blockquote>
-<div><div class="line-block">
-<div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code>           | a placeholder</div>
-</div>
-</div></blockquote>
-<dl>
-<dt>2  <code class="docutils literal notranslate"><span class="pre">cuda</span></code>             bool     False          | Whether to use cuda for network        | this arg can be diff-</dt><dd><div class="line-block">
-<div class="line">erent from modes</div>
-</div>
-</dd>
-<dt>3  <code class="docutils literal notranslate"><span class="pre">on_policy</span></code>        bool     False          | Whether the RL algorithm is on-policy</dt><dd><div class="line-block">
-<div class="line">or off-policy</div>
-</div>
-</dd>
-<dt>4  <code class="docutils literal notranslate"><span class="pre">priority</span></code>         bool     True           | Whether use priority(PER)              | priority sample,</dt><dd><div class="line-block">
-<div class="line">update priority</div>
-</div>
-</dd>
-<dt>6  | <code class="docutils literal notranslate"><span class="pre">other.eps</span></code>      float    0.05           | Start value for epsilon decay. It’s</dt><dd><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">.start</span></code>                                 | small because rainbow use noisy net.</div>
-</div>
-</dd>
-<dt>7  | <code class="docutils literal notranslate"><span class="pre">other.eps</span></code>      float    0.05           | End value for epsilon decay.</dt><dd><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">.end</span></code></div>
-</div>
-</dd>
-<dt>8  | <code class="docutils literal notranslate"><span class="pre">discount_</span></code>      float    0.97,          | Reward’s future discount factor, aka.  | may be 1 when sparse</dt><dd><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">factor</span></code>                  [0.95, 0.999]  | gamma                                  | reward env</div>
-</div>
-</dd>
-<dt>9  <code class="docutils literal notranslate"><span class="pre">nstep</span></code>            int      3,             | N-step reward discount sum for target</dt><dd><p>[3, 5]         | q_value estimation</p>
-</dd>
-<dt>10 | <code class="docutils literal notranslate"><span class="pre">learn.update</span></code>   int      3              | How many updates(iterations) to train  | this args can be vary</dt><dd><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code>                            | after collector’s one collection. Only | from envs. Bigger val
-| valid in serial training               | means more off-policy</div>
-</div>
-</dd>
-</dl>
-<p>11 <code class="docutils literal notranslate"><span class="pre">learn.kappa</span></code>      float    /              | Threshold of Huber loss
-== ==================== ======== ============== ======================================== =======================</p>
 </dd></dl>
 
 </section>

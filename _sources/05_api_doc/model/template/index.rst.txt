@@ -9,4 +9,5 @@ Template
     VAC
 
     qmix
+    collaq
     coma

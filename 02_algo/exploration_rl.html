@@ -1,0 +1,669 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Exploration Mechanisms in Reinforcement Learning &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Multi-Agent Reinforcement Learning" href="multi_agent_cooperation_rl.html" />
+  <link rel="prev" title="Imitation Learning" href="imitation_learning.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">RL Algorithm Taxonomy</a> &gt;</li>
+        
+      <li>Exploration Mechanisms in Reinforcement Learning</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/02_algo/exploration_rl.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="exploration-mechanisms-in-reinforcement-learning">
+<h1>Exploration Mechanisms in Reinforcement Learning<a class="headerlink" href="#exploration-mechanisms-in-reinforcement-learning" title="Permalink to this headline">¶</a></h1>
+<p>This article mainly refers to this review on exploration strategies in reinforcement learning <a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">blog</a><a class="footnote-reference brackets" href="#id29" id="id1">14</a> 。</p>
+<section id="problem-definition-and-research-motivation">
+<h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this headline">¶</a></h2>
+<p>Reinforcement learning is to guide the update of the strategy through the reward signal given by the environment, and strive to obtain the maximum cumulative discount reward. But in many real-world environments the rewards are sparse or even non-existent. In this case, how to guide the agent to efficiently explore the state and action space, and then find the optimal strategy to complete the task?</p>
+<p>If the agent becomes greedy after a finite number of steps of training, i.e. chooses only the actions it currently thinks are optimal in a certain state, it may never learn the optimal policy, as it may well have converged to a suboptimal policy , will never reach a state of truly meaningful rewards. This is the so-called exploration and exploitation dilemma.
+In layman’s terms, the so-called exploration: refers to doing things you have never done before in order to expect higher returns; the so-called utilization: refers to doing what you currently know can produce the greatest returns.</p>
+<p>Referring to <a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id24" id="id2">9</a>, exploration mainly includes two difficulties:</p>
+<ul class="simple">
+<li><p>The rewards given by the environment are sparse. The agent needs to make a specific sequence of actions to get a non-zero reward. If only random exploration is used in each step, it is likely that a non-zero reward will not be encountered in the entire learning process. For example, in Montezuma’s Revenge, the agent needs to perform a long sequence of actions to obtain a key or enter a new room, and only then will there be a reward.</p></li>
+<li><p>The rewards given by the environment are misleading. For example, in the Pitfall game, not only are the rewards very sparse, but many actions of the agent will get a negative reward. Before the agent learns how to obtain a positive reward, it may stop in place due to the existence of these negative rewards resulting in a lack of exploration.</p></li>
+</ul>
+<p>In the above cases, an efficient exploration mechanism is crucial for the agent to complete the task.</p>
+</section>
+<section id="direction">
+<h2>Direction<a class="headerlink" href="#direction" title="Permalink to this headline">¶</a></h2>
+<p>The exploration mechanism in reinforcement learning can be roughly divided into the following research directions:</p>
+<ol class="arabic">
+<li><p>Classic Exploration Mechanism</p></li>
+<li><p>Exploration based on Intrinsic Reward</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Count-based intrinsic rewards</p></li>
+<li><p>Intrinsic reward based on prediction error</p></li>
+<li><p>Intrinsic rewards based on information theory</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Memory-Based Exploration</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Episodic Memory</p></li>
+<li><p>Direct Exploration</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Other Exploration Mechanisms</p></li>
+</ol>
+<p>The representative algorithms of each research direction and their key points are shown in the following figure:</p>
+<a class="reference internal image-reference" href="../_images/exploration_overview.png"><img alt="../_images/exploration_overview.png" class="align-center" src="../_images/exploration_overview.png" style="width: 450.0px; height: 278.5px;" /></a>
+<section id="classic-exploration-mechanism">
+<h3>Classic Exploration Mechanism<a class="headerlink" href="#classic-exploration-mechanism" title="Permalink to this headline">¶</a></h3>
+<p>In traditional multi-armed bandit problems, commonly used classical exploration mechanisms include:</p>
+<ul class="simple">
+<li><p>Epsilon-Greedy：At a certain moment, all actions have a choice probability greater than 0. The agent performs random actions (exploration) with a small probability<span class="math notranslate nohighlight">\(\epsilon\)</span>, and performs the action with the largest Q value with a large probability<span class="math notranslate nohighlight">\(1-\epsilon\)</span>(using).</p></li>
+<li><p>Upper Confidence
+Bounds: The agent greedily chooses the action that maximizes the upper bound on the confidence <span class="math notranslate nohighlight">\(\hat{Q}_{t}(a)+\hat{U}_{t}(a)\)</span>, where <span class="math notranslate nohighlight">\(\hat{Q}_{t}(a)\)</span>is in <span class="math notranslate nohighlight">\(t\)</span> The average reward associated with the action:math:<cite>a</cite>, <span class="math notranslate nohighlight">\(\hat{U}_{t}(a)\)</span> is a reward associated with taking the action <span class="math notranslate nohighlight">\(a\)</span>function that is inversely proportional to the number of times.</p></li>
+<li><p>Boltzmann Exploration: The agent samples actions from the Boltzmann distribution corresponding to the learned Q value (that is, the distribution obtained after performing the softmax operation on the logits of the Q value), and the degree of exploration can be adjusted by the temperature parameter.</p></li>
+</ul>
+<p>The following mechanisms can be used to get better exploration performance in deep reinforcement learning training when function approximation is performed by neural networks:</p>
+<ul class="simple">
+<li><p>Entropy
+Loss：The agent is encouraged to perform more diverse actions by adding an additional entropy regularization term to the loss function.</p></li>
+<li><p>Noise-Based
+Exploration：Exploration is achieved by adding noise to the parameter space of observations, actions, and even the network.</p></li>
+</ul>
+</section>
+<section id="intrinsic-reward-based-exploration">
+<h3>Intrinsic Reward-Based Exploration<a class="headerlink" href="#intrinsic-reward-based-exploration" title="Permalink to this headline">¶</a></h3>
+<p>One of the more important methods in exploring mechanism design is to design special rewards to stimulate the “curiosity” of the agent. Generally, we refer to the rewards given by the environment as <strong>extrinsic rewards</strong>, and the reward given by the exploration mechanism is called <strong>intrinsic reward</strong>.</p>
+<p>We hope to achieve two things by adding this additional intrinsic reward:</p>
+<ol class="arabic simple">
+<li><p>Exploration of the state space: motivating the agent to explore more novel states. (Need to evaluate the novelty of state <span class="math notranslate nohighlight">\(s\)</span> )</p></li>
+<li><p>Exploration of the state-action space: Incentivizing the agent to perform actions that help reduce uncertainty about the environment. (Need to evaluate state-action pairs <span class="math notranslate nohighlight">\(( s,a )\)</span> novelty)</p></li>
+</ol>
+<p>First give the definition of <strong>novelty</strong> qualitatively:</p>
+<ul class="simple">
+<li><p>For a state <span class="math notranslate nohighlight">\(s\)</span>, among all states visited by the agent before, if the number of states similar to<span class="math notranslate nohighlight">\(s\)</span>is less, we call the state<span class="math notranslate nohighlight">\(s\)</span>is more novel (state-action pair <span class="math notranslate nohighlight">\(( s,a )\)</span> is defined similarly for novelty).</p></li>
+</ul>
+<p>The more novel a certain state<span class="math notranslate nohighlight">\(s\)</span>is, the more often the corresponding agent has insufficient cognition of the state<span class="math notranslate nohighlight">\(s\)</span>, and the agent needs to explore this state more when interacting with the environment later <span class="math notranslate nohighlight">\(s\)</span>, so this specially designed exploration mechanism confers a greater intrinsic reward on that state. How to measure the novelty of the state<span class="math notranslate nohighlight">\(s\)</span>? There are two main ways, one is to measure the state by counting the state in some way, and the other is to measure based on the prediction error of a certain prediction problem, so as to obtain <strong>Exploration based on intrinsic reward</strong> the following 2 large subclasses of algorithms: <strong>Count-based intrinsic reward</strong> and <strong>Prediction error-based intrinsic reward</strong>.</p>
+<section id="count-based-intrinsic-reward">
+<h4>Count-Based Intrinsic Reward<a class="headerlink" href="#count-based-intrinsic-reward" title="Permalink to this headline">¶</a></h4>
+<p>Count-based intrinsic reward adopts the simplest idea of measuring novelty by counting, i.e. each <span class="math notranslate nohighlight">\(s\)</span> corresponds to a visit count<span class="math notranslate nohighlight">\(N(s)\)</span> , the larger the value, the more times the agent has visited it before, that is, the exploration of:math:<cite>s</cite>  is more sufficient (or:math:<cite>s</cite> less novel). The exploration module gives an intrinsic reward that is inversely proportional to the state count.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://arxiv.org/abs/1606.01868">Unifying Count-Based Exploration and Intrinsic
+Motivation</a>
+<a class="footnote-reference brackets" href="#id16" id="id3">1</a> uses a density model to approximate the frequency of state visits and proposes a novel pseudo-count derived from the density model algorithm.</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/1611.04717">Exploration: A Study of Count-Based Exploration for Deep
+Reinforcement Learning</a>
+<a class="footnote-reference brackets" href="#id17" id="id4">2</a> proposes to use Locality-Sensitive Hash (LSH ) to convert continuous high-dimensional state data into discrete hash codes. Thus, the statistics of the frequency of occurrence of states become feasible.</p></li>
+</ul>
+<p>However, count-based methods for measuring novelty have many obvious limitations:</p>
+<ul class="simple">
+<li><p>There is no simple counting method for high-dimensional continuous observation space and continuous action space.</p></li>
+<li><p>The visit count does not accurately measure the agent’s awareness of <span class="math notranslate nohighlight">\(( s,a )\)</span>.</p></li>
+</ul>
+</section>
+<section id="intrinsic-reward-based-on-prediction-error">
+<h4>Intrinsic Reward Based on Prediction Error<a class="headerlink" href="#intrinsic-reward-based-on-prediction-error" title="Permalink to this headline">¶</a></h4>
+<p>Intrinsic reward based on prediction error is <strong>to use the prediction error of a state on a prediction problem (usually a supervised learning problem) to measure novelty</strong>. According to the characteristics of the neural network fitting data set in supervised learning, if the prediction error of the agent in a certain state  <span class="math notranslate nohighlight">\(s\)</span>is larger, it approximately means that the number of previous visits by the agent in the state space near the state  <span class="math notranslate nohighlight">\(s\)</span>is small, so the state <span class="math notranslate nohighlight">\(s\)</span>is more novel.</p>
+<p>Prediction problems are often problems related to the dynamics of the environment, such as the paper <a class="footnote-reference brackets" href="#id18" id="id5">3</a> <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a> (ICM) proposed a new Intrinsic Curiosity module based on prediction error. Module, ICM), by using the inverse dynamics model and the forward dynamics model to learn a new feature space on the original problem space, so that the learned feature space only encodes the part that affects the agent’s decision-making, while ignoring the environment noise and other irrelevant interference. Then on this purer feature space, the prediction error of the forward model is used to provide the intrinsic for RL training reward. For more details about ICM, please refer to <a class="reference external" href="https://zhuanlan.zhihu.com/p/473676311">blog</a>.</p>
+<p>But ICM has the following problems:</p>
+<ul class="simple">
+<li><p>On large-scale problems, the complex forward dynamics model of the environment, coupled with the limited capacity of the neural network, leads to large prediction errors when certain regions of the state-action space are visited a large number of times.</p></li>
+<li><p>In some environments, the state transition function of the environment is a random function, such as an environment containing noise-TV properties, and the agent cannot accurately predict the next state through the usual neural network.</p></li>
+</ul>
+<p>In order to alleviate the above problems, the paper <a class="footnote-reference brackets" href="#id19" id="id6">4</a> <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">Exploration by Random Network
+Distillation</a> proposes the RND algorithm, which is also an exploration method based on the prediction problem, but special, the prediction problem in the RND algorithm is only related to the observation state (observation). The related stochastic distillation problem is not about forward or inverse kinetic models of the environment. Specifically, RND uses two neural networks with the same structure: a target network with fixed random initialization parameters; a predictor network, which is used to output the state encoding given by the target network. Then the RND intrinsic exploration reward is defined as being proportional to the state feature predicted by the predictor network<span class="math notranslate nohighlight">\(\hat{f}( s_t )\)</span>and the state feature of the target network <span class="math notranslate nohighlight">\(f(s_t)\)</span> . For more details about RND, please refer to <a class="reference external" href="https://zhuanlan.zhihu.com/p/473676311">blog</a>.</p>
+</section>
+<section id="intrinsic-rewards-based-on-information-theory">
+<h4>Intrinsic Rewards Based on Information Theory<a class="headerlink" href="#intrinsic-rewards-based-on-information-theory" title="Permalink to this headline">¶</a></h4>
+<p>To encourage exploration, another idea is to design intrinsic rewards based on information theory.
+The paper <a class="footnote-reference brackets" href="#id26" id="id7">11</a> introduced Variational information maximizing exploration (VIME), the core idea is the maximization of information gain about the agent’s belief of environment dynamics, using variational inference in Bayesian neural networks, which can efficiently handle continuous state and action spaces.
+The paper <a class="footnote-reference brackets" href="#id27" id="id8">12</a> proposes the EMI algorithm (Exploration with Mutual Information), which does not learn representations through the usual encoding/decoding raw state or action space, but learns the relationship between states and actions by maximizing the mutual information between related state-action representations.
+They experimentally verified that the forward prediction signal extracted in such a representation space can guide exploration well.
+In addition, there are also methods such as DIYAN <a class="footnote-reference brackets" href="#id28" id="id9">13</a>, which is based on the objective function of mutual information to learn skill variables, which can automatically learn the distribution of state and skill by setting intrinsic rewards related to mutual information without external rewards， so as to use in subsequent tasks such as hierarchical learning, imitation learning, and exploration.</p>
+</section>
+</section>
+<section id="memory-based-exploration">
+<h3>Memory-Based Exploration<a class="headerlink" href="#memory-based-exploration" title="Permalink to this headline">¶</a></h3>
+<p>Intrinsic reward-based exploration methods such as ICM and RND propose to measure the novelty of a state by predicting the error of the problem, and provide a large intrinsic reward for a state with high novelty to promote exploration. These methods achieve promising results on exploration-difficult tasks under many sparse reward settings. But there is a problem:  <strong>As the number of training steps of the agent increases, the prediction error of the prediction problem begins to decrease, and the exploration signal becomes smaller, that is, the agent is no longer encouraged to visit a certain Some states, but it is possible that these states must be visited to obtain extrinsic rewards</strong>.And there may also be the following problems:</p>
+<ul class="simple">
+<li><p>The function approximation speed is relatively slow, and sometimes it cannot keep up with the speed of the agent’s exploration, resulting in the intrinsic reward not well describing the novelty of the state.</p></li>
+<li><p>The reward for exploration is non-stationary.</p></li>
+</ul>
+<p>The exploration mechanism of storage-based exploration explicitly uses a Memory to maintain the historical state, and then gives the intrinsic reward value of the current state according to a certain metric between the current state and the historical state.</p>
+<section id="episodic-memory">
+<h4>Episodic Memory<a class="headerlink" href="#episodic-memory" title="Permalink to this headline">¶</a></h4>
+<section id="ngu">
+<h5>NGU<a class="headerlink" href="#ngu" title="Permalink to this headline">¶</a></h5>
+<p>In order to solve the aforementioned problem of gradual attenuation of the exploration signal, the paper <a class="footnote-reference brackets" href="#id20" id="id10">5</a> <a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up: Learning Directed Exploration Strategies</a> (Never Give Up)
+The agent adopts a new intrinsic reward generation mechanism that integrates the novelty of 2 dimensions: namely the life-long dimension of the inter-game intrinsic reward and the single-game dimension of the intra-game intrinsic reward , and also proposed to simultaneously learn a set of strategies with different degrees of exploration (directed
+exploratory policies) to collect more abundant samples for training. Among them, the intrinsic reward between games is maintained by maintaining an Episodic that stores the state of the game calculated by calculating the distance between the current state and the k most similar samples in Memory. More details about NGU can be found in the blog [TODO].</p>
+</section>
+<section id="agent57">
+<h5>Agent57<a class="headerlink" href="#agent57" title="Permalink to this headline">¶</a></h5>
+<p>Paper <a class="footnote-reference brackets" href="#id21" id="id11">6</a> <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human
+Benchmark</a> made the following improvements on the basis of NGU:</p>
+<ul class="simple">
+<li><p>Parameterization of the Q function: The Q network is divided into two parts, and the Q value corresponding to the intrinsic reward and the Q value corresponding to the extrinsic reward are learned respectively.</p></li>
+<li><p>NGU uses different Q functions (also called strategies) with equal probability, and uses meta-controller to adaptively select Q functions corresponding to different reward discount factors and intrinsic reward weight coefficients to balance exploration and utilization.</p></li>
+<li><p>Finally used a larger Backprop Through Time Window Size.</p></li>
+</ul>
+</section>
+</section>
+<section id="direct-exploration">
+<h4>Direct Exploration<a class="headerlink" href="#direct-exploration" title="Permalink to this headline">¶</a></h4>
+<section id="go-explore">
+<h5>Go-Explore<a class="headerlink" href="#go-explore" title="Permalink to this headline">¶</a></h5>
+<p><a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id23" id="id12">8</a> <a class="footnote-reference brackets" href="#id24" id="id13">9</a>  pointed out that there are currently two factors hindering the agent’s exploration: forgetting how to reach a previously visited state (detachment); the agent cannot first return to a certain state, and then start exploration (derailment) from that state. For this reason, the author proposes a simple mechanism of <strong>remembering a state, returning to that state, and exploring</strong>  from that state to deal with the above problem: by maintaining a memory of the states of interest and the trajectory leading to these states, The agent can return (assuming the simulator is deterministic) to these promising states and continue stochastic exploration from there. Novelty is measured by the prediction error of a state on a prediction problem (usually a supervised learning problem)</p>
+<p>Specifically, first the state is mapped into a short discrete code (called a cell) for storage. If a new state appears or a better/shorter trajectory is found, the memory updates the corresponding state and trajectory. The agent can choose a state to return uniformly and randomly in the memory, or according to some heuristic rules, for example, it can select the returned state according to the related indicators such as the newness, the access count, the count of its neighbors in the memory and so on. Then start exploring in this state. Go-Explore repeats the above process until the task is solved, i.e. at least one successful trajectory is found.</p>
+</section>
+</section>
+</section>
+<section id="other-exploration-mechanisms">
+<h3>Other Exploration Mechanisms<a class="headerlink" href="#other-exploration-mechanisms" title="Permalink to this headline">¶</a></h3>
+<p>In addition to the above exploration mechanism, there are also Q-value-based exploration <a class="footnote-reference brackets" href="#id25" id="id14">10</a> and so on. Interested readers can refer to this review of exploration strategies in reinforcement learning <a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">blog</a><a class="footnote-reference brackets" href="#id29" id="id15">14</a> .</p>
+</section>
+</section>
+<section id="future-study">
+<h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>In the current exploration methods based on intrinsic rewards, how to adaptively set the relative weights of intrinsic rewards and rewards given by the environment is a problem worthy of research.</p></li>
+<li><p>It can be observed that the existing exploration mechanism often considers the novelty of a single state, and may be extended to the novelty of sequence states in the future to achieve higher semantic level exploration.</p></li>
+<li><p>At present, the exploration based on intrinsic reward and the exploration based on memory only give good results in practice, and their theoretical convergence and optimality need to be studied.</p></li>
+<li><p>How to combine traditional exploration methods such as UCB with the latest intrinsic reward-based or memory-based exploration mechanisms may be a question worth investigating.</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<dl class="footnote brackets">
+<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
+<dd><p>Marc G. Bellemare, et al. “Unifying Count-Based Exploration and
+Intrinsic Motivation”. NIPS 2016.</p>
+</dd>
+<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
+<dd><p>Haoran Tang, et al. “#Exploration: A Study of Count-Based
+Exploration for Deep Reinforcement Learning”. NIPS 2017.</p>
+</dd>
+<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id5">3</a></span></dt>
+<dd><p>Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration
+by self-supervised prediction[C]//International conference on
+machine learning. PMLR, 2017: 2778-2787</p>
+</dd>
+<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id6">4</a></span></dt>
+<dd><p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network
+distillation[J]. <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">https://arxiv.org/abs/1810.12894v1</a>.
+arXiv:1810.12894, 2018.</p>
+</dd>
+<dt class="label" id="id20"><span class="brackets"><a class="fn-backref" href="#id10">5</a></span></dt>
+<dd><p>Badia A P, Sprechmann P, Vitvitskyi A, et al. Never give up:
+Learning directed exploration strategies[J]. arXiv preprint
+arXiv:2002.06038, 2020.</p>
+</dd>
+<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id11">6</a></span></dt>
+<dd><p>Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
+Outperforming the atari human benchmark<a class="reference external" href="https://link.zhihu.com/?target=https%3A//arxiv.org/pdf/2003.13350.pdf">J]. arXiv preprint
+arXiv:2003.13350,
+1.</a></p>
+</dd>
+<dt class="label" id="id22"><span class="brackets">7</span></dt>
+<dd><p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
+replay in distributed reinforcement learning[C]//International
+conference on learning representations. 2018.</p>
+</dd>
+<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id12">8</a></span></dt>
+<dd><p>Adrien Ecoffet, et al. “Go-Explore: a New Approach for
+Hard-Exploration Problems”. arXiv 1901.10995 (2019).</p>
+</dd>
+<dt class="label" id="id24"><span class="brackets">9</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id13">2</a>)</span></dt>
+<dd><p>Adrien Ecoffet, et al. “First return then explore”. arXiv 2004.12919
+(2020).</p>
+</dd>
+<dt class="label" id="id25"><span class="brackets"><a class="fn-backref" href="#id14">10</a></span></dt>
+<dd><p>Ian Osband, et al. <a class="reference external" href="https://arxiv.org/abs/1602.04621">“Deep Exploration via Bootstrapped
+DQN”</a>. NIPS 2016.</p>
+</dd>
+<dt class="label" id="id26"><span class="brackets"><a class="fn-backref" href="#id7">11</a></span></dt>
+<dd><p>Houthooft, Rein, et al. “VIME: Variational information maximizing
+exploration.” Advances in Neural Information Processing Systems.
+2016.</p>
+</dd>
+<dt class="label" id="id27"><span class="brackets"><a class="fn-backref" href="#id8">12</a></span></dt>
+<dd><p>Hyoungseok Kim, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“EMI: Exploration with Mutual Information.”</a>. ICML 2019.</p>
+</dd>
+<dt class="label" id="id28"><span class="brackets"><a class="fn-backref" href="#id9">13</a></span></dt>
+<dd><p>Benjamin Eysenbach, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“Diversity is all you need: Learning
+skills without a reward
+function.”</a>. ICLR 2019.</p>
+</dd>
+<dt class="label" id="id29"><span class="brackets">14</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id15">2</a>)</span></dt>
+<dd><p><a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">https://lilianweng.github.io/posts/2020-06-07-exploration-drl/</a></p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="multi_agent_cooperation_rl.html" class="btn btn-neutral float-right" title="Multi-Agent Reinforcement Learning" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="imitation_learning.html" class="btn btn-neutral" title="Imitation Learning" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Exploration Mechanisms in Reinforcement Learning</a><ul>
+<li><a class="reference internal" href="#problem-definition-and-research-motivation">Problem Definition and Research Motivation</a></li>
+<li><a class="reference internal" href="#direction">Direction</a><ul>
+<li><a class="reference internal" href="#classic-exploration-mechanism">Classic Exploration Mechanism</a></li>
+<li><a class="reference internal" href="#intrinsic-reward-based-exploration">Intrinsic Reward-Based Exploration</a><ul>
+<li><a class="reference internal" href="#count-based-intrinsic-reward">Count-Based Intrinsic Reward</a></li>
+<li><a class="reference internal" href="#intrinsic-reward-based-on-prediction-error">Intrinsic Reward Based on Prediction Error</a></li>
+<li><a class="reference internal" href="#intrinsic-rewards-based-on-information-theory">Intrinsic Rewards Based on Information Theory</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#memory-based-exploration">Memory-Based Exploration</a><ul>
+<li><a class="reference internal" href="#episodic-memory">Episodic Memory</a><ul>
+<li><a class="reference internal" href="#ngu">NGU</a></li>
+<li><a class="reference internal" href="#agent57">Agent57</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#direct-exploration">Direct Exploration</a><ul>
+<li><a class="reference internal" href="#go-explore">Go-Explore</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#other-exploration-mechanisms">Other Exploration Mechanisms</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#future-study">Future Study</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

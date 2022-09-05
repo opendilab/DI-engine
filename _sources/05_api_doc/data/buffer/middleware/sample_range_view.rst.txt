@@ -1,5 +1,5 @@
 data.buffer.middleware.sample_range_view
-======================
+==========================================
 
 sample_range_view
 -------------------
