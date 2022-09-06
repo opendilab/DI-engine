@@ -54,9 +54,9 @@ class CollaQPolicy(Policy):
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
-        priority=True,
+        priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=True,
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -126,7 +126,6 @@ class CollaQPolicy(Policy):
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        # assert not self._priority and not self._priority_IS_weight, "not implemented priority in collaq"
         self._optimizer = RMSprop(
             params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001
         )
