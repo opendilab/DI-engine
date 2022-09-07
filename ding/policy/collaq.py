@@ -155,11 +155,11 @@ class CollaQPolicy(Policy):
         self._target_model.reset()
 
     def _data_preprocess_learn(
-        self,
-        data: List[Any],
-        use_priority_IS_weight: bool = False,
-        use_priority: bool = False,
-        ) -> dict:
+            self,
+            data: List[Any],
+            use_priority_IS_weight: bool = False,
+            use_priority: bool = False,
+    ) -> dict:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
