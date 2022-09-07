@@ -15,9 +15,9 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 使用配置文件
 --------------
 
-DI-engine 使用一个全局的配置文件来控制环境和策略的所有变量，每个环境和策略都有对应的默认配置，可以在
+DI-engine 使用一个全局的配置文件来控制环境和策略的所有变量，每个环境和策略都有对应的默认配置，这个样例使用的完整配置可以在
 `cartpole_dqn_config <https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py>`_
-看到完整的配置，在教程里我们直接使用默认配置：
+看到，在教程中我们直接调用即可：
 
 .. code-block:: python
 
@@ -29,8 +29,8 @@ DI-engine 使用一个全局的配置文件来控制环境和策略的所有变�
 初始化采集环境和评估环境
 ------------------------
 
-在强化学习中，训练阶段和评估阶段采集环境数据的策略可能有区别，例如训练阶段往往是采集 n 个步骤就训练一次，
-而评估阶段则需要完成整局游戏才能得到评分。我们推荐将采集和评估环境分开初始化：
+在强化学习中，训练阶段和评估阶段和环境交互的策略可能有区别，例如训练阶段往往是采集 n 个步骤就训练一次，且需要一些额外信息帮助训练
+而评估阶段则需要完成整局游戏才能得到评分，且只考虑性能评价指标本身。我们推荐将采集和评估环境分开初始化：
 
 .. code-block:: python
 
@@ -47,13 +47,13 @@ DI-engine 使用一个全局的配置文件来控制环境和策略的所有变�
 
 .. note::
 
-    DingEnvWrapper 是 DI-engine 对不同环境库的统一封装。BaseEnvManagerV2 管理多个环境的统一对外接口，
-    利用 BaseEnvManagerV2 可以同时对多个环境进行并行采集。
+    对于常用的强化学习环境格式（例如满足 gym 相关接口的环境），可以通过 DingEnvWrapper 一键转换为适用于 DI-engine 的环境格式。
+    而 BaseEnvManagerV2 是统筹多个环境的统一管理器，利用 BaseEnvManagerV2 可以同时对多个环境进行并行采集。
 
 选择策略
 --------------
 
-DI-engine 覆盖了大部分强化学习策略，使用它们只需要选择正确的策略和模型即可。
+DI-engine 集成了大部分强化学习策略，使用它们只需要选择相应的模型和策略即可（完整的策略列表可以参考 `Policy Zoo <https://github.com/opendilab/DI-engine#algorithm-versatility>`_ ）。
 由于 DQN 是一个 off-policy 策略，所以我们还需要实例化一个 buffer 模块。
 
 .. code-block:: python
@@ -69,7 +69,7 @@ DI-engine 覆盖了大部分强化学习策略，使用它们只需要选择正�
 构建训练管线
 --------------
 
-利用 DI-engine 提供的各类中间件，我们可以很容易的构建整个训练管线：
+利用 DI-engine 提供的各类中间件，我们可以很容易的构建整个训练管线，各个中间件的功能和使用方法可以参考 `中间件入门 <https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/middleware_zh.html#id1>`_ ：
 
 .. code-block:: python
 
@@ -89,7 +89,7 @@ DI-engine 覆盖了大部分强化学习策略，使用它们只需要选择正�
 运行代码
 --------------
 
-代码完整的示例代码可以在 `DQN example <https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py>`_ 中找到，通过 ``python dqn.py`` 即可运行代码。
+完整的示例代码可以在 `DQN example <https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py>`_ 中找到，通过 ``python3 -u dqn.py`` 即可运行代码，下面的 gif 便是一个具体运行的例子。
 此外，我们提供了从 DI-engine 安装到训练的全过程 `Colab 运行示例 <https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing>`_ 作为参考。
 
 .. image::
@@ -98,4 +98,4 @@ DI-engine 覆盖了大部分强化学习策略，使用它们只需要选择正�
     :align: center
 
 至此您已经完成了 DI-engine 的第一个强化学习任务，您可以在 `示例目录 <https://github.com/opendilab/DI-engine/blob/main/ding/example>`_ 中尝试更多的算法，
-或继续阅读文档来深入了解 DI-engine 的 `算法 <../02_algo/index_zh.html>`_， `系统设计 <../03_system/index_zh.html>`_ 和 `最佳实践 <../04_best_practice/index_zh.html>`_。
+或继续阅读文档来深入了解 DI-engine 的 `算法 <../02_algo/index_zh.html>`_， `系统设计 <../03_system/index_zh.html>`_ 和 `最佳实践 <../04_best_practice/index_zh.html>`_ 。

@@ -285,13 +285,13 @@
 <section id="id2">
 <h2>前置条件<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>系统版本: Linux, macOS, Windows</p>
-<p>Python 版本: 3.6-3.8</p>
+<p>Python 版本: 3.7-3.9</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>如果您的设备具有 Nvidia GPU ，参考 <a class="reference external" href="https://developer.nvidia.com/cuda-downloads/">Nvidia CUDA Toolkit 安装</a>。</p>
-<p>在安装好 CUDA 之后，当您在安装 DI-engine 的依赖项时，会自动获取和安装带有 Nvidia CUDA 加速的 PyTorch。</p>
+<p>如果您的设备具有 NVIDIA GPU ，参考 <a class="reference external" href="https://developer.nvidia.com/cuda-downloads/">NVIDIA CUDA Toolkit 安装</a>。</p>
+<p>在安装好 CUDA 之后，当您在安装 DI-engine 的依赖项时，会自动获取和安装带有 NVIDIA CUDA 加速的深度学习框架（例如PyTorch）。</p>
 <p>如您需要手动安装适合本机 Python 版本和 GPU 设备的 PyTorch 版本，您可以参考 <a class="reference external" href="https://pytorch.org/get-started/locally/">PyTorch 安装</a> 。</p>
-<p>此外，如果您的操作系统是 Windows ，请您检查是否拥有 SWIG 的 Windows 应用程序，您可以参考 <a class="reference external" href="https://www.swig.org/download.html">SWIG 安装</a> ，并将SWIG的可执行文件添加至 Windows 系统环境变量 PATH 路径中。</p>
+<p>此外，如果您的操作系统是 Windows ，请您检查是否拥有 SWIG Windows 应用程序，您可以参考 <a class="reference external" href="https://www.swig.org/download.html">SWIG 安装</a> ，并将 SWIG 的可执行文件添加至 Windows 系统环境变量 PATH 路径中。</p>
 </div>
 </section>
 <section id="id3">
@@ -335,16 +335,16 @@ pip install .
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>如果您希望将DI-engine的安装目录设置为操作系统的当前用户，您可以使用如下方式：</p>
+<p>如果您希望将 DI-engine 的安装目录设置为操作系统的当前用户目录，您可以使用如下方式：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install . --user
 </pre></div>
 </div>
-<p>如果您正在使用诸如 virtualenv 等程序生成的虚拟python环境，则 “–user” 可能不会生效，请忽略本提示。</p>
+<p>如果您正在使用诸如 virtualenv 等程序生成的虚拟 python 环境，<code class="docutils literal notranslate"><span class="pre">--user</span></code> 选项将不会生效。</p>
 </div>
 </section>
 <section id="id5">
 <h2>特殊版本<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
-<p>如果您希望启用 DI-engine 额外功能并安装相关依赖，可以使用如下方法：</p>
+<p>如果您希望启用 DI-engine 的额外功能并安装相关依赖，可以使用如下方法：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># install atari and box-2d related packages</span>
 pip install DI-engine<span class="o">[</span>common_env<span class="o">]</span>
 <span class="c1"># install unittest(pytest) related packages</span>
@@ -365,7 +365,8 @@ pip install DI-engine<span class="o">[</span>common_env,test,fast<span class="o"
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>取决于安装内容与网络状态，安装耗时一般为 30 秒左右。
-如果在该过程中有一些特定的依赖项未能成功安装，您可以参考 “setup.py” 文件中的版本要求，然后手动安装它。</p>
+如果在该过程中有一些特定的依赖项未能成功安装，您可以参考 “setup.py” 文件中的版本要求，然后手动安装它。
+如果遇到难以解决的安装问题，可以在 DI-engine 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/issues">ISSUE 区</a> 提问，我们会尽快解答</p>
 </div>
 </section>
 <section id="docker">
@@ -380,7 +381,7 @@ docker run -it opendilab/ding:nightly /bin/bash
 </section>
 <section id="id6">
 <h2>安装检查<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<p>安装完毕之后，您可以使用如下 python 命令检查 DI-engine 是否可用，并查看该DI-engine的版本信息:</p>
+<p>安装完毕之后，您可以使用如下 python 命令检查 DI-engine 是否可用，并查看该 DI-engine 的版本信息:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ding</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ding</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
 </pre></div>

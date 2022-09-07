@@ -285,11 +285,11 @@
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <p>Operation system version: Linux, macOS, Windows</p>
-<p>Python version: 3.6-3.8</p>
+<p>Python version: 3.7-3.9</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If there is a GPU in your setting, you can refer to <a class="reference external" href="https://developer.nvidia.com/cuda-downloads/">Nvidia CUDA Toolkit Installation</a></p>
-<p>After CUDA being installed, you will get a correct Nvidia CUDA version of Pytorch automaticly when installing DI-engine.</p>
+<p>If there is a GPU in your setting, you can refer to <a class="reference external" href="https://developer.nvidia.com/cuda-downloads/">NVIDIA CUDA Toolkit Installation</a></p>
+<p>After CUDA being installed, you will get a correct NVIDIA CUDA version of deep learning framework (e.g., Pytorch) automaticly when installing DI-engine.</p>
 <p>If you want to install Pytorch manually, you can refer to <a class="reference external" href="https://pytorch.org/get-started/locally/">PyTorch Installation</a>.</p>
 <p>If your OS is Windows, please do confirm that SWIG is installed and available through the OS environment variable PATH, you can refer to <a class="reference external" href="https://www.swig.org/download.html">SWIG installation</a>.</p>
 </div>
@@ -339,7 +339,7 @@ pip install .
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install . --user
 </pre></div>
 </div>
-<p>Be careful that if you are using virtual python environment created by softwares, such as virtualenv, then the option “–user” may not work. Please ignore this tip.</p>
+<p>Be careful that if you are using virtual python environment created by softwares, such as virtualenv, then the option <code class="docutils literal notranslate"><span class="pre">--user</span></code> may not work. Please ignore this tip.</p>
 </div>
 </section>
 <section id="special-version">
@@ -357,7 +357,7 @@ pip install DI-engine<span class="o">[</span>common_env,test,fast<span class="o"
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>Some certain shells require quotation marks around package names as the folloing:</p>
+<p>Some certain shells require quotation marks around package names as the following:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install <span class="s1">&#39;DI-engine[common_env,test,fast]&#39;</span>
 </pre></div>
 </div>
@@ -365,7 +365,8 @@ pip install DI-engine<span class="o">[</span>common_env,test,fast<span class="o"
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The whole installation procedure often lasts about 30 seconds, which depends on the the size of packages as well as download speed.
-If some packages installation failed, you can refer to the file “setup.py” and install the specific package manually.</p>
+If some packages installation failed, you can refer to the file “setup.py” and install the specific package manually.
+If meet some tough installation questions, you can ask to DI-engine’s <a class="reference external" href="https://github.com/opendilab/DI-engine/issues">ISSUE</a> for help.</p>
 </div>
 </section>
 <section id="run-in-docker">

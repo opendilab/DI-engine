@@ -9,13 +9,13 @@ Prerequisites
 
 Operation system version: Linux, macOS, Windows
 
-Python version: 3.6-3.8 
+Python version: 3.7-3.9 
 
 .. note::
 
-    If there is a GPU in your setting, you can refer to `Nvidia CUDA Toolkit Installation <https://developer.nvidia.com/cuda-downloads/>`_
+    If there is a GPU in your setting, you can refer to `NVIDIA CUDA Toolkit Installation <https://developer.nvidia.com/cuda-downloads/>`_
     
-    After CUDA being installed, you will get a correct Nvidia CUDA version of Pytorch automaticly when installing DI-engine.
+    After CUDA being installed, you will get a correct NVIDIA CUDA version of deep learning framework (e.g., Pytorch) automaticly when installing DI-engine.
     
     If you want to install Pytorch manually, you can refer to `PyTorch Installation <https://pytorch.org/get-started/locally/>`_.
 
@@ -77,7 +77,7 @@ If you need to install latest DI-engine in development from the Github source co
 
         pip install . --user
 
-    Be careful that if you are using virtual python environment created by softwares, such as virtualenv, then the option "--user" may not work. Please ignore this tip.
+    Be careful that if you are using virtual python environment created by softwares, such as virtualenv, then the option ``--user`` may not work. Please ignore this tip.
 
 Special Version
 -------------------
@@ -97,7 +97,7 @@ If you want to enable special version of DI-engine and install the extra package
 
 .. tip::
 
-    Some certain shells require quotation marks around package names as the folloing:
+    Some certain shells require quotation marks around package names as the following:
 
     .. code-block:: bash
 
@@ -107,6 +107,7 @@ If you want to enable special version of DI-engine and install the extra package
 
     The whole installation procedure often lasts about 30 seconds, which depends on the the size of packages as well as download speed. 
     If some packages installation failed, you can refer to the file "setup.py" and install the specific package manually.
+    If meet some tough installation questions, you can ask to DI-engine's `ISSUE <https://github.com/opendilab/DI-engine/issues>`_ for help.
 
 Run in Docker
 --------------
@@ -135,4 +136,3 @@ You can also try the command line tool of DI-engine as the folloing:
 .. code-block:: bash
 
     ding -v
-

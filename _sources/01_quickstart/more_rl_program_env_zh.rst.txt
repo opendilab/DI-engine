@@ -131,4 +131,4 @@ DI-engine 涵盖了大部分强化学习策略，使用它们只需要选择正�
     :width: 800
     :align: center
 
-现在您已经完成了使用 DI-engine 的 **定制化环境示例** , 您可以在 `示例目录 <https://github.com/opendilab/DI-engine/blob/main/ding/example>`_ 中尝试更多算法, 或继续阅读文档以更深入地了解 DI-engine 的  `算法 <../02_algo/index.html>`_, `系统设计 <../03_system/index.html>`_  和 `最佳实践 <../04_best_practice/index.html>`_.
+现在您已经完成了使用 DI-engine 的 **定制化环境示例** , 您可以在 `示例目录 <https://github.com/opendilab/DI-engine/blob/main/ding/example>`_ 中尝试更多算法, 或继续阅读文档以更深入地了解 DI-engine 的  `算法 <../02_algo/index_zh.html>`_, `系统设计 <../03_system/index_zh.html>`_  和 `最佳实践 <../04_best_practice/index_zh.html>`_.

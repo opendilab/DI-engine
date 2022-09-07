@@ -287,9 +287,9 @@
 <a class="reference internal image-reference" href="../_images/cartpole_cmp.gif"><img alt="../_images/cartpole_cmp.gif" class="align-center" src="../_images/cartpole_cmp.gif" style="width: 1000px;" /></a>
 <section id="id2">
 <h2>使用配置文件<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<p>DI-engine 使用一个全局的配置文件来控制环境和策略的所有变量，每个环境和策略都有对应的默认配置，可以在
+<p>DI-engine 使用一个全局的配置文件来控制环境和策略的所有变量，每个环境和策略都有对应的默认配置，这个样例使用的完整配置可以在
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">cartpole_dqn_config</a>
-看到完整的配置，在教程里我们直接使用默认配置：</p>
+看到，在教程中我们直接调用即可：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
 <span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
 
@@ -299,8 +299,8 @@
 </section>
 <section id="id3">
 <h2>初始化采集环境和评估环境<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<p>在强化学习中，训练阶段和评估阶段采集环境数据的策略可能有区别，例如训练阶段往往是采集 n 个步骤就训练一次，
-而评估阶段则需要完成整局游戏才能得到评分。我们推荐将采集和评估环境分开初始化：</p>
+<p>在强化学习中，训练阶段和评估阶段和环境交互的策略可能有区别，例如训练阶段往往是采集 n 个步骤就训练一次，且需要一些额外信息帮助训练
+而评估阶段则需要完成整局游戏才能得到评分，且只考虑性能评价指标本身。我们推荐将采集和评估环境分开初始化：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span>
 
 <span class="n">collector_env</span> <span class="o">=</span> <span class="n">BaseEnvManagerV2</span><span class="p">(</span>
@@ -315,13 +315,13 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>DingEnvWrapper 是 DI-engine 对不同环境库的统一封装。BaseEnvManagerV2 管理多个环境的统一对外接口，
-利用 BaseEnvManagerV2 可以同时对多个环境进行并行采集。</p>
+<p>对于常用的强化学习环境格式（例如满足 gym 相关接口的环境），可以通过 DingEnvWrapper 一键转换为适用于 DI-engine 的环境格式。
+而 BaseEnvManagerV2 是统筹多个环境的统一管理器，利用 BaseEnvManagerV2 可以同时对多个环境进行并行采集。</p>
 </div>
 </section>
 <section id="id4">
 <h2>选择策略<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
-<p>DI-engine 覆盖了大部分强化学习策略，使用它们只需要选择正确的策略和模型即可。
+<p>DI-engine 集成了大部分强化学习策略，使用它们只需要选择相应的模型和策略即可（完整的策略列表可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine#algorithm-versatility">Policy Zoo</a> ）。
 由于 DQN 是一个 off-policy 策略，所以我们还需要实例化一个 buffer 模块。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
@@ -335,7 +335,7 @@
 </section>
 <section id="id5">
 <h2>构建训练管线<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
-<p>利用 DI-engine 提供的各类中间件，我们可以很容易的构建整个训练管线：</p>
+<p>利用 DI-engine 提供的各类中间件，我们可以很容易的构建整个训练管线，各个中间件的功能和使用方法可以参考 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/middleware_zh.html#id1">中间件入门</a> ：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
 <span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span>
@@ -351,13 +351,13 @@
 </pre></div>
 </div>
 </section>
-<section id="id6">
-<h2>运行代码<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<p>代码完整的示例代码可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py">DQN example</a> 中找到，通过 <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">dqn.py</span></code> 即可运行代码。
+<section id="id7">
+<h2>运行代码<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>完整的示例代码可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py">DQN example</a> 中找到，通过 <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-u</span> <span class="pre">dqn.py</span></code> 即可运行代码，下面的 gif 便是一个具体运行的例子。
 此外，我们提供了从 DI-engine 安装到训练的全过程 <a class="reference external" href="https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing">Colab 运行示例</a> 作为参考。</p>
 <a class="reference internal image-reference" href="../_images/train_dqn.gif"><img alt="../_images/train_dqn.gif" class="align-center" src="../_images/train_dqn.gif" style="width: 1000px;" /></a>
 <p>至此您已经完成了 DI-engine 的第一个强化学习任务，您可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example">示例目录</a> 中尝试更多的算法，
-或继续阅读文档来深入了解 DI-engine 的 <a class="reference external" href="../02_algo/index_zh.html">算法</a>， <a class="reference external" href="../03_system/index_zh.html">系统设计</a> 和 <a class="reference external" href="../04_best_practice/index_zh.html">最佳实践</a>。</p>
+或继续阅读文档来深入了解 DI-engine 的 <a class="reference external" href="../02_algo/index_zh.html">算法</a>， <a class="reference external" href="../03_system/index_zh.html">系统设计</a> 和 <a class="reference external" href="../04_best_practice/index_zh.html">最佳实践</a> 。</p>
 </section>
 </section>
 
@@ -409,7 +409,7 @@
 <li><a class="reference internal" href="#id3">初始化采集环境和评估环境</a></li>
 <li><a class="reference internal" href="#id4">选择策略</a></li>
 <li><a class="reference internal" href="#id5">构建训练管线</a></li>
-<li><a class="reference internal" href="#id6">运行代码</a></li>
+<li><a class="reference internal" href="#id7">运行代码</a></li>
 </ul>
 </li>
 </ul>

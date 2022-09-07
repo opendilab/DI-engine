@@ -9,17 +9,17 @@
 
 系统版本: Linux, macOS, Windows
    
-Python 版本: 3.6-3.8 
+Python 版本: 3.7-3.9 
 
 .. note::
 
-    如果您的设备具有 Nvidia GPU ，参考 `Nvidia CUDA Toolkit 安装 <https://developer.nvidia.com/cuda-downloads/>`_。 
+    如果您的设备具有 NVIDIA GPU ，参考 `NVIDIA CUDA Toolkit 安装 <https://developer.nvidia.com/cuda-downloads/>`_。 
 
-    在安装好 CUDA 之后，当您在安装 DI-engine 的依赖项时，会自动获取和安装带有 Nvidia CUDA 加速的 PyTorch。
+    在安装好 CUDA 之后，当您在安装 DI-engine 的依赖项时，会自动获取和安装带有 NVIDIA CUDA 加速的深度学习框架（例如PyTorch）。
     
     如您需要手动安装适合本机 Python 版本和 GPU 设备的 PyTorch 版本，您可以参考 `PyTorch 安装 <https://pytorch.org/get-started/locally/>`_ 。
 
-    此外，如果您的操作系统是 Windows ，请您检查是否拥有 SWIG 的 Windows 应用程序，您可以参考 `SWIG 安装 <https://www.swig.org/download.html>`_ ，并将SWIG的可执行文件添加至 Windows 系统环境变量 PATH 路径中。
+    此外，如果您的操作系统是 Windows ，请您检查是否拥有 SWIG Windows 应用程序，您可以参考 `SWIG 安装 <https://www.swig.org/download.html>`_ ，并将 SWIG 的可执行文件添加至 Windows 系统环境变量 PATH 路径中。
 
 发布版本
 --------------
@@ -72,18 +72,18 @@ Python 版本: 3.6-3.8
 
 .. tip::
 
-    如果您希望将DI-engine的安装目录设置为操作系统的当前用户，您可以使用如下方式：
+    如果您希望将 DI-engine 的安装目录设置为操作系统的当前用户目录，您可以使用如下方式：
 
     .. code-block:: bash
 
         pip install . --user
 
-    如果您正在使用诸如 virtualenv 等程序生成的虚拟python环境，则 "--user" 可能不会生效，请忽略本提示。    
+    如果您正在使用诸如 virtualenv 等程序生成的虚拟 python 环境，``--user`` 选项将不会生效。
 
 特殊版本
 --------------
 
-如果您希望启用 DI-engine 额外功能并安装相关依赖，可以使用如下方法：
+如果您希望启用 DI-engine 的额外功能并安装相关依赖，可以使用如下方法：
 
 .. code-block:: bash
 
@@ -108,6 +108,7 @@ Python 版本: 3.6-3.8
 
     取决于安装内容与网络状态，安装耗时一般为 30 秒左右。 
     如果在该过程中有一些特定的依赖项未能成功安装，您可以参考 "setup.py" 文件中的版本要求，然后手动安装它。
+    如果遇到难以解决的安装问题，可以在 DI-engine 的 `ISSUE 区 <https://github.com/opendilab/DI-engine/issues>`_ 提问，我们会尽快解答
 
 使用 Docker 运行
 ------------------
@@ -124,7 +125,7 @@ DI-engine 的镜像可以在 `DockerHub <https://hub.docker.com/r/opendilab/ding
 安装检查
 --------------
 
-安装完毕之后，您可以使用如下 python 命令检查 DI-engine 是否可用，并查看该DI-engine的版本信息:
+安装完毕之后，您可以使用如下 python 命令检查 DI-engine 是否可用，并查看该 DI-engine 的版本信息:
 
 .. code-block:: python
 
@@ -136,4 +137,3 @@ DI-engine 的镜像可以在 `DockerHub <https://hub.docker.com/r/opendilab/ding
 .. code-block:: bash
 
     ding -v
-
