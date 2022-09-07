@@ -7,7 +7,7 @@ dmc2gym_sac_config = dict(
         env_id='dmc2gym-v0',
         domain_name="cartpole",
         task_name="swingup",
-        frame_skip=8,
+        frame_skip=2,
         warp_frame=True,
         scale=True,
         clip_rewards=False,
@@ -32,15 +32,15 @@ dmc2gym_sac_config = dict(
             obs_shape=(3, 84, 84),
             action_shape=1,
             twin_critic=True,
-            encoder_hidden_size_list=[256, 256, 128],
-            actor_head_hidden_size=128,
-            critic_head_hidden_size=128,
+            encoder_hidden_size_list=[32, 32, 50],
+            actor_head_hidden_size=1024,
+            critic_head_hidden_size=1024,
 
             # different option about whether to share_conv_encoder in two Q networks
             # and whether to use embed_action
 
-            # share_conv_encoder=False,
-            # embed_action=False,
+            share_conv_encoder=False,
+            embed_action=False,
 
             # share_conv_encoder=True,
             # embed_action=False,
@@ -48,14 +48,14 @@ dmc2gym_sac_config = dict(
             # share_conv_encoder=False,
             # embed_action=True,
 
-            share_conv_encoder=True,
-            embed_action=True,
+            # share_conv_encoder=True,
+            # embed_action=True,
             embed_action_density=0.1,
         ),
         learn=dict(
             ignore_done=True,
             update_per_collect=1,
-            batch_size=256,
+            batch_size=128,
             # batch_size=4,  # debug
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,

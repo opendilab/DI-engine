@@ -295,10 +295,10 @@ class QACPixel(nn.Module):
         action_space: str = 'reparameterization',
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
         twin_critic: bool = False,
-        actor_head_hidden_size: int = 64,
-        actor_head_layer_num: int = 1,
-        critic_head_hidden_size: int = 64,
-        critic_head_layer_num: int = 1,
+        actor_head_hidden_size: int = 1024,
+        actor_head_layer_num: int = 2,
+        critic_head_hidden_size: int = 1024,
+        critic_head_layer_num: int = 2,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
         share_conv_encoder: bool = False,
@@ -347,18 +347,27 @@ class QACPixel(nn.Module):
         self.action_shape = action_shape
 
         # now only support action_space == 'reparameterization'
-        if actor_head_hidden_size is None:
-            actor_head_hidden_size = encoder_hidden_size_list[-1]
-        assert actor_head_hidden_size == encoder_hidden_size_list[-1], 'hidden size did not match'
+        # if actor_head_hidden_size is None:
+        #     actor_head_hidden_size = encoder_hidden_size_list[-1]
+        # assert actor_head_hidden_size == encoder_hidden_size_list[-1], 'hidden size did not match'
+        actor_head_input_size = encoder_hidden_size_list[-1]
         self.actor = nn.Sequential(
-            encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
+            encoder_cls(
+                obs_shape,
+                encoder_hidden_size_list,
+                activation=activation,
+                norm_type=norm_type,
+                kernel_size=[3, 3],
+                stride=[2, 1]
+            ),
             ReparameterizationHead(
-                actor_head_hidden_size,
+                actor_head_input_size,
                 action_shape,
                 actor_head_layer_num,
                 sigma_type='conditioned',
                 activation=activation,
-                norm_type=norm_type
+                norm_type=norm_type,
+                hidden_size=actor_head_hidden_size,
             )
         )
         if self.embed_action:
@@ -371,7 +380,12 @@ class QACPixel(nn.Module):
         if self.twin_critic:
             if self.share_conv_encoder:
                 self.critic_encoder = global_encoder_cls(
-                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                    obs_shape,
+                    encoder_hidden_size_list,
+                    activation=activation,
+                    norm_type=norm_type,
+                    kernel_size=[3, 3],
+                    stride=[2, 1]
                 )
             else:
                 self.critic_encoder = nn.ModuleList()
@@ -381,30 +395,42 @@ class QACPixel(nn.Module):
                 if not self.share_conv_encoder:
                     self.critic_encoder.append(
                         global_encoder_cls(
-                            obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                            obs_shape,
+                            encoder_hidden_size_list,
+                            activation=activation,
+                            norm_type=norm_type,
+                            kernel_size=[3, 3],
+                            stride=[2, 1]
                         )
                     )
                 self.critic_head.append(
                     RegressionHead(
                         critic_head_input_size,
-                        1,
+                        action_shape,
                         critic_head_layer_num,
                         final_tanh=False,
                         activation=activation,
-                        norm_type=norm_type
+                        norm_type=norm_type,
+                        hidden_size=critic_head_hidden_size,
                     )
                 )
         else:
             self.critic_encoder = global_encoder_cls(
-                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                obs_shape,
+                encoder_hidden_size_list,
+                activation=activation,
+                norm_type=norm_type,
+                kernel_size=[3, 3],
+                stride=[2, 1]
             )
             self.critic_head = RegressionHead(
                 critic_head_input_size,
-                1,
+                action_shape,
                 critic_head_layer_num,
                 final_tanh=False,
                 activation=activation,
-                norm_type=norm_type
+                norm_type=norm_type,
+                hidden_size=critic_head_hidden_size,
             )
         if self.twin_critic:
             # if not share conv encoder, and not use embed_action
