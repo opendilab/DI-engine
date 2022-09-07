@@ -937,6 +937,11 @@
                 <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
             <span class="k">return</span> <span class="n">d</span>
 
+        <span class="c1"># NOTE(rjy): the initial input shape will be (T, B, N),</span>
+        <span class="c1">#            means encoder or head should process B trajectorys, each trajectory has T timestep,</span>
+        <span class="c1">#            but T and B dimension can be both treated as batch_size in encoder and head,</span>
+        <span class="c1">#            i.e., independent and parallel processing,</span>
+        <span class="c1">#            so here we need such fn to reshape for encoder or head</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span> <span class="o">*</span> <span class="n">B</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">forward_fn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -1066,6 +1071,7 @@
         <span class="n">x</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">]</span>
         <span class="c1"># for both inference and other cases, the network structure is encoder -&gt; rnn network -&gt; head</span>
         <span class="c1"># the difference is inference take the data with seq_len=1 (or T = 1)</span>
+        <span class="c1"># NOTE(rjy): in most situations, set inference=True when evaluate and inference=False when training</span>
         <span class="k">if</span> <span class="n">inference</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span><span class="p">:</span>
@@ -1080,16 +1086,25 @@
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_state</span>
             <span class="k">return</span> <span class="n">x</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># In order to better explain why rnn needs saved_state and which states need to be stored,</span>
+            <span class="c1"># let&#39;s take r2d2 as an example</span>
+            <span class="c1"># in r2d2,</span>
+            <span class="c1"># 1) data[&#39;burnin_nstep_obs&#39;] = data[&#39;obs&#39;][:bs + self._nstep]</span>
+            <span class="c1"># 2) data[&#39;main_obs&#39;] = data[&#39;obs&#39;][bs:-self._nstep]</span>
+            <span class="c1"># 3) data[&#39;target_obs&#39;] = data[&#39;obs&#39;][bs + self._nstep:]</span>
+            <span class="c1"># NOTE(rjy): (T, B, N) or (T, B, C, H, W)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">parallel_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (T, B, N)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span><span class="p">:</span>
                 <span class="n">a</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="c1"># NOTE(rjy) lstm_embedding stores all hidden_state</span>
             <span class="n">lstm_embedding</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="c1"># TODO(nyz) how to deal with hidden_size key-value</span>
             <span class="n">hidden_state_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">saved_state</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># T timesteps</span>
+                <span class="c1"># NOTE(rjy) use x[t:t+1] but not x[t] can keep original dimension</span>
                 <span class="n">output</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">:</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">prev_state</span><span class="p">)</span>  <span class="c1"># output: (1,B, head_hidden_size)</span>
                 <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span> <span class="ow">in</span> <span class="n">saved_state_timesteps</span><span class="p">:</span>
                     <span class="n">saved_state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prev_state</span><span class="p">)</span>
@@ -1101,14 +1116,18 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span><span class="p">:</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">a</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">parallel_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (T, B, action_shape)</span>
+            <span class="c1"># NOTE(rjy): x[&#39;next_state&#39;] is the hidden state of the last timestep inputted to lstm</span>
             <span class="c1"># the last timestep state including the hidden state (h) and the cell state (c)</span>
             <span class="c1"># shape: {list: B{dict: 2{Tensor:(1, 1, head_hidden_size}}}</span>
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_state</span>
             <span class="c1"># all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size</span>
             <span class="c1"># This key is used in qtran, the algorithm requires to retain all h_{t} during training</span>
-            <span class="n">x</span><span class="p">[</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">hidden_state_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">x</span><span class="p">[</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">hidden_state_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># the selected saved hidden states, including the hidden state (h) and the cell state (c)</span>
+                <span class="c1"># in r2d2, set &#39;saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]&#39;,</span>
+                <span class="c1"># then saved_state will record the hidden_state for main_obs and target_obs to</span>
+                <span class="c1"># initialize their lstm (h c)</span>
                 <span class="n">x</span><span class="p">[</span><span class="s1">&#39;saved_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved_state</span>
             <span class="k">return</span> <span class="n">x</span></div></div>
 

@@ -833,6 +833,7 @@
             <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_embedding_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_embedding_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
         <span class="p">)</span>
         <span class="c1"># initialize weights_xavier of quantiles_proposal network</span>
+        <span class="c1"># NOTE(rjy): quantiles_proposal network mean fraction proposal network</span>
         <span class="n">quantiles_proposal_fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -900,21 +901,25 @@
         <span class="n">log_q_quantiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantiles_proposal</span><span class="p">(</span>
             <span class="n">x</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
         <span class="p">)</span>  <span class="c1"># (batch_size, num_quantiles), not to update encoder when learning w1_loss(fraction loss)</span>
-        <span class="n">q_quantiles</span> <span class="o">=</span> <span class="n">log_q_quantiles</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span>
+        <span class="n">q_quantiles</span> <span class="o">=</span> <span class="n">log_q_quantiles</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span>  <span class="c1"># NOTE(rjy): e^log_q = q</span>
 
         <span class="c1"># Calculate entropies of value distributions.</span>
         <span class="n">entropies</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">log_q_quantiles</span> <span class="o">*</span> <span class="n">q_quantiles</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># (batch_size, 1)</span>
         <span class="k">assert</span> <span class="n">entropies</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># accumalative softmax</span>
+        <span class="c1"># NOTE(rjy): because quantiles are still expressed in the form of their respective proportions,</span>
+        <span class="c1"># e.g. [0.33, 0.33, 0.33] =&gt; [0.33, 0.66, 0.99]</span>
         <span class="n">q_quantiles</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">q_quantiles</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># quantile_hats: find the optimal condition for τ to minimize W1(Z, τ)</span>
         <span class="n">tau_0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">q_quantiles</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">tau_0</span><span class="p">,</span> <span class="n">q_quantiles</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles+1]</span>
 
+        <span class="c1"># NOTE(rjy): theta_i = F^(-1)_Z((tau_i+tau_i+1)/2), τ^ = (tau_i+tau_i+1)/2, q_quantiles_hats is τ^</span>
         <span class="n">q_quantiles_hats</span> <span class="o">=</span> <span class="p">(</span><span class="n">q_quantiles</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">q_quantiles</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">/</span> <span class="mf">2.</span>  <span class="c1"># (batch_size, num_quantiles)</span>
 
+        <span class="c1"># NOTE(rjy): reparameterize q_quantiles_hats</span>
         <span class="n">q_quantile_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantile_net</span><span class="p">(</span><span class="n">q_quantiles_hats</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles, hidden_size(64)]</span>
         <span class="c1"># x.view[batch_size, 1, hidden_size(64)]</span>
         <span class="n">q_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">q_quantile_net</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles, hidden_size(64)]</span>
@@ -928,7 +933,7 @@
             <span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles-1, hidden_size(64)]</span>
             <span class="n">q_tau_i_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">q_tau_i_net</span><span class="p">)</span>  <span class="c1"># [batch_size, (num_quantiles-1), hidden_size(64)]</span>
 
-            <span class="n">q_tau_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">q_tau_i_x</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles-1, action_dim(64)]</span>
+            <span class="n">q_tau_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">q_tau_i_x</span><span class="p">)</span>  <span class="c1"># [batch_size, num_quantiles-1, action_dim]</span>
 
         <span class="k">return</span> <span class="p">{</span>
             <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span>
