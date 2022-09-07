@@ -634,7 +634,8 @@ class FQFHead(nn.Module):
         assert entropies.shape == (batch_size, 1)
 
         # accumalative softmax
-        # NOTE(rjy): because quantiles are still expressed in the form of their respective proportions, e.g. [0.33, 0.33, 0.33] => [0.33, 0.66, 0.99]
+        # NOTE(rjy): because quantiles are still expressed in the form of their respective proportions,
+        # e.g. [0.33, 0.33, 0.33] => [0.33, 0.66, 0.99]
         q_quantiles = torch.cumsum(q_quantiles, dim=1)
 
         # quantile_hats: find the optimal condition for τ to minimize W1(Z, τ)
