@@ -210,11 +210,9 @@ def ppo_error_continuous(
     return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
 
 
-def ppo_policy_error_continuous(
-        data: namedtuple,
-        clip_ratio: float = 0.2,
-        dual_clip: Optional[float] = None
-) -> Tuple[namedtuple, namedtuple]:
+def ppo_policy_error_continuous(data: namedtuple,
+                                clip_ratio: float = 0.2,
+                                dual_clip: Optional[float] = None) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
         Implementation of Proximal Policy Optimization (arXiv:1707.06347) with dual_clip
