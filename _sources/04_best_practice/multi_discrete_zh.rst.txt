@@ -19,7 +19,7 @@ gym库使用 ``多重离散（multi-discrete）`` 去描述具有多个离散动
     """
 
     # discrete action space env
-    env = gym.make('PongNoFrameskip-v4')
+    env = gym.make('Pong-v4')
     assert env.action_space == Discrete(6)
     # multi discrete action space
     md_space = MultiDiscrete([2, 3])  # 6 = 2 * 3

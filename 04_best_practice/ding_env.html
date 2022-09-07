@@ -393,7 +393,7 @@
 <li><p>Environment preprocessing wrapper</p>
 <p>If many environments are to be used in reinforcement learning training, some preprocessing is required to achieve the purpose of increasing randomness, data normalization, and ease of training. These preprocessing are implemented in the form of wrappers (for the introduction of wrappers, please refer to <a class="reference external" href="./env_wrapper_zh.html">here</a> ）.</p>
 <p>Each wrapper for environment preprocessing is a subclass of <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code>. For example, <code class="docutils literal notranslate"><span class="pre">NoopResetEnv</span></code> is to perform a random number of No-Operation actions at the beginning of the episode. It is a means of increasing randomness. It is used as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;PongNoFrameskip-v4&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Pong-v4&#39;</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>
 </div>

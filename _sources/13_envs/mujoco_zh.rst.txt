@@ -17,11 +17,11 @@ Mujoco 是旨在促进机器人、生物力学、图形和动画等需要快速�
 安装方法
 --------
 
-安装 gym 和 mujoco-py 两个库即可，可以通过 pip 一键安装或结合 DI-engine 安装
+安装 gym, mujoco 与 mujoco-py 即可，可以通过 pip 一键安装或结合 DI-engine 安装
 
 注：
 
-1. mujoco-py 库目前已不再需要激活许可( ``mujoco-py>=2.1.0`` )，可以通过\ `pip install free-mujoco-py <https://github.com/openai/mujoco-py/pull/640>`_ 安装
+1. mujoco 最新版目前已经开源免费，不再需要激活许可。你可以使用 Deepmind 最新的 mujoco 库，或使用 OpenAI 的 mujoco-py 。
 
 2. 如果安装 ``mujoco-py>=2.1.0`` , 可以通过如下方法:
 
@@ -32,6 +32,9 @@ Mujoco 是旨在促进机器人、生物力学、图形和动画等需要快速�
     wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz
     # Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.
     tar xvf mujoco210-linux-x86_64.tar.gz && mkdir -p ~/.mujoco && mv mujoco210 ~/.mujoco/mujoco210
+    # Add path
+    echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin" >> ~/.bashrc
+    source ~/.bashrc
     # Install and use mujoco-py
     pip install gym
     pip install -U 'mujoco-py<2.2,>=2.1'
@@ -41,6 +44,9 @@ Mujoco 是旨在促进机器人、生物力学、图形和动画等需要快速�
     wget https://mujoco.org/download/mujoco210-macos-x86_64.tar.gz
     # Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.
     tar xvf mujoco210-macos-x86_64.tar.gz && mkdir -p ~/.mujoco && mv mujoco210 ~/.mujoco/mujoco210
+    # Add path
+    echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin" >> ~/.bashrc
+    source ~/.bashrc
     # Install and use mujoco-py
     pip install gym
     pip install -U 'mujoco-py<2.2,>=2.1'
@@ -71,6 +77,14 @@ Mujoco 是旨在促进机器人、生物力学、图形和动画等需要快速�
     pip install gym
     pip install -U 'mujoco-py<2.1'
 
+4. 如果安装 ``mujoco>=2.2.0`` , 可以通过如下方法:
+
+.. code:: shell
+
+    # Install the MuJoCo version >=2.2.0
+    pip install mujoco
+    pip install gym
+    
 
 验证安装
 --------
@@ -200,7 +214,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`_  获取更多镜像
 存储录像
 --------
 
-在环境创建之后，重置之前，调用\ ``enable_save_replay``\ 方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用\ ``gym.wrapper.Monitor``\ 实现，依赖\ ``ffmpeg``\ ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在形如\ ``./video/xxx.mp4``\ 这样的文件中：
+在环境创建之后，重置之前，调用\ ``enable_save_replay``\ 方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用\ ``gym.wrappers.RecordVideo``\ 实现 ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在\ ``./video/``\ 中：
 
 .. code:: python
 

@@ -140,7 +140,7 @@ Advanced
    
    .. code:: python
       
-      env = gym.make('PongNoFrameskip-v4')
+      env = gym.make('Pong-v4')
       env = NoopResetEnv(env)
    
    Since the ``reset`` method is implemented in ``NoopResetEnv``, the corresponding logic in ``NoopResetEnv`` will be executed when ``env.reset()``.

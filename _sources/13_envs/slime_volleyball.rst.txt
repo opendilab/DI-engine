@@ -179,7 +179,7 @@ Difference between training env and evaluation env
 Save the replay video
 ----------------------------
 
-After env is initiated, and before it is reset, call ``enable_save_replay`` method to set where the replay video will be saved. Environment will automatically save the replay video after each episode is completed. (The default call is ``gym.wrapper.Monitor``, depending on ``ffmpeg``). The code shown below will run an environment episode and save the replay viedo in a file like ``./video/xxx.mp4``.
+After env is initiated, and before it is reset, call ``enable_save_replay`` method to set where the replay video will be saved. Environment will automatically save the replay video after each episode is completed. (The default call is ``gym.wrappers.RecordVideo``). The code shown below will run an environment episode and save the replay viedo in a folder ``./video/``.
 
 .. code:: python
 

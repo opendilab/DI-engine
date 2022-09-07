@@ -289,10 +289,10 @@
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>安装 gym 和 mujoco-py 两个库即可，可以通过 pip 一键安装或结合 DI-engine 安装</p>
+<p>安装 gym, mujoco 与 mujoco-py 即可，可以通过 pip 一键安装或结合 DI-engine 安装</p>
 <p>注：</p>
 <ol class="arabic simple">
-<li><p>mujoco-py 库目前已不再需要激活许可( <code class="docutils literal notranslate"><span class="pre">mujoco-py&gt;=2.1.0</span></code> )，可以通过<a class="reference external" href="https://github.com/openai/mujoco-py/pull/640">pip install free-mujoco-py</a> 安装</p></li>
+<li><p>mujoco 最新版目前已经开源免费，不再需要激活许可。你可以使用 Deepmind 最新的 mujoco 库，或使用 OpenAI 的 mujoco-py 。</p></li>
 <li><p>如果安装 <code class="docutils literal notranslate"><span class="pre">mujoco-py&gt;=2.1.0</span></code> , 可以通过如下方法:</p></li>
 </ol>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Installation for Linux</span>
@@ -300,6 +300,9 @@
 wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz
 <span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
 tar xvf mujoco210-linux-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+<span class="c1"># Add path</span>
+<span class="nb">echo</span> <span class="s2">&quot;export LD_LIBRARY_PATH=</span><span class="nv">$LD_LIBRARY_PATH</span><span class="s2">:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin&quot;</span> &gt;&gt; ~/.bashrc
+<span class="nb">source</span> ~/.bashrc
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
@@ -309,6 +312,9 @@ pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
 wget https://mujoco.org/download/mujoco210-macos-x86_64.tar.gz
 <span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
 tar xvf mujoco210-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+<span class="c1"># Add path</span>
+<span class="nb">echo</span> <span class="s2">&quot;export LD_LIBRARY_PATH=</span><span class="nv">$LD_LIBRARY_PATH</span><span class="s2">:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin&quot;</span> &gt;&gt; ~/.bashrc
+<span class="nb">source</span> ~/.bashrc
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
@@ -338,6 +344,14 @@ wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.1&#39;</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>如果安装 <code class="docutils literal notranslate"><span class="pre">mujoco&gt;=2.2.0</span></code> , 可以通过如下方法:</p></li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install the MuJoCo version &gt;=2.2.0</span>
+pip install mujoco
+pip install gym
 </pre></div>
 </div>
 </section>
@@ -453,7 +467,7 @@ hub</a>  获取更多镜像</p>
 </section>
 <section id="id20">
 <h3>存储录像<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
-<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
+<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.mujoco.envs</span> <span class="kn">import</span> <span class="n">MujocoEnv</span>
 

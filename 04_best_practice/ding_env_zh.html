@@ -394,7 +394,7 @@
 <li><p>环境预处理wrapper</p>
 <p>很多环境如果要用于强化学习的训练中，都需要进行一些预处理，来达到增加随机性、数据归一化、易于训练等目的。这些预处理通过 wrapper 的形式实现（wrapper 的介绍可以参考 <a class="reference external" href="./env_wrapper_zh.html">这里</a> ）。</p>
 <p>环境预处理的每个 wrapper 都是 <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code> 的一个子类。例如， <code class="docutils literal notranslate"><span class="pre">NoopResetEnv</span></code> 是在 episode 最开始时，执行随机数量的 No-Operation 动作，是增加随机性的一种手段，其使用方法是：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;PongNoFrameskip-v4&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Pong-v4&#39;</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>
 </div>

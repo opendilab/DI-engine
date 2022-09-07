@@ -289,10 +289,10 @@
 <h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
 <section id="installation-method">
 <h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
-<p>install the gym and mujoco-py libraries, which can be installed by one-click pip or combined with DI-engine</p>
+<p>install the gym, mujoco and mujoco-py libraries, which can be installed by one-click pip or combined with DI-engine.</p>
 <p>Note:</p>
 <ol class="arabic simple">
-<li><p>The mujoco-py library no longer requires an activation license( <code class="docutils literal notranslate"><span class="pre">mujoco-py&gt;=2.1.0</span></code> ), you can install via <a class="reference external" href="https://github.com/openai/mujoco-py/pull/640">pip install free-mujoco-py</a></p></li>
+<li><p>The mujoco library is open-source and free to public, and thus no longer requires an activation license. You can use Deepmind’s latest mujoco library, or use OpenAI’s mujoco-py.</p></li>
 <li><p>If you install <code class="docutils literal notranslate"><span class="pre">mujoco-py&gt;=2.1.0</span></code>, you can do the following:</p></li>
 </ol>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Installation for Linux</span>
@@ -300,14 +300,21 @@
 wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz
 <span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
 tar xvf mujoco210-linux-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+<span class="c1"># Add path</span>
+<span class="nb">echo</span> <span class="s2">&quot;export LD_LIBRARY_PATH=</span><span class="nv">$LD_LIBRARY_PATH</span><span class="s2">:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin&quot;</span> &gt;&gt; ~/.bashrc
+<span class="nb">source</span> ~/.bashrc
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
+
 <span class="c1"># Installation for macOS</span>
 <span class="c1"># Download the MuJoCo version 2.1 binaries for OSX.</span>
 wget https://mujoco.org/download/mujoco210-macos-x86_64.tar.gz
 <span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
 tar xvf mujoco210-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+<span class="c1"># Add path</span>
+<span class="nb">echo</span> <span class="s2">&quot;export LD_LIBRARY_PATH=</span><span class="nv">$LD_LIBRARY_PATH</span><span class="s2">:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin&quot;</span> &gt;&gt; ~/.bashrc
+<span class="nb">source</span> ~/.bashrc
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
@@ -336,6 +343,14 @@ wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.1&#39;</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>If you install <code class="docutils literal notranslate"><span class="pre">mujoco&gt;=2.2.0</span></code> , you can do the following:</p></li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install the MuJoCo version &gt;=2.2.0</span>
+pip install mujoco
+pip install gym
 </pre></div>
 </div>
 </section>
@@ -449,7 +464,7 @@ hub</a> Get more images</p>
 </section>
 <section id="store-video">
 <h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
-<p>After the environment is created, but before reset, call the<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>implementation, depends on<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>), the code shown below will run an environment episode, and save the result of this episode in the form<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>in a file like this:</p>
+<p>After the environment is created, but before reset, call the<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>implementation), the code shown below will run an environment episode, and save the result of this episode in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.mujoco.envs</span> <span class="kn">import</span> <span class="n">MujocoEnv</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Hoopper-v3&#39;</span> <span class="p">}))</span>

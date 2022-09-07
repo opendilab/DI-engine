@@ -16,11 +16,11 @@ Install
 Installation Method
 --------------------
 
-install the gym and mujoco-py libraries, which can be installed by one-click pip or combined with DI-engine
+install the gym, mujoco and mujoco-py libraries, which can be installed by one-click pip or combined with DI-engine.
 
 Note:
 
-1. The mujoco-py library no longer requires an activation license( ``mujoco-py>=2.1.0`` ), you can install via \ `pip install free-mujoco-py <https://github.com/openai/mujoco-py/pull/640>`_ 
+1. The mujoco library is open-source and free to public, and thus no longer requires an activation license. You can use Deepmind's latest mujoco library, or use OpenAI's mujoco-py.
 
 2. If you install ``mujoco-py>=2.1.0``, you can do the following:
 
@@ -31,14 +31,21 @@ Note:
     wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz
     # Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.
     tar xvf mujoco210-linux-x86_64.tar.gz && mkdir -p ~/.mujoco && mv mujoco210 ~/.mujoco/mujoco210
+    # Add path
+    echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin" >> ~/.bashrc
+    source ~/.bashrc
     # Install and use mujoco-py
     pip install gym
     pip install -U 'mujoco-py<2.2,>=2.1'
+
     # Installation for macOS
     # Download the MuJoCo version 2.1 binaries for OSX.
     wget https://mujoco.org/download/mujoco210-macos-x86_64.tar.gz
     # Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.
     tar xvf mujoco210-macos-x86_64.tar.gz && mkdir -p ~/.mujoco && mv mujoco210 ~/.mujoco/mujoco210
+    # Add path
+    echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.mujoco/mjpro210/bin:~/.mujoco/mujoco210/bin" >> ~/.bashrc
+    source ~/.bashrc
     # Install and use mujoco-py
     pip install gym
     pip install -U 'mujoco-py<2.2,>=2.1'
@@ -67,6 +74,14 @@ Note:
     # Install and use mujoco-py
     pip install gym
     pip install -U 'mujoco-py<2.1'
+
+4. If you install ``mujoco>=2.2.0`` , you can do the following:
+
+.. code:: shell
+
+    # Install the MuJoCo version >=2.2.0
+    pip install mujoco
+    pip install gym
 
 Verify Installation
 --------------------
@@ -188,7 +203,7 @@ The Difference between Training and Testing Environments
 Store Video
 ------------
 
-After the environment is created, but before reset, call the\ ``enable_save_replay``\ method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call \ ``gym.wrapper.Monitor``\ implementation, depends on\ ``ffmpeg``\ ), the code shown below will run an environment episode, and save the result of this episode in the form\ ``./video/xxx.mp4``\ in a file like this:
+After the environment is created, but before reset, call the\ ``enable_save_replay``\ method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call \ ``gym.wrappers.RecordVideo``\ implementation), the code shown below will run an environment episode, and save the result of this episode in a folder \ ``./video/``\ :
 
 
 .. code:: python

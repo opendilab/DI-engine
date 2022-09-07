@@ -14,7 +14,7 @@ Install
 Installation Method
 --------------------
 
-The Pendulum environment is built into the gym, and you can install the gym directly. Its environment id is \ ``Pendulum-v0`` \.
+The Pendulum environment is built into the gym, and you can install the gym directly. Its environment id is \ ``Pendulum-v1`` \.
 
 .. code:: shell
 
@@ -28,7 +28,7 @@ Run the following Python program, if no error is reported, the installation is s
 .. code:: shell
 
     import gym
-    env = gym.make('Pendulum-v0')
+    env = gym.make('Pendulum-v1')
     obs = env.reset()
     print(obs)
 
