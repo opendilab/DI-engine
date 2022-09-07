@@ -3,7 +3,6 @@ from collections import namedtuple
 import torch
 import copy
 import numpy as np
-from torch.distributions import Independent, Normal
 
 from ding.torch_utils import Adam, to_device, unsqueeze, ContrastiveLoss
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
@@ -14,7 +13,6 @@ from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
-from ding.utils import dicts_to_lists, lists_to_dicts
 
 
 @POLICY_REGISTRY.register('ppo')
@@ -509,6 +507,14 @@ class PPOPGPolicy(Policy):
         eval=dict(),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.action_space == 'discrete':
+            return 'discrete_bc', ['ding.model.template.bc']
+        else:
+            return RuntimeError("PPOPGPolicy doesn't have default_model, please define your own model and pass it " +
+                                "into policy, you can refer to " +
+                                "dizoo/box2d/bipedalwalker/config/bipedalwalker_ppopg_config.py")
+
     def _init_learn(self) -> None:
         self._action_space = self._cfg.action_space
         if self._cfg.learn.ppo_param_init:
@@ -660,12 +666,6 @@ class PPOPGPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.action_space == 'continuous':
-            return 'continuous_bc', ['ding.model.template.bc']
-        elif self._cfg.action_space == 'discrete':
-            return 'discrete_bc', ['ding.model.template.bc']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
