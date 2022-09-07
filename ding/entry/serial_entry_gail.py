@@ -4,6 +4,7 @@ import torch
 from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
+from copy import deepcopy
 import numpy as np
 
 from ding.envs import get_vec_env_setting, create_env_manager
@@ -61,7 +62,7 @@ def serial_pipeline_gail(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     if isinstance(expert_cfg, str):
         expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:

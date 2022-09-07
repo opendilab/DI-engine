@@ -8,15 +8,18 @@ try:
 except ModuleNotFoundError:
     print("[WARNING] no gfootball env, if you want to use gfootball, please install it, otherwise, ignore it.")
 
-cfg_keeper=EasyDict(dict(
+cfg_keeper = EasyDict(dict(
     env_name='academy_3_vs_1_with_keeper',
     agent_num=3,
-    obs_dim=26,))
+    obs_dim=26,
+))
 
-cfg_counter=EasyDict(dict(
+cfg_counter = EasyDict(dict(
     env_name='academy_counterattack_hard',
     agent_num=4,
-    obs_dim=34,))
+    obs_dim=34,
+))
+
 
 @pytest.mark.envtest
 class TestGfootballAcademyEnv:
@@ -31,21 +34,21 @@ class TestGfootballAcademyEnv:
         print(env.observation_space, env._action_space, env.reward_space)
         pp = pprint.PrettyPrinter(indent=2)
         for i in range(2):
-            eps_len=0
-            # env.enable_save_replay(replay_path='./video')    
+            eps_len = 0
+            # env.enable_save_replay(replay_path='./video')
             reset_obs = env.reset()
             while True:
-                eps_len+=1
+                eps_len += 1
                 action = env.random_action()[0]
-                action = [int(action_agent) for k,action_agent in action.items()]
+                action = [int(action_agent) for k, action_agent in action.items()]
                 timestep = env.step(action)
                 obs = timestep.obs
                 reward = timestep.reward
                 done = timestep.done
                 # print('observation: ')
                 # pp.pprint(obs)
-                assert obs['agent_state'].shape == (cfg.agent_num,cfg.obs_dim)
-                assert obs['global_state'].shape == (cfg.agent_num,cfg.obs_dim*2)
+                assert obs['agent_state'].shape == (cfg.agent_num, cfg.obs_dim)
+                assert obs['global_state'].shape == (cfg.agent_num, cfg.obs_dim * 2)
                 assert obs['action_mask'].shape == (cfg.agent_num, 19)
 
                 print('step {}, action: {}, reward: {}'.format(eps_len, action, reward))
@@ -61,20 +64,20 @@ class TestGfootballAcademyEnv:
         print(env.observation_space, env._action_space, env.reward_space)
         pp = pprint.PrettyPrinter(indent=2)
         for i in range(2):
-            eps_len=0
+            eps_len = 0
             reset_obs = env.reset()
             while True:
-                eps_len+=1
+                eps_len += 1
                 action = env.random_action()[0]
-                action = [int(action_agent) for k,action_agent in action.items()]
+                action = [int(action_agent) for k, action_agent in action.items()]
                 timestep = env.step(action)
                 obs = timestep.obs
                 reward = timestep.reward
                 done = timestep.done
                 # print('observation: ')
                 # pp.pprint(obs)
-                assert obs['agent_state'].shape == (cfg.agent_num,cfg.obs_dim)
-                assert obs['global_state'].shape == (cfg.agent_num,cfg.obs_dim*2)
+                assert obs['agent_state'].shape == (cfg.agent_num, cfg.obs_dim)
+                assert obs['global_state'].shape == (cfg.agent_num, cfg.obs_dim * 2)
                 assert obs['action_mask'].shape == (cfg.agent_num, 19)
 
                 print('step {}, action: {}, reward: {}'.format(eps_len, action, reward))

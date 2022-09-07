@@ -10,8 +10,6 @@ cartpole_trex_offppo_config = dict(
     ),
     reward_model=dict(
         type='trex',
-        algo_for_model='ppo',
-        env_id='CartPole-v0',
         min_snippet_length=5,
         max_snippet_length=100,
         checkpoint_min=0,
@@ -21,7 +19,7 @@ cartpole_trex_offppo_config = dict(
         update_per_collect=1,
         expert_model_path='abs model path',
         reward_model_path='abs data path + ./cartpole.params',
-        offline_data_path='abs data path',
+        data_path='abs data path',
     ),
     policy=dict(
         cuda=False,

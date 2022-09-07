@@ -4,6 +4,7 @@ from dizoo.board_games.gomoku.envs.gomoku_env import GomokuEnv
 
 @pytest.mark.envtest
 class TestGomokuEnv:
+
     def test_naive(self):
         env = GomokuEnv()
         obs = env.reset()

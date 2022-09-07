@@ -62,7 +62,6 @@ hopper_onppo_create_config = dict(
 hopper_onppo_create_config = EasyDict(hopper_onppo_create_config)
 create_config = hopper_onppo_create_config
 
-
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c hopper_onppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy

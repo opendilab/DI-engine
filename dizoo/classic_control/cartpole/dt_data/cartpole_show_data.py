@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 from ding.config import read_config, compile_config
 from ding.utils.data import create_dataset
 
+
 def train(args):
     config = [main_config, create_config]
     input_cfg = config
@@ -21,7 +22,6 @@ def train(args):
     dataset = create_dataset(cfg)
     print(dataset.__len__())
 
-
     # print(dataset.__getitem__(0))
     print(dataset.__getitem__(0)[0]['action'])
 
@@ -30,7 +30,9 @@ def train(args):
     #     episode_action.append(dataset.__getitem__(0)[i]['action'])
 
     # stacked action of the first collected episode
-    episode_action = torch.stack([dataset.__getitem__(0)[i]['action'] for i in range(dataset.__getitem__(0).__len__())], axis=0)
+    episode_action = torch.stack(
+        [dataset.__getitem__(0)[i]['action'] for i in range(dataset.__getitem__(0).__len__())], axis=0
+    )
 
     # dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
     # for i, train_data in enumerate(dataloader):

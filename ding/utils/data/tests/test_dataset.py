@@ -9,11 +9,10 @@ cfg1 = dict(policy=dict(collect=dict(
     data_path='./expert.pkl',
 ), ))
 
-cfg2 = dict(policy=dict(collect=dict(
-    data_type='hdf5',
-    data_path='./expert_demos.hdf5',
-    normalize_states=True,
-), ))
+cfg2 = dict(
+    env=dict(norm_obs=dict(use_norm=True, offline_stats=dict(use_offline_stats=True))),
+    policy=dict(collect=dict(data_type='hdf5', data_path='./expert_demos.hdf5')),
+)
 
 cfg3 = dict(env=dict(env_id='hopper-expert-v0'), policy=dict(collect=dict(data_type='d4rl', ), ))
 

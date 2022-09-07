@@ -663,6 +663,11 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
                 d = d.reshape(T, B, *d.shape[1:])
             return d
 
+        # NOTE(rjy): the initial input shape will be (T, B, N),
+        #            means encoder or head should process B trajectorys, each trajectory has T timestep,
+        #            but T and B dimension can be both treated as batch_size in encoder and head,
+        #            i.e., independent and parallel processing,
+        #            so here we need such fn to reshape for encoder or head
         x = x.reshape(T * B, *x.shape[2:])
         x = forward_fn(x)
         x = reshape(x)
@@ -792,6 +797,7 @@ class DRQN(nn.Module):
         x, prev_state = inputs['obs'], inputs['prev_state']
         # for both inference and other cases, the network structure is encoder -> rnn network -> head
         # the difference is inference take the data with seq_len=1 (or T = 1)
+        # NOTE(rjy): in most situations, set inference=True when evaluate and inference=False when training
         if inference:
             x = self.encoder(x)
             if self.res_link:
@@ -806,16 +812,25 @@ class DRQN(nn.Module):
             x['next_state'] = next_state
             return x
         else:
+            # In order to better explain why rnn needs saved_state and which states need to be stored,
+            # let's take r2d2 as an example
+            # in r2d2,
+            # 1) data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
+            # 2) data['main_obs'] = data['obs'][bs:-self._nstep]
+            # 3) data['target_obs'] = data['obs'][bs + self._nstep:]
+            # NOTE(rjy): (T, B, N) or (T, B, C, H, W)
             assert len(x.shape) in [3, 5], x.shape
             x = parallel_wrapper(self.encoder)(x)  # (T, B, N)
             if self.res_link:
                 a = x
+            # NOTE(rjy) lstm_embedding stores all hidden_state
             lstm_embedding = []
             # TODO(nyz) how to deal with hidden_size key-value
             hidden_state_list = []
             if saved_state_timesteps is not None:
                 saved_state = []
             for t in range(x.shape[0]):  # T timesteps
+                # NOTE(rjy) use x[t:t+1] but not x[t] can keep original dimension
                 output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
                 if saved_state_timesteps is not None and t + 1 in saved_state_timesteps:
                     saved_state.append(prev_state)
@@ -827,14 +842,18 @@ class DRQN(nn.Module):
             if self.res_link:
                 x = x + a
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
+            # NOTE(rjy): x['next_state'] is the hidden state of the last timestep inputted to lstm
             # the last timestep state including the hidden state (h) and the cell state (c)
             # shape: {list: B{dict: 2{Tensor:(1, 1, head_hidden_size}}}
             x['next_state'] = prev_state
             # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
             # This key is used in qtran, the algorithm requires to retain all h_{t} during training
-            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
+            x['hidden_state'] = torch.cat(hidden_state_list, dim=0)
             if saved_state_timesteps is not None:
                 # the selected saved hidden states, including the hidden state (h) and the cell state (c)
+                # in r2d2, set 'saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]',
+                # then saved_state will record the hidden_state for main_obs and target_obs to
+                # initialize their lstm (h c)
                 x['saved_state'] = saved_state
             return x
 

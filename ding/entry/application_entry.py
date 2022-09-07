@@ -1,9 +1,10 @@
 from typing import Union, Optional, List, Any, Tuple
+import os
 import pickle
 import numpy as np
 import torch
 from functools import partial
-import os
+from copy import deepcopy
 
 from ding.config import compile_config, read_config
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, EpisodeSerialCollector
@@ -43,7 +44,7 @@ def eval(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, save_path='eval_config.py'
@@ -106,7 +107,7 @@ def collect_demo_data(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg,
@@ -190,7 +191,7 @@ def collect_episodic_demo_data(
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = deepcopy(input_cfg)
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(
         cfg,

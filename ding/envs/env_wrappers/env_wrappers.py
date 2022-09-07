@@ -616,6 +616,47 @@ class ObsNormWrapper(gym.ObservationWrapper):
         return self.observation(observation)
 
 
+@ENV_WRAPPER_REGISTRY.register('static_obs_norm')
+class StaticObsNormWrapper(gym.ObservationWrapper):
+    """
+    Overview:
+       Normalize observations according to the mean and std in the fixed dataset.
+    Interface:
+        ``__init__``, ``observation``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+
+        - ``mean``, ``std``, ``clip_range``
+    """
+
+    def __init__(self, env, mean, std):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \
+                setup the properties according to dataset mean and std.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+            - mean (:obj:`numpy.ndarray`): the mean of observation in the dataset.
+            - std (:obj:`numpy.ndarray`): the standard deviation of observation in the dataset.
+        """
+        super().__init__(env)
+        self.mean = mean
+        self.std = std
+        self.clip_range = (-3, 3)
+
+    def observation(self, observation):
+        """
+        Overview:
+            Get obeservation
+        Arguments:
+            - observation (:obj:`Any`): Original observation
+        Returns:
+            - observation (:obj:`Any`): Normalized new observation
+
+        """
+        return np.clip((observation - self.mean) / self.std, self.clip_range[0], self.clip_range[1])
+
+
 @ENV_WRAPPER_REGISTRY.register('reward_norm')
 class RewardNormWrapper(gym.RewardWrapper):
     """

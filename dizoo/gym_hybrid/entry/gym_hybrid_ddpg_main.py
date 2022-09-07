@@ -31,12 +31,10 @@ def main(cfg, seed=0):
     # You can either use `PendulumEnv` or `DingEnvWrapper` to make a pendulum env and therefore an env manager.
     # == Use `DingEnvWrapper`
     collector_env = BaseEnvManager(
-        env_fn=[lambda: GymHybridEnv(cfg=cfg.env) for _ in range(collector_env_num)],
-        cfg=cfg.env.manager
+        env_fn=[lambda: GymHybridEnv(cfg=cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
     )
     evaluator_env = BaseEnvManager(
-        env_fn=[lambda: GymHybridEnv(cfg=cfg.env) for _ in range(evaluator_env_num)],
-        cfg=cfg.env.manager
+        env_fn=[lambda: GymHybridEnv(cfg=cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
     )
 
     # Set random seed for all package and instance
@@ -84,8 +82,7 @@ def main(cfg, seed=0):
 
     # evaluate
     evaluator_env = BaseEnvManager(
-        env_fn=[lambda: GymHybridEnv(cfg=cfg.env) for _ in range(evaluator_env_num)],
-        cfg=cfg.env.manager
+        env_fn=[lambda: GymHybridEnv(cfg=cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
     )
     evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
     evaluator = InteractionSerialEvaluator(
