@@ -569,3 +569,20 @@ def make_key_as_identifier(data: Dict[str, Any]) -> Dict[str, Any]:
         new_k = legalization(k)
         new_data[new_k] = data[k]
     return new_data
+
+
+def remove_illegal_item(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Overview:
+        Remove illegal item in dict info, like str, which is not compatible with Tensor.
+    Arguments:
+        - data (:obj:`Dict[str, Any]`): The original dict data.
+    Return:
+        - new_data (:obj:`Dict[str, Any]`): The new dict data without legal items.
+    """
+    new_data = {}
+    for k, v in data.items():
+        if isinstance(v, str):
+            continue
+        new_data[k] = data[k]
+    return new_data

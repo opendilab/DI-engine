@@ -1,12 +1,13 @@
 # general
 from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN
-from .qac import QAC, DiscreteQAC
+from .qac import QAC, QACPixel, DiscreteQAC
 from .pdqn import PDQN
 from .vac import VAC
 from .bc import DiscreteBC, ContinuousBC
 # algorithm-specific
 from .ppg import PPG
-from .qmix import Mixer, QMix, CollaQ
+from .qmix import Mixer, QMix
+from .collaq import CollaQ
 from .wqmix import WQMix
 from .coma import COMA
 from .atoc import ATOC

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-collector_env_num=8
-evaluator_env_num=5
+collector_env_num = 8
+evaluator_env_num = 5
 spaceinvaders_r2d2_residual_config = dict(
     exp_name='spaceinvaders_r2d2_residual_link_seed0',
     env=dict(
@@ -9,7 +9,8 @@ spaceinvaders_r2d2_residual_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='SpaceInvadersNoFrameskip-v4',
+        env_id='SpaceInvaders-v4',
+        #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),

@@ -17,7 +17,8 @@ from easydict import EasyDict
 from types import MethodType
 
 from ding.envs.env import BaseEnvTimestep
-from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY, make_key_as_identifier
+from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY, make_key_as_identifier, \
+    remove_illegal_item
 from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
 
 _NTYPE_TO_CTYPE = {
@@ -953,5 +954,6 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             # make the type and content of key as similar as identifier,
             # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
             info = make_key_as_identifier(info)
+            info = remove_illegal_item(info)
             new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
         return new_data

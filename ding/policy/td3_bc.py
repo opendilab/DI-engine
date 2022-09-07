@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Tuple, Union
+from easydict import EasyDict
 from collections import namedtuple
 import torch
 import torch.nn.functional as F
@@ -157,8 +158,6 @@ class TD3BCPolicy(DDPGPolicy):
             unroll_len=1,
             # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
-            # (bool) Whether to normalize the features of every state in the provided dataset.
-            normalize_states=True,
         ),
         eval=dict(
             evaluator=dict(
@@ -318,8 +317,6 @@ class TD3BCPolicy(DDPGPolicy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self.cfg.collect.normalize_states:
-            data = (data - self._mean) / self._std
         if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
@@ -329,16 +326,3 @@ class TD3BCPolicy(DDPGPolicy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def set_norm_statistics(self, mean: float, std: float) -> None:
-        r"""
-        Overview:
-            Set (mean, std) for state normalization.
-        Arguments:
-            - mean (:obj:`float`): Float type data, the mean of state in offlineRL dataset.
-            - std (:obj:`float`): Float type data, the std of state in offlineRL dataset.
-        Returns:
-            - None
-        """
-        self._mean = mean
-        self._std = std

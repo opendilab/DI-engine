@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-n_agent = 5
+n_agent = 3
 n_landmark = n_agent
 collector_env_num = 8
 evaluator_env_num = 8
@@ -11,7 +11,7 @@ main_config = dict(
         env_id='simple_spread_v2',
         n_agent=n_agent,
         n_landmark=n_landmark,
-        max_cycles=100,
+        max_cycles=25,
         agent_obs_only=False,
         agent_specific_global_state=True,
         continuous_actions=False,
@@ -29,7 +29,8 @@ main_config = dict(
         random_collect_size=0,
         model=dict(
             agent_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
-            global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
+            global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
+            n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
             # SAC concerned
             twin_critic=True,
@@ -48,11 +49,11 @@ main_config = dict(
             learning_rate_alpha=5e-5,
             target_theta=0.005,
             discount_factor=0.99,
-
             alpha=0.2,
             auto_alpha=True,
             log_space=True,
             ignore_down=False,
+            target_entropy=-2,
         ),
         collect=dict(
             n_sample=1600,
@@ -66,20 +67,20 @@ main_config = dict(
         ),
         other=dict(
             eps=dict(
-            type='linear',
-            start=1,
-            end=0.05,
-            decay=100000,
-        ),
-            replay_buffer=dict(replay_buffer_size=int(1e6),)
+                type='linear',
+                start=1,
+                end=0.05,
+                decay=100000,
             ),
+            replay_buffer=dict(replay_buffer_size=int(1e6), )
+        ),
     ),
 )
 
 main_config = EasyDict(main_config)
 create_config = dict(
     env=dict(
-        import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
+        import_names=['dizoo.petting_zoo.envs.petting_zoo_simple_spread_env'],
         type='petting_zoo',
     ),
     env_manager=dict(type='subprocess'),

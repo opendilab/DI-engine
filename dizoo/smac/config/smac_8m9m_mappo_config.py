@@ -72,9 +72,7 @@ main_config = dict(
         ),
         collect=dict(env_num=collector_env_num, n_sample=3200),
         eval=dict(
-            evaluator=dict(
-                eval_freq=100,
-            ),
+            evaluator=dict(eval_freq=100, ),
             env_num=evaluator_env_num,
         ),
     ),
@@ -89,7 +87,6 @@ create_config = dict(
     policy=dict(type='ppo'),
 )
 create_config = EasyDict(create_config)
-
 
 if __name__ == '__main__':
 

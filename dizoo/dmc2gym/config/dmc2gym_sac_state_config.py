@@ -1,20 +1,20 @@
 from easydict import EasyDict
 
 dmc2gym_sac_config = dict(
-    exp_name='dmc2gym_sac_seed0',
+    exp_name='dmc2gym_sac_state_seed0',
     env=dict(
         env_id='dmc2gym-v0',
         domain_name="cartpole",
         task_name="swingup",
-        frame_skip=2,
-        from_pixels=False,
-        channels_first=True,  # obs shape (3, height, width) if True
-        collector_env_num=1,
+        frame_skip=8,
+        frame_stack=1,
+        from_pixels=False,  # state obs
+        channels_first=False,  # obs shape (height, width, 3)
+        collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=1e6,
-        replay_path='./dmc2gym_cartpole_swingup_state_sac_eval/video',
-        # limit_time = None,    # default 10 (s)
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         model_type='state',
@@ -30,17 +30,17 @@ dmc2gym_sac_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
+            ignore_done=True,
             update_per_collect=1,
             batch_size=256,
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
             learning_rate_alpha=3e-4,
-            ignore_done=False,
             target_theta=0.005,
             discount_factor=0.99,
             alpha=0.2,
             reparameterization=True,
-            auto_alpha=False,
+            auto_alpha=True,
         ),
         collect=dict(
             n_sample=1,
@@ -70,6 +70,10 @@ dmc2gym_sac_create_config = dict(
 dmc2gym_sac_create_config = EasyDict(dmc2gym_sac_create_config)
 create_config = dmc2gym_sac_create_config
 
+# if __name__ == "__main__":
+#     # or you can enter `ding -m serial -c dmc2gym_sac_state_config.py -s 0`
+#     from ding.entry import serial_pipeline
+#     serial_pipeline([main_config, create_config], seed=0)
 
 # if __name__ == "__main__":
 #     # or you can enter `ding -m serial -c dmc2gym_sac_config.py -s 0`
@@ -87,9 +91,11 @@ if __name__ == "__main__":
     import argparse
     from ding.entry import serial_pipeline
 
-    for seed in [0,1,2]:
+    for seed in [0, 1, 2]:
         parser = argparse.ArgumentParser()
         parser.add_argument('--seed', '-s', type=int, default=seed)
         args = parser.parse_args()
 
-        train(args)
+        main_config.exp_name = 'dmc2gym_sac_state' + 'seed' + f'{args.seed}'
+        serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed,
+                        max_env_step=int(3e6))

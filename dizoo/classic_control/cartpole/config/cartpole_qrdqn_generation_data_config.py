@@ -26,11 +26,7 @@ cartpole_qrdqn_generation_data_config = dict(
             # this prefix should be the same as exp_name
             save_path='./cartpole_qrdqn_generation_data_seed0/expert.pkl',
         ),
-        other=dict(
-            eps=dict(
-                collect=0.2,
-            ),
-        ),
+        other=dict(eps=dict(collect=0.2, ), ),
     ),
 )
 cartpole_qrdqn_generation_data_config = EasyDict(cartpole_qrdqn_generation_data_config)
@@ -49,4 +45,6 @@ create_config = cartpole_qrdqn_generation_data_create_config
 if __name__ == "__main__":
     from ding.entry import collect_demo_data
     cfg = main_config.policy.collect
-    collect_demo_data((main_config, create_config), seed=0, collect_count=cfg.collect_count, state_dict_path=cfg.model_path)
+    collect_demo_data(
+        (main_config, create_config), seed=0, collect_count=cfg.collect_count, state_dict_path=cfg.model_path
+    )
