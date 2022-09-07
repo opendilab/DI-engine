@@ -511,9 +511,10 @@ class PPOPGPolicy(Policy):
         if self._cfg.action_space == 'discrete':
             return 'discrete_bc', ['ding.model.template.bc']
         else:
-            return RuntimeError("PPOPGPolicy doesn't have default_model, please define your own model and pass it " +
-                                "into policy, you can refer to " +
-                                "dizoo/box2d/bipedalwalker/config/bipedalwalker_ppopg_config.py")
+            return RuntimeError(
+                "PPOPGPolicy doesn't have default_model, please define your own model and pass it " +
+                "into policy, you can refer to " + "dizoo/box2d/bipedalwalker/config/bipedalwalker_ppopg_config.py"
+            )
 
     def _init_learn(self) -> None:
         self._action_space = self._cfg.action_space
