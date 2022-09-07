@@ -852,7 +852,7 @@ class DRQN(nn.Module):
             if saved_state_timesteps is not None:
                 # the selected saved hidden states, including the hidden state (h) and the cell state (c)
                 # in r2d2, set 'saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]',
-                # then saved_state will record the hidden_state for main_obs and target_obs to 
+                # then saved_state will record the hidden_state for main_obs and target_obs to
                 # initialize their lstm (h c)
                 x['saved_state'] = saved_state
             return x
