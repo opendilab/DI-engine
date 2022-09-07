@@ -32,10 +32,10 @@
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
-Updated on 2022.08.14 DI-engine-v0.4.1
+Updated on 2022.09.08 DI-engine-v0.4.2
 
 
-## Introduction to DI-engine (beta)
+## Introduction to DI-engine
 [DI-engine doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
 
 **DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** ([link](https://di-engine-docs.readthedocs.io/en/latest/12_policies/index.html)):
@@ -78,13 +78,13 @@ Have fun with exploration and exploitation.
 
 ## Outline
 
-- [Introduction to DI-engine (beta)](#introduction-to-di-engine-beta)
+- [Introduction to DI-engine](#introduction-to-di-engine)
 - [Outline](#outline)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Feature](#feature)
-  - [Algorithm Versatility](#algorithm-versatility)
-  - [Environment Versatility](#environment-versatility)
+  - [&#8627; Algorithm Versatility](#algorithm-versatility)
+  - [&#8627; Environment Versatility](#environment-versatility)
 - [Feedback and Contribution](#feedback-and-contribution)
 - [Supporters](#supporters)
   - [&#8627; Stargazers](#-stargazers)
