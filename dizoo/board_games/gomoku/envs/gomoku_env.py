@@ -53,12 +53,18 @@ class GomokuEnv(BaseGameEnv):
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         action_mask = np.zeros(self.total_num_actions, 'int8')
         action_mask[self.legal_actions] = 1
-        obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.to_play}
+        if self.battle_mode == 'two_player_mode':
+            obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': self.current_player}
+        else:
+            obs = {'observation': self.current_state(), 'action_mask': action_mask, 'to_play': None}
         return obs
 
     def step(self, action):
         if self.battle_mode == 'two_player_mode':
+            if np.random.rand() < self.prob_random_agent:
+                action = self.random_action()
             timestep = self._player_step(action)
+            # print(self.board)
             return timestep
         elif self.battle_mode == 'one_player_mode':
             # player 1 battle with expert player 2
@@ -296,7 +302,7 @@ class GomokuEnv(BaseGameEnv):
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
         evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
-        # NOTE
+        # NOTE: when in eval phase, we use 'one_player_mode' to evaluate the current agent with bot
         cfg.battle_mode = 'one_player_mode'
         return [cfg for _ in range(evaluator_env_num)]
 

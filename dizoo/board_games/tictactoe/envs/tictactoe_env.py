@@ -20,6 +20,8 @@ class TicTacToeEnv(BaseGameEnv):
         self.board_size = 3
         self.players = [1, 2]
         self.total_num_actions = 9
+        self.prob_random_agent = cfg.prob_random_agent
+        # self.prob_random_agent = 0.1
 
     @property
     def current_player(self):
@@ -55,8 +57,10 @@ class TicTacToeEnv(BaseGameEnv):
 
     def step(self, action):
         if self.battle_mode == 'two_player_mode':
+            if np.random.rand() < self.prob_random_agent:
+                action = self.random_action()
             timestep = self._player_step(action)
-            # self.board
+            # print(self.board)
             return timestep
         elif self.battle_mode == 'one_player_mode':
             # player 1 battle with expert player 2
@@ -331,6 +335,7 @@ class TicTacToeEnv(BaseGameEnv):
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
         evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
+        # NOTE: when in eval phase, we use 'one_player_mode' to evaluate the current agent with bot
         cfg.battle_mode = 'one_player_mode'
         return [cfg for _ in range(evaluator_env_num)]
 

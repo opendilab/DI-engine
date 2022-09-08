@@ -2,32 +2,37 @@ from easydict import EasyDict
 from dizoo.board_games.gomoku.config.gomoku_config import game_config
 
 # debug
-# collector_env_num = 1
-# evaluator_env_num = 1
+# collector_env_num = 2
+# evaluator_env_num = 2
 
 collector_env_num = 8
 evaluator_env_num = 3
 board_size = 6  # default_size is 15
 
 gomoku_efficientzero_config = dict(
-    exp_name='data_ez_ptree/gomoku_1pl_efficientzero_seed0',
+    exp_name='data_ez_ptree/gomoku_2pm_efficientzero_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
-        stop_value=2,
-        # 'one_player_mode' when eval, 'two_player_mode' when collect
-        # automatically assign in tictactoe env
+        stop_value=1,
         board_size=board_size,  # default_size is 15
-        # battle_mode='two_player_mode',
-        battle_mode='one_player_mode',
+        # 'one_player_mode' when eval, 'two_player_mode' when collect
+        # automatically assign in gomoku env
+        battle_mode='two_player_mode',
+        # prob_random_agent=0.1,
+        prob_random_agent=0.,
+        # battle_mode='one_player_mode',
+        manager=dict(shared_memory=False, ),
+        max_episode_steps=int(1.08e5),
+        collect_max_episode_steps=int(1.08e4),
+        eval_max_episode_steps=int(1.08e5),
     ),
     policy=dict(
         # pretrained model
-        model_path='/Users/puyuan/code/DI-engine/data_ez_ptree/gomoku_1pl_efficientzero_seed0/ckpt/ckpt_best.pth.tar',
-        # model_path=None,
-
-        env_name='conv_res',
+        # model_path='/Users/puyuan/code/DI-engine/data_ez_ptree/gomoku_1pl_efficientzero_seed0/ckpt/ckpt_best.pth.tar',
+        model_path=None,
+        env_name='gomoku',
         # TODO(pu): how to pass into game_config, which is class, not a dict
         # game_config=game_config,
         # Whether to use cuda for network.
@@ -62,13 +67,17 @@ gomoku_efficientzero_config = dict(
             # debug
             # update_per_collect=2,
             # batch_size=4,
+            batch_size=512,
 
             # one_player_mode, board_size=6, episode_length=6**2/2=18
             # collector_env_num=8,  update_per_collect=18*8=144
-            update_per_collect=int(board_size**2/2*collector_env_num),
-            batch_size=256,
+            # update_per_collect=int(board_size**2/2*collector_env_num),
 
-            learning_rate=0.2,
+            # two_player_mode, board_size=6, episode_length=6**2=36
+            # collector_env_num=8,  update_per_collect=36*8=268
+            update_per_collect=int(board_size ** 2 * collector_env_num),
+
+            learning_rate=0.002,
             # Frequency of target network update.
             target_update_freq=400,
         ),
@@ -79,7 +88,7 @@ gomoku_efficientzero_config = dict(
             n_episode=collector_env_num,
         ),
         # the eval cost is expensive, so we set eval_freq larger
-        eval=dict(evaluator=dict(eval_freq=int(2e3), )),
+        eval=dict(evaluator=dict(eval_freq=int(5e3), )),
         # command_mode config
         other=dict(
             # Epsilon greedy with decay.
@@ -91,7 +100,7 @@ gomoku_efficientzero_config = dict(
                 decay=int(5e4),
             ),
             # the replay_buffer_size is ineffective, we specify it in game config
-            replay_buffer=dict(replay_buffer_size=int(1e5), type='game')
+            replay_buffer=dict(replay_buffer_size=int(1e4), type='game')
         ),
     ),
 )
@@ -104,6 +113,7 @@ gomoku_efficientzero_create_config = dict(
         import_names=['dizoo.board_games.gomoku.envs.gomoku_env'],
     ),
     env_manager=dict(type='base'),
+    # env_manager=dict(type='subprocess'),
     policy=dict(type='efficientzero'),
     collector=dict(type='episode_muzero', get_train_sample=True)
 )

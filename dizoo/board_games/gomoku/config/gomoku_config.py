@@ -6,16 +6,16 @@ board_size = 6  # default_size is 15
 game_config = EasyDict(dict(
     env_name='gomoku',
     model_type='board_game',
-    # device='cuda',
-    device='cpu',
+    device='cuda',
+    # device='cpu',
     # TODO: mcts_ctree now only support env_num=1, because in cpp MCTS root node,
     #  we must specify the one same action mask,
     #  when env_num>1, the action mask for different env may be different.
     mcts_ctree=False,
-    # battle_mode='two_player_mode',
-    # game_history_length=36,
-    battle_mode='one_player_mode',
-    game_history_length=18,
+    battle_mode='two_player_mode',
+    game_history_length=36,
+    # battle_mode='one_player_mode',
+    # game_history_length=18,
     image_based=False,
     cvt_string=False,
     clip_reward=True,
@@ -41,9 +41,9 @@ game_config = EasyDict(dict(
     # num_simulations=2,
     # batch_size=4,
     # total_transitions=int(1e5),
-    # num_unroll_steps=5,
     # td_steps=5,
     # lstm_hidden_size=64,
+    # num_unroll_steps=5,
     # lstm_horizon_len=5,
 
     collector_env_num=8,
@@ -51,18 +51,19 @@ game_config = EasyDict(dict(
     max_episode_steps=int(1.08e5),
     test_max_episode_steps=int(1.08e5),
     num_simulations=50,
-    batch_size=256,
+    batch_size=512,
     total_transitions=int(1e5),
-    num_unroll_steps=5,
-    td_steps=5,
     lstm_hidden_size=512,
+    td_steps=int(board_size * board_size),  # to make sure the value target is the final outcome
+    num_unroll_steps=5,
     lstm_horizon_len=5,
 
     # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
 
     # TODO(pu): why not use adam?
-    lr_manually=True,
+    # lr_manually=True,
+    lr_manually=False,  # use fixed lr
 
     # TODO(pu): if true, no priority to sample
     use_max_priority=True,    # if true, sample without priority
@@ -121,10 +122,13 @@ game_config = EasyDict(dict(
     frame_skip=4,
     frame_stack_num=4,
     # coefficient
-    reward_loss_coeff=1,
+    # TODO(pu): test the effect of value_prefix_loss and consistency_loss
+    # reward_loss_coeff=1,  # value_prefix_loss
+    reward_loss_coeff=0,  # value_prefix_loss
     value_loss_coeff=0.25,
     policy_loss_coeff=1,
-    consistency_coeff=2,
+    # consistency_coeff=2,
+    consistency_coeff=0,
 
     bn_mt=0.1,
     # siamese

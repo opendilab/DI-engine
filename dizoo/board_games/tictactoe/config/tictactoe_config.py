@@ -5,6 +5,7 @@ game_config = EasyDict(dict(
     env_name='tictactoe',
     model_type='board_game',
     device='cuda',
+    # debug
     # device='cpu',
     mcts_ctree=False,
     # TODO: mcts_ctree now only support env_num=1, because in cpp MCTS root node,
@@ -21,12 +22,17 @@ game_config = EasyDict(dict(
     action_space_size=int(3 * 3),
     amp_type='none',
     obs_shape=(12, 3, 3),  # if frame_stack_num=4
+    frame_stack_num=4,
+    # obs_shape=(3, 3, 3),  # if frame_stack_num=1
+    # frame_stack_num=1,
+
     image_channel=3,
     gray_scale=False,
     downsample=False,
     vis_result=True,
     # TODO(pu): test the effect of augmentation
     use_augmentation=True,
+    # use_augmentation=False,
     # Style of augmentation
     # choices=['none', 'rrc', 'affine', 'crop', 'blur', 'shift', 'intensity']
     augmentation=['shift', 'intensity'],
@@ -36,32 +42,37 @@ game_config = EasyDict(dict(
     # evaluator_env_num=2,
     # num_simulations=5,
     # batch_size=5,
-    # total_transitions=int(1e5),
-    # num_unroll_steps=3,
-    # td_steps=2,
+    # total_transitions=int(3e3),
     # lstm_hidden_size=64,
-    # lstm_horizon_len=4,
+    # td_steps=2,
+    # num_unroll_steps=3,
+    # lstm_horizon_len=3,
 
     collector_env_num=8,
     evaluator_env_num=5,
     num_simulations=25,
-    batch_size=256,
-    total_transitions=int(1e5),
-    num_unroll_steps=3,
-    td_steps=2,
+    # batch_size=256,
+    batch_size=64,
+    # total_transitions=int(1e5),
+    total_transitions=int(3e3),
     lstm_hidden_size=64,
+    # td_steps=2,
+    # to make sure the value target is the final outcome
+    td_steps=9,
+    num_unroll_steps=3,
     lstm_horizon_len=3,
 
     # TODO(pu): why 0.99?
     revisit_policy_search_rate=0.99,
 
     # TODO(pu): why not use adam?
-    lr_manually=True,
+    # lr_manually=True,
+    lr_manually=False,
 
     # TODO(pu): if true, no priority to sample
-    use_max_priority=True,    # if true, sample without priority
+    use_max_priority=True,  # if true, sample without priority
     # use_max_priority=False,
-    use_priority=True,
+    use_priority=False,
 
     # TODO(pu): only used for adjust temperature manually
     max_training_steps=int(1e5),
@@ -97,7 +108,6 @@ game_config = EasyDict(dict(
     reward_support=DiscreteSupport(-10, 10, delta=1),
     max_grad_norm=10,
 
-
     test_interval=10000,
     log_interval=1000,
     vis_interval=1000,
@@ -114,19 +124,25 @@ game_config = EasyDict(dict(
     transition_num=1,
     # frame skip & stack observation
     frame_skip=4,
-    frame_stack_num=4,
     # coefficient
-    reward_loss_coeff=1,
+    # TODO(pu): test the effect of value_prefix_loss and consistency_loss
+    # reward_loss_coeff=1,  # value_prefix_loss
+    reward_loss_coeff=0,  # value_prefix_loss
     value_loss_coeff=0.25,
     policy_loss_coeff=1,
-    consistency_coeff=2,
+    # consistency_coeff=2,
+    consistency_coeff=0,
 
     bn_mt=0.1,
     # siamese
-    proj_hid=128,
-    proj_out=128,
-    pred_hid=64,
-    pred_out=128,
+    # proj_hid=128,
+    # proj_out=128,
+    # pred_hid=64,
+    # pred_out=128,
+    proj_hid=32,
+    proj_out=32,
+    pred_hid=16,
+    pred_out=32,
 
     blocks=1,  # Number of blocks in the ResNet
     channels=16,  # Number of channels in the ResNet

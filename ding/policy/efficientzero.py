@@ -581,7 +581,10 @@ class EfficientZeroPolicy(Policy):
         Overview:
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
         """
-        self._eval_model = self._learn_model
+        # self._eval_model = self._learn_model
+        # TOOO(pu)
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+
         self._eval_model.reset()
         if self.game_config.mcts_ctree:
             self._mcts_eval = MCTSCtree(self.game_config)

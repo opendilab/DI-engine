@@ -24,7 +24,7 @@ class IModelWrapper(ABC):
     def __getattr__(self, key: str) -> Any:
         r"""
         Overview:
-            Get the attrbute in model.
+            Get the attribute in model.
         Arguments:
             - key (:obj:`str`): The key to query.
         Returns:

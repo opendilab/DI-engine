@@ -493,6 +493,7 @@ class MuZeroCollector(ISerialCollector):
                         'reward': reward,
                         'time': self._env_info[env_id]['time'],
                         'step': self._env_info[env_id]['step'],
+                        'visit_entropy': visit_entropies_lst[i] / eps_steps_lst[i],
                     }
                     collected_episode += 1
                     self._episode_info.append(info)
@@ -596,6 +597,7 @@ class MuZeroCollector(ISerialCollector):
             envstep_count = sum([d['step'] for d in self._episode_info])
             duration = sum([d['time'] for d in self._episode_info])
             episode_reward = [d['reward'] for d in self._episode_info]
+            visit_entropy = [d['visit_entropy'] for d in self._episode_info]
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -611,6 +613,7 @@ class MuZeroCollector(ISerialCollector):
                 'total_envstep_count': self._total_envstep_count,
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
+                'visit_entropy': np.mean(visit_entropy),
                 # 'each_reward': episode_reward,
             }
             self._episode_info.clear()

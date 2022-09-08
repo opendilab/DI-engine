@@ -454,7 +454,7 @@ class GameBuffer(Buffer):
         Arguments:
             - indices (:obj:`list`): transition index in replay buffer
             - games (:obj:`list`): list of game histories
-            - state_index_lst (:obj:`list`): list transition index in game
+            - state_index_lst (:obj:`list`): list of transition index in game_history
             - total_transitions (:obj:`int`): number of collected transitions
         """
         zero_obs = games[0].zero_obs()
@@ -472,11 +472,13 @@ class GameBuffer(Buffer):
             traj_len = len(game)
             traj_lens.append(traj_len)
 
-            # off-policy correction: shorter horizon of td steps
-            delta_td = (total_transitions - idx) // config.auto_td_steps
-
-            td_steps = config.td_steps - delta_td
-            td_steps = np.clip(td_steps, 1, 5).astype(np.int)
+            # for atari
+            # # off-policy correction: shorter horizon of td steps
+            # delta_td = (total_transitions - idx) // config.auto_td_steps
+            # td_steps = config.td_steps - delta_td
+            # td_steps = np.clip(td_steps, 1, 5).astype(np.int)
+            # TODO(pu):
+            td_steps = np.clip(config.td_steps, 1, max(1, traj_len-state_index)).astype(np.int)
 
             # prepare the corresponding observations for bootstrapped values o_{t+k}
             # o[t+ td_steps, t + td_steps + stack frames + num_unroll_steps]
