@@ -172,14 +172,16 @@ class TrajBuffer(list):
         __init__, append
     """
 
-    def __init__(self, maxlen: int, *args, **kwargs) -> None:
+    def __init__(self, maxlen: int, *args, deepcopy: bool = False, **kwargs) -> None:
         """
         Overview:
             Initialization trajBuffer.
         Arguments:
             - maxlen (:obj:`int`): The maximum length of trajectory buffer.
+            - deepcopy (:obj:`bool`): Whether to deepcopy data when do operation.
         """
         self._maxlen = maxlen
+        self._deepcopy = deepcopy
         super().__init__(*args, **kwargs)
 
     def append(self, data: Any) -> None:
@@ -190,6 +192,8 @@ class TrajBuffer(list):
         if self._maxlen is not None:
             while len(self) >= self._maxlen:
                 del self[0]
+        if self._deepcopy:
+            data = copy.deepcopy(data)
         super().append(data)
 
 
@@ -211,9 +215,10 @@ def to_tensor_transitions(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     if 'next_obs' not in data[0]:
         return to_tensor(data, transform_scalar=False)
     else:
-        # for save memory
+        # for save memory of next_obs
         data = to_tensor(data, transform_scalar=False)
-#         for i in range(len(data) - 1):
-#             data[i]['next_obs'] = data[i + 1]['obs']
-#         data[-1]['next_obs'] = to_tensor(data[-1]['next_obs'], transform_scalar=False)
+        data = to_tensor(data, ignore_keys=['next_obs'], transform_scalar=False)
+        for i in range(len(data) - 1):
+            data[i]['next_obs'] = data[i + 1]['obs']
+        data[-1]['next_obs'] = to_tensor(data[-1]['next_obs'], transform_scalar=False)
         return data

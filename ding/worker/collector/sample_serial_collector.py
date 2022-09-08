@@ -1,6 +1,7 @@
 from typing import Optional, Any, List
 from collections import namedtuple
 from easydict import EasyDict
+import copy
 import numpy as np
 import torch
 
@@ -46,7 +47,7 @@ class SampleSerialCollector(ISerialCollector):
         self._exp_name = exp_name
         self._instance_name = instance_name
         self._collect_print_freq = cfg.collect_print_freq
-        self._deepcopy_obs = cfg.deepcopy_obs
+        self._deepcopy_obs = cfg.deepcopy_obs  # avoid shallow copy, e.g., ovelap of s_t and s_t+1
         self._transform_obs = cfg.transform_obs
         self._cfg = cfg
         self._timer = EasyTimer()
@@ -134,7 +135,10 @@ class SampleSerialCollector(ISerialCollector):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
         maxlen = self._traj_len if self._traj_len != INF else None
-        self._traj_buffer = {env_id: TrajBuffer(maxlen=maxlen) for env_id in range(self._env_num)}
+        self._traj_buffer = {
+            env_id: TrajBuffer(maxlen=maxlen, deepcopy=self._deepcopy_obs)
+            for env_id in range(self._env_num)
+        }
         self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
 
         self._episode_info = []
@@ -226,11 +230,10 @@ class SampleSerialCollector(ISerialCollector):
         collected_sample = 0
         return_data = []
 
-        _traj_buffer_temp = copy.deepcopy(self._traj_buffer)  # avoide shallow copy
         while collected_sample < n_sample:
             with self._timer:
                 # Get current env obs.
-                obs = copy.deepcopy(self._env.ready_obs)  # avoide shallow copy  
+                obs = self._env.ready_obs
                 # Policy forward.
                 self._obs_pool.update(obs)
                 if self._transform_obs:
@@ -248,7 +251,6 @@ class SampleSerialCollector(ISerialCollector):
             # TODO(nyz) vectorize this for loop
             for env_id, timestep in timesteps.items():
                 with self._timer:
-                    self._traj_buffer[env_id] = copy.deepcopy(_traj_buffer_temp[env_id])  # avoide shallow copy
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
                         # suppose there is no reset param, just reset this env
@@ -294,7 +296,6 @@ class SampleSerialCollector(ISerialCollector):
                         self._env_info[env_id]['train_sample'] += len(train_sample)
                         collected_sample += len(train_sample)
                         self._traj_buffer[env_id].clear()
-                    _traj_buffer_temp[env_id] = copy.deepcopy(self._traj_buffer[env_id])  # avoide shallow copy
 
                 self._env_info[env_id]['time'] += self._timer.value + interaction_duration
 
