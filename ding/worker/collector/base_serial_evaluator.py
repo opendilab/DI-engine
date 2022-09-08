@@ -6,7 +6,7 @@ import copy
 import numpy as np
 import torch
 
-from ding.utils import lists_to_dicts
+from ding.utils import SERIAL_EVALUATOR_REGISTRY, import_module, lists_to_dicts
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 
 
@@ -62,6 +62,17 @@ class ISerialEvaluator(ABC):
             n_episode: Optional[int] = None
     ) -> Any:
         raise NotImplementedError
+
+
+def create_serial_evaluator(cfg: EasyDict, **kwargs) -> ISerialEvaluator:
+    """
+    Overview:
+        Create a specific evaluator instance based on the config.
+    """
+    import_module(cfg.get('import_names', []))
+    if 'type' not in cfg:
+        cfg.type = 'interaction'
+    return SERIAL_EVALUATOR_REGISTRY.build(cfg.type, cfg=cfg, **kwargs)
 
 
 class VectorEvalMonitor(object):

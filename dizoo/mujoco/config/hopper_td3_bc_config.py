@@ -4,7 +4,10 @@ hopper_td3_bc_config = dict(
     exp_name='hopper_td3_bc_seed0',
     env=dict(
         env_id='Hopper-v3',
-        norm_obs=dict(use_norm=False, ),
+        norm_obs=dict(
+            use_norm=True, 
+            offline_stats=dict(use_offline_stats=True, ),
+        ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
@@ -23,7 +26,6 @@ hopper_td3_bc_config = dict(
             action_space='regression',
         ),
         learn=dict(
-            normalize_states=True,
             train_epoch=30000,
             batch_size=256,
             learning_rate_actor=3e-4,
@@ -48,7 +50,6 @@ hopper_td3_bc_config = dict(
             # Absolute path is recommended.
             # In DI-engine, it is usually located in ``exp_name`` directory
             data_path='data_path_placeholder',
-            normalize_states=True,
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=1000, )),
@@ -73,7 +74,6 @@ hopper_td3_bc_create_config = dict(
 )
 hopper_td3_bc_create_config = EasyDict(hopper_td3_bc_create_config)
 create_config = hopper_td3_bc_create_config
-
 
 # if __name__ == "__main__":
 #     # or you can enter `ding -m serial -c hopper_td3_bc_config.py -s 0`

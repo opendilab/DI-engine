@@ -3,21 +3,26 @@ import pytest
 from threading import Lock, Thread
 from time import sleep, time
 import random
+import dataclasses
 from ding.framework import task, Context, Parallel
+
+
+@dataclasses.dataclass
+class TestContext(Context):
+    pipeline: list = dataclasses.field(default_factory=list)
 
 
 @pytest.mark.unittest
 def test_serial_pipeline():
 
     def step0(ctx):
-        ctx.setdefault("pipeline", [])
         ctx.pipeline.append(0)
 
     def step1(ctx):
         ctx.pipeline.append(1)
 
     # Execute step1, step2 twice
-    with task.start():
+    with task.start(ctx=TestContext()):
         for _ in range(2):
             task.forward(step0)
             task.forward(step1)
@@ -38,7 +43,6 @@ def test_serial_pipeline():
 def test_serial_yield_pipeline():
 
     def step0(ctx):
-        ctx.setdefault("pipeline", [])
         ctx.pipeline.append(0)
         yield
         ctx.pipeline.append(0)
@@ -46,7 +50,7 @@ def test_serial_yield_pipeline():
     def step1(ctx):
         ctx.pipeline.append(1)
 
-    with task.start():
+    with task.start(ctx=TestContext()):
         task.forward(step0)
         task.forward(step1)
         task.backward()
@@ -58,14 +62,13 @@ def test_serial_yield_pipeline():
 def test_async_pipeline():
 
     def step0(ctx):
-        ctx.setdefault("pipeline", [])
         ctx.pipeline.append(0)
 
     def step1(ctx):
         ctx.pipeline.append(1)
 
     # Execute step1, step2 twice
-    with task.start(async_mode=True):
+    with task.start(async_mode=True, ctx=TestContext()):
         for _ in range(2):
             task.forward(step0)
             sleep(0.1)
@@ -81,7 +84,6 @@ def test_async_pipeline():
 def test_async_yield_pipeline():
 
     def step0(ctx):
-        ctx.setdefault("pipeline", [])
         sleep(0.1)
         ctx.pipeline.append(0)
         yield
@@ -91,7 +93,7 @@ def test_async_yield_pipeline():
         sleep(0.2)
         ctx.pipeline.append(1)
 
-    with task.start(async_mode=True):
+    with task.start(async_mode=True, ctx=TestContext()):
         task.forward(step0)
         task.forward(step1)
         sleep(0.3)

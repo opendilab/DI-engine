@@ -2,15 +2,19 @@ from types import MethodType
 from typing import Union, Any, List, Callable, Dict, Optional, Tuple
 from functools import partial, wraps
 from easydict import EasyDict
+from ditk import logging
 import copy
 import platform
 import numbers
-from ditk import logging
 import enum
 import time
 import treetensor.numpy as tnp
-from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog
+from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog, \
+    remove_illegal_item
 from ding.envs.env import BaseEnvTimestep
+
+global space_log_flag
+space_log_flag = True
 
 
 class EnvState(enum.IntEnum):
@@ -118,9 +122,18 @@ class BaseEnvManager(object):
             self._action_space = self._env_ref.action_space
             self._reward_space = self._env_ref.reward_space
             self._env_ref.close()
+        try:
+            global space_log_flag
+            if space_log_flag:
+                logging.info("Env Space Information:")
+                logging.info("\tObservation Space: {}".format(self._observation_space))
+                logging.info("\tAction Space: {}".format(self._action_space))
+                logging.info("\tReward Space: {}".format(self._reward_space))
+                space_log_flag = False
+        except:
+            pass
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
-
         self._episode_num = self._cfg.episode_num
         self._max_retry = max(self._cfg.max_retry, 1)
         self._auto_reset = self._cfg.auto_reset
@@ -466,6 +479,7 @@ class BaseEnvManagerV2(BaseEnvManager):
             # make the type and content of key as similar as identifier,
             # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
             info = make_key_as_identifier(info)
+            info = remove_illegal_item(info)
             new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
         return new_data
 

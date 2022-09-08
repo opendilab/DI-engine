@@ -39,7 +39,7 @@ def try_import_mc():
     try:
         import mc
     except ModuleNotFoundError as e:
-        one_time_warning("You have not installed memcache package! DI-engine has changed to some alternatives.")
+        # one_time_warning("You have not installed memcache package! DI-engine has changed to some alternatives.")
         mc = None
     return mc
 

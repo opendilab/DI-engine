@@ -1,15 +1,13 @@
 # Borrow a lot from openai baselines:
 # https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
-import copy
 from typing import Union, List, Tuple
-import cv2
 from easydict import EasyDict
+from collections import deque
+import copy
 import gym
 import numpy as np
-from collections import deque
 from torch import float32
-# import matplotlib.pyplot as plt
 
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_WRAPPER_REGISTRY, import_module
@@ -173,6 +171,13 @@ class WarpFrameWrapper(gym.ObservationWrapper):
         Returns:
             - observation (:obj:`Any`): Framed observation
         """
+        try:
+            import cv2
+        except ImportError:
+            from ditk import logging
+            import sys
+            logging.warning("Please install opencv-python first.")
+            sys.exit(1)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
 
@@ -609,6 +614,47 @@ class ObsNormWrapper(gym.ObservationWrapper):
         self.rms.reset()
         observation = self.env.reset(**kwargs)
         return self.observation(observation)
+
+
+@ENV_WRAPPER_REGISTRY.register('static_obs_norm')
+class StaticObsNormWrapper(gym.ObservationWrapper):
+    """
+    Overview:
+       Normalize observations according to the mean and std in the fixed dataset.
+    Interface:
+        ``__init__``, ``observation``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+
+        - ``mean``, ``std``, ``clip_range``
+    """
+
+    def __init__(self, env, mean, std):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \
+                setup the properties according to dataset mean and std.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+            - mean (:obj:`numpy.ndarray`): the mean of observation in the dataset.
+            - std (:obj:`numpy.ndarray`): the standard deviation of observation in the dataset.
+        """
+        super().__init__(env)
+        self.mean = mean
+        self.std = std
+        self.clip_range = (-3, 3)
+
+    def observation(self, observation):
+        """
+        Overview:
+            Get obeservation
+        Arguments:
+            - observation (:obj:`Any`): Original observation
+        Returns:
+            - observation (:obj:`Any`): Normalized new observation
+
+        """
+        return np.clip((observation - self.mean) / self.std, self.clip_range[0], self.clip_range[1])
 
 
 @ENV_WRAPPER_REGISTRY.register('reward_norm')

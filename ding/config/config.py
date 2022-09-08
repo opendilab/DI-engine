@@ -1,14 +1,17 @@
 import os
 import os.path as osp
+import yaml
 import json
 import shutil
 import sys
 import time
 import tempfile
+import subprocess
+import datetime
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
-import yaml
 from easydict import EasyDict
+from copy import deepcopy
 
 from ding.utils import deep_merge_dicts
 from ding.envs import get_env_cls, get_env_manager_cls, BaseEnvManager
@@ -161,7 +164,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
 def read_config_directly(path: str) -> dict:
     """
     Overview:
-        Read configuration from a file path(now only suport python file) and directly return results.
+        Read configuration from a file path(now only support python file) and directly return results.
     Arguments:
         - path (:obj:`str`): Path of configuration file
     Returns:
@@ -307,6 +310,20 @@ env_config_template = dict(manager=dict(), )
 env_config_template = EasyDict(env_config_template)
 
 
+def save_project_state(exp_name: str) -> None:
+
+    def _fn(cmd: str):
+        return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.strip().decode("utf-8")
+
+    short_sha = _fn("git describe --always")
+    log = _fn("git log --stat -n 5")
+    diff = _fn("git diff")
+    with open(os.path.join(exp_name, "git_log.txt"), "w") as f:
+        f.write(short_sha + '\n\n' + log)
+    with open(os.path.join(exp_name, "git_diff.txt"), "w") as f:
+        f.write(diff)
+
+
 def compile_config(
         cfg: EasyDict,
         env_manager: type = None,
@@ -346,6 +363,7 @@ def compile_config(
     Returns:
         - cfg (:obj:`EasyDict`): Config after compiling
     """
+    cfg, create_cfg = deepcopy(cfg), deepcopy(create_cfg)
     if auto:
         assert create_cfg is not None
         # for compatibility
@@ -355,7 +373,11 @@ def compile_config(
             create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
             buffer = AdvancedReplayBuffer
         if env is None:
-            env = get_env_cls(create_cfg.env)
+            if 'env' in create_cfg:
+                env = get_env_cls(create_cfg.env)
+            else:
+                env = None
+                create_cfg.env = {'type': 'ding_env_wrapper_generated'}
         if env_manager is None:
             env_manager = get_env_manager_cls(create_cfg.env_manager)
         if policy is None:
@@ -372,6 +394,8 @@ def compile_config(
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
         policy_config.update(create_cfg.policy)
         policy_config.collect.collector.update(create_cfg.collector)
+        if 'evaluator' in create_cfg:
+            policy_config.eval.evaluator.update(create_cfg.evaluator)
         policy_config.other.replay_buffer.update(create_cfg.replay_buffer)
 
         policy_config.other.commander = BaseSerialCommander.default_config()
@@ -434,11 +458,13 @@ def compile_config(
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:
-        if not os.path.exists(cfg.exp_name):
-            try:
-                os.mkdir(cfg.exp_name)
-            except FileExistsError:
-                pass
+        if os.path.exists(cfg.exp_name):
+            cfg.exp_name += datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
+        try:
+            os.makedirs(cfg.exp_name)
+        except FileExistsError:
+            pass
+        save_project_state(cfg.exp_name)
         save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
     return cfg

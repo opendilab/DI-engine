@@ -23,11 +23,15 @@ from importlib import import_module
 here = os.path.abspath(os.path.dirname(__file__))
 meta_module = import_module('ding')
 meta = meta_module.__dict__
+with open('README.md', mode='r', encoding='utf-8') as f:
+    readme = f.read()
 
 setup(
     name=meta['__TITLE__'],
     version=meta['__VERSION__'],
     description=meta['__DESCRIPTION__'],
+    long_description=readme,
+    long_description_content_type='text/markdown',
     author=meta['__AUTHOR__'],
     author_email=meta['__AUTHOR_EMAIL__'],
     url='https://github.com/opendilab/DI-engine',
@@ -44,13 +48,13 @@ setup(
         package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
         for package_name in find_packages(include=('ding.*'))
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         'numpy>=1.18.0',
         'requests>=2.25.1',
         'six',
-        'gym==0.20.0',  # pypy incompatible
-        'torch>=1.1.0,<=1.10.0',  # PyTorch 1.10.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
+        'gym>=0.25.1, <0.26.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
         'protobuf<=3.20.1',
@@ -59,9 +63,11 @@ setup(
         'seaborn',
         'yapf==0.29.0',
         'responses~=0.12.1',
+        'MarkupSafe==2.0.1',
+        'jinja2<3.1.0',
         'flask~=1.1.2',
-        'MarkupSafe<=2.0.1',
         'lz4',
+        'scipy',
         'cloudpickle',
         'tabulate',
         'sortedcontainers',
@@ -69,28 +75,27 @@ setup(
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
-        'opencv-python',  # pypy incompatible
         'enum_tools',
-        'scipy',
         'trueskill',
         'h5py',
-        'rich',
         'mpire>=2.3.5',
         'pynng',
         'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
         'redis',
-        'DI-treetensor>=0.2.1',
+        'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'moviepy',
-        'hbutils',
+        'tqdm',
     ],
     extras_require={
         'test': [
+            'gym[box2d]>=0.25.0',
+            'opencv-python',  # pypy incompatible
             'coverage>=5',
             'mock>=4.0.3',
-            'pytest~=6.2.5',
+            'pytest~=7.0.1',  # required by gym>=0.25.0
             'pytest-cov~=3.0.0',
             'pytest-mock~=3.6.1',
             'pytest-xdist>=1.34.0',
@@ -99,7 +104,7 @@ setup(
         ],
         'style': [
             'yapf==0.29.0',
-            'flake8',
+            'flake8<=3.9.2',
         ],
         'fast': [
             'numpy-stl',
@@ -110,9 +115,9 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py==0.7.0',  # atari
+            'ale-py',  # >=0.7.5',  # atari
             'autorom',
-            'box2d-py',
+            'gym[all]>=0.25.0'
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],
@@ -160,8 +165,14 @@ setup(
         # 'dmc2gym': [
         #    'dmc2gym @ git+https://github.com/denisyarats/dmc2gym@master#egg=dmc2gym',
         # ],
+        # 'rocket_recycling': [
+        #    'rocket_recycling @ git+https://github.com/nighood/rocket-recycling@master#egg=rocket_recycling',
+        # ],
         'sokoban': [
             'gym-sokoban',
+        ],
+        'mario': [
+            'gym-super-mario-bros>=7.3.0',
         ],
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},
@@ -172,9 +183,9 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )

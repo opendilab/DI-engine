@@ -1,10 +1,10 @@
 import os
 
 __TITLE__ = 'DI-engine'
-__VERSION__ = 'v0.4.0'
+__VERSION__ = 'v0.4.2'
 __DESCRIPTION__ = 'Decision AI Engine'
 __AUTHOR__ = "OpenDILab Contributors"
-__AUTHOR_EMAIL__ = "opendilab.contact@gmail.com"
+__AUTHOR_EMAIL__ = "opendilab@pjlab.org.cn"
 __version__ = __VERSION__
 
 enable_hpc_rl = os.environ.get('ENABLE_DI_HPC', 'false').lower() == 'true'

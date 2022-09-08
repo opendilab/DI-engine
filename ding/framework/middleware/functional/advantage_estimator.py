@@ -8,6 +8,7 @@ from ding.data import Buffer
 from ding.rl_utils import gae, gae_data
 from ding.framework import task
 from ding.utils.data import ttorch_collate
+from ding.torch_utils import to_device
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext

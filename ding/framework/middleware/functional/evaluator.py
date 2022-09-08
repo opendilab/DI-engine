@@ -7,6 +7,7 @@ import torch
 import treetensor.torch as ttorch
 from easydict import EasyDict
 from ding.envs import BaseEnvManager
+from ding.framework.context import OfflineRLContext
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task

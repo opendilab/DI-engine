@@ -3,7 +3,7 @@ from easydict import EasyDict
 from ditk import logging
 import numpy as np
 from ding.policy import Policy
-from ding.framework import task
+from ding.framework import task, OfflineRLContext
 
 from ding.framework import OnlineRLContext, OfflineRLContext
 
@@ -75,9 +75,12 @@ def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
         train_output = policy.forward(ctx.train_data)
         if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
             loss = np.mean([o['total_loss'] for o in train_output])
-            logging.info(
-                'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(ctx.train_iter, ctx.env_step, loss)
-            )
+            if isinstance(ctx, OfflineRLContext):
+                logging.info('Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, loss))
+            else:
+                logging.info(
+                    'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(ctx.train_iter, ctx.env_step, loss)
+                )
         ctx.train_iter += len(train_output)
         ctx.train_output = train_output
 
