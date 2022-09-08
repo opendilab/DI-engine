@@ -1,11 +1,12 @@
 import os
 import numpy as np
-from typing import List, Optional
+from time import sleep
+from typing import Dict, List, Optional
 
 
 class K8SParser():
 
-    def __init__(self, platform_spec: Optional[str] = None, **kwargs) -> None:
+    def __init__(self, platform_spec: Optional[Dict] = None, **kwargs) -> None:
         """
         Overview:
             Should only set global cluster properties
@@ -14,9 +15,9 @@ class K8SParser():
         self.nodelist = self._parse_node_list()
         self.ntasks = len(self.nodelist)
         self.platform_spec = platform_spec
-        self.parallel_workers = kwargs.get("parallel_workers", 1)
-        self.topology = kwargs.get("topology", "alone")
-        self.ports = kwargs.get("ports", 50515)
+        self.parallel_workers = kwargs.get("parallel_workers") or 1
+        self.topology = kwargs.get("topology") or "alone"
+        self.ports = int(kwargs.get("ports") or 50515)
         self.tasks = {}
 
     def parse(self) -> dict:
@@ -49,13 +50,13 @@ class K8SParser():
         else:
             task = {}
         if "ports" not in task:
-            task["ports"] = self._get_ports()
+            task["ports"] = self.kwargs.get("ports") or self._get_ports()
         if "address" not in task:
-            task["address"] = self._get_address(procid)
+            task["address"] = self.kwargs.get("address") or self._get_address(procid)
         if "node_ids" not in task:
-            task["node_ids"] = self._get_node_id(procid)
+            task["node_ids"] = self.kwargs.get("node_ids") or self._get_node_id(procid)
 
-        task["attach_to"] = self._get_attach_to(procid, task.get("attach_to"))
+        task["attach_to"] = self.kwargs.get("attach_to") or self._get_attach_to(procid, task.get("attach_to"))
         task["topology"] = self.topology
         task["parallel_workers"] = self.parallel_workers
 

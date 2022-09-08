@@ -43,7 +43,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         data = ctx.trajectories  # list
         data = ttorch_collate(data)
         with torch.no_grad():
-            if cfg.policy.cuda:
+            if cfg.policy.get("cuda", False):
                 data = data.cuda()
             value = model.forward(data.obs, mode='compute_critic')['value']
             next_value = model.forward(data.next_obs, mode='compute_critic')['value']
@@ -56,7 +56,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         # done is bool type when acquired from env.step
         data_ = gae_data(data.value, next_value, data.reward, data.done.float(), traj_flag.float())
         data.adv = gae(data_, cfg.policy.collect.discount_factor, cfg.policy.collect.gae_lambda)
-        if cfg.policy.cuda:
+        if cfg.policy.get("cuda", False):
             data = data.cpu()
         if buffer_ is None:
             ctx.train_data = data

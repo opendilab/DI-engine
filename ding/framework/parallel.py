@@ -3,8 +3,8 @@ import os
 import random
 import time
 import traceback
-from mpire.pool import WorkerPool
 import pickle
+from mpire.pool import WorkerPool
 from ditk import logging
 import tempfile
 import socket
@@ -27,6 +27,7 @@ class Parallel(metaclass=SingletonMetaclass):
         self._listener = None
         self.is_active = False
         self.node_id = None
+        self.local_id = None
         self.labels = set()
         self._event_loop = EventLoop("parallel_{}".format(id(self)))
         self._retries = 0  # Retries in auto recovery
@@ -34,19 +35,24 @@ class Parallel(metaclass=SingletonMetaclass):
     def _run(
             self,
             node_id: int,
+            local_id: int,
             n_parallel_workers: int,
             labels: Optional[Set[str]] = None,
             auto_recover: bool = False,
             max_retries: int = float("inf"),
             mq_type: str = "nng",
+            startup_interval: int = 1,
             **kwargs
     ) -> None:
         self.node_id = node_id
+        self.local_id = local_id
+        self.startup_interval = startup_interval
         self.n_parallel_workers = n_parallel_workers
         self.labels = labels or set()
         self.auto_recover = auto_recover
         self.max_retries = max_retries
         self._mq = MQ_REGISTRY.get(mq_type)(**kwargs)
+        time.sleep(self.local_id * self.startup_interval)
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
@@ -65,7 +71,8 @@ class Parallel(metaclass=SingletonMetaclass):
             auto_recover: bool = False,
             max_retries: int = float("inf"),
             redis_host: Optional[str] = None,
-            redis_port: Optional[int] = None
+            redis_port: Optional[int] = None,
+            startup_interval: int = 1
     ) -> Callable:
         """
         Overview:
@@ -87,6 +94,7 @@ class Parallel(metaclass=SingletonMetaclass):
             - max_retries (:obj:`int`): Max retries for auto recover.
             - redis_host (:obj:`str`): Redis server host.
             - redis_port (:obj:`int`): Redis server port.
+            - startup_interval (:obj:`int`): Start up interval between each task.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -104,7 +112,10 @@ class Parallel(metaclass=SingletonMetaclass):
                 - main_process (:obj:`Callable`): The main function, your program start from here.
             """
             runner_params = args_parsers[mq_type](**all_args)
-            params_group = [[runner_kwargs, (main_process, args, kwargs)] for runner_kwargs in runner_params]
+            params_group = []
+            for i, runner_kwargs in enumerate(runner_params):
+                runner_kwargs["local_id"] = i
+                params_group.append([runner_kwargs, (main_process, args, kwargs)])
 
             if n_parallel_workers == 1:
                 cls._subprocess_runner(*params_group[0])
@@ -181,6 +192,7 @@ class Parallel(metaclass=SingletonMetaclass):
             - runner_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for runner.
             - main_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for main function.
         """
+        logging.getLogger().setLevel(logging.INFO)
         main_process, args, kwargs = main_params
 
         with Parallel() as router:
@@ -322,7 +334,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         if self.is_active:
             payload = {"a": args, "k": kwargs}
             try:
-                data = pickle.dumps(payload, protocol=-1)
+                data = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
             except AttributeError as e:
                 logging.error("Arguments are not pickable! Event: {}, Args: {}".format(event, args))
                 raise e
@@ -353,12 +365,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         try:
             # doesn't even have to be reachable
             s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
+            ip = s.getsockname()[0]
         except Exception:
-            IP = '127.0.0.1'
+            ip = '127.0.0.1'
         finally:
             s.close()
-        return IP
+        return ip
 
     def __enter__(self) -> "Parallel":
         return self
