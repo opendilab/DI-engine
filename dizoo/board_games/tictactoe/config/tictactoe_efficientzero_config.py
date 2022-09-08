@@ -83,7 +83,7 @@ tictactoe_efficientzero_config = dict(
             # collector_env_num=8,  update_per_collect=9*8=72
             # update_per_collect=int(3 ** 2 * collector_env_num),
 
-            batch_size=256,
+            batch_size=64,
             update_per_collect=int(50),
 
             # learning_rate=0.2,
