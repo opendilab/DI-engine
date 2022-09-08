@@ -10,23 +10,31 @@ from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, eps_greedy_handler, CkptSaver, nstep_reward_enhancer
+from  lighttuner.hpo import hpo, R, M, choice
 
-
-def main():
+@hpo
+def main(v):
     """
     This is an example of the Rainbow algorithm implemented on the Mountain Car (discrete action space) environment.
     """
 
     # Set logging level
-    logging.getLogger().setLevel(logging.INFO)
+    # logging.getLogger().setLevel(logging.INFO)
 
     # Config
     cfg = compile_config(mtcar_rainbow_config, create_cfg=mtcar_rainbow_create_config, auto=True)
 
+    # Get grid search values in
+    cfg.policy.discount_factor = v["df"]
+    cfg.policy.nstep = v["nstep"]
+    cfg.policy.learning_rate = v["lr"]
+    cfg.policy.update_per_collect = v["upc"]
+    cfg.policy.replay_buffer_size = v["rbs"]
+
     # Environment
     # Get number of collector & evaluator env
     coll_env_num, eval_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    # Instantiate collector and evaluator environment
+    # Instantiate collector and evaluator environment manager
     coll_env = BaseEnvManagerV2(env_fn=[lambda: MountainCarEnv() for _ in range(coll_env_num)], cfg=cfg.env.manager)
     eval_env = BaseEnvManagerV2(env_fn=[lambda: MountainCarEnv() for _ in range(eval_env_num)], cfg=cfg.env.manager)
 
@@ -55,8 +63,23 @@ def main():
         # In the evaluation process, if the model is found to have exceeded the convergence value, it will end early here
         task.run()
 
-    return
+        return {"eval_value" : task.ctx['eval_value']}
 
 
 if __name__ == '__main__':
-    main()
+    logging.try_init_root(logging.INFO)
+    print(
+        main.grid()
+        .max_steps(1)
+        .maximize(R["eval_value"])
+        .max_workers(1)
+        .spaces(
+            {
+                "df" : choice([0.97,0.99,0.995]),
+                "nstep" : choice([1,3,5]),
+                "lr": choice([1e-3,3e-4,1e-4]),
+                "upc": choice([3,5,10]),
+                "rbs": choice([2e4,5e4,10e4]),
+            }
+        ).run()
+    )

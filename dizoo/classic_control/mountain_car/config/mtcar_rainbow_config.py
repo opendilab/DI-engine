@@ -4,17 +4,19 @@ from easydict import EasyDict
 mtcar_rainbow_config = EasyDict(dict(
     exp_name='mtcar_rainbow_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=8,
-        n_evaluator_episode=8,
+        collector_env_num=100,
+        evaluator_env_num=100,
+        n_evaluator_episode=100,
         stop_value=-50,
+        replay_path='mtcar_rainbow_seed0/video',
     ),
     policy=dict(
-        cuda=False,
-        priority=False,
-        priority_IS_weight=False,
+        cuda=True,
+        load_path='mtcar_rainbow_seed0/ckpt/ckpt_best.pth.tar',
+        priority=True,
+        priority_IS_weight=True,
         discount_factor=0.97,
-        nstep=1,
+        nstep=3,
         model=dict(
             obs_shape=2,
             action_shape=3,
@@ -30,7 +32,7 @@ mtcar_rainbow_config = EasyDict(dict(
             target_update_freq=100,
         ),
         collect=dict(
-            n_sample=80,
+            n_sample=1000,
             unroll_len=1,
         ),
         other=dict(
