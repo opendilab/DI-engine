@@ -93,8 +93,8 @@ class TestMCMC:
         assert action.shape == (B, N, A)
         # TODO: new action should have lower energy
 
-    def test_langevin_action_gives_obs(self):
-        action = self.opt._langevin_action_gives_obs(self.obs, self.action, self.ebm)
+    def test_langevin_action_given_obs(self):
+        action = self.opt._langevin_action_given_obs(self.obs, self.action, self.ebm)
         assert action.shape == (B, N, A)
 
     def test_grad_penalty(self):
