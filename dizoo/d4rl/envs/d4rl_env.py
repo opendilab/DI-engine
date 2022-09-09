@@ -4,7 +4,7 @@ import numpy as np
 import gym
 from easydict import EasyDict
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
@@ -66,7 +66,7 @@ class D4RLEnv(BaseEnv):
     def _make_env(self, only_info=False):
         return wrap_d4rl(
             self._cfg.env_id,
-            norm_obs=self._cfg.get('norm_obs', EasyDict(use_norm=False, )),
+            norm_obs=self._cfg.get('norm_obs', EasyDict(use_norm=False, offline_stats=dict(use_offline_stats=False, )),),
             norm_reward=self._cfg.get('norm_reward', EasyDict(use_norm=False, )),
             only_info=only_info
         )

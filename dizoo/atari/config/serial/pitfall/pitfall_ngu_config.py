@@ -5,7 +5,7 @@ evaluator_env_num = 5
 nstep = 5
 
 pitfall_ppo_rnd_config = dict(
-    # Note: 
+    # Note:
     # 1. at least 1e10 timesteps, i.e., 10000 million, the reward may increase, please be patient.
     # 2. the larger unroll_lenth and replay buffer size may have better results, but also require more memory.
     # exp_name='debug_pitfall_ngu_ul298_er01_n32_rlbs2e4',
@@ -49,7 +49,6 @@ pitfall_ppo_rnd_config = dict(
         # means the rescale value for the last non-zero reward, only used when last_nonzero_reward_rescale is True
         # please refer to ngu_reward_model for details.
         last_nonzero_reward_weight=1,
-
         intrinsic_reward_type='add',
         learning_rate=1e-4,
         obs_shape=[4, 84, 84],
@@ -129,7 +128,6 @@ pitfall_ppo_rnd_create_config = dict(
 )
 pitfall_ppo_rnd_create_config = EasyDict(pitfall_ppo_rnd_create_config)
 create_config = pitfall_ppo_rnd_create_config
-
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_reward_model_ngu

@@ -2,7 +2,6 @@ from easydict import EasyDict
 import torch
 from copy import deepcopy
 
-
 cartpole_dt_config = dict(
     exp_name='cartpole_dt',
     env=dict(
@@ -20,7 +19,7 @@ cartpole_dt_config = dict(
         rtg_scale=1000,  # normalize returns to go
         max_eval_ep_len=1000,  # max len of one episode
         num_eval_ep=10,  # num of evaluation episodes
-        batch_size= 64, # training batch size
+        batch_size=64,  # training batch size
         # batch_size= 2, # debug
         lr=1e-4,
         wt_decay=1e-4,
@@ -29,7 +28,7 @@ cartpole_dt_config = dict(
         context_len=20,
         n_blocks=3,
         embed_dim=128,
-        n_heads =1,
+        n_heads=1,
         dropout_p=0.1,
         log_dir='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_log',
         max_test_ep_len=200,
@@ -39,7 +38,7 @@ cartpole_dt_config = dict(
             n_blocks=3,
             h_dim=128,
             context_len=20,
-            n_heads =1,
+            n_heads=1,
             drop_p=0.1,
             continuous=False,
         ),
@@ -52,9 +51,7 @@ cartpole_dt_config = dict(
             kappa=1.0,
             min_q_weight=4.0,
         ),
-        collect=dict(
-            unroll_len=1,
-        ),
+        collect=dict(unroll_len=1, ),
         eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(
             eps=dict(
@@ -62,7 +59,8 @@ cartpole_dt_config = dict(
                 start=0.95,
                 end=0.1,
                 decay=int(1e4),
-            ), replay_buffer=dict(replay_buffer_size=int(2e4), )
+            ),
+            replay_buffer=dict(replay_buffer_size=int(2e4), )
         ),
     ),
 )
@@ -78,7 +76,6 @@ cartpole_dt_create_config = dict(
 )
 cartpole_dt_create_config = EasyDict(cartpole_dt_create_config)
 create_config = cartpole_dt_create_config
-
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_dt, collect_demo_data, eval, serial_pipeline

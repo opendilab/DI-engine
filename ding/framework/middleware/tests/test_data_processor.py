@@ -21,22 +21,22 @@ from unittest.mock import patch
 
 @pytest.mark.unittest
 def test_data_pusher():
-    buffer = DequeBuffer(size=10)
+    buffer_ = DequeBuffer(size=10)
     ctx = OnlineRLContext()
     ctx.trajectories = [i for i in range(5)]
-    data_pusher(cfg=None, buffer_=buffer)(ctx)
-    assert buffer.count() == 5
+    data_pusher(cfg=None, buffer_=buffer_)(ctx)
+    assert buffer_.count() == 5
 
-    buffer = DequeBuffer(size=10)
+    buffer_ = DequeBuffer(size=10)
     ctx = OnlineRLContext()
     ctx.episodes = [i for i in range(5)]
-    data_pusher(cfg=None, buffer_=buffer)(ctx)
-    assert buffer.count() == 5
+    data_pusher(cfg=None, buffer_=buffer_)(ctx)
+    assert buffer_.count() == 5
 
-    buffer = DequeBuffer(size=10)
+    buffer_ = DequeBuffer(size=10)
     ctx = OnlineRLContext()
     with pytest.raises(RuntimeError) as exc_info:
-        data_pusher(cfg=None, buffer_=buffer)(ctx)
+        data_pusher(cfg=None, buffer_=buffer_)(ctx)
     assert str(exc_info.value) == "Either ctx.trajectories or ctx.episodes should be not None."
 
 

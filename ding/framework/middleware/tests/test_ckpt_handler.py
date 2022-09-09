@@ -37,7 +37,7 @@ def test_ckpt_saver():
     model = TheModelClass()
 
     if not os.path.exists(cfg.exp_name):
-        os.mkdir(cfg.exp_name)
+        os.makedirs(cfg.exp_name)
 
     prefix = '{}/ckpt'.format(cfg.exp_name)
 
