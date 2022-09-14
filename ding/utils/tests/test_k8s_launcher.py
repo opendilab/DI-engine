@@ -1,5 +1,5 @@
 import os
-
+import subprocess
 import pytest
 
 from ding.utils import K8sLauncher, OrchestratorLauncher
@@ -26,13 +26,14 @@ def test_operate_k8s_cluster():
     config.load_kube_config()
     current_context = config.list_kube_config_contexts()[1]
     assert current_context['context']['cluster'].startswith(f"k3d-{cluster_name}")
+    subprocess.run('kubectl create ns di-system', shell=True)
 
     # create orchestrator
-    olauncher = OrchestratorLauncher('v0.2.0-rc.0', cluster=launcher)
+    olauncher = OrchestratorLauncher('v1.1.3', cluster=launcher)
     olauncher.create_orchestrator()
 
     # check orchestrator is successfully created
-    expected_deployments, expected_crds = 3, 2
+    expected_deployments, expected_crds = 2, 1
     appv1 = client.AppsV1Api()
     ret = appv1.list_namespaced_deployment("di-system")
     assert len(ret.items) == expected_deployments
@@ -61,7 +62,6 @@ def test_operate_k8s_cluster():
     ret = extensionv1.list_custom_resource_definition()
     found = 0
     for crd in ret.items:
-        found = found + 1 if crd.metadata.name == 'aggregatorconfigs.diengine.opendilab.org' else found
         found = found + 1 if crd.metadata.name == 'dijobs.diengine.opendilab.org' else found
     assert found == 0
 
