@@ -446,14 +446,16 @@
 <span class="sd">        __init__, append</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="TrajBuffer.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.TrajBuffer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxlen</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="TrajBuffer.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.TrajBuffer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxlen</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">deepcopy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization trajBuffer.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - maxlen (:obj:`int`): The maximum length of trajectory buffer.</span>
+<span class="sd">            - deepcopy (:obj:`bool`): Whether to deepcopy data when do operation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_maxlen</span> <span class="o">=</span> <span class="n">maxlen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy</span> <span class="o">=</span> <span class="n">deepcopy</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TrajBuffer.append"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.TrajBuffer.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -464,6 +466,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxlen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxlen</span><span class="p">:</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
 
 
@@ -485,7 +489,8 @@
     <span class="k">if</span> <span class="s1">&#39;next_obs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># for save memory</span>
+        <span class="c1"># for save memory of next_obs</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>

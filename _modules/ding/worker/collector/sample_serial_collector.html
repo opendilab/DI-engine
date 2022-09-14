@@ -275,6 +275,7 @@
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
@@ -320,7 +321,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_print_freq</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">collect_print_freq</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy_obs</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">deepcopy_obs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy_obs</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">deepcopy_obs</span>  <span class="c1"># avoid shallow copy, e.g., ovelap of s_t and s_t+1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_transform_obs</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">transform_obs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
@@ -408,7 +409,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_policy_output_pool</span> <span class="o">=</span> <span class="n">CachePool</span><span class="p">(</span><span class="s1">&#39;policy_output&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)</span>
         <span class="c1"># _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions</span>
         <span class="n">maxlen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len</span> <span class="o">!=</span> <span class="n">INF</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">TrajBuffer</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">maxlen</span><span class="p">)</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">env_id</span><span class="p">:</span> <span class="n">TrajBuffer</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">maxlen</span><span class="p">,</span> <span class="n">deepcopy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy_obs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)</span>
+        <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;train_sample&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span> <span class="o">=</span> <span class="p">[]</span>
