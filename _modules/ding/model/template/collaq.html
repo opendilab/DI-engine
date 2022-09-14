@@ -292,7 +292,15 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CollaQMultiHeadAttention.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQMultiHeadAttention.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">n_head</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model_q</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model_v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">n_head</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_model_q</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_model_v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -304,10 +312,12 @@
 <span class="sd">            - d_k (:obj:`int`): the size of k, used by Scaled Dot Product Attention</span>
 <span class="sd">            - d_v (:obj:`int`): the size of v, used by Scaled Dot Product Attention</span>
 <span class="sd">            - d_out (:obj:`int`): the size of output q</span>
+<span class="sd">            - dropout (:obj:`float`): Dropout ratio, defaults to 0.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): Activation in FFN after attention.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CollaQMultiHeadAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">activation</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_head</span> <span class="o">=</span> <span class="n">n_head</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span> <span class="o">=</span> <span class="n">d_k</span>
@@ -372,7 +382,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CollaQSMACAttentionModule.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQSMACAttentionModule.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">q_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">v_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">self_feature_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ally_feature_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">attention_size</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">q_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">v_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">self_feature_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">ally_feature_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">attention_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -383,11 +399,14 @@
 <span class="sd">            - self_features (:obj:`torch.Tensor`): output self agent&#39;s attention observation</span>
 <span class="sd">            - ally_features (:obj:`torch.Tensor`): output ally agent&#39;s attention observation</span>
 <span class="sd">            - attention_size (:obj:`int`): the size of attention net layer</span>
+<span class="sd">            - activation (:obj:`nn.Module`): Activation in FFN after attention.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CollaQSMACAttentionModule</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">self_feature_range</span> <span class="o">=</span> <span class="n">self_feature_range</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ally_feature_range</span> <span class="o">=</span> <span class="n">ally_feature_range</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attention_layer</span> <span class="o">=</span> <span class="n">CollaQMultiHeadAttention</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">q_dim</span><span class="p">,</span> <span class="n">v_dim</span><span class="p">,</span> <span class="n">attention_size</span><span class="p">,</span> <span class="n">attention_size</span><span class="p">,</span> <span class="n">attention_size</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention_layer</span> <span class="o">=</span> <span class="n">CollaQMultiHeadAttention</span><span class="p">(</span>
+            <span class="mi">1</span><span class="p">,</span> <span class="n">q_dim</span><span class="p">,</span> <span class="n">v_dim</span><span class="p">,</span> <span class="n">attention_size</span><span class="p">,</span> <span class="n">attention_size</span><span class="p">,</span> <span class="n">attention_size</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="CollaQSMACAttentionModule._cut_obs"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQSMACAttentionModule._cut_obs">[docs]</a>    <span class="k">def</span> <span class="nf">_cut_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -482,7 +501,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">CollaQ</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">attention</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attention_size</span> <span class="o">=</span> <span class="n">attention_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_act</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_act</span> <span class="o">=</span> <span class="n">activation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mixer</span> <span class="o">=</span> <span class="n">mixer</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_q_network</span> <span class="o">=</span> <span class="n">DRQN</span><span class="p">(</span>
@@ -492,8 +511,11 @@
             <span class="c1"># TODO set the attention layer here beautifully</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_self_attention</span> <span class="o">=</span> <span class="n">CollaQSMACAttentionModule</span><span class="p">(</span>
                 <span class="n">self_feature_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">self_feature_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="p">(</span><span class="n">ally_feature_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ally_feature_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="p">(</span><span class="n">agent_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">self_feature_range</span><span class="p">,</span>
-                <span class="n">ally_feature_range</span><span class="p">,</span> <span class="n">attention_size</span>
+                <span class="p">(</span><span class="n">ally_feature_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ally_feature_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="p">(</span><span class="n">agent_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">self_feature_range</span><span class="p">,</span>
+                <span class="n">ally_feature_range</span><span class="p">,</span>
+                <span class="n">attention_size</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span>
             <span class="p">)</span>
             <span class="c1"># TODO get the obs_dim_after_attention here beautifully</span>
             <span class="n">obs_shape_after_attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_self_attention</span><span class="p">(</span>
@@ -521,7 +543,7 @@
         <span class="p">)</span>
         <span class="n">embedding_size</span> <span class="o">=</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mixer</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mixer</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mixer</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CollaQ.forward"><a class="viewcode-back" href="../../../../12_policies/collaq.html#ding.model.template.collaq.CollaQ.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">single_step</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
