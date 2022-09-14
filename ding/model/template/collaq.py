@@ -18,7 +18,15 @@ class CollaQMultiHeadAttention(nn.Module):
     """
 
     def __init__(
-        self, n_head: int, d_model_q: int, d_model_v: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.
+        self,
+        n_head: int,
+        d_model_q: int,
+        d_model_v: int,
+        d_k: int,
+        d_v: int,
+        d_out: int,
+        dropout: float = 0.,
+        activation: nn.Module = nn.ReLU()
     ):
         """
         Overview:
@@ -30,10 +38,12 @@ class CollaQMultiHeadAttention(nn.Module):
             - d_k (:obj:`int`): the size of k, used by Scaled Dot Product Attention
             - d_v (:obj:`int`): the size of v, used by Scaled Dot Product Attention
             - d_out (:obj:`int`): the size of output q
+            - dropout (:obj:`float`): Dropout ratio, defaults to 0.
+            - activation (:obj:`nn.Module`): Activation in FFN after attention.
         """
         super(CollaQMultiHeadAttention, self).__init__()
 
-        self.act = nn.ReLU()
+        self.act = activation
 
         self.n_head = n_head
         self.d_k = d_k
@@ -98,7 +108,13 @@ class CollaQSMACAttentionModule(nn.Module):
     """
 
     def __init__(
-        self, q_dim: int, v_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_size: int
+        self,
+        q_dim: int,
+        v_dim: int,
+        self_feature_range: List[int],
+        ally_feature_range: List[int],
+        attention_size: int,
+        activation: nn.Module = nn.ReLU()
     ):
         """
         Overview:
@@ -109,11 +125,14 @@ class CollaQSMACAttentionModule(nn.Module):
             - self_features (:obj:`torch.Tensor`): output self agent's attention observation
             - ally_features (:obj:`torch.Tensor`): output ally agent's attention observation
             - attention_size (:obj:`int`): the size of attention net layer
+            - activation (:obj:`nn.Module`): Activation in FFN after attention.
         """
         super(CollaQSMACAttentionModule, self).__init__()
         self.self_feature_range = self_feature_range
         self.ally_feature_range = ally_feature_range
-        self.attention_layer = CollaQMultiHeadAttention(1, q_dim, v_dim, attention_size, attention_size, attention_size)
+        self.attention_layer = CollaQMultiHeadAttention(
+            1, q_dim, v_dim, attention_size, attention_size, attention_size, activation=activation
+        )
 
     def _cut_obs(self, obs: torch.Tensor):
         """
@@ -208,7 +227,7 @@ class CollaQ(nn.Module):
         super(CollaQ, self).__init__()
         self.attention = attention
         self.attention_size = attention_size
-        self._act = nn.ReLU()
+        self._act = activation
         self.mixer = mixer
         if not self.attention:
             self._q_network = DRQN(
@@ -218,8 +237,11 @@ class CollaQ(nn.Module):
             # TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
                 self_feature_range[1] - self_feature_range[0],
-                (ally_feature_range[1] - ally_feature_range[0]) // (agent_num - 1), self_feature_range,
-                ally_feature_range, attention_size
+                (ally_feature_range[1] - ally_feature_range[0]) // (agent_num - 1),
+                self_feature_range,
+                ally_feature_range,
+                attention_size,
+                activation=activation
             )
             # TODO get the obs_dim_after_attention here beautifully
             obs_shape_after_attention = self._self_attention(
@@ -247,7 +269,7 @@ class CollaQ(nn.Module):
         )
         embedding_size = hidden_size_list[-1]
         if self.mixer:
-            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size)
+            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size, activation=activation)
             self._global_state_encoder = nn.Identity()
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
