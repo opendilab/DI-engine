@@ -17,12 +17,8 @@ cartpole_a2c_config = dict(
             encoder_hidden_size_list=[128, 128, 64],
         ),
         learn=dict(
-            batch_size=64,
-            # (bool) Whether to normalize advantage. Default to False.
-            normalize_advantage=False,
+            batch_size=40,
             learning_rate=0.001,
-            # (float) loss weight of the value network, the weight of policy network is set to 1
-            value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
         ),
