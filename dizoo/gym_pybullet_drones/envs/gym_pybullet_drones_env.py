@@ -22,35 +22,28 @@ def gym_pybullet_drones_observation_space(dim, minimum=-np.inf, maximum=np.inf, 
     return Box(lower_bound, upper_bound, dtype=dtype)
 
 
+def drones_action_dim(type_of_action) -> int:
+    if type_of_action in [ActionType.RPM, ActionType.DYN, ActionType.VEL]:
+        return 4
+    elif type_of_action == ActionType.PID:
+        return 3
+    elif type_of_action == ActionType.TUN:
+        return 6
+    elif type_of_action in [ActionType.ONE_D_DYN, ActionType.ONE_D_PID, ActionType.ONE_D_RPM]:
+        return 1
+    else:
+        raise ValueError('Invalid action type.')
+
+
 def gym_pybullet_drones_action_space(drone_num=1, minimum=-1, maximum=1, dtype=np.float32) -> Callable:
 
-    def _gym_pybullet_drones_action_space(action_type) -> Box:
-        if action_type in [ActionType.RPM, ActionType.DYN, ActionType.VEL]:
-            return Box(
-                np.repeat(minimum, 4 * drone_num).astype(dtype),
-                np.repeat(maximum, 4 * drone_num).astype(dtype),
-                dtype=dtype
-            )
-        elif action_type == ActionType.PID:
-            return Box(
-                np.repeat(minimum, 3 * drone_num).astype(dtype),
-                np.repeat(maximum, 3 * drone_num).astype(dtype),
-                dtype=dtype
-            )
-        elif action_type == ActionType.TUN:
-            return Box(
-                np.repeat(minimum, 6 * drone_num).astype(dtype),
-                np.repeat(maximum, 6 * drone_num).astype(dtype),
-                dtype=dtype
-            )
-        elif action_type in [ActionType.ONE_D_DYN, ActionType.ONE_D_PID, ActionType.ONE_D_RPM]:
-            return Box(
-                np.repeat(minimum, 3 * drone_num).astype(dtype),
-                np.repeat(maximum, 3 * drone_num).astype(dtype),
-                dtype=dtype
-            )
-        else:
-            raise ValueError('Invalid action type.')
+    def _gym_pybullet_drones_action_space(type_of_action) -> Box:
+        dim = drones_action_dim(type_of_action)
+        return Box(
+            np.repeat(minimum, dim * drone_num).astype(dtype),
+            np.repeat(maximum, dim * drone_num).astype(dtype),
+            dtype=dtype
+        )
 
     return _gym_pybullet_drones_action_space
 
@@ -61,6 +54,11 @@ def gym_pybullet_drones_reward_space(minimum=-10000, maximum=0, dtype=np.float32
 
 gym_pybullet_drones_env_info = {
     "takeoff-aviary-v0": {
+        "observation_space": gym_pybullet_drones_observation_space(12, minimum=-1, maximum=1),
+        "action_space": gym_pybullet_drones_action_space(drone_num=1, minimum=-1, maximum=1),
+        "reward_space": gym_pybullet_drones_reward_space()
+    },
+    "flythrugate-aviary-v0": {
         "observation_space": gym_pybullet_drones_observation_space(12, minimum=-1, maximum=1),
         "action_space": gym_pybullet_drones_action_space(drone_num=1, minimum=-1, maximum=1),
         "reward_space": gym_pybullet_drones_reward_space()
@@ -134,6 +132,11 @@ class GymPybulletDronesEnv(BaseEnv):
             self.env_kwargs["act"] = ActionType.RPM
         self.action_type = self.env_kwargs["act"]
 
+        if "num_drones" in cfg:
+            self.num_drones = cfg["num_drones"]
+        else:
+            self.num_drones = 1
+
         if "print_debug_info" in cfg:
             self.print_debug_info = cfg["print_debug_info"]
         else:
@@ -156,6 +159,7 @@ class GymPybulletDronesEnv(BaseEnv):
 
         self._observation_space = gym_pybullet_drones_env_info[cfg.env_id]["observation_space"]
         self._action_space = gym_pybullet_drones_env_info[cfg.env_id]["action_space"](self.action_type)
+        self._action_dim = drones_action_dim(self.action_type) * self.num_drones
         self._reward_space = gym_pybullet_drones_env_info[cfg.env_id]["reward_space"]
 
         self.env_step_count = 0
@@ -189,7 +193,7 @@ class GymPybulletDronesEnv(BaseEnv):
                 drone=0,
                 timestamp=self.env_step_count / self._env.SIM_FREQ,
                 state=np.hstack([obs[0:3], np.zeros(4), obs[3:15],
-                                 np.resize(np.zeros(4), (4))]),
+                                 np.resize(np.zeros(self._action_dim), (4))]),
                 control=np.zeros(12)
             )
         if self.print_debug_info:

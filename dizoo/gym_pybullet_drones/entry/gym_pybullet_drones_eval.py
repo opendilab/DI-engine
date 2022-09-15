@@ -31,7 +31,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     info = cfg.env.manager
 
-    cfg.env['record'] = True
+    #cfg.env['record'] = True
     cfg.env['gui'] = True
     cfg.env['print_debug_info'] = True
     cfg.env['plot_observation'] = True
