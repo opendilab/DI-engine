@@ -56,9 +56,7 @@ SMAC_10m11m_masac_default_config = dict(
         ),
         command=dict(),
         eval=dict(
-            evaluator=dict(
-                eval_freq=50,
-            ),
+            evaluator=dict(eval_freq=50, ),
             env_num=evaluator_env_num,
         ),
         other=dict(
@@ -68,7 +66,8 @@ SMAC_10m11m_masac_default_config = dict(
                 end=0.05,
                 decay=100000,
             ),
-            replay_buffer=dict(replay_buffer_size=50000, ), ),
+            replay_buffer=dict(replay_buffer_size=50000, ),
+        ),
     ),
 )
 
@@ -81,13 +80,10 @@ SMAC_10m11m_masac_default_create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(
-        type='sac_discrete',
-    ),
+    policy=dict(type='sac_discrete', ),
 )
 SMAC_10m11m_masac_default_create_config = EasyDict(SMAC_10m11m_masac_default_create_config)
 create_config = SMAC_10m11m_masac_default_create_config
-
 
 if __name__ == '__main__':
 

@@ -109,7 +109,7 @@ def serial_pipeline_guided_cost(
     dirname = cfg.exp_name + '/reward_model'
     if not os.path.exists(dirname):
         try:
-            os.mkdir(dirname)
+            os.makedirs(dirname)
         except FileExistsError:
             pass
     while True:

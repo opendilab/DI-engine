@@ -4,6 +4,7 @@ from dizoo.board_games.tictactoe.envs.tictactoe_env import TicTacToeEnv
 
 @pytest.mark.envtest
 class TestTicTacToeEnv:
+
     def test_naive(self):
         env = TicTacToeEnv()
         env.reset()
@@ -22,7 +23,6 @@ class TestTicTacToeEnv:
                 else:
                     print('draw')
                 break
-
             """player 2"""
             action = env.expert_action()
             print('player 2 (computer player): ' + env.action_to_string(action))
@@ -34,4 +34,3 @@ class TestTicTacToeEnv:
                 else:
                     print('draw')
                 break
-                

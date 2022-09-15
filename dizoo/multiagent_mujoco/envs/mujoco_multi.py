@@ -106,7 +106,11 @@ class MujocoMulti(MultiAgentEnv):
             assert False, "not implemented!"
         self.timelimit_env = self.wrapped_env.env
         self.timelimit_env._max_episode_steps = self.episode_limit
-        self.env = self.timelimit_env.env
+        if gym.version.VERSION > '0.22.0':  # for compatibility
+            # get original no wrapped env
+            self.env = self.timelimit_env.env.env.env.env
+        else:
+            self.env = self.timelimit_env.env
         self.timelimit_env.reset()
         self.obs_size = self.get_obs_size()
 
@@ -125,7 +129,6 @@ class MujocoMulti(MultiAgentEnv):
                 ) for a in range(self.n_agents)
             ]
         )
-        pass
 
     def step(self, actions):
 

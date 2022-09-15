@@ -5,8 +5,8 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='smac_3s5z_collaq_seed0',
     env=dict(
-        exp_name='smac_3s5z_collaq_seed0',
         map_name='3s5z',
         difficulty=7,
         reward_only_positive=True,
@@ -82,7 +82,6 @@ create_config = dict(
     collector=dict(type='episode', get_train_sample=True),
 )
 create_config = EasyDict(create_config)
-
 
 if __name__ == '__main__':
 

@@ -87,5 +87,6 @@ def main(cfg, seed=0):
     )
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
+
 if __name__ == "__main__":
     main(cartpole_fqf_config)

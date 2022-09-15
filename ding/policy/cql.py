@@ -1,5 +1,4 @@
 from typing import List, Dict, Any, Tuple, Union
-from collections import namedtuple
 import copy
 import numpy as np
 import torch
@@ -19,7 +18,7 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('cql')
 class CQLPolicy(SACPolicy):
-    r"""
+    """
        Overview:
            Policy class of CQL algorithm.
 
@@ -51,13 +50,13 @@ class CQLPolicy(SACPolicy):
               |                                                |                                 | is False.
            10 | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
               |                                                | coefficient.                    | zation for auto
-              |                                                |                                 | `\alpha`, when
+              |                                                |                                 | `alpha`, when
               |                                                |                                 | auto_alpha is True
            11 | ``learn.repara_``   bool        True           | Determine whether to use        |
               | ``meterization``                               | reparameterization trick.       |
            12 | ``learn.``          bool        False          | Determine whether to use        | Temperature parameter
               | ``auto_alpha``                                 | auto temperature parameter      | determines the
-              |                                                | `\alpha`.                       | relative importance
+              |                                                | `alpha`.                        | relative importance
               |                                                |                                 | of the entropy term
               |                                                |                                 | against the reward.
            13 | ``learn.-``         bool        False          | Determine whether to ignore     | Use ignore_done only
@@ -546,32 +545,6 @@ class CQLDiscretePolicy(DQNPolicy):
     """
         Overview:
             Policy class of CQL algorithm in discrete environments.
-
-        Config:
-        == ==================== ======== ============== ======================================== =======================
-        ID Symbol               Type     Default Value  Description                              Other(Shape)
-        == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      qrdqn          | RL policy register name, refer to      | this arg is optional,
-                                                        | registry ``POLICY_REGISTRY``           | a placeholder
-        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
-                                                                                                 | erent from modes
-        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
-                                                        | or off-policy
-        4  ``priority``         bool     True           | Whether use priority(PER)              | priority sample,
-                                                                                                 | update priority
-        6  | ``other.eps``      float    0.05           | Start value for epsilon decay. It's
-           | ``.start``                                 | small because rainbow use noisy net.
-        7  | ``other.eps``      float    0.05           | End value for epsilon decay.
-           | ``.end``
-        8  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | may be 1 when sparse
-           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
-        9  ``nstep``            int      3,             | N-step reward discount sum for target
-                                         [3, 5]         | q_value estimation
-        10 | ``learn.update``   int      3              | How many updates(iterations) to train  | this args can be vary
-           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
-                                                        | valid in serial training               | means more off-policy
-        11 ``learn.kappa``      float    /              | Threshold of Huber loss
-        == ==================== ======== ============== ======================================== =======================
     """
 
     config = dict(
