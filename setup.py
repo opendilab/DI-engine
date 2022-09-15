@@ -53,7 +53,7 @@ setup(
         'numpy>=1.18.0',
         'requests>=2.25.1',
         'six',
-        'gym>=0.25.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gym==0.25.2',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
@@ -63,8 +63,8 @@ setup(
         'seaborn',
         'yapf==0.29.0',
         'responses~=0.12.1',
-        'MarkupSafe==2.0.1', 
-        'jinja2<3.1.0', 
+        'MarkupSafe==2.0.1',
+        'jinja2<3.1.0',
         'flask~=1.1.2',
         'lz4',
         'cloudpickle',
