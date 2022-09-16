@@ -68,7 +68,7 @@ class DingEnvWrapper(BaseEnv):
             self._env.seed(self._seed)
             self._action_space.seed(self._seed)
         obs = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs, np.float32)
         return obs
 
     # override
@@ -87,8 +87,8 @@ class DingEnvWrapper(BaseEnv):
         if self._cfg.get('act_scale', False):
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
-        obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew]).astype(np.float32)
+        obs = to_ndarray(obs, np.float32)
+        rew = to_ndarray([rew], np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def _judge_action_type(self, action: Union[np.ndarray, dict]) -> Union[np.ndarray, dict]:
