@@ -71,7 +71,7 @@ setup(
         'cloudpickle',
         'tabulate',
         'sortedcontainers',
-        'click==7.1.2',
+        'click<9,>=8',
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
