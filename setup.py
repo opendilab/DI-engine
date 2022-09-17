@@ -50,13 +50,14 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
-        'numpy>=1.18.0',
-        'requests>=2.25.1',
         'gym>=0.25.1, <0.26.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
+        'numpy>=1.18.0',
+        'pandas',
+        'tensorboardX>=2.2',
+        'requests>=2.25.1',
         'pyyaml',
         'easydict==1.9',
-        'tensorboardX>=2.2',
         'protobuf',
         'yapf==0.29.0',
         'flask~=1.1.2',
@@ -68,6 +69,7 @@ setup(
         'click>=7.0.0',
         'URLObject>=2.4.0',
         'urllib3>=1.26.5',
+        'responses~=0.12.1',
         'readerwriterlock',
         'enum_tools',
         'trueskill',
