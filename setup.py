@@ -66,7 +66,7 @@ setup(
         'cloudpickle',
         'tabulate',
         'click>=7.0.0',
-        'URLObject~=2.4.3',
+        'URLObject>=2.4.0',
         'urllib3>=1.26.5',
         'readerwriterlock',
         'enum_tools',
@@ -79,6 +79,7 @@ setup(
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
+        'MarkupSafe==2.0.1',  # compatibility
     ],
     extras_require={
         'test': [
