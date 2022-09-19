@@ -14,9 +14,19 @@ def test_collaQ():
     embedding_dim = 64
     for mix in use_mixer:
         collaQ_model = CollaQ(
-            agent_num, obs_dim, obs_alone_dim, global_obs_dim, action_dim, [128, embedding_dim], True,
-            self_feature_range, allay_feature_range, 32, mix
+            agent_num,
+            obs_dim,
+            obs_alone_dim,
+            global_obs_dim,
+            action_dim, [128, embedding_dim],
+            True,
+            self_feature_range,
+            allay_feature_range,
+            32,
+            mix,
+            activation=torch.nn.Tanh()
         )
+        print(collaQ_model)
         data = {
             'obs': {
                 'agent_state': torch.randn(T, bs, agent_num, obs_dim),
