@@ -5,6 +5,7 @@ from .collector import inferencer, rolloutor, TransitionList
 from .evaluator import interaction_evaluator
 from .termination_checker import termination_checker
 from .ctx_helper import final_ctx_saver
+from .logger import wandb_logger
 
 # algorithm
 from .explorer import eps_greedy_handler, eps_greedy_masker

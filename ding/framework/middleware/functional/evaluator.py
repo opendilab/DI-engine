@@ -180,12 +180,21 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             env.reset()
         policy.reset()
         eval_monitor = VectorEvalMonitor(env.env_num, cfg.env.n_evaluator_episode)
+        action_value = []
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
             obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
             inference_output = policy.forward(obs)
             action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
+            output = [v for v in inference_output.values()]
+            if hasattr(output[0], 'logit'):
+                action_value.append([to_ndarray(F.log_softmax(v['logit'], dim=-1)) for v in inference_output.values()])
+                ctx.eval_action_value = action_value
+            if hasattr(output[0], 'distribution'):
+                value_dist = [to_ndarray(v['distribution']) for v in inference_output.values()]
+            ctx.eval_value_dist = value_dist
+            ctx.eval_action = action
             timesteps = env.step(action)
             for timestep in timesteps:
                 env_id = timestep.env_id.item()
