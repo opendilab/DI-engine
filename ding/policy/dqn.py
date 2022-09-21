@@ -705,7 +705,8 @@ class PopartUpdate(object):
 
     def update(self, value, W, b, beta=0.5):
         batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
-        batch_v = (1-beta) * self._v + beta * torch.var(value)
+        batch_v = (1-beta) * self._v + beta * torch.mean(torch.pow(value, 2))
+        # batch_v = (1-beta) * self._v + beta * torch.var(value) -> nan
         batch_std = torch.sqrt(batch_v - (batch_mean**2))
         W_new = torch.reshape(1/batch_std * self._std, (self._shape, 1))
         W_new = W * W_new
