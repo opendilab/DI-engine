@@ -3,18 +3,16 @@ from collections import namedtuple
 import torch
 import copy
 import numpy as np
-from torch.distributions import Independent, Normal
 
 from ding.torch_utils import Adam, to_device, unsqueeze, ContrastiveLoss
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
     v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
-    get_gae
+    get_gae, ppo_policy_error_continuous
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
-from ding.utils import dicts_to_lists, lists_to_dicts
 
 
 @POLICY_REGISTRY.register('ppo')
@@ -509,14 +507,29 @@ class PPOPGPolicy(Policy):
         eval=dict(),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.action_space == 'discrete':
+            return 'discrete_bc', ['ding.model.template.bc']
+        else:
+            return RuntimeError(
+                "PPOPGPolicy doesn't have default_model, please define your own model and pass it " +
+                "into policy, you can refer to " + "dizoo/box2d/bipedalwalker/config/bipedalwalker_ppopg_config.py"
+            )
+
     def _init_learn(self) -> None:
         self._action_space = self._cfg.action_space
-        assert self._action_space == 'discrete', "NotImplementedError"
         if self._cfg.learn.ppo_param_init:
             for n, m in self._model.named_modules():
                 if isinstance(m, torch.nn.Linear):
                     torch.nn.init.orthogonal_(m.weight)
                     torch.nn.init.zeros_(m.bias)
+            if self._action_space == 'continuous':
+                if hasattr(self._model.head, 'log_sigma_param'):
+                    torch.nn.init.constant_(self._model.head.log_sigma_param, -0.5)
+                for m in self._model.modules():
+                    if isinstance(m, torch.nn.Linear):
+                        torch.nn.init.zeros_(m.bias)
+                        m.weight.data.copy_(0.01 * m.weight.data)
 
         # Optimizer
         self._optimizer = Adam(
@@ -549,7 +562,10 @@ class PPOPGPolicy(Policy):
                 ppo_batch = ppo_policy_data(
                     output['logit'], batch['logit'], batch['action'], batch['return'], batch['weight']
                 )
-                ppo_loss, ppo_info = ppo_policy_error(ppo_batch, self._clip_ratio)
+                if self._action_space == 'continuous':
+                    ppo_loss, ppo_info = ppo_policy_error_continuous(ppo_batch, self._clip_ratio)
+                elif self._action_space == 'discrete':
+                    ppo_loss, ppo_info = ppo_policy_error(ppo_batch, self._clip_ratio)
                 total_loss = ppo_loss.policy_loss - self._entropy_weight * ppo_loss.entropy_loss
 
                 self._optimizer.zero_grad()
@@ -564,6 +580,14 @@ class PPOPGPolicy(Policy):
                     'approx_kl': ppo_info.approx_kl,
                     'clipfrac': ppo_info.clipfrac,
                 }
+                if self._action_space == 'continuous':
+                    return_info.update(
+                        {
+                            'act': batch['action'].float().mean().item(),
+                            'mu_mean': output['logit']['mu'].mean().item(),
+                            'sigma_mean': output['logit']['sigma'].mean().item(),
+                        }
+                    )
                 return_infos.append(return_info)
         return return_infos
 
@@ -578,8 +602,12 @@ class PPOPGPolicy(Policy):
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
+        self._action_space = self._cfg.action_space
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        if self._action_space == 'continuous':
+            self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
+        elif self._action_space == 'discrete':
+            self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
         self._gamma = self._cfg.collect.discount_factor
 
@@ -621,7 +649,10 @@ class PPOPGPolicy(Policy):
 
     def _init_eval(self) -> None:
         self._action_space = self._cfg.action_space
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        if self._action_space == 'continuous':
+            self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
+        elif self._action_space == 'discrete':
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -636,9 +667,6 @@ class PPOPGPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'discrete_bc', ['ding.model.template.bc']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [

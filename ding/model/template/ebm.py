@@ -327,11 +327,13 @@ class MCMC(StochasticOptimizer):
         obs: (B, N, O), action: (B, N, A).
         return: (B, N, A).
         """
-        action = action.requires_grad_(True)
+        action.requires_grad_(True)
         energy = ebm.forward(obs, action).sum()
         # `create_graph` set to `True` when second order derivative
         #  is needed i.e, d(de/da)/d_param
-        return torch.autograd.grad(energy, action, create_graph=create_graph)[0]
+        grad = torch.autograd.grad(energy, action, create_graph=create_graph)[0]
+        action.requires_grad_(False)
+        return grad
 
     def grad_penalty(self, obs: torch.Tensor, action: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
         """
@@ -392,7 +394,7 @@ class MCMC(StochasticOptimizer):
         return action
 
     @no_ebm_grad()
-    def _langevin_action_gives_obs(
+    def _langevin_action_given_obs(
             self,
             obs: torch.Tensor,
             action: torch.Tensor,
@@ -418,14 +420,14 @@ class MCMC(StochasticOptimizer):
         obs, uniform_action_samples = self._sample(obs, self.train_samples)
         if not self.use_langevin_negative_samples:
             return obs, uniform_action_samples
-        langevin_action_samples = self._langevin_action_gives_obs(obs, uniform_action_samples, ebm)
+        langevin_action_samples = self._langevin_action_given_obs(obs, uniform_action_samples, ebm)
         return obs, langevin_action_samples
 
     @no_ebm_grad()
     def infer(self, obs: torch.Tensor, ebm: nn.Module) -> torch.Tensor:
         # (B, N, O), (B, N, A)
         obs, uniform_action_samples = self._sample(obs, self.inference_samples)
-        action_samples = self._langevin_action_gives_obs(
+        action_samples = self._langevin_action_given_obs(
             obs,
             uniform_action_samples,
             ebm,
@@ -434,7 +436,7 @@ class MCMC(StochasticOptimizer):
         # Run a second optimization, a trick for more precise inference
         if self.optimize_again:
             self.again_stepsize_scheduler['num_steps'] = self.iters
-            action_samples = self._langevin_action_gives_obs(
+            action_samples = self._langevin_action_given_obs(
                 obs,
                 action_samples,
                 ebm,
