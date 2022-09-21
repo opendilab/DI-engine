@@ -5,6 +5,7 @@ from collections import defaultdict
 import logging
 import numpy as np
 
+
 class GomokuExpert(object):
     """
         Overview:
@@ -52,7 +53,7 @@ class GomokuExpert(object):
         j = action % self.board_width
         i = action // self.board_width
         return [i, j]
- 
+
     def get_loc_player(self, i, j):
         """
         Overview:
@@ -81,27 +82,26 @@ class GomokuExpert(object):
         Returns:
             - value: Situation valuation in this direction.
         """
-        # Count the number of consecutive own flags or empty chess pieces
+        # Count the number of consecutive pieces or empty pieces of the current player
+        # and get the value in this direction when moving pieces (i, j)
         value = 0
         count = 0
         grade = self.grade
         # scan left
         m, n = i, j - 1
         while n >= 0:
-            # Incoming action position and player
             is_continue, value, grade = self.caculate_once_value(m, n,
                                                                  player,
                                                                  value,
                                                                  grade)
             if is_continue:
+                # Continue to move one step to the left
                 n = n - 1
             else:
                 break
-                # action one step to the left
             count += 1
-
-        grade = self.grade
         # Change the direction, the weights are returned to the initial values
+        grade = self.grade
         n = j + 1
         while n < self.board_width:
             is_continue, value, grade = self.caculate_once_value(m, n,
@@ -109,10 +109,10 @@ class GomokuExpert(object):
                                                                  value,
                                                                  grade)
             if is_continue:
+                # Continue to move one step to the right
                 n = n + 1
             else:
                 break
-                # action one step to the right
             count += 1
         # Returns the value if there are four consecutive pawn in this direction, otherwise 0
         return value if count >= 4 else 0
@@ -131,41 +131,40 @@ class GomokuExpert(object):
         """
         value = 0
         count = 0
-        # Count the number of consecutive own chess pieces or empty chess pieces
+        # Count the number of consecutive pieces or empty pieces of the current player
+        # and get the value in this direction when moving pieces (i, j)
         grade = self.grade
 
         m, n = i - 1, j
-        # action one step up
+        # scan up
         while m >= 0:
             is_continue, value, grade = self.caculate_once_value(m, n,
                                                                  player,
                                                                  value,
                                                                  grade)
             if is_continue:
+                # Continue to move one step to the up
                 m = m - 1
             else:
                 break
-                # action one step up
             count += 1
-
-        grade = self.grade
         # Change the direction and change the weight back to the initial value
+        grade = self.grade
         m = i + 1
-        # down
+        # scan down
         while m < self.board_height:
             is_continue, value, grade = self.caculate_once_value(m, n,
                                                                  player,
                                                                  value,
                                                                  grade)
             if is_continue:
+                # Continue to move one step to the down
                 m = m + 1
             else:
                 break
-                # action down one step
             count += 1
-
+        # Returns the value if there are four consecutive pawn in this direction, otherwise 0
         return value if count >= 4 else 0
-        # If this direction can be connected into 5, return value, otherwise it is 0
 
     def scan_left_updown(self, i, j, player):
         """
@@ -179,42 +178,42 @@ class GomokuExpert(object):
         Returns:
             - value: Situation valuation in this direction.
         """
+        # Count the number of consecutive pieces or empty pieces of the current player
+        # and get the value in this direction when moving pieces (i, j)
         value = 0
         count = 0
-        # Count the number of consecutive own chess pieces or empty chess pieces
 
         grade = self.grade
         m, n = i - 1, j - 1
-        # Move up one step to the left
+        # scan left up
         while m >= 0 and n >= 0:
             is_continue, value, grade = self.caculate_once_value(m, n,
                                                                  player,
                                                                  value,
                                                                  grade)
             if is_continue:
+                # Continue to move one step to the left up
                 m, n = m - 1, n - 1
             else:
                 break
-                # Move up one step to the left
             count += 1
 
         grade = self.grade
+        # right down
         m, n = i + 1, j + 1
-        # down right
         while m < self.board_height and n < self.board_width:
             is_continue, value, grade = self.caculate_once_value(m, n,
                                                                  player,
                                                                  value,
                                                                  grade)
             if is_continue:
+                # Continue to move one step down to the right
                 m, n = m + 1, n + 1
             else:
                 break
-                # Continue to action one step down to the right
             count += 1
-
+        # Returns the value if there are four consecutive pawn in this direction, otherwise 0
         return value if count >= 4 else 0
-        # If this direction can be connected into 5, return value, otherwise it is 0
 
     def scan_right_updown(self, i, j, player):
         """
@@ -228,13 +227,13 @@ class GomokuExpert(object):
         Returns:
             - value: Situation valuation in this direction.
         """
+        # Count the number of consecutive pieces or empty pieces of the current player
+        # and get the value in this direction when moving pieces (i, j)
         value = 0
         count = 0
-        # Count the number of consecutive own chess pieces or empty chess pieces
-
         grade = self.grade
+        # scan left down
         m, n = i + 1, j - 1
-        # Move down one step to the left
         while m < self.board_height and n >= 0:
             is_continue, value, grade = self.caculate_once_value(m, n,
                                                                  player,
@@ -244,25 +243,23 @@ class GomokuExpert(object):
                 m, n = m + 1, n - 1
             else:
                 break
-                # Move down one step to the left
             count += 1
         grade = self.grade
+        # scan right up
         m, n = i - 1, j + 1
-        # right up
         while m >= 0 and n < self.board_width:
             is_continue, value, grade = self.caculate_once_value(m, n,
                                                                  player,
                                                                  value,
                                                                  grade)
             if is_continue:
+                # Continue to move up one step to the right
                 m, n = m - 1, n + 1
             else:
                 break
-                # Continue to action up one step to the right
             count += 1
-
+        # Returns the value if there are four consecutive pawn in this direction, otherwise 0
         return value if count >= 4 else 0
-        # If this direction can be connected into 5, return value, otherwise it is 0
 
     def caculate_once_value(self, m, n, player, value, grade):
         """
@@ -278,9 +275,9 @@ class GomokuExpert(object):
             - grade (:obj:`Int`): The weight of the pawn in the current position
 
         Returns:
-            - is_continue: 
-            - value:
-            - grade: 
+            - is_continue: Whether there is a pawn of current_player at the current position
+            - value: The evaluation value of the move to (i,j)
+            - grade: The weight of a single one of our chess pieces
         """
         loc_player = self.get_loc_player(m, n)
         if loc_player == player:
@@ -326,10 +323,11 @@ class GomokuExpert(object):
                     self.action_value[action][k] = 1000
 
             # Comprehensive score in all directions
-            self.action_value[action][4] = (self.action_value[action][0] +
-                                        self.action_value[action][1] +
-                                        self.action_value[action][2] +
-                                        self.action_value[action][3])
+            self.action_value[action][4] = (
+                self.action_value[action][0] +
+                self.action_value[action][1] +
+                self.action_value[action][2] +
+                self.action_value[action][3])
 
         action = max(self.available, key=lambda x: self.action_value[x][4])
 
@@ -347,7 +345,7 @@ class GomokuExpert(object):
         """
         self.board = obs
 
-        if self.init_board_flag == False:
+        if self.init_board_flag is False:
             self.board_width = self.board['observation'][0].shape[0]
             self.board_height = self.board['observation'][0].shape[1]
             # the 2 dim indicates which player is the to_play player, 1 means player 1, 2 means player 2
