@@ -133,10 +133,35 @@ ding -m serial -e cartpole -p dqn -s 0
 ```
 
 ## Feature
-
 ### Algorithm Versatility
+![discrete](https://img.shields.io/badge/-discrete-brightgreen) &nbsp;discrete means discrete action space, which is only label in normal DRL algorithms (1-18)
 
-|  No  |                          Algorithm                           |                            Label                             |                        Doc and Implementation                        |                        Runnable Demo                         |
+![continuous](https://img.shields.io/badge/-continous-green) &nbsp;means continuous action space, which is only label in normal DRL algorithms (1-18)
+
+![hybrid](https://img.shields.io/badge/-hybrid-darkgreen) &nbsp;means hybrid (discrete + continuous) action space (1-18)
+
+![dist](https://img.shields.io/badge/-distributed-blue) &nbsp;[Distributed Reinforcement Learning](https://di-engine-docs.readthedocs.io/en/latest/02_algo/distributed_rl.html)｜[分布式强化学习](https://di-engine-docs.readthedocs.io/zh_CN/latest/02_algo/distributed_rl_zh.html)
+
+![MARL](https://img.shields.io/badge/-MARL-yellow) &nbsp;[Multi-Agent Reinforcement Learning](https://di-engine-docs.readthedocs.io/en/latest/02_algo/multi_agent_cooperation_rl.html)｜[多智能体强化学习](https://di-engine-docs.readthedocs.io/zh_CN/latest/02_algo/multi_agent_cooperation_rl_zh.html)
+
+![exp](https://img.shields.io/badge/-exploration-orange) &nbsp;[Exploration Mechanisms in Reinforcement Learning](https://di-engine-docs.readthedocs.io/en/latest/02_algo/exploration_rl.html)｜[强化学习中的探索机制](https://di-engine-docs.readthedocs.io/zh_CN/latest/02_algo/exploration_rl_zh.html)
+
+![IL](https://img.shields.io/badge/-IL-purple) &nbsp;[Imitation Learning](https://di-engine-docs.readthedocs.io/en/latest/02_algo/imitation_learning.html)｜[模仿学习](https://di-engine-docs.readthedocs.io/zh_CN/latest/02_algo/imitation_learning_zh.html)
+
+![offline](https://img.shields.io/badge/-offlineRL-darkblue) &nbsp;[Offiline Reinforcement Learning](https://di-engine-docs.readthedocs.io/en/latest/02_algo/offline_rl.html)｜[离线强化学习](https://di-engine-docs.readthedocs.io/zh_CN/latest/02_algo/offline_rl_zh.html)
+
+
+![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) &nbsp;[Model-Based Reinforcement Learning](https://di-engine-docs.readthedocs.io/en/latest/02_algo/model_based_rl.html)｜[基于模型的强化学习](https://di-engine-docs.readthedocs.io/zh_CN/latest/02_algo/model_based_rl_zh.html)
+
+![other](https://img.shields.io/badge/-other-lightgrey) &nbsp;means other sub-direction algorithm, usually as plugin-in in the whole pipeline
+
+P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
+
+
+
+
+
+|  No.  |                          Algorithm                           |                            Label                             |                        Doc and Implementation                        |                        Runnable Demo                         |
 | :--: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |  1   |         [DQN](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [DQN doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/dqn.html)<br>[DQN中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/12_policies/dqn_zh.html)<br>[policy/dqn](https://github.com/opendilab/DI-engine/blob/main/ding/policy/dqn.py) | python3 -u cartpole_dqn_main.py / ding -m serial -c cartpole_dqn_config.py -s 0 |
 |  2   |         [C51](https://arxiv.org/pdf/1707.06887.pdf)          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [C51 doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/c51.html)<br>[policy/c51](https://github.com/opendilab/DI-engine/blob/main/ding/policy/c51.py) |        ding -m serial -c cartpole_c51_config.py -s 0         |
@@ -184,28 +209,6 @@ ding -m serial -e cartpole -p dqn -s 0
 |  44  |         [GAE](https://arxiv.org/pdf/1506.02438.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [rl_utils/gae](https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/gae.py) |                          `ppo demo`                          |
 |  45  |         [ST-DIM](https://arxiv.org/pdf/1906.08226.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/loss/contrastive_loss](https://github.com/opendilab/DI-engine/blob/main/ding/torch_utils/loss/contrastive_loss.py) |        ding -m serial -c cartpole_dqn_stdim_config.py -s 0       |
 |  46  |         [PLR](https://arxiv.org/pdf/2010.03934.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [PLR doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/plr.html)<br>[data/level_replay/level_sampler](https://github.com/opendilab/DI-engine/blob/main/ding/data/level_replay/level_sampler.py) |        python3 -u bigfish_plr_config.py -s 0       |
-
-![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space, which is only label in normal DRL algorithms (1-18)
-
-![continuous](https://img.shields.io/badge/-continous-green) means continuous action space, which is only label in normal DRL algorithms (1-18)
-
-![hybrid](https://img.shields.io/badge/-hybrid-darkgreen) means hybrid (discrete + continuous) action space (1-18)
-
-![dist](https://img.shields.io/badge/-distributed-blue) means distributed training (collector-learner parallel) RL algorithm
-
-![MARL](https://img.shields.io/badge/-MARL-yellow) means multi-agent RL algorithm
-
-![exp](https://img.shields.io/badge/-exploration-orange) means RL algorithm which is related to exploration and sparse reward
-
-![IL](https://img.shields.io/badge/-IL-purple) means Imitation Learning, including Behaviour Cloning, Inverse RL, Adversarial Structured IL
-
-![offline](https://img.shields.io/badge/-offlineRL-darkblue) means offline RL algorithm
-
-![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) means model-based RL algorithm
-
-![other](https://img.shields.io/badge/-other-lightgrey) means other sub-direction algorithm, usually as plugin-in in the whole pipeline
-
-P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 
 ### Environment Versatility
@@ -257,6 +260,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 ![selfplay](https://img.shields.io/badge/-selfplay-blue) means environment that allows agent VS agent battle
 
 P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse reward type
+
 
 ## Feedback and Contribution
 
