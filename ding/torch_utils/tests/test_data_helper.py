@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from ding.torch_utils import CudaFetcher, to_device, to_dtype, to_tensor, to_ndarray, to_list, \
-    tensor_to_list, same_shape, build_log_buffer, get_tensor_data
+    tensor_to_list, same_shape, build_log_buffer, get_tensor_data, detach_grad, flatten
 from ding.utils import EasyTimer
 
 
@@ -217,3 +217,37 @@ def test_to_device_cpu(setup_data_dict):
     other = EasyTimer()
     with pytest.raises(TypeError):
         to_device(other)
+
+
+@pytest.mark.unittest
+def test_detach_grad():
+    tensor_list = [torch.tensor(1., requires_grad=True) for _ in range(4)]
+    tensor_dict = {'a': torch.tensor(1., requires_grad=True), 'b': torch.tensor(2., requires_grad=True)}
+    assert all(t.requires_grad is True for t in tensor_list)
+    assert all(t.requires_grad is True for _, t in tensor_dict.items())
+    tensor_list = detach_grad(tensor_list)
+    tensor_dict = detach_grad(tensor_dict)
+    assert all(t.requires_grad is False for t in tensor_list)
+    assert all(t.requires_grad is False for _, t in tensor_dict.items())
+
+    with pytest.raises(TypeError):
+        detach_grad(1)
+
+
+@pytest.mark.unittest
+def test_flatten():
+
+    def test_tensor():
+        return torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+
+    tensor_list = [test_tensor() for _ in range(4)]
+    tensor_dict = {'a': test_tensor(), 'b': test_tensor()}
+    assert all(t.shape == torch.Size([2, 2, 2]) for t in tensor_list)
+    assert all(t.shape == torch.Size([2, 2, 2]) for _, t in tensor_dict.items())
+    tensor_list = flatten(tensor_list)
+    tensor_dict = flatten(tensor_dict)
+    assert all(t.shape == torch.Size([4, 2]) for t in tensor_list)
+    assert all(t.shape == torch.Size([4, 2]) for t in tensor_list)
+
+    with pytest.raises(TypeError):
+        flatten(1)
