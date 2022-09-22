@@ -167,6 +167,9 @@ class TD3VAEPolicy(DDPGPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'qac', ['ding.model.template.qac']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -635,9 +638,6 @@ class TD3VAEPolicy(DDPGPolicy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

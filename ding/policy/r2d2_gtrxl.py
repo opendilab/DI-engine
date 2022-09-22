@@ -131,6 +131,9 @@ class R2D2GTrXLPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'gtrxl_discrete', ['ding.model.template.q_learning']
+
     def _init_learn(self) -> None:
         """
         Overview:
@@ -470,9 +473,6 @@ class R2D2GTrXLPolicy(Policy):
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._eval_model.reset(data_id=data_id)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'gtrxl_discrete', ['ding.model.template.q_learning']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
