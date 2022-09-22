@@ -311,13 +311,18 @@ env_config_template = EasyDict(env_config_template)
 
 
 def save_project_state(exp_name: str) -> None:
-    short_sha = subprocess.check_output(["git", "describe", "--always"]).strip().decode("utf-8")
-    log = subprocess.check_output(["git", "log", "--stat", "-n", "5"]).strip().decode("utf-8")
-    diff = subprocess.check_output(["git", "diff"]).strip().decode("utf-8")
-    with open(os.path.join(exp_name, "git_log.txt"), "w") as f:
-        f.write(short_sha + '\n\n' + log)
-    with open(os.path.join(exp_name, "git_diff.txt"), "w") as f:
-        f.write(diff)
+
+    def _fn(cmd: str):
+        return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.strip().decode("utf-8")
+
+    if subprocess.run("git status", shell=True, stderr=subprocess.PIPE).returncode == 0:
+        short_sha = _fn("git describe --always")
+        log = _fn("git log --stat -n 5")
+        diff = _fn("git diff")
+        with open(os.path.join(exp_name, "git_log.txt"), "w") as f:
+            f.write(short_sha + '\n\n' + log)
+        with open(os.path.join(exp_name, "git_diff.txt"), "w") as f:
+            f.write(diff)
 
 
 def compile_config(
@@ -457,7 +462,7 @@ def compile_config(
         if os.path.exists(cfg.exp_name):
             cfg.exp_name += datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
         try:
-            os.mkdir(cfg.exp_name)
+            os.makedirs(cfg.exp_name)
         except FileExistsError:
             pass
         save_project_state(cfg.exp_name)

@@ -50,43 +50,38 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
-        'numpy>=1.18.0',
-        'requests>=2.25.1',
-        'six',
-        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gym>=0.25.1, <0.26.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
-        'pyyaml<6.0',
+        'numpy>=1.18.0',
+        'pandas',
+        'tensorboardX>=2.2',
+        'requests>=2.25.1',
+        'pyyaml',
         'easydict==1.9',
-        'protobuf<=3.20.1',
-        'tensorboardX>=2.1,<=2.2',
-        'matplotlib',  # pypy incompatible
-        'seaborn',
+        'protobuf',
         'yapf==0.29.0',
-        'responses~=0.12.1',
-        'MarkupSafe==2.0.1',
-        'jinja2<3.1.0',
         'flask~=1.1.2',
+        'tqdm',
         'lz4',
         'scipy',
         'cloudpickle',
         'tabulate',
-        'sortedcontainers',
-        'click==7.1.2',
-        'URLObject~=2.4.3',
+        'click>=7.0.0',
+        'URLObject>=2.4.0',
         'urllib3>=1.26.5',
+        'responses~=0.12.1',
         'readerwriterlock',
         'enum_tools',
         'trueskill',
         'h5py',
         'mpire>=2.3.5',
         'pynng',
-        'pettingzoo==1.12.0',
-        'pyglet>=1.4.0',
         'redis',
+        'pettingzoo==1.12.0',
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
-        'moviepy',
+        'MarkupSafe==2.0.1',  # compatibility
     ],
     extras_require={
         'test': [
@@ -163,6 +158,9 @@ setup(
         ],
         # 'dmc2gym': [
         #    'dmc2gym @ git+https://github.com/denisyarats/dmc2gym@master#egg=dmc2gym',
+        # ],
+        # 'rocket_recycling': [
+        #    'rocket_recycling @ git+https://github.com/nighood/rocket-recycling@master#egg=rocket_recycling',
         # ],
         'sokoban': [
             'gym-sokoban',

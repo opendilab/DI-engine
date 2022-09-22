@@ -6,6 +6,7 @@ import sys
 from dizoo.board_games.base_game_env import BaseGameEnv
 from ding.envs import BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
+from dizoo.board_games.gomoku.envs.gomoku_expert import GomokuExpert
 
 
 @ENV_REGISTRY.register('gomoku')
@@ -17,6 +18,7 @@ class GomokuEnv(BaseGameEnv):
         self.players = [1, 2]
         self.board_markers = [str(i + 1) for i in range(self.board_size)]
         self.total_num_actions = self.board_size * self.board_size
+        self.expert = GomokuExpert()
 
     @property
     def current_player(self):
@@ -147,8 +149,10 @@ class GomokuEnv(BaseGameEnv):
         return np.random.choice(action_list)
 
     def expert_action(self):
-        # TODO
-        pass
+        action_mask = np.zeros(self.total_num_actions, 'int8')
+        action_mask[self.legal_actions] = 1
+        obs = {'observation': self.current_state(), 'action_mask': action_mask}
+        return self.expert.get_move(obs)
 
     def human_to_action(self):
         """

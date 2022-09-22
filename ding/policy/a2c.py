@@ -5,7 +5,7 @@ import torch
 from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_train_sample
 from ding.torch_utils import Adam, to_device
 from ding.model import model_wrap
-from ding.utils import POLICY_REGISTRY
+from ding.utils import POLICY_REGISTRY, split_data_generator
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -108,37 +108,40 @@ class A2CPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         self._learn_model.train()
-        # forward
-        output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
 
-        adv = data['adv']
-        return_ = data['value'] + adv
-        if self._adv_norm:
-            # norm adv in total train_batch
-            adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
+        for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+            # forward
+            output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
 
-        # Calculate A2C loss
-        a2c_loss = a2c_error(data)
-        wv, we = self._value_weight, self._entropy_weight
-        total_loss = a2c_loss.policy_loss + wv * a2c_loss.value_loss - we * a2c_loss.entropy_loss
+            adv = batch['adv']
+            return_ = batch['value'] + adv
+            if self._adv_norm:
+                # norm adv in total train_batch
+                adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+            error_data = a2c_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
 
-        # ====================
-        # A2C-learning update
-        # ====================
+            # Calculate A2C loss
+            a2c_loss = a2c_error(error_data)
+            wv, we = self._value_weight, self._entropy_weight
+            total_loss = a2c_loss.policy_loss + wv * a2c_loss.value_loss - we * a2c_loss.entropy_loss
 
-        self._optimizer.zero_grad()
-        total_loss.backward()
+            # ====================
+            # A2C-learning update
+            # ====================
 
-        grad_norm = torch.nn.utils.clip_grad_norm_(
-            list(self._learn_model.parameters()),
-            max_norm=self._grad_norm,
-        )
-        self._optimizer.step()
+            self._optimizer.zero_grad()
+            total_loss.backward()
+
+            grad_norm = torch.nn.utils.clip_grad_norm_(
+                list(self._learn_model.parameters()),
+                max_norm=self._grad_norm,
+            )
+            self._optimizer.step()
 
         # =============
         # after update
         # =============
+        # only record last updates information in logger
         return {
             'cur_lr': self._optimizer.param_groups[0]['lr'],
             'total_loss': total_loss.item(),

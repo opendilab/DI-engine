@@ -30,7 +30,7 @@ class CkptSaver:
         self.train_freq = train_freq
         self.prefix = '{}/ckpt'.format(cfg.exp_name)
         if not os.path.exists(self.prefix):
-            os.mkdir(self.prefix)
+            os.makedirs(self.prefix)
         self.last_save_iter = 0
         self.max_eval_value = -np.inf
 

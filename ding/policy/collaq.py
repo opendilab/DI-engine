@@ -9,6 +9,7 @@ from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('collaq')
@@ -116,9 +117,9 @@ class CollaQPolicy(Policy):
 
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For collaq, ``ding.model.qmix.qmix``
+            by import_names path. For collaq, ``ding.model.collaq.CollaQ`` .
         """
-        return 'collaq', ['ding.model.template.qmix']
+        return 'collaq', ['ding.model.template.collaq']
 
     def _init_learn(self) -> None:
         """
@@ -138,7 +139,6 @@ class CollaQPolicy(Policy):
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        assert not self._priority and not self._priority_IS_weight, "not implemented priority in collaq"
         self._optimizer = RMSprop(
             params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001
         )
@@ -167,7 +167,12 @@ class CollaQPolicy(Policy):
         self._learn_model.reset()
         self._target_model.reset()
 
-    def _data_preprocess_learn(self, data: List[Any]) -> dict:
+    def _data_preprocess_learn(
+            self,
+            data: List[Any],
+            use_priority_IS_weight: bool = False,
+            use_priority: bool = False,
+    ) -> dict:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
@@ -183,7 +188,15 @@ class CollaQPolicy(Policy):
         data = timestep_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
-        data['weight'] = data.get('weight', None)
+        if use_priority_IS_weight:
+            assert use_priority, "Use IS Weight correction, but Priority is not used."
+        if use_priority and use_priority_IS_weight:
+            if 'priority_IS' in data:
+                data['weight'] = data['priority_IS']
+            else:  # for compability
+                data['weight'] = data['IS']
+        else:
+            data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
         return data
 
@@ -204,7 +217,7 @@ class CollaQPolicy(Policy):
                 - cur_lr (:obj:`float`): Current learning rate
                 - total_loss (:obj:`float`): The calculated loss
         """
-        data = self._data_preprocess_learn(data)
+        data = self._data_preprocess_learn(data, self.cfg.priority_IS_weight, self.cfg.priority)
         # ====================
         # CollaQ forward
         # ====================
@@ -229,7 +242,7 @@ class CollaQPolicy(Policy):
 
         # td_loss calculation
         td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        td_loss, _ = v_1step_td_error(td_data, self._gamma)
+        td_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
         # collaQ loss calculation
         colla_loss = (agent_colla_alone_q ** 2).mean()
         # combine loss with factor
@@ -251,6 +264,7 @@ class CollaQPolicy(Policy):
             'colla_loss': colla_loss.item(),
             'td_loss': td_loss.item(),
             'grad_norm': grad_norm,
+            'priority': torch.mean(td_error_per_sample.abs(), dim=0).tolist(),
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:

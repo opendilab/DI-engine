@@ -126,13 +126,13 @@ class MBSACPolicy(SACPolicy):
         else:
             obss, actions, rewards, aug_rewards, dones = \
                 world_model.rollout(data['next_obs'], self._actor_fn, envstep)
-            obss = torch.concat([data['obs'].unsqueeze(0), obss])
-            actions = torch.concat([data['action'].unsqueeze(0), actions])
-            rewards = torch.concat([data['reward'].unsqueeze(0), rewards])
-            aug_rewards = torch.concat([torch.zeros_like(data['reward']).unsqueeze(0), aug_rewards])
-            dones = torch.concat([data['done'].unsqueeze(0), dones])
+            obss = torch.cat([data['obs'].unsqueeze(0), obss])
+            actions = torch.cat([data['action'].unsqueeze(0), actions])
+            rewards = torch.cat([data['reward'].unsqueeze(0), rewards])
+            aug_rewards = torch.cat([torch.zeros_like(data['reward']).unsqueeze(0), aug_rewards])
+            dones = torch.cat([data['done'].unsqueeze(0), dones])
 
-        dones = torch.concat([torch.zeros_like(data['done']).unsqueeze(0), dones])
+        dones = torch.cat([torch.zeros_like(data['done']).unsqueeze(0), dones])
 
         # (T+1, B)
         target_q_values = q_evaluation(obss, actions, partial(self._critic_fn, model=self._target_model))
@@ -320,8 +320,8 @@ class STEVESACPolicy(SACPolicy):
 
         obss, actions, rewards, aug_rewards, dones = \
             world_model.rollout(data['next_obs'], self._actor_fn, envstep, keep_ensemble=True)
-        rewards = torch.concat([data['reward'].unsqueeze(0), rewards])
-        dones = torch.concat([data['done'].unsqueeze(0), dones])
+        rewards = torch.cat([data['reward'].unsqueeze(0), rewards])
+        dones = torch.cat([data['done'].unsqueeze(0), dones])
 
         # (T, E, B)
         target_q_values = q_evaluation(obss, actions, partial(self._critic_fn, model=self._target_model))
@@ -332,7 +332,7 @@ class STEVESACPolicy(SACPolicy):
 
         # (T+1, E, B)
         discounts = ((1 - dones) * self._gamma).cumprod(dim=0)
-        discounts = torch.concat([torch.ones_like(discounts)[:1], discounts])
+        discounts = torch.cat([torch.ones_like(discounts)[:1], discounts])
         # (T, E, B)
         cum_rewards = (rewards * discounts[:-1]).cumsum(dim=0)
         discounted_q_values = target_q_values * discounts[1:]
