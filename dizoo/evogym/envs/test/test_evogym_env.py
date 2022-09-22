@@ -10,7 +10,7 @@ from dizoo.evogym.envs import EvoGymEnv
 @pytest.mark.parametrize('robot', ['speed_bot', 'random'])
 def test_evogym_env_final_eval_reward(robot):
     set_pkg_seed(1234, use_cuda=False)
-    env = EvoGymEnv(EasyDict({'env_id': 'Walker-v0', 'robot': robot}))
+    env = EvoGymEnv(EasyDict({'env_id': 'Walker-v0', 'robot': robot, 'robot_dir': '../'}))
     env.seed(1234)
     env.reset()
     action_dim = env.action_space.shape
@@ -38,13 +38,15 @@ def test_evogym_env_final_eval_reward(robot):
 
 
 if __name__ == '__main__':
+    # replay still not working
     set_pkg_seed(1234, use_cuda=False)
-    env = EvoGymEnv(EasyDict({'env_id': 'Walker-v0', 'robot': 'random'}))
+    env = EvoGymEnv(EasyDict({'env_id': 'BridgeWalker-v0', 'robot': 'speed_bot', 'robot_dir': '../'}))
     env.seed(1234)
     env.reset()
     action_dim = env.action_space.shape
     print(action_dim)
     print(env.observation_space.shape)
+    print(env.reward_space.shape)
     final_eval_reward = np.array([0.], dtype=np.float32)
 
     while True:
@@ -52,6 +54,13 @@ if __name__ == '__main__':
         timestep = env.step(action)
         final_eval_reward += timestep.reward
         print("{}(dtype: {})".format(timestep.reward, timestep.reward.dtype))
+        print(type(action), action.dtype)
+        print(type(final_eval_reward), final_eval_reward.dtype)
+        print(type(timestep.reward), timestep.reward.dtype)
+        print(type(timestep.obs), timestep.obs.dtype)
+        print(type(timestep.done), timestep.done)
+        input()
+
         if timestep.done:
             print(
                 "{}({}), {}({})".format(
