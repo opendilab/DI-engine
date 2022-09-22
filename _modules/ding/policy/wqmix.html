@@ -379,6 +379,18 @@
         <span class="p">),</span>
     <span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return this algorithm default model setting for demonstration.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names</span>
+<span class="sd">        .. note::</span>
+<span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
+<span class="sd">            by import_names path. For WQMIX, ``ding.model.template.wqmix``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;wqmix&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.wqmix&#39;</span><span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -548,18 +560,6 @@
             <span class="s1">&#39;grad_norm_q&#39;</span><span class="p">:</span> <span class="n">grad_norm_q</span><span class="p">,</span>
             <span class="s1">&#39;grad_norm_q_star&#39;</span><span class="p">:</span> <span class="n">grad_norm_q_star</span><span class="p">,</span>
         <span class="p">}</span>
-
-    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Return this algorithm default model setting for demonstration.</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names</span>
-<span class="sd">        .. note::</span>
-<span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
-<span class="sd">            by import_names path. For WQMIX, ``ding.model.template.wqmix``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;wqmix&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.wqmix&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
