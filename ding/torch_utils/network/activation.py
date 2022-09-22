@@ -95,6 +95,12 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
 
 
 class GLU2(nn.Module):
+    r"""
+    Overview:
+        Gating Linear Unit different from GLU defined above,
+        Which uses fc_block instead of nn.Linear if input_type is 'fc',
+        and uses conv2d_block instead of nn.Conv2d if input_type is 'conv2d'
+    """
 
     def __init__(self, input_dim, output_dim, context_dim, input_type='fc'):
         super(GLU2, self).__init__()
