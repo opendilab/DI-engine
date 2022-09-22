@@ -59,7 +59,7 @@ Updated on 2022.09.08 DI-engine-v0.4.2
   - [DI-smartcross](https://github.com/opendilab/DI-smartcross): Decision AI in Traffic Light Control
   - [DI-bioseq](https://github.com/opendilab/DI-bioseq): Decision AI in Biological Sequence Prediction and Searching
 - Research paper
-- [InterFuser](https://github.com/opendilab/InterFuser): (CoRL 2022) Safety-Enhanced Autonomous Driving Using Interpretable Sensor Fusion Transformer
+  - [InterFuser](https://github.com/opendilab/InterFuser): (CoRL 2022) Safety-Enhanced Autonomous Driving Using Interpretable Sensor Fusion Transformer
 - General nested data lib
   - [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
   - [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
