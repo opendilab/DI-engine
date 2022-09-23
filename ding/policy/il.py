@@ -56,6 +56,10 @@ class ILPolicy(Policy):
         ),
     )
 
+    # TODO different collect model and learn model
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'football_iql', ['dizoo.gfootball.model.iql.iql_network']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -216,10 +220,6 @@ class ILPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    # TODO different collect model and learn model
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'football_iql', ['dizoo.gfootball.model.iql.iql_network']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

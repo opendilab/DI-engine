@@ -88,6 +88,9 @@ class IMPALAPolicy(Policy):
         ), ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'vac', ['ding.model.template.vac']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -391,9 +394,6 @@ class IMPALAPolicy(Policy):
         output = default_decollate(output)
         output = {i: d for i, d in zip(data_id, output)}
         return output
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
