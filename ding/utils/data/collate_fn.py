@@ -84,8 +84,7 @@ def default_collate(
             out = elem.new(storage)
         if elem.shape == (1, ) and cat_1dim:
             # reshape (B, 1) -> (B)
-            return torch.cat(batch, dim, out=out)
-            # return torch.stack(batch, 0, out=out)
+            return torch.cat(batch, 0, out=out)
         else:
             return torch.stack(batch, dim, out=out)
     elif isinstance(elem, ttorch.Tensor):

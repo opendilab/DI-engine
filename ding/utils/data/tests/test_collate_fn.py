@@ -104,6 +104,16 @@ class TestDefaultCollate:
         data = default_collate(data)
         assert isinstance(data, dict)
         assert len(data['collate_ignore_data']) == 4
+    
+    def test_dim_attirbute(self):
+        def test_tensor():
+            return torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+        test_batch_tensor = [test_tensor() for _ in range(4)]
+        assert test_batch_tensor[0].shape == torch.Size([2,2,2])
+        assert default_collate(test_batch_tensor,dim=0).shape == torch.Size([4,2,2,2])
+        assert default_collate(test_batch_tensor,dim=1).shape == torch.Size([2,4,2,2])
+        assert default_collate(test_batch_tensor,dim=2).shape == torch.Size([2,2,4,2])
+        assert default_collate(test_batch_tensor,dim=3).shape == torch.Size([2,2,2,4])
 
 
 @pytest.mark.unittest
