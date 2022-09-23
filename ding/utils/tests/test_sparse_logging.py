@@ -3,7 +3,9 @@ import logging
 import time
 from ding.utils import log_every_n, log_every_sec
 
-if __name__ == "__main__":
+
+@pytest.mark.unittest
+def test_sparse_logging():
     logging.getLogger().setLevel(logging.INFO)
     for i in range(30):
         log_every_n(logging.INFO, 5, "abc_{}".format(i))
