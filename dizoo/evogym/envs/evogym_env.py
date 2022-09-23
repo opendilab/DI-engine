@@ -38,7 +38,6 @@ class EvoGymEnv(BaseEnv):
         self._replay_path = None
         if 'robot_dir' not in self._cfg.keys():
             self._cfg = '../'
-        self.enable_save_replay(cfg.replay_path)
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -62,6 +61,7 @@ class EvoGymEnv(BaseEnv):
             gym.logger.set_level(gym.logger.DEBUG)
             self._env = gym.wrappers.Monitor(
                 self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+
             )
             self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
         obs = self._env.reset()
