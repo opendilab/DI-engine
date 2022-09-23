@@ -5,14 +5,13 @@ from easydict import EasyDict
 import gym
 import evogym.envs
 from evogym import WorldObject, sample_robot
-
+from .viewer import DingEvoViewer
+from evogym.sim import EvoSim
 import os
-
-from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.envs import BaseEnv, BaseEnvTimestep, FinalEvalRewardEnv
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
-from .mujoco_wrappers import wrap_mujoco
 
 
 @ENV_REGISTRY.register('evogym')
@@ -25,14 +24,12 @@ class EvoGymEnv(BaseEnv):
         return cfg
 
     config = dict(
-        use_act_scale=False,
-        delay_reward_step=0,
         env_id='Walker-v0',
         robot='speed_bot',  # refer to 'world data' for more robots configurations
-        robot_h=5,
-        robot_w=5,
-        robot_pd=None,
-        robot_dir=""
+        robot_h=5,  # only used for random robots
+        robot_w=5,  # only used for random robots
+        robot_pd=None,  # only used for random robots, probability distributions of randomly generated components)
+        robot_dir=""  # only used for defined robots, path to the robot config, env/world_data/my_bot.json
     )
 
     def __init__(self, cfg: dict) -> None:
@@ -41,6 +38,7 @@ class EvoGymEnv(BaseEnv):
         self._replay_path = None
         if 'robot_dir' not in self._cfg.keys():
             self._cfg = '../'
+        self.enable_save_replay(cfg.replay_path)
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -61,13 +59,13 @@ class EvoGymEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         if self._replay_path is not None:
+            gym.logger.set_level(gym.logger.DEBUG)
             self._env = gym.wrappers.Monitor(
                 self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
             )
             self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
-        self._final_eval_reward = 0.
         return obs
 
     def close(self) -> None:
@@ -85,9 +83,6 @@ class EvoGymEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)
-        self._final_eval_reward += rew
-        if done:
-            info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
 
     def _make_env(self):
@@ -109,13 +104,11 @@ class EvoGymEnv(BaseEnv):
         else:
             structure = self.read_robot_from_file(self._cfg.robot, self._cfg.robot_dir)
         env = gym.make(self._cfg.env_id, body=structure[0])
+        # use our own 'viewer' to make 'render' compatible with gym
+        env._default_viewer = DingEvoViewer(EvoSim(env.world))
+        env.metadata['render.modes'] = 'rgb_array'  # make render mode compatible with gym
+        env = FinalEvalRewardEnv(env)
         return env
-        '''return wrap_mujoco(
-            self._cfg.env_id,
-            norm_obs=self._cfg.get('norm_obs', None),
-            norm_reward=self._cfg.get('norm_reward', None),
-            delay_reward_step=self._delay_reward_step
-        )'''
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
@@ -138,7 +131,6 @@ class EvoGymEnv(BaseEnv):
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
         evaluator_cfg = copy.deepcopy(cfg)
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
-        evaluator_cfg.norm_reward.use_norm = False
         return [evaluator_cfg for _ in range(evaluator_env_num)]
 
     @property
