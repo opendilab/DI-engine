@@ -679,7 +679,6 @@ class PCGrad():
     def _pack_grad(self, objectives):
         '''
         pack the gradient of the parameters of the network for each objective
-        
         Returns:
             - grad: a list of the gradient of the parameters
             - shape: a list of the shape of the parameters
@@ -712,7 +711,6 @@ class PCGrad():
         '''
         get the gradient of the parameters of the network with specific 
         objective
-        
         Returns:
             - grad: a list of the gradient of the parameters
             - shape: a list of the shape of the parameters
