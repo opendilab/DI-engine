@@ -28,6 +28,7 @@ cartpole_rainbow_config = dict(
             n_sample=80,
             unroll_len=1,
         ),
+        eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(
             eps=dict(
                 type='exp',

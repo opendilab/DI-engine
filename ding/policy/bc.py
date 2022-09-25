@@ -21,12 +21,6 @@ from ding.torch_utils.loss.cross_entropy_loss import LabelSmoothCELoss
 @POLICY_REGISTRY.register('bc')
 class BehaviourCloningPolicy(Policy):
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.continuous:
-            return 'continuous_bc', ['ding.model.template.bc']
-        else:
-            return 'discrete_bc', ['ding.model.template.bc']
-
     config = dict(
         type='bc',
         cuda=False,
@@ -62,6 +56,12 @@ class BehaviourCloningPolicy(Policy):
         eval=dict(),
         other=dict(replay_buffer=dict(replay_buffer_size=10000, )),
     )
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.continuous:
+            return 'continuous_bc', ['ding.model.template.bc']
+        else:
+            return 'discrete_bc', ['ding.model.template.bc']
 
     def _init_learn(self):
         assert self._cfg.learn.optimizer in ['SGD', 'Adam']

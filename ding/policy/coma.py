@@ -91,6 +91,19 @@ class COMAPolicy(Policy):
         eval=dict(),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For coma, ``ding.model.coma.coma``
+        """
+        return 'coma', ['ding.model.template.coma']
+
     def _init_learn(self) -> None:
         """
         Overview:
@@ -357,19 +370,6 @@ class COMAPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         return get_train_sample(data, self._unroll_len)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For coma, ``ding.model.coma.coma``
-        """
-        return 'coma', ['ding.model.template.coma']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
