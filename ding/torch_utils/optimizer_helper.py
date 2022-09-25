@@ -603,9 +603,13 @@ class RMSprop(torch.optim.RMSprop):
 
 
 class PCGrad():
+    """
+    Overview:
+        PCGrad optimizer to support multi-task.
+        you can view the paper in the following link https://arxiv.org/pdf/2001.06782.pdf
+    """
     def __init__(self, optimizer, reduction='mean'):
         self._optim, self._reduction = optimizer, reduction
-        return
 
     @property
     def optimizer(self):
@@ -628,8 +632,8 @@ class PCGrad():
     def pc_backward(self, objectives):
         '''
         calculate the gradient of the parameters
-        input:
-        - objectives: a list of objectives
+        Arguments:
+            - objectives: a list of objectives
         '''
 
         grads, shapes, has_grads = self._pack_grad(objectives)
@@ -654,7 +658,7 @@ class PCGrad():
         elif self._reduction == 'sum':
             merged_grad[shared] = torch.stack([g[shared]
                                            for g in pc_grad]).sum(dim=0)
-        else: exit('invalid reduction method')
+        else: raise KeyError("invalid reduction method")
 
         merged_grad[~shared] = torch.stack([g[~shared]
                                             for g in pc_grad]).sum(dim=0)
@@ -677,10 +681,10 @@ class PCGrad():
         '''
         pack the gradient of the parameters of the network for each objective
         
-        output:
-        - grad: a list of the gradient of the parameters
-        - shape: a list of the shape of the parameters
-        - has_grad: a list of mask represent whether the parameter has gradient
+        Returns:
+            - grad: a list of the gradient of the parameters
+            - shape: a list of the shape of the parameters
+            - has_grad: a list of mask represent whether the parameter has gradient
         '''
 
         grads, shapes, has_grads = [], [], []
@@ -710,10 +714,10 @@ class PCGrad():
         get the gradient of the parameters of the network with specific 
         objective
         
-        output:
-        - grad: a list of the gradient of the parameters
-        - shape: a list of the shape of the parameters
-        - has_grad: a list of mask represent whether the parameter has gradient
+        Returns:
+            - grad: a list of the gradient of the parameters
+            - shape: a list of the shape of the parameters
+            - has_grad: a list of mask represent whether the parameter has gradient
         '''
 
         grad, shape, has_grad = [], [], []

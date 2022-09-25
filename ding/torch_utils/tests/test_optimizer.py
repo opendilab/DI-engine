@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
 from ding.torch_utils.optimizer_helper import Adam, RMSprop, calculate_grad_norm, \
-    calculate_grad_norm_without_bias_two_norm
+    calculate_grad_norm_without_bias_two_norm, PCGrad
 import pytest
 import time
 
@@ -159,3 +160,20 @@ class Test_calculate_grad_norm_with_without_bias:
         assert isinstance(inf_norm, float)
         assert isinstance(one_norm, float)
         assert isinstance(two_norm_nobias, float)
+
+
+@pytest.mark.unittest
+class TestPCGrad:
+    
+    def naive_test(self):
+        x, y = torch.randn(2, 3), torch.randn(2, 4)
+        net = LinearNet(3,4)
+        y_pred = net(x)
+        pc_adam = PCGrad(optim.Adam(net.parameters()))
+        pc_adam.zero_grad()
+        loss1_fn, loss2_fn = nn.L1Loss(), nn.MSELoss()
+        loss1, loss2 = loss1_fn(y_pred, y), loss2_fn(y_pred, y)
+
+        pc_adam.pc_backward([loss1, loss2])
+        for p in net.parameters():
+            assert isinstance(p, torch.Tensor)
