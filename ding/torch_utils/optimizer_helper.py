@@ -608,6 +608,7 @@ class PCGrad():
         PCGrad optimizer to support multi-task.
         you can view the paper in the following link https://arxiv.org/pdf/2001.06782.pdf
     """
+
     def __init__(self, optimizer, reduction='mean'):
         self._optim, self._reduction = optimizer, reduction
 
@@ -650,18 +651,16 @@ class PCGrad():
             for g_j in grads:
                 g_i_g_j = torch.dot(g_i, g_j)
                 if g_i_g_j < 0:
-                    g_i -= (g_i_g_j) * g_j / (g_j.norm()**2)
+                    g_i -= (g_i_g_j) * g_j / (g_j.norm() ** 2)
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         if self._reduction:
-            merged_grad[shared] = torch.stack([g[shared]
-                                           for g in pc_grad]).mean(dim=0)
+            merged_grad[shared] = torch.stack([g[shared] for g in pc_grad]).mean(dim=0)
         elif self._reduction == 'sum':
-            merged_grad[shared] = torch.stack([g[shared]
-                                           for g in pc_grad]).sum(dim=0)
-        else: raise KeyError("invalid reduction method")
+            merged_grad[shared] = torch.stack([g[shared] for g in pc_grad]).sum(dim=0)
+        else:
+            raise KeyError("invalid reduction method")
 
-        merged_grad[~shared] = torch.stack([g[~shared]
-                                            for g in pc_grad]).sum(dim=0)
+        merged_grad[~shared] = torch.stack([g[~shared] for g in pc_grad]).sum(dim=0)
         return merged_grad
 
     def _set_grad(self, grads):

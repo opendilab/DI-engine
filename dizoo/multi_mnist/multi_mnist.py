@@ -24,13 +24,7 @@ class MultiMNIST(data.Dataset):
     multi_training_file = 'multi_training.pt'
     multi_test_file = 'multi_test.pt'
 
-    def __init__(self,
-                 root,
-                 train=True,
-                 transform=None,
-                 target_transform=None,
-                 download=False,
-                 multi=False):
+    def __init__(self, root, train=True, transform=None, target_transform=None, download=False, multi=False):
         '''
         Input:
         - root (string): Root directory of dataset where `processed/training.pt`
@@ -54,31 +48,29 @@ class MultiMNIST(data.Dataset):
             self.download()
 
         if not self._check_exists():
-            raise RuntimeError('Dataset not found.' +
-                               ' You can use download=True to download it')
+            raise RuntimeError('Dataset not found.' + ' You can use download=True to download it')
 
         if not self._check_multi_exists():
-            raise RuntimeError('Multi Task extension not found.' +
-                               ' You can use download=True to download it')
+            raise RuntimeError('Multi Task extension not found.' + ' You can use download=True to download it')
 
         if multi:
             if self._train:
                 self.train_data, self.train_labels_l, self.train_labels_r = torch.load(
-                    os.path.join(self._root, self.processed_folder,
-                                 self.multi_training_file))
+                    os.path.join(self._root, self.processed_folder, self.multi_training_file)
+                )
             else:
                 self.test_data, self.test_labels_l, self.test_labels_r = torch.load(
-                    os.path.join(self._root, self.processed_folder,
-                                 self.multi_test_file))
+                    os.path.join(self._root, self.processed_folder, self.multi_test_file)
+                )
         else:
             if self._train:
                 self.train_data, self.train_labels = torch.load(
-                    os.path.join(self._root, self.processed_folder,
-                                 self.training_file))
+                    os.path.join(self._root, self.processed_folder, self.training_file)
+                )
             else:
                 self.test_data, self.test_labels = torch.load(
-                    os.path.join(self._root, self.processed_folder,
-                                 self.test_file))
+                    os.path.join(self._root, self.processed_folder, self.test_file)
+                )
 
     def __getitem__(self, index):
         import matplotlib.pyplot as plt
@@ -90,13 +82,9 @@ class MultiMNIST(data.Dataset):
         """
         if self._multi:
             if self._train:
-                img, target_l, target_r = self.train_data[
-                    index], self.train_labels_l[index], self.train_labels_r[
-                        index]
+                img, target_l, target_r = self.train_data[index], self.train_labels_l[index], self.train_labels_r[index]
             else:
-                img, target_l, target_r = self.test_data[
-                    index], self.test_labels_l[index], self.test_labels_r[
-                        index]
+                img, target_l, target_r = self.test_data[index], self.test_labels_l[index], self.test_labels_r[index]
         else:
             if self._train:
                 img, target = self.train_data[index], self.train_labels[index]
@@ -124,19 +112,14 @@ class MultiMNIST(data.Dataset):
             return len(self.test_data)
 
     def _check_exists(self):
-        train_path = os.path.join(self._root, self.processed_folder,
-                                  self.training_file)
-        test_path = os.path.join(self._root, self.processed_folder,
-                                 self.test_file)
+        train_path = os.path.join(self._root, self.processed_folder, self.training_file)
+        test_path = os.path.join(self._root, self.processed_folder, self.test_file)
         return os.path.exists(train_path) and os.path.exists(test_path)
 
     def _check_multi_exists(self):
-        multi_train_path = os.path.join(self._root, self.processed_folder,
-                                        self.multi_training_file)
-        multi_test_path = os.path.join(self._root, self.processed_folder,
-                                       self.multi_test_file)
-        return os.path.exists(multi_train_path) and os.path.exists(
-            multi_test_path)
+        multi_train_path = os.path.join(self._root, self.processed_folder, self.multi_training_file)
+        multi_test_path = os.path.join(self._root, self.processed_folder, self.multi_test_file)
+        return os.path.exists(multi_train_path) and os.path.exists(multi_test_path)
 
     def download(self):
         """Download the MNIST data if it doesn't exist in processed_folder already."""
@@ -161,10 +144,7 @@ class MultiMNIST(data.Dataset):
         for url in self.urls:
             print('Downloading ' + url)
 
-            headers = {
-                'User-Agent':
-                'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'
-            }
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
             req = urllib.request.Request(url=url, headers=headers)
             data = urllib.request.urlopen(req)
             # data = urllib.request.urlopen(url)
@@ -180,42 +160,32 @@ class MultiMNIST(data.Dataset):
         # process and save as torch files
         print('Processing...')
         mnist_ims, multi_mnist_ims, extension = read_image_file(
-            os.path.join(self._root, self.raw_folder,
-                         'train-images-idx3-ubyte'))
+            os.path.join(self._root, self.raw_folder, 'train-images-idx3-ubyte')
+        )
         mnist_labels, multi_mnist_labels_l, multi_mnist_labels_r = read_label_file(
-            os.path.join(self._root, self.raw_folder,
-                         'train-labels-idx1-ubyte'), extension)
+            os.path.join(self._root, self.raw_folder, 'train-labels-idx1-ubyte'), extension
+        )
 
         tmnist_ims, tmulti_mnist_ims, textension = read_image_file(
-            os.path.join(self._root, self.raw_folder,
-                         't10k-images-idx3-ubyte'))
+            os.path.join(self._root, self.raw_folder, 't10k-images-idx3-ubyte')
+        )
         tmnist_labels, tmulti_mnist_labels_l, tmulti_mnist_labels_r = read_label_file(
-            os.path.join(self._root, self.raw_folder,
-                         't10k-labels-idx1-ubyte'), textension)
+            os.path.join(self._root, self.raw_folder, 't10k-labels-idx1-ubyte'), textension
+        )
 
         mnist_training_set = (mnist_ims, mnist_labels)
-        multi_mnist_training_set = (multi_mnist_ims, multi_mnist_labels_l,
-                                    multi_mnist_labels_r)
+        multi_mnist_training_set = (multi_mnist_ims, multi_mnist_labels_l, multi_mnist_labels_r)
 
         mnist_test_set = (tmnist_ims, tmnist_labels)
-        multi_mnist_test_set = (tmulti_mnist_ims, tmulti_mnist_labels_l,
-                                tmulti_mnist_labels_r)
+        multi_mnist_test_set = (tmulti_mnist_ims, tmulti_mnist_labels_l, tmulti_mnist_labels_r)
 
-        with open(
-                os.path.join(self._root, self.processed_folder,
-                             self.training_file), 'wb') as f:
+        with open(os.path.join(self._root, self.processed_folder, self.training_file), 'wb') as f:
             torch.save(mnist_training_set, f)
-        with open(
-                os.path.join(self._root, self.processed_folder,
-                             self.test_file), 'wb') as f:
+        with open(os.path.join(self._root, self.processed_folder, self.test_file), 'wb') as f:
             torch.save(mnist_test_set, f)
-        with open(
-                os.path.join(self._root, self.processed_folder,
-                             self.multi_training_file), 'wb') as f:
+        with open(os.path.join(self._root, self.processed_folder, self.multi_training_file), 'wb') as f:
             torch.save(multi_mnist_training_set, f)
-        with open(
-                os.path.join(self._root, self.processed_folder,
-                             self.multi_test_file), 'wb') as f:
+        with open(os.path.join(self._root, self.processed_folder, self.multi_test_file), 'wb') as f:
             torch.save(multi_mnist_test_set, f)
         print('Done!')
 
@@ -226,14 +196,9 @@ class MultiMNIST(data.Dataset):
         fmt_str += '    Split: {}\n'.format(tmp)
         fmt_str += '    Root Location: {}\n'.format(self._root)
         tmp = '    Transforms (if any): '
-        fmt_str += '{0}{1}\n'.format(
-            tmp,
-            self._transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        fmt_str += '{0}{1}\n'.format(tmp, self._transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
         tmp = '    Target Transforms (if any): '
-        fmt_str += '{0}{1}'.format(
-            tmp,
-            self._target_transform.__repr__().replace('\n',
-                                                      '\n' + ' ' * len(tmp)))
+        fmt_str += '{0}{1}'.format(tmp, self._target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
         return fmt_str
 
 
@@ -252,12 +217,10 @@ def read_label_file(path, extension):
         for im_id in range(length):
             for rim in range(1):
                 multi_labels_l[1 * im_id + rim] = parsed[im_id]
-                multi_labels_r[1 * im_id + rim] = parsed[extension[1 * im_id +
-                                                                   rim]]
-        return torch.from_numpy(parsed).view(length).long(), torch.from_numpy(
-            multi_labels_l).view(
-                length * 1).long(), torch.from_numpy(multi_labels_r).view(
-                    length * 1).long()
+                multi_labels_r[1 * im_id + rim] = parsed[extension[1 * im_id + rim]]
+        return torch.from_numpy(parsed).view(length).long(), torch.from_numpy(multi_labels_l).view(
+            length * 1
+        ).long(), torch.from_numpy(multi_labels_r).view(length * 1).long()
 
 
 def read_image_file(path):
@@ -282,15 +245,13 @@ def read_image_file(path):
                 new_im = np.zeros((36, 36))
                 new_im[0:28, 0:28] = lim
                 new_im[6:34, 6:34] = rim
-                new_im[6:28, 6:28] = np.maximum(lim[6:28, 6:28], rim[0:22,
-                                                                     0:22])
-                multi_data_im = np.array(
-                    Image.fromarray(new_im).resize((28, 28)))
+                new_im[6:28, 6:28] = np.maximum(lim[6:28, 6:28], rim[0:22, 0:22])
+                multi_data_im = np.array(Image.fromarray(new_im).resize((28, 28)))
                 # multi_data_im = m.imresize(new_im, (28, 28), interp='nearest')
                 multi_data[left * 1 + j, :, :] = multi_data_im
-        return torch.from_numpy(parsed).view(
-            length, num_rows, num_cols), torch.from_numpy(multi_data).view(
-                length, num_rows, num_cols), extension
+        return torch.from_numpy(parsed).view(length, num_rows,
+                                             num_cols), torch.from_numpy(multi_data
+                                                                         ).view(length, num_rows, num_cols), extension
 
 
 if __name__ == '__main__':
@@ -301,20 +262,12 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     def global_transformer():
-        return transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307, ), (0.3081, ))
-        ])
+        return transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307, ), (0.3081, ))])
 
-    dst = MultiMNIST(root='/home/ozansener/Data/MultiMNIST/',
-                     train=True,
-                     download=True,
-                     transform=global_transformer(),
-                     multi=True)
-    loader = torch.utils.data.DataLoader(dst,
-                                         batch_size=10,
-                                         shuffle=True,
-                                         num_workers=4)
+    dst = MultiMNIST(
+        root='/home/ozansener/Data/MultiMNIST/', train=True, download=True, transform=global_transformer(), multi=True
+    )
+    loader = torch.utils.data.DataLoader(dst, batch_size=10, shuffle=True, num_workers=4)
     for dat in loader:
         ims = dat[0].view(10, 28, 28).numpy()
 
@@ -324,8 +277,7 @@ if __name__ == '__main__':
         for j in range(5):
             for i in range(2):
                 axarr[i][j].imshow(ims[j * 2 + i, :, :], cmap='gray')
-                axarr[i][j].set_title('{}_{}'.format(labs_l[j * 2 + i],
-                                                     labs_r[j * 2 + i]))
+                axarr[i][j].set_title('{}_{}'.format(labs_l[j * 2 + i], labs_r[j * 2 + i]))
         plt.show()
         a = input()
         if a == 'ex':

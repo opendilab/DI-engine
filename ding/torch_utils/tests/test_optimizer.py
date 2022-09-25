@@ -164,10 +164,10 @@ class Test_calculate_grad_norm_with_without_bias:
 
 @pytest.mark.unittest
 class TestPCGrad:
-    
+
     def naive_test(self):
         x, y = torch.randn(2, 3), torch.randn(2, 4)
-        net = LinearNet(3,4)
+        net = LinearNet(3, 4)
         y_pred = net(x)
         pc_adam = PCGrad(optim.Adam(net.parameters()))
         pc_adam.zero_grad()

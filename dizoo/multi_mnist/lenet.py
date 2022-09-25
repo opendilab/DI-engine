@@ -5,6 +5,7 @@ from torch.autograd import Variable
 
 
 class MultiLeNetR(nn.Module):
+
     def __init__(self):
         super(MultiLeNetR, self).__init__()
         self._conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -15,9 +16,7 @@ class MultiLeNetR(nn.Module):
     def dropout2dwithmask(self, x, mask):
         channel_size = x.shape[1]
         if mask is None:
-            mask = Variable(
-                torch.bernoulli(torch.ones(1, channel_size, 1, 1) *
-                                0.5).to(x.device))
+            mask = Variable(torch.bernoulli(torch.ones(1, channel_size, 1, 1) * 0.5).to(x.device))
         mask = mask.expand(x.shape)
         return mask
 
@@ -34,6 +33,7 @@ class MultiLeNetR(nn.Module):
 
 
 class MultiLeNetO(nn.Module):
+
     def __init__(self):
         super(MultiLeNetO, self).__init__()
         self._fc1, self._fc2 = nn.Linear(50, 50), nn.Linear(50, 10)
@@ -42,8 +42,7 @@ class MultiLeNetO(nn.Module):
     def forward(self, x, mask):
         x = F.relu(self._fc1(x))
         if mask is None:
-            mask = Variable(
-                torch.bernoulli(x.data.new(x.data.size()).fill_(0.5)))
+            mask = Variable(torch.bernoulli(x.data.new(x.data.size()).fill_(0.5)))
         if self.training:
             x = x * mask
         x = self._fc2(x)
