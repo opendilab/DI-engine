@@ -709,8 +709,7 @@ class PCGrad():
 
     def _retrieve_grad(self):
         '''
-        get the gradient of the parameters of the network with specific 
-        objective
+        get the gradient of the parameters of the network with specific objective
         Returns:
             - grad: a list of the gradient of the parameters
             - shape: a list of the shape of the parameters
