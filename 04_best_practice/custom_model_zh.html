@@ -1,0 +1,703 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>如何自定义神经网络模型（model） &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="API Doc" href="../05_api_doc/index.html" />
+  <link rel="prev" title="Buffer 使用指南" href="buffer_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">最佳实践</a> &gt;</li>
+        
+      <li>如何自定义神经网络模型（model）</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/custom_model_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="model">
+<h1>如何自定义神经网络模型（model）<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h1>
+<section id="policy">
+<h2>Policy 默认使用的模型是什么<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
+<p>DI-engine 中已经实现的 policy，默认使用 default_model 方法中表明的神经网络模型，例如在 SACPolicy 中：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
+ <span class="k">class</span> <span class="nc">SACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+ <span class="o">...</span>
+
+     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;maqac_continuous&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+ <span class="o">...</span>
+</pre></div>
+</div>
+<p>此处return的 <code class="docutils literal notranslate"><span class="pre">'maqac_continuous',</span> <span class="pre">['ding.model.template.maqac']</span></code>，前者是模型在注册器中注册的名字，后者是模型所处的文件路径。</p>
+</section>
+<section id="id1">
+<h2>如何自定义神经网络模型<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>但很多时候 DI-engine 中实现的 <code class="docutils literal notranslate"><span class="pre">policy</span></code>中的  <code class="docutils literal notranslate"><span class="pre">default_model</span></code>不适用自己的任务，例如这里想要在 <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code>环境 <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> 任务下应用 <code class="docutils literal notranslate"><span class="pre">sac</span></code>算法，且环境 observation 为  <code class="docutils literal notranslate"><span class="pre">pixel</span></code>，
+即 <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code>（如果设置 <code class="docutils literal notranslate"><span class="pre">from_pixel</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">channels_first</span> <span class="pre">=</span> <span class="pre">True</span></code>，详情见  <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym 环境文档</a>）</p>
+<p>而此时查阅 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">sac 源码</a>可知 <code class="docutils literal notranslate"><span class="pre">default_model</span></code>为 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py">qac</a>，
+<code class="docutils literal notranslate"><span class="pre">qac</span> <span class="pre">model</span></code>中暂时只支持 <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>为一维的情况，此时我们即可根据需求自定义 model 并应用到 policy。</p>
+</section>
+<section id="id2">
+<h2>自定义 model 基本步骤<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="env-policy">
+<h3>1. 明确 env, policy<a class="headerlink" href="#env-policy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>比如这里选定 <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code>环境 <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> 任务，且设置 <code class="docutils literal notranslate"><span class="pre">from_pixel</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">channels_first</span> <span class="pre">=</span> <span class="pre">True</span></code>（详情见  <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym 环境文档</a>）
+，即此时观察空间为图像 <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code>，并选择 <code class="docutils literal notranslate"><span class="pre">sac</span></code>算法进行学习。</p></li>
+</ul>
+</section>
+<section id="policy-default-model">
+<h3>2. 查阅 policy 中的 default_model 是否适用<a class="headerlink" href="#policy-default-model" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>此时根据<a class="reference external" href="https://xxx">policy-default_model 链接</a>或者直接查阅源码 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">ding/policy/sac:SACPolicy</a>，找到 SAC 的  <code class="docutils literal notranslate"><span class="pre">default_model</span></code>：</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
+ <span class="k">class</span> <span class="nc">SACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+ <span class="o">...</span>
+
+     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;maqac_continuous&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+ <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>进一步查看  <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/69db77e2e54a0fba95d83c9411c6b11cd25beae9/ding/model/template/qac.py#L40">ding/model/template/qac:QAC</a>，
+发现 DI-engine 中实现的 <code class="docutils literal notranslate"><span class="pre">qac</span> <span class="pre">model</span></code>暂时只支持 <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>为一维的情况，但是此时环境的观察空间为图像 <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code>，
+因此我们需要根据需求自定义 model 并应用到 policy。</p></li>
+</ul>
+</section>
+<section id="custom-model">
+<h3>3. custom_model 实现<a class="headerlink" href="#custom-model" title="Permalink to this headline">¶</a></h3>
+<p>根据已有的 defaul_model 来决定 custom_model 所需实现的功能:</p>
+<ul class="simple">
+<li><p>需要实现原 default model 中所有的 public 方法</p></li>
+<li><p>保证返回值的类型的原 default model 一致</p></li>
+</ul>
+<p>具体实现可利用 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/model/common">ding/model/common</a>下 <code class="docutils literal notranslate"><span class="pre">encoder.py</span></code>/ <code class="docutils literal notranslate"><span class="pre">head.py</span></code>已实现的 <code class="docutils literal notranslate"><span class="pre">encoder</span></code>和 <code class="docutils literal notranslate"><span class="pre">head</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">encoder</span></code>用于对输入的 <code class="docutils literal notranslate"><span class="pre">obs</span></code>或者 <code class="docutils literal notranslate"><span class="pre">action</span></code>等进行编码，便于进行后续处理， DI-engine 中已实现的 encoder 如下：</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>encoder</p></th>
+<th class="head"><p>usage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ConvEncoder</p></td>
+<td><p>处理图像obs输入</p></td>
+</tr>
+<tr class="row-odd"><td><p>FCEncoder</p></td>
+<td><p>处理一维obs输入</p></td>
+</tr>
+<tr class="row-even"><td><p>StructEncoder</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">head</span></code>用于对已经编码的数据进行相应处理，输出 policy 所需信息或者辅助 RL 过程， DI-engine 中已实现的 head ：</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>head</p></th>
+<th class="head"><p>usage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DiscreteHead</p></td>
+<td><p>输出离散动作值</p></td>
+</tr>
+<tr class="row-odd"><td><p>DistributionHead</p></td>
+<td><p>输出 Q 值分布</p></td>
+</tr>
+<tr class="row-even"><td><p>RainbowHead</p></td>
+<td><p>输出 Q 值分布</p></td>
+</tr>
+<tr class="row-odd"><td><p>QRDQNHead</p></td>
+<td><p>Quantile Regression DQN，
+用于输出动作分位数</p></td>
+</tr>
+<tr class="row-even"><td><p>QuantileHead</p></td>
+<td><p>用于输出动作分位数</p></td>
+</tr>
+<tr class="row-odd"><td><p>DuelingHead</p></td>
+<td><p>用于输出离散动作的 logit</p></td>
+</tr>
+<tr class="row-even"><td><p>RegressionHead</p></td>
+<td><p>用于输出动作 Q 值</p></td>
+</tr>
+<tr class="row-odd"><td><p>ReparameterizationHead</p></td>
+<td><p>用于输出动作 mu 和 sigma</p></td>
+</tr>
+<tr class="row-even"><td><p>MultiHead</p></td>
+<td><p>处理动作空间为多维的情况</p></td>
+</tr>
+</tbody>
+</table>
+<p>例如这里需要自定义针对 sac+dmc2gym+cartpole-swingup 任务的 model ，我们把新的 custom_model 实现为 <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code> 类</p>
+<ul class="simple">
+<li><p>这里对照 <code class="docutils literal notranslate"><span class="pre">QAC</span></code>已经实现的方法， <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code>需要实现 <code class="docutils literal notranslate"><span class="pre">init</span></code> ， <code class="docutils literal notranslate"><span class="pre">forward</span></code>，以及 <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code>和  <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code>。</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac&#39;</span><span class="p">)</span>
+  <span class="k">class</span> <span class="nc">QAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+  <span class="o">...</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+      <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
+      <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+      <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>针对图像输入， <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code>主要需要修改的是 <code class="docutils literal notranslate"><span class="pre">init</span></code>中对 <code class="docutils literal notranslate"><span class="pre">self.actor</span></code>和 <code class="docutils literal notranslate"><span class="pre">self.critic</span></code>的定义。
+可以看到 <code class="docutils literal notranslate"><span class="pre">QAC</span></code>中 <code class="docutils literal notranslate"><span class="pre">self.actor</span></code>和 <code class="docutils literal notranslate"><span class="pre">self.critic</span></code>的 encoder 都只是一层 nn.Linear</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">QAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="o">...</span>
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+            <span class="n">ReparameterizationHead</span><span class="p">(</span>
+                <span class="o">...</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">critic_input_size</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+            <span class="n">RegressionHead</span><span class="p">(</span>
+                <span class="o">...</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>我们通过定义 encoder_cls 指定 encoder 的类型，加入 <code class="docutils literal notranslate"><span class="pre">ConvEncoder</span></code>，并且因为需要对 obs 进行encode 后和 action 进行拼接，
+将 <code class="docutils literal notranslate"><span class="pre">self.critic</span></code>分为  <code class="docutils literal notranslate"><span class="pre">self.critic_encoder</span></code>和 <code class="docutils literal notranslate"><span class="pre">self.critic_head</span></code>两部分</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac_pixel&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">QACPixel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">encoder_cls</span> <span class="o">=</span> <span class="n">ConvEncoder</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+          <span class="n">encoder_cls</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">),</span>
+          <span class="n">ReparameterizationHead</span><span class="p">(</span>
+              <span class="o">...</span>
+          <span class="p">)</span>
+      <span class="p">)</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">global_encoder_cls</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                                                   <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span> <span class="o">=</span> <span class="n">RegressionHead</span><span class="p">(</span>
+        <span class="o">...</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">])</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>再对 <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code>和  <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code>分别进行修改即可。</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>4. 如何应用自定义模型<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>新 pipeline ： 直接定义model，作为参数传入 policy 进行初始化，如：</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="kn">from</span> <span class="nn">ding.model.template.qac</span> <span class="kn">import</span> <span class="n">QACPixel</span>
+<span class="o">...</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">QACPixel</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+<span class="n">policy</span> <span class="o">=</span> <span class="n">SACPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>旧pipeline</p></li>
+</ul>
+<p>将定义好的 model 作为参数传入 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L22">serial_pipeline</a>,
+传入的 model 将在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L59">serial_pipeline</a>通过 <code class="docutils literal notranslate"><span class="pre">create_policy</span></code> 被调用。或者跟上述新 pipeline 一样，作为参数传入 policy 。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="k">def</span> <span class="nf">serial_pipeline</span><span class="p">(</span>
+  <span class="n">input_cfg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]],</span>
+  <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="n">env_setting</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+  <span class="n">model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+  <span class="n">max_train_iter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">),</span>
+  <span class="n">max_env_step</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">),</span>
+  <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Policy&#39;</span><span class="p">:</span>
+  <span class="o">...</span>
+  <span class="n">policy</span> <span class="o">=</span> <span class="n">create_policy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">enable_field</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;learn&#39;</span><span class="p">,</span> <span class="s1">&#39;collect&#39;</span><span class="p">,</span> <span class="s1">&#39;eval&#39;</span><span class="p">,</span> <span class="s1">&#39;command&#39;</span><span class="p">])</span>
+  <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>5. 测试自定义 model<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>编写新的 model 测试，一般而言，首先需要构造 <code class="docutils literal notranslate"><span class="pre">obs</span></code> <code class="docutils literal notranslate"><span class="pre">action</span></code>等输入，传入 model ，验证输出的维度、类型的正确性。其次如果涉及神经网络，需要验证 model 是否可微。
+如对于我们编写的新模型 <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code>编写测试，首先构造维度为 <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">channel,</span> <span class="pre">height,</span> <span class="pre">width)</span></code>（B = batch_size）的 <code class="docutils literal notranslate"><span class="pre">obs</span></code>和维度为 <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">action_shape)</span></code>的 <code class="docutils literal notranslate"><span class="pre">obs</span></code>，传入 <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code>的 <code class="docutils literal notranslate"><span class="pre">actor</span></code>和 <code class="docutils literal notranslate"><span class="pre">critic</span></code>得到输出.
+检查输出的 <code class="docutils literal notranslate"><span class="pre">q,</span> <span class="pre">mu,</span> <span class="pre">sigma</span></code>的维度是否正确，以及相应的 <code class="docutils literal notranslate"><span class="pre">actor</span></code>和 <code class="docutils literal notranslate"><span class="pre">critic</span></code> model 是否可微：</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TestQACPiexl</span><span class="p">:</span>
+
+  <span class="k">def</span> <span class="nf">test_qacpixel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">twin</span><span class="p">):</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="p">))}</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">QACPixel</span><span class="p">(</span>
+        <span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span> <span class="p">),</span>
+        <span class="n">action_shape</span><span class="o">=</span><span class="n">action_shape</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">)</span>
+    <span class="o">...</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">twin</span><span class="p">:</span>
+        <span class="n">is_differentiable</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">is_differentiable</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">is_differentiable</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">critic_head</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">mu</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="o">*</span><span class="n">action_shape</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">sigma</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="o">*</span><span class="n">action_shape</span><span class="p">)</span>
+    <span class="n">is_differentiable</span><span class="p">(</span><span class="n">mu</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="n">sigma</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">actor</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>同样，使用者也可以参考 DI-engine 中已有的单元测试，来熟悉相关神经网络模型的使用</p>
+</div>
+<ul class="simple">
+<li><p>单元测试编写运行可参考 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/22_test/index_zh.html">单元测试指南</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../05_api_doc/index.html" class="btn btn-neutral float-right" title="API Doc" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="buffer_zh.html" class="btn btn-neutral" title="Buffer 使用指南" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">如何自定义神经网络模型（model）</a><ul>
+<li><a class="reference internal" href="#policy">Policy 默认使用的模型是什么</a></li>
+<li><a class="reference internal" href="#id1">如何自定义神经网络模型</a></li>
+<li><a class="reference internal" href="#id2">自定义 model 基本步骤</a><ul>
+<li><a class="reference internal" href="#env-policy">1. 明确 env, policy</a></li>
+<li><a class="reference internal" href="#policy-default-model">2. 查阅 policy 中的 default_model 是否适用</a></li>
+<li><a class="reference internal" href="#custom-model">3. custom_model 实现</a></li>
+<li><a class="reference internal" href="#id3">4. 如何应用自定义模型</a></li>
+<li><a class="reference internal" href="#id4">5. 测试自定义 model</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>
