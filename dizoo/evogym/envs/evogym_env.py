@@ -59,10 +59,13 @@ class EvoGymEnv(BaseEnv):
             self._env.seed(self._seed)
         if self._replay_path is not None:
             gym.logger.set_level(gym.logger.DEBUG)
-            self._env = gym.wrappers.Monitor(
-                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-
-            )
+            # use our own 'viewer' to make 'render' compatible with gym
+            self._env.default_viewer = DingEvoViewer(EvoSim(self._env.world))
+            self._env.__class__.render = self._env.default_viewer.render
+            self._env.metadata['render.modes'] = 'rgb_array'  # make render mode compatible with gym
+            #self._env = gym.wrappers.Monitor(
+            #    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+            #)
             self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
@@ -104,9 +107,6 @@ class EvoGymEnv(BaseEnv):
         else:
             structure = self.read_robot_from_file(self._cfg.robot, self._cfg.robot_dir)
         env = gym.make(self._cfg.env_id, body=structure[0])
-        # use our own 'viewer' to make 'render' compatible with gym
-        env._default_viewer = DingEvoViewer(EvoSim(env.world))
-        env.metadata['render.modes'] = 'rgb_array'  # make render mode compatible with gym
         env = FinalEvalRewardEnv(env)
         return env
 

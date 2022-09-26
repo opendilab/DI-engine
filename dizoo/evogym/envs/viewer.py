@@ -3,6 +3,7 @@ import time
 from typing import Optional, Tuple, List
 import numpy as np
 from evogym.sim import EvoSim
+from evogym.envs import EvoGymBase
 
 
 class DingEvoViewer(EvoViewer):
@@ -16,7 +17,7 @@ class DingEvoViewer(EvoViewer):
         super().__init__(sim_to_view, target_rps, pos, view_size, resolution)
 
     def render(self,
-               mode: str ='screen',
+               mode: str = 'rgb_array',
                verbose: bool = False,
                hide_background: bool = False,
                hide_grid: bool = False,
@@ -34,7 +35,6 @@ class DingEvoViewer(EvoViewer):
         Returns:
             Optional[np.ndarray]: if `mode` is set to `img`, will return an image array.
         """
-
         accepted_modes = ['screen', 'human', 'img', 'rgb_array']
         if not mode in accepted_modes:
             raise ValueError(
@@ -80,4 +80,3 @@ class DingEvoViewer(EvoViewer):
             time.sleep(0.001)
 
         return out
-

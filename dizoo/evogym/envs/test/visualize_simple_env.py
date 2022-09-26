@@ -4,7 +4,7 @@ from gym.wrappers import Monitor
 
 # import envs from the envs folder and register them
 import evogym.envs
-from ..viewer import DingEvoViewer
+from dizoo.evogym.envs.viewer import DingEvoViewer
 from evogym.sim import EvoSim
 
 if __name__ == '__main__':
@@ -15,13 +15,14 @@ if __name__ == '__main__':
     # make the SimpleWalkingEnv using gym.make and with the robot information
     env = gym.make('Walker-v0', body=body)
     #env = gym.make('Pusher-v0', body=body)
-    env.metadata['render.modes'] = 'rgb_array'
-    env._default_viewer = DingEvoViewer(EvoSim(env.world))
-    env.metadata['render.modes'] = 'rgb_array'  # make render mode compatible with gym
+    env.default_viewer = DingEvoViewer(EvoSim(env.world))
     env = Monitor(env, './video', force=True)
+    env.__class__.render = env.default_viewer.render
+    env.metadata['render.modes'] = 'rgb_array'
+
     env.reset()
     # step the environment for 200 iterations
-    for i in range(200):
+    for i in range(100):
         action = env.action_space.sample()
         ob, reward, done, info = env.step(action)
         env.render()

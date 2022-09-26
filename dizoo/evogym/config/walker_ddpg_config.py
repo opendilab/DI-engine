@@ -6,20 +6,17 @@ walker_ddpg_config = dict(
         env_id='Walker-v0',
         robot='speed_bot',
         robot_dir='../envs',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=1,
-        use_act_scale=False,
         n_evaluator_episode=1,
         stop_value=-0.5,
         manager=dict(shared_memory=False, ),
         # The path to save the game replay
-        # replay_path='./evogym_walker_ddpg_seed0/video',
+        replay_path='./evogym_walker_ddpg_seed0/video',
     ),
     policy=dict(
         cuda=True,
-        #load_path="./evogym_walker_ddpg_seed0/ckpt/ckpt_best.pth.tar",
+        load_path="./evogym_walker_ddpg_seed0/ckpt/ckpt_best.pth.tar",
         random_collect_size=1000,
         model=dict(
             obs_shape=58,
