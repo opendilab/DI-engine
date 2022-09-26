@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import copy
-from ding.rl_utils.td import q_nstep_td_error_with_rescale, q_nstep_td_error_with_error_clip
+from ding.rl_utils.td import q_nstep_td_error_with_rescale, q_nstep_td_error_with_error_clip, q_nstep_td_error_with_popart
 import torch
 import numpy as np
 
@@ -198,11 +198,17 @@ class DQNPolicy(Policy):
         self._target_model.train()
         # Current q value (main model)
         
-        q_value = self._learn_model.forward(data['obs'])['logit']
         if self._cfg.learn.reward_scale_function == 'popart':
             W = list(self._learn_model.parameters())[10]
             b = list(self._learn_model.parameters())[11]
-            W.data, b.data = self._popart_update.update(q_value, W.data, b.data)
+            norm_param = self._popart_update.update(q_value, W, b)
+            W_target = list(self._target_model.parameters())[10]
+            b_target = list(self._target_model.parameters())[11]
+            W_new = torch.reshape(1*norm_param['new_std'] / norm_param['old_std'], (self._shape, 1))
+            W_target.data = W_target.data * W_new
+            b_target.data = 1/norm_param['old_std'] *(norm_param['new_std']*b_target.data - norm_param['old_mean'] + norm_param['new_mean'])
+
+        q_value = self._learn_model.forward(data['obs'])['logit']
             
         # Target q value
         with torch.no_grad():
@@ -220,10 +226,11 @@ class DQNPolicy(Policy):
             loss, td_error_per_sample = q_nstep_td_error_with_rescale(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
         elif self._cfg.learn.reward_scale_function == 'errorclip':
             loss, td_error_per_sample = q_nstep_td_error_with_error_clip(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        elif self._cfg.learn.reward_scale_function == 'popart':
+            loss, td_error_per_sample = q_nstep_td_error_with_popart(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma, norm_param = norm_param)
         else:
             loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
             
-
         # ====================
         # Q-learning update
         # ====================
@@ -704,17 +711,28 @@ class PopartUpdate(object):
         self._std = torch.ones(self._shape)
 
     def update(self, value, W, b, beta=0.5):
+        batch_mean = torch.mean(value)
+        batch_v = torch.mean(torch.pow(value, 2))
+        batch_std = torch.sqrt(batch_v - (batch_mean**2))
+        batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
+
+        batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
+        batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
+        batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
+
         batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
         batch_v = (1-beta) * self._v + beta * torch.mean(torch.pow(value, 2))
         # batch_v = (1-beta) * self._v + beta * torch.var(value) -> nan
-        batch_std = torch.sqrt(batch_v - (batch_mean**2))
+        
         W_new = torch.reshape(1/batch_std * self._std, (self._shape, 1))
-        W_new = W * W_new
+        W.data = W.data * W_new
 
-        b_new = 1/batch_std *(self._std*b + self._mean - batch_mean)
+        b.data = 1/batch_std *(self._std*b.data + self._mean - batch_mean)
         #add EMA
+        old_mean = self._mean
+        old_std = self._std
         self._std = batch_std
         self._mean = batch_mean
         self._v = batch_v
 
-        return W_new, b_new
+        return {'old_mean':old_mean, 'new_mean':batch_mean, 'old_std':old_std, 'new_std':batch_std}
