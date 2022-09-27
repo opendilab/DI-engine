@@ -202,11 +202,6 @@ class DQNPolicy(Policy):
             W = list(self._learn_model.parameters())[10]
             b = list(self._learn_model.parameters())[11]
             norm_param = self._popart_update.update(q_value, W, b)
-            W_target = list(self._target_model.parameters())[10]
-            b_target = list(self._target_model.parameters())[11]
-            W_new = torch.reshape(1*norm_param['new_std'] / norm_param['old_std'], (self._shape, 1))
-            W_target.data = W_target.data * W_new
-            b_target.data = 1/norm_param['old_std'] *(norm_param['new_std']*b_target.data - norm_param['old_mean'] + norm_param['new_mean'])
 
         q_value = self._learn_model.forward(data['obs'])['logit']
             
@@ -729,10 +724,8 @@ class PopartUpdate(object):
 
         b.data = 1/batch_std *(self._std*b.data + self._mean - batch_mean)
         #add EMA
-        old_mean = self._mean
-        old_std = self._std
         self._std = batch_std
         self._mean = batch_mean
         self._v = batch_v
 
-        return {'old_mean':old_mean, 'new_mean':batch_mean, 'old_std':old_std, 'new_std':batch_std}
+        return {'new_mean':batch_mean, 'new_std':batch_std}
