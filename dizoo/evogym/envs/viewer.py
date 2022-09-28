@@ -35,6 +35,7 @@ class DingEvoViewer(EvoViewer):
         Returns:
             Optional[np.ndarray]: if `mode` is set to `img`, will return an image array.
         """
+        mode = 'rgb_array'  # debug: force 'rgb_array' mode
         accepted_modes = ['screen', 'human', 'img', 'rgb_array']
         if not mode in accepted_modes:
             raise ValueError(
