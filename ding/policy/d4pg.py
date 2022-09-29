@@ -149,6 +149,9 @@ class D4PGPolicy(DDPGPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'qac_dist', ['ding.model.template.qac_dist']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -299,9 +302,6 @@ class D4PGPolicy(DDPGPolicy):
         """
         data = get_nstep_return_data(traj, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac_dist', ['ding.model.template.qac_dist']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

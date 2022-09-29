@@ -133,6 +133,19 @@ class PPGPolicy(Policy):
         eval=dict(),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path.
+        """
+        return 'ppg', ['ding.model.template.ppg']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -487,19 +500,6 @@ class PPGPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path.
-        """
-        return 'ppg', ['ding.model.template.ppg']
-
     def _monitor_vars_learn(self) -> List[str]:
         r"""
         Overview:
@@ -717,6 +717,19 @@ class PPGOffPolicy(Policy):
             ),
         ),
     )
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path.
+        """
+        return 'ppg', ['ding.model.template.ppg']
 
     def _init_learn(self) -> None:
         r"""
@@ -1039,19 +1052,6 @@ class PPGOffPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path.
-        """
-        return 'ppg', ['ding.model.template.ppg']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
