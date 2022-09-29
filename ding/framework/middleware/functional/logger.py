@@ -1,19 +1,19 @@
-from typing import TYPE_CHECKING, Callable, Dict, List， Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Union
 import numpy as np
 import os
 import wandb
-import torch
+from matplotlib import pyplot as plt
+from matplotlib import animation
 from ding.envs import BaseEnvManagerV2
 from easydict import EasyDict
-from ding.framework import task
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import plotly.express as px
 from ding.utils import DistributedWriter
+from ding.torch_utils import to_ndarray
+from torch.nn import functional as F
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
-    
+
+
 def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
     writer = DistributedWriter.get_instance()
     last_train_show_iter = -1
@@ -75,69 +75,83 @@ def offline_logger() -> Callable:
 
     return _logger
 
-def wandb_logger(cfg:EasyDict, env:BaseEnvManagerV2, model) -> Callable:
-    
+
+def wandb_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable:
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
-    if cfg.policy.logger.gradient_logger:
+    metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
+    env.enable_save_replay(replay_path=cfg.record_path)
+    if cfg.gradient_logger:
         wandb.watch(model)
 
     def _action_prob(num, action_prob, ln):
         ax = plt.gca()
         ax.set_ylim([0, 1])
-        for rect, x in zip(ln, action_prob[num][0]):
+        for rect, x in zip(ln, action_prob[num]):
             rect.set_height(x)
         return ln
 
     def _value_prob(num, action_prob, action, ln):
         ax = plt.gca()
         ax.set_ylim([0, 1])
-        for rect, x in zip(ln, action_prob[num][action[num][0]-1]):
+        for rect, x in zip(ln, action_prob[num][action[num][0] - 1]):
             rect.set_height(x)
         return ln
 
     def _plot(ctx: "OnlineRLContext"):
-
-        if cfg.policy.logger.plot_logger.q_value:
-            q_value = torch.mean(torch.tensor([item['q_value'] for item in ctx.train_output]))
-            wandb.log({"q_value":q_value})
-        if cfg.policy.logger.plot_logger.target_q_value:
-            target_q_value = torch.mean(torch.tensor([item['target_q_value'] for item in ctx.train_output]))
-            wandb.log({"target q_value":target_q_value})
-        if cfg.policy.logger.plot_logger.loss:
-            loss = torch.mean(torch.tensor([item['total_loss'] for item in ctx.train_output]))
-            wandb.log({"loss":loss})
-        if cfg.policy.logger.plot_logger.lr:
-            lr = torch.mean(torch.tensor([item['cur_lr'] for item in ctx.train_output]))
-            wandb.log({"lr":lr})
-        if cfg.policy.logger.plot_logger.entropy:
-            entropy = torch.mean(torch.tensor([item['entropy'] for item in ctx.train_output]))
-            wandb.log({"entropy":entropy})
+        if not cfg.plot_logger:
+            return
+        for metric in metric_list:
+            if metric in ctx.train_output[0]:
+                metric_value = np.mean([item[metric] for item in ctx.train_output])
+                wandb.log({metric: metric_value})
         if ctx.eval_value != -np.inf:
-            wandb.log({"reward":ctx.eval_value})
+            wandb.log({"reward": ctx.eval_value})
 
-    
         if ctx.eval_value != -np.inf:
+            if 'logit' in ctx.eval_output[0]:
+                action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in ctx.eval_output]
+            if 'distribution' in ctx.eval_output[0]:
+                value_dist = [to_ndarray(v['distribution']) for v in ctx.eval_output]
+                action = [to_ndarray(v['action']) for v in ctx.eval_output]
+
             file_list = []
-            for p in os.listdir(cfg.policy.log.record_path):
+            for p in os.listdir(cfg.record_path):
                 if os.path.splitext(p)[-1] == ".mp4":
                     file_list.append(p)
-            file_list.sort(key=lambda fn:os.path.getmtime(cfg.policy.log.record_path+"/"+fn))
+            file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(cfg.record_path, fn)))
 
             fig, ax = plt.subplots()
             plt.ylim([-1, 1])
-            if cfg.policy.logger.action_logger == 'q_value' or 'action probability':
-                action_dim = len(ctx.eval_action_prob[0][0])
-                x_range = [str(x+1) for x in range(action_dim)]
-                ln= ax.bar(x_range, [0 for x in range(action_dim)], color = color_list[:action_dim])
-                ani = animation.FuncAnimation(fig, _action_prob, fargs=(ctx.eval_action_prob, ln), blit=True, save_count=len(ctx.eval_action_prob))
-                ani.save(cfg.policy.log.record_path+"/"+str(ctx.env_step) + ".gif", writer='pillow')
-                wandb.log({"video": wandb.Video(cfg.policy.log.record_path+"/"+file_list[-2], format="mp4"), "q value": wandb.Video(cfg.policy.log.record_path+"/"+str(ctx.env_step) + ".gif", format="gif")})
-            if cfg.policy.logger.action_logger == 'q_value distribution':
-                action_dim = len(ctx.eval_value_dist[0])
-                dist_dim = len(ctx.eval_value_dist[0][0])
-                x_range = [str(x+1) for x in range(dist_dim)]
-                ln= ax.bar(x_range, [0 for x in range(dist_dim)], color = 'r')
-                ani = animation.FuncAnimation(fig, _value_prob, fargs=(ctx.eval_value_dist, ctx.eval_action, ln), blit=True, save_count=len(ctx.eval_value_dist))
-                ani.save(cfg.policy.log.record_path+"/"+str(ctx.env_step) + ".gif", writer='pillow')
-                wandb.log({"video": wandb.Video(cfg.policy.log.record_path+"/"+file_list[-2], format="mp4"), "q value distribution": wandb.Video(cfg.policy.log.record_path+"/"+str(ctx.env_step) + ".gif", format="gif")})
+            if cfg.action_logger == 'q_value' or 'action probability':
+                action_dim = len(action_value[0])
+                x_range = [str(x + 1) for x in range(action_dim)]
+                ln = ax.bar(x_range, [0 for x in range(action_dim)], color=color_list[:action_dim])
+                ani = animation.FuncAnimation(
+                    fig, _action_prob, fargs=(action_value, ln), blit=True, save_count=len(action_value)
+                )
+                ani.save(cfg.record_path + "/" + str(ctx.env_step) + ".gif", writer='pillow')
+                wandb.log(
+                    {
+                        "video": wandb.Video(cfg.record_path + "/" + file_list[-2], format="mp4"),
+                        "q value": wandb.Video(cfg.record_path + "/" + str(ctx.env_step) + ".gif", format="gif")
+                    }
+                )
+            elif cfg.action_logger == 'q_value distribution':
+                action_dim = len(value_dist[0])
+                dist_dim = len(value_dist[0][0])
+                x_range = [str(x + 1) for x in range(dist_dim)]
+                ln = ax.bar(x_range, [0 for x in range(dist_dim)], color='r')
+                ani = animation.FuncAnimation(
+                    fig, _value_prob, fargs=(value_dist, action, ln), blit=True, save_count=len(value_dist)
+                )
+                ani.save(cfg.record_path + "/" + str(ctx.env_step) + ".gif", writer='pillow')
+                wandb.log(
+                    {
+                        "video": wandb.Video(cfg.record_path + "/" + file_list[-2], format="mp4"),
+                        "q value distribution": wandb.Video(
+                            cfg.record_path + "/" + str(ctx.env_step) + ".gif", format="gif"
+                        )
+                    }
+                )
+
     return _plot

@@ -51,12 +51,13 @@ class OnlineRLContext(Context):
     train_data: Union[Dict, List] = None
     # collect
     collect_kwargs: Dict = dataclasses.field(default_factory=dict)
-    trajectories: List = None
-    episodes: List = None
+    trajectories: List = dataclasses.field(default_factory=list)
+    episodes: List = dataclasses.field(default_factory=list)
     trajectory_end_idx: List = dataclasses.field(default_factory=list)
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
+    eval_output: List = dataclasses.field(default_factory=list)
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,
@@ -76,6 +77,7 @@ class OfflineRLContext(Context):
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
+    eval_output: List = dataclasses.field(default_factory=list)
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,

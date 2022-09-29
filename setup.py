@@ -88,6 +88,7 @@ setup(
         'hbutils>=0.5.0',
         'moviepy',
         'tqdm',
+        'wandb'
     ],
     extras_require={
         'test': [
