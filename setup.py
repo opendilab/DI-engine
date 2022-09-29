@@ -84,6 +84,7 @@ setup(
         'moviepy',
         'tqdm',
         'wandb',
+        'matplotlib',
         'MarkupSafe==2.0.1',  # compatibility
     ],
     extras_require={
