@@ -1342,7 +1342,7 @@ def q_nstep_td_error_with_popart(
         if value_gamma is not None:
             value_gamma = value_gamma.unsqueeze(-1)
 
-    target_q_s_a = target_q_s_a * norm_param['new_std'] + norm_param['new_mean']
+    next_n_q = next_n_q * norm_param['new_std'] + norm_param['new_mean']
 
     q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
     target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
@@ -1355,7 +1355,13 @@ def q_nstep_td_error_with_popart(
     else:
         target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
 
-    target_q_s_a = (target_q_s_a - norm_param['new_mean']) / norm_param['new_std']
+    with torch.no_grad():
+        mean = norm_param['new_mean'].expand_as(next_n_q)
+        std = norm_param['new_std'].expand_as(next_n_q)
+
+        mean = mean.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
+        std = std.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
+    target_q_s_a = (target_q_s_a - mean) / std
+
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
-    td_error_per_sample = (td_error_per_sample*norm_param['old_std']+norm_param['old_mean'] - norm_param['new_mean']) / norm_param['new_std']
     return (td_error_per_sample * weight).mean(), td_error_per_sample
