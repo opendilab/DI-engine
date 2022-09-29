@@ -83,7 +83,7 @@ setup(
         'hbutils>=0.5.0',
         'moviepy',
         'tqdm',
-        'wandb'
+        'wandb',
         'MarkupSafe==2.0.1',  # compatibility
     ],
     extras_require={
