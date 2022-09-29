@@ -51,8 +51,8 @@ class OnlineRLContext(Context):
     train_data: Union[Dict, List] = None
     # collect
     collect_kwargs: Dict = dataclasses.field(default_factory=dict)
-    trajectories: List = dataclasses.field(default_factory=list)
-    episodes: List = dataclasses.field(default_factory=list)
+    trajectories: List = None
+    episodes: List = None
     trajectory_end_idx: List = dataclasses.field(default_factory=list)
     # eval
     eval_value: float = -np.inf
