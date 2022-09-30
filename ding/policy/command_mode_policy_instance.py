@@ -43,6 +43,9 @@ from .cql import CQLPolicy, CQLDiscretePolicy
 from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
+from .madqn import MADQNPolicy
+from .qmix_nstep import QMIXNSTEPPolicy
+from .madqn_nstep import MADQNNSTEPPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -205,6 +208,21 @@ class PPGOffCommandModePolicy(PPGOffPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppg_command')
 class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('madqn_command')
+class MADQNCommandModePolicy(MADQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('madqn_nstep_command')
+class MADQNNSTEPCommandModePolicy(MADQNNSTEPPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('qmix_nstep_command')
+class QMIXNSTEPCommandModePolicy(QMIXNSTEPPolicy, EpsCommandModePolicy):
     pass
 
 
