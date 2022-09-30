@@ -43,10 +43,7 @@ def fake_online_rl_context():
             'total_loss': random.uniform(0, 2)
         } for _ in range(update_per_collect)],
         obs=torch.randn(collector_env_num, obs_dim),
-        action=[
-            np.random.randint(low=0, high=1, size=(action_dim), dtype=np.int64) 
-            for _ in range(collector_env_num)
-        ],
+        action=[np.random.randint(low=0, high=1, size=(action_dim), dtype=np.int64) for _ in range(collector_env_num)],
         inference_output={
             env_i: {
                 'logit': torch.randn(logit_dim),
@@ -77,11 +74,3 @@ def fake_offline_rl_context():
         last_eval_iter=random.randint(0, 100),
     )
     return ctx
-
-
-if __name__ == "__main__":
-    print(fake_offline_rl_context().train_output)
-    print(fake_online_rl_context().train_output)
-    print(fake_online_rl_context().obs)
-    print(fake_online_rl_context().action)
-    print(fake_online_rl_context().inference_output)
