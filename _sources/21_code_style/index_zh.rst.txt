@@ -59,5 +59,24 @@ flake8
 
 在该项目中，我们使用基于PEP8的 `flake8代码设计规范配置 <https://github.com/opendilab/DI-engine/blob/main/.flake8>`_ ，关于配置的详细信息，可以参考 `flake8官方文档的描述 <https://flake8.pycqa.org/en/latest/user/configuration.html>`_ 。 `PEP8 <https://peps.python.org/pep-0008/>`_ 为Python官方推荐的代码风格配置，对代码风格的注重可以提高代码的可读性，也可以最大限度减少不符合预期的行为。
 
+合理的 import 顺序
+-------------------
 
+建议 import 顺序：
 
+- Python 标准库模块
+
+- Python 第三方模块
+
+- 应用程序自定义模块
+
+- 相对引用模块
+
+类似如下：
+
+.. code-block:: python
+
+   from xx import xx
+   import xx
+   import ding.xx
+   from .xx

@@ -60,4 +60,24 @@ Considering the large scale of the whole project and the large number of files, 
 In this project, we use `flake8 code design specification configuration <https://github.com/opendilab/DI-engine/blob/main/.flake8>`_ based on pep8. For details of configuration, please refer to `the description of flake8 official documents <https://flake8.pycqa.org/en/latest/user/configuration.html>`_. `PEP8 <https://peps.python.org/pep-0008/>`_ is the code style configuration officially recommended by python. Paying attention to the code style can improve the readability of the code and minimize the behavior that does not meet the expectations.
 
 
+Reasonable Import Order
+--------------------------------------
 
+Considering the `PEP8 <https://peps.python.org/pep-0008/>`_  standard and usage habits, we recommend that users use the following import order:
+
+- Standard library imports
+
+- Related third party imports
+
+- Local application/library specific imports
+
+- Relative imports
+
+e.g.
+
+.. code-block:: python
+
+   from xx import xx
+   import xx
+   import ding.xx
+   from .xx

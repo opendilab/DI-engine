@@ -40,6 +40,7 @@ Environments:
    bsuite
    multiagent_particle
    pybullet
+   dmc2gym
 
    gym_hybrid
    gym_soccer

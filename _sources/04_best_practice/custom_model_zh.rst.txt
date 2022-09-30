@@ -1,10 +1,12 @@
 如何自定义神经网络模型（model）
 =================================================
+在强化学习中，我们需要根据决策问题类型和使用的策略（Policy）来选择相应的神经网络。而在 DI-engine 中，Policy 使用的神经网络可以通过配置文件中的 ``cfg.policy.model`` 来自动生成，
+也可由用户自定义实例化相应的神经网络，作为参数传入 Policy 中。而在接下来的部分，我们将会详细展开每种使用方式具体的接口和原理。
 
 Policy 默认使用的模型是什么
 ----------------------------------
 
-DI-engine 中已经实现的 policy，默认使用 default_model 方法中表明的神经网络模型，例如在 SACPolicy 中：
+DI-engine 中已经实现的 policy，默认使用 ``default_model`` 方法中表明的神经网络模型，例如在 SACPolicy 中：
 
 .. code:: python
 
@@ -20,6 +22,9 @@ DI-engine 中已经实现的 policy，默认使用 default_model 方法中表明
     ...
 
 此处return的 \ ``'maqac_continuous', ['ding.model.template.maqac']``\ ，前者是模型在注册器中注册的名字，后者是模型所处的文件路径。
+
+在使用配置文件时，DI-engine 封装好的入口文件将会把 ``cfg.policy.model`` 中的参数，逐个传给默认注册好的模型类（例如把 ``obs_shape``, ``action_shape`` 等参数传给 
+`QAC <https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py#L13>`_ ），模型类中根据传入参数自动生成所需的神经网络（例如为向量输入使用全连接层（FC）而为图像输入使用卷积（Conv））。
 
 如何自定义神经网络模型
 ----------------------------------

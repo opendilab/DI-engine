@@ -319,6 +319,23 @@
 </div>
 <p>In this project, we use <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/.flake8">flake8 code design specification configuration</a> based on pep8. For details of configuration, please refer to <a class="reference external" href="https://flake8.pycqa.org/en/latest/user/configuration.html">the description of flake8 official documents</a>. <a class="reference external" href="https://peps.python.org/pep-0008/">PEP8</a> is the code style configuration officially recommended by python. Paying attention to the code style can improve the readability of the code and minimize the behavior that does not meet the expectations.</p>
 </section>
+<section id="reasonable-import-order">
+<h2>Reasonable Import Order<a class="headerlink" href="#reasonable-import-order" title="Permalink to this headline">¶</a></h2>
+<p>Considering the <a class="reference external" href="https://peps.python.org/pep-0008/">PEP8</a>  standard and usage habits, we recommend that users use the following import order:</p>
+<ul class="simple">
+<li><p>Standard library imports</p></li>
+<li><p>Related third party imports</p></li>
+<li><p>Local application/library specific imports</p></li>
+<li><p>Relative imports</p></li>
+</ul>
+<p>e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">xx</span> <span class="kn">import</span> <span class="n">xx</span>
+<span class="kn">import</span> <span class="nn">xx</span>
+<span class="kn">import</span> <span class="nn">ding.xx</span>
+<span class="kn">from</span> <span class="nn">.xx</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 
@@ -368,6 +385,7 @@
 <li><a class="reference internal" href="#basic-code-style-rules">Basic Code Style Rules</a></li>
 <li><a class="reference internal" href="#yapf">yapf</a></li>
 <li><a class="reference internal" href="#flake8">flake8</a></li>
+<li><a class="reference internal" href="#reasonable-import-order">Reasonable Import Order</a></li>
 </ul>
 </li>
 </ul>
