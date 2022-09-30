@@ -1,5 +1,6 @@
 import numpy as np
 import dataclasses
+import torch
 from typing import Union, Dict, List
 
 
@@ -49,8 +50,12 @@ class OnlineRLContext(Context):
     env_episode: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None
+    train_output: Union[Dict, List] = None
     # collect
     collect_kwargs: Dict = dataclasses.field(default_factory=dict)
+    obs: torch.Tensor = None
+    action: List = None
+    inference_output: dict = None
     trajectories: List = None
     episodes: List = None
     trajectory_end_idx: List = dataclasses.field(default_factory=list)
@@ -73,6 +78,7 @@ class OfflineRLContext(Context):
     train_epoch: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None
+    train_output: Union[Dict, List] = None
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
