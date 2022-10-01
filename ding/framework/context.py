@@ -55,7 +55,7 @@ class OnlineRLContext(Context):
     collect_kwargs: Dict = dataclasses.field(default_factory=dict)
     obs: torch.Tensor = None
     action: List = None
-    inference_output: dict = None
+    inference_output: Dict[int, Dict] = None
     trajectories: List = None
     episodes: List = None
     trajectory_end_idx: List = dataclasses.field(default_factory=list)

@@ -45,11 +45,11 @@ def fake_online_rl_context():
         obs=torch.randn(collector_env_num, obs_dim),
         action=[np.random.randint(low=0, high=1, size=(action_dim), dtype=np.int64) for _ in range(collector_env_num)],
         inference_output={
-            env_i: {
+            env_id: {
                 'logit': torch.randn(logit_dim),
                 'action': torch.randint(0, 1, size=(action_dim, ))
             }
-            for env_i in range(collector_env_num)
+            for env_id in range(collector_env_num)
         },
         collect_kwargs={'eps': random.uniform(0, 1)},
         trajectories=[fake_train_data() for _ in range(n_sample)],
