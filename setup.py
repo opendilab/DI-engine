@@ -126,7 +126,7 @@ setup(
             'bsuite',
         ],
         'minigrid_env': [
-            'gym-minigrid',
+            'minigrid',
         ],
         # 'd4rl_env': [
         #     'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',
