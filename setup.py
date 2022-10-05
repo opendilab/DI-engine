@@ -82,7 +82,6 @@ setup(
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'MarkupSafe==2.0.1',  # compatibility
-        'importlib-metadata<=4.11.3',  # compatibility
     ],
     extras_require={
         'test': [
@@ -100,6 +99,7 @@ setup(
         'style': [
             'yapf==0.29.0',
             'flake8<=3.9.2',
+            'importlib-metadata<5.0.0',  # compatibility
         ],
         'fast': [
             'numpy-stl',
