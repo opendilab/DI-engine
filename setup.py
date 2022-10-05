@@ -82,6 +82,7 @@ setup(
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'MarkupSafe==2.0.1',  # compatibility
+        'importlib-metadata<5.0',  # compatibility
     ],
     extras_require={
         'test': [
