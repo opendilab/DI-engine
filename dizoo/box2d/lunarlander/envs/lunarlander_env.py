@@ -1,12 +1,14 @@
-from typing import Any, List, Union, Optional
-import time
+import os
+from typing import Optional
+
 import gym
+import imageio
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep
-from ding.torch_utils import to_ndarray, to_list
-from ding.utils import ENV_REGISTRY
-from ding.envs.common import affine_transform
 from ding.envs import ObsPlusPrevActRewWrapper
+from ding.envs.common import affine_transform
+from ding.torch_utils import to_ndarray
+from ding.utils import ENV_REGISTRY
 
 
 @ENV_REGISTRY.register('lunarlander')
@@ -18,8 +20,11 @@ class LunarLanderEnv(BaseEnv):
         # env_id: LunarLander-v2, LunarLanderContinuous-v2
         self._env_id = cfg.env_id
         self._replay_path = None
+        self._replay_path_gif = cfg.replay_path_gif if 'replay_path_gif' in cfg.keys() else None
+        self._save_replay_gif = cfg.save_replay_gif if 'save_replay_gif' in cfg.keys() else False
+        self._save_replay_count = 0
         if 'Continuous' in self._env_id:
-            self._act_scale = cfg.act_scale  # act_scale only works in continous env
+            self._act_scale = cfg.act_scale  # act_scale only works in continuous env
         else:
             self._act_scale = False
 
@@ -38,7 +43,7 @@ class LunarLanderEnv(BaseEnv):
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
             )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
@@ -49,7 +54,8 @@ class LunarLanderEnv(BaseEnv):
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
-
+        if self._save_replay_gif:
+            self._frames = []
         return obs
 
     def close(self) -> None:
@@ -67,14 +73,26 @@ class LunarLanderEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ):
+        if action.shape == (1,):
             action = action.item()  # 0-dim array
         if self._act_scale:
             action = affine_transform(action, min_val=-1, max_val=1)
+        if self._save_replay_gif:
+            self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
+        # self._env.render()
+        # print(action, obs, rew, done, info)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
+            if self._save_replay_gif:
+                if not os.path.exists(self._replay_path_gif):
+                    os.makedirs(self._replay_path_gif)
+                path = os.path.join(
+                    self._replay_path_gif, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
+                )
+                self.display_frames_as_gif(self._frames, path)
+                self._save_replay_count += 1
 
         obs = to_ndarray(obs)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a array with shape (1,)
@@ -84,6 +102,8 @@ class LunarLanderEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+        self._save_replay_gif = True
+        self._save_replay_count = 0
         # this function can lead to the meaningless result
         self._env = gym.wrappers.RecordVideo(
             self._env,
@@ -91,6 +111,10 @@ class LunarLanderEnv(BaseEnv):
             episode_trigger=lambda episode_id: True,
             name_prefix='rl-video-{}'.format(id(self))
         )
+
+    @staticmethod
+    def display_frames_as_gif(frames: list, path: str) -> None:
+        imageio.mimsave(path, frames, fps=20)
 
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
