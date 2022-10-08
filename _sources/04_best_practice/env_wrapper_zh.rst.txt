@@ -13,7 +13,7 @@ DI-engine 提供以下 env wrapper(以下很多都是从 `OpenAI Baselines <http
 
 - NoopResetEnv：为环境添加重置方法。在一些无操作（no-operations）后重置环境.
 
-- MaxAndSkipEnv： 每`skip`帧（做同样的action）返回最近的两帧的最大值。(为了跨时间步的最大池化 max pooling)。
+- MaxAndSkipEnv： 每 ``skip`` 帧（做同样的action）返回最近的两帧的最大值。(为了跨时间步的最大池化 max pooling)。
 
 - WarpFrame： 将图像帧的大小转换为84x84, 如 `Nature 论文 <https://www.deepmind.com/publications/human-level-control-through-deep-reinforcement-learning>`_ 和后来的工作中所做的那样。(注意此注册器也将RGB图像转换为GREY图像)
 
@@ -35,7 +35,7 @@ DI-engine 提供以下 env wrapper(以下很多都是从 `OpenAI Baselines <http
 
 - EpisodicLifeEnv： 让环境中的智能体的死亡来标志一个episode结束（游戏结束）, 并且只有在真正的游戏结束时才会重置游戏。一般来讲， 这样有助于算法的价值估计。
 
-- FireResetEnv：  在环境重置时采取`fire`行动。 相关的讨论查阅 `这里 <https://github.com/openai/baselines/issues/240>`_
+- FireResetEnv：  在环境重置时采取 ``fire`` 行动。 相关的讨论查阅 `这里 <https://github.com/openai/baselines/issues/240>`_
 
 - update_shape： 这是一个有助于在应用 env wrapper 后识别观测状态、动作和奖励的形状的函数。
 

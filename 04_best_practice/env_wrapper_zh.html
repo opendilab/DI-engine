@@ -287,7 +287,7 @@
 <p>DI-engine 提供以下 env wrapper(以下很多都是从 <a class="reference external" href="https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py">OpenAI Baselines</a> 借鉴的):</p>
 <ul class="simple">
 <li><p>NoopResetEnv：为环境添加重置方法。在一些无操作（no-operations）后重置环境.</p></li>
-<li><p>MaxAndSkipEnv： 每`skip`帧（做同样的action）返回最近的两帧的最大值。(为了跨时间步的最大池化 max pooling)。</p></li>
+<li><p>MaxAndSkipEnv： 每 <code class="docutils literal notranslate"><span class="pre">skip</span></code> 帧（做同样的action）返回最近的两帧的最大值。(为了跨时间步的最大池化 max pooling)。</p></li>
 <li><p>WarpFrame： 将图像帧的大小转换为84x84, 如 <a class="reference external" href="https://www.deepmind.com/publications/human-level-control-through-deep-reinforcement-learning">Nature 论文</a> 和后来的工作中所做的那样。(注意此注册器也将RGB图像转换为GREY图像)</p></li>
 <li><p>ScaledFloatFrame： 将状态值标准化为 0~1。</p></li>
 <li><p>ClipRewardEnv： 通过奖励的正负将奖励裁剪为 {+1, 0, -1}。</p></li>
@@ -299,7 +299,7 @@
 <li><p>RewardNormEnv： 根据运行的标准差（running mean and std）对环境奖励进行归一化。</p></li>
 <li><p>RamWrapper： 通过扩展观测状态的维度，将原始环境的ram状态转换成类似图像的状态</p></li>
 <li><p>EpisodicLifeEnv： 让环境中的智能体的死亡来标志一个episode结束（游戏结束）, 并且只有在真正的游戏结束时才会重置游戏。一般来讲， 这样有助于算法的价值估计。</p></li>
-<li><p>FireResetEnv：  在环境重置时采取`fire`行动。 相关的讨论查阅 <a class="reference external" href="https://github.com/openai/baselines/issues/240">这里</a></p></li>
+<li><p>FireResetEnv：  在环境重置时采取 <code class="docutils literal notranslate"><span class="pre">fire</span></code> 行动。 相关的讨论查阅 <a class="reference external" href="https://github.com/openai/baselines/issues/240">这里</a></p></li>
 <li><p>update_shape： 这是一个有助于在应用 env wrapper 后识别观测状态、动作和奖励的形状的函数。</p></li>
 </ul>
 <section id="id2">
