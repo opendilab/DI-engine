@@ -335,10 +335,11 @@
     <span class="k">def</span> <span class="nf">_inference</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Output of ctx:</span>
-<span class="sd">            - obs (:obj:`Dict[Tensor]`): The input states fed into the model.</span>
+<span class="sd">            - obs (:obj:`Union[torch.Tensor, Dict[torch.Tensor]]`): The input observations collected \</span>
+<span class="sd">                from all collector environments.</span>
 <span class="sd">            - action: (:obj:`List[np.ndarray]`): The inferred actions listed by env_id.</span>
-<span class="sd">            - inference_output (:obj:`Dict[int, Dict]`): The dict that contains env_id (int) \</span>
-<span class="sd">                and inference result (Dict).</span>
+<span class="sd">            - inference_output (:obj:`Dict[int, Dict]`): The dict of which the key is env_id (int), \</span>
+<span class="sd">                and the value is inference result (Dict).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
