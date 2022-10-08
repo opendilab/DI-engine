@@ -78,7 +78,7 @@ class OfflineRLContext(Context):
     train_epoch: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None
-    train_output: Union[Dict, List] = None
+    train_output: Union[Dict, List[Dict]] = None
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
