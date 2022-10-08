@@ -1,13 +1,16 @@
 import pytest
-from ding.framework import OnlineRLContext, OfflineRLContext, ding_init
-from ding.framework.middleware.functional import online_logger, offline_logger
+from ding.framework import OnlineRLContext, OfflineRLContext
+from ding.framework.middleware.functional import online_logger, offline_logger, wandb_logger
 from easydict import EasyDict
 import os
 from os import path
 import shutil
+import wandb
+import torch.nn as nn
 from collections import deque
 from unittest.mock import Mock, patch
 from ding.utils import DistributedWriter
+from ding.framework.middleware.tests import MockPolicy, CONFIG
 import copy
 
 test_folder = "test_exp"
@@ -154,3 +157,53 @@ class TestOfflineLogger:
         with patch.object(DistributedWriter, 'get_instance', new=mock_get_offline_instance):
             with pytest.raises(NotImplementedError) as exc_info:
                 offline_logger()(offline_scalar_ctx)
+
+
+class TheModelClass(nn.Module):
+
+    def state_dict(self):
+        return 'fake_state_dict'
+
+
+class TheEnvClass(Mock):
+
+    def enable_save_replay(self, replay_path):
+        return
+
+
+@pytest.mark.unittest
+def test_wandb_Logger():
+
+    cfg = EasyDict(
+        dict(
+            record_path='./video_qbert_dqn',
+            gradient_logger=True,
+            plot_logger=dict(loss=True, q_value=False, target_q_value=False, lr=True),
+            action_logger='q_value distribution'
+        )
+    )
+    env = TheEnvClass()
+    ctx = OnlineRLContext()
+    ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
+    model = TheModelClass()
+    wandb.init(config=cfg)
+
+    def mock_metric_logger(metric_dict):
+        metric_list = [
+            "q_value", "target q_value", "loss", "lr", "entropy", "reward", "q value", "video", "q value distribution"
+        ]
+        assert set(metric_dict.keys()) < set(metric_list)
+
+    def mock_gradient_logger(input_model):
+        assert input_model == model
+
+    def test_wandb_logger_metric():
+        with patch.object(wandb, 'log', new=mock_metric_logger):
+            wandb_logger(cfg, env, model)(ctx)
+
+    def test_wandb_logger_gradient():
+        with patch.object(wandb, 'watch', new=mock_gradient_logger):
+            wandb_logger(cfg, env, model)(ctx)
+
+    test_wandb_logger_metric()
+    test_wandb_logger_gradient()

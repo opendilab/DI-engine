@@ -9,6 +9,7 @@ from easydict import EasyDict
 from ding.utils import DistributedWriter
 from ding.torch_utils import to_ndarray
 from torch.nn import functional as F
+from ding.utils.default_helper import one_time_warning
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
@@ -82,6 +83,10 @@ def wandb_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable:
     env.enable_save_replay(replay_path=cfg.record_path)
     if cfg.gradient_logger:
         wandb.watch(model)
+    else:
+        one_time_warning(
+            "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
+        )
 
     def _action_prob(num, action_prob, ln):
         ax = plt.gca()
@@ -99,6 +104,9 @@ def wandb_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable:
 
     def _plot(ctx: "OnlineRLContext"):
         if not cfg.plot_logger:
+            one_time_warning(
+                "If you want to use wandb to visualize the result, please set plot_logger = True in the config."
+            )
             return
         for metric in metric_list:
             if metric in ctx.train_output[0]:
@@ -129,27 +137,30 @@ def wandb_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable:
                 ani = animation.FuncAnimation(
                     fig, _action_prob, fargs=(action_value, ln), blit=True, save_count=len(action_value)
                 )
-                ani.save(cfg.record_path + "/" + str(ctx.env_step) + ".gif", writer='pillow')
+                ani.save(os.path.join(cfg.record_path, (str(ctx.env_step) + ".gif")), writer='pillow')
                 wandb.log(
                     {
-                        "video": wandb.Video(cfg.record_path + "/" + file_list[-2], format="mp4"),
-                        "q value": wandb.Video(cfg.record_path + "/" + str(ctx.env_step) + ".gif", format="gif")
+                        "video": wandb.Video(os.path.join(cfg.record_path, file_list[-2]), format="mp4"),
+                        "q value": wandb.Video(
+                            os.path.join(cfg.record_path, (str(ctx.env_step) + ".gif")), format="gif"
+                        )
                     }
                 )
             elif cfg.action_logger == 'q_value distribution':
                 action_dim = len(value_dist[0])
                 dist_dim = len(value_dist[0][0])
+                assert action_dim == model.action_shape
                 x_range = [str(x + 1) for x in range(dist_dim)]
                 ln = ax.bar(x_range, [0 for x in range(dist_dim)], color='r')
                 ani = animation.FuncAnimation(
                     fig, _value_prob, fargs=(value_dist, action, ln), blit=True, save_count=len(value_dist)
                 )
-                ani.save(cfg.record_path + "/" + str(ctx.env_step) + ".gif", writer='pillow')
+                ani.save(os.path.join(cfg.record_path, (str(ctx.env_step) + ".gif")), writer='pillow')
                 wandb.log(
                     {
-                        "video": wandb.Video(cfg.record_path + "/" + file_list[-2], format="mp4"),
+                        "video": wandb.Video(os.path.join(cfg.record_path, file_list[-2]), format="mp4"),
                         "q value distribution": wandb.Video(
-                            cfg.record_path + "/" + str(ctx.env_step) + ".gif", format="gif"
+                            os.path.join(cfg.record_path, (str(ctx.env_step) + ".gif")), format="gif"
                         )
                     }
                 )
