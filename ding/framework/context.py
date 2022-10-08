@@ -1,6 +1,6 @@
 import numpy as np
 import dataclasses
-import torch
+import treetensor.torch as ttorch
 from typing import Union, Dict, List
 
 
@@ -53,7 +53,7 @@ class OnlineRLContext(Context):
     train_output: Union[Dict, List[Dict]] = None
     # collect
     collect_kwargs: Dict = dataclasses.field(default_factory=dict)
-    obs: Union[torch.Tensor, Dict[torch.Tensor]] = None
+    obs: ttorch.Tensor = None
     action: List = None
     inference_output: Dict[int, Dict] = None
     trajectories: List = None
