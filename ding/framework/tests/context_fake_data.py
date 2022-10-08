@@ -20,13 +20,13 @@ collector_env_num = 8
 def fake_train_data():
     train_data = ttorch.as_tensor(
         {
-            'action': torch.randint(0, 1, size=(action_dim, )),
+            'action': torch.randint(0, 2, size=(action_dim, )),
             'collect_train_iter': torch.randint(0, 100, size=(1, )),
             'done': torch.tensor(False),
             'env_data_id': torch.tensor([2]),
             'next_obs': torch.randn(obs_dim),
             'obs': torch.randn(obs_dim),
-            'reward': torch.randint(0, 1, size=(1, )),
+            'reward': torch.randint(0, 2, size=(1, )),
         }
     )
     return train_data
@@ -47,7 +47,7 @@ def fake_online_rl_context():
         inference_output={
             env_id: {
                 'logit': torch.randn(logit_dim),
-                'action': torch.randint(0, 1, size=(action_dim, ))
+                'action': torch.randint(0, 2, size=(action_dim, ))
             }
             for env_id in range(collector_env_num)
         },
