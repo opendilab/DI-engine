@@ -105,6 +105,18 @@ class WQMIXPolicy(QMIXPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For WQMIX, ``ding.model.template.wqmix``
+        """
+        return 'wqmix', ['ding.model.template.wqmix']
+
     def _init_learn(self) -> None:
         """
         Overview:
@@ -274,18 +286,6 @@ class WQMIXPolicy(QMIXPolicy):
             'grad_norm_q': grad_norm_q,
             'grad_norm_q_star': grad_norm_q_star,
         }
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For WQMIX, ``ding.model.template.wqmix``
-        """
-        return 'wqmix', ['ding.model.template.wqmix']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         r"""

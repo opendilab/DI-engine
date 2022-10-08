@@ -315,13 +315,14 @@ def save_project_state(exp_name: str) -> None:
     def _fn(cmd: str):
         return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.strip().decode("utf-8")
 
-    short_sha = _fn("git describe --always")
-    log = _fn("git log --stat -n 5")
-    diff = _fn("git diff")
-    with open(os.path.join(exp_name, "git_log.txt"), "w") as f:
-        f.write(short_sha + '\n\n' + log)
-    with open(os.path.join(exp_name, "git_diff.txt"), "w") as f:
-        f.write(diff)
+    if subprocess.run("git status", shell=True, stderr=subprocess.PIPE).returncode == 0:
+        short_sha = _fn("git describe --always")
+        log = _fn("git log --stat -n 5")
+        diff = _fn("git diff")
+        with open(os.path.join(exp_name, "git_log.txt"), "w", encoding='utf-8') as f:
+            f.write(short_sha + '\n\n' + log)
+        with open(os.path.join(exp_name, "git_diff.txt"), "w", encoding='utf-8') as f:
+            f.write(diff)
 
 
 def compile_config(
