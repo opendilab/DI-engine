@@ -267,7 +267,7 @@ class PDQNPolicy(Policy):
         return {
             'cur_lr': self._dis_optimizer.defaults['lr'],
             'q_loss': dis_loss.item(),
-            'total_loss': (cont_loss + dis_loss).item(),
+            'total_loss': cont_loss.item() + dis_loss.item(),
             'continuous_loss': cont_loss.item(),
             'q_value': q_pi_action_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
