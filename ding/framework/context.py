@@ -50,7 +50,7 @@ class OnlineRLContext(Context):
     env_episode: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None
-    train_output: Union[Dict, List] = None
+    train_output: Union[Dict, List[Dict]] = None
     # collect
     collect_kwargs: Dict = dataclasses.field(default_factory=dict)
     obs: Union[torch.Tensor, Dict[torch.Tensor]] = None
