@@ -7,7 +7,9 @@ minigrid_r2d2_config = dict(
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        # minigrid env id: 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'
+        # typical MiniGrid env id:
+        # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
+        # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
         env_id='MiniGrid-DoorKey-16x16-v0',
         n_evaluator_episode=5,
         max_step=300,
@@ -19,7 +21,7 @@ minigrid_r2d2_config = dict(
         priority=True,
         priority_IS_weight=True,
         model=dict(
-            obs_shape=2739,
+            obs_shape=2835,
             action_shape=7,
             encoder_hidden_size_list=[128, 128, 512],
         ),
