@@ -61,7 +61,8 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     def _inference(ctx: "OnlineRLContext"):
         """
         Output of ctx:
-            - obs (:obj:`torch.Tensor`): The input observations collected from all collector environments.
+            - obs (:obj:`Union[torch.Tensor, Dict[torch.Tensor]]`): The input observations collected \
+                from all collector environments.
             - action: (:obj:`List[np.ndarray]`): The inferred actions listed by env_id.
             - inference_output (:obj:`Dict[int, Dict]`): The dict of which the key is env_id (int), \
                 and the value is inference result (Dict).
