@@ -242,6 +242,7 @@ def get_postion_vector(x: list) -> torch.Tensor:
 
 def affine_transform(
         data: Any,
+        action_clip=False,
         alpha: Optional[float] = None,
         beta: Optional[float] = None,
         min_val: Optional[float] = None,
@@ -252,6 +253,7 @@ def affine_transform(
         do affine transform for data in range [-1, 1], :math:`\alpha \times data + \beta`
     Arguments:
         - data (:obj:`Any`): the input data
+        - action_clip (:obj:`bool`): whether to do action clip operation ([-1, 1])
         - alpha (:obj:`float`): affine transform weight
         - beta (:obj:`float`): affine transform bias
         - min_val (:obj:`float`): min value, if `min_val` and `max_val` are indicated, scale input data\
@@ -260,7 +262,8 @@ def affine_transform(
     Returns:
         - transformed_data (:obj:`Any`): affine transformed data
     """
-    data = np.clip(data, -1, 1)
+    if action_clip:
+        data = np.clip(data, -1, 1)
     if min_val is not None:
         assert max_val is not None
         alpha = (max_val - min_val) / 2
@@ -268,3 +271,21 @@ def affine_transform(
     assert alpha is not None
     beta = beta if beta is not None else 0.
     return data * alpha + beta
+
+
+def save_frames_as_gif(frames: list, path: str) -> None:
+    """
+    Overview:
+        save frames as gif to specified path.
+    Arguments:
+        - frames (:obj:`List`): list of frames
+        - path (:obj:`str`): the path to save gif
+    """
+    try:
+        import imageio
+    except ImportError:
+        from ditk import logging
+        import sys
+        logging.warning("Please install imageio first.")
+        sys.exit(1)
+    imageio.mimsave(path, frames, fps=20)

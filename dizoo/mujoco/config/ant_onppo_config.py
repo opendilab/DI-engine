@@ -8,7 +8,6 @@ ant_ppo_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=10,
         evaluator_env_num=10,
-        use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=6000,
         manager=dict(shared_memory=False, )

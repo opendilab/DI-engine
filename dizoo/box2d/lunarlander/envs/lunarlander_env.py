@@ -1,12 +1,14 @@
+import copy
 import os
 from typing import Optional
 
 import gym
-import imageio
 import numpy as np
+from easydict import EasyDict
+
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs import ObsPlusPrevActRewWrapper
-from ding.envs.common import affine_transform
+from ding.envs.common import affine_transform, save_frames_as_gif
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 
@@ -14,17 +16,31 @@ from ding.utils import ENV_REGISTRY
 @ENV_REGISTRY.register('lunarlander')
 class LunarLanderEnv(BaseEnv):
 
+    config = dict(
+        replay_path=None,
+        save_replay_gif=False,
+        replay_path_gif=None,
+        action_clip=False,
+    )
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
         # env_id: LunarLander-v2, LunarLanderContinuous-v2
         self._env_id = cfg.env_id
         self._replay_path = None
-        self._replay_path_gif = cfg.replay_path_gif if 'replay_path_gif' in cfg.keys() else None
-        self._save_replay_gif = cfg.save_replay_gif if 'save_replay_gif' in cfg.keys() else False
+        self._replay_path_gif = cfg.replay_path_gif
+        self._save_replay_gif = cfg.save_replay_gif
         self._save_replay_count = 0
         if 'Continuous' in self._env_id:
             self._act_scale = cfg.act_scale  # act_scale only works in continuous env
+            self._action_clip = cfg.action_clip
         else:
             self._act_scale = False
 
@@ -76,12 +92,10 @@ class LunarLanderEnv(BaseEnv):
         if action.shape == (1,):
             action = action.item()  # 0-dim array
         if self._act_scale:
-            action = affine_transform(action, min_val=-1, max_val=1)
+            action = affine_transform(action, action_clip=self._action_clip, min_val=-1, max_val=1)
         if self._save_replay_gif:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
-        # self._env.render()
-        # print(action, obs, rew, done, info)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
@@ -91,7 +105,7 @@ class LunarLanderEnv(BaseEnv):
                 path = os.path.join(
                     self._replay_path_gif, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
                 )
-                self.display_frames_as_gif(self._frames, path)
+                save_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
 
         obs = to_ndarray(obs)
@@ -111,10 +125,6 @@ class LunarLanderEnv(BaseEnv):
             episode_trigger=lambda episode_id: True,
             name_prefix='rl-video-{}'.format(id(self))
         )
-
-    @staticmethod
-    def display_frames_as_gif(frames: list, path: str) -> None:
-        imageio.mimsave(path, frames, fps=20)
 
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
