@@ -81,8 +81,6 @@ setup(
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
-        'moviepy',
-        'tqdm',
         'wandb',
         'matplotlib',
         'MarkupSafe==2.0.1',  # compatibility
