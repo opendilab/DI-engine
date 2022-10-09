@@ -22,4 +22,5 @@ jobs:
         run: |
           python -m pip install "yapf==0.29.0"
           python -m pip install "flake8<=3.9.2"
+          python -m pip install "importlib-metadata<5.0.0"
           make format_test flake_check
