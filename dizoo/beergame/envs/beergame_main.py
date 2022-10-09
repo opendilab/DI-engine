@@ -119,12 +119,14 @@ class BeerGame():
     def step(self, action):
         self._env.handelAction(action)  # action is logit, for example: action=[0,1,0,0,0], only input
         self._env.next()
-        obs = np.append(
+        newstate = np.append(
             self._env.players[self._role].currentState[1:, :], [self._env.players[self._role].nextObservation], axis=0
         )
-        obs = [i for item in obs for i in item]
-        rew = -1 * self._env.players[self._role].curReward + (self._cfg.distCoeff /
-                                                              3) * ((self._totRew - self._cumReward) / (self._env.T))
+        self._env.players[self._role].currentState = newstate
+        obs = [i for item in newstate for i in item]
+        rew = self._env.players[self._role].curReward + (self._cfg.distCoeff /
+                                                         3) * ((self._totRew - self._cumReward) / (self._env.T))
         done = (self._env.curTime == self._env.T)
         info = {}
+
         return obs, rew, done, info
