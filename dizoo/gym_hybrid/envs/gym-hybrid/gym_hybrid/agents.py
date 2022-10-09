@@ -4,6 +4,7 @@ import numpy as np
 
 
 class BaseAgent:
+
     def __init__(self, break_value: float, delta_t: float):
         self.x = None
         self.y = None
@@ -35,6 +36,7 @@ class BaseAgent:
 
 
 class MovingAgent(BaseAgent):
+
     def __init__(self, break_value: float, delta_t: float):
         super(MovingAgent, self).__init__(break_value, delta_t)
 
@@ -52,6 +54,7 @@ class MovingAgent(BaseAgent):
 
 
 class SlidingAgent(BaseAgent):
+
     def __init__(self, break_value: float, delta_t: float):
         super(SlidingAgent, self).__init__(break_value, delta_t)
         self.phi = 0
@@ -61,8 +64,9 @@ class SlidingAgent(BaseAgent):
         # phi_1, r_1 = self.theta, value  # the direction of the agent and the magnitude induced by the action
         # phi_2, r_2 = self.phi, self.speed  # the direction of the velocity vector and its magnitude
         speed = np.sqrt(value ** 2 + self.speed ** 2 + 2 * value * self.speed * np.cos(self.phi - self.theta))
-        angle = self.theta + np.arctan2(self.speed * np.sin(self.phi - self.theta),
-                                        value + self.speed * np.cos(self.phi - self.theta))
+        angle = self.theta + np.arctan2(
+            self.speed * np.sin(self.phi - self.theta), value + self.speed * np.cos(self.phi - self.theta)
+        )
         self.speed = speed
         self.phi = angle
         self._step()
@@ -78,6 +82,7 @@ class SlidingAgent(BaseAgent):
 
 
 class HardMoveAgent(BaseAgent):
+
     def __init__(self, break_value: float, delta_t: float, num_actuators: int = 4):
         super(HardMoveAgent, self).__init__(break_value, delta_t)
         self.phi = 0
@@ -97,9 +102,13 @@ class HardMoveAgent(BaseAgent):
 
     def move(self, move_direction_meta: int, move_distances: list) -> None:
         move_directions_mask = self.meta_to_mask[int(move_direction_meta)]
-        self.move_vector = np.array([move_directions_mask[i] * move_distances[i] * np.array(
-            [np.cos(i * 2 * np.pi / self.num_actuators), np.sin(i * 2 * np.pi / self.num_actuators)]) for i in
-                                     range(len(move_distances))]).sum(0)
+        self.move_vector = np.array(
+            [
+                move_directions_mask[i] * move_distances[i] *
+                np.array([np.cos(i * 2 * np.pi / self.num_actuators),
+                          np.sin(i * 2 * np.pi / self.num_actuators)]) for i in range(len(move_distances))
+            ]
+        ).sum(0)
         self._step()
         self.theta = np.arctan(self.y / self.x)  # direction of the agent, in radian
 

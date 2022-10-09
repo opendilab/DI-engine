@@ -58,14 +58,14 @@ class BaseEnv(gym.Env):
     """
 
     def __init__(
-            self,
-            seed: Optional[int] = None,
-            max_turn: float = np.pi / 2,
-            max_acceleration: float = 0.5,
-            delta_t: float = 0.005,
-            max_step: int = 200,
-            penalty: float = 0.001,
-            break_value: float = 0.1,
+        self,
+        seed: Optional[int] = None,
+        max_turn: float = np.pi / 2,
+        max_acceleration: float = 0.5,
+        delta_t: float = 0.005,
+        max_step: int = 200,
+        penalty: float = 0.001,
+        break_value: float = 0.1,
     ):
         """Initialization of the gym environment.
 
@@ -100,8 +100,7 @@ class BaseEnv(gym.Env):
         parameters_min = np.array([0, -1])
         parameters_max = np.array([1, +1])
 
-        self.action_space = spaces.Tuple((spaces.Discrete(3),
-                                          spaces.Box(parameters_min, parameters_max)))
+        self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Box(parameters_min, parameters_max)))
         self.observation_space = spaces.Box(np.ones(10), -np.ones(10))
 
     def seed(self, seed: Optional[int] = None) -> list:
@@ -139,8 +138,8 @@ class BaseEnv(gym.Env):
         if self.distance < self.target_radius and self.agent.speed == 0:
             reward = self.get_reward(last_distance, True)
             done = True
-        elif abs(self.agent.x) > self.field_size or abs(
-                self.agent.y) > self.field_size or self.current_step > self.max_step:
+        elif abs(self.agent.x) > self.field_size or abs(self.agent.y
+                                                        ) > self.field_size or self.current_step > self.max_step:
             reward = -1
             done = True
         else:
@@ -151,16 +150,10 @@ class BaseEnv(gym.Env):
 
     def get_state(self) -> list:
         state = [
-            self.agent.x,
-            self.agent.y,
-            self.agent.speed,
+            self.agent.x, self.agent.y, self.agent.speed,
             np.cos(self.agent.theta),
-            np.sin(self.agent.theta),
-            self.target.x,
-            self.target.y,
-            self.distance,
-            0 if self.distance > self.target_radius else 1,
-            self.current_step / self.max_step
+            np.sin(self.agent.theta), self.target.x, self.target.y, self.distance,
+            0 if self.distance > self.target_radius else 1, self.current_step / self.max_step
         ]
         return state
 
@@ -188,7 +181,8 @@ class BaseEnv(gym.Env):
 
             agent = rendering.make_circle(unit_x * agent_radius)
             self.agent_trans = rendering.Transform(
-                translation=(unit_x * (1 + self.agent.x), unit_y * (1 + self.agent.y)))  # noqa
+                translation=(unit_x * (1 + self.agent.x), unit_y * (1 + self.agent.y))
+            )  # noqa
             agent.add_attr(self.agent_trans)
             agent.set_color(0.1, 0.3, 0.9)
             self.viewer.add_geom(agent)
@@ -219,15 +213,16 @@ class BaseEnv(gym.Env):
 
 
 class MovingEnv(BaseEnv):
+
     def __init__(
-            self,
-            seed: int = None,
-            max_turn: float = np.pi / 2,
-            max_acceleration: float = 0.5,
-            delta_t: float = 0.005,
-            max_step: int = 200,
-            penalty: float = 0.001,
-            break_value: float = 0.1,
+        self,
+        seed: int = None,
+        max_turn: float = np.pi / 2,
+        max_acceleration: float = 0.5,
+        delta_t: float = 0.005,
+        max_step: int = 200,
+        penalty: float = 0.001,
+        break_value: float = 0.1,
     ):
         super(MovingEnv, self).__init__(
             seed=seed,
@@ -246,15 +241,16 @@ class MovingEnv(BaseEnv):
 
 
 class SlidingEnv(BaseEnv):
+
     def __init__(
-            self,
-            seed: int = None,
-            max_turn: float = np.pi / 2,
-            max_acceleration: float = 0.5,
-            delta_t: float = 0.005,
-            max_step: int = 200,
-            penalty: float = 0.001,
-            break_value: float = 0.1
+        self,
+        seed: int = None,
+        max_turn: float = np.pi / 2,
+        max_acceleration: float = 0.5,
+        delta_t: float = 0.005,
+        max_step: int = 200,
+        penalty: float = 0.001,
+        break_value: float = 0.1
     ):
         super(SlidingEnv, self).__init__(
             seed=seed,
@@ -266,10 +262,7 @@ class SlidingEnv(BaseEnv):
             break_value=break_value
         )
 
-        self.agent = SlidingAgent(
-            break_value=break_value,
-            delta_t=delta_t
-        )
+        self.agent = SlidingAgent(break_value=break_value, delta_t=delta_t)
 
 
 class HardMoveEnv(gym.Env):
@@ -278,15 +271,15 @@ class HardMoveEnv(gym.Env):
     """
 
     def __init__(
-            self,
-            num_actuators: int = 4,
-            seed: Optional[int] = None,
-            max_turn: float = np.pi / 2,
-            max_acceleration: float = 0.5,
-            delta_t: float = 0.005,
-            max_step: int = 25,
-            penalty: float = 0.001,
-            break_value: float = 0.1,
+        self,
+        num_actuators: int = 4,
+        seed: Optional[int] = None,
+        max_turn: float = np.pi / 2,
+        max_acceleration: float = 0.5,
+        delta_t: float = 0.005,
+        max_step: int = 25,
+        penalty: float = 0.001,
+        break_value: float = 0.1,
     ):
         """Initialization of the gym environment.
 
@@ -322,8 +315,9 @@ class HardMoveEnv(gym.Env):
         parameters_min = np.array([-1 for i in range(self.num_actuators)])
         parameters_max = np.array([+1 for i in range(self.num_actuators)])
 
-        self.action_space = spaces.Tuple((spaces.Discrete(int(2 ** self.num_actuators)),
-                                          spaces.Box(parameters_min, parameters_max)))
+        self.action_space = spaces.Tuple(
+            (spaces.Discrete(int(2 ** self.num_actuators)), spaces.Box(parameters_min, parameters_max))
+        )
         self.observation_space = spaces.Box(np.ones(10), -np.ones(10))
 
     def seed(self, seed: Optional[int] = None) -> list:
@@ -354,8 +348,8 @@ class HardMoveEnv(gym.Env):
         if self.distance < self.target_radius:
             reward = self.get_reward(last_distance, True)
             done = True
-        elif abs(self.agent.x) > self.field_size or abs(
-                self.agent.y) > self.field_size or self.current_step > self.max_step:
+        elif abs(self.agent.x) > self.field_size or abs(self.agent.y
+                                                        ) > self.field_size or self.current_step > self.max_step:
             reward = -1
             done = True
         else:
@@ -366,16 +360,10 @@ class HardMoveEnv(gym.Env):
 
     def get_state(self) -> list:
         state = [
-            self.agent.x,
-            self.agent.y,
-            self.agent.speed,
+            self.agent.x, self.agent.y, self.agent.speed,
             np.cos(self.agent.theta),
-            np.sin(self.agent.theta),
-            self.target.x,
-            self.target.y,
-            self.distance,
-            0 if self.distance > self.target_radius else 1,
-            self.current_step / self.max_step
+            np.sin(self.agent.theta), self.target.x, self.target.y, self.distance,
+            0 if self.distance > self.target_radius else 1, self.current_step / self.max_step
         ]
         return state
 
@@ -403,7 +391,8 @@ class HardMoveEnv(gym.Env):
 
             agent = rendering.make_circle(unit_x * agent_radius)
             self.agent_trans = rendering.Transform(
-                translation=(unit_x * (1 + self.agent.x), unit_y * (1 + self.agent.y)))  # noqa
+                translation=(unit_x * (1 + self.agent.x), unit_y * (1 + self.agent.y))
+            )  # noqa
             agent.add_attr(self.agent_trans)
             agent.set_color(0.1, 0.3, 0.9)
             self.viewer.add_geom(agent)
