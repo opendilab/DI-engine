@@ -11,9 +11,17 @@ from dizoo.mujoco.envs import MujocoEnv
 @pytest.mark.parametrize('delay_reward_step', [1, 10])
 def test_mujoco_env_delay_reward(delay_reward_step):
     set_pkg_seed(1234, use_cuda=False)
-    env = MujocoEnv(EasyDict(
-        {'env_id': 'Ant-v3', 'action_clip': False, 'delay_reward_step': delay_reward_step, 'save_replay_gif': False,
-         'replay_path_gif': None}))
+    env = MujocoEnv(
+        EasyDict(
+            {
+                'env_id': 'Ant-v3',
+                'action_clip': False,
+                'delay_reward_step': delay_reward_step,
+                'save_replay_gif': False,
+                'replay_path_gif': None
+            }
+        )
+    )
     env.seed(1234)
     env.reset()
     action_dim = env.action_space.shape
@@ -26,15 +34,23 @@ def test_mujoco_env_delay_reward(delay_reward_step):
             action = env.random_action()
         timestep = env.step(action)
         print(timestep.reward)
-        assert timestep.reward.shape == (1,), timestep.reward.shape
+        assert timestep.reward.shape == (1, ), timestep.reward.shape
 
 
 @pytest.mark.envtest
 def test_mujoco_env_final_eval_reward():
     set_pkg_seed(1234, use_cuda=False)
-    env = MujocoEnv(EasyDict(
-        {'env_id': 'Ant-v3', 'action_clip': False, 'delay_reward_step': 4, 'save_replay_gif': False,
-         'replay_path_gif': None}))
+    env = MujocoEnv(
+        EasyDict(
+            {
+                'env_id': 'Ant-v3',
+                'action_clip': False,
+                'delay_reward_step': 4,
+                'save_replay_gif': False,
+                'replay_path_gif': None
+            }
+        )
+    )
     env.seed(1234)
     env.reset()
     action_dim = env.action_space.shape

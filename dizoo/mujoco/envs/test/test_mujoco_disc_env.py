@@ -10,9 +10,18 @@ from dizoo.mujoco.envs import MujocoDiscEnv
 def test_mujoco_env_final_eval_reward():
     set_pkg_seed(1234, use_cuda=False)
     each_dim_disc_size = 2
-    env = MujocoDiscEnv(EasyDict(
-        {'env_id': 'Ant-v3', 'action_clip': False, 'each_dim_disc_size': each_dim_disc_size, 'delay_reward_step': 4,
-         'save_replay_gif': False, 'replay_path_gif': None}))
+    env = MujocoDiscEnv(
+        EasyDict(
+            {
+                'env_id': 'Ant-v3',
+                'action_clip': False,
+                'each_dim_disc_size': each_dim_disc_size,
+                'delay_reward_step': 4,
+                'save_replay_gif': False,
+                'replay_path_gif': None
+            }
+        )
+    )
     env.seed(1234)
     env.reset()
     action_dim = env._raw_action_space.shape

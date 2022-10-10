@@ -242,7 +242,7 @@ def get_postion_vector(x: list) -> torch.Tensor:
 
 def affine_transform(
         data: Any,
-        action_clip=False,
+        action_clip: Optional[bool] = True,
         alpha: Optional[float] = None,
         beta: Optional[float] = None,
         min_val: Optional[float] = None,
@@ -276,7 +276,7 @@ def affine_transform(
 def save_frames_as_gif(frames: list, path: str) -> None:
     """
     Overview:
-        save frames as gif to specified path.
+        save frames as gif to a specified path.
     Arguments:
         - frames (:obj:`List`): list of frames
         - path (:obj:`str`): the path to save gif
