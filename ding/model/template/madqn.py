@@ -17,14 +17,14 @@ class MADQN(nn.Module):
             lstm_type: str = 'gru',
             dueling: bool = False
     ) -> None:
-        super(SIQL, self).__init__()
-        self.current = QMix(agent_num, obs_shape, action_shape, hidden_size_list, global_obs_shape=global_obs_shape, mixer=mixer, lstm_type=lstm_type, dueling=dueling)
+        super(MADQN, self).__init__()
+        self.current = QMix(agent_num=agent_num, obs_shape=obs_shape, action_shape=action_shape, hidden_size_list=hidden_size_list, global_obs_shape=global_obs_shape, mixer=mixer, lstm_type=lstm_type, dueling=dueling)
         self.global_boost = global_boost
         if self.global_boost:
             boost_obs_shape = global_obs_shape
         else:
             boost_obs_shape = obs_shape
-        self.boost = QMix(agent_num, boost_obs_shape, action_shape, hidden_size_list, global_obs_shape=global_obs_shape, mixer=mixer, lstm_type=lstm_type, dueling=dueling)
+        self.boost = QMix(agent_num=agent_num, obs_shape=boost_obs_shape, action_shape=action_shape, hidden_size_list=hidden_size_list, global_obs_shape=global_obs_shape, mixer=mixer, lstm_type=lstm_type, dueling=dueling)
 
     def forward(self, data: dict, boost: bool = False, single_step: bool = True) -> dict:
         if boost:
