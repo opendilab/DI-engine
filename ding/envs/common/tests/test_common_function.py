@@ -1,13 +1,14 @@
+import os
 import random
+import shutil
 
 import numpy as np
 import pytest
 import torch
-
-from ding.envs.common.common_function import num_first_one_hot, sqrt_one_hot, div_one_hot, div_func, clip_one_hot, \
+from ding.envs.common.common_function import sqrt_one_hot, div_one_hot, div_func, clip_one_hot, \
     reorder_one_hot, reorder_one_hot_array, reorder_boolean_vector, \
-    get_to_and, batch_binary_encode, compute_denominator, get_postion_vector, \
-    affine_transform
+    batch_binary_encode, get_postion_vector, \
+    affine_transform, save_frames_as_gif
 
 VALUES = [2, 3, 5, 7, 11]
 
@@ -113,3 +114,14 @@ class TestEnvCommonFunc:
         ans = affine_transform(a, alpha=4, beta=1)
         assert ans.shape == (3, 5)
         assert ans.min() == -3 and ans.max() == 5
+
+    def test_save_frames_as_gif(self):
+        self.frames = [np.random.randint(0, 255, [84, 84, 3]) for _ in range(100)]
+        self.replay_path_gif = './replay_path_gif'
+        self.env_id = 'test'
+        self.save_replay_count = 1
+        if not os.path.exists(self.replay_path_gif):
+            os.makedirs(self.replay_path_gif)
+        path = os.path.join(self.replay_path_gif, '{}_episode_{}.gif'.format(self.env_id, self.save_replay_count))
+        save_frames_as_gif(self.frames, path)
+        shutil.rmtree(self.replay_path_gif)
