@@ -418,8 +418,7 @@ def split_fn(data, indices, start, end):
     elif isinstance(data, dict):
         return {k1: split_fn(v1, indices, start, end) for k1, v1 in data.items()}
     else:
-        if not np.isscalar(data):
-            return data[indices[start:end]]
+        return data[indices[start:end]]
 
 
 def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> dict:
