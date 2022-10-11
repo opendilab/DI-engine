@@ -171,7 +171,7 @@ class TheEnvClass(Mock):
         return
 
 
-@pytest.mark.unittest
+@pytest.mark.other  # due to no api key in github now
 def test_wandb_online_logger():
 
     cfg = EasyDict(
