@@ -115,6 +115,7 @@ class TestEnvCommonFunc:
         assert ans.shape == (3, 5)
         assert ans.min() == -3 and ans.max() == 5
 
+    @pytest.mark.other
     def test_save_frames_as_gif(self):
         self.frames = [np.random.randint(0, 255, [84, 84, 3]) for _ in range(100)]
         self.replay_path_gif = './replay_path_gif'
