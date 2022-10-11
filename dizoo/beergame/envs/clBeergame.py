@@ -84,8 +84,8 @@ class clBeerGame(object):
         elif self.players[k].compType == "Strm":
             self.players[k].action = np.zeros(self.config.actionListLenOpt)
             self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)\
-                 -max(0,round(self.players[k].AO[self.curTime] +\
-                 self.players[k].alpha_b*(self.players[k].IL - self.players[k].a_b) +\
+                  - max(0, round(self.players[k].AO[self.curTime] + \
+                 self.players[k].alpha_b*(self.players[k].IL - self.players[k].a_b) + \
                  self.players[k].betta_b*(self.players[k].OO - self.players[k].b_b)))))] = 1
         elif self.players[k].compType == "rnd":
             self.players[k].action = np.zeros(self.config.actionListLen)
@@ -95,14 +95,14 @@ class clBeerGame(object):
             self.players[k].action = np.zeros(self.config.actionListLenOpt)
             if self.config.demandDistribution == 2:
                 if self.curTime and self.config.use_initial_BS <= 4:
-                    self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)-\
-                      max(0,(self.players[k].int_bslBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
+                    self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
+                      max(0, (self.players[k].int_bslBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
                 else:
-                    self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)-\
-                      max(0,(self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
+                    self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
+                      max(0, (self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
             else:
-                self.players[k].action [np.argmin(np.abs(np.array(self.config.actionListOpt)-\
-                   max(0,(self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
+                self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
+                   max(0, (self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
         else:
             # not a valid player is defined.
             raise Exception('The player type is not defined or it is not a valid type.!')
@@ -167,16 +167,16 @@ class clBeerGame(object):
              self.curTime) + self.players[k].IL + self.players[k].OO]
 
             # update hist for the plots
-            self.players[k].hist += [[self.curTime,self.players[k].IL, self.players[k].OO,\
-               self.players[k].actionValue(self.curTime),self.players[k].curReward, self.players[k].srdqnBaseStock[-1]]]
+            self.players[k].hist += [[self.curTime, self.players[k].IL, self.players[k].OO,\
+               self.players[k].actionValue(self.curTime), self.players[k].curReward, self.players[k].srdqnBaseStock[-1]]]
 
             if self.players[k].compType == "srdqn":
-                self.players[k].hist2 += [[self.curTime,self.players[k].IL, self.players[k].OO, self.players[k].AO[self.curTime], self.players[k].AS[self.curTime], \
+                self.players[k].hist2 += [[self.curTime, self.players[k].IL, self.players[k].OO, self.players[k].AO[self.curTime], self.players[k].AS[self.curTime], \
                   self.players[k].actionValue(self.curTime), self.players[k].curReward, \
                   self.config.actionList[np.argmax(self.players[k].action)]]]
 
             else:
-                self.players[k].hist2 += [[self.curTime,self.players[k].IL, self.players[k].OO, self.players[k].AO[self.curTime], self.players[k].AS[self.curTime], \
+                self.players[k].hist2 += [[self.curTime, self.players[k].IL, self.players[k].OO, self.players[k].AO[self.curTime], self.players[k].AS[self.curTime], \
                   self.players[k].actionValue(self.curTime), self.players[k].curReward, 0]]
 
             # updates OO and AO at time t+1
@@ -201,9 +201,9 @@ class clBeerGame(object):
                 calculations = np.zeros((7, self.config.NoAgent))
                 for k in range(self.config.NoAgent):
                     # DL_high
-                    calculations[0][k] = ((self.config.leadRecItemLow +self.config.leadRecItemUp + 2)/2 \
-                          + (self.config.leadRecOrderLow+self.config.leadRecOrderUp + 2)/2)* \
-                         (self.config.demandUp - self.config.demandLow- 1)
+                    calculations[0][k] = ((self.config.leadRecItemLow + self.config.leadRecItemUp + 2) / 2 \
+                           + (self.config.leadRecOrderLow + self.config.leadRecOrderUp + 2) / 2) * \
+                         (self.config.demandUp - self.config.demandLow - 1)
                     if k > 0:
                         calculations[0][k] += calculations[0][k - 1]
                     # probability_high

@@ -1,6 +1,4 @@
-from gc import collect
 from easydict import EasyDict
-from matplotlib.cbook import get_sample_data
 
 beergame_ppo_config = dict(
     exp_name='beergame_ppo_seed0',
@@ -11,8 +9,8 @@ beergame_ppo_config = dict(
         n_evaluator_episode=8,
         stop_value=200,
         role=0,  # 0-3 : retailer、warehouse、distributor、manufacturer
-        agentType=
-        'bs',  # type of co-player, 'bs'- base stock, 'Strm'- use Sterman formula to model typical human behavior.
+        agentType='bs',
+        # type of co-player, 'bs'- base stock, 'Strm'- use Sterman formula to model typical human behavior.
     ),
     policy=dict(
         cuda=True,
