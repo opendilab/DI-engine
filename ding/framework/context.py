@@ -57,7 +57,7 @@ class OnlineRLContext(Context):
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
-    eval_output: List = dataclasses.field(default_factory=list)
+    eval_output: List = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,
@@ -77,7 +77,7 @@ class OfflineRLContext(Context):
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
-    eval_output: List = dataclasses.field(default_factory=list)
+    eval_output: List = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,

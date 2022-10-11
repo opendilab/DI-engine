@@ -1,17 +1,17 @@
-import pytest
-from ding.framework import OnlineRLContext, OfflineRLContext
-from ding.framework.middleware.functional import online_logger, offline_logger, wandb_logger
-from easydict import EasyDict
-import os
 from os import path
+import os
+import copy
+from easydict import EasyDict
+from collections import deque
+import pytest
 import shutil
 import wandb
 import torch.nn as nn
-from collections import deque
 from unittest.mock import Mock, patch
 from ding.utils import DistributedWriter
 from ding.framework.middleware.tests import MockPolicy, CONFIG
-import copy
+from ding.framework import OnlineRLContext, OfflineRLContext
+from ding.framework.middleware.functional import online_logger, offline_logger, wandb_online_logger
 
 test_folder = "test_exp"
 test_path = path.join(os.getcwd(), test_folder)
@@ -172,14 +172,11 @@ class TheEnvClass(Mock):
 
 
 @pytest.mark.unittest
-def test_wandb_Logger():
+def test_wandb_online_logger():
 
     cfg = EasyDict(
         dict(
-            record_path='./video_qbert_dqn',
-            gradient_logger=True,
-            plot_logger=dict(loss=True, q_value=False, target_q_value=False, lr=True),
-            action_logger='q_value distribution'
+            record_path='./video_qbert_dqn', gradient_logger=True, plot_logger=True, action_logger='action probability'
         )
     )
     env = TheEnvClass()
@@ -197,13 +194,13 @@ def test_wandb_Logger():
     def mock_gradient_logger(input_model):
         assert input_model == model
 
-    def test_wandb_logger_metric():
+    def test_wandb_online_logger_metric():
         with patch.object(wandb, 'log', new=mock_metric_logger):
-            wandb_logger(cfg, env, model)(ctx)
+            wandb_online_logger(cfg, env, model)(ctx)
 
-    def test_wandb_logger_gradient():
+    def test_wandb_online_logger_gradient():
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_logger(cfg, env, model)(ctx)
+            wandb_online_logger(cfg, env, model)(ctx)
 
-    test_wandb_logger_metric()
-    test_wandb_logger_gradient()
+    test_wandb_online_logger_metric()
+    test_wandb_online_logger_gradient()

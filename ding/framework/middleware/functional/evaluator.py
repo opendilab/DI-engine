@@ -207,7 +207,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
-        ctx.eval_output = output
+        ctx.eval_output = {'output': output, 'reward': episode_reward}
 
         if stop_flag:
             task.finish = True

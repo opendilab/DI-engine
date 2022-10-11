@@ -4,7 +4,7 @@ from .data_processor import offpolicy_data_fetcher, data_pusher, offline_data_fe
 from .collector import inferencer, rolloutor, TransitionList
 from .evaluator import interaction_evaluator
 from .termination_checker import termination_checker
-from .logger import online_logger, offline_logger, wandb_logger
+from .logger import online_logger, offline_logger, wandb_online_logger
 from .ctx_helper import final_ctx_saver
 
 # algorithm
