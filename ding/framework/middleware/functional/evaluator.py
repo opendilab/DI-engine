@@ -185,7 +185,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
             obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
             inference_output = policy.forward(obs)
-            action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
+            output = [v for v in inference_output.values()]
+            action = [to_ndarray(v['action']) for v in output]  # TBD
             timesteps = env.step(action)
             for timestep in timesteps:
                 env_id = timestep.env_id.item()
@@ -206,6 +207,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
+        ctx.eval_output = {'output': output, 'reward': episode_reward}
 
         if stop_flag:
             task.finish = True
