@@ -1,8 +1,6 @@
-import copy
-import random
 import numpy as np
 from dizoo.beergame.envs.beergame_main import BeerGame
-from typing import Any, Dict, Optional, Union, List
+from typing import Union, List
 
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
@@ -54,6 +52,10 @@ class BeerGameEnv(BaseEnv):
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
+    def reward_shaping(self, transitions: List[dict]) -> None:
+        for trans in transitions:
+            trans['reward'] = self._env.reward_shaping(trans['reward'])
+
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
         if isinstance(random_action, np.ndarray):
@@ -75,4 +77,4 @@ class BeerGameEnv(BaseEnv):
         return self._reward_space
 
     def __repr__(self) -> str:
-        return "DI-engine BipedalWalker Env"
+        return "DI-engine Beergame Env"

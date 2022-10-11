@@ -1,4 +1,6 @@
+from gc import collect
 from easydict import EasyDict
+from matplotlib.cbook import get_sample_data
 
 beergame_ppo_config = dict(
     exp_name='beergame_ppo_seed0',
@@ -8,16 +10,17 @@ beergame_ppo_config = dict(
         env_id='beergame-v2',
         n_evaluator_episode=8,
         stop_value=200,
-        role=0,
-        agentType='bs',
+        role=0,  # 0-3 : retailer、warehouse、distributor、manufacturer
+        agentType=
+        'bs',  # type of co-player, 'bs'- base stock, 'Strm'- use Sterman formula to model typical human behavior.
     ),
     policy=dict(
         cuda=True,
         recompute_adv=True,
         action_space='discrete',
         model=dict(
-            obs_shape=50,  # statedim*multPerdInpt
-            action_shape=5,
+            obs_shape=50,  # statedim * multPerdInpt= 5 * 10
+            action_shape=5,  # the quantity relative to the arriving order
             action_space='discrete',
             encoder_hidden_size_list=[64, 64, 128],
             actor_head_hidden_size=128,
@@ -42,7 +45,7 @@ beergame_ppo_config = dict(
             grad_clip_value=0.5,
         ),
         collect=dict(
-            n_sample=128,
+            n_episode=8,
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
@@ -59,6 +62,11 @@ beergame_ppo_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo'),
+    collector=dict(
+        type='episode',
+        get_train_sample=True,
+        reward_shaping=True,  # whether use total reward to reshape reward
+    ),
 )
 beergame_ppo_create_config = EasyDict(beergame_ppo_create_config)
 create_config = beergame_ppo_create_config

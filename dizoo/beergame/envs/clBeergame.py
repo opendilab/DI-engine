@@ -1,11 +1,6 @@
-import time
-from time import gmtime, strftime
 import numpy as np
-import random
 from random import randint
 from .BGAgent import Agent
-import matplotlib.pyplot as plt
-import os
 from matplotlib import rc
 rc('text', usetex=True)
 
@@ -44,7 +39,7 @@ class clBeerGame(object):
     # planHorizon : Find a random planning horizon
     def planHorizon(self):
         # TLow: minimum number for the planning horizon # TUp: maximum number for the planning horizon
-        #output: The planning horizon which is chosen randomly.
+        # output: The planning horizon which is chosen randomly.
         return randint(self.config.TLow, self.config.TUp)
 
     # this function resets the game for start of the new game
@@ -69,12 +64,12 @@ class clBeerGame(object):
             totRew += self.players[i].cumReward
 
         for i in range(self.config.NoAgent):
-            self.players[i].curReward += self.players[i].eta * (totRew - self.players[i].cumReward)  #/(self.T)
+            self.players[i].curReward += self.players[i].eta * (totRew - self.players[i].cumReward)  # /(self.T)
 
     # make correction to the rewards in the experience replay for all iterations of current game
     def distTotReward(self, role):
         totRew = 0
-        optRew = 0.1
+        optRew = 0.1  # why?
         for i in range(self.config.NoAgent):
             # sum all rewards for the agents and make correction
             totRew += self.players[i].cumReward
@@ -100,10 +95,10 @@ class clBeerGame(object):
             self.players[k].action = np.zeros(self.config.actionListLenOpt)
             if self.config.demandDistribution == 2:
                 if self.curTime and self.config.use_initial_BS <= 4:
-                    self.players[k].action [np.argmin(np.abs(np.array(self.config.actionListOpt)-\
+                    self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)-\
                       max(0,(self.players[k].int_bslBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
                 else:
-                    self.players[k].action [np.argmin(np.abs(np.array(self.config.actionListOpt)-\
+                    self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)-\
                       max(0,(self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
             else:
                 self.players[k].action [np.argmin(np.abs(np.array(self.config.actionListOpt)-\
@@ -251,134 +246,6 @@ class clBeerGame(object):
             for k in range(self.config.NoAgent):
                 self.players[k].bsBaseStock = f[k]
                 self.players[k].int_bslBaseStock = f_init[k]
-
-    def doTestMid(self, demandTs):
-        if self.config.ifPlaySavedData:
-            for c, i in enumerate(self.config.agentTypes):
-                if i == "srdqn":
-                    dnn_agent = c
-                    break
-
-        self.resultTest = []
-        for i in range(self.config.testRepeatMid):
-            if self.config.ifPlaySavedData:
-                hist2 = np.load(
-                    os.path.join(self.config.model_dir, 'DQN-0-player-' + str(dnn_agent) + '-' + str(i) + '.npy')
-                )
-                self.loaded_dqn_actions = hist2[:, 7]
-            self.doTest(i, demandTs[i])
-
-        print("---------------------------------------------------------------------------------------")
-        resultSummary = np.array(self.resultTest).mean(axis=0).tolist()
-
-        result_srdqn = ', '.join(map("{:.2f}".format, resultSummary[0]))
-        result_rand = ', '.join(map("{:.2f}".format, resultSummary[1]))
-        result_strm = ', '.join(map("{:.2f}".format, resultSummary[2]))
-        if self.ifOptimalSolExist:
-            result_bs = ', '.join(map("{:.2f}".format, resultSummary[3]))
-            print(
-                'SUMMARY; {0:s}; ITER= {1:d}; SRDQN= [{2:s}]; SUM = {3:2.4f}; Rand= [{4:s}]; SUM = {5:2.4f}; STRM= [{6:s}]; SUM = {7:2.4f}; BS= [{8:s}]; SUM = {9:2.4f}'
-                .format(
-                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), self.curGame, result_srdqn, sum(resultSummary[0]),
-                    result_rand, sum(resultSummary[1]), result_strm, sum(resultSummary[2]), result_bs,
-                    sum(resultSummary[3])
-                )
-            )
-
-        else:
-            print(
-                'SUMMARY; {0:s}; ITER= {1:d}; SRDQN= [{2:s}]; SUM = {3:2.4f}; Rand= [{4:s}]; SUM = {5:2.4f}; STRM= [{6:s}]; SUM = {7:2.4f}'
-                .format(
-                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), self.curGame, result_srdqn, sum(resultSummary[0]),
-                    result_rand, sum(resultSummary[1]), result_strm, sum(resultSummary[2])
-                )
-            )
-
-        print("=======================================================================================")
-
-    def doTest(self, m, demand):
-        import matplotlib.pyplot as plt
-
-        if (self.config.ifSaveFigure) and (self.curGame in range(self.config.saveFigInt[0], self.config.saveFigInt[1])):
-            plt.figure(self.curGame, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
-
-        self.demand = demand
-        # use dnn to get output.
-        Rsltdnn, plt = self.tester(self.config.agentTypes, plt, 'b', 'DQN', m)
-        baseStockdata = self.players[0].srdqnBaseStock
-
-        # check some condition to avoid doing same test middle again.
-        if ((self.config.ifSaveFigure) and (self.curGame in range(self.config.saveFigInt[0],self.config.saveFigInt[1]))) \
-         or (self.curGame >= self.config.maxEpisodesTrain-1) or (len(self.middleTestResult) < self.config.testRepeatMid):
-
-            # use random to get output.
-            RsltRnd, plt = self.tester(["rnd", "rnd", "rnd", "rnd"], plt, 'y21', 'RAND', m)
-
-            # use formual to get output.
-            RsltStrm, plt = self.tester(["Strm", "Strm", "Strm", "Strm"], plt, 'g', 'Strm', m)
-
-            # use optimal strategy to get output, if it works.
-            if self.ifOptimalSolExist:
-                if self.config.agentTypes == ["srdqn", "Strm", "Strm", "Strm"]:
-                    Rsltbs, plt = self.tester(["bs", "Strm", "Strm", "Strm"], plt, 'r', 'Strm-BS', m)
-                elif self.config.agentTypes == ["Strm", "srdqn", "Strm", "Strm"]:
-                    Rsltbs, plt = self.tester(["Strm", "bs", "Strm", "Strm"], plt, 'r', 'Strm-BS', m)
-                elif self.config.agentTypes == ["Strm", "Strm", "srdqn", "Strm"]:
-                    Rsltbs, plt = self.tester(["Strm", "Strm", "bs", "Strm"], plt, 'r', 'Strm-BS', m)
-                elif self.config.agentTypes == ["Strm", "Strm", "Strm", "srdqn"]:
-                    Rsltbs, plt = self.tester(["Strm", "Strm", "Strm", "bs"], plt, 'r', 'Strm-BS', m)
-                elif self.config.agentTypes == ["srdqn", "rnd", "rnd", "rnd"]:
-                    Rsltbs, plt = self.tester(["bs", "rnd", "rnd", "rnd"], plt, 'r', 'RND-BS', m)
-                elif self.config.agentTypes == ["rnd", "srdqn", "rnd", "rnd"]:
-                    Rsltbs, plt = self.tester(["rnd", "bs", "rnd", "rnd"], plt, 'r', 'RND-BS', m)
-                elif self.config.agentTypes == ["rnd", "rnd", "srdqn", "rnd"]:
-                    Rsltbs, plt = self.tester(["rnd", "rnd", "bs", "rnd"], plt, 'r', 'RND-BS', m)
-                elif self.config.agentTypes == ["rnd", "rnd", "rnd", "srdqn"]:
-                    Rsltbs, plt = self.tester(["rnd", "rnd", "rnd", "bs"], plt, 'r', 'RND-BS', m)
-                else:
-                    Rsltbs, plt = self.tester(["bs", "bs", "bs", "bs"], plt, 'r', 'BS', m)
-            # hold the results of the optimal solution
-                self.middleTestResult += [[RsltRnd, RsltStrm, Rsltbs]]
-            else:
-                self.middleTestResult += [[RsltRnd, RsltStrm]]
-
-        else:
-            # return the obtained results into their lists
-            RsltRnd = self.middleTestResult[m][0]
-            RsltStrm = self.middleTestResult[m][1]
-            if self.ifOptimalSolExist:
-                Rsltbs = self.middleTestResult[m][2]
-
-        # save the figure
-        # if self.config.ifSaveFigure and (self.curGame in range(self.config.saveFigInt[0], self.config.saveFigInt[1])):
-        #     savePlot(self.players, self.curGame, Rsltdnn, RsltStrm, Rsltbs, self.config, m)
-
-        result_srdqn = ', '.join(map("{:.2f}".format, Rsltdnn))
-        result_rand = ', '.join(map("{:.2f}".format, RsltRnd))
-        result_strm = ', '.join(map("{:.2f}".format, RsltStrm))
-        if self.ifOptimalSolExist:
-            result_bs = ', '.join(map("{:.2f}".format, Rsltbs))
-            print(
-                'output; {0:s}; Iter= {1:s}; SRDQN= [{2:s}]; sum = {3:2.4f}; Rand= [{4:s}]; sum = {5:2.4f}; Strm= [{6:s}]; sum = {7:2.4f}; BS= [{8:s}]; sum = {9:2.4f}'
-                .format(
-                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), str(str(self.curGame) + "-" + str(m)), result_srdqn,
-                    sum(Rsltdnn), result_rand, sum(RsltRnd), result_strm, sum(RsltStrm), result_bs, sum(Rsltbs)
-                )
-            )
-            self.resultTest += [[Rsltdnn, RsltRnd, RsltStrm, Rsltbs]]
-
-        else:
-            print(
-                'output; {0:s}; Iter= {1:s}; SRDQN= [{2:s}]; sum = {3:2.4f}; Rand= [{4:s}]; sum = {5:2.4f}; Strm= [{6:s}]; sum = {7:2.4f}'
-                .format(
-                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), str(str(self.curGame) + "-" + str(m)), result_srdqn,
-                    sum(Rsltdnn), result_rand, sum(RsltRnd), result_strm, sum(RsltStrm)
-                )
-            )
-
-            self.resultTest += [[Rsltdnn, RsltRnd, RsltStrm]]
-
-        return sum(Rsltdnn)
 
     def update_OO(self):
         for k in range(0, self.config.NoAgent):

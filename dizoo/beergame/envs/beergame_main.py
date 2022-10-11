@@ -1,10 +1,11 @@
 from __future__ import print_function
-from dizoo.beergame.envs.clBeergame import *
+from dizoo.beergame.envs import clBeerGame
 from .utilities import *
 import numpy as np
 import random
 from .config import get_config, update_config
 import gym
+import os
 
 
 class BeerGame():
@@ -16,13 +17,14 @@ class BeerGame():
         prepare_dirs_and_logger(self._cfg)
         self._cfg = update_config(self._cfg)
 
+        # set agent type
         if agentTypes == 'bs':
             self._cfg.agentTypes = ["bs", "bs", "bs", "bs"]
         elif agentTypes == 'Strm':
             self._cfg.agentTypes = ["Strm", "Strm", "Strm", "Strm"]
         self._cfg.agentTypes[role] = "srdqn"
 
-        # get the address of data
+        # load demands:0=uniform, 1=normal distribution, 2=the sequence of 4,4,4,4,8,..., 3= basket data, 4= forecast data
         if self._cfg.observation_data:
             adsr = 'data/demandTr-obs-'
         elif self._cfg.demandDistribution == 3:
@@ -30,64 +32,30 @@ class BeerGame():
                 adsr = 'data/basket_data/scaled'
             else:
                 adsr = 'data/basket_data'
+            direc = os.path.realpath(adsr + '/demandTr-' + str(self._cfg.data_id) + '.npy')
+            self._demandTr = np.load(direc)
+            print("loaded training set=", direc)
         elif self._cfg.demandDistribution == 4:
             if self._cfg.scaled:
                 adsr = 'data/forecast_data/scaled'
             else:
                 adsr = 'data/forecast_data'
+            direc = os.path.realpath(adsr + '/demandTr-' + str(self._cfg.data_id) + '.npy')
+            self._demandTr = np.load(direc)
+            print("loaded training set=", direc)
         else:
-            adsr = 'data/demandTr'
-
-        # load demands
-        # demandTr = np.load('demandTr'+str(self._cfg.demandDistribution)+'-'+str(self._cfg.demandUp)+'.npy')
-        if self._cfg.demandDistribution == 0:
-            direc = os.path.realpath(
-                adsr + str(self._cfg.demandDistribution) + '-' + str(self._cfg.demandUp) + '-' +
-                str(self._cfg.maxEpisodesTrain) + '.npy'
-            )
-            if not os.path.exists(direc):
-                direc = os.path.realpath(
-                    adsr + str(self._cfg.demandDistribution) + '-' + str(self._cfg.demandUp) + '.npy'
-                )
-        elif self._cfg.demandDistribution == 1:
-            direc = os.path.realpath(
-                adsr + str(self._cfg.demandDistribution) + '-' + str(int(self._cfg.demandMu)) + '-' +
-                str(int(self._cfg.demandSigma)) + '.npy'
-            )
-        elif self._cfg.demandDistribution == 2:
-            direc = os.path.realpath(adsr + str(self._cfg.demandDistribution) + '.npy')
-        elif self._cfg.demandDistribution == 3:
-            direc = os.path.realpath(adsr + '/demandTr-' + str(self._cfg.data_id) + '.npy')
-        elif self._cfg.demandDistribution == 4:
-            direc = os.path.realpath(adsr + '/demandTr-' + str(self._cfg.data_id) + '.npy')
-        self._demandTr = np.load(direc)
-        print("loaded training set=", direc)
-        if self._cfg.demandDistribution == 0:
-            direc = os.path.realpath(
-                'data/demandTs' + str(self._cfg.demandDistribution) + '-' + str(self._cfg.demandUp) + '-' +
-                str(self._cfg.maxEpisodesTrain) + '.npy'
-            )
-            if not os.path.exists(direc):
-                direc = os.path.realpath(
-                    'data/demandTs' + str(self._cfg.demandDistribution) + '-' + str(self._cfg.demandUp) + '.npy'
-                )
-        elif self._cfg.demandDistribution == 1:
-            direc = os.path.realpath(
-                'data/demandTs' + str(self._cfg.demandDistribution) + '-' + str(int(self._cfg.demandMu)) + '-' +
-                str(int(self._cfg.demandSigma)) + '.npy'
-            )
-        elif self._cfg.demandDistribution == 2:
-            direc = os.path.realpath('data/demandTs' + str(self._cfg.demandDistribution) + '.npy')
-        elif self._cfg.demandDistribution == 3:
-            direc = os.path.realpath(adsr + '/demandTs-' + str(self._cfg.data_id) + '.npy')
-            direcVl = os.path.realpath(adsr + '/demandVl-' + str(self._cfg.data_id) + '.npy')
-            demandVl = np.load(direcVl)
-        elif self._cfg.demandDistribution == 4:
-            direc = os.path.realpath(adsr + '/demandTs-' + str(self._cfg.data_id) + '.npy')
-            direcVl = os.path.realpath(adsr + '/demandVl-' + str(self._cfg.data_id) + '.npy')
-            demandVl = np.load(direcVl)
-        demandTs = np.load(direc)
-        print("loaded test set=", direc)
+            if self._cfg.demandDistribution == 0:  # uniform
+                self._demandTr = np.random.randint(0, self._cfg.demandUp, size=[self._cfg.demandSize, self._cfg.TUp])
+            elif self._cfg.demandDistribution == 1:  # normal distribution
+                self._demandTr = np.round(
+                    np.random.normal(
+                        self._cfg.demandMu, self._cfg.demandSigma, size=[self._cfg.demandSize, self._cfg.TUp]
+                    )
+                ).astype(int)
+            elif self._cfg.demandDistribution == 2:  # the sequence of 4,4,4,4,8,...
+                self._demandTr = np.concatenate(
+                    (4 * np.ones((self._cfg.demandSize, 4)), 8 * np.ones((self._cfg.demandSize, 98))), axis=1
+                ).astype(int)
 
         # initilize an instance of Beergame
         self._env = clBeerGame(self._cfg)
@@ -105,11 +73,10 @@ class BeerGame():
 
     def reset(self):
         self._env.resetGame(demand=self._demandTr[random.randint(0, self._demand_len - 1)])
-        self._totRew, self._cumReward = self._env.distTotReward(self._role)
         obs = [i for item in self._env.players[self._role].currentState for i in item]
         return obs
 
-    def seed(self, seed):
+    def seed(self, seed: int) -> None:
         self._seed = seed
         np.random.seed(self._seed)
 
@@ -117,16 +84,19 @@ class BeerGame():
         pass
 
     def step(self, action):
-        self._env.handelAction(action)  # action is logit, for example: action=[0,1,0,0,0], only input
+        self._env.handelAction(action)  # action is onehot encoder, for example: action=[0,1,0,0,0], only input
         self._env.next()
         newstate = np.append(
             self._env.players[self._role].currentState[1:, :], [self._env.players[self._role].nextObservation], axis=0
         )
         self._env.players[self._role].currentState = newstate
         obs = [i for item in newstate for i in item]
-        rew = self._env.players[self._role].curReward + (self._cfg.distCoeff /
-                                                         3) * ((self._totRew - self._cumReward) / (self._env.T))
+        rew = self._env.players[self._role].curReward
         done = (self._env.curTime == self._env.T)
         info = {}
-
         return obs, rew, done, info
+
+    def reward_shaping(self, reward):
+        self._totRew, self._cumReward = self._env.distTotReward(self._role)
+        reward += (self._cfg.distCoeff / 3) * ((self._totRew - self._cumReward) / (self._env.T))
+        return reward

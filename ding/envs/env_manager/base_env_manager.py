@@ -203,7 +203,7 @@ class BaseEnvManager(object):
 
     @property
     def method_name_list(self) -> list:
-        return ['reset', 'step', 'seed', 'close', 'enable_save_replay', 'render']
+        return ['reset', 'step', 'seed', 'close', 'enable_save_replay', 'render', 'reward_shaping']
 
     def env_state_done(self, env_id: int) -> bool:
         return self._env_states[env_id] == EnvState.DONE
@@ -430,6 +430,9 @@ class BaseEnvManager(object):
         for i in range(self._env_num):
             self._env_states[i] = EnvState.VOID
         self._closed = True
+
+    def reward_shaping(self, env_id: int, transitions: List[dict]) -> None:
+        self._envs[env_id].reward_shaping(transitions)
 
     @property
     def closed(self) -> bool:
