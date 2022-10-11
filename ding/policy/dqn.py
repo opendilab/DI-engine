@@ -229,7 +229,7 @@ class DQNPolicy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
-            'target_q_value' : target_q_value.mean().item(),
+            'target_q_value': target_q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],

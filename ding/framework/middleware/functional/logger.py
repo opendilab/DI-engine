@@ -80,14 +80,15 @@ def offline_logger() -> Callable:
 def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable:
     '''
     Overview:
-        wandb visualizer to track the experiment
+        Wandb visualizer to track the experiment.
     Arguments:
         - cfg (:obj:`EasyDict`): Config, a dict of following settings:
             - record_path: string. The path to save the replay of simulation.
             - gradient_logger: boolean. Whether to track the gradient.
             - plot_logger: boolean. Whether to track the metrics like reward and loss.
             - action_logger: `q_value` or `action probability`.
-        - reward_model (:obj:`BaseRewardModel`): Reward model.
+        - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
+        - model (:obj:`nn.Module`): Model.
     '''
 
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
@@ -134,17 +135,14 @@ def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable
             if metric in ctx.train_output[0]:
                 metric_value = np.mean([item[metric] for item in ctx.train_output])
                 wandb.log({metric: metric_value})
+
         if ctx.eval_value != -np.inf:
             wandb.log({"reward": ctx.eval_value})
 
-        if ctx.eval_value != -np.inf:
             eval_output = ctx.eval_output['output']
             eval_reward = ctx.eval_output['reward']
             if 'logit' in eval_output[0]:
                 action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
-            if 'distribution' in eval_output[0]:
-                value_dist = [to_ndarray(v['distribution']) for v in eval_output]
-                action = [to_ndarray(v['action']) for v in eval_output]
 
             file_list = []
             for p in os.listdir(cfg.record_path):
