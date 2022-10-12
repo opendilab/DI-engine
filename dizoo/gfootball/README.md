@@ -9,39 +9,39 @@
 ├── README.md
 ├── __init__.py
 ├── config
-│   ├── gfootball_counter_mappo_config.py
-│   ├── gfootball_counter_masac_config.py
-│   ├── gfootball_keeper_mappo_config.py
-│   └── gfootball_keeper_masac_config.py
+│   ├── gfootball_counter_mappo_config.py
+│   ├── gfootball_counter_masac_config.py
+│   ├── gfootball_keeper_mappo_config.py
+│   └── gfootball_keeper_masac_config.py
 ├── entry
-│   ├── __init__.py
-│   ├── gfootball_bc_config.py
-│   ├── gfootball_bc_kaggle5th_main.py
-│   ├── gfootball_bc_rule_lt0_main.py
-│   ├── gfootball_bc_rule_main.py
-│   ├── gfootball_dqn_config.py
-│   └── parallel
-│   ├── show_dataset.py
-│   ├── test_accuracy.py
+│   ├── __init__.py
+│   ├── gfootball_bc_config.py
+│   ├── gfootball_bc_kaggle5th_main.py
+│   ├── gfootball_bc_rule_lt0_main.py
+│   ├── gfootball_bc_rule_main.py
+│   ├── gfootball_dqn_config.py
+│   └── parallel
+│   ├── show_dataset.py
+│   ├── test_accuracy.py
 ├── envs
-│   ├── __init__.py
-│   ├── action
-│   ├── fake_dataset.py
-│   ├── gfootball_academy_env.py
-│   ├── gfootball_env.py
-│   ├── gfootballsp_env.py
-│   ├── obs
-│   ├── reward
-│   └── tests
+│   ├── __init__.py
+│   ├── action
+│   ├── fake_dataset.py
+│   ├── gfootball_academy_env.py
+│   ├── gfootball_env.py
+│   ├── gfootballsp_env.py
+│   ├── obs
+│   ├── reward
+│   └── tests
 ├── gfootball.gif
 ├── model
-│   ├── __init__.py
-│   ├── bots
-│   ├── conv1d
-│   └── q_network
+│   ├── __init__.py
+│   ├── bots
+│   ├── conv1d
+│   └── q_network
 ├── policy
-│   ├── __init__.py
-│   └── ppo_lstm.py
+│   ├── __init__.py
+│   └── ppo_lstm.py
 └── replay.py
 ```
 
@@ -127,4 +127,3 @@ https://drive.google.com/file/d/1n-_bF63IQ49b-p0nEZt_NPTL-dmNkoKs/view?usp=shari
 ### Self Play PPO (work in progress)
 
 使用self-play的PPO算法进行训练的入口，使用DI-engine提供的league模块和PPO算法。具体请见`dizoo/gfootball/entry/parallel/gfootball_ppo_parallel_config.py`入口。
-

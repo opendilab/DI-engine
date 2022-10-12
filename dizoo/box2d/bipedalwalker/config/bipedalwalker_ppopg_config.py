@@ -53,6 +53,7 @@ create_config = bipedalwalker_ppo_create_config
 
 
 class PPOPGContinuousModel(nn.Module):
+
     def __init__(self, obs_shape, action_shape):
         super(PPOPGContinuousModel, self).__init__()
         self.encoder = nn.Sequential(nn.Linear(obs_shape, 64), nn.Tanh())
@@ -78,4 +79,6 @@ if __name__ == "__main__":
         new_main_config = deepcopy(main_config)
         new_main_config.exp_name += "_seed{}".format(seed)
         model = PPOPGContinuousModel(new_main_config.policy.model.obs_shape, new_main_config.policy.model.action_shape)
-        serial_pipeline_onpolicy([new_main_config, deepcopy(create_config)], seed=seed, max_env_step=int(5e6), model=model)
+        serial_pipeline_onpolicy(
+            [new_main_config, deepcopy(create_config)], seed=seed, max_env_step=int(5e6), model=model
+        )

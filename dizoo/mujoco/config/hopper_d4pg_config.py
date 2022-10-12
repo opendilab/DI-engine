@@ -8,7 +8,6 @@ hopper_d4pg_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=4,
         evaluator_env_num=4,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=5000,
     ),
