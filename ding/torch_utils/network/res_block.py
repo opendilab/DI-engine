@@ -7,7 +7,7 @@ from .nn_module import conv2d_block, fc_block
 class ResBlock(nn.Module):
     r'''
     Overview:
-        Residual Block with 2D convolution layers, including 2 types:
+        Residual Block with 2D convolution layers, including 3 types:
             basic block:
                 input channel: C
                 x -> 3*3*C -> norm -> act -> 3*3*C -> norm -> act -> out
@@ -15,6 +15,10 @@ class ResBlock(nn.Module):
             bottleneck block:
                 x -> 1*1*(1/4*C) -> norm -> act -> 3*3*(1/4*C) -> norm -> act -> 1*1*C -> norm -> act -> out
                 \_____________________________________________________________________________/+
+            downsample block: used in EfficientZero
+                input channel: C
+                x -> 3*3*2C -> norm -> act -> 3*3*2C -> norm -> act -> out
+                \___________ 3*3*2C _________________________/+
     Interfaces:
         forward
     '''
@@ -24,7 +28,8 @@ class ResBlock(nn.Module):
             in_channels: int,
             activation: nn.Module = nn.ReLU(),
             norm_type: str = 'BN',
-            res_type: str = 'basic'
+            res_type: str = 'basic',
+            bias: bool = True
     ) -> None:
         r"""
         Overview:
@@ -34,20 +39,39 @@ class ResBlock(nn.Module):
             - activation (:obj:`nn.Module`): the optional activation function
             - norm_type (:obj:`str`): type of the normalization, defalut set to 'BN'(Batch Normalization), \
                 supports ['BN', 'IN', 'SyncBN', None].
-            - res_type (:obj:`str`): type of residual block, supports ['basic', 'bottleneck']
+            - res_type (:obj:`str`): type of residual block, supports ['basic', 'bottleneck', 'downsample']
+            - bias (:obj:`bool`): whether adds a learnable bias to the conv2d_block. default set to True
         """
         super(ResBlock, self).__init__()
         self.act = activation
-        assert res_type in ['basic',
-                            'bottleneck'], 'residual type only support basic and bottleneck, not:{}'.format(res_type)
+        assert res_type in ['basic', 'bottleneck',
+                            'downsample'], 'residual type only support basic and bottleneck, not:{}'.format(res_type)
         self.res_type = res_type
         if self.res_type == 'basic':
-            self.conv1 = conv2d_block(in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type)
-            self.conv2 = conv2d_block(in_channels, in_channels, 3, 1, 1, activation=None, norm_type=norm_type)
+            self.conv1 = conv2d_block(
+                in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type, bias=bias
+            )
+            self.conv2 = conv2d_block(
+                in_channels, in_channels, 3, 1, 1, activation=None, norm_type=norm_type, bias=bias
+            )
         elif self.res_type == 'bottleneck':
-            self.conv1 = conv2d_block(in_channels, in_channels, 1, 1, 0, activation=self.act, norm_type=norm_type)
-            self.conv2 = conv2d_block(in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type)
-            self.conv3 = conv2d_block(in_channels, in_channels, 1, 1, 0, activation=None, norm_type=norm_type)
+            self.conv1 = conv2d_block(
+                in_channels, in_channels, 1, 1, 0, activation=self.act, norm_type=norm_type, bias=bias
+            )
+            self.conv2 = conv2d_block(
+                in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type, bias=bias
+            )
+            self.conv3 = conv2d_block(
+                in_channels, in_channels, 1, 1, 0, activation=None, norm_type=norm_type, bias=bias
+            )
+        elif self.res_type == 'downsample':
+            self.conv1 = conv2d_block(
+                in_channels, in_channels * 2, 3, 2, 1, activation=self.act, norm_type=norm_type, bias=bias
+            )
+            self.conv2 = conv2d_block(
+                in_channels * 2, in_channels * 2, 3, 1, 1, activation=None, norm_type=norm_type, bias=bias
+            )
+            self.conv3 = conv2d_block(in_channels, in_channels * 2, 3, 2, 1, activation=None, norm_type=None, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
@@ -63,6 +87,8 @@ class ResBlock(nn.Module):
         x = self.conv2(x)
         if self.res_type == 'bottleneck':
             x = self.conv3(x)
+        elif self.res_type == 'downsample':
+            residual = self.conv3(residual)
         x = self.act(x + residual)
         return x
 

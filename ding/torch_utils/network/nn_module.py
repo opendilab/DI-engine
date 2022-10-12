@@ -115,11 +115,12 @@ def conv2d_block(
         groups: int = 1,
         pad_type: str = 'zero',
         activation: nn.Module = None,
-        norm_type: str = None
+        norm_type: str = None,
+        bias: bool = True
 ) -> nn.Sequential:
     r"""
     Overview:
-        Create a 2-dim convlution layer with activation and normalization.
+        Create a 2-dim convolution layer with activation and normalization.
     Arguments:
         - in_channels (:obj:`int`): Number of channels in the input tensor
         - out_channels (:obj:`int`): Number of channels in the output tensor
@@ -131,6 +132,7 @@ def conv2d_block(
         - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None
         - activation (:obj:`nn.Module`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
+        - bias (:obj:`bool`): whether adds a learnable bias to the output. default set to True
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer
 
@@ -149,7 +151,16 @@ def conv2d_block(
         block.append(nn.ReplicationPad2d(padding))
         padding = 0
     block.append(
-        nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding, dilation=dilation, groups=groups)
+        nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding=padding,
+            dilation=dilation,
+            groups=groups,
+            bias=bias
+        )
     )
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
