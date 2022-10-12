@@ -32,7 +32,7 @@ class ResBlock(nn.Module):
         norm_type: str = 'BN',
         res_type: str = 'basic',
         bias: bool = True,
-        out_channels: Union[int, bool] = None,
+        out_channels: Union[int, None] = None,
     ) -> None:
         r"""
         Overview:
