@@ -1,11 +1,12 @@
 import torch
 import pytest
 from ding.torch_utils import build_activation, build_normalization
-from ding.torch_utils.network.nn_module import conv1d_block, conv2d_block, fc_block, deconv2d_block, ChannelShuffle, \
+from ding.torch_utils.network.nn_module import MLP, conv1d_block, conv2d_block, fc_block, deconv2d_block, ChannelShuffle, \
     one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten, normed_linear, normed_conv2d
 
 batch_size = 2
 in_channels = 2
+hidden_channels = 3
 out_channels = 3
 H = 2
 W = 3
@@ -40,6 +41,22 @@ class TestNnModule:
             weight_init_(weight, 'kaiming', act)
         with pytest.raises(KeyError):
             weight_init_(weight, 'xxx')
+
+    def test_mlp(self):
+        input = torch.rand(batch_size, in_channels).requires_grad_(True)
+        block = MLP(
+            in_channels=in_channels,
+            hidden_channels=hidden_channels,
+            out_channels=out_channels,
+            layer_num=2,
+            activation=torch.nn.ReLU(inplace=True),
+            norm_type='BN',
+            output_activation=torch.nn.Identity(),
+            output_norm_type=None,
+            last_linear_layer_init_zero=True
+        )
+        output = self.run_model(input, block)
+        assert output.shape == (batch_size, out_channels)
 
     def test_conv1d_block(self):
         length = 2
