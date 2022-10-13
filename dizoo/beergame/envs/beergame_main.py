@@ -1,5 +1,6 @@
 from __future__ import print_function
 from dizoo.beergame.envs import clBeerGame
+from torch import Tensor
 from .utilities import *
 import numpy as np
 import random
@@ -10,7 +11,7 @@ import os
 
 class BeerGame():
 
-    def __init__(self, role, agentTypes):
+    def __init__(self, role: int, agent_type: str) -> None:
         self._cfg, unparsed = get_config()
         self._role = role
         # prepare loggers and directories
@@ -18,9 +19,9 @@ class BeerGame():
         self._cfg = update_config(self._cfg)
 
         # set agent type
-        if agentTypes == 'bs':
+        if agent_type == 'bs':
             self._cfg.agentTypes = ["bs", "bs", "bs", "bs"]
-        elif agentTypes == 'Strm':
+        elif agent_type == 'Strm':
             self._cfg.agentTypes = ["Strm", "Strm", "Strm", "Strm"]
         self._cfg.agentTypes[role] = "srdqn"
 
@@ -80,11 +81,11 @@ class BeerGame():
         self._seed = seed
         np.random.seed(self._seed)
 
-    def close(self):
+    def close(self) -> None:
         pass
 
-    def step(self, action):
-        self._env.handelAction(action)  # action is onehot encoder, for example: action=[0,1,0,0,0], only input
+    def step(self, action: np.ndarray):
+        self._env.handelAction(action)
         self._env.next()
         newstate = np.append(
             self._env.players[self._role].currentState[1:, :], [self._env.players[self._role].nextObservation], axis=0
@@ -96,7 +97,7 @@ class BeerGame():
         info = {}
         return obs, rew, done, info
 
-    def reward_shaping(self, reward):
+    def reward_shaping(self, reward: Tensor) -> Tensor:
         self._totRew, self._cumReward = self._env.distTotReward(self._role)
         reward += (self._cfg.distCoeff / 3) * ((self._totRew - self._cumReward) / (self._env.T))
         return reward

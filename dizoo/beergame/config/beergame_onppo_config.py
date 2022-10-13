@@ -5,11 +5,11 @@ beergame_ppo_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
-        env_id='beergame-v2',
+        # env_id='beergame-v2',
         n_evaluator_episode=8,
         stop_value=200,
-        role=0,  # 0-3 : retailer、warehouse、distributor、manufacturer
-        agentType='bs',
+        role=0,  # 0-3 : retailer, warehouse, distributor, manufacturer
+        agent_type='bs',
         # type of co-player, 'bs'- base stock, 'Strm'- use Sterman formula to model typical human behavior.
     ),
     policy=dict(
@@ -26,7 +26,6 @@ beergame_ppo_config = dict(
         ),
         learn=dict(
             epoch_per_collect=10,
-            update_per_collect=1,
             batch_size=320,
             learning_rate=3e-4,
             value_weight=0.5,
@@ -38,7 +37,7 @@ beergame_ppo_config = dict(
             # use ignore_done=False here,
             # but when we add key traj_flag in data as the backup for key done, we could choose to use ignore_done=True
             # for halfcheetah, the length=1000
-            ignore_done=False,
+            ignore_done=True,
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
         ),
@@ -47,6 +46,10 @@ beergame_ppo_config = dict(
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
+            collector=dict(
+                get_train_sample=True,
+                reward_shaping=True,  # whether use total reward to reshape reward
+            ),
         ),
         eval=dict(evaluator=dict(eval_freq=500, )),
     ),

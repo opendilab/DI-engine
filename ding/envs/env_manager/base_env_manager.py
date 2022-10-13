@@ -432,7 +432,7 @@ class BaseEnvManager(object):
         self._closed = True
 
     def reward_shaping(self, env_id: int, transitions: List[dict]) -> None:
-        self._envs[env_id].reward_shaping(transitions)
+        transitions = self._envs[env_id].reward_shaping(transitions)
 
     @property
     def closed(self) -> bool:

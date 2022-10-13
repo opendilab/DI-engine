@@ -1,4 +1,4 @@
-import numpy as np
+# Code Reference: https://github.com/OptMLGroup/DeepBeerInventory-RL.import numpy as np
 import pickle
 import json
 import random

@@ -1,11 +1,15 @@
+# Code Reference: https://github.com/OptMLGroup/DeepBeerInventory-RL.
+import argparse
 import numpy as np
 
 
 # Here we want to define the agent class for the BeerGame
 class Agent(object):
-
     # initializes the agents with initial values for IL, OO and saves self.agentNum for recognizing the agents.
-    def __init__(self, agentNum, IL, AO, AS, c_h, c_p, eta, compuType, config):
+    def __init__(
+            self, agentNum: int, IL: int, AO: int, AS: int, c_h: float, c_p: float, eta: int, compuType: str,
+            config: argparse.Namespace
+    ) -> None:
         self.agentNum = agentNum
         self.IL = IL  # Inventory level of each agent - changes during the game
         self.OO = 0  # Open order of each agent - changes during the game
@@ -69,7 +73,7 @@ class Agent(object):
             )  # multPerdInpt observations stacked. each row is an observation
 
     # reset player information
-    def resetPlayer(self, T):
+    def resetPlayer(self, T: int):
         self.IL = self.ILInitial
         self.OO = 0
         self.AS = np.squeeze(
@@ -96,12 +100,12 @@ class Agent(object):
             self.currentState = np.stack([self.curObservation for _ in range(self.config.multPerdInpt)], axis=0)
 
     # updates the IL and OO at time t, after recieving "rec" number of items
-    def recieveItems(self, time):
+    def recieveItems(self, time: int) -> None:
         self.IL = self.IL + self.AS[time]  # inverntory level update
         self.OO = self.OO - self.AS[time]  # invertory in transient update
 
     # find action Value associated with the action list
-    def actionValue(self, curTime):
+    def actionValue(self, curTime: int) -> int:
         if self.config.fixedAction:
             a = self.config.actionList[np.argmax(self.action)]
         else:
@@ -116,7 +120,7 @@ class Agent(object):
         return a
 
     # getReward returns the reward at the current state
-    def getReward(self):
+    def getReward(self) -> None:
         # cost (holding + backorder) for one time unit
         self.curReward = (self.c_p * max(0, -self.IL) + self.c_h * max(0, self.IL)) / 200.  # self.config.Ttest #
         self.curReward = -self.curReward
@@ -126,7 +130,7 @@ class Agent(object):
         self.cumReward = self.config.gamma * self.cumReward + self.curReward
 
     # This function returns a np.array of the current state of the agent
-    def getCurState(self, t):
+    def getCurState(self, t: int) -> np.ndarray:
         if self.config.ifUseASAO:
             if self.config.if_use_AS_t_plus_1:
                 curState = np.array(

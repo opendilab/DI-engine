@@ -21,7 +21,9 @@ class EpisodeSerialCollector(ISerialCollector):
         envstep
     """
 
-    config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100, get_train_sample=False)
+    config = dict(
+        deepcopy_obs=False, transform_obs=False, collect_print_freq=100, get_train_sample=False, reward_shaping=False
+    )
 
     def __init__(
             self,

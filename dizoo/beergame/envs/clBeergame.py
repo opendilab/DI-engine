@@ -1,3 +1,4 @@
+# Code Reference: https://github.com/OptMLGroup/DeepBeerInventory-RL.
 import numpy as np
 from random import randint
 from .BGAgent import Agent
@@ -43,7 +44,7 @@ class clBeerGame(object):
         return randint(self.config.TLow, self.config.TUp)
 
     # this function resets the game for start of the new game
-    def resetGame(self, demand):
+    def resetGame(self, demand: np.ndarray):
         self.demand = demand
         self.curTime = 0
         self.curGame += 1
@@ -67,7 +68,7 @@ class clBeerGame(object):
             self.players[i].curReward += self.players[i].eta * (totRew - self.players[i].cumReward)  # /(self.T)
 
     # make correction to the rewards in the experience replay for all iterations of current game
-    def distTotReward(self, role):
+    def distTotReward(self, role: int):
         totRew = 0
         optRew = 0.1  # why?
         for i in range(self.config.NoAgent):
@@ -77,7 +78,7 @@ class clBeerGame(object):
 
         return totRew, self.players[role].cumReward
 
-    def getAction(self, k, action):
+    def getAction(self, k: int, action: np.ndarray):
         if self.players[k].compType == "srdqn":
             self.players[k].action = np.zeros(self.config.actionListLen)
             self.players[k].action[action] = 1
@@ -155,7 +156,7 @@ class clBeerGame(object):
 
         self.curTime += 1
 
-    def handelAction(self, action):
+    def handelAction(self, action: np.ndarray):
         # get random lead time
         leadTime = randint(self.config.leadRecOrderLow[0], self.config.leadRecOrderUp[0])
         # set AO
