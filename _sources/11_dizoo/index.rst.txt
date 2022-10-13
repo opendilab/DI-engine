@@ -137,7 +137,7 @@ to call ``parallel_pipeline``.
 
     To customize the training pipeline, you can refer to `serial_pipeline <https://github.com/opendilab/DI-engine/blob/0fccfcb046f04767504f68220d96a6608bb38f29/ding/entry/serial_entry.py#L17>`_ , or refer to `DQN example <https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py>`_, using the the `middleware <../03_system/middleware.html>`_ provided by DI-engine to build the pipeline.
 
-    If you want to use your own environment in DI-engine, you can just inherit ``BaseEnv`` implemented by DI-engine. For this part you can refer to `How to migrate your environment to DI-engine <../best_practice/ding_env.html>`_
+    If you want to use your own environment in DI-engine, you can just inherit ``BaseEnv`` implemented by DI-engine. For this part you can refer to `How to migrate your environment to DI-engine <../04_best_practice/ding_env.html>`_
 
 List of algorithms and environments supported by DI-zoo
 ---------------------------------------------------------

@@ -389,11 +389,12 @@
         <span class="n">groups</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">pad_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;zero&#39;</span><span class="p">,</span>
         <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Create a 2-dim convlution layer with activation and normalization.</span>
+<span class="sd">        Create a 2-dim convolution layer with activation and normalization.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - in_channels (:obj:`int`): Number of channels in the input tensor</span>
 <span class="sd">        - out_channels (:obj:`int`): Number of channels in the output tensor</span>
@@ -405,6 +406,7 @@
 <span class="sd">        - pad_type (:obj:`str`): the way to add padding, include [&#39;zero&#39;, &#39;reflect&#39;, &#39;replicate&#39;], default: None</span>
 <span class="sd">        - activation (:obj:`nn.Module`): the optional activation function</span>
 <span class="sd">        - norm_type (:obj:`str`): type of the normalization, default set to None, now support [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;]</span>
+<span class="sd">        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. default set to True</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer</span>
 
@@ -423,7 +425,16 @@
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReplicationPad2d</span><span class="p">(</span><span class="n">padding</span><span class="p">))</span>
         <span class="n">padding</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">)</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
+            <span class="n">in_channels</span><span class="p">,</span>
+            <span class="n">out_channels</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="p">,</span>
+            <span class="n">stride</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+            <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span>
+            <span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
@@ -576,29 +587,36 @@
     <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_dropout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">dropout_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">dropout_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">output_activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">last_linear_layer_init_zero</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        create a multi-layer perceptron using fully-connected blocks with activation, normalization and dropout,</span>
-<span class="sd">        optional normalization can be done to the dim 1 (across the channels)</span>
+<span class="sd">        optional normalization can be done to the dim 1 (across the channels).</span>
 <span class="sd">        x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - in_channels (:obj:`int`): Number of channels in the input tensor</span>
-<span class="sd">        - hidden_channels (:obj:`int`): Number of channels in the hidden tensor</span>
-<span class="sd">        - out_channels (:obj:`int`): Number of channels in the output tensor</span>
-<span class="sd">        - layer_num (:obj:`int`): Number of layers</span>
-<span class="sd">        - layer_fn (:obj:`Callable`): layer function</span>
-<span class="sd">        - activation (:obj:`nn.Module`): the optional activation function</span>
-<span class="sd">        - norm_type (:obj:`str`): type of the normalization</span>
-<span class="sd">        - use_dropout (:obj:`bool`): whether to use dropout in the fully-connected block</span>
-<span class="sd">        - dropout_probability (:obj:`float`): probability of an element to be zeroed in the dropout. Default: 0.5</span>
+<span class="sd">        - in_channels (:obj:`int`): Number of channels in the input tensor.</span>
+<span class="sd">        - hidden_channels (:obj:`int`): Number of channels in the hidden tensor.</span>
+<span class="sd">        - out_channels (:obj:`int`): Number of channels in the output tensor.</span>
+<span class="sd">        - layer_num (:obj:`int`): Number of layers.</span>
+<span class="sd">        - layer_fn (:obj:`Callable`): layer function.</span>
+<span class="sd">        - activation (:obj:`nn.Module`): the optional activation function.</span>
+<span class="sd">        - norm_type (:obj:`str`): type of the normalization.</span>
+<span class="sd">        - use_dropout (:obj:`bool`): whether to use dropout in the fully-connected block.</span>
+<span class="sd">        - dropout_probability (:obj:`float`): probability of an element to be zeroed in the dropout. Default: 0.5.</span>
+<span class="sd">        - output_activation (:obj:`nn.Module`): the optional activation function in the last layer.</span>
+<span class="sd">        - output_norm_type (:obj:`str`): type of the normalization in the last layer.</span>
+<span class="sd">        - last_linear_layer_init_zero (:obj:`bool`): zero initialization for the last linear layer (including w and b),</span>
+<span class="sd">            which can provide stable zero outputs in the beginning.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block</span>
+<span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block.</span>
 
 <span class="sd">    .. note::</span>
 
-<span class="sd">        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)</span>
+<span class="sd">        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">layer_num</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">layer_num</span>
     <span class="k">if</span> <span class="n">layer_num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -608,7 +626,7 @@
     <span class="k">if</span> <span class="n">layer_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">layer_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span>
     <span class="n">block</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">channels</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">channels</span><span class="p">[</span><span class="mi">1</span><span class="p">:])):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">channels</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">channels</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])):</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_fn</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
@@ -616,6 +634,32 @@
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_dropout</span><span class="p">:</span>
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_probability</span><span class="p">))</span>
+
+    <span class="c1"># the last layer</span>
+    <span class="n">in_channels</span> <span class="o">=</span> <span class="n">channels</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">out_channels</span> <span class="o">=</span> <span class="n">channels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">output_activation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">output_norm_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">#  the last layer use the same norm and activation as front layers</span>
+        <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_fn</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_dropout</span><span class="p">:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_probability</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#  the last layer use the specific norm and activation</span>
+        <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_fn</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">output_norm_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">output_norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">output_activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_activation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_dropout</span><span class="p">:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_probability</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">last_linear_layer_init_zero</span><span class="p">:</span>
+            <span class="n">block</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">block</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
 
 

@@ -272,16 +272,18 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.torch_utils.network.res_block</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
 
 <span class="kn">from</span> <span class="nn">.nn_module</span> <span class="kn">import</span> <span class="n">conv2d_block</span><span class="p">,</span> <span class="n">fc_block</span>
 
 
 <div class="viewcode-block" id="ResBlock"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.res_block.ResBlock">[docs]</a><span class="k">class</span> <span class="nc">ResBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Residual Block with 2D convolution layers, including 2 types:</span>
+<span class="sd">        Residual Block with 2D convolution layers, including 3 types:</span>
 <span class="sd">            basic block:</span>
 <span class="sd">                input channel: C</span>
 <span class="sd">                x -&gt; 3*3*C -&gt; norm -&gt; act -&gt; 3*3*C -&gt; norm -&gt; act -&gt; out</span>
@@ -289,39 +291,68 @@
 <span class="sd">            bottleneck block:</span>
 <span class="sd">                x -&gt; 1*1*(1/4*C) -&gt; norm -&gt; act -&gt; 3*3*(1/4*C) -&gt; norm -&gt; act -&gt; 1*1*C -&gt; norm -&gt; act -&gt; out</span>
 <span class="sd">                \_____________________________________________________________________________/+</span>
+<span class="sd">            downsample block: used in EfficientZero</span>
+<span class="sd">                input channel: C</span>
+<span class="sd">                x -&gt; 3*3*C -&gt; norm -&gt; act -&gt; 3*3*C -&gt; norm -&gt; act -&gt; out</span>
+<span class="sd">                \__________________ 3*3*C ____________________/+</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        forward</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-            <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-            <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;BN&#39;</span><span class="p">,</span>
-            <span class="n">res_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;basic&#39;</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;BN&#39;</span><span class="p">,</span>
+        <span class="n">res_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;basic&#39;</span><span class="p">,</span>
+        <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">out_channels</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the Residual Block</span>
+<span class="sd">            Init the Residual Block.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - in_channels (:obj:`int`): Number of channels in the input tensor</span>
-<span class="sd">            - activation (:obj:`nn.Module`): the optional activation function</span>
+<span class="sd">            - in_channels (:obj:`int`): Number of channels in the input tensor.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): the optional activation function.</span>
 <span class="sd">            - norm_type (:obj:`str`): type of the normalization, defalut set to &#39;BN&#39;(Batch Normalization), \</span>
 <span class="sd">                supports [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;, None].</span>
-<span class="sd">            - res_type (:obj:`str`): type of residual block, supports [&#39;basic&#39;, &#39;bottleneck&#39;]</span>
+<span class="sd">            - res_type (:obj:`str`): type of residual block, supports [&#39;basic&#39;, &#39;bottleneck&#39;, &#39;downsample&#39;]</span>
+<span class="sd">            - bias (:obj:`bool`): whether adds a learnable bias to the conv2d_block. default set to True.</span>
+<span class="sd">            - out_channels (:obj:`int`): Number of channels in the output tensor, default set to None,</span>
+<span class="sd">                which means out_channels = in_channels.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ResBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">activation</span>
-        <span class="k">assert</span> <span class="n">res_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;basic&#39;</span><span class="p">,</span>
-                            <span class="s1">&#39;bottleneck&#39;</span><span class="p">],</span> <span class="s1">&#39;residual type only support basic and bottleneck, not:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">res_type</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">res_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;basic&#39;</span><span class="p">,</span> <span class="s1">&#39;bottleneck&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;downsample&#39;</span><span class="p">],</span> <span class="s1">&#39;residual type only support basic and bottleneck, not:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">res_type</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">res_type</span> <span class="o">=</span> <span class="n">res_type</span>
+        <span class="k">if</span> <span class="n">out_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out_channels</span> <span class="o">=</span> <span class="n">in_channels</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_type</span> <span class="o">==</span> <span class="s1">&#39;basic&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span>
+                <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span>
+                <span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_type</span> <span class="o">==</span> <span class="s1">&#39;bottleneck&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">conv3</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span>
+                <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span>
+                <span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv3</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span>
+                <span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_type</span> <span class="o">==</span> <span class="s1">&#39;downsample&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span>
+                <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span>
+                <span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv3</span> <span class="o">=</span> <span class="n">conv2d_block</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ResBlock.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.res_block.ResBlock.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -337,6 +368,8 @@
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_type</span> <span class="o">==</span> <span class="s1">&#39;bottleneck&#39;</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_type</span> <span class="o">==</span> <span class="s1">&#39;downsample&#39;</span><span class="p">:</span>
+            <span class="n">residual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv3</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">residual</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div></div>
 

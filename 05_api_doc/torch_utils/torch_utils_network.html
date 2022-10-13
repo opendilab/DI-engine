@@ -411,7 +411,7 @@ to the module and set to the out_channel of the conv layer.</p>
 <section id="module-ding.torch_utils.network.nn_module.conv2d_block">
 <span id="conv2d-block"></span><h2>conv2d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.conv2d_block" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
-<dt>Overview:</dt><dd><p>Create a 2-dim convlution layer with activation and normalization.</p>
+<dt>Overview:</dt><dd><p>Create a 2-dim convolution layer with activation and normalization.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
@@ -424,6 +424,7 @@ to the module and set to the out_channel of the conv layer.</p>
 <li><p>pad_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the way to add padding, include [‘zero’, ‘reflect’, ‘replicate’], default: None</p></li>
 <li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
 <li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization, default set to None, now support [‘BN’, ‘IN’, ‘SyncBN’]</p></li>
+<li><p>bias (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether adds a learnable bias to the nn.Conv2d. default set to True</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -496,29 +497,36 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <span id="mlp"></span><h2>MLP<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.MLP" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>create a multi-layer perceptron using fully-connected blocks with activation, normalization and dropout,
-optional normalization can be done to the dim 1 (across the channels)
+optional normalization can be done to the dim 1 (across the channels).
 x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
-<li><p>hidden_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the hidden tensor</p></li>
-<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
-<li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of layers</p></li>
-<li><p>layer_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): layer function</p></li>
-<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
-<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization</p></li>
-<li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to use dropout in the fully-connected block</p></li>
-<li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): probability of an element to be zeroed in the dropout. Default: 0.5</p></li>
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor.</p></li>
+<li><p>hidden_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the hidden tensor.</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor.</p></li>
+<li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of layers.</p></li>
+<li><p>layer_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): layer function.</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function.</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization.</p></li>
+<li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to use dropout in the fully-connected block.</p></li>
+<li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): probability of an element to be zeroed in the dropout. Default: 0.5.</p></li>
+<li><p>output_activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function in the last layer.</p></li>
+<li><p>output_norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization in the last layer.</p></li>
+<li><dl class="simple">
+<dt>last_linear_layer_init_zero (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): zero initialization for the last linear layer (including w and b),</dt><dd><p>which can provide stable zero outputs in the beginning.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the fully-connected block</p></li>
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the fully-connected block.</p></li>
 </ul>
 </dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>)</p>
+<p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>).</p>
 </div>
 </section>
 <section id="module-ding.torch_utils.network.nn_module.one_hot">
@@ -779,16 +787,20 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <h2>ResBlock<a class="headerlink" href="#resblock" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResBlock">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.res_block.</span></span><span class="sig-name descname"><span class="pre">ResBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'basic'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResBlock" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.res_block.</span></span><span class="sig-name descname"><span class="pre">ResBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'basic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResBlock" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><dl class="simple">
-<dt>Residual Block with 2D convolution layers, including 2 types:</dt><dd><dl class="simple">
+<dt>Residual Block with 2D convolution layers, including 3 types:</dt><dd><dl class="simple">
 <dt>basic block:</dt><dd><p>input channel: C
 x -&gt; 3*3*C -&gt; norm -&gt; act -&gt; 3*3*C -&gt; norm -&gt; act -&gt; out
 __________________________________________/+</p>
 </dd>
 <dt>bottleneck block:</dt><dd><p>x -&gt; 1*1*(1/4*C) -&gt; norm -&gt; act -&gt; 3*3*(1/4*C) -&gt; norm -&gt; act -&gt; 1*1*C -&gt; norm -&gt; act -&gt; out
 _____________________________________________________________________________/+</p>
+</dd>
+<dt>downsample block: used in EfficientZero</dt><dd><p>input channel: C
+x -&gt; 3*3*C -&gt; norm -&gt; act -&gt; 3*3*C -&gt; norm -&gt; act -&gt; out
+__________________ 3*3*C ____________________/+</p>
 </dd>
 </dl>
 </dd>
