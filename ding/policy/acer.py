@@ -103,6 +103,9 @@ class ACERPolicy(Policy):
         ), ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'acer', ['ding.model.template.acer']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -469,9 +472,6 @@ class ACERPolicy(Policy):
         output = default_decollate(output)
         output = {i: d for i, d in zip(data_id, output)}
         return output
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'acer', ['ding.model.template.acer']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

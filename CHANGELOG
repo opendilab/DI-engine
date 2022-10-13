@@ -1,3 +1,17 @@
+2022.09.23(v0.4.3)
+- env: add rule-based gomoku expert (#465)
+- algo: fix a2c policy batch size bug (#481)
+- algo: enable activation option in collaq attention and mixer
+- algo: minor fix about IBC (#477)
+- feature: add IGM support (#486)
+- feature: add tb logger middleware and demo
+- fix: the type conversion in ding_env_wrapper (#483)
+- fix: di-orchestrator version bug in unittest (#479)
+- fix: data collection errors caused by shallow copies (#475)
+- fix: gym==0.26.0 seed args bug
+- style: add readme tutorial link(environment & algorithm) (#490) (#493)
+- style: adjust location of the default_model method in policy (#453)
+
 2022.09.08(v0.4.2)
 - env: add rocket env (#449)
 - env: updated pettingzoo env and improved related performance (#457)

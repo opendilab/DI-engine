@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from gym_minigrid.minigrid import *
-from gym_minigrid.minigrid import WorldObj
+from MiniGrid.minigrid.minigrid_env import *
+from MiniGrid.minigrid.utils.rendering import *
+from MiniGrid.minigrid.core.world_object import WorldObj
 
 
 class Ball(WorldObj):
@@ -30,7 +31,7 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
         super().__init__(grid_size=grid_size, max_steps=100)
 
     def _gen_grid(
-        self, width, height
+            self, width, height
     ):  # Note that it is inherited from MiniGridEnv that if width and height == None, width = grid_size , height = grid_size
         # Create the grid
         self.grid = Grid(width, height)
@@ -58,7 +59,7 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
                 if i + 1 < 2:
                     if j + 1 < 2:
                         self.grid.vert_wall(xR, yT, room_h)
-                        #pos = (xR, self._rand_int(yT + 1, yB))
+                        # pos = (xR, self._rand_int(yT + 1, yB))
                     else:
                         self.grid.vert_wall(xR, yT, room_h)
                         pos = (xR, self._rand_int(yT + 1, yB))

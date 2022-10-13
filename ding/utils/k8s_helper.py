@@ -117,7 +117,7 @@ class K8sLauncher(object):
 
     def _load(self, config_path: str) -> None:
         with open(config_path, 'r') as f:
-            data = yaml.load(f)
+            data = yaml.safe_load(f)
             self.name = data.get('name') if data.get('name') else self.name
             if data.get('servers'):
                 if type(data.get('servers')) is not int:
