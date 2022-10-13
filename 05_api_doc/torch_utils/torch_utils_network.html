@@ -813,14 +813,14 @@ __________________ 3*3*C ____________________/+</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResBlock.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResBlock.forward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Return the residual block output</p>
+<dt>Overview:</dt><dd><p>Return the redisual block output.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input tensor.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>x(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the resblock output tensor</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The resblock output tensor.</p></li>
 </ul>
 </dd>
 </dl>
@@ -835,7 +835,7 @@ __________________ 3*3*C ____________________/+</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResFCBlock">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.res_block.</span></span><span class="sig-name descname"><span class="pre">ResFCBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BN'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResFCBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResFCBlock" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Residual Block with 2 fully connected block
+<dt>Overview:</dt><dd><p>Residual Block with 2 fully connected layers.
 x -&gt; fc1 -&gt; norm -&gt; act -&gt; fc2 -&gt; norm -&gt; act -&gt; out
 _____________________________________/+</p>
 </dd>
@@ -846,14 +846,14 @@ _____________________________________/+</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResFCBlock.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResFCBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResFCBlock.forward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Return the redisual block output</p>
+<dt>Overview:</dt><dd><p>Return the redisual block output.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input tensor.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>x(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the resblock output tensor</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The resblock output tensor.</p></li>
 </ul>
 </dd>
 </dl>
