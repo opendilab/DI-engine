@@ -43,6 +43,7 @@
    pettingzoo_zh
    dmc2gym_zh
    
+   gym_super_mario_bros_zh
    gym_hybrid_zh
    gym_soccer_zh
 

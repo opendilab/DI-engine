@@ -1,0 +1,814 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Gym-Super-Mario-Bros &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Gym-Hybrid" href="gym_hybrid_zh.html" />
+  <link rel="prev" title="dmc2gym" href="dmc2gym_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习环境示例</a> &gt;</li>
+        
+      <li>Gym-Super-Mario-Bros</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/gym_super_mario_bros_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="gym-super-mario-bros">
+<h1>Gym-Super-Mario-Bros<a class="headerlink" href="#gym-super-mario-bros" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>这里是家喻户晓的 《超级马里奥兄弟》 系列游戏，游戏中玩家需要操控一个马里奥进行移动与跳跃，躲避通往终点过程中的深坑与敌人，吃到更多的金币来获取更高的分数。游戏中还会有许多的有趣的道具，来为你提供不同的效果。<a class="reference external" href="https://github.com/Kautenja/gym-super-mario-bros">gym-super-mario-bros</a> 环境正是任天堂超级马里奥兄弟游戏经过 OpenAI Gym 封装后的环境。
+游戏截图如下：</p>
+<a class="reference internal image-reference" href="../_images/mario.png"><img alt="../_images/mario.png" class="align-center" src="../_images/mario.png" style="width: 358.4px; height: 329.0px;" /></a>
+</section>
+<section id="id3">
+<h2>安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<section id="id4">
+<h3>安装方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install gym-super-mario-bros
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>运行如下 Python 程序，如果没有报错则证明安装成功。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
+
+<span class="n">done</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5000</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+    <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+
+<span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h3>安装失败的解决办法<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>常见的一个错误：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+File <span class="s2">&quot;test_mario.py&quot;</span>, line <span class="m">13</span>, <span class="k">in</span> &lt;module&gt;
+    state, reward, <span class="k">done</span>, <span class="nv">info</span> <span class="o">=</span> env.step<span class="o">(</span>env.action_space.sample<span class="o">())</span>
+File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/nes_py/wrappers/joypad_space.py&quot;</span>, line <span class="m">74</span>, <span class="k">in</span> step
+    <span class="k">return</span> self.env.step<span class="o">(</span>self._action_map<span class="o">[</span>action<span class="o">])</span>
+File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/gym/wrappers/time_limit.py&quot;</span>, line <span class="m">50</span>, <span class="k">in</span> step
+    observation, reward, terminated, truncated, <span class="nv">info</span> <span class="o">=</span> self.env.step<span class="o">(</span>action<span class="o">)</span>
+ValueError: not enough values to unpack <span class="o">(</span>expected <span class="m">5</span>, got <span class="m">4</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>这是由于 gym-super-mario-bros 库的更新有时跟不上 gym 库的更新，而在执行 <cite>pip install gym-super-mario-bros</cite> 时会默认安装最新的 gym。 那么解决办法就是给 gym 降级。
+这里 gym-super-mario-bros 版本为 7.4.0，gym 版本为0.26.2。我们将 gym 版本降低到 0.25.1 可以解决问题。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install <span class="nv">gym</span><span class="o">==</span><span class="m">0</span>.25.1
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id7">
+<h2>环境介绍<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<section id="id8">
+<h3>游戏规则<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>模拟器内置《超级马里奥兄弟》与《超级马里奥兄弟2》两个游戏，详细的玩法和规则可以参照文末的维基百科链接。
+对于《超级马里奥兄弟》，在寻常的三条命闯 32 关之外，游戏还提供一条命闯任何一个单独关卡、随机关卡的选项（《超级马里奥兄弟2》目前不支持）：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 《超级马里奥兄弟》3条命从 1-1 到 8-4</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="c1"># 《超级马里奥兄弟2》3条命从 1-1 到 8-4</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros2-v0&#39;</span><span class="p">)</span>
+<span class="c1"># 1条命闯 3-2</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-3-2-v0&#39;</span><span class="p">)</span>
+<span class="c1"># 1条命随机通关 1-4 2-4 3-4 4-4 （死亡后游戏结束，环境会继续随机选择一个关卡开始新的游戏）</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span><span class="p">,</span> <span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1-4&#39;</span><span class="p">,</span> <span class="s1">&#39;2-4&#39;</span><span class="p">,</span> <span class="s1">&#39;3-4&#39;</span><span class="p">,</span> <span class="s1">&#39;4-4&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>键盘交互<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>在拥有用于渲染的显示器设备时，可以尝试用键盘操作。环境提供了命令行接口，具体的启动方式如下：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># 启动 1-4 关卡</span>
+gym_super_mario_bros -e <span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span> -m <span class="s1">&#39;human&#39;</span> --stages <span class="s1">&#39;1-4&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="id10">
+<h3>动作空间<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>gym-super-mario-bros 的动作空间默认包含任天堂红白机全部的 256 个离散动作。
+为了压缩这个大小（利于智能体学习），环境默认提供了动作 wrapper <code class="docutils literal notranslate"><span class="pre">JoypadSpace</span></code> 来降低动作维度：可选的动作集合及其含义如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># actions for the simple run right environment</span>
+<span class="n">RIGHT_ONLY</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;NOOP&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+<span class="p">]</span>
+
+
+<span class="c1"># actions for very simple movement</span>
+<span class="n">SIMPLE_MOVEMENT</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;NOOP&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">],</span>
+<span class="p">]</span>
+
+
+<span class="c1"># actions for more complex movement</span>
+<span class="n">COMPLEX_MOVEMENT</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;NOOP&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;down&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;up&#39;</span><span class="p">],</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>例如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="c1"># 使用 SIMPLE_MOVEMENT</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
+
+<span class="c1"># 或者自己设置动作空间为只有向右和向右跳</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>对于 SIMPLE_MOVEMENT 所代表的 7 维离散动作空间，使用gym环境空间定义则可表示为：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">action_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h3>状态空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>gym-super-mario-bros 的状态空间输入是图像信息，及三维的张量矩阵（datatype=uint8）。此外，游戏的不同版本对应的图像分辨率 <code class="docutils literal notranslate"><span class="pre">240*256*3</span></code> 相同，但版本越高，图像越简略（像素块化），具体如下所示：</p>
+<p><cite>v3</cite> 对应的游戏截图如下（ <cite>v0</cite> 游戏截图在文档最开始展示过了）</p>
+<a class="reference internal image-reference" href="../_images/mario_v3.png"><img alt="../_images/mario_v3.png" class="align-center" src="../_images/mario_v3.png" style="width: 179.2px; height: 168.0px;" /></a>
+</section>
+<section id="id12">
+<h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>我们希望马里奥能更多地**向右**移动、更**快**地抵达终点而**不会死亡**，因此每一帧的奖励的设置由如下三部分组成：</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">v</span></code>：代表连续的两帧之间，马里奥的x坐标之差（可以理解为向右的速度），有正有负；</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c</span></code>：每一帧的用时，简单理解为每一帧都有一个负的reward，用来push智能体更快到达终点；</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">d</span></code>：死亡的惩罚，如果马里奥死亡，给与 -15 的高额惩罚；</p></li>
+</ol>
+<p>总的奖励 <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">v</span> <span class="pre">+</span> <span class="pre">c</span> <span class="pre">+</span> <span class="pre">d</span></code></p>
+<p>奖励被 clip 到 <code class="docutils literal notranslate"><span class="pre">(-15,15)</span></code></p>
+</section>
+<section id="id13">
+<h3>终止条件<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>gym-super-mario-bros 环境每个 episode 的终止条件是遇到以下任何一种情况：</p>
+<ul class="simple">
+<li><p>马里奥成功通关</p></li>
+<li><p>马里奥死亡</p></li>
+<li><p>倒计时结束</p></li>
+</ul>
+</section>
+<section id="info">
+<h3>info 中包含的额外信息<a class="headerlink" href="#info" title="Permalink to this headline">¶</a></h3>
+<p>在与环境交互的每个 step，环境都会返回 <cite>info</cite> 字典，包含 获取的硬币、当前累计的分数、剩余的时间以及马里奥当前的坐标等信息。具体内容如下：</p>
+<table class="colwidths-given docutils align-default" id="id18">
+<caption><span class="caption-text">More Information</span><a class="headerlink" href="#id18" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 17%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">coins</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The number of collected coins</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">flag_get</div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>True if Mario reached a flag or ax</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">life</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The number of lives left, i.e., {3, 2, 1}</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">score</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The cumulative in-game score</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">stage</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The current stage, i.e., {1, …, 4}</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">status</div>
+</div>
+</td>
+<td><p>str</p></td>
+<td><p>Mario’s status, i.e., {‘small’, ‘tall’, ‘fireball’}</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">time</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The time left on the clock</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">world</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The current world, i.e., {1, …, 8}</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">x_pos</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>Mario’s x position in the stage (from the left)</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">y_pos</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>Mario’s y position in the stage (from the bottom)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id14">
+<h3>内置环境<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<p>内置有多个环境，包含《超级马里奥兄弟》的<code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v0&quot;</span></code>、 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v1&quot;</span></code>、 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v2&quot;</span></code> 和 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v3&quot;</span></code> ，以及《超级马里奥兄弟2》的<code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros2-v0&quot;</span></code>和 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros2-v1&quot;</span></code>。
+此外，《超级马里奥兄弟》还可以选定特定关卡进行闯关，例如 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-1-1-v0&quot;</span></code> 。</p>
+</section>
+<section id="id15">
+<h3>录像保存<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<p>采用 gym.wrappers.RecordVideo 类进行录像保存：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+
+<span class="n">video_dir_path</span> <span class="o">=</span> <span class="s1">&#39;mario_videos&#39;</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">wrappers</span><span class="o">.</span><span class="n">RecordVideo</span><span class="p">(</span>
+    <span class="n">env</span><span class="p">,</span>
+    <span class="n">video_folder</span><span class="o">=</span><span class="n">video_dir_path</span><span class="p">,</span>
+    <span class="n">episode_trigger</span><span class="o">=</span><span class="k">lambda</span> <span class="n">episode_id</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">name_prefix</span><span class="o">=</span><span class="s1">&#39;mario-video-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">ctime</span><span class="p">())</span>
+<span class="p">)</span>
+
+<span class="c1"># run 1 episode</span>
+<span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">done</span> <span class="ow">or</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">250</span><span class="p">:</span>
+        <span class="k">break</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Your mario video is saved in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">video_dir_path</span><span class="p">))</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># 环境的析构函数有问题，故需要异常来避免报错</span>
+    <span class="k">del</span> <span class="n">env</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>下面提供一个完整的 gym-super-mario-bros 环境 config，采用 DQN 作为基线算法。请在<code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/mario</span></code> 目录下运行<code class="docutils literal notranslate"><span class="pre">mario_dqn_main.py</span></code> 文件。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">mario_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;mario_dqn_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+        <span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;mario_dqn_seed0/video&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">],</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
+            <span class="n">dueling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="p">)),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mi">250000</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">mario_dqn_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">mario_dqn_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">mario_dqn_config</span>
+<span class="n">mario_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">mario_dqn_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">mario_dqn_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">mario_dqn_create_config</span>
+<span class="c1"># you can run `python3 -u mario_dqn_main.py`</span>
+</pre></div>
+</div>
+</section>
+<section id="id16">
+<h2>基准算法性能<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>SuperMarioBros-x-x-v0</p>
+<ul class="simple">
+<li><p>SuperMarioBros-1-1-v0 + DQN</p></li>
+</ul>
+<img alt="../_images/mario_result_1_1.png" class="align-center" src="../_images/mario_result_1_1.png" />
+<ul class="simple">
+<li><p>SuperMarioBros-1-2-v0 + DQN</p></li>
+</ul>
+<img alt="../_images/mario_result_1_2.png" class="align-center" src="../_images/mario_result_1_2.png" />
+<ul class="simple">
+<li><p>SuperMarioBros-1-3-v0 + DQN</p></li>
+</ul>
+<img alt="../_images/mario_result_1_3.png" class="align-center" src="../_images/mario_result_1_3.png" />
+</li>
+</ul>
+</section>
+<section id="id17">
+<h2>参考资料<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>gym-super-mario-bros <a class="reference external" href="https://github.com/Kautenja/gym-super-mario-bros">源码</a></p></li>
+<li><p>超级马里奥兄弟 <a class="reference external" href="https://zh.wikipedia.org/wiki/%E8%B6%85%E7%BA%A7%E9%A9%AC%E5%8A%9B%E6%AC%A7%E5%85%84%E5%BC%9F">维基百科-超级马里奥兄弟</a></p></li>
+<li><p>超级马里奥兄弟2 <a class="reference external" href="https://zh.wikipedia.org/wiki/%E8%B6%85%E7%BA%A7%E9%A9%AC%E5%8A%9B%E6%AC%A7%E5%85%84%E5%BC%9F">维基百科-超级马里奥兄弟2</a></p></li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="gym_hybrid_zh.html" class="btn btn-neutral float-right" title="Gym-Hybrid" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="dmc2gym_zh.html" class="btn btn-neutral" title="dmc2gym" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Gym-Super-Mario-Bros</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id3">安装</a><ul>
+<li><a class="reference internal" href="#id4">安装方法</a></li>
+<li><a class="reference internal" href="#id5">验证安装</a></li>
+<li><a class="reference internal" href="#id6">安装失败的解决办法</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id7">环境介绍</a><ul>
+<li><a class="reference internal" href="#id8">游戏规则</a></li>
+<li><a class="reference internal" href="#id9">键盘交互</a></li>
+<li><a class="reference internal" href="#id10">动作空间</a></li>
+<li><a class="reference internal" href="#id11">状态空间</a></li>
+<li><a class="reference internal" href="#id12">奖励空间</a></li>
+<li><a class="reference internal" href="#id13">终止条件</a></li>
+<li><a class="reference internal" href="#info">info 中包含的额外信息</a></li>
+<li><a class="reference internal" href="#id14">内置环境</a></li>
+<li><a class="reference internal" href="#id15">录像保存</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+<li><a class="reference internal" href="#id16">基准算法性能</a></li>
+<li><a class="reference internal" href="#id17">参考资料</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

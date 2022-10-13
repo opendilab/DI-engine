@@ -99,7 +99,7 @@ Gym-hybrid 环境每个 episode 的终止条件是遇到以下任何一种情况
 
 - agent 成功进入目标区域
   
-- agant 出界
+- agent 出界
   
 - 达到 episode 的最大 step
   
