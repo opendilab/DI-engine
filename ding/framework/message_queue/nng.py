@@ -3,15 +3,22 @@ from ditk import logging
 from typing import List, Optional, Tuple
 from pynng import Bus0
 from time import sleep
-
-from ding.framework.message_queue.mq import MQ
+from ding.framework.message_queue.mq import MQ, BarrierRuntime, BarrierContext
 from ding.utils import MQ_REGISTRY
 
 
 @MQ_REGISTRY.register("nng")
 class NNGMQ(MQ):
 
-    def __init__(self, listen_to: str, attach_to: Optional[List[str]] = None, **kwargs) -> None:
+    def __init__(
+            self,
+            listen_to: str,
+            attach_to: Optional[List[str]] = None,
+            world_size: Optional[int] = 0,
+            node_id: Optional[int] = 0,
+            debug: Optional[bool] = False,
+            **kwargs
+    ) -> None:
         """
         Overview:
             Connect distributed processes with nng
@@ -19,6 +26,7 @@ class NNGMQ(MQ):
             - listen_to (:obj:`Optional[List[str]]`): The node address to attach to.
             - attach_to (:obj:`Optional[List[str]]`): The node's addresses you want to attach to.
         """
+        super().__init__(rank=node_id, world_size=world_size, debug=debug)
         self.listen_to = listen_to
         self.attach_to = attach_to or []
         self._sock: Bus0 = None
@@ -38,6 +46,8 @@ class NNGMQ(MQ):
             topic += "::"
             data = topic.encode() + data
             self._sock.send(data)
+        else:
+            logging.warning("Message queue is not running, publish topic \"{}\" failed".format(topic))
 
     def subscribe(self, topic: str) -> None:
         return
@@ -49,12 +59,20 @@ class NNGMQ(MQ):
         while True:
             try:
                 if not self._running:
+                    logging.warning("Message queue is not running, recv stop!")
                     break
-                msg = self._sock.recv()
+
                 # Use topic at the beginning of the message, so we don't need to call pickle.loads
                 # when the current process is not subscribed to the topic.
+                msg = self._sock.recv()
                 topic, payload = msg.split(b"::", maxsplit=1)
-                return topic.decode(), payload
+                topic = topic.decode()
+
+                if topic in self._rpc_topic:
+                    super()._handle_private_topic(topic, payload)
+                    continue
+                else:
+                    return topic, payload
             except pynng.Timeout:
                 logging.warning("Timeout on node {} when waiting for message from bus".format(self.listen_to))
             except pynng.Closed:

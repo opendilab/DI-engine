@@ -51,28 +51,29 @@ class Parallel(metaclass=SingletonMetaclass):
         self.labels = labels or set()
         self.auto_recover = auto_recover
         self.max_retries = max_retries
-        self._mq = MQ_REGISTRY.get(mq_type)(**kwargs)
+        self._mq = MQ_REGISTRY.get(mq_type)(node_id=self.node_id, **kwargs)
         time.sleep(self.local_id * self.startup_interval)
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
     @classmethod
     def runner(
-            cls,
-            n_parallel_workers: int,
-            mq_type: str = "nng",
-            attach_to: Optional[List[str]] = None,
-            protocol: str = "ipc",
-            address: Optional[str] = None,
-            ports: Optional[Union[List[int], int]] = None,
-            topology: str = "mesh",
-            labels: Optional[Set[str]] = None,
-            node_ids: Optional[Union[List[int], int]] = None,
-            auto_recover: bool = False,
-            max_retries: int = float("inf"),
-            redis_host: Optional[str] = None,
-            redis_port: Optional[int] = None,
-            startup_interval: int = 1
+        cls,
+        n_parallel_workers: int,
+        mq_type: str = "nng",
+        attach_to: Optional[List[str]] = None,
+        protocol: str = "ipc",
+        address: Optional[str] = None,
+        ports: Optional[Union[List[int], int]] = None,
+        topology: str = "mesh",
+        labels: Optional[Set[str]] = None,
+        node_ids: Optional[Union[List[int], int]] = None,
+        auto_recover: bool = False,
+        max_retries: int = float("inf"),
+        redis_host: Optional[str] = None,
+        redis_port: Optional[int] = None,
+        startup_interval: int = 1,
+        world_size: int = 1,
     ) -> Callable:
         """
         Overview:
@@ -95,6 +96,8 @@ class Parallel(metaclass=SingletonMetaclass):
             - redis_host (:obj:`str`): Redis server host.
             - redis_port (:obj:`int`): Redis server port.
             - startup_interval (:obj:`int`): Start up interval between each task.
+            - world_size (:obj:`int`): The number of processes that participate in the
+                communication of message queue.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -137,6 +140,7 @@ class Parallel(metaclass=SingletonMetaclass):
             ports: Optional[Union[List[int], int]] = None,
             topology: str = "mesh",
             node_ids: Optional[Union[List[int], int]] = None,
+            world_size: Optional[int] = 0,
             **kwargs
     ) -> Dict[str, dict]:
         attach_to = attach_to or []
@@ -169,6 +173,7 @@ class Parallel(metaclass=SingletonMetaclass):
                 "listen_to": nodes[i],
                 "attach_to": topology_network(i),
                 "n_parallel_workers": n_parallel_workers,
+                "world_size": world_size,
             }
             runner_params.append(runner_kwargs)
 
@@ -389,3 +394,6 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             self._listener.join(timeout=1)
             self._listener = None
         self._event_loop.stop()
+
+    def barrier(self):
+        self._mq.barrier()

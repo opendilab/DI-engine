@@ -18,8 +18,8 @@ from ding.data import ShmBufferContainer, ShmBuffer
 
 from ding.envs.env import BaseEnvTimestep
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY, make_key_as_identifier, \
-    remove_illegal_item
-from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
+    remove_illegal_item, timeout_wrapper
+from .base_env_manager import BaseEnvManager, EnvState
 
 
 def is_abnormal_timestep(timestep: namedtuple) -> bool:

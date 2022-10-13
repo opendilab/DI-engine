@@ -25,7 +25,7 @@ from .scheduler_helper import Scheduler
 from .segment_tree import SumSegmentTree, MinSegmentTree, SegmentTree
 from .slurm_helper import find_free_port_slurm, node_to_host, node_to_partition
 from .system_helper import get_ip, get_pid, get_task_uid, PropagatingThread, find_free_port
-from .time_helper import build_time_helper, EasyTimer, WatchDog
+from .time_helper import build_time_helper, EasyTimer, WatchDog, timeout_wrapper
 from .type_helper import SequenceType
 from .render_helper import render, fps
 from .fast_copy import fastcopy

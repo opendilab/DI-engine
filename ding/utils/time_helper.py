@@ -3,9 +3,13 @@ import time
 from typing import Any, Callable
 
 import torch
+import platform
+from typing import Optional
 from easydict import EasyDict
+from functools import partial, wraps
 from .time_helper_base import TimeWrapper
 from .time_helper_cuda import get_cuda_time_wrapper
+from ding.utils import one_time_warning
 
 
 def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callable[[], 'TimeWrapper']:
@@ -168,3 +172,36 @@ class WatchDog(object):
         """
         signal.alarm(0)
         signal.signal(signal.SIGALRM, signal.SIG_DFL)
+
+
+def timeout_wrapper(func: Callable = None, timeout: Optional[int] = None) -> Callable:
+    """
+    Overview:
+        Watch the function that must be finihsed within a period of time. If timeout, raise the captured error.
+    """
+    if func is None:
+        return partial(timeout_wrapper, timeout=timeout)
+    if timeout is None:
+        return func
+
+    windows_flag = platform.system().lower() == 'windows'
+    if windows_flag:
+        one_time_warning("Timeout wrapper is not implemented in windows platform, so ignore it default")
+        return func
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        watchdog = WatchDog(timeout)
+        try:
+            watchdog.start()
+        except ValueError as e:
+            # watchdog invalid case
+            return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
+        except BaseException as e:
+            raise e
+        finally:
+            watchdog.stop()
+
+    return wrapper

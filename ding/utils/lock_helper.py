@@ -2,6 +2,7 @@ import os
 import multiprocessing
 import threading
 import platform
+import functools
 from enum import Enum, unique
 
 from readerwriterlock import rwlock
@@ -12,6 +13,19 @@ else:
     fcntl = None
 
 
+class DummyLock:
+    """
+    DummyLock can be used in codes where locks are not required.
+    Reduce unnecessary code.
+    """
+
+    def acquire(self):
+        pass
+
+    def release(self):
+        pass
+
+
 @unique
 class LockContextType(Enum):
     """
@@ -19,11 +33,13 @@ class LockContextType(Enum):
     """
     THREAD_LOCK = 1
     PROCESS_LOCK = 2
+    DUMMY_LOCK = 3
 
 
 _LOCK_TYPE_MAPPING = {
     LockContextType.THREAD_LOCK: threading.Lock,
     LockContextType.PROCESS_LOCK: multiprocessing.Lock,
+    LockContextType.DUMMY_LOCK: DummyLock,
 }
 
 

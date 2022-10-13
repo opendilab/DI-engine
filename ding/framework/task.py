@@ -189,18 +189,23 @@ class Task:
             patterns = [patterns]
         return any([fnmatch.filter(self.labels, p) for p in patterns])
 
-    def run(self, max_step: int = int(1e12)) -> None:
+    def run(self, max_step: int = int(1e12), sync_step_by_step: bool = False) -> None:
         """
         Overview:
             Execute the iterations, when reach the max_step or task.finish is true,
             The loop will be break.
         Arguments:
             - max_step (:obj:`int`): Max step of iterations.
+            - sync_step_by_step (:obj: 'bool'): Message queue's barrier (if have) is
+                called in each step, and all processes are synchronized within the
+                scope of world_size.
         """
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if len(self._middleware) == 0:
             return
         for i in range(max_step):
+            if sync_step_by_step:
+                task.router.barrier()
             for fn in self._middleware:
                 self.forward(fn)
             # Sync should be called before backward, otherwise it is possible
@@ -213,6 +218,8 @@ class Task:
             if self.finish:
                 break
             self.renew()
+            if sync_step_by_step:
+                task.router.barrier()
 
     def wrap(self, fn: Callable, lock: Union[bool, Lock] = False) -> Callable:
         """

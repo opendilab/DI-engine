@@ -10,7 +10,7 @@ import enum
 import time
 import treetensor.numpy as tnp
 from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog, \
-    remove_illegal_item
+    remove_illegal_item, timeout_wrapper
 from ding.envs.env import BaseEnvTimestep
 
 global space_log_flag
@@ -25,39 +25,6 @@ class EnvState(enum.IntEnum):
     DONE = 4
     ERROR = 5
     NEED_RESET = 6
-
-
-def timeout_wrapper(func: Callable = None, timeout: Optional[int] = None) -> Callable:
-    """
-    Overview:
-        Watch the function that must be finihsed within a period of time. If timeout, raise the captured error.
-    """
-    if func is None:
-        return partial(timeout_wrapper, timeout=timeout)
-    if timeout is None:
-        return func
-
-    windows_flag = platform.system().lower() == 'windows'
-    if windows_flag:
-        one_time_warning("Timeout wrapper is not implemented in windows platform, so ignore it default")
-        return func
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        watchdog = WatchDog(timeout)
-        try:
-            watchdog.start()
-        except ValueError as e:
-            # watchdog invalid case
-            return func(*args, **kwargs)
-        try:
-            return func(*args, **kwargs)
-        except BaseException as e:
-            raise e
-        finally:
-            watchdog.stop()
-
-    return wrapper
 
 
 @ENV_MANAGER_REGISTRY.register('base')
