@@ -30,19 +30,14 @@ def get_vi_sequence(env, observation):
     chosen_actions = {target_location: 0}
     visited_points = {target_location: True}
     vi_sequence = []
-    vi_map = np.full((env.size, env.size),
-                     fill_value=env.n_action,
-                     dtype=np.int32)
+    vi_map = np.full((env.size, env.size), fill_value=env.n_action, dtype=np.int32)
 
     found_start = False
     while current_points and not found_start:
         next_points = []
         for point_x, point_y in current_points:
-            for (action, (next_point_x,
-                          next_point_y)) in [(0, (point_x - 1, point_y)),
-                                             (1, (point_x, point_y - 1)),
-                                             (2, (point_x + 1, point_y)),
-                                             (3, (point_x, point_y + 1))]:
+            for (action, (next_point_x, next_point_y)) in [(0, (point_x - 1, point_y)), (1, (point_x, point_y - 1)),
+                                                           (2, (point_x + 1, point_y)), (3, (point_x, point_y + 1))]:
 
                 if (next_point_x, next_point_y) in visited_points:
                     continue
@@ -67,6 +62,7 @@ def get_vi_sequence(env, observation):
 
 
 class PCDataset(Dataset):
+
     def __init__(self, all_data):
         self._data = all_data
 
@@ -77,9 +73,7 @@ class PCDataset(Dataset):
         return self._data[0].shape[0]
 
 
-def load_2d_datasets(train_seeds=5,
-                     test_seeds=1,
-                     batch_size=32):
+def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
 
     def load_env(seed):
         ccc = easydict.EasyDict({'size': 16})
@@ -109,8 +103,7 @@ def load_2d_datasets(train_seeds=5,
         env_observations = torch.stack([torch.from_numpy(env.random_start()) for _ in range(80)])
         # env_observations = torch.squeeze(env_steps.observation, axis=1)
         for i in range(env_observations.shape[0]):
-            bfs_sequence = get_vi_sequence(
-                env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
+            bfs_sequence = get_vi_sequence(env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
             bfs_input_map = env.n_action * np.ones([env.size, env.size], dtype=np.long)
             for j in range(bfs_sequence.shape[0]):
                 bfs_input_maps.append(torch.from_numpy(bfs_input_map))
@@ -118,16 +111,20 @@ def load_2d_datasets(train_seeds=5,
                 observations.append(env_observations[i])
                 bfs_input_map = bfs_sequence[j]
 
-    train_data = PCDataset((
-        torch.stack(observations_train, dim=0),
-        torch.stack(bfs_input_maps_train, dim=0),
-        torch.stack(bfs_output_maps_train, dim=0),
-    ))
-    test_data = PCDataset((
-        torch.stack(observations_test, dim=0),
-        torch.stack(bfs_input_maps_test, dim=0),
-        torch.stack(bfs_output_maps_test, dim=0),
-    ))
+    train_data = PCDataset(
+        (
+            torch.stack(observations_train, dim=0),
+            torch.stack(bfs_input_maps_train, dim=0),
+            torch.stack(bfs_output_maps_train, dim=0),
+        )
+    )
+    test_data = PCDataset(
+        (
+            torch.stack(observations_test, dim=0),
+            torch.stack(bfs_input_maps_test, dim=0),
+            torch.stack(bfs_output_maps_test, dim=0),
+        )
+    )
 
     train_dataset = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     test_dataset = DataLoader(test_data, batch_size=batch_size, shuffle=True)

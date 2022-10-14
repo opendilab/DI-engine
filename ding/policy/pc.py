@@ -20,6 +20,7 @@ from ding.torch_utils.loss.cross_entropy_loss import LabelSmoothCELoss
 
 @POLICY_REGISTRY.register('pc')
 class ProcedureCloningPolicy(Policy):
+
     def default_model(self) -> Tuple[str, List[str]]:
         return 'pc', ['ding.model.template.pc']
 
@@ -81,6 +82,7 @@ class ProcedureCloningPolicy(Policy):
                     weight_decay=self._cfg.learn.weight_decay
                 )
         if self._cfg.learn.lr_decay:
+
             def lr_scheduler_fn(epoch):
                 if epoch <= self._cfg.learn.warmup_epoch:
                     return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
@@ -104,8 +106,7 @@ class ProcedureCloningPolicy(Policy):
             (observations[:, 0] * self._maze_size + observations[:, 1]).long(),
             self._maze_size * self._maze_size,
         ).long()
-        loc = torch.reshape(
-            loc, [observations.shape[0], self._maze_size, self._maze_size])
+        loc = torch.reshape(loc, [observations.shape[0], self._maze_size, self._maze_size])
         states = torch.cat([maze_maps, loc[Ellipsis, None]], axis=-1).long()
         # if self._augment and training:
         #     states = self._augment_layers(states)
@@ -137,8 +138,7 @@ class ProcedureCloningPolicy(Policy):
         # print('bfs_input_maps: ' + str(bfs_input_maps.shape))
         bfs_output_maps = bfs_output_maps[Ellipsis, 0].long()
         # print('bfs_output_maps: ' + str(bfs_output_maps.shape))
-        bfs_input_onehot = torch.nn.functional.one_hot(
-            bfs_input_maps, self._num_actions + 1).float()
+        bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).float()
         bfs_states = torch.cat([states, bfs_input_onehot], dim=-1)
         # print('bfs_input_onehot: ' + str(bfs_input_onehot.shape))
         # print(bfs_states.shape)
@@ -179,14 +179,13 @@ class ProcedureCloningPolicy(Policy):
 
         for ii in data_id:
             states = data[ii].unsqueeze(0)
-            bfs_input_maps = self._num_actions * torch.ones(
-                [1, self._maze_size, self._maze_size]).long()
+            bfs_input_maps = self._num_actions * torch.ones([1, self._maze_size, self._maze_size]).long()
             if self._cuda:
                 bfs_input_maps = to_device(bfs_input_maps, self._device)
             xy = torch.where(states[:, :, :, -1] == 1)
             observation = (xy[0][0].item(), xy[1][0].item())
             i = 0
-            while bfs_input_maps[0,  observation[0], observation[1]].item() == self._num_actions and i < max_len:
+            while bfs_input_maps[0, observation[0], observation[1]].item() == self._num_actions and i < max_len:
                 bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).long()
                 bfs_states = torch.cat([states, bfs_input_onehot], dim=-1)
                 logits = self._model(bfs_states)['logit']

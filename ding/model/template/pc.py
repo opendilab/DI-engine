@@ -73,19 +73,22 @@ class ConvEncoder(nn.Module):
 
 @MODEL_REGISTRY.register('pc')
 class PC(nn.Module):
-    def __init__(self,
-                 obs_shape: Union[int, SequenceType],
-                 action_shape: Union[int, SequenceType],
-                 encoder_hidden_size_list: SequenceType = [128, 128, 256, 256],
-                 augment=False):
+
+    def __init__(
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        encoder_hidden_size_list: SequenceType = [128, 128, 256, 256],
+        augment=False
+    ):
         super().__init__()
 
         self._augment = augment
         num_layers = len(encoder_hidden_size_list)
 
-        kernel_sizes = (3,) * (num_layers + 1)
-        stride_sizes = (1,) * (num_layers + 1)
-        padding_sizes = (1,) * (num_layers + 1)
+        kernel_sizes = (3, ) * (num_layers + 1)
+        stride_sizes = (1, ) * (num_layers + 1)
+        padding_sizes = (1, ) * (num_layers + 1)
         encoder_hidden_size_list.append(action_shape + 1)
 
         self._encoder = ConvEncoder(
