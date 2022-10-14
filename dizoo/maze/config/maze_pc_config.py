@@ -1,0 +1,58 @@
+from easydict import EasyDict
+
+maze_size = 16
+num_actions = 4
+maze_pc_config = dict(
+    exp_name="maze_pc_seed0",
+    env=dict(
+        collector_env_num=8,
+        evaluator_env_num=3,
+        env_id='Maze',
+        size=maze_size,
+        wall_type='tunnel',
+        # max_step=300,
+        # stop_value=0.96,
+    ),
+    policy=dict(
+        cuda=True,
+        maze_size=maze_size,
+        num_actions=num_actions,
+        model=dict(
+            obs_shape=[8, 16, 16],
+            action_shape=num_actions,
+            encoder_hidden_size_list=[256, 128, 64, 64],
+        ),
+        learn=dict(
+            # update_per_collect=4,
+            batch_size=64,
+            learning_rate=0.001,
+            train_epoch=10,
+            optimizer='Adam',
+            # value_weight=0.5,
+            # entropy_weight=0.001,
+            # clip_ratio=0.2,
+            # adv_norm=False,
+        ),
+        eval=dict(
+            evaluator=dict(n_episode=3, stop_value=10000)
+        ),
+        collect=dict(),
+    ),
+)
+maze_pc_config = EasyDict(maze_pc_config)
+main_config = maze_pc_config
+maze_pc_create_config = dict(
+    env=dict(
+        type='maze',
+        import_names=['dizoo.maze.envs.maze_env'],
+    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='pc'),
+)
+maze_pc_create_config = EasyDict(maze_pc_create_config)
+create_config = maze_pc_create_config
+
+# if __name__ == "__main__":
+    # or you can enter `ding -m serial -c minigrid_offppo_config.py -s 0`
+    # from ding.entry import serial_pipeline
+    # serial_pipeline([main_config, create_config], seed=0)

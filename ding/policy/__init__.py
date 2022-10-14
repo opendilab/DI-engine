@@ -41,3 +41,5 @@ from .pdqn import PDQNPolicy
 
 from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
+
+from .pc import ProcedureCloningPolicy
