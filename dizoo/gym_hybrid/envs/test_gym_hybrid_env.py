@@ -1,8 +1,7 @@
-import pytest
 import numpy as np
-from easydict import EasyDict
-
+import pytest
 from dizoo.gym_hybrid.envs import GymHybridEnv
+from easydict import EasyDict
 
 
 @pytest.mark.envtest

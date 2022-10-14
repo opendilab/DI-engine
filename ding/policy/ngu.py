@@ -129,6 +129,9 @@ class NGUPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'ngu', ['ding.model.template.ngu']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -589,9 +592,6 @@ class NGUPolicy(Policy):
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._eval_model.reset(data_id=data_id)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'ngu', ['ding.model.template.ngu']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [

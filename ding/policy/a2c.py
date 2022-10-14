@@ -66,6 +66,9 @@ class A2CPolicy(Policy):
         eval=dict(),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'vac', ['ding.model.template.vac']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -269,9 +272,6 @@ class A2CPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'grad_norm']
