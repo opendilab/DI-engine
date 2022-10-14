@@ -1,4 +1,4 @@
-from dizoo.box2d.lunarlander.dt_data.collect_dqn_data_config import main_config, create_config
+from dizoo.box2d.bipedalwalker.offline_data.collect_sac_data_config import main_config, create_config
 from ding.entry import collect_episodic_demo_data, eval
 import torch
 import copy
@@ -6,11 +6,11 @@ import copy
 
 def eval_ckpt(args):
     config = copy.deepcopy([main_config, create_config])
-    # eval(config, seed=args.seed, load_path=main_config.policy.learn.learner.hook.load_ckpt_before_run, replay_path='./replay')
     eval(config, seed=args.seed, load_path=main_config.policy.learn.learner.hook.load_ckpt_before_run)
 
 
 def generate(args):
+    print('start generate data')
     config = copy.deepcopy([main_config, create_config])
     state_dict = torch.load(main_config.policy.learn.learner.load_path, map_location='cpu')
     collect_episodic_demo_data(
