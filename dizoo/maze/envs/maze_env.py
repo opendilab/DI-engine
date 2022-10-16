@@ -41,10 +41,12 @@ class Maze(gym.Env):
         self._init_flag = False
         self._random_start = True
         self._seed = None
+        self._step = 0
 
     def reset(self):
         self.active_init()
         obs = self._get_obs()
+        self._step = 0
         return self.process_states(obs, self.get_maze_map())
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
@@ -340,11 +342,15 @@ class Maze(gym.Env):
 
         if self._map[self._x][self._y] == 'x':
             self._x, self._y = last_x, last_y
-
+        self._step += 1
         reward = self._reward_fn(self._x, self._y, self._target_x, self._target_y)
         done = self._done_fn(self._x, self._y, self._target_x, self._target_y)
-        return BaseEnvTimestep(self.process_states(self._get_obs(), self.get_maze_map()), reward, done, {})
-        # return self._get_obs(), reward, done, {'maze_map': self.get_maze_map()}
+        info = {}
+        if self._step > 100:
+            done = True
+        if done:
+            info['final_eval_reward'] = reward
+        return BaseEnvTimestep(self.process_states(self._get_obs(), self.get_maze_map()), reward, done, info)
 
 
 def get_value_map(env):

@@ -20,6 +20,15 @@ import numpy as np
 from dizoo.maze.envs.maze_env import Maze
 
 
+def print_obs(obs):
+    print('Wall')
+    print(obs[:, :, 0])
+    print('Goal')
+    print(obs[:, :, 1])
+    print('Obs')
+    print(obs[:, :, 2])
+
+
 def get_vi_sequence(env, observation):
     """Returns [L, W, W] optimal actions."""
     xy = np.where(observation[Ellipsis, -1] == 1)
@@ -101,6 +110,7 @@ def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
             bfs_output_maps = bfs_output_maps_test
 
         env_observations = torch.stack([torch.from_numpy(env.random_start()) for _ in range(80)])
+        # assert False
         # env_observations = torch.squeeze(env_steps.observation, axis=1)
         for i in range(env_observations.shape[0]):
             bfs_sequence = get_vi_sequence(env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
@@ -196,6 +206,7 @@ def serial_pipeline_pc(
         # tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
 
         # train
+        criterion = torch.nn.CrossEntropyLoss()
         for i, train_data in enumerate(dataloader):
             learner.train(train_data)
             iter_cnt += 1
@@ -204,6 +215,25 @@ def serial_pipeline_pc(
                 break
         if stop:
             break
+        losses = []
+        acces = []
+        for _, test_data in enumerate(test_dataloader):
+            observations, bfs_input_maps, bfs_output_maps = test_data['obs'], test_data['bfs_in'].long(), \
+                                                            test_data['bfs_out'].long()
+            states = observations
+            bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, 5).float()
+            bfs_states = torch.cat([states, bfs_input_onehot], dim=-1).cuda()
+            logits = policy._model(bfs_states)['logit']
+            logits = logits.flatten(0, -2)
+            labels = bfs_output_maps.flatten(0, -1).cuda()
+
+            loss = criterion(logits, labels).item()
+            preds = torch.argmax(logits, dim=-1)
+            acc = torch.sum((preds == labels)) / preds.shape[0]
+
+            losses.append(loss)
+            acces.append(acc)
+        print('Test Finished! Loss: {} acc: {}'.format(sum(losses) / len(losses), sum(acces) / len(acces)))
     stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))
