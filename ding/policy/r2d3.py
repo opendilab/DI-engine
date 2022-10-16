@@ -123,6 +123,9 @@ class R2D3Policy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'drqn', ['ding.model.template.q_learning']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -554,9 +557,6 @@ class R2D3Policy(Policy):
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._eval_model.reset(data_id=data_id)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'drqn', ['ding.model.template.q_learning']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [

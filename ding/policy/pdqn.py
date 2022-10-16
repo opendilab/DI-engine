@@ -122,6 +122,19 @@ class PDQNPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For PDQN, ``ding.model.template.pdqn.PDQN``
+        """
+        return 'pdqn', ['ding.model.template.pdqn']
+
     def _init_learn(self) -> None:
         """
         Overview:
@@ -254,7 +267,7 @@ class PDQNPolicy(Policy):
         return {
             'cur_lr': self._dis_optimizer.defaults['lr'],
             'q_loss': dis_loss.item(),
-            'total_loss': (cont_loss + dis_loss).item(),
+            'total_loss': cont_loss.item() + dis_loss.item(),
             'continuous_loss': cont_loss.item(),
             'q_value': q_pi_action_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
@@ -422,19 +435,6 @@ class PDQNPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For PDQN, ``ding.model.template.pdqn.PDQN``
-        """
-        return 'pdqn', ['ding.model.template.pdqn']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
