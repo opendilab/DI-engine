@@ -711,23 +711,45 @@ class PopartUpdate(object):
 
     def update(self, value, W, b, beta=0.5):
         with torch.no_grad():
+            method = "origin"
             batch_mean = torch.mean(value, 0)
             batch_v = torch.mean(torch.pow(value, 2), 0)
-            batch_std = torch.sqrt(batch_v - (batch_mean**2))
-            batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
+            if method == "origin":
+                batch_std = torch.sqrt(batch_v - (batch_mean**2))
+                batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
 
-            batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
-            batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
-            batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
+                batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
+                batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
+                batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
 
-            batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
-            batch_v = (1-beta) * self._v + beta * torch.mean(torch.pow(value, 2))
-            # batch_v = (1-beta) * self._v + beta * torch.var(value) -> nan
+                batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
+                batch_v = (1-beta) * self._v + beta * torch.mean(torch.pow(value, 2))
+            elif method == "sequence":
+                batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
+                batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
+
+                batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
+                batch_v = (1-beta) * self._v + beta * torch.mean(torch.pow(value, 2))
+
+                batch_std = torch.sqrt(batch_v - (batch_mean**2))
+                batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
+                batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
+            elif method == "std":
+                batch_std = torch.sqrt(batch_v - (batch_mean**2))
+                batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
+
+                batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
+                batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
+                batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
+
+                batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
+                batch_std = (1-beta) * self._std + beta * batch_std
             
             W_new = torch.reshape(1/batch_std * self._std, (self._shape, 1))
             W.data = W.data * W_new
 
             b.data = 1/batch_std *(self._std*b.data + self._mean - batch_mean)
+
         #add EMA
         self._std = batch_std
         self._mean = batch_mean
