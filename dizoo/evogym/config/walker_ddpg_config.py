@@ -5,14 +5,14 @@ walker_ddpg_config = dict(
     env=dict(
         env_id='Walker-v0',
         robot='speed_bot',
-        robot_dir='../envs',
+        robot_dir='./dizoo/evogym/envs',
         collector_env_num=1,
         evaluator_env_num=1,
         n_evaluator_episode=1,
         stop_value=-0.5,
         manager=dict(shared_memory=False, ),
         # The path to save the game replay
-        replay_path='./evogym_walker_ddpg_seed0/video',
+        # replay_path='./evogym_walker_ddpg_seed0/video',
     ),
     policy=dict(
         cuda=True,
