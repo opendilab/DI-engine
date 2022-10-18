@@ -60,18 +60,11 @@ class EvoGymEnv(BaseEnv):
             self._env.seed(self._seed)
         if self._replay_path is not None:
             gym.logger.set_level(gym.logger.DEBUG)
-            # use our own 'viewer' to make 'render' compatible with gym
-            #self._env.default_viewer = DingEvoViewer(self._env._sim)
-            #self._env.__class__.render = self._env.default_viewer.render
-            #self._env.metadata['render.modes'] = 'rgb_array'  # make render mode compatible with gym
+            # make render mode compatible with gym
             if gym.version.VERSION > '0.22.0':
                 self._env.metadata.update({'render_modes': ["rgb_array"]})
-                #self._env.render_mode="screen"
-                #self._env.metadata.update({'render_modes': ["rgb_array"]})
             else:
-                self._env.metadata.update({'render_modes': ["rgb_array"]})
-                #self._env.render_mode="screen"
-                #self._env.metadata.update({'render.modes': ["rgb_array"]})
+                self._env.metadata.update({'render.modes': ["rgb_array"]})
             self._env = gym.wrappers.RecordVideo(
                 self._env,
                 video_folder=self._replay_path,
