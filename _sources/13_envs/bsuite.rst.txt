@@ -11,8 +11,25 @@ Description
 
 .. figure:: ./images/bsuite.png
    :align: center
+   :scale: 70%
 
-   Imahge taken from: https://github.com/deepmind/bsuite
+   Image taken from: https://github.com/deepmind/bsuite
+
+Here we take *Memory Length* as an example environment to illustrate below. It's designed to test the number of sequential steps an agent can remember a single bit. The underlying environment is based on a stylized `T-maze <https://en.wikipedia.org/wiki/T-maze>`__ problem, parameterized by a length :math:`N \in \mathbb{N}`. 
+Each episode lasts N steps with observation :math:`o_t=\left(c_t, t / N\right)` and 
+action space :math:`\mathcal{A}=\{-1,+1\}`.
+
+   - At the beginning of the episode the agent is provided a context of +1 or -1, which means :math:`c_1 \sim {Unif}(\mathcal{A})`.
+   - At all future timesteps the context is equal to zero and a countdown until the end of the episode, 
+    which means :math:`c_t=0` for all :math:`t>2`.
+   - At the end of the episode the agent must select the correct action corresponding to the context to reward. The reward :math:`r_t=0` for all :math:`t<N`, and :math:`r_N={Sign}\left(a_N=c_1\right)`
+
+
+.. figure:: ./images/bsuite_memory_length.png
+   :align: center
+   :scale: 70%
+
+   Image taken from paper `Behaviour Suite for Reinforcement Learning <https://arxiv.org/abs/1908.03568>`__
 
 Installation
 =============
@@ -38,7 +55,7 @@ Once installed, you can verify whether the installation is successful by running
 .. code:: python
 
    import bsuite
-   env = bsuite.load_from_id('catch/0')
+   env = bsuite.load_from_id('memory_len/0') # this environment configuration is 'memory steps' long
    timestep = env.reset()
    print(timestep)
 
@@ -48,39 +65,39 @@ Original Environment Space
 Observations Space
 -------------------
 
--  Array representing the state of the environment, dimensions and size can vary according to the specific environment. Its datatype is \ ``np.float32``.
+-  The observation of agent is a 3-dimensional vector. Data type is ``float32``. Their specific meaning is as below:
+  -  obs[0] shows the current time, ranging from [0, 1]. 
+  -  obs[1] shows the query as an integer number between 0 and num of bit at the last step. It's always 0 in memory length experiment because there is only a single bit. (It's useful in memory size experiment.)
+  -  obs[2] shows the context of +1 or -1 at the first step. At all future timesteps the context is equal to 0 and a countdown until the end of the episode
 
 Actions Space
 ---------------
 
--  The action space is a discrete space of size N which varies according to the environment. This datatype is \ ``int``\ and input is a python integer value（or a np array of dimension 0 such as \ ``np.array(1)``\ to input action 1）.
-
--  For example, in the Deep Sea environment, N is equal to 2, thus action values ranges from 0 to 1. For their specific meaning, you can refer to the following list:
-
-   -  0：LEFT.
-
-   -  1：RIGHT.
+-  The action space is a discrete space of size 2, which is {-1,1}. Data type is ``int``.
 
 Rewards Space
 -------------
 
--  Rewards are assigned according to the rules of the environments. Rewards are usually a \ ``float``\ value.
+-  The reward space is a discrete space of size 3, which is a ``float`` value.
+  -  If it isn't the last step (t<N), the reward is 0.
+  -  If it's the last step and the agent select the correct action, the reward is 1.
+  -  If it's the last step andthe agent select a wrong action, the reward is -1.
 
 Others
 -------
 
--  Environments terminate once they have reached their maximum number of steps or encountered a failure state. All environments have the fixed number of maximum steps, but not all environments have a failure state.
+-  Environments terminate once they have reached their maximum number of steps N.
+
 
 Key Facts
 ==========
 
-1. Each environment contains several configurations to make it gradually more challenging.
+1. We can change the memory length N to make it gradually more challenging.
 
 2. Discrete actions space.
 
 3. Each environment is designed to test a particular propriety of RL policies, including: generalization, exploration, credit assignment, scaling, noise, memory.
 
-4. The scale of rewards can vary significantly.
 
 Others
 =======
@@ -94,7 +111,7 @@ Our implementation uses the bsuite Gym wrapper to make the bsuite codebase run u
 
    import bsuite
    from bsuite.utils import gym_wrapper
-   env = bsuite.load_and_record_to_csv('catch/0', results_dir='/path/to/results')
+   env = bsuite.load_and_record_to_csv('memory_len/0', results_dir='/path/to/results')
    gym_env = gym_wrapper.GymFromDMEnv(env)
 
 About Configurations
@@ -119,7 +136,7 @@ Using DI-engine, you can create a bsuite environment simply with the name of you
 
    from easydict import EasyDict
    from dizoo.bsuite.envs import BSuiteEnv
-   cfg = {'env': 'memory_len/0'}
+   cfg = {'env': 'memory_len/15'}
    cfg = EasyDict(cfg)
    memory_len_env = BSuiteEnv(cfg)
 
@@ -188,3 +205,13 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/bsuite/config/seria
     if __name__ == '__main__':
         from ding.entry import serial_pipeline
         serial_pipeline((main_config, create_config), seed=0)
+
+
+Benchmark algorithm performance
+===============================
+
+   - memory_len/15 + R2D2
+
+   .. figure:: ./images/bsuite_momery_len_15_r2d2.png
+      :align: center
+      :scale: 70%

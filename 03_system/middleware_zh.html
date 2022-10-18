@@ -313,25 +313,240 @@
 <h2>上下文对象（Context）<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
 <p>Context 是为中间件之间传递数据的信使，不同的交互策略决定了它们该使用什么类型的 context，
 例如 DI-engine 中提供了 <code class="docutils literal notranslate"><span class="pre">OnlineRLContext</span></code> 和 <code class="docutils literal notranslate"><span class="pre">OfflineRLContext</span></code> 两种 context。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="o">...</span>
-        <span class="c1"># common</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_step</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_episode</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="o">...</span>
+    <span class="c1"># common</span>
+    <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">env_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">env_episode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">train_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="o">...</span>
 
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;env_step&#39;</span><span class="p">,</span> <span class="s1">&#39;env_episode&#39;</span><span class="p">,</span> <span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">OnlineRLContext</span></code> 上面保存了在线训练所需要的数据，每个中间件的任务就是利用这些数据，并提交新的数据到 context 上面，
 例如 OffPolicyLearner 中间件的任务就是利用 ctx.train_data 训练模型，并且将训练结果写回到 ctx.train_iter 上面。</p>
-<p>在每个循环开始，context 会初始化为新的实例，这确保中间件只需关注一次循环内的数据流，简化了逻辑，也减少了内存泄漏的风险。
-如果您需要保存属性到下一个循环，例如 env_step，train_iter 这类需要累加的数值，可以用 ctx.keep 方法将它设置为保留字段。</p>
+<p>在每个循环开始，context 会初始化为新的实例，这确保中间件只需关注一次循环内的数据流，简化了逻辑，也减少了内存泄漏的风险。</p>
+<p>如果您需要保存属性到下一个循环，例如 env_step，train_iter 这类需要累加的数值，可以用 ctx.keep 方法将它设置为保留字段。
+使用 ctx.keep 调用的字段将在新一轮迭代，context 初始化为新的实例时保留，而其他的字段将被重新初始化。
+注意，理论上 ctx.keep 不需要，也不应该被用来保留那些集合类型的数据，或者比较复杂的类，比如 list，dict，torch.Tensor 或者 torch.nn.Module 等，
+而只应该保存 int，float 等类型的数据到下一个迭代，如果需要的话。</p>
+<p>注：__post_init__(self) 是在 __init__(self) 后被立刻调用的方法。在我们的 Context 中，这意味着在每一个字段初始化之后调用该方法。
+我们将 self.keep 在该函数中调用，是因为我们需要先将每个字段初始化，才能调用 self.keep 来保留那些被选择的变量。</p>
+<section id="v0-4-2-context-dataclass">
+<h3>v0.4.2 更新 Context 到 dataclass<a class="headerlink" href="#v0-4-2-context-dataclass" title="Permalink to this headline">¶</a></h3>
+<p>在 <a class="reference external" href="https://github.com/opendilab/DI-engine/releases/tag/v0.4.2">v0.4.2 版本</a> 中，我们将 Context 从 dict 类改为 dataclass 类。
+这个改动的原因是：</p>
+<ul class="simple">
+<li><p>防止在开发过程中随意在 Context 中添加新字段，即 ctx 中的字段必须在定义时明确清楚；</p></li>
+<li><p>防止使用者使用字符串去访问 Context 中的具体字段，即，禁止 ctx[‘xxx’]。</p></li>
+</ul>
+<p>因为通过 Context 传递数据不同于通过函数的输入和输出传递数据，会有一个强制的约束。
+随意在外部定义一个新的属性，或者使用字符串访问 Context 中的字段的话，很容易在阅读代码或者多人协作时造成混乱，在拼接不同中间件时报错。</p>
+<p>通过将 Context 改为 dataclass 类，我们限定使用属性而不是字符串去访问 Context 中的具体字段，并且防止在外部添加新字段。
+如果您需要在 Context 中添加新字段的话，
+请在相关 Context 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/framework/context.py">初始化阶段</a> 添加。
+下面是自定义 Context 的一个具体例子：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">MyContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+
+    <span class="c1"># common</span>
+    <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">var1</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">var2</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">var3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">var4</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;var1&#39;</span><span class="p">,</span> <span class="s1">&#39;var2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>如果认为某新字段有必要添加到整个项目中的话，请向 DI-engine 的 main 分支提出 PR 并说明具体原因。</p>
+</section>
+<section id="id3">
+<h3>Context 字段介绍<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>注：Updated position 不包含 ctx.attribute = None 的情况。</p>
+<section id="onlinerlcontext">
+<h4>OnlineRLContext<a class="headerlink" href="#onlinerlcontext" title="Permalink to this headline">¶</a></h4>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 26%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Keeped</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Role</p></th>
+<th class="head"><p>Updated position</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>total_step</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of total iteration steps.</p></td>
+<td><p>In the beginning of each middleware execution loop.</p></td>
+</tr>
+<tr class="row-odd"><td><p>env_step</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of environment steps.</p></td>
+<td><p>rolloutor</p></td>
+</tr>
+<tr class="row-even"><td><p>env_episode</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of environment episodes.</p></td>
+<td><p>rolloutor</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of training iterations.</p></td>
+<td><p>trainer, multistep_trainer</p></td>
+</tr>
+<tr class="row-even"><td><p>train_data</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List]</p></td>
+<td><p>The fetched data used to be trained.</p></td>
+<td><p>gae_estimator, offpolicy_data_fetcher, offline_data_fetcher, her_data_enhancer</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_output</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List[Dict]]</p></td>
+<td><p>The training output including logit, action and other info.</p></td>
+<td><p>OffPolicyLearner, HERLearner(List), trainer, multistep_trainer(Dict)</p></td>
+</tr>
+<tr class="row-even"><td><p>collect_kwargs</p></td>
+<td><p>False</p></td>
+<td><p>dict</p></td>
+<td><p>The dict include epsilon value.</p></td>
+<td><p>eps_greedy_handler</p></td>
+</tr>
+<tr class="row-odd"><td><p>obs</p></td>
+<td><p>False</p></td>
+<td><p>ttorch.Tensor</p></td>
+<td><p>The input observations collected from all collector environments.</p></td>
+<td><p>inferencer</p></td>
+</tr>
+<tr class="row-even"><td><p>action</p></td>
+<td><p>False</p></td>
+<td><p>List</p></td>
+<td><p>The inferred actions listed by env_id.</p></td>
+<td><p>inferencer</p></td>
+</tr>
+<tr class="row-odd"><td><p>inference_output</p></td>
+<td><p>False</p></td>
+<td><p>Dict[int, Dict]</p></td>
+<td><p>The dict of which the key is env_id (int), and the value is inference result (Dict).</p></td>
+<td><p>inferencer</p></td>
+</tr>
+<tr class="row-even"><td><p>trajectories</p></td>
+<td><p>False</p></td>
+<td><p>list</p></td>
+<td><p>The trajectories collected from environment.</p></td>
+<td><p>StepCollector, nstep_reward_enhancer</p></td>
+</tr>
+<tr class="row-odd"><td><p>episodes</p></td>
+<td><p>False</p></td>
+<td><p>list</p></td>
+<td><p>The episodes collected from environment.</p></td>
+<td><p>EpisodeCollector</p></td>
+</tr>
+<tr class="row-even"><td><p>trajectory_end_idx</p></td>
+<td><p>False</p></td>
+<td><p>list</p></td>
+<td><p>The end index of each trajectory in ctx.trajectories.</p></td>
+<td><p>StepCollector</p></td>
+</tr>
+<tr class="row-odd"><td><p>eval_value</p></td>
+<td><p>False</p></td>
+<td><p>float</p></td>
+<td><p>The average reward in the current evaluation.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+<tr class="row-even"><td><p>last_eval_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The last ctx.train_iter that is evaluated.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="offlinerlcontext">
+<h4>OfflineRLContext<a class="headerlink" href="#offlinerlcontext" title="Permalink to this headline">¶</a></h4>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 26%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Keeped</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Role</p></th>
+<th class="head"><p>Updated position</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>total_step</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of total iteration steps.</p></td>
+<td><p>In the beginning of each middleware execution loop.</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_epoch</p></td>
+<td><p>False</p></td>
+<td><p>int</p></td>
+<td><p>The count of training epoches.</p></td>
+<td><p>offline_data_fetcher</p></td>
+</tr>
+<tr class="row-even"><td><p>train_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of training iterations.</p></td>
+<td><p>trainer, multistep_trainer</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_data</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List]</p></td>
+<td><p>The fetched data used to be trained.</p></td>
+<td><p>gae_estimator, offpolicy_data_fetcher, offline_data_fetcher, her_data_enhancer</p></td>
+</tr>
+<tr class="row-even"><td><p>train_output</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List[Dict]]</p></td>
+<td><p>The training output including logit, action and other info.</p></td>
+<td><p>OffPolicyLearner, HERLearner(List), trainer, multistep_trainer(Dict)</p></td>
+</tr>
+<tr class="row-odd"><td><p>eval_value</p></td>
+<td><p>False</p></td>
+<td><p>float</p></td>
+<td><p>The average reward in the current evaluation.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+<tr class="row-even"><td><p>last_eval_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The last ctx.train_iter that is evaluated.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 </section>
 <section id="task">
 <h2>使用 task 异步执行任务<a class="headerlink" href="#task" title="Permalink to this headline">¶</a></h2>
@@ -351,8 +566,8 @@
 实践中不妨多尝试一下通过异步执行来加速整个交互流程。</p>
 <img alt="../_images/async.png" class="align-center" src="../_images/async.png" />
 </section>
-<section id="id2">
-<h2>不同阶段的中间件<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="id4">
+<h2>不同阶段的中间件<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>大部分中间件都可以对应不同的阶段，您可以通过下图查看已有的中间件与阶段的对应关系，以便正确的组合各类中间件：</p>
 <img alt="../_images/pipeline.png" class="align-center" src="../_images/pipeline.png" />
 </section>
@@ -402,9 +617,17 @@
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#">中间件</a><ul>
-<li><a class="reference internal" href="#context">上下文对象（Context）</a></li>
+<li><a class="reference internal" href="#context">上下文对象（Context）</a><ul>
+<li><a class="reference internal" href="#v0-4-2-context-dataclass">v0.4.2 更新 Context 到 dataclass</a></li>
+<li><a class="reference internal" href="#id3">Context 字段介绍</a><ul>
+<li><a class="reference internal" href="#onlinerlcontext">OnlineRLContext</a></li>
+<li><a class="reference internal" href="#offlinerlcontext">OfflineRLContext</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#task">使用 task 异步执行任务</a></li>
-<li><a class="reference internal" href="#id2">不同阶段的中间件</a></li>
+<li><a class="reference internal" href="#id4">不同阶段的中间件</a></li>
 </ul>
 </li>
 </ul>

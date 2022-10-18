@@ -49,25 +49,206 @@ Context 是为中间件之间传递数据的信使，不同的交互策略决定
 
 .. code-block:: python
 
+    @dataclasses.dataclass
     class OnlineRLContext(Context):
 
-        def __init__(self, *args, **kwargs) -> None:
-            ...
-            # common
-            self.total_step = 0
-            self.env_step = 0
-            self.env_episode = 0
-            self.train_iter = 0
-            self.train_data = None
-            ...
-
+        # common
+        total_step: int = 0
+        env_step: int = 0
+        env_episode: int = 0
+        train_iter: int = 0
+        train_data: Union[Dict, List] = None
+        ...
+        
+        def __post_init__(self):
             self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')
 
 ``OnlineRLContext`` 上面保存了在线训练所需要的数据，每个中间件的任务就是利用这些数据，并提交新的数据到 context 上面，
 例如 OffPolicyLearner 中间件的任务就是利用 ctx.train_data 训练模型，并且将训练结果写回到 ctx.train_iter 上面。
 
 在每个循环开始，context 会初始化为新的实例，这确保中间件只需关注一次循环内的数据流，简化了逻辑，也减少了内存泄漏的风险。
+
 如果您需要保存属性到下一个循环，例如 env_step，train_iter 这类需要累加的数值，可以用 ctx.keep 方法将它设置为保留字段。
+使用 ctx.keep 调用的字段将在新一轮迭代，context 初始化为新的实例时保留，而其他的字段将被重新初始化。
+注意，理论上 ctx.keep 不需要，也不应该被用来保留那些集合类型的数据，或者比较复杂的类，比如 list，dict，torch.Tensor 或者 torch.nn.Module 等，
+而只应该保存 int，float 等类型的数据到下一个迭代，如果需要的话。
+
+注：__post_init__(self) 是在 __init__(self) 后被立刻调用的方法。在我们的 Context 中，这意味着在每一个字段初始化之后调用该方法。
+我们将 self.keep 在该函数中调用，是因为我们需要先将每个字段初始化，才能调用 self.keep 来保留那些被选择的变量。
+
+
+v0.4.2 更新 Context 到 dataclass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+在 `v0.4.2 版本 <https://github.com/opendilab/DI-engine/releases/tag/v0.4.2>`_ 中，我们将 Context 从 dict 类改为 dataclass 类。
+这个改动的原因是：
+
+- 防止在开发过程中随意在 Context 中添加新字段，即 ctx 中的字段必须在定义时明确清楚；
+- 防止使用者使用字符串去访问 Context 中的具体字段，即，禁止 ctx['xxx']。
+
+因为通过 Context 传递数据不同于通过函数的输入和输出传递数据，会有一个强制的约束。
+随意在外部定义一个新的属性，或者使用字符串访问 Context 中的字段的话，很容易在阅读代码或者多人协作时造成混乱，在拼接不同中间件时报错。
+
+通过将 Context 改为 dataclass 类，我们限定使用属性而不是字符串去访问 Context 中的具体字段，并且防止在外部添加新字段。
+如果您需要在 Context 中添加新字段的话，
+请在相关 Context 的 `初始化阶段 <https://github.com/opendilab/DI-engine/blob/main/ding/framework/context.py>`_ 添加。
+下面是自定义 Context 的一个具体例子：
+
+.. code-block:: python
+
+    @dataclasses.dataclass
+    class MyContext(Context):
+
+        # common
+        total_step: int = 0
+        var1: int = 0
+        var2: int = 0
+        var3: Union[Dict, List] = None
+        var4: List = None
+        
+        def __post_init__(self):
+            self.keep('var1', 'var2')
+  
+如果认为某新字段有必要添加到整个项目中的话，请向 DI-engine 的 main 分支提出 PR 并说明具体原因。
+
+
+Context 字段介绍
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+注：Updated position 不包含 ctx.attribute = None 的情况。
+
+OnlineRLContext
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. list-table::
+   :widths: 25 25 25 40 40
+   :header-rows: 1
+
+   * - Attribute
+     - Keeped
+     - Type
+     - Role
+     - Updated position
+   * - total_step
+     - True
+     - int
+     - The number of total iteration steps.
+     - In the beginning of each middleware execution loop.
+   * - env_step
+     - True
+     - int
+     - The number of environment steps.
+     - rolloutor
+   * - env_episode
+     - True
+     - int
+     - The number of environment episodes.
+     - rolloutor
+   * - train_iter
+     - True
+     - int
+     - The number of training iterations.
+     - trainer, multistep_trainer
+   * - train_data
+     - False
+     - Union[Dict, List]
+     - The fetched data used to be trained.
+     - gae_estimator, offpolicy_data_fetcher, offline_data_fetcher, her_data_enhancer
+   * - train_output
+     - False
+     - Union[Dict, List[Dict]]
+     - The training output including logit, action and other info.
+     - OffPolicyLearner, HERLearner(List), trainer, multistep_trainer(Dict)
+   * - collect_kwargs
+     - False
+     - dict
+     - The dict include epsilon value.
+     - eps_greedy_handler
+   * - obs
+     - False
+     - ttorch.Tensor
+     - The input observations collected from all collector environments.
+     - inferencer
+   * - action
+     - False
+     - List
+     - The inferred actions listed by env_id.
+     - inferencer
+   * - inference_output
+     - False
+     - Dict[int, Dict]
+     - The dict of which the key is env_id (int), and the value is inference result (Dict).
+     - inferencer
+   * - trajectories
+     - False
+     - list
+     - The trajectories collected from environment.
+     - StepCollector, nstep_reward_enhancer
+   * - episodes
+     - False
+     - list
+     - The episodes collected from environment.
+     - EpisodeCollector
+   * - trajectory_end_idx
+     - False
+     - list
+     - The end index of each trajectory in ctx.trajectories.
+     - StepCollector
+   * - eval_value
+     - False
+     - float
+     - The average reward in the current evaluation.
+     - interaction_evaluator, metric_evaluator
+   * - last_eval_iter
+     - True
+     - int
+     - The last ctx.train_iter that is evaluated.
+     - interaction_evaluator, metric_evaluator
+
+OfflineRLContext
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. list-table::
+   :widths: 25 25 25 40 40
+   :header-rows: 1
+
+   * - Attribute
+     - Keeped
+     - Type
+     - Role
+     - Updated position
+   * - total_step
+     - True
+     - int
+     - The number of total iteration steps.
+     - In the beginning of each middleware execution loop.
+   * - train_epoch
+     - False
+     - int
+     - The count of training epoches.
+     - offline_data_fetcher
+   * - train_iter
+     - True
+     - int
+     - The number of training iterations.
+     - trainer, multistep_trainer
+   * - train_data
+     - False
+     - Union[Dict, List]
+     - The fetched data used to be trained.
+     - gae_estimator, offpolicy_data_fetcher, offline_data_fetcher, her_data_enhancer
+   * - train_output
+     - False
+     - Union[Dict, List[Dict]]
+     - The training output including logit, action and other info.
+     - OffPolicyLearner, HERLearner(List), trainer, multistep_trainer(Dict)
+   * - eval_value
+     - False
+     - float
+     - The average reward in the current evaluation.
+     - interaction_evaluator, metric_evaluator
+   * - last_eval_iter
+     - True
+     - int
+     - The last ctx.train_iter that is evaluated.
+     - interaction_evaluator, metric_evaluator
 
 使用 task 异步执行任务
 -------------------------------

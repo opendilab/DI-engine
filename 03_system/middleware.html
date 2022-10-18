@@ -310,23 +310,241 @@
 <h2>Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
 <p>Contexts are messengers that pass data between middleware, and different interaction policies determine what type of context they should use.
 For example, <code class="docutils literal notranslate"><span class="pre">OnlineRLContext</span></code> and <code class="docutils literal notranslate"><span class="pre">OfflineRLContext</span></code> are provided in DI-engine.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="o">...</span>
-        <span class="c1"># common</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_step</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_episode</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="o">...</span>
+    <span class="c1"># common</span>
+    <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">env_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">env_episode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">train_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="o">...</span>
 
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;env_step&#39;</span><span class="p">,</span> <span class="s1">&#39;env_episode&#39;</span><span class="p">,</span> <span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">OnlineRLContext</span></code> holds the data needed for online training, and the task of each middleware is to use this data and submit new data to the context. For example, the task of the OffPolicyLearner middleware is to train the model using ctx.train_data and write the training results back to ctx.train_iter.</p>
-<p>At the beginning of each loop, the context is replaced by a new instance, which ensures that the middleware only needs to focus on the data flow within a single loop, simplifying the logic and reducing the risk of memory leaks. If you need to save some variables to the next loop, such as env_step, train_iter, and other values that need to be accumulated, you can set it as a reserved field with the ctx.keep method.</p>
+<p>At the beginning of each loop, the context is replaced by a new instance, which ensures that the middleware only needs to focus on the data flow within a single loop, simplifying the logic and reducing the risk of memory leaks.</p>
+<p>If you need to save some variables to the next loop, such as env_step, train_iter, and other values that need to be accumulated, you can set it as a reserved field with the ctx.keep method.
+The variables called by ctx.keep are reserved for the next iteration, when the context is initialized to a new instance,
+and the other variables will be reinitialized.
+Note that, in theory, ctx.keep does not need and should not be used to keep collections or more complex variables,
+such as list, dict, torch.tensor, or torch.nn.Module. It should only keep int, float and other types of data to the next iteration, if needed.</p>
+<p>Note: __post_init__(self) is a method called immediately after __init__(self). In our Context, it means calling this method after each field is initialized.
+We call self.keep in this function because we need to initialize each field before calling self.keep to keep selected variables.</p>
+<section id="v0-4-2-changes-update-context-from-dict-to-dataclass">
+<h3>v0.4.2 changes: Update Context from dict to dataclass<a class="headerlink" href="#v0-4-2-changes-update-context-from-dict-to-dataclass" title="Permalink to this headline">¶</a></h3>
+<p>In <a class="reference external" href="https://github.com/opendilab/DI-engine/releases/tag/v0.4.2">v0.4.2</a>, We changed the Context from dict to dataclass.
+The reason for this change is:</p>
+<ul class="simple">
+<li><p>Prevent the arbitrary addition of new variables during development, i.e. the variables in context must be clearly defined in the definition of Context class.</p></li>
+<li><p>Prevent the access of variables using string, i.e. prevent ctx[‘xxx’].</p></li>
+</ul>
+<p>Because for middlewares, passing data through Context is different from passing data through input and output parameters of a function, for which there is an enforced constraint.
+Arbitrarily defining a new variable externally, or using strings to access variables in the Context, can easily lead to confusion when reading code or cooperation,
+and can easily lead to errors when combing different middleware together.</p>
+<p>By changing the Context to the dataclass, we use the attributes rather than strings to access specific variables in the Context, and prevent the addition of new fields externally.
+If you need to add a new field to the Context,
+please do it during the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/framework/context.py">initialization phase</a> .
+Here’s a concrete example of a custom Context:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">MyContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+
+    <span class="c1"># common</span>
+    <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">var1</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">var2</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">var3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">var4</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;var1&#39;</span><span class="p">,</span> <span class="s1">&#39;var2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you think a new field needs to be added to DI-egnine, make a PR to DI-engine and explain it.</p>
+</section>
+<section id="the-introduction-of-context-variables">
+<h3>The introduction of Context variables<a class="headerlink" href="#the-introduction-of-context-variables" title="Permalink to this headline">¶</a></h3>
+<p>Note: Updated position does not include the case that ctx.attribute = None.</p>
+<section id="onlinerlcontext">
+<h4>OnlineRLContext<a class="headerlink" href="#onlinerlcontext" title="Permalink to this headline">¶</a></h4>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 26%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Keeped</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Role</p></th>
+<th class="head"><p>Updated position</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>total_step</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of total iteration steps.</p></td>
+<td><p>In the beginning of each middleware execution loop.</p></td>
+</tr>
+<tr class="row-odd"><td><p>env_step</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of environment steps.</p></td>
+<td><p>rolloutor</p></td>
+</tr>
+<tr class="row-even"><td><p>env_episode</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of environment episodes.</p></td>
+<td><p>rolloutor</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of training iterations.</p></td>
+<td><p>trainer, multistep_trainer</p></td>
+</tr>
+<tr class="row-even"><td><p>train_data</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List]</p></td>
+<td><p>The fetched data used to be trained.</p></td>
+<td><p>gae_estimator, offpolicy_data_fetcher, offline_data_fetcher, her_data_enhancer</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_output</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List[Dict]]</p></td>
+<td><p>The training output including logit, action and other info.</p></td>
+<td><p>OffPolicyLearner, HERLearner(List), trainer, multistep_trainer(Dict)</p></td>
+</tr>
+<tr class="row-even"><td><p>collect_kwargs</p></td>
+<td><p>False</p></td>
+<td><p>dict</p></td>
+<td><p>The dict include epsilon value.</p></td>
+<td><p>eps_greedy_handler</p></td>
+</tr>
+<tr class="row-odd"><td><p>obs</p></td>
+<td><p>False</p></td>
+<td><p>ttorch.Tensor</p></td>
+<td><p>The input observations collected from all collector environments.</p></td>
+<td><p>inferencer</p></td>
+</tr>
+<tr class="row-even"><td><p>action</p></td>
+<td><p>False</p></td>
+<td><p>List</p></td>
+<td><p>The inferred actions listed by env_id.</p></td>
+<td><p>inferencer</p></td>
+</tr>
+<tr class="row-odd"><td><p>inference_output</p></td>
+<td><p>False</p></td>
+<td><p>Dict[int, Dict]</p></td>
+<td><p>The dict of which the key is env_id (int), and the value is inference result (Dict).</p></td>
+<td><p>inferencer</p></td>
+</tr>
+<tr class="row-even"><td><p>trajectories</p></td>
+<td><p>False</p></td>
+<td><p>list</p></td>
+<td><p>The trajectories collected from environment.</p></td>
+<td><p>StepCollector, nstep_reward_enhancer</p></td>
+</tr>
+<tr class="row-odd"><td><p>episodes</p></td>
+<td><p>False</p></td>
+<td><p>list</p></td>
+<td><p>The episodes collected from environment.</p></td>
+<td><p>EpisodeCollector</p></td>
+</tr>
+<tr class="row-even"><td><p>trajectory_end_idx</p></td>
+<td><p>False</p></td>
+<td><p>list</p></td>
+<td><p>The end index of each trajectory in ctx.trajectories.</p></td>
+<td><p>StepCollector</p></td>
+</tr>
+<tr class="row-odd"><td><p>eval_value</p></td>
+<td><p>False</p></td>
+<td><p>float</p></td>
+<td><p>The average reward in the current evaluation.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+<tr class="row-even"><td><p>last_eval_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The last ctx.train_iter that is evaluated.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="offlinerlcontext">
+<h4>OfflineRLContext<a class="headerlink" href="#offlinerlcontext" title="Permalink to this headline">¶</a></h4>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 26%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Keeped</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Role</p></th>
+<th class="head"><p>Updated position</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>total_step</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of total iteration steps.</p></td>
+<td><p>In the beginning of each middleware execution loop.</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_epoch</p></td>
+<td><p>False</p></td>
+<td><p>int</p></td>
+<td><p>The count of training epoches.</p></td>
+<td><p>offline_data_fetcher</p></td>
+</tr>
+<tr class="row-even"><td><p>train_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The number of training iterations.</p></td>
+<td><p>trainer, multistep_trainer</p></td>
+</tr>
+<tr class="row-odd"><td><p>train_data</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List]</p></td>
+<td><p>The fetched data used to be trained.</p></td>
+<td><p>gae_estimator, offpolicy_data_fetcher, offline_data_fetcher, her_data_enhancer</p></td>
+</tr>
+<tr class="row-even"><td><p>train_output</p></td>
+<td><p>False</p></td>
+<td><p>Union[Dict, List[Dict]]</p></td>
+<td><p>The training output including logit, action and other info.</p></td>
+<td><p>OffPolicyLearner, HERLearner(List), trainer, multistep_trainer(Dict)</p></td>
+</tr>
+<tr class="row-odd"><td><p>eval_value</p></td>
+<td><p>False</p></td>
+<td><p>float</p></td>
+<td><p>The average reward in the current evaluation.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+<tr class="row-even"><td><p>last_eval_iter</p></td>
+<td><p>True</p></td>
+<td><p>int</p></td>
+<td><p>The last ctx.train_iter that is evaluated.</p></td>
+<td><p>interaction_evaluator, metric_evaluator</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 </section>
 <section id="using-task-to-execute-tasks-asynchronously">
 <h2>Using task to execute tasks asynchronously<a class="headerlink" href="#using-task-to-execute-tasks-asynchronously" title="Permalink to this headline">¶</a></h2>
@@ -395,7 +613,15 @@ For example, <code class="docutils literal notranslate"><span class="pre">Online
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#">Middleware</a><ul>
-<li><a class="reference internal" href="#context">Context</a></li>
+<li><a class="reference internal" href="#context">Context</a><ul>
+<li><a class="reference internal" href="#v0-4-2-changes-update-context-from-dict-to-dataclass">v0.4.2 changes: Update Context from dict to dataclass</a></li>
+<li><a class="reference internal" href="#the-introduction-of-context-variables">The introduction of Context variables</a><ul>
+<li><a class="reference internal" href="#onlinerlcontext">OnlineRLContext</a></li>
+<li><a class="reference internal" href="#offlinerlcontext">OfflineRLContext</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#using-task-to-execute-tasks-asynchronously">Using task to execute tasks asynchronously</a></li>
 <li><a class="reference internal" href="#middleware-in-different-stages">Middleware in different stages</a></li>
 </ul>

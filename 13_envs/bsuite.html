@@ -290,9 +290,30 @@
 </ol>
 </div></blockquote>
 <figure class="align-center" id="id2">
-<img alt="../_images/bsuite.png" src="../_images/bsuite.png" />
+<a class="reference internal image-reference" href="../_images/bsuite.png"><img alt="../_images/bsuite.png" src="../_images/bsuite.png" style="width: 576.8px; height: 357.7px;" /></a>
 <figcaption>
-<p><span class="caption-text">Imahge taken from: <a class="reference external" href="https://github.com/deepmind/bsuite">https://github.com/deepmind/bsuite</a></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+<p><span class="caption-text">Image taken from: <a class="reference external" href="https://github.com/deepmind/bsuite">https://github.com/deepmind/bsuite</a></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Here we take <em>Memory Length</em> as an example environment to illustrate below. It’s designed to test the number of sequential steps an agent can remember a single bit. The underlying environment is based on a stylized <a class="reference external" href="https://en.wikipedia.org/wiki/T-maze">T-maze</a> problem, parameterized by a length <span class="math notranslate nohighlight">\(N \in \mathbb{N}\)</span>.
+Each episode lasts N steps with observation <span class="math notranslate nohighlight">\(o_t=\left(c_t, t / N\right)\)</span> and
+action space <span class="math notranslate nohighlight">\(\mathcal{A}=\{-1,+1\}\)</span>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>At the beginning of the episode the agent is provided a context of +1 or -1, which means <span class="math notranslate nohighlight">\(c_1 \sim {Unif}(\mathcal{A})\)</span>.</p></li>
+<li><p>At all future timesteps the context is equal to zero and a countdown until the end of the episode,</p></li>
+</ul>
+<blockquote>
+<div><p>which means <span class="math notranslate nohighlight">\(c_t=0\)</span> for all <span class="math notranslate nohighlight">\(t&gt;2\)</span>.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>At the end of the episode the agent must select the correct action corresponding to the context to reward. The reward <span class="math notranslate nohighlight">\(r_t=0\)</span> for all <span class="math notranslate nohighlight">\(t&lt;N\)</span>, and <span class="math notranslate nohighlight">\(r_N={Sign}\left(a_N=c_1\right)\)</span></p></li>
+</ul>
+</div></blockquote>
+<figure class="align-center" id="id3">
+<a class="reference internal image-reference" href="../_images/bsuite_memory_length.png"><img alt="../_images/bsuite_memory_length.png" src="../_images/bsuite_memory_length.png" style="width: 401.79999999999995px; height: 153.29999999999998px;" /></a>
+<figcaption>
+<p><span class="caption-text">Image taken from paper <a class="reference external" href="https://arxiv.org/abs/1908.03568">Behaviour Suite for Reinforcement Learning</a></span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 </section>
@@ -313,7 +334,7 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
 <p>Once installed, you can verify whether the installation is successful by running the following command on the Python command line.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
-<span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="s1">&#39;catch/0&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">)</span> <span class="c1"># this environment configuration is &#39;memory steps&#39; long</span>
 <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
 </pre></div>
@@ -325,41 +346,48 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <section id="observations-space">
 <h3>Observations Space<a class="headerlink" href="#observations-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Array representing the state of the environment, dimensions and size can vary according to the specific environment. Its datatype is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>.</p></li>
+<li><p>The observation of agent is a 3-dimensional vector. Data type is <code class="docutils literal notranslate"><span class="pre">float32</span></code>. Their specific meaning is as below:</p></li>
 </ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>obs[0] shows the current time, ranging from [0, 1].</p></li>
+<li><p>obs[1] shows the query as an integer number between 0 and num of bit at the last step. It’s always 0 in memory length experiment because there is only a single bit. (It’s useful in memory size experiment.)</p></li>
+<li><p>obs[2] shows the context of +1 or -1 at the first step. At all future timesteps the context is equal to 0 and a countdown until the end of the episode</p></li>
+</ul>
+</div></blockquote>
 </section>
 <section id="actions-space">
 <h3>Actions Space<a class="headerlink" href="#actions-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>The action space is a discrete space of size N which varies according to the environment. This datatype is <code class="docutils literal notranslate"><span class="pre">int</span></code>and input is a python integer value（or a np array of dimension 0 such as <code class="docutils literal notranslate"><span class="pre">np.array(1)</span></code>to input action 1）.</p></li>
-<li><p>For example, in the Deep Sea environment, N is equal to 2, thus action values ranges from 0 to 1. For their specific meaning, you can refer to the following list:</p>
-<ul>
-<li><p>0：LEFT.</p></li>
-<li><p>1：RIGHT.</p></li>
-</ul>
-</li>
+<li><p>The action space is a discrete space of size 2, which is {-1,1}. Data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>.</p></li>
 </ul>
 </section>
 <section id="rewards-space">
 <h3>Rewards Space<a class="headerlink" href="#rewards-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Rewards are assigned according to the rules of the environments. Rewards are usually a <code class="docutils literal notranslate"><span class="pre">float</span></code>value.</p></li>
+<li><p>The reward space is a discrete space of size 3, which is a <code class="docutils literal notranslate"><span class="pre">float</span></code> value.</p></li>
 </ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>If it isn’t the last step (t&lt;N), the reward is 0.</p></li>
+<li><p>If it’s the last step and the agent select the correct action, the reward is 1.</p></li>
+<li><p>If it’s the last step andthe agent select a wrong action, the reward is -1.</p></li>
+</ul>
+</div></blockquote>
 </section>
 <section id="others">
 <h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Environments terminate once they have reached their maximum number of steps or encountered a failure state. All environments have the fixed number of maximum steps, but not all environments have a failure state.</p></li>
+<li><p>Environments terminate once they have reached their maximum number of steps N.</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
 <h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Each environment contains several configurations to make it gradually more challenging.</p></li>
+<li><p>We can change the memory length N to make it gradually more challenging.</p></li>
 <li><p>Discrete actions space.</p></li>
 <li><p>Each environment is designed to test a particular propriety of RL policies, including: generalization, exploration, credit assignment, scaling, noise, memory.</p></li>
-<li><p>The scale of rewards can vary significantly.</p></li>
 </ol>
 </section>
 <section id="id1">
@@ -369,7 +397,7 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <p>Our implementation uses the bsuite Gym wrapper to make the bsuite codebase run under the OpenAI Gym interface. Hence, <code class="docutils literal notranslate"><span class="pre">gym</span></code> needs to be installed to make bsuite work properly.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
 <span class="kn">from</span> <span class="nn">bsuite.utils</span> <span class="kn">import</span> <span class="n">gym_wrapper</span>
-<span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_and_record_to_csv</span><span class="p">(</span><span class="s1">&#39;catch/0&#39;</span><span class="p">,</span> <span class="n">results_dir</span><span class="o">=</span><span class="s1">&#39;/path/to/results&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_and_record_to_csv</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">,</span> <span class="n">results_dir</span><span class="o">=</span><span class="s1">&#39;/path/to/results&#39;</span><span class="p">)</span>
 <span class="n">gym_env</span> <span class="o">=</span> <span class="n">gym_wrapper</span><span class="o">.</span><span class="n">GymFromDMEnv</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -388,7 +416,7 @@ Given a specific environment, all possible configurations can be visualized with
 <p>Using DI-engine, you can create a bsuite environment simply with the name of your desired configuration.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.bsuite.envs</span> <span class="kn">import</span> <span class="n">BSuiteEnv</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;env&#39;</span><span class="p">:</span> <span class="s1">&#39;memory_len/0&#39;</span><span class="p">}</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;env&#39;</span><span class="p">:</span> <span class="s1">&#39;memory_len/15&#39;</span><span class="p">}</span>
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">memory_len_env</span> <span class="o">=</span> <span class="n">BSuiteEnv</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 </pre></div>
@@ -458,6 +486,17 @@ link</a>
 </pre></div>
 </div>
 </section>
+<section id="benchmark-algorithm-performance">
+<h2>Benchmark algorithm performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>memory_len/15 + R2D2</p></li>
+</ul>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/bsuite_momery_len_15_r2d2.png"><img alt="../_images/bsuite_momery_len_15_r2d2.png" src="../_images/bsuite_momery_len_15_r2d2.png" style="width: 361.2px; height: 270.2px;" /></a>
+</figure>
+</div></blockquote>
+</section>
 </section>
 
 
@@ -524,6 +563,7 @@ link</a>
 </ul>
 </li>
 <li><a class="reference internal" href="#di-zoo-runnable-code">DI-zoo Runnable Code</a></li>
+<li><a class="reference internal" href="#benchmark-algorithm-performance">Benchmark algorithm performance</a></li>
 </ul>
 </li>
 </ul>
@@ -546,6 +586,7 @@ link</a>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   
