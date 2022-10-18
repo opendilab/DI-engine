@@ -8,13 +8,6 @@ from ding.model import C51DQN
 from dizoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c51_config, cartpole_c51_create_config
 
 
-def wrapped_cartpole_env():
-    return DingEnvWrapper(
-        gym.make('CartPole-v0'),
-        EasyDict(env_wrapper='default'),
-    )
-
-
 def main(main_config: EasyDict, create_config: EasyDict, ckpt_path: str):
     main_config.exp_name = 'cartpole_c51_deploy'
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
