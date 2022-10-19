@@ -3,9 +3,7 @@ from easydict import EasyDict
 from ditk import logging
 import numpy as np
 from ding.policy import Policy
-from ding.framework import task, OfflineRLContext
-
-from ding.framework import OnlineRLContext, OfflineRLContext
+from ding.framework import task, OfflineRLContext, OnlineRLContext
 
 
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:

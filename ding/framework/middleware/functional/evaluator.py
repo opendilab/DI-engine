@@ -7,14 +7,12 @@ import torch
 import treetensor.torch as ttorch
 from easydict import EasyDict
 from ding.envs import BaseEnvManager
-from ding.framework.context import OfflineRLContext
+from ding.framework.context import Context, OfflineRLContext, OnlineRLContext
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
 from ding.torch_utils import tensor_to_list, to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
-
-from ding.framework import Context, OnlineRLContext, OfflineRLContext
 
 
 class IMetric(ABC):

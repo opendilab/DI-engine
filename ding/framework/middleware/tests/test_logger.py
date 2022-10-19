@@ -13,7 +13,6 @@ from ding.framework.middleware.tests import MockPolicy, CONFIG
 from ding.framework import OnlineRLContext, OfflineRLContext
 from ding.framework.middleware.functional import online_logger, offline_logger, wandb_online_logger
 
-
 test_folder = "test_exp"
 test_path = path.join(os.getcwd(), test_folder)
 cfg = EasyDict({"exp_name": "test_exp"})
