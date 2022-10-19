@@ -1,4 +1,5 @@
 from time import sleep, time
+from dataclasses import fields
 from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 from ditk import logging
 from ding.framework import task
@@ -91,7 +92,8 @@ class ContextExchanger:
             Each attribute should have a standalone fetch handler, which named `_fetch_{key}`
         """
         payload = {}
-        for key, item in ctx.items():
+        for field in fields(ctx):
+            key, item = field.name, getattr(ctx, field.name)
             fn_name = "_fetch_{}".format(key)
             if hasattr(self, fn_name):
                 value = getattr(self, fn_name)(item)
@@ -114,7 +116,7 @@ class ContextExchanger:
                 sleep(0.01)
 
         for k, v in self._state.items():
-            ctx[k] = v
+            setattr(ctx, k, v)
         self._state = {}
 
     # Handle each attibute of context

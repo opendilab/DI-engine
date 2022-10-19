@@ -6,6 +6,7 @@ from matplotlib import animation
 from torch.nn import functional as F
 import numpy as np
 import wandb
+from ding.framework import task
 from ding.envs import BaseEnvManagerV2
 from ding.utils import DistributedWriter
 from ding.torch_utils import to_ndarray
@@ -16,10 +17,14 @@ if TYPE_CHECKING:
 
 
 def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
     last_train_show_iter = -1
 
     def _logger(ctx: "OnlineRLContext"):
+        if task.finish:
+            writer.close()
         nonlocal last_train_show_iter
 
         if not np.isinf(ctx.eval_value):
@@ -56,9 +61,13 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
 
 
 def offline_logger() -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
 
     def _logger(ctx: "OfflineRLContext"):
+        if task.finish:
+            writer.close()
         if not np.isinf(ctx.eval_value):
             writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
         if ctx.train_output is not None:
@@ -91,7 +100,8 @@ def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Model.
     '''
-
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
     metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
     # Initialize wandb with default settings
