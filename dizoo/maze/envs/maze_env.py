@@ -94,8 +94,8 @@ class Maze(gym.Env):
 
     def random_start(self):
         while True:  # Find empty grid cell.
-            self._x = self.np_random.randint(self._max_x)
-            self._y = self.np_random.randint(self._max_y)
+            self._x = self.np_random.integers(self._max_x)
+            self._y = self.np_random.integers(self._max_y)
             if self._map[self._x][self._y] != 'x':
                 break
         return self.process_states(self._get_obs(), self.get_maze_map())
@@ -224,14 +224,14 @@ class Maze(gym.Env):
                     # occupied
                     # we create shortcut with some probability, this is because
                     # we do not want to restrict to only one feasible path.
-                    if rng.rand() < shortcut_prob:
+                    if rng.random() < shortcut_prob:
                         connect_pixel(y, x, ny, nx)
 
         carve_passage_from(outer_wall_thickness, outer_wall_thickness)
 
     def sample_location(self, maze, rng):
         for _ in range(1000):
-            x, y = rng.randint(low=1, high=self._size, size=2)
+            x, y = rng.integers(low=1, high=self._size, size=2)
             if maze[x, y] == Maze.KEY_EMPTY:
                 return x, y
         raise ValueError('Cannot sample empty location, make maze bigger?')

@@ -27,6 +27,46 @@ def print_obs(obs):
     print(obs[0, :, :, 2])
 
 
+def get_vi_sequence(target, observation, map):
+    """Returns [L, W, W] optimal actions."""
+    start_x, start_y = observation
+    target_location = target
+    nav_map = map
+    current_points = [target_location]
+    chosen_actions = {target_location: 0}
+    visited_points = {target_location: True}
+    vi_sequence = []
+    vi_map = 4 * torch.ones_like(map)
+
+    found_start = False
+    while current_points and not found_start:
+        next_points = []
+        for point_x, point_y in current_points:
+            for (action, (next_point_x, next_point_y)) in [(0, (point_x - 1, point_y)), (1, (point_x, point_y - 1)),
+                                                           (2, (point_x + 1, point_y)), (3, (point_x, point_y + 1))]:
+
+                if (next_point_x, next_point_y) in visited_points:
+                    continue
+
+                if not (0 <= next_point_x < len(nav_map) and 0 <= next_point_y < len(nav_map[next_point_x])):
+                    continue
+
+                if nav_map[next_point_x][next_point_y] == 'x':
+                    continue
+
+                next_points.append((next_point_x, next_point_y))
+                visited_points[(next_point_x, next_point_y)] = True
+                chosen_actions[(next_point_x, next_point_y)] = action
+                vi_map[next_point_x, next_point_y] = action
+
+                if next_point_x == start_x and next_point_y == start_y:
+                    found_start = True
+        vi_sequence.append(vi_map.copy())
+        current_points = next_points
+
+    return vi_sequence
+
+
 @POLICY_REGISTRY.register('pc')
 class ProcedureCloningPolicy(Policy):
 
@@ -136,8 +176,11 @@ class ProcedureCloningPolicy(Policy):
         # print(torch.argmax(logits[0], dim=-1))
         # print(bfs_output_maps[0])
         # print('##############################')
-
-        # my_preds = torch.argmax(logits, dim=-1)
+        my_preds = torch.argmax(logits, dim=-1)
+        # for ii in range(bfs_input_maps.shape[0]):
+        #     if torch.sum(bfs_input_maps[ii]) == 4 * 16 * 16:
+        #         print('####################################################')
+        #         print(my_preds[ii])
         logits = logits.flatten(0, -2)
         labels = bfs_output_maps.flatten(0, -1)
 
@@ -181,9 +224,20 @@ class ProcedureCloningPolicy(Policy):
                 bfs_input_maps = to_device(bfs_input_maps, self._device)
             xy = torch.where(states[:, :, :, -1] == 1)
             observation = (xy[1][0].item(), xy[2][0].item())
+
+            wall = copy.deepcopy(states[:, :, :, 0])
+
+            xy = torch.where(states[:, :, :, -2] == 1)
+            goal = (xy[1][0].item(), xy[2][0].item())
+
             i = 0
             print_obs(states)
             print(observation)
+            print(goal)
+            seq = get_vi_sequence(goal, observation, wall)
+            print(seq[0])
+            print(seq[1])
+            assert False
             while bfs_input_maps[0, observation[0], observation[1]].item() == self._num_actions and i < max_len:
                 print(bfs_input_maps)
                 bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).long()
