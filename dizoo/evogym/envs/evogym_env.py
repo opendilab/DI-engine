@@ -11,7 +11,7 @@ from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
-#import evogym.envs
+import evogym.envs
 from evogym import WorldObject, sample_robot
 from evogym.sim import EvoSim
 
