@@ -3,15 +3,15 @@
 
 Use the pipeline on a single process:
 
-> python ding/example/dqn.py
+> python3 -u ding/example/dqn.py
 
 Use the pipeline on multiple processes:
 
-We surpose there are N processes (workers) = 1 learner + 1 evaluator + (N-2) actors
+We surpose there are N processes (workers) = 1 learner + 1 evaluator + (N-2) collectors
 
 ## First Example —— Execute on one machine with multi processes.
 
-Execute 4 processes with 1 learner + 1 evaluator + 2 actors
+Execute 4 processes with 1 learner + 1 evaluator + 2 collectors
 Remember to keep them connected by mesh to ensure that they can exchange information with each other.
 
 > ditask --package . --main ding.example.dqn.main --parallel-workers 4 --topology mesh
@@ -53,15 +53,15 @@ from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_confi
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    cfg = compile_config(main_config, create_cfg=create_config, auto=True, save_cfg=task.router.node_id == 0)
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v1")) for _ in range(cfg.env.collector_env_num)],
             cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.evaluator_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v1")) for _ in range(cfg.env.evaluator_env_num)],
             cfg=cfg.env.manager
         )
 

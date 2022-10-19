@@ -20,12 +20,12 @@ def main():
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = EnvSupervisor(
             type_=ChildType.THREAD,
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v1")) for _ in range(cfg.env.collector_env_num)],
             **cfg.env.manager
         )
         evaluator_env = EnvSupervisor(
             type_=ChildType.THREAD,
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.evaluator_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v1")) for _ in range(cfg.env.evaluator_env_num)],
             **cfg.env.manager
         )
 
