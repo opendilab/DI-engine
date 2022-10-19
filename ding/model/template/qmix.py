@@ -16,34 +16,36 @@ class Mixer(nn.Module):
         __init__, forward
     """
 
-    def __init__(self, agent_num, state_dim, mixing_embed_dim, hypernet_embed=64):
+    def __init__(self, agent_num, state_dim, mixing_embed_dim, hypernet_embed=64, activation=nn.ReLU()):
         """
         Overview:
-            initialize pymarl mixer network
+            Initialize mixer network proposed in QMIX.
         Arguments:
             - agent_num (:obj:`int`): the number of agent
             - state_dim(:obj:`int`): the dimension of global observation state
             - mixing_embed_dim (:obj:`int`): the dimension of mixing state emdedding
             - hypernet_embed (:obj:`int`): the dimension of hypernet emdedding, default to 64
+            - activation (:obj:`nn.Module`): Activation function in network, defaults to nn.ReLU().
         """
         super(Mixer, self).__init__()
 
         self.n_agents = agent_num
         self.state_dim = state_dim
         self.embed_dim = mixing_embed_dim
+        self.act = activation
         self.hyper_w_1 = nn.Sequential(
-            nn.Linear(self.state_dim, hypernet_embed), nn.ReLU(),
+            nn.Linear(self.state_dim, hypernet_embed), self.act,
             nn.Linear(hypernet_embed, self.embed_dim * self.n_agents)
         )
         self.hyper_w_final = nn.Sequential(
-            nn.Linear(self.state_dim, hypernet_embed), nn.ReLU(), nn.Linear(hypernet_embed, self.embed_dim)
+            nn.Linear(self.state_dim, hypernet_embed), self.act, nn.Linear(hypernet_embed, self.embed_dim)
         )
 
         # State dependent bias for hidden layer
         self.hyper_b_1 = nn.Linear(self.state_dim, self.embed_dim)
 
         # V(s) instead of a bias for the last layers
-        self.V = nn.Sequential(nn.Linear(self.state_dim, self.embed_dim), nn.ReLU(), nn.Linear(self.embed_dim, 1))
+        self.V = nn.Sequential(nn.Linear(self.state_dim, self.embed_dim), self.act, nn.Linear(self.embed_dim, 1))
 
     def forward(self, agent_qs, states):
         """
@@ -123,7 +125,7 @@ class QMix(nn.Module):
         embedding_size = hidden_size_list[-1]
         self.mixer = mixer
         if self.mixer:
-            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size)
+            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size, activation=activation)
             self._global_state_encoder = nn.Identity()
 
     def forward(self, data: dict, single_step: bool = True) -> dict:

@@ -15,8 +15,9 @@ from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.mujoco.config.ant_ddpg_config import ant_ddpg_config, ant_ddpg_create_config
 
+
 def main(rl_cfg, seed=0):
-    main_cfg, create_cfg =rl_cfg
+    main_cfg, create_cfg = rl_cfg
     cfg = compile_config(
         main_cfg,
         BaseEnvManager,
@@ -56,4 +57,4 @@ def main(rl_cfg, seed=0):
 
 
 if __name__ == "__main__":
-    main(rl_cfg=(ant_ddpg_config, ant_ddpg_create_config),seed=0)
+    main(rl_cfg=(ant_ddpg_config, ant_ddpg_create_config), seed=0)

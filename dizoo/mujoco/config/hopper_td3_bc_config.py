@@ -5,13 +5,12 @@ hopper_td3_bc_config = dict(
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(
-            use_norm=True, 
+            use_norm=True,
             offline_stats=dict(use_offline_stats=True, ),
         ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
     ),

@@ -99,6 +99,9 @@ class IQNPolicy(DQNPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'iqn', ['ding.model.template.q_learning']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -195,6 +198,3 @@ class IQNPolicy(DQNPolicy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'iqn', ['ding.model.template.q_learning']

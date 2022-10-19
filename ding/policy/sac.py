@@ -185,6 +185,12 @@ class SACDiscretePolicy(Policy):
         Policy class of SAC algorithm.
     """
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.multi_agent:
+            return 'maqac', ['ding.model.template.maqac']
+        else:
+            return 'discrete_qac', ['ding.model.template.qac']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -490,12 +496,6 @@ class SACDiscretePolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.multi_agent:
-            return 'maqac', ['ding.model.template.maqac']
-        else:
-            return 'discrete_qac', ['ding.model.template.qac']
-
     def _monitor_vars_learn(self) -> List[str]:
         r"""
         Overview:
@@ -695,6 +695,12 @@ class SACPolicy(Policy):
             ),
         ),
     )
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.multi_agent:
+            return 'maqac_continuous', ['ding.model.template.maqac']
+        else:
+            return 'qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
         r"""
@@ -1050,12 +1056,6 @@ class SACPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.multi_agent:
-            return 'maqac_continuous', ['ding.model.template.maqac']
-        else:
-            return 'qac', ['ding.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
