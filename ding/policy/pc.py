@@ -27,16 +27,16 @@ def print_obs(obs):
     print(obs[0, :, :, 2])
 
 
-def get_vi_sequence(target, observation, map):
+def get_vi_sequence(target, observation, nav_map):
     """Returns [L, W, W] optimal actions."""
     start_x, start_y = observation
     target_location = target
-    nav_map = map
     current_points = [target_location]
     chosen_actions = {target_location: 0}
     visited_points = {target_location: True}
     vi_sequence = []
-    vi_map = 4 * torch.ones_like(map)
+    nav_map = nav_map.squeeze(0)
+    vi_map = 4 * torch.ones_like(nav_map)
 
     found_start = False
     while current_points and not found_start:
@@ -44,24 +44,22 @@ def get_vi_sequence(target, observation, map):
         for point_x, point_y in current_points:
             for (action, (next_point_x, next_point_y)) in [(0, (point_x - 1, point_y)), (1, (point_x, point_y - 1)),
                                                            (2, (point_x + 1, point_y)), (3, (point_x, point_y + 1))]:
-
                 if (next_point_x, next_point_y) in visited_points:
                     continue
 
                 if not (0 <= next_point_x < len(nav_map) and 0 <= next_point_y < len(nav_map[next_point_x])):
                     continue
 
-                if nav_map[next_point_x][next_point_y] == 'x':
+                if nav_map[next_point_x][next_point_y] != 0:
                     continue
-
                 next_points.append((next_point_x, next_point_y))
                 visited_points[(next_point_x, next_point_y)] = True
                 chosen_actions[(next_point_x, next_point_y)] = action
                 vi_map[next_point_x, next_point_y] = action
-
+                
                 if next_point_x == start_x and next_point_y == start_y:
                     found_start = True
-        vi_sequence.append(vi_map.copy())
+        vi_sequence.append(copy.deepcopy(vi_map))
         current_points = next_points
 
     return vi_sequence
@@ -170,7 +168,37 @@ class ProcedureCloningPolicy(Policy):
                                                         collated_data['bfs_out'].long()
         states = observations
         bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).float()
-        bfs_states = torch.cat([states, bfs_input_onehot], dim=-1)
+        
+        shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
+        # is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
+
+        # for ii in range(bfs_input_maps.shape[0]):
+        #     if torch.sum(bfs_input_maps[ii]) == 4 * 16 * 16:
+        #         is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
+        #         print(bfs_input_maps[ii])
+        #         tmp = torch.sum(bfs_input_maps, dim=(1, 2))
+        #         print(tmp[ii])
+        #         tmp = (tmp == self._num_actions * shape0 * shape1).long()
+        #         print(tmp[ii])
+        #         tmp = torch.nn.functional.one_hot(tmp, 2).float().unsqueeze(1).unsqueeze(1)
+        #         print(tmp[ii])
+        #         is_init = is_init + tmp
+        #         print(is_init[ii,..., -1])
+        #         print(is_init[ii-1, ...,-1])
+        #         if torch.sum(is_init[ii,..., -1]).item() != 16*16:
+        #             assert False
+        #         if torch.sum(is_init[ii,..., -2]).item() != 0:
+        #             assert False
+
+        # is_init = torch.zeros((bfs_input_maps.shape[0], shape0, shape1, 1)).to(bfs_input_maps.device).float()
+        # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
+        # tmp = (tmp == self._num_actions * shape0 * shape1).long()
+        # tmp = tmp.float().unsqueeze(1).unsqueeze(1).unsqueeze(1)
+        # is_init = tmp + is_init
+
+
+        bfs_states = torch.cat([states, bfs_input_onehot, ], dim=-1)
+
         logits = self._model(bfs_states)['logit']
         # print('##############################')
         # print(torch.argmax(logits[0], dim=-1))
@@ -178,9 +206,11 @@ class ProcedureCloningPolicy(Policy):
         # print('##############################')
         my_preds = torch.argmax(logits, dim=-1)
         # for ii in range(bfs_input_maps.shape[0]):
-        #     if torch.sum(bfs_input_maps[ii]) == 4 * 16 * 16:
+        #     if torch.sum(bfs_input_maps[ii]) != 4 * 16 * 16:
         #         print('####################################################')
         #         print(my_preds[ii])
+        #         print(bfs_states[0, ..., -2])
+        #         print(bfs_states[0,...,-1])
         logits = logits.flatten(0, -2)
         labels = bfs_output_maps.flatten(0, -1)
 
@@ -231,17 +261,23 @@ class ProcedureCloningPolicy(Policy):
             goal = (xy[1][0].item(), xy[2][0].item())
 
             i = 0
-            print_obs(states)
-            print(observation)
-            print(goal)
-            seq = get_vi_sequence(goal, observation, wall)
-            print(seq[0])
-            print(seq[1])
-            assert False
+            # seq = get_vi_sequence(goal, observation, wall)
+            # print(seq[0])
+            # print(seq[1])
+            # print(seq[0])
+            # assert False
+            # bfs_input_maps = seq[0].unsqueeze(0).long()
             while bfs_input_maps[0, observation[0], observation[1]].item() == self._num_actions and i < max_len:
                 print(bfs_input_maps)
                 bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).long()
-                bfs_states = torch.cat([states, bfs_input_onehot], dim=-1)
+                
+                # shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
+                # is_init = torch.zeros((bfs_input_maps.shape[0], shape0, shape1, 1)).to(bfs_input_maps.device).float()
+                # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
+                # tmp = (tmp == self._num_actions * shape0 * shape1).long()
+                # tmp = tmp.float().unsqueeze(1).unsqueeze(1).unsqueeze(1)
+                # is_init = tmp + is_init
+                bfs_states = torch.cat([states, bfs_input_onehot, ], dim=-1)
                 logits = self._model(bfs_states)['logit']
                 bfs_input_maps = torch.argmax(logits, dim=-1)
                 i += 1
@@ -251,7 +287,7 @@ class ProcedureCloningPolicy(Policy):
                 output[ii] = {'action': to_device(output[ii], 'cpu'), 'info': {}}
             if output[ii]['action'].item() == self._num_actions:
                 output[ii]['action'] = torch.randint(low=0, high=self._num_actions, size=[1])[0]
-        assert False
+        # assert False
         return output
 
     def _init_collect(self) -> None:

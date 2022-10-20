@@ -1,6 +1,6 @@
 from typing import Union, Optional, Tuple
 import os
-
+import copy
 import easydict
 import torch
 from functools import partial
@@ -39,6 +39,7 @@ def get_vi_sequence(env, observation):
     chosen_actions = {target_location: 0}
     visited_points = {target_location: True}
     vi_sequence = []
+
     vi_map = np.full((env.size, env.size), fill_value=env.n_action, dtype=np.int32)
 
     found_start = False
@@ -66,7 +67,6 @@ def get_vi_sequence(env, observation):
                     found_start = True
         vi_sequence.append(vi_map.copy())
         current_points = next_points
-
     return np.array(vi_sequence)
 
 
@@ -115,6 +115,11 @@ def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
         for i in range(env_observations.shape[0]):
             bfs_sequence = get_vi_sequence(env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
             bfs_input_map = env.n_action * np.ones([env.size, env.size], dtype=np.long)
+            for _ in range(50):
+                bfs_input_maps.append(torch.from_numpy(copy.deepcopy(bfs_input_map)))
+                bfs_output_maps.append(torch.from_numpy(copy.deepcopy(bfs_sequence[0])))
+                observations.append(copy.deepcopy(env_observations[i]))
+
             for j in range(bfs_sequence.shape[0]):
                 bfs_input_maps.append(torch.from_numpy(bfs_input_map))
                 bfs_output_maps.append(torch.from_numpy(bfs_sequence[j]))
@@ -213,6 +218,8 @@ def serial_pipeline_pc(
             if iter_cnt >= max_iter:
                 stop = True
                 break
+        if epoch % 69 == 0:
+            policy._optimizer.param_groups[0]['lr'] /= 10
         if stop:
             break
         losses = []
@@ -222,7 +229,20 @@ def serial_pipeline_pc(
                                                             test_data['bfs_out'].long()
             states = observations
             bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, 5).float()
-            bfs_states = torch.cat([states, bfs_input_onehot], dim=-1).cuda()
+            shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
+            # is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
+            # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
+            # tmp = (tmp == 4 * shape0 * shape1).long()
+            # tmp = torch.nn.functional.one_hot(tmp, 2).float().unsqueeze(1).unsqueeze(1)
+            # is_init = is_init + tmp
+
+            # is_init = torch.zeros((bfs_input_maps.shape[0], shape0, shape1, 1)).to(bfs_input_maps.device).float()
+            # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
+            # tmp = (tmp == 4 * shape0 * shape1).long()
+            # tmp = tmp.float().unsqueeze(1).unsqueeze(1).unsqueeze(1)
+            # is_init = tmp + is_init
+
+            bfs_states = torch.cat([states, bfs_input_onehot, ], dim=-1).cuda()
             logits = policy._model(bfs_states)['logit']
             logits = logits.flatten(0, -2)
             labels = bfs_output_maps.flatten(0, -1).cuda()

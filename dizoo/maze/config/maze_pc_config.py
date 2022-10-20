@@ -21,13 +21,13 @@ maze_pc_config = dict(
         model=dict(
             obs_shape=[8, maze_size, maze_size],
             action_shape=num_actions,
-            encoder_hidden_size_list=[128, 128, 256, 256],
+            encoder_hidden_size_list=[128, 256, 512, 1024, ],
         ),
         learn=dict(
             # update_per_collect=4,
             batch_size=256,
-            learning_rate=0.0005,
-            train_epoch=40,
+            learning_rate=0.005,
+            train_epoch=100,
             optimizer='SGD',
             # value_weight=0.5,
             # entropy_weight=0.001,
