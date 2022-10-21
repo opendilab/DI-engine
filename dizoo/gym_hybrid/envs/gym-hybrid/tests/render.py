@@ -1,6 +1,6 @@
 import time
-
 import gym
+import gym_hybrid
 
 if __name__ == '__main__':
     env = gym.make('Sliding-v0')
