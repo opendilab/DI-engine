@@ -11,6 +11,7 @@ gym_hybrid_hppo_config = dict(
         n_evaluator_episode=5,
         stop_value=1.8,
         save_replay_gif=False,
+        replay_path_gif=None,
     ),
     policy=dict(
         cuda=True,

@@ -1,0 +1,59 @@
+diff --git a/dizoo/gym_hybrid/config/gym_hybrid_ddpg_config.py b/dizoo/gym_hybrid/config/gym_hybrid_ddpg_config.py
+index 9c00f408e..c1e39c660 100644
+--- a/dizoo/gym_hybrid/config/gym_hybrid_ddpg_config.py
++++ b/dizoo/gym_hybrid/config/gym_hybrid_ddpg_config.py
+@@ -10,13 +10,13 @@ gym_hybrid_ddpg_config = dict(
+         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
+         n_evaluator_episode=5,
+         stop_value=1.8,
+-        # The path to save the game replay
+-        # replay_path='gym_hybrid_ddpg_seed0/video',
++        save_replay_gif=False,
++        replay_path_gif=None,
+     ),
+     policy=dict(
+         cuda=True,
+         priority=False,
+-        load_path="./gym_hybrid_ddpg_seed0/ckpt/ckpt_best.pth.tar",
++        # load_path="./gym_hybrid_ddpg_seed0/ckpt/ckpt_best.pth.tar",
+         random_collect_size=0,  # hybrid action space not support random collect now
+         action_space='hybrid',
+         model=dict(
+diff --git a/dizoo/gym_hybrid/config/gym_hybrid_hppo_config.py b/dizoo/gym_hybrid/config/gym_hybrid_hppo_config.py
+index f5ded395a..40ef8c96a 100644
+--- a/dizoo/gym_hybrid/config/gym_hybrid_hppo_config.py
++++ b/dizoo/gym_hybrid/config/gym_hybrid_hppo_config.py
+@@ -11,6 +11,7 @@ gym_hybrid_hppo_config = dict(
+         n_evaluator_episode=5,
+         stop_value=1.8,
+         save_replay_gif=False,
++        replay_path_gif=None,
+     ),
+     policy=dict(
+         cuda=True,
+diff --git a/dizoo/gym_hybrid/config/gym_hybrid_mpdqn_config.py b/dizoo/gym_hybrid/config/gym_hybrid_mpdqn_config.py
+index 679134987..92b81142e 100644
+--- a/dizoo/gym_hybrid/config/gym_hybrid_mpdqn_config.py
++++ b/dizoo/gym_hybrid/config/gym_hybrid_mpdqn_config.py
+@@ -10,6 +10,8 @@ gym_hybrid_mpdqn_config = dict(
+         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
+         n_evaluator_episode=5,
+         stop_value=1.8,
++        save_replay_gif=False,
++        replay_path_gif=None,
+     ),
+     policy=dict(
+         cuda=True,
+diff --git a/dizoo/gym_hybrid/config/gym_hybrid_pdqn_config.py b/dizoo/gym_hybrid/config/gym_hybrid_pdqn_config.py
+index 817177adc..b2d628a87 100644
+--- a/dizoo/gym_hybrid/config/gym_hybrid_pdqn_config.py
++++ b/dizoo/gym_hybrid/config/gym_hybrid_pdqn_config.py
+@@ -10,6 +10,8 @@ gym_hybrid_pdqn_config = dict(
+         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
+         n_evaluator_episode=5,
+         stop_value=1.8,
++        save_replay_gif=False,
++        replay_path_gif=None,
+     ),
+     policy=dict(
+         cuda=True,
