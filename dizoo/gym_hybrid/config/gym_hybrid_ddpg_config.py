@@ -10,13 +10,12 @@ gym_hybrid_ddpg_config = dict(
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
         stop_value=1.8,
-        # The path to save the game replay
-        # replay_path='gym_hybrid_ddpg_seed0/video',
+        save_replay_gif=False,
+        replay_path_gif=None,
     ),
     policy=dict(
         cuda=True,
         priority=False,
-        load_path="./gym_hybrid_ddpg_seed0/ckpt/ckpt_best.pth.tar",
         random_collect_size=0,  # hybrid action space not support random collect now
         action_space='hybrid',
         model=dict(
