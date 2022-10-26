@@ -49,6 +49,9 @@ Updated on 2022.09.23 DI-engine-v0.4.3
 
 **DI-engine** aims to **standardize different Decision Intelligence enviroments and applications**. Various training pipelines and customized decision AI applications are also supported.
 
+<details open>
+<summary>(Click to Collapse)</summary>
+
 - Traditional academic environments
   - [DI-zoo](https://github.com/opendilab/DI-engine#environment-versatility)
 - Real world decision AI applications
@@ -70,12 +73,18 @@ Updated on 2022.09.23 DI-engine-v0.4.3
   - [awesome-exploration-RL](https://github.com/opendilab/awesome-exploration-rl): A curated list of awesome exploration RL resources
   - [awesome-decision-transformer](https://github.com/opendilab/awesome-decision-transformer): A curated list of Decision Transformer resources
   - [awesome-multi-modal-reinforcement-learning](https://github.com/opendilab/awesome-multi-modal-reinforcement-learning): A curated list of Multi-Modal Reinforcement Learning resources
+</details>
+
 
 **DI-engine** also has some **system optimization and design** for efficient and robust large-scale RL training:
+
+<details close>
+<summary>(Click for Details)</summary>
 
 - [DI-orchestrator](https://github.com/opendilab/DI-orchestrator): RL Kubernetes Custom Resource and Operator Lib
 - [DI-hpc](https://github.com/opendilab/DI-hpc): RL HPC OP Lib
 - [DI-store](https://github.com/opendilab/DI-store): RL Object Store
+</details>
 
 Have fun with exploration and exploitation.
 
@@ -111,6 +120,9 @@ For more information about installation, you can refer to [installation](https:/
 
 And our dockerhub repo can be found [here](https://hub.docker.com/repository/docker/opendilab/ding)，we prepare `base image` and `env image` with common RL environments.
 
+<details close>
+<summary>(Click for Details)</summary>
+
 - base: opendilab/ding:nightly
 - atari: opendilab/ding:nightly-atari
 - mujoco: opendilab/ding:nightly-mujoco
@@ -118,6 +130,7 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - metaworld: opendilab/ding:nightly-metaworld
 - smac: opendilab/ding:nightly-smac
 - grf: opendilab/ding:nightly-grf
+</details>
 
 The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
 
@@ -167,6 +180,8 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 
 
+<details open>
+<summary>(Click to Collapse)</summary>
 
 |  No.  |                          Algorithm                           |                            Label                             |                        Doc and Implementation                        |                        Runnable Demo                         |
 | :--: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
@@ -218,9 +233,13 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  46  |         [ST-DIM](https://arxiv.org/pdf/1906.08226.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/loss/contrastive_loss](https://github.com/opendilab/DI-engine/blob/main/ding/torch_utils/loss/contrastive_loss.py) |        ding -m serial -c cartpole_dqn_stdim_config.py -s 0       |
 |  47  |         [PLR](https://arxiv.org/pdf/2010.03934.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [PLR doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/plr.html)<br>[data/level_replay/level_sampler](https://github.com/opendilab/DI-engine/blob/main/ding/data/level_replay/level_sampler.py) |        python3 -u bigfish_plr_config.py -s 0       |
 |  48  |         [PCGrad](https://arxiv.org/pdf/2001.06782.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/optimizer_helper/PCGrad](https://github.com/opendilab/DI-engine/blob/main/ding/data/torch_utils/optimizer_helper.py) |        python3 -u multi_mnist_pcgrad_main.py -s 0       |
+</details>
 
 
 ### Environment Versatility
+<details open>
+<summary>(Click to Collapse)</summary>
+
 |  No  |                Environment               |                 Label               |         Visualization            |                   Code and Doc Links                   |
 | :--: | :--------------------------------------: | :---------------------------------: | :--------------------------------:|:---------------------------------------------------------: |
 |  1   |       [atari](https://github.com/openai/gym/tree/master/gym/envs/atari)    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/atari/atari.gif)     |        [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/envs) <br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/atari.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/atari_zh.html)        |
@@ -271,6 +290,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 ![selfplay](https://img.shields.io/badge/-selfplay-blue) means environment that allows agent VS agent battle
 
 P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse reward type
+</details>
 
 
 ## Feedback and Contribution
