@@ -85,7 +85,6 @@ setup(
         'matplotlib',
         'MarkupSafe==2.0.1',  # compatibility
         'h5py',
-        'pickle',
     ],
     extras_require={
         'test': [
