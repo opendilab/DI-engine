@@ -3,9 +3,13 @@ import os
 from easydict import EasyDict
 from matplotlib import pyplot as plt
 from matplotlib import animation
+import torch
 from torch.nn import functional as F
+from sklearn.manifold import TSNE
 import numpy as np
 import wandb
+import h5py
+import pickle
 from ding.envs import BaseEnvManagerV2
 from ding.utils import DistributedWriter
 from ding.torch_utils import to_ndarray
@@ -137,7 +141,7 @@ def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable
                 wandb.log({metric: metric_value})
 
         if ctx.eval_value != -np.inf:
-            wandb.log({"reward": ctx.eval_value})
+            wandb.log({"reward": ctx.eval_value, "train step": ctx.train_iter})
 
             eval_output = ctx.eval_output['output']
             eval_reward = ctx.eval_output['reward']
@@ -153,7 +157,211 @@ def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model) -> Callable
             video_path = os.path.join(cfg.record_path, file_list[-2])
             action_path = os.path.join(cfg.record_path, (str(ctx.env_step) + "_action.gif"))
             return_path = os.path.join(cfg.record_path, (str(ctx.env_step) + "_return.gif"))
-            if cfg.action_logger == 'q_value' or 'action probability':
+            if cfg.action_logger == 'q_value' or cfg.action_logger == 'action probability':
+                fig, ax = plt.subplots()
+                plt.ylim([-1, 1])
+                action_dim = len(action_value[0])
+                x_range = [str(x + 1) for x in range(action_dim)]
+                ln = ax.bar(x_range, [0 for x in range(action_dim)], color=color_list[:action_dim])
+                ani = animation.FuncAnimation(
+                    fig, _action_prob, fargs=(action_value, ln), blit=True, save_count=len(action_value)
+                )
+                ani.save(action_path, writer='pillow')
+                wandb.log({cfg.action_logger: wandb.Video(action_path, format="gif")})
+                plt.close()
+
+            fig, ax = plt.subplots()
+            ax = plt.gca()
+            ax.set_ylim([0, 1])
+            hist, x_dim = _return_distribution(eval_reward)
+            assert len(hist) == len(x_dim)
+            ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
+            ani = animation.FuncAnimation(fig, _return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
+            ani.save(return_path, writer='pillow')
+            wandb.log(
+                {
+                    "video": wandb.Video(video_path, format="mp4"),
+                    "return distribution": wandb.Video(return_path, format="gif")
+                }
+            )
+
+    return _plot
+
+
+def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model, datasetpath) -> Callable:
+    '''
+    Overview:
+        Wandb visualizer to track the experiment.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config, a dict of following settings:
+            - record_path: string. The path to save the replay of simulation.
+            - gradient_logger: boolean. Whether to track the gradient.
+            - plot_logger: boolean. Whether to track the metrics like reward and loss.
+            - action_logger: `q_value` or `action probability`.
+        - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
+        - model (:obj:`nn.Module`): Model.
+    '''
+
+    color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
+    metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
+    # Initialize wandb with default settings
+    # Settings can be covered by calling wandb.init() at the top of the script
+    wandb.init()
+    # The visualizer is called to save the replay of the simulation
+    # which will be uploaded to wandb later
+    env.enable_save_replay(replay_path=cfg.record_path)
+    if cfg.gradient_logger:
+        wandb.watch(model)
+    else:
+        one_time_warning(
+            "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
+        )
+
+    def _vis_dataset(datasetpath):
+        if datasetpath[-3:] == 'pkl':
+            f = open(datasetpath, 'rb')
+            data = pickle.load(f)
+            obs = []
+            action = []
+            reward = []
+            for i in range(len(data)):
+                obs.extend(data[i]['observations'])
+                action.extend(data[i]['actions'])
+                reward.extend(data[i]['rewards'])
+        elif datasetpath[-2:] == 'h5' or datasetpath[-4:] == 'hdf5':
+            f = h5py.File(datasetpath, 'r')
+            obs_loader = torch.utils.data.DataLoader(
+                f['/obs'],
+                batch_size=1,
+                shuffle=False,
+                sampler=None,
+                batch_sampler=None,
+                num_workers=0,
+                collate_fn=None,
+                pin_memory=False,
+                drop_last=False,
+                timeout=0,
+                worker_init_fn=None,
+                multiprocessing_context=None
+            )
+            action_loader = torch.utils.data.DataLoader(
+                f['/action'],
+                batch_size=1,
+                shuffle=False,
+                sampler=None,
+                batch_sampler=None,
+                num_workers=0,
+                collate_fn=None,
+                pin_memory=False,
+                drop_last=False,
+                timeout=0,
+                worker_init_fn=None,
+                multiprocessing_context=None
+            )
+            reward_loader = torch.utils.data.DataLoader(
+                f['/reward'],
+                batch_size=1,
+                shuffle=False,
+                sampler=None,
+                batch_sampler=None,
+                num_workers=0,
+                collate_fn=None,
+                pin_memory=False,
+                drop_last=False,
+                timeout=0,
+                worker_init_fn=None,
+                multiprocessing_context=None
+            )
+            obs = []
+            action = []
+            reward = []
+            for id, item in enumerate(obs_loader):
+                obs.append(item.numpy()[0])
+            for id, item in enumerate(action_loader):
+                action.append(item.numpy()[0])
+            for id, item in enumerate(reward_loader):
+                reward.append(item.numpy()[0])
+        else:
+            one_time_warning("Only support the visualization of .pkl, .hdf5, and .h5 file.")
+            return
+
+        cmap = plt.cm.hsv
+        obs = np.array(obs)
+        obs_action = np.hstack((obs, np.array(action)))
+        reward = reward / (max(reward) - min(reward))
+
+        embedded_obs = TSNE(n_components=2).fit_transform(obs)
+        embedded_obs_action = TSNE(n_components=2).fit_transform(obs_action)
+        x_min, x_max = np.min(embedded_obs, 0), np.max(embedded_obs, 0)
+        embedded_obs = embedded_obs / (x_max - x_min)
+
+        x_min, x_max = np.min(embedded_obs_action, 0), np.max(embedded_obs_action, 0)
+        embedded_obs_action = embedded_obs_action / (x_max - x_min)
+
+        fig = plt.figure()
+        f, axes = plt.subplots(nrows=1, ncols=3)
+
+        axes[0].scatter(embedded_obs[:, 0], embedded_obs[:, 1], c=cmap(reward))
+        axes[1].scatter(embedded_obs[:, 0], embedded_obs[:, 1], c=cmap(action))
+        axes[2].scatter(embedded_obs_action[:, 0], embedded_obs_action[:, 1], c=cmap(reward))
+        axes[0].set_title('state-reward')
+        axes[1].set_title('state-action')
+        axes[2].set_title('stateAction-reward')
+        plt.savefig('dataset.jpg')
+
+        wandb.log({"dataset": wandb.Image("dataset.jpg")})
+
+    if cfg.vis_dataset == True:
+        _vis_dataset(datasetpath)
+
+    def _action_prob(num, action_prob, ln):
+        ax = plt.gca()
+        ax.set_ylim([0, 1])
+        for rect, x in zip(ln, action_prob[num]):
+            rect.set_height(x)
+        return ln
+
+    def _return_prob(num, return_prob, ln):
+        return ln
+
+    def _return_distribution(reward):
+        num = len(reward)
+        max_return = max(reward)
+        min_return = min(reward)
+        hist, bins = np.histogram(reward, bins=np.linspace(min_return - 50, max_return + 50, 6))
+        gap = (max_return - min_return + 100) / 5
+        x_dim = [str(min_return - 50 + gap * x) for x in range(5)]
+        return hist / num, x_dim
+
+    def _plot(ctx: "OfflineRLContext"):
+        if not cfg.plot_logger:
+            one_time_warning(
+                "If you want to use wandb to visualize the result, please set plot_logger = True in the config."
+            )
+            return
+        for metric in metric_list:
+            if metric in ctx.train_output:
+                metric_value = ctx.train_output[metric]
+                wandb.log({metric: metric_value})
+
+        if ctx.eval_value != -np.inf:
+            wandb.log({"reward": ctx.eval_value, "train step": ctx.train_iter})
+
+            eval_output = ctx.eval_output['output']
+            eval_reward = ctx.eval_output['reward']
+            if 'logit' in eval_output[0]:
+                action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
+
+            file_list = []
+            for p in os.listdir(cfg.record_path):
+                if os.path.splitext(p)[-1] == ".mp4":
+                    file_list.append(p)
+            file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(cfg.record_path, fn)))
+
+            video_path = os.path.join(cfg.record_path, file_list[-2])
+            action_path = os.path.join(cfg.record_path, (str(ctx.train_iter) + "_action.gif"))
+            return_path = os.path.join(cfg.record_path, (str(ctx.train_iter) + "_return.gif"))
+            if cfg.action_logger == 'q_value' or cfg.action_logger == 'action probability':
                 fig, ax = plt.subplots()
                 plt.ylim([-1, 1])
                 action_dim = len(action_value[0])
