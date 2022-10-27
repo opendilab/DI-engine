@@ -17,7 +17,7 @@ from ding.utils.data import NaiveRLDataset
 def serial_pipeline_bc(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int,
-        data_path: str,
+        data_path: Optional[str] = None,
         model: Optional[torch.nn.Module] = None,
         max_iter=int(1e6),
 ) -> Union['Policy', bool]:  # noqa
@@ -29,7 +29,7 @@ def serial_pipeline_bc(
             ``str`` type means config file path. \
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
-        - data_path (:obj:`str`): Path of training data.
+        - data_path (:obj:`Optional[str]`): Path of training data.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
@@ -41,6 +41,8 @@ def serial_pipeline_bc(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = deepcopy(input_cfg)
+    if data_path is not None:
+        cfg.policy.collect.data_path = data_path
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
     # Env, Policy
@@ -53,7 +55,7 @@ def serial_pipeline_bc(
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    dataset = NaiveRLDataset(data_path)
+    dataset = NaiveRLDataset(cfg.policy.collect.data_path)
     dataloader = DataLoader(dataset[:-len(dataset) // 10], cfg.policy.learn.batch_size, collate_fn=lambda x: x)
     eval_loader = DataLoader(
         dataset[-len(dataset) // 10:],

@@ -56,7 +56,9 @@ phase 2: BC training
 """
 bc_config = [deepcopy(gfootball_bc_config), deepcopy(gfootball_bc_create_config)]
 bc_config[0].policy.learn.train_epoch = 1000  # key hyper-parameter
+bc_config[0].policy.collect.data_path = data_path_transitions
+
 football_naive_q = FootballNaiveQ()
 _, converge_stop_flag = serial_pipeline_bc(
-    bc_config, seed=seed, data_path=data_path_transitions, model=football_naive_q
+    bc_config, seed=seed, model=football_naive_q
 )

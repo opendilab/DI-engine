@@ -74,7 +74,8 @@ def test_serial_pipeline_bc_ppo():
     il_config[1].policy.type = 'ppo_bc'
     il_config[0].policy.continuous = False
     il_config[0].exp_name = 'test_serial_pipeline_bc_ppo_il'
-    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
+    il_config[0].policy.collect.data_path = expert_data_path
+    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314)
     assert converge_stop_flag
 
     os.popen('rm -rf ' + expert_data_path)
@@ -146,7 +147,8 @@ def test_serial_pipeline_bc_dqn():
     il_config[0].policy.continuous = False
     il_config[0].env.stop_value = 50
     il_config[0].policy.eval.evaluator.multi_gpu = False
-    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
+    il_config[0].policy.collect.data_path = expert_data_path
+    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314)
     assert converge_stop_flag
     os.popen('rm -rf ' + expert_data_path)
 
@@ -182,5 +184,6 @@ def test_serial_pipeline_bc_sac():
     il_config[0].policy.learn.learning_rate = 1e-5
     il_config[0].policy.eval.evaluator.multi_gpu = False
     il_config[1].policy.type = 'bc'
-    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path, max_iter=10)
+    il_config[0].policy.collect.data_path = expert_data_path
+    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, max_iter=10)
     os.popen('rm -rf ' + expert_data_path)

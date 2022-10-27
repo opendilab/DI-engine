@@ -1,10 +1,9 @@
-from ding.entry import serial_pipeline_bc, serial_pipeline, collect_demo_data
-from dizoo.mujoco.config.halfcheetah_td3_config import main_config, create_config
 from copy import deepcopy
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
 import logging
+import pickle
 from functools import partial
 from tensorboardX import SummaryWriter
 import torch.nn as nn
@@ -15,8 +14,9 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.entry.utils import random_collect
-from ding.entry import collect_demo_data, collect_episodic_demo_data, episode_to_transitions
-import pickle
+from ding.entry import serial_pipeline_bc, serial_pipeline, collect_demo_data, collect_episodic_demo_data, \
+    episode_to_transitions
+from dizoo.mujoco.config.halfcheetah_td3_config import main_config, create_config
 
 
 def load_policy(
@@ -69,7 +69,8 @@ def main():
     il_config[0].exp_name = "continuous_bc_seed0"
     il_config[0].env.stop_value = 50000
     il_config[0].multi_agent = False
-    bc_policy, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path, max_iter=4e6)
+    il_config[0].policy.collect.data_path = expert_data_path
+    bc_policy, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, max_iter=4e6)
     return bc_policy
 
 
