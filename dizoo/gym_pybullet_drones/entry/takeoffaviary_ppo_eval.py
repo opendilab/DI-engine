@@ -12,7 +12,6 @@ from ding.model import VAC
 from ding.utils import set_pkg_seed
 
 from dizoo.gym_pybullet_drones.envs.gym_pybullet_drones_env import GymPybulletDronesEnv
-
 from dizoo.gym_pybullet_drones.config.takeoffaviary_ppo_config import takeoffaviary_ppo_config
 
 
@@ -31,7 +30,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     info = cfg.env.manager
 
-    #cfg.env['record'] = True
+    cfg.env['record'] = True
     cfg.env['gui'] = True
     cfg.env['print_debug_info'] = True
     cfg.env['plot_observation'] = True

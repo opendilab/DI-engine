@@ -1,18 +1,14 @@
 from typing import Optional, Callable
+import numpy as np
 import gym
 from gym.spaces import Box
-import numpy as np
-
 import gym_pybullet_drones
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType
-
+from gym_pybullet_drones.utils.Logger import Logger
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
-
-from gym_pybullet_drones.utils.Logger import Logger
-# from gym_pybullet_drones.utils.utils import sync, str2bool
 
 
 def gym_pybullet_drones_observation_space(dim, minimum=-np.inf, maximum=np.inf, dtype=np.float32) -> Callable:
