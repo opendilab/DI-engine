@@ -267,7 +267,7 @@ def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.M
 
         wandb.log({"dataset": wandb.Image("dataset.png")})
 
-    if cfg.vis_dataset == True:
+    if cfg.vis_dataset is True:
         _vis_dataset(datasetpath)
 
     def _plot(ctx: "OfflineRLContext"):

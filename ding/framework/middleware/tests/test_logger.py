@@ -12,7 +12,8 @@ from unittest.mock import Mock, patch
 from ding.utils import DistributedWriter
 from ding.framework.middleware.tests import MockPolicy, CONFIG
 from ding.framework import OnlineRLContext, OfflineRLContext
-from ding.framework.middleware.functional import online_logger, offline_logger, wandb_online_logger, wandb_offline_logger
+from ding.framework.middleware.functional import online_logger, offline_logger, wandb_online_logger, \
+    wandb_offline_logger
 
 test_folder = "test_exp"
 test_path = path.join(os.getcwd(), test_folder)
