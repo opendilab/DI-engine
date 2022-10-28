@@ -1,9 +1,12 @@
+import pytest
 import gym
 import numpy as np
 
 import gym_pybullet_drones
 
-if __name__ == "__main__":
+
+@pytest.mark.envtest
+class TestGymPybulletDronesOriEnv:
     env = gym.make("takeoff-aviary-v0")
     print(env.action_space)
     print(env.observation_space)
