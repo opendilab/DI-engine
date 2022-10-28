@@ -49,6 +49,9 @@ Updated on 2022.09.23 DI-engine-v0.4.3
 
 **DI-engine** aims to **standardize different Decision Intelligence enviroments and applications**. Various training pipelines and customized decision AI applications are also supported.
 
+<details open>
+<summary>(Click to Collapse)</summary>
+
 - Traditional academic environments
   - [DI-zoo](https://github.com/opendilab/DI-engine#environment-versatility)
 - Real world decision AI applications
@@ -58,6 +61,7 @@ Updated on 2022.09.23 DI-engine-v0.4.3
   - [DI-sheep](https://github.com/opendilab/DI-sheep): Decision AI in 3 Tiles Game
   - [DI-smartcross](https://github.com/opendilab/DI-smartcross): Decision AI in Traffic Light Control
   - [DI-bioseq](https://github.com/opendilab/DI-bioseq): Decision AI in Biological Sequence Prediction and Searching
+  - [DI-1024](https://github.com/opendilab/DI-1024): Deep Reinforcement Learning + 1024 Game
 - Research paper
   - [InterFuser](https://github.com/opendilab/InterFuser): (CoRL 2022) Safety-Enhanced Autonomous Driving Using Interpretable Sensor Fusion Transformer
 - General nested data lib
@@ -69,12 +73,18 @@ Updated on 2022.09.23 DI-engine-v0.4.3
   - [awesome-exploration-RL](https://github.com/opendilab/awesome-exploration-rl): A curated list of awesome exploration RL resources
   - [awesome-decision-transformer](https://github.com/opendilab/awesome-decision-transformer): A curated list of Decision Transformer resources
   - [awesome-multi-modal-reinforcement-learning](https://github.com/opendilab/awesome-multi-modal-reinforcement-learning): A curated list of Multi-Modal Reinforcement Learning resources
+</details>
+
 
 **DI-engine** also has some **system optimization and design** for efficient and robust large-scale RL training:
+
+<details close>
+<summary>(Click for Details)</summary>
 
 - [DI-orchestrator](https://github.com/opendilab/DI-orchestrator): RL Kubernetes Custom Resource and Operator Lib
 - [DI-hpc](https://github.com/opendilab/DI-hpc): RL HPC OP Lib
 - [DI-store](https://github.com/opendilab/DI-store): RL Object Store
+</details>
 
 Have fun with exploration and exploitation.
 
@@ -110,6 +120,9 @@ For more information about installation, you can refer to [installation](https:/
 
 And our dockerhub repo can be found [here](https://hub.docker.com/repository/docker/opendilab/ding)，we prepare `base image` and `env image` with common RL environments.
 
+<details close>
+<summary>(Click for Details)</summary>
+
 - base: opendilab/ding:nightly
 - atari: opendilab/ding:nightly-atari
 - mujoco: opendilab/ding:nightly-mujoco
@@ -117,6 +130,7 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - metaworld: opendilab/ding:nightly-metaworld
 - smac: opendilab/ding:nightly-smac
 - grf: opendilab/ding:nightly-grf
+</details>
 
 The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
 
@@ -129,6 +143,8 @@ The detailed documentation are hosted on [doc](https://di-engine-docs.readthedoc
 [How to migrate a new **RL Env**](https://di-engine-docs.readthedocs.io/en/latest/11_dizoo/index.html) | [如何迁移一个新的**强化学习环境**](https://di-engine-docs.readthedocs.io/zh_CN/latest/11_dizoo/index_zh.html)
 
 [如何定制策略使用的**神经网络模型**](https://di-engine-docs.readthedocs.io/zh_CN/latest/04_best_practice/custom_model_zh.html)
+
+[测试/部署 **强化学习策略** 的样例](https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/entry/cartpole_c51_deploy.py)
 
 **Bonus: Train RL agent in one line code:**
 
@@ -164,6 +180,8 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 
 
+<details open>
+<summary>(Click to Collapse)</summary>
 
 |  No.  |                          Algorithm                           |                            Label                             |                        Doc and Implementation                        |                        Runnable Demo                         |
 | :--: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
@@ -204,19 +222,24 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  35  |           [RND](https://arxiv.org/abs/1810.12894)            |   ![exp](https://img.shields.io/badge/-exploration-orange)   | [RND doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/rnd.html)<br>[reward_model/rnd](https://github.com/opendilab/DI-engine/blob/main/ding/reward_model/rnd_reward_model.py) |             python3 -u cartpole_rnd_onppo_config.py           |
 |  36  |           [ICM](https://arxiv.org/pdf/1705.05363.pdf)            |   ![exp](https://img.shields.io/badge/-exploration-orange)   | [ICM doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/icm.html)<br>[ICM中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/12_policies/icm_zh.html)<br>[reward_model/icm](https://github.com/opendilab/DI-engine/blob/main/ding/reward_model/icm_reward_model.py) |             python3 -u cartpole_ppo_icm_config.py              |
 |  37  |         [CQL](https://arxiv.org/pdf/2006.04779.pdf)          | ![offline](https://img.shields.io/badge/-offlineRL-darkblue) | [CQL doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/cql.html)<br>[policy/cql](https://github.com/opendilab/DI-engine/blob/main/ding/policy/cql.py) |                 python3 -u d4rl_cql_main.py                  |
-|  38  |         [TD3BC](https://arxiv.org/pdf/2106.06860.pdf)          | ![offline](https://img.shields.io/badge/-offlineRL-darkblue) | [TD3BC doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/td3_bc.html)<br>[policy/td3_bc](https://github.com/opendilab/DI-engine/blob/main/ding/policy/td3_bc.py) |                 python3 -u mujoco_td3_bc_main.py                  |
-|  39  |         MBSAC([SAC](https://arxiv.org/abs/1801.01290)+[MVE](https://arxiv.org/abs/1803.00101)+[SVG](https://arxiv.org/abs/1510.09142))         | ![continuous](https://img.shields.io/badge/-continous-green)![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [policy/mbpolicy/mbsac](https://github.com/opendilab/DI-engine/blob/main/ding/policy/mbpolicy/mbsac.py) |        python3 -u pendulum_mbsac_mbpo_config.py \ python3 -u pendulum_mbsac_ddppo_config.py    |
-|  40  |         STEVESAC([SAC](https://arxiv.org/abs/1801.01290)+[STEVE](https://arxiv.org/abs/1807.01675)+[SVG](https://arxiv.org/abs/1510.09142))         | ![continuous](https://img.shields.io/badge/-continous-green)![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [policy/mbpolicy/mbsac](https://github.com/opendilab/DI-engine/blob/main/ding/policy/mbpolicy/mbsac.py) |        python3 -u pendulum_stevesac_mbpo_config.py    |
-|  41  |         [MBPO](https://arxiv.org/pdf/1906.08253.pdf)         | ![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [MBPO doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/mbpo.html)<br>[world_model/mbpo](https://github.com/opendilab/DI-engine/blob/main/ding/world_model/mbpo.py) |        python3 -u pendulum_sac_mbpo_config.py    |
-|  42  |         [DDPPO](https://openreview.net/forum?id=rzvOQrnclO0)         | ![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [world_model/ddppo](https://github.com/opendilab/DI-engine/blob/main/ding/world_model/ddppo.py) |        python3 -u pendulum_mbsac_ddppo_config.py    |
-|  43  |         [PER](https://arxiv.org/pdf/1511.05952.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [worker/replay_buffer](https://github.com/opendilab/DI-engine/blob/main/ding/worker/replay_buffer/advanced_buffer.py) |                        `rainbow demo`                        |
-|  44  |         [GAE](https://arxiv.org/pdf/1506.02438.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [rl_utils/gae](https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/gae.py) |                          `ppo demo`                          |
-|  45  |         [ST-DIM](https://arxiv.org/pdf/1906.08226.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/loss/contrastive_loss](https://github.com/opendilab/DI-engine/blob/main/ding/torch_utils/loss/contrastive_loss.py) |        ding -m serial -c cartpole_dqn_stdim_config.py -s 0       |
-|  46  |         [PLR](https://arxiv.org/pdf/2010.03934.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [PLR doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/plr.html)<br>[data/level_replay/level_sampler](https://github.com/opendilab/DI-engine/blob/main/ding/data/level_replay/level_sampler.py) |        python3 -u bigfish_plr_config.py -s 0       |
-|  47  |         [PCGrad](https://arxiv.org/pdf/2001.06782.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/optimizer_helper/PCGrad](https://github.com/opendilab/DI-engine/blob/main/ding/data/torch_utils/optimizer_helper.py) |        python3 -u multi_mnist_pcgrad_main.py -s 0       |
+|  38  |         [TD3BC](https://arxiv.org/pdf/2106.06860.pdf)          | ![offline](https://img.shields.io/badge/-offlineRL-darkblue) | [TD3BC doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/td3_bc.html)<br>[policy/td3_bc](https://github.com/opendilab/DI-engine/blob/main/ding/policy/td3_bc.py) |                 python3 -u d4rl_td3_bc_main.py                  |
+|  39  |         [Decision Transformer](https://arxiv.org/pdf/2106.01345.pdf)          | ![offline](https://img.shields.io/badge/-offlineRL-darkblue) | [policy/dt](https://github.com/opendilab/DI-engine/blob/main/ding/policy/decision_transformer.py) |                 python3 -u d4rl_dt_main.py                  |
+|  40  |         MBSAC([SAC](https://arxiv.org/abs/1801.01290)+[MVE](https://arxiv.org/abs/1803.00101)+[SVG](https://arxiv.org/abs/1510.09142))         | ![continuous](https://img.shields.io/badge/-continous-green)![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [policy/mbpolicy/mbsac](https://github.com/opendilab/DI-engine/blob/main/ding/policy/mbpolicy/mbsac.py) |        python3 -u pendulum_mbsac_mbpo_config.py \ python3 -u pendulum_mbsac_ddppo_config.py    |
+|  41  |         STEVESAC([SAC](https://arxiv.org/abs/1801.01290)+[STEVE](https://arxiv.org/abs/1807.01675)+[SVG](https://arxiv.org/abs/1510.09142))         | ![continuous](https://img.shields.io/badge/-continous-green)![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [policy/mbpolicy/mbsac](https://github.com/opendilab/DI-engine/blob/main/ding/policy/mbpolicy/mbsac.py) |        python3 -u pendulum_stevesac_mbpo_config.py    |
+|  42  |         [MBPO](https://arxiv.org/pdf/1906.08253.pdf)         | ![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [MBPO doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/mbpo.html)<br>[world_model/mbpo](https://github.com/opendilab/DI-engine/blob/main/ding/world_model/mbpo.py) |        python3 -u pendulum_sac_mbpo_config.py    |
+|  43  |         [DDPPO](https://openreview.net/forum?id=rzvOQrnclO0)         | ![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [world_model/ddppo](https://github.com/opendilab/DI-engine/blob/main/ding/world_model/ddppo.py) |        python3 -u pendulum_mbsac_ddppo_config.py    |
+|  44  |         [PER](https://arxiv.org/pdf/1511.05952.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [worker/replay_buffer](https://github.com/opendilab/DI-engine/blob/main/ding/worker/replay_buffer/advanced_buffer.py) |                        `rainbow demo`                        |
+|  45  |         [GAE](https://arxiv.org/pdf/1506.02438.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [rl_utils/gae](https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/gae.py) |                          `ppo demo`                          |
+|  46  |         [ST-DIM](https://arxiv.org/pdf/1906.08226.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/loss/contrastive_loss](https://github.com/opendilab/DI-engine/blob/main/ding/torch_utils/loss/contrastive_loss.py) |        ding -m serial -c cartpole_dqn_stdim_config.py -s 0       |
+|  47  |         [PLR](https://arxiv.org/pdf/2010.03934.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [PLR doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/plr.html)<br>[data/level_replay/level_sampler](https://github.com/opendilab/DI-engine/blob/main/ding/data/level_replay/level_sampler.py) |        python3 -u bigfish_plr_config.py -s 0       |
+|  48  |         [PCGrad](https://arxiv.org/pdf/2001.06782.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/optimizer_helper/PCGrad](https://github.com/opendilab/DI-engine/blob/main/ding/data/torch_utils/optimizer_helper.py) |        python3 -u multi_mnist_pcgrad_main.py -s 0       |
+</details>
 
 
 ### Environment Versatility
+<details open>
+<summary>(Click to Collapse)</summary>
+
 |  No  |                Environment               |                 Label               |         Visualization            |                   Code and Doc Links                   |
 | :--: | :--------------------------------------: | :---------------------------------: | :--------------------------------:|:---------------------------------------------------------: |
 |  1   |       [atari](https://github.com/openai/gym/tree/master/gym/envs/atari)    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/atari/atari.gif)     |        [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/envs) <br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/atari.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/atari_zh.html)        |
@@ -245,8 +268,8 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 | 24 |[multiagent_mujoco](https://github.com/schroederdewitt/multiagent_mujoco)       |  ![continuous](https://img.shields.io/badge/-continous-green) ![marl](https://img.shields.io/badge/-MARL-yellow) | ![original](./dizoo/mujoco/mujoco.gif)                    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/multiagent_mujoco/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/mujoco_zh.html) |
 | 25 |bitflip                                | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![sparse](https://img.shields.io/badge/-sparse%20reward-orange)  | ![original](./dizoo/bitflip/bitflip.gif)    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/bitflip/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/bitflip_zh.html) |
 | 26 |[sokoban](https://github.com/mpSchrader/gym-sokoban) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![Game 2](https://github.com/mpSchrader/gym-sokoban/raw/default/docs/Animations/solved_4.gif?raw=true) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/sokoban/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/sokoban_zh.html) |
-| 27 |[gym_anytrading](https://github.com/AminHP/gym-anytrading) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/gym_anytrading/envs/position.png) | dizoo link <br>环境指南 |
-| 28 |[mario](https://github.com/Kautenja/gym-super-mario-bros) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/mario/mario.gif) | dizoo link <br>环境指南 |
+| 27 |[gym_anytrading](https://github.com/AminHP/gym-anytrading) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/gym_anytrading/envs/position.png) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_anytrading) <br>环境指南 |
+| 28 |[mario](https://github.com/Kautenja/gym-super-mario-bros) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/mario/mario.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/mario) <br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gym_super_mario_bros_zh.html) |
 | 29 |[dmc2gym](https://github.com/denisyarats/dmc2gym) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/dmc2gym/dmc2gym_cheetah.png) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/dmc2gym)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/dmc2gym_zh.html)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/dmc2gym.html) |
 | 30 |[evogym](https://github.com/EvolutionGym/evogym) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/evogym/evogym.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/evogym/envs)<br>环境指南 |
 
@@ -267,6 +290,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 ![selfplay](https://img.shields.io/badge/-selfplay-blue) means environment that allows agent VS agent battle
 
 P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse reward type
+</details>
 
 
 ## Feedback and Contribution

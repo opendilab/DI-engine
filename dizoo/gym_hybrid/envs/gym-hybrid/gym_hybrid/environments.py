@@ -9,10 +9,7 @@ from gym.utils import seeding
 
 gym.logger.set_level(40)  # noqa
 
-from gym_hybrid.agents import BaseAgent
-from gym_hybrid.agents import MovingAgent
-from gym_hybrid.agents import SlidingAgent
-from gym_hybrid.agents import HardMoveAgent
+from .agents import BaseAgent, MovingAgent, SlidingAgent, HardMoveAgent
 
 # Action Id
 ACCELERATE = 0
