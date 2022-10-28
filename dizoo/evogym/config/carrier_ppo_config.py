@@ -9,7 +9,7 @@ carry_ppo_config = dict(
         collector_env_num=4,
         evaluator_env_num=2,
         n_evaluator_episode=2,
-        stop_value=100,
+        stop_value=10,
         manager=dict(shared_memory=False, ),
         # The path to save the game replay
         # replay_path='./evogym_carry_ppo_seed0/video',
@@ -17,7 +17,7 @@ carry_ppo_config = dict(
     policy=dict(
         cuda=True,
         recompute_adv=True,
-        #load_path="./evogym_carry_ppo_seed0/ckpt/ckpt_best.pth.tar",
+        # load_path="./evogym_carry_ppo_seed0/ckpt/ckpt_best.pth.tar",
         model=dict(
             obs_shape=70,
             action_shape=12,

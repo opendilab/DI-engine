@@ -9,7 +9,7 @@ bridgewalker_ddpg_config = dict(
         collector_env_num=1,
         evaluator_env_num=1,
         n_evaluator_episode=1,
-        stop_value=1,
+        stop_value=10,
         manager=dict(shared_memory=False, ),
         # The path to save the game replay
         replay_path='./evogym_walker_ddpg_seed0/video',
