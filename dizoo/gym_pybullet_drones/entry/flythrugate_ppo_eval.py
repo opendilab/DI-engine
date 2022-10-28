@@ -12,7 +12,6 @@ from ding.model import VAC
 from ding.utils import set_pkg_seed
 
 from dizoo.gym_pybullet_drones.envs.gym_pybullet_drones_env import GymPybulletDronesEnv
-
 from dizoo.gym_pybullet_drones.config.flythrugate_ppo_config import flythrugate_ppo_config
 
 
