@@ -118,7 +118,8 @@ def wandb_online_logger(
             - action_logger: `q_value` or `action probability`.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Model.
-        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not. The anonymous mode allows visualization of data without wandb count.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not. 
+            The anonymous mode allows visualization of data without wandb count.
     '''
 
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
@@ -217,7 +218,8 @@ def wandb_offline_logger(
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Model.
         - datasetpath (:obj:`str`): The path of offline dataset.
-        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not. The anonymous mode allows visualization of data without wandb count.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not. 
+            The anonymous mode allows visualization of data without wandb count.
     '''
 
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
