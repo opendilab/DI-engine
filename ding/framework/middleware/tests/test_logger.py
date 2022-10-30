@@ -185,7 +185,7 @@ class The1DDataClass(Mock):
         return [[1]] * 50
 
 
-@pytest.mark.other  # due to no api key in github now
+@pytest.mark.unittest
 def test_wandb_online_logger():
 
     cfg = EasyDict(
@@ -221,7 +221,7 @@ def test_wandb_online_logger():
     test_wandb_online_logger_gradient()
 
 
-@pytest.mark.other  # due to no api key in github now
+@pytest.mark.unittest
 def test_wandb_offline_logger(mocker):
 
     cfg = EasyDict(
