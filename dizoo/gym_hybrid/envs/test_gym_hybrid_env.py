@@ -1,15 +1,14 @@
-import pytest
 import numpy as np
-from easydict import EasyDict
-
+import pytest
 from dizoo.gym_hybrid.envs import GymHybridEnv
+from easydict import EasyDict
 
 
 @pytest.mark.envtest
 class TestGymHybridEnv:
 
     def test_naive(self):
-        env = GymHybridEnv(EasyDict({'env_id': 'Moving-v0', 'act_scale': False}))
+        env = GymHybridEnv(EasyDict({'env_id': 'Moving-v0', 'act_scale': False, 'save_replay_gif': False, 'replay_path_gif': None, 'replay_path': None}))
         env.enable_save_replay('./video')
         env.seed(314, dynamic_seed=False)
         assert env._seed == 314

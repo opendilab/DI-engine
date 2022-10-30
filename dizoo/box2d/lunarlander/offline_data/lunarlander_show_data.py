@@ -1,4 +1,4 @@
-from dizoo.classic_control.cartpole.dt_data_cartpole.collect_demo_data_config import main_config, create_config
+from dizoo.classic_control.cartpole.offline_data.collect_dqn_data_config import main_config, create_config
 
 from ding.entry import serial_pipeline_offline
 import os

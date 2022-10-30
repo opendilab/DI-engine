@@ -7,7 +7,8 @@ in_channels = 2
 H, W = 2, 3
 activation = torch.nn.ReLU()
 norm_type = 'BN'
-res_type = ['basic', 'bottleneck']
+res_type = ['basic', 'bottleneck', 'downsample']
+res_type_classic = ['basic', 'bottleneck']
 
 
 @pytest.mark.unittest
@@ -20,7 +21,8 @@ class TestResBlock:
             output = model(input)
             loss = output.mean()
             loss.backward()
-            assert output.shape == input.shape
+            if r in res_type_classic:
+                assert output.shape == input.shape
             assert isinstance(input.grad, torch.Tensor)
 
     def test_res_fc_block(self):
