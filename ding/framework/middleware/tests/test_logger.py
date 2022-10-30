@@ -211,11 +211,11 @@ def test_wandb_online_logger():
 
     def test_wandb_online_logger_metric():
         with patch.object(wandb, 'log', new=mock_metric_logger):
-            wandb_online_logger(cfg, env, model)(ctx)
+            wandb_online_logger(cfg, env, model, anonymous=True)(ctx)
 
     def test_wandb_online_logger_gradient():
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_online_logger(cfg, env, model)(ctx)
+            wandb_online_logger(cfg, env, model, anonymous=True)(ctx)
 
     test_wandb_online_logger_metric()
     test_wandb_online_logger_gradient()
@@ -255,7 +255,7 @@ def test_wandb_offline_logger(mocker):
     def test_wandb_offline_logger_gradient():
         cfg.vis_dataset = False
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_offline_logger(cfg, env, model, 'dataset.h5')(ctx)
+            wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
 
     def test_wandb_offline_logger_dataset():
         cfg.vis_dataset = True
@@ -264,7 +264,7 @@ def test_wandb_offline_logger(mocker):
         with patch.object(wandb, 'log', new=mock_metric_logger):
             with patch.object(wandb, 'Image', new=mock_image_logger):
                 mocker.patch('h5py.File', return_value=m)
-                wandb_offline_logger(cfg, env, model, 'dataset.h5')(ctx)
+                wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
 
     test_wandb_offline_logger_gradient()
     test_wandb_offline_logger_dataset()
