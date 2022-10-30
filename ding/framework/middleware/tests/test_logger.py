@@ -197,7 +197,7 @@ def test_wandb_online_logger():
     ctx = OnlineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
     model = TheModelClass()
-    wandb.init(config=cfg)
+    wandb.init(config=cfg, anonymous="allow")
 
     def mock_metric_logger(metric_dict):
         metric_list = [
@@ -237,7 +237,7 @@ def test_wandb_offline_logger(mocker):
     ctx = OnlineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
     model = TheModelClass()
-    wandb.init(config=cfg)
+    wandb.init(config=cfg, anonymous="allow")
 
     def mock_metric_logger(metric_dict):
         metric_list = [
