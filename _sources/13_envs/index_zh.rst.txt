@@ -42,7 +42,7 @@
    pybullet_zh
    pettingzoo_zh
    dmc2gym_zh
-   
+   sokoban_zh
    gym_super_mario_bros_zh
    gym_hybrid_zh
    gym_soccer_zh

@@ -42,7 +42,7 @@ Environments:
    pettingzoo
    pybullet
    dmc2gym
-
+   sokoban
    gym_hybrid
    gym_soccer
 
