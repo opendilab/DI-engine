@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-bigfish_ppg_default_config = dict(
+bigfish_ppg_config = dict(
     exp_name='bigfish_ppg_seed0',
     env=dict(
         is_train=True,
@@ -37,8 +37,8 @@ bigfish_ppg_default_config = dict(
         other=dict(),
     ),
 )
-bigfish_ppg_default_config = EasyDict(bigfish_ppg_default_config)
-main_config = bigfish_ppg_default_config
+bigfish_ppg_config = EasyDict(bigfish_ppg_config)
+main_config = bigfish_ppg_config
 
 bigfish_ppg_create_config = dict(
     env=dict(

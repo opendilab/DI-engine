@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-maze_dqn_default_config = dict(
+maze_dqn_config = dict(
     env=dict(
         collector_env_num=4,
         env_id='maze',
@@ -37,8 +37,8 @@ maze_dqn_default_config = dict(
         ),
     ),
 )
-maze_dqn_default_config = EasyDict(maze_dqn_default_config)
-main_config = maze_dqn_default_config
+maze_dqn_config = EasyDict(maze_dqn_config)
+main_config = maze_dqn_config
 
 maze_dqn_create_config = dict(
     env=dict(

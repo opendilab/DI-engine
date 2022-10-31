@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-maze_ppo_default_config = dict(
+maze_ppo_config = dict(
     env=dict(
         # frame_stack=4,
         is_train=True,
@@ -40,8 +40,8 @@ maze_ppo_default_config = dict(
         ),
     ),
 )
-maze_ppo_default_config = EasyDict(maze_ppo_default_config)
-main_config = maze_ppo_default_config
+maze_ppo_config = EasyDict(maze_ppo_config)
+main_config = maze_ppo_config
 
 maze_ppo_create_config = dict(
     env=dict(

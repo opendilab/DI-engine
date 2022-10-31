@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-coinrun_dqn_default_config = dict(
+coinrun_dqn_config = dict(
     env=dict(
         env_id='coinrun',
         collector_env_num=4,
@@ -36,8 +36,8 @@ coinrun_dqn_default_config = dict(
         ),
     ),
 )
-coinrun_dqn_default_config = EasyDict(coinrun_dqn_default_config)
-main_config = coinrun_dqn_default_config
+coinrun_dqn_config = EasyDict(coinrun_dqn_config)
+main_config = coinrun_dqn_config
 
 coinrun_dqn_create_config = dict(
     env=dict(

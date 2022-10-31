@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-bigfish_plr_default_config = dict(
+bigfish_plr_config = dict(
     exp_name='bigfish_plr_seed1',
     env=dict(
         is_train=True,
@@ -42,8 +42,8 @@ bigfish_plr_default_config = dict(
         temperature=0.1,
     ),
 )
-bigfish_plr_default_config = EasyDict(bigfish_plr_default_config)
-main_config = bigfish_plr_default_config
+bigfish_plr_config = EasyDict(bigfish_plr_config)
+main_config = bigfish_plr_config
 
 bigfish_plr_create_config = dict(
     env=dict(

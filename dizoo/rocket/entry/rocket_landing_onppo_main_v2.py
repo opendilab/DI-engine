@@ -1,23 +1,21 @@
-from turtle import Terminator
+import os
+import torch
 import gym
+import numpy as np
+from tensorboardX import SummaryWriter
+from rocket_recycling.rocket import Rocket
+
 from ditk import logging
 from ding.model import VAC
 from ding.policy import PPOPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2, FinalEvalRewardEnv
-from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
-    gae_estimator, termination_checker
+gae_estimator, termination_checker
 from ding.utils import set_pkg_seed
-from dizoo.rocket.envs.rocket_env import RocketEnv
-from dizoo.rocket.config.rocket_hover_ppo_config import main_config, create_config
-import numpy as np
-from tensorboardX import SummaryWriter
-import os
-from rocket_recycling.rocket import Rocket
-import torch
+from dizoo.rocket.config.rocket_landing_ppo_config import main_config, create_config
 
 
 class InfoWrapper(gym.Wrapper):
@@ -45,16 +43,15 @@ def wrapped_rocket_env(task, max_steps):
         }
     )
 
-
 def main():
     logging.getLogger().setLevel(logging.INFO)
+    main_config.exp_name = 'rocket_landing_ppo_nseed'
     main_config.policy.cuda = True
     print('torch.cuda.is_available(): ', torch.cuda.is_available())
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
-    num_seed = 3
+    num_seed = 4
     for seed_i in range(num_seed):
-        main_config.exp_name = f'task_rocket_hovering_onppo_seed{seed_i}'
-        tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed' + str(seed_i)))
+        tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed'+str(seed_i)))
         with task.start(async_mode=False, ctx=OnlineRLContext()):
             collector_env = BaseEnvManagerV2(
                 env_fn=[lambda: wrapped_rocket_env(cfg.env.task, cfg.env.max_steps) for _ in range(cfg.env.collector_env_num)],
@@ -85,11 +82,11 @@ def main():
 
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(StepCollector(cfg, policy.collect_mode, collector_env))
-            task.use(_add_scalar)
             task.use(gae_estimator(cfg, policy.collect_mode))
             task.use(multistep_trainer(cfg, policy.learn_mode))
             task.use(CkptSaver(cfg, policy, train_freq=100))
-            task.use(termination_checker(max_env_step=int(10e7)))
+            # task.use(_add_scalar)
+            task.use(termination_checker(max_env_step=int(3e6)))
             task.run()
 
 

@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-coinrun_ppg_default_config = dict(
+coinrun_ppg_config = dict(
     exp_name='coinrun_ppg_seed0',
     env=dict(
         is_train=True,
@@ -37,8 +37,8 @@ coinrun_ppg_default_config = dict(
         other=dict(),
     ),
 )
-coinrun_ppg_default_config = EasyDict(coinrun_ppg_default_config)
-main_config = coinrun_ppg_default_config
+coinrun_ppg_config = EasyDict(coinrun_ppg_config)
+main_config = coinrun_ppg_config
 
 coinrun_ppg_create_config = dict(
     env=dict(
