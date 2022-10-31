@@ -12,67 +12,8 @@ from ding.envs import get_vec_env_setting, create_env_manager
 from ding.policy import PPOPolicy
 from ding.utils import set_pkg_seed
 
-walker_ppo_config = dict(
-    exp_name='evogym_walker_ppo_seed0',
-    env=dict(
-        env_id='Walker-v0',
-        robot='speed_bot',
-        robot_dir='./dizoo/evogym/envs',
-        collector_env_num=1,
-        evaluator_env_num=1,
-        n_evaluator_episode=1,
-        stop_value=100,
-        manager=dict(shared_memory=False, ),
-        # The path to save the game replay
-        replay_path='./evogym_walker_ppo_seed0/video',
-    ),
-    policy=dict(
-        cuda=True,
-        recompute_adv=True,
-        load_path="./evogym_walker_ppo_seed0/ckpt/ckpt_best.pth.tar",
-        model=dict(
-            obs_shape=58,
-            action_shape=10,
-            action_space='continuous',
-        ),
-        action_space='continuous',
-        learn=dict(
-            epoch_per_collect=10,
-            batch_size=256,
-            learning_rate=3e-4,
-            value_weight=0.5,
-            entropy_weight=0.0,
-            clip_ratio=0.2,
-            adv_norm=True,
-            value_norm=True,
-        ),
-        collect=dict(
-            n_sample=2048,
-            unroll_len=1,
-            discount_factor=0.99,
-            gae_lambda=0.97,
-        ),
-        eval=dict(evaluator=dict(eval_freq=50, )),
-    )
-    
-)
-walker_ppo_config = EasyDict(walker_ppo_config)
-main_config = walker_ppo_config
+from dizoo.evogym.config.walker_ppo_config import main_config, create_config
 
-walker_ppo_create_config = dict(
-    env=dict(
-        type='evogym',
-        import_names=['dizoo.evogym.envs.evogym_env'],
-    ),
-    env_manager=dict(type='base'),
-    policy=dict(
-        type='ppo',
-        import_names=['ding.policy.ppo'],
-    ),
-    replay_buffer=dict(type='naive', ),
-)
-walker_ppo_create_config = EasyDict(walker_ppo_create_config)
-create_config = walker_ppo_create_config
 
 def main(cfg, create_cfg, seed=0):
     cfg = compile_config(

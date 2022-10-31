@@ -36,11 +36,9 @@ walker_ppo_config = dict(
         ),
         collect=dict(
             n_sample=2048,
-            unroll_len=1,
-            discount_factor=0.99,
             gae_lambda=0.97,
         ),
-        eval=dict(evaluator=dict(eval_freq=50, )),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
     )
 )
 walker_ppo_config = EasyDict(walker_ppo_config)

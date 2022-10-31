@@ -6,11 +6,11 @@ carry_ppo_config = dict(
         env_id='Carrier-v0',
         robot='carry_bot',
         robot_dir='./dizoo/evogym/envs',
-        collector_env_num=4,
-        evaluator_env_num=2,
-        n_evaluator_episode=2,
+        collector_env_num=8,
+        evaluator_env_num=8,
+        n_evaluator_episode=8,
         stop_value=10,
-        manager=dict(shared_memory=False, ),
+        manager=dict(shared_memory=True, ),
         # The path to save the game replay
         # replay_path='./evogym_carry_ppo_seed0/video',
     ),
@@ -36,11 +36,9 @@ carry_ppo_config = dict(
         ),
         collect=dict(
             n_sample=2048,
-            unroll_len=1,
-            discount_factor=0.99,
             gae_lambda=0.97,
         ),
-        eval=dict(evaluator=dict(eval_freq=50, )),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
     )
 )
 carry_ppo_config = EasyDict(carry_ppo_config)
