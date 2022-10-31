@@ -9,7 +9,7 @@ gym_hybrid_hppo_config = dict(
         act_scale=True,
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
-        stop_value=1.8,
+        stop_value=1e6,
         save_replay_gif=False,
         replay_path_gif=None,
     ),
@@ -46,7 +46,7 @@ gym_hybrid_hppo_config = dict(
             gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(evaluator=dict(eval_freq=200, ), ),
+        eval=dict(evaluator=dict(eval_freq=200, n_episode=5), ),
     ),
 )
 gym_hybrid_hppo_config = EasyDict(gym_hybrid_hppo_config)
@@ -66,4 +66,5 @@ create_config = gym_hybrid_hppo_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c gym_hybrid_hppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-    serial_pipeline_onpolicy([main_config, create_config], seed=0)
+    main_config.exp_name = "gym_hybrid_hppo_seed2"
+    serial_pipeline_onpolicy([main_config, create_config], seed=2, max_env_step=int(3e6))
