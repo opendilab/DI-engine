@@ -10,7 +10,7 @@ walker_ppo_config = dict(
         evaluator_env_num=1,
         n_evaluator_episode=1,
         stop_value=10,
-        manager=dict(shared_memory=False, ),
+        manager=dict(shared_memory=True, ),
         # The path to save the game replay
         # replay_path='./evogym_walker_ppo_seed0/video',
     ),
