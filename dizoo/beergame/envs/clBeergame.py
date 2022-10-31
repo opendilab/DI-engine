@@ -4,6 +4,11 @@ from random import randint
 from .BGAgent import Agent
 from matplotlib import rc
 rc('text', usetex=True)
+from .plotting import plotting, savePlot, plotBaseStock
+import matplotlib.pyplot as plt
+import os
+import time
+from time import gmtime, strftime
 
 
 class clBeerGame(object):
@@ -78,32 +83,61 @@ class clBeerGame(object):
 
         return totRew, self.players[role].cumReward
 
-    def getAction(self, k: int, action: np.ndarray):
-        if self.players[k].compType == "srdqn":
-            self.players[k].action = np.zeros(self.config.actionListLen)
-            self.players[k].action[action] = 1
-        elif self.players[k].compType == "Strm":
-            self.players[k].action = np.zeros(self.config.actionListLenOpt)
-            self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)\
-                  - max(0, round(self.players[k].AO[self.curTime] + \
-                 self.players[k].alpha_b*(self.players[k].IL - self.players[k].a_b) + \
-                 self.players[k].betta_b*(self.players[k].OO - self.players[k].b_b)))))] = 1
-        elif self.players[k].compType == "rnd":
-            self.players[k].action = np.zeros(self.config.actionListLen)
-            a = np.random.randint(self.config.actionListLen)
-            self.players[k].action[a] = 1
-        elif self.players[k].compType == "bs":
-            self.players[k].action = np.zeros(self.config.actionListLenOpt)
-            if self.config.demandDistribution == 2:
-                if self.curTime and self.config.use_initial_BS <= 4:
-                    self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
-                      max(0, (self.players[k].int_bslBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
+    def getAction(self, k: int, action: np.ndarray, playType="train"):
+        if playType == "train":
+            if self.players[k].compType == "srdqn":
+                self.players[k].action = np.zeros(self.config.actionListLen)
+                self.players[k].action[action] = 1
+            elif self.players[k].compType == "Strm":
+                self.players[k].action = np.zeros(self.config.actionListLenOpt)
+                self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)\
+                    - max(0, round(self.players[k].AO[self.curTime] + \
+                    self.players[k].alpha_b*(self.players[k].IL - self.players[k].a_b) + \
+                    self.players[k].betta_b*(self.players[k].OO - self.players[k].b_b)))))] = 1
+            elif self.players[k].compType == "rnd":
+                self.players[k].action = np.zeros(self.config.actionListLen)
+                a = np.random.randint(self.config.actionListLen)
+                self.players[k].action[a] = 1
+            elif self.players[k].compType == "bs":
+                self.players[k].action = np.zeros(self.config.actionListLenOpt)
+                if self.config.demandDistribution == 2:
+                    if self.curTime and self.config.use_initial_BS <= 4:
+                        self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
+                        max(0, (self.players[k].int_bslBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
+                    else:
+                        self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
+                        max(0, (self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
                 else:
                     self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
-                      max(0, (self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
-            else:
-                self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt) - \
-                   max(0, (self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
+                    max(0, (self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime])))))] = 1
+        elif playType == "test":
+            if self.players[k].compTypeTest == "srdqn":
+                self.players[k].action = np.zeros(self.config.actionListLen)
+                self.players[k].action = self.players[k].brain.getDNNAction(self.playType)
+            elif self.players[k].compTypeTest == "Strm":
+                self.players[k].action = np.zeros(self.config.actionListLenOpt)
+
+                self.players[k].action[np.argmin(np.abs(np.array(self.config.actionListOpt)-\
+                    max(0,round(self.players[k].AO[self.curTime] +\
+                     self.players[k].alpha_b*(self.players[k].IL - self.players[k].a_b) +\
+                     self.players[k].betta_b*(self.players[k].OO - self.players[k].b_b)))))] = 1
+            elif self.players[k].compTypeTest == "rnd":
+                self.players[k].action = np.zeros(self.config.actionListLen)
+                a = np.random.randint(self.config.actionListLen)
+                self.players[k].action[a] = 1
+            elif self.players[k].compTypeTest == "bs":
+                self.players[k].action = np.zeros(self.config.actionListLenOpt)
+
+                if self.config.demandDistribution == 2:
+                    if self.curTime and self.config.use_initial_BS <= 4:
+                        self.players[k].action [np.argmin(np.abs(np.array(self.config.actionListOpt)-\
+                          max(0,(self.players[k].int_bslBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
+                    else:
+                        self.players[k].action [np.argmin(np.abs(np.array(self.config.actionListOpt)-\
+                          max(0,(self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
+                else:
+                    self.players[k].action [np.argmin(np.abs(np.array(self.config.actionListOpt)-\
+                       max(0,(self.players[k].bsBaseStock - (self.players[k].IL + self.players[k].OO - self.players[k].AO[self.curTime]))) ))] = 1
         else:
             # not a valid player is defined.
             raise Exception('The player type is not defined or it is not a valid type.!')
@@ -155,14 +189,16 @@ class clBeerGame(object):
                 self.getTotRew()
 
         self.curTime += 1
+        if self.curTime == self.T:
+            print(1)
 
-    def handelAction(self, action: np.ndarray):
+    def handelAction(self, action: np.ndarray, playType="train"):
         # get random lead time
         leadTime = randint(self.config.leadRecOrderLow[0], self.config.leadRecOrderUp[0])
         # set AO
         self.players[0].AO[self.curTime] += self.demand[self.curTime]
         for k in range(0, self.config.NoAgent):
-            self.getAction(k, action)
+            self.getAction(k, action, playType)
 
             self.players[k].srdqnBaseStock += [self.players[k].actionValue( \
              self.curTime) + self.players[k].IL + self.players[k].OO]
@@ -254,3 +290,152 @@ class clBeerGame(object):
                 self.players[k].OO = sum(self.players[k + 1].AO) + sum(self.players[k].AS)
             else:
                 self.players[k].OO = sum(self.players[k].AS)
+
+    def doTestMid(self, demandTs):
+        self.resultTest = []
+        m = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
+        self.doTest(m, demandTs)
+        print("---------------------------------------------------------------------------------------")
+        resultSummary = np.array(self.resultTest).mean(axis=0).tolist()
+
+        result_srdqn = ', '.join(map("{:.2f}".format, resultSummary[0]))
+        result_rand = ', '.join(map("{:.2f}".format, resultSummary[1]))
+        result_strm = ', '.join(map("{:.2f}".format, resultSummary[2]))
+        if self.ifOptimalSolExist:
+            result_bs = ', '.join(map("{:.2f}".format, resultSummary[3]))
+            print(
+                'SUMMARY; {0:s}; ITER= {1:d}; OURPOLICY= [{2:s}]; SUM = {3:2.4f}; Rand= [{4:s}]; SUM = {5:2.4f}; STRM= [{6:s}]; SUM = {7:2.4f}; BS= [{8:s}]; SUM = {9:2.4f}'
+                .format(
+                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), self.curGame, result_srdqn, sum(resultSummary[0]),
+                    result_rand, sum(resultSummary[1]), result_strm, sum(resultSummary[2]), result_bs,
+                    sum(resultSummary[3])
+                )
+            )
+
+        else:
+            print(
+                'SUMMARY; {0:s}; ITER= {1:d}; OURPOLICY= [{2:s}]; SUM = {3:2.4f}; Rand= [{4:s}]; SUM = {5:2.4f}; STRM= [{6:s}]; SUM = {7:2.4f}'
+                .format(
+                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), self.curGame, result_srdqn, sum(resultSummary[0]),
+                    result_rand, sum(resultSummary[1]), result_strm, sum(resultSummary[2])
+                )
+            )
+
+        print("=======================================================================================")
+
+    def doTest(self, m, demand):
+        import matplotlib.pyplot as plt
+        if self.config.ifSaveFigure:
+            plt.figure(self.curGame, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
+
+            # self.demand = demand
+            # use dnn to get output.
+            Rsltdnn, plt = self.tester(self.config.agentTypes, plt, 'b', 'OurPolicy', m)
+            baseStockdata = self.players[0].srdqnBaseStock
+            # # use random to get output.
+            RsltRnd, plt = self.tester(["rnd", "rnd", "rnd", "rnd"], plt, 'y', 'RAND', m)
+
+            # use formual to get output.
+            RsltStrm, plt = self.tester(["Strm", "Strm", "Strm", "Strm"], plt, 'g', 'Strm', m)
+
+            # use optimal strategy to get output, if it works.
+            if self.ifOptimalSolExist:
+                if self.config.agentTypes == ["srdqn", "Strm", "Strm", "Strm"]:
+                    Rsltbs, plt = self.tester(["bs", "Strm", "Strm", "Strm"], plt, 'r', 'Strm-BS', m)
+                elif self.config.agentTypes == ["Strm", "srdqn", "Strm", "Strm"]:
+                    Rsltbs, plt = self.tester(["Strm", "bs", "Strm", "Strm"], plt, 'r', 'Strm-BS', m)
+                elif self.config.agentTypes == ["Strm", "Strm", "srdqn", "Strm"]:
+                    Rsltbs, plt = self.tester(["Strm", "Strm", "bs", "Strm"], plt, 'r', 'Strm-BS', m)
+                elif self.config.agentTypes == ["Strm", "Strm", "Strm", "srdqn"]:
+                    Rsltbs, plt = self.tester(["Strm", "Strm", "Strm", "bs"], plt, 'r', 'Strm-BS', m)
+                elif self.config.agentTypes == ["srdqn", "rnd", "rnd", "rnd"]:
+                    Rsltbs, plt = self.tester(["bs", "rnd", "rnd", "rnd"], plt, 'r', 'RND-BS', m)
+                elif self.config.agentTypes == ["rnd", "srdqn", "rnd", "rnd"]:
+                    Rsltbs, plt = self.tester(["rnd", "bs", "rnd", "rnd"], plt, 'r', 'RND-BS', m)
+                elif self.config.agentTypes == ["rnd", "rnd", "srdqn", "rnd"]:
+                    Rsltbs, plt = self.tester(["rnd", "rnd", "bs", "rnd"], plt, 'r', 'RND-BS', m)
+                elif self.config.agentTypes == ["rnd", "rnd", "rnd", "srdqn"]:
+                    Rsltbs, plt = self.tester(["rnd", "rnd", "rnd", "bs"], plt, 'r', 'RND-BS', m)
+                else:
+                    Rsltbs, plt = self.tester(["bs", "bs", "bs", "bs"], plt, 'r', 'BS', m)
+            # hold the results of the optimal solution
+                self.middleTestResult += [[RsltRnd, RsltStrm, Rsltbs]]
+            else:
+                self.middleTestResult += [[RsltRnd, RsltStrm]]
+
+        else:
+            # return the obtained results into their lists
+            RsltRnd = self.middleTestResult[m][0]
+            RsltStrm = self.middleTestResult[m][1]
+            if self.ifOptimalSolExist:
+                Rsltbs = self.middleTestResult[m][2]
+
+        # save the figure
+        if self.config.ifSaveFigure:
+            savePlot(self.players, self.curGame, Rsltdnn, RsltStrm, Rsltbs, RsltRnd, self.config, m)
+            plt.close()
+
+        result_srdqn = ', '.join(map("{:.2f}".format, Rsltdnn))
+        result_rand = ', '.join(map("{:.2f}".format, RsltRnd))
+        result_strm = ', '.join(map("{:.2f}".format, RsltStrm))
+        if self.ifOptimalSolExist:
+            result_bs = ', '.join(map("{:.2f}".format, Rsltbs))
+            print(
+                'output; {0:s}; Iter= {1:s}; SRDQN= [{2:s}]; sum = {3:2.4f}; Rand= [{4:s}]; sum = {5:2.4f}; Strm= [{6:s}]; sum = {7:2.4f}; BS= [{8:s}]; sum = {9:2.4f}'
+                .format(
+                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), str(str(self.curGame) + "-" + str(m)), result_srdqn,
+                    sum(Rsltdnn), result_rand, sum(RsltRnd), result_strm, sum(RsltStrm), result_bs, sum(Rsltbs)
+                )
+            )
+            self.resultTest += [[Rsltdnn, RsltRnd, RsltStrm, Rsltbs]]
+
+        else:
+            print(
+                'output; {0:s}; Iter= {1:s}; SRDQN= [{2:s}]; sum = {3:2.4f}; Rand= [{4:s}]; sum = {5:2.4f}; Strm= [{6:s}]; sum = {7:2.4f}'
+                .format(
+                    strftime("%Y-%m-%d %H:%M:%S", gmtime()), str(str(self.curGame) + "-" + str(m)), result_srdqn,
+                    sum(Rsltdnn), result_rand, sum(RsltRnd), result_strm, sum(RsltStrm)
+                )
+            )
+
+            self.resultTest += [[Rsltdnn, RsltRnd, RsltStrm]]
+
+        return sum(Rsltdnn)
+
+    def tester(self, testType, plt, colori, labeli, m):
+
+        # set computation type for test
+        for k in range(0, self.config.NoAgent):
+            # self.players[k].compTypeTest = testType[k]
+            self.players[k].compType = testType[k]
+        # run the episode to get the results.
+        if labeli != 'OurPolicy':
+            result = self.playGame(self.demand)
+        else:
+            result = [-1 * self.players[i].cumReward for i in range(0, self.config.NoAgent)]
+        # add the results into the figure
+        if self.config.ifSaveFigure:
+            plt = plotting(plt, [np.array(self.players[i].hist) for i in range(0, self.config.NoAgent)], colori, labeli)
+        if self.config.ifsaveHistInterval and ((self.curGame == 0) or (self.curGame == 1) or (self.curGame == 2) or (self.curGame == 3) or ((self.curGame - 1) % self.config.saveHistInterval == 0)\
+         or ((self.curGame) % self.config.saveHistInterval == 0) or ((self.curGame) % self.config.saveHistInterval == 1) \
+         or ((self.curGame) % self.config.saveHistInterval == 2)) :
+            for k in range(0, self.config.NoAgent):
+                name = labeli + "-" + str(self.curGame) + "-" + "player" + "-" + str(k) + "-" + str(m)
+                np.save(os.path.join(self.config.model_dir, name), np.array(self.players[k].hist2))
+
+        # save the figure of base stocks
+        # if self.config.ifSaveFigure and (self.curGame in range(self.config.saveFigInt[0],self.config.saveFigInt[1])):
+        # 	for k in range(self.config.NoAgent):
+        # 		if self.players[k].compTypeTest == 'dnn':
+        # 			plotBaseStock(self.players[k].srdqnBaseStock, 'b', 'base stock of agent '+ str(self.players[k].agentNum), self.curGame, self.config, m)
+
+        return result, plt
+
+    def playGame(self, demand):
+        self.resetGame(demand)
+
+        # run the game
+        while self.curTime < self.T:
+            self.handelAction(np.array(0))  # action won't be used.
+            self.next()
+        return [-1 * self.players[i].cumReward for i in range(0, self.config.NoAgent)]

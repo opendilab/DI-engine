@@ -7,6 +7,7 @@ import random
 from .config import get_config, update_config
 import gym
 import os
+from typing import Optional
 
 
 class BeerGame():
@@ -101,3 +102,10 @@ class BeerGame():
         self._totRew, self._cumReward = self._env.distTotReward(self._role)
         reward += (self._cfg.distCoeff / 3) * ((self._totRew - self._cumReward) / (self._env.T))
         return reward
+
+    def enable_save_figure(self, figure_path: Optional[str] = None) -> None:
+        self._cfg.ifSaveFigure = True
+        if figure_path is None:
+            figure_path = './'
+        self._cfg.figure_dir = figure_path
+        self._env.doTestMid(self._demandTr[random.randint(0, self._demand_len - 1)])

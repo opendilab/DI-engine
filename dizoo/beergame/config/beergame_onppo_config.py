@@ -8,8 +8,9 @@ beergame_ppo_config = dict(
         # env_id='beergame-v2',
         n_evaluator_episode=8,
         stop_value=200,
-        role=0,  # 0-3 : retailer, warehouse, distributor, manufacturer
-        agent_type='bs',
+        role=3,  # 0-3 : retailer, warehouse, distributor, manufacturer
+        agent_type='Strm',
+        replay_path=None
         # type of co-player, 'bs'- base stock, 'Strm'- use Sterman formula to model typical human behavior.
     ),
     policy=dict(
@@ -75,4 +76,4 @@ create_config = beergame_ppo_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c beergame_offppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-    serial_pipeline_onpolicy([main_config, create_config], seed=0)
+    serial_pipeline_onpolicy([main_config, create_config], seed=0, max_train_iter=10)

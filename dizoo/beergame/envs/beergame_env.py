@@ -1,6 +1,6 @@
 import numpy as np
 from dizoo.beergame.envs.beergame_main import BeerGame
-from typing import Union, List
+from typing import Union, List, Optional
 
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
@@ -64,6 +64,9 @@ class BeerGameEnv(BaseEnv):
         if isinstance(random_action, int):
             random_action = to_ndarray([random_action], dtype=np.int64)
         return random_action
+
+    def enable_save_figure(self, figure_path: Optional[str] = None) -> None:
+        self._env.enable_save_figure(figure_path)
 
     @property
     def observation_space(self) -> int:

@@ -167,7 +167,7 @@ game_arg.add_argument(
 game_arg.add_argument(
     '--ifPlaySavedData',
     type=str2bool,
-    default=False,
+    default=True,
     help='If true it uses the saved actions which are read from file.'
 )
 
@@ -276,6 +276,7 @@ utility_arg.add_argument(
     help='if ifPlaySavedData is true, it uses this path to load actions'
 )
 utility_arg.add_argument('--model_dir', type=str, default='./', help='')
+utility_arg.add_argument('--figure_dir', type=str, default='./', help='')
 utility_arg.add_argument(
     '--TB', type=str2bool, default=True, help='set to True if use tensor board and save the required data for TB.'
 )

@@ -203,7 +203,9 @@ class BaseEnvManager(object):
 
     @property
     def method_name_list(self) -> list:
-        return ['reset', 'step', 'seed', 'close', 'enable_save_replay', 'render', 'reward_shaping']
+        return [
+            'reset', 'step', 'seed', 'close', 'enable_save_replay', 'render', 'reward_shaping', 'enable_save_figure'
+        ]
 
     def env_state_done(self, env_id: int) -> bool:
         return self._env_states[env_id] == EnvState.DONE
@@ -417,6 +419,17 @@ class BaseEnvManager(object):
         if isinstance(replay_path, str):
             replay_path = [replay_path] * self.env_num
         self._env_replay_path = replay_path
+
+    def enable_save_figure(self, env_id: int, figure_path: Union[List[str], str]) -> None:
+        """
+        Overview:
+            Set each env's replay save path.
+        Arguments:
+            - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \
+                Or one path for all environments.
+        """
+        if isinstance(figure_path, str):
+            self._env[env_id].enable_save_figure(figure_path)
 
     def close(self) -> None:
         """
