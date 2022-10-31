@@ -127,7 +127,7 @@ def wandb_online_logger(
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
     if anonymous:
-        wandb.init(anonymous="allow")
+        wandb.init(anonymous="must")
     else:
         wandb.init()
     # The visualizer is called to save the replay of the simulation
@@ -227,7 +227,7 @@ def wandb_offline_logger(
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
     if anonymous:
-        wandb.init(anonymous="allow")
+        wandb.init(anonymous="must")
     else:
         wandb.init()
     # The visualizer is called to save the replay of the simulation
