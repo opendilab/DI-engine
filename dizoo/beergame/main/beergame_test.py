@@ -44,10 +44,7 @@ def main(cfg, seed=0):
     )
     # model.load_state_dict(torch.load('ckpt_best.pth.tar', map_location='cpu')["model"])
 
-    model.load_state_dict(
-        torch.load('/home/DeepBeerInventory-RL/DI-engine/dizoo/beergame/envs/ckpt_best.pth.tar',
-                   map_location='cpu')["model"]
-    )
+    model.load_state_dict(torch.load('model path', map_location='cpu')["model"])
     evaluator.eval(None, -1, -1)
 
 

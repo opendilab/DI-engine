@@ -8,8 +8,8 @@ beergame_ppo_config = dict(
         # env_id='beergame-v2',
         n_evaluator_episode=8,
         stop_value=200,
-        role=3,  # 0-3 : retailer, warehouse, distributor, manufacturer
-        agent_type='Strm',
+        role=0,  # 0-3 : retailer, warehouse, distributor, manufacturer
+        agent_type='bs',
         replay_path=None
         # type of co-player, 'bs'- base stock, 'Strm'- use Sterman formula to model typical human behavior.
     ),

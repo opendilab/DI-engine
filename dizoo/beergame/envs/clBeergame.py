@@ -189,8 +189,6 @@ class clBeerGame(object):
                 self.getTotRew()
 
         self.curTime += 1
-        if self.curTime == self.T:
-            print(1)
 
     def handelAction(self, action: np.ndarray, playType="train"):
         # get random lead time
