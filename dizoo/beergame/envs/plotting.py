@@ -50,30 +50,15 @@ def savePlot(players, curGame, Rsltdnn, RsltFrmu, RsltOptm, RsltRnd, config, m):
     node3 = config.node3
     #add title to plot
     if config.if_titled_figure:
-        if config.NoHiLayer == 2:
-            plt.suptitle(
-                "Game No=" + str(curGame) + ";" + str(config.agentTypes.count("srdqn")) +
-                " SRDQN Agents; SRDQN nodes=" + str(node1) + "-" + str(node2) + "; sum SRDQN=" +
-                str(round(sum(Rsltdnn), 2)) + "; sum Strm=" + str(round(sum(RsltFrmu), 2)) + "; sum BS=" +
-                str(round(sum(RsltOptm), 2)) + "\n" + "Ag SRDQN=" +
-                str([round(Rsltdnn[i], 2) for i in range(config.NoAgent)]) + "; Ag Strm=" +
-                str([round(RsltFrmu[i], 2) for i in range(config.NoAgent)]) + "; Ag BS=" +
-                str([round(RsltOptm[i], 2) for i in range(config.NoAgent)]) + "; Ag Rnd=" +
-                str([round(RsltRnd[i], 2) for i in range(config.NoAgent)]),
-                fontsize=12
-            )
-        elif config.NoHiLayer == 3:
-            plt.suptitle(
-                "Game No=" + str(curGame) + ";" + str(config.agentTypes.count("srdqn")) +
-                " SRDQN Agents; SRDQN nodes=" + str(node1) + "-" + str(node2) + "-" + str(node3) + "; sum SRDQN=" +
-                str(round(sum(Rsltdnn), 2)) + "; sum Strm=" + str(round(sum(RsltFrmu), 2)) + "; sum BS=" +
-                str(round(sum(RsltOptm), 2)) + "\n" + "Ag SRDQN=" +
-                str([round(Rsltdnn[i], 2) for i in range(config.NoAgent)]) + "; Ag Strm=" +
-                str([round(RsltFrmu[i], 2) for i in range(config.NoAgent)]) + "; Ag BS=" +
-                str([round(RsltOptm[i], 2) for i in range(config.NoAgent)]) + "; Ag Rnd=" +
-                str([round(RsltRnd[i], 2) for i in range(config.NoAgent)]),
-                fontsize=12
-            )
+        plt.suptitle(
+            "sum OurPolicy=" + str(round(sum(Rsltdnn), 2)) + "; sum Strm=" + str(round(sum(RsltFrmu), 2)) +
+            "; sum BS=" + str(round(sum(RsltOptm), 2)) + "; sum Rnd=" + str(round(sum(RsltRnd), 2)) + "\n" +
+            "Ag OurPolicy=" + str([round(Rsltdnn[i], 2) for i in range(config.NoAgent)]) + "; Ag Strm=" +
+            str([round(RsltFrmu[i], 2) for i in range(config.NoAgent)]) + "; Ag BS=" +
+            str([round(RsltOptm[i], 2) for i in range(config.NoAgent)]) + "; Ag Rnd=" +
+            str([round(RsltRnd[i], 2) for i in range(config.NoAgent)]),
+            fontsize=12
+        )
 
     #insert legend to the figure
     legend = plt.legend(bbox_to_anchor=(-1.4, -.165, 1., -.102), shadow=True, ncol=4)

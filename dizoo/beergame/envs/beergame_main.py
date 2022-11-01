@@ -16,7 +16,7 @@ class BeerGame():
         self._cfg, unparsed = get_config()
         self._role = role
         # prepare loggers and directories
-        prepare_dirs_and_logger(self._cfg)
+        # prepare_dirs_and_logger(self._cfg)
         self._cfg = update_config(self._cfg)
 
         # set agent type
