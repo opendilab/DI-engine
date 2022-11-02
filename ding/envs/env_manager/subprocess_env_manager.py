@@ -397,8 +397,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     self._check_data({env_id: ret})
                     self._env_seed[env_id] = None  # seed only use once
                 except BaseException as e:
-                    logging.warning("subprocess reset set seed failed, ignore and continue...")
-                    logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
+                    logging.warning(
+                        "subprocess reset set seed failed, ignore and continue... \n subprocess exception traceback: \n"
+                        + traceback.format_exc()
+                    )
             self._env_states[env_id] = EnvState.RESET
             reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
@@ -440,7 +442,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 reset_fn()
                 return
             except BaseException as e:
-                logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
+                logging.info("subprocess exception traceback: \n" + traceback.format_exc())
                 if self._retry_type == 'renew' or isinstance(e, pickle.UnpicklingError):
                     self._pipe_parents[env_id].close()
                     if self._subprocesses[env_id].is_alive():
