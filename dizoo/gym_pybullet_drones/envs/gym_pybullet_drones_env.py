@@ -75,26 +75,6 @@ action_type = {
     "ONE_D_RPM": ActionType.ONE_D_RPM,
 }
 
-# def action_type(action_str):
-#     if action_str == "PID":
-#         return ActionType.PID
-#     elif action_str == "DYN":
-#         return ActionType.DYN
-#     elif action_str == "VEL":
-#         return ActionType.VEL
-#     elif action_str == "RPM":
-#         return ActionType.RPM
-#     elif action_str == "TUN":
-#         return ActionType.TUN
-#     elif action_str == "ONE_D_DYN":
-#         return ActionType.ONE_D_DYN
-#     elif action_str == "ONE_D_PID":
-#         return ActionType.ONE_D_PID
-#     elif action_str == "ONE_D_RPM":
-#         return ActionType.ONE_D_RPM
-#     else:
-#         raise ValueError('Invalid action type.')
-
 
 @ENV_REGISTRY.register('gym_pybullet_drones')
 class GymPybulletDronesEnv(BaseEnv):
