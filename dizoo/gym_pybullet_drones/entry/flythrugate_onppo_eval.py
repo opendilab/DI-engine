@@ -12,7 +12,7 @@ from ding.model import VAC
 from ding.utils import set_pkg_seed
 
 from dizoo.gym_pybullet_drones.envs.gym_pybullet_drones_env import GymPybulletDronesEnv
-from dizoo.gym_pybullet_drones.config.flythrugate_ppo_config import flythrugate_ppo_config
+from dizoo.gym_pybullet_drones.config.flythrugate_onppo_config import flythrugate_ppo_config
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):
@@ -38,7 +38,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     evaluator_env = BaseEnvManager(
         env_fn=[lambda: GymPybulletDronesEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
     )
-    #evaluator_env.enable_save_replay(cfg.env.replay_path)
 
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)

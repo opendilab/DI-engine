@@ -7,16 +7,17 @@ flythrugate_ppo_config = dict(
         env_id='flythrugate-aviary-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=1,
-        evaluator_env_num=1,
+        collector_env_num=8,
+        evaluator_env_num=8,
         use_act_scale=True,
-        n_evaluator_episode=2,
+        n_evaluator_episode=8,
         stop_value=0,
         action_type="VEL",
     ),
     policy=dict(
         cuda=True,
         recompute_adv=True,
+        # load_path="./flythrugate_ppo_seed0/ckpt/ckpt_best.pth.tar",
         model=dict(
             obs_shape=12,
             action_shape=4,
@@ -35,12 +36,9 @@ flythrugate_ppo_config = dict(
         ),
         collect=dict(
             n_sample=2048,
-            unroll_len=1,
-            discount_factor=0.99,
             gae_lambda=0.97,
         ),
-        #eval=dict(evaluator=dict(eval_freq=5000, )),
-        eval=dict(evaluator=dict(eval_freq=5, )),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
 flythrugate_ppo_config = EasyDict(flythrugate_ppo_config)

@@ -12,19 +12,9 @@ class TestGymPybulletDronesEnv:
     cfg = EasyDict(cfg)
     env = GymPybulletDronesEnv(cfg)
 
-    print(env.action_space)
-    print(env.observation_space)
-    print(env.reward_space)
-
     env.reset()
-
-    print(env.action_space)
-    print(env.observation_space)
-    print(env.reward_space)
-    print("[INFO] Action space:", env.action_space)
-    print("[INFO] Observation space:", env.observation_space)
-
     done = False
     while not done:
         action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
+        assert obs.shape[0] == 12
