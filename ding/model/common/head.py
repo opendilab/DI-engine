@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Normal, Independent
 
-from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
+from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP, PopArt
 from ding.rl_utils import beta_function_map
 from ding.utils import lists_to_dicts, SequenceType
 
@@ -1111,6 +1111,76 @@ class MultiHead(nn.Module):
         return lists_to_dicts([m(x) for m in self.pred])
 
 
+class PopArtQHead(nn.Module):
+    """
+        Overview:
+            The ``PopArtQHead`` used to output discrete actions logit with the last layer as popart. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``.
+        Interfaces:
+            ``__init__``, ``forward``.
+    """
+
+    def __init__(
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
+    ) -> None:
+        """
+        Overview:
+            Init the ``PopArtQHead`` layers according to the provided arguments.
+        Arguments:
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``PopArtQHead``.
+            - output_size (:obj:`int`): The number of outputs.
+            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
+        """
+        super(PopArtQHead, self).__init__()
+        layer = NoiseLinearLayer if noise else nn.Linear
+        self.popart = PopArt(hidden_size, output_size)
+        self.Q = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                hidden_size,
+                layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), self.popart
+        )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        """
+        Overview:
+            Use encoded embedding tensor to run MLP with ``PopArtQHead`` and return the prediction dictionary.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keyword ``logit`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+
+        Examples:
+            >>> head = PopArtQHead(64, 64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 64])
+        """
+        logit = self.Q(x)
+        return {'logit': logit}
+
+
 head_cls_map = {
     # discrete
     'discrete': DiscreteHead,
@@ -1120,6 +1190,7 @@ head_cls_map = {
     'rainbow': RainbowHead,
     'qrdqn': QRDQNHead,
     'quantile': QuantileHead,
+    'popart': PopArtQHead,
     # continuous
     'regression': RegressionHead,
     'reparameterization': ReparameterizationHead,

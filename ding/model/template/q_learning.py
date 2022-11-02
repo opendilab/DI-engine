@@ -5,7 +5,7 @@ import torch.nn as nn
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
-    QuantileHead, FQFHead, QRDQNHead, DistributionHead
+    QuantileHead, FQFHead, QRDQNHead, DistributionHead, PopArtQHead
 from ding.torch_utils.network.gtrxl import GTrXL
 
 
@@ -17,6 +17,7 @@ class DQN(nn.Module):
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            popart: bool = False,
             dueling: bool = True,
             head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
@@ -31,7 +32,8 @@ class DQN(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
-            - dueling (:obj:`dueling`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
+            - popart (:obj:`bool`): Whether use ``PopArtQHead``.
+            - dueling (:obj:`bool`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
             - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
@@ -57,6 +59,8 @@ class DQN(nn.Module):
         # Head Type
         if dueling:
             head_cls = DuelingHead
+        elif popart:
+            head_cls = PopArtQHead
         else:
             head_cls = DiscreteHead
         multi_head = not isinstance(action_shape, int)

@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import copy
-from ding.rl_utils.td import q_nstep_td_error_with_rescale, q_nstep_td_error_with_error_clip, q_nstep_td_error_with_popart
+from ding.rl_utils.td import q_nstep_td_error_with_popart
 import torch
 import numpy as np
 
@@ -146,13 +146,11 @@ class DQNPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
+        # DQN with constraint gradient doesn't need target network
         if self._cfg.learn.reward_scale_function == 'consgrad':
             self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': 1}
-        )
+                self._target_model, wrapper_name='target', update_type='assign', update_kwargs={'freq': 1}
+            )
         else:
             self._target_model = model_wrap(
                 self._target_model,
@@ -163,7 +161,6 @@ class DQNPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
-        self._popart_update = PopartUpdate(shape=6)
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -197,14 +194,13 @@ class DQNPolicy(Policy):
         self._learn_model.train()
         self._target_model.train()
         # Current q value (main model)
-        
-        if self._cfg.learn.reward_scale_function == 'popart':
-            W = list(self._learn_model.parameters())[10]
-            b = list(self._learn_model.parameters())[11]
-            norm_param = self._popart_update.update(q_value, W, b)
 
         q_value = self._learn_model.forward(data['obs'])['logit']
-            
+
+        if self._cfg.model.popart:
+            assert hasattr(self._learn_model.head, 'popart')
+            norm_param = self._learn_model.head.popart.update_parameters(q_value)
+
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
@@ -215,29 +211,29 @@ class DQNPolicy(Policy):
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         value_gamma = data.get('value_gamma')
-        if self._cfg.learn.reward_scale_function == 'normal':
-            loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        elif self._cfg.learn.reward_scale_function == 'value_rescale':
-            loss, td_error_per_sample = q_nstep_td_error_with_rescale(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        elif self._cfg.learn.reward_scale_function == 'errorclip':
-            loss, td_error_per_sample = q_nstep_td_error_with_error_clip(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        elif self._cfg.learn.reward_scale_function == 'popart':
-            loss, td_error_per_sample = q_nstep_td_error_with_popart(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma, norm_param = norm_param)
+        if self._cfg.model.popart:
+            loss, td_error_per_sample = q_nstep_td_error_with_popart(
+                data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma, norm_param=norm_param
+            )
         else:
-            loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-            
+            loss, td_error_per_sample = q_nstep_td_error(
+                data_n,
+                self._gamma,
+                nstep=self._nstep,
+                value_gamma=value_gamma,
+                scale=self._cfg.learn.reward_scale_function
+            )
+
         # ====================
         # Q-learning update
         # ====================
         self._optimizer.zero_grad()
         if self._cfg.learn.reward_scale_function == 'consgrad':
-            grad_v_norm = self.g_v(data['next_obs'])
-            self._optimizer.zero_grad()
-            loss.backward()
+            grad_v_norm = self.g_v(data['next_obs'], loss)
             for i, p in enumerate(self._learn_model.parameters()):
                 p.grad -= torch.mul(p.grad, grad_v_norm[i]) * grad_v_norm[i]
         else:
-            loss.backward() # loss is td error
+            loss.backward()  # loss is td error
 
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
@@ -254,6 +250,9 @@ class DQNPolicy(Policy):
             'q_value': q_value.mean().item(),
             'target_q_value': target_q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
+            # Only model with popart=true can return this and draw histogram on tensorboard
+            #'popart_mean': norm_param['new_mean'].tolist(),
+            #'popart_std' : norm_param['new_std'].tolist()
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
@@ -262,8 +261,7 @@ class DQNPolicy(Policy):
         value = self._learn_model.forward(state)['logit'].sum()
         value.backward()
 
-        direction = [param.grad / torch.norm(param.grad, p=2)
-                     for param in self._learn_model.parameters()]
+        direction = [param.grad / torch.norm(param.grad, p=2) for param in self._learn_model.parameters()]
         return direction
 
     def _monitor_vars_learn(self) -> List[str]:
@@ -698,12 +696,14 @@ class DQNSTDIMPolicy(DQNPolicy):
         self._optimizer.load_state_dict(state_dict['optimizer'])
         self._aux_optimizer.load_state_dict(state_dict['aux_optimizer'])
 
+
 class PopartUpdate(object):
+
     def __init__(self, shape, _cuda, _device):
         self._shape = shape
-        self._mean = torch.zeros(self._shape, requires_grad = False)
-        self._v = torch.ones(self._shape, requires_grad = False)
-        self._std = torch.ones(self._shape, requires_grad = False)
+        self._mean = torch.zeros(self._shape, requires_grad=False)
+        self._v = torch.ones(self._shape, requires_grad=False)
+        self._std = torch.ones(self._shape, requires_grad=False)
         if _cuda:
             self._mean = to_device(self._mean, _device)
             self._v = to_device(self._v, _device)
@@ -715,44 +715,44 @@ class PopartUpdate(object):
             batch_mean = torch.mean(value, 0)
             batch_v = torch.mean(torch.pow(value, 2), 0)
             if method == "origin":
-                batch_std = torch.sqrt(batch_v - (batch_mean**2))
+                batch_std = torch.sqrt(batch_v - (batch_mean ** 2))
                 batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
 
                 batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
                 batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
                 batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
 
-                batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
-                batch_v = (1-beta) * self._v + beta * torch.mean(torch.pow(value, 2))
+                batch_mean = (1 - beta) * self._mean + beta * torch.mean(value)
+                batch_v = (1 - beta) * self._v + beta * torch.mean(torch.pow(value, 2))
             elif method == "sequence":
                 batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
                 batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
 
-                batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
-                batch_v = (1-beta) * self._v + beta * torch.mean(torch.pow(value, 2))
+                batch_mean = (1 - beta) * self._mean + beta * torch.mean(value)
+                batch_v = (1 - beta) * self._v + beta * torch.mean(torch.pow(value, 2))
 
-                batch_std = torch.sqrt(batch_v - (batch_mean**2))
+                batch_std = torch.sqrt(batch_v - (batch_mean ** 2))
                 batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
                 batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
             elif method == "std":
-                batch_std = torch.sqrt(batch_v - (batch_mean**2))
+                batch_std = torch.sqrt(batch_v - (batch_mean ** 2))
                 batch_std = torch.clamp(batch_std, min=1e-4, max=1e+6)
 
                 batch_mean[torch.isnan(batch_mean)] = self._mean[torch.isnan(batch_mean)]
                 batch_v[torch.isnan(batch_v)] = self._v[torch.isnan(batch_v)]
                 batch_std[torch.isnan(batch_std)] = self._std[torch.isnan(batch_std)]
 
-                batch_mean = (1-beta) * self._mean  + beta * torch.mean(value)
-                batch_std = (1-beta) * self._std + beta * batch_std
-            
-            W_new = torch.reshape(1/batch_std * self._std, (self._shape, 1))
+                batch_mean = (1 - beta) * self._mean + beta * torch.mean(value)
+                batch_std = (1 - beta) * self._std + beta * batch_std
+
+            W_new = torch.reshape(1 / batch_std * self._std, (self._shape, 1))
             W.data = W.data * W_new
 
-            b.data = 1/batch_std *(self._std*b.data + self._mean - batch_mean)
+            b.data = 1 / batch_std * (self._std * b.data + self._mean - batch_mean)
 
         #add EMA
         self._std = batch_std
         self._mean = batch_mean
         self._v = batch_v
 
-        return {'new_mean':batch_mean, 'new_std':batch_std}
+        return {'new_mean': batch_mean, 'new_std': batch_std}

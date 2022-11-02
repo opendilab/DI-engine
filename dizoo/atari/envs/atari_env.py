@@ -82,7 +82,7 @@ class AtariEnv(BaseEnv):
             self._cfg.env_id,
             frame_stack=self._cfg.frame_stack,
             episode_life=self._cfg.is_train,
-            clip_rewards=self._cfg.is_train
+            clip_rewards=self._cfg.is_clip
         )
 
     def __repr__(self) -> str:

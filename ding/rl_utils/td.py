@@ -1,4 +1,4 @@
-import copy
+import copyenum
 import numpy as np
 from collections import namedtuple
 from typing import Union, Optional, Callable
@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from ding.hpc_rl import hpc_wrapper
 from ding.rl_utils.value_rescale import value_transform, value_inv_transform
 from ding.torch_utils import to_tensor
+from ding.utils.loader import enum
 
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 
@@ -404,6 +405,7 @@ def q_nstep_td_error(
         cum_reward: bool = False,
         value_gamma: Optional[torch.Tensor] = None,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+        scale: str = 'rewardclip'
 ) -> torch.Tensor:
     """
     Overview:
@@ -415,6 +417,7 @@ def q_nstep_td_error(
         - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
         - criterion (:obj:`torch.nn.modules`): loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 1
+        - scale (:obg:`str`): method of value scale
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
         - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
@@ -429,6 +432,9 @@ def q_nstep_td_error(
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
     """
+    _scale_loader = enum('normal', 'rewardclip', 'errorclip', 'value_rescale', 'consgrad', 'popart')
+    assert _scale_loader.check(scale)
+
     q, next_n_q, action, next_n_action, reward, done, weight = data
     if weight is None:
         weight = torch.ones_like(reward)
@@ -442,6 +448,9 @@ def q_nstep_td_error(
     q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
     target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
 
+    if scale == _scale_loader('value_rescale'):
+        target_q_s_a = value_inv_transform(target_q_s_a)
+
     if cum_reward:
         if value_gamma is None:
             target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
@@ -449,7 +458,19 @@ def q_nstep_td_error(
             target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
     else:
         target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+
+    if scale == _scale_loader('value_rescale'):
+        target_q_s_a = value_transform(target_q_s_a)
+
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+
+    if scale == _scale_loader('errorclip'):
+        clip_range = [-1, 1]
+        item_max = ((q_s_a + clip_range[1]).detach() - q_s_a) ** 2 * -0.5
+        item_min = ((q_s_a + clip_range[0]).detach() - q_s_a) ** 2 * -0.5
+        td_error_per_sample = torch.where(td_error_per_sample > clip_range[1], item_max, td_error_per_sample)
+        td_error_per_sample = torch.where(td_error_per_sample < clip_range[0], item_min, td_error_per_sample)
+
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
@@ -1236,69 +1257,6 @@ def multistep_forward_view(
 
 
 @hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
-def q_nstep_td_error_with_error_clip(
-        data: namedtuple,
-        gamma: Union[float, list],
-        nstep: int = 1,
-        cum_reward: bool = False,
-        value_gamma: Optional[torch.Tensor] = None,
-        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-        clip_range=[-1,1],
-) -> torch.Tensor:
-    """
-    Overview:
-        Multistep (1 step or n step) td_error for q-learning based algorithm
-    Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
-        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - nstep (:obj:`int`): nstep num, default set to 1
-    Returns:
-        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
-        - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
-    Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
-            ['q', 'next_n_q', 'action', 'reward', 'done']
-        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
-        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
-        - action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
-        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
-        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
-    """
-    q, next_n_q, action, next_n_action, reward, done, weight = data
-    if weight is None:
-        weight = torch.ones_like(reward)
-    if len(action.shape) > 1:  # MARL case
-        reward = reward.unsqueeze(-1)
-        weight = weight.unsqueeze(-1)
-        done = done.unsqueeze(-1)
-        if value_gamma is not None:
-            value_gamma = value_gamma.unsqueeze(-1)
-
-    q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
-    target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
-
-    if cum_reward:
-        if value_gamma is None:
-            target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
-        else:
-            target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
-    else:
-        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
-    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
-    item_max = ((q_s_a + clip_range[1]).detach() - q_s_a) ** 2 * -0.5
-    item_min = ((q_s_a + clip_range[0]).detach() - q_s_a) ** 2 * -0.5
-    td_error_per_sample = torch.where(td_error_per_sample > clip_range[1], item_max, td_error_per_sample)
-    td_error_per_sample = torch.where(td_error_per_sample < clip_range[0], item_min, td_error_per_sample)
-    #td_error_per_sample = torch.where(td_error_per_sample < clip_range[-1], )
-    #td_error_per_sample.clamp_(clip_range)
-    return (td_error_per_sample * weight).mean(), td_error_per_sample
-
-@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
 def q_nstep_td_error_with_popart(
         data: namedtuple,
         gamma: Union[float, list],
@@ -1306,7 +1264,7 @@ def q_nstep_td_error_with_popart(
         cum_reward: bool = False,
         value_gamma: Optional[torch.Tensor] = None,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-        norm_param = None
+        norm_param=None
 ) -> torch.Tensor:
     """
     Overview:
