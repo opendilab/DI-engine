@@ -84,6 +84,8 @@ setup(
         'wandb',
         'matplotlib',
         'MarkupSafe==2.0.1',  # compatibility
+        'h5py',
+        'scikit-learn',
     ],
     extras_require={
         'test': [
