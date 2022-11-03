@@ -40,7 +40,7 @@ class CkptSaver:
             The method used to save checkpoint data. \
             The checkpoint data will be saved in a file in following 3 cases: \
                 - When a multiple of `self.train_freq` iterations have elapsed since the beginning of training; \
-                - When the evaluation reward is the best episode return so far; \
+                - When the evaluation episode return is the best so far; \
                 - When `task.finish` is True.
         Input of ctx:
             - train_iter (:obj:`int`): Number of training iteration, i.e. the number of updating policy related network.
