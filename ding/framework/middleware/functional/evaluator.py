@@ -75,6 +75,10 @@ class VectorEvalMonitor(object):
             env_id: deque([[] for _ in range(maxlen)], maxlen=maxlen)
             for env_id, maxlen in enumerate(each_env_episode)
         }
+        self._output = {
+            env_id: deque([[] for _ in range(maxlen)], maxlen=maxlen)
+            for env_id, maxlen in enumerate(each_env_episode)
+        }
 
     def is_finished(self) -> bool:
         """
@@ -154,6 +158,22 @@ class VectorEvalMonitor(object):
                     pass
             return new_dict
 
+    def _select_idx(self):
+        reward = [t.item() for t in self.get_episode_reward()]
+        sortarg = np.argsort(reward)
+        # worst, median(s), best
+        if len(sortarg) == 1:
+            idxs = [sortarg[0]]
+        elif len(sortarg) == 2:
+            idxs = [sortarg[0], sortarg[-1]]
+        elif len(sortarg) == 3:
+            idxs = [sortarg[0], sortarg[len(sortarg) // 2], sortarg[-1]]
+        else:
+            # TensorboardX pad the number of videos to even numbers with black frames,
+            # therefore providing even number of videos prevents black frames being rendered.
+            idxs = [sortarg[0], sortarg[len(sortarg) // 2 - 1], sortarg[len(sortarg) // 2], sortarg[-1]]
+        return idxs
+
     def update_video(self, imgs):
         for env_id, img in imgs.items():
             if len(self._reward[env_id]) == self._reward[env_id].maxlen:
@@ -168,19 +188,7 @@ class VectorEvalMonitor(object):
         """
         videos = sum([list(v) for v in self._video.values()], [])
         videos = [np.transpose(np.stack(video, 0), [0, 3, 1, 2]) for video in videos]
-        reward = [t.item() for t in self.get_episode_reward()]
-        sortarg = np.argsort(reward)
-        # worst, median(s), best
-        if len(sortarg) == 1:
-            idxs = [sortarg[0]]
-        elif len(sortarg) == 2:
-            idxs = [sortarg[0], sortarg[-1]]
-        elif len(sortarg) == 3:
-            idxs = [sortarg[0], sortarg[len(sortarg) // 2], sortarg[-1]]
-        else:
-            # TensorboardX pad the number of videos to even numbers with black frames,
-            # therefore providing even number of videos prevents black frames being rendered.
-            idxs = [sortarg[0], sortarg[len(sortarg) // 2 - 1], sortarg[len(sortarg) // 2], sortarg[-1]]
+        idxs = self._select_idx()
         videos = [videos[idx] for idx in idxs]
         # pad videos to the same length with last frames
         max_length = max(video.shape[0] for video in videos)
@@ -191,6 +199,18 @@ class VectorEvalMonitor(object):
         videos = np.stack(videos, 0)
         assert len(videos.shape) == 5, 'Need [N, T, C, H, W] input tensor for video logging!'
         return videos
+
+    def update_output(self, output):
+        for env_id, o in output.items():
+            if len(self._reward[env_id]) == self._reward[env_id].maxlen:
+                continue
+            self._output[env_id][len(self._reward[env_id])].append(to_ndarray(o))
+
+    def get_episode_output(self):
+        output = sum([list(v) for v in self._output.values()], [])
+        idxs = self._select_idx()
+        output = [output[idx] for idx in idxs]
+        return output
 
 
 def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render: bool = False) -> Callable:
@@ -232,9 +252,10 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
             obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
+            inference_output = policy.forward(obs)
             if render:
                 eval_monitor.update_video(env.ready_imgs)
-            inference_output = policy.forward(obs)
+                eval_monitor.update_output(inference_output)
             output = [v for v in inference_output.values()]
             action = [to_ndarray(v['action']) for v in output]  # TBD
             timesteps = env.step(action)
@@ -265,6 +286,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             ctx.eval_output['episode_info'] = episode_info
         if render:
             ctx.eval_output['replay_video'] = eval_monitor.get_episode_video()
+            ctx.eval_output['output'] = eval_monitor.get_episode_output()
 
         if stop_flag:
             task.finish = True
