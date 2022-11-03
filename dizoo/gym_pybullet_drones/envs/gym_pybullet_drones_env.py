@@ -78,6 +78,11 @@ action_type = {
 
 @ENV_REGISTRY.register('gym_pybullet_drones')
 class GymPybulletDronesEnv(BaseEnv):
+    """
+    Gym_Pybullet_Drones Environment for training and simulating UAV drones in pybullet physical engine.
+    The tasks are registered in the standard of gym library.
+    url: 'https://github.com/utiasDSL/gym-pybullet-drones'
+    """
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
@@ -203,7 +208,7 @@ class GymPybulletDronesEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        action = action.astype('float32')
+        # action = action.astype('float32')
         obs, rew, done, info = self._env.step(action)
         if self._cfg["plot_observation"]:
             self.observation_logger.log(
