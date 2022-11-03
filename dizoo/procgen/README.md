@@ -10,11 +10,11 @@ Procedural generation controls the number of platform sections, their correspond
 
 ## Train Coinrun with DI-engine
 
-DI-engine can achive 10 return on average within 2M episodes by DQN. The tuned example can be found in `dizoo/procgen/entry/coinrun_dqn_config.py`. The training episode reward is as follows.
+DI-engine can achive 10 return on average within 2M episodes by DQN. The tuned example can be found in `dizoo/procgen/entry/coinrun_dqn_config.py`. The training episode return is as follows.
 
 ![tb](./coinrun_dqn.svg)
 
-DI-engine can achive 10 return on average within 2M episodes by PPO. The tuned example can be found in `dizoo/procgen/entry/coinrun_ppo_config.py`. The training episode reward is as follows.
+DI-engine can achive 10 return on average within 2M episodes by PPO. The tuned example can be found in `dizoo/procgen/entry/coinrun_ppo_config.py`. The training episode return is as follows.
 
 ![tb](./coinrun_ppo.svg)
 
@@ -28,6 +28,6 @@ Procedural generation controls the level layout by generating mazes using Kruska
 
 ## Train Maze with DI-engine
 
-DI-engine can achive 10 return on average within 7M episodes by DQN. The tuned example can be found in `dizoo/procgen/entry/maze_dqn_config.py`. The training episode reward is as follows.
+DI-engine can achive 10 return on average within 7M episodes by DQN. The tuned example can be found in `dizoo/procgen/entry/maze_dqn_config.py`. The training episode return is as follows.
 
 ![tb](./maze_dqn.svg)

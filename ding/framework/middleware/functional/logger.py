@@ -50,10 +50,10 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
         nonlocal last_train_show_iter
         if not np.isinf(ctx.eval_value):
             if record_train_iter:
-                writer.add_scalar('basic/eval_episode_reward_mean-env_step', ctx.eval_value, ctx.env_step)
-                writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+                writer.add_scalar('basic/eval_episode_return_mean-env_step', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
             else:
-                writer.add_scalar('basic/eval_episode_reward_mean', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean', ctx.eval_value, ctx.env_step)
         if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
             last_train_show_iter = ctx.train_iter
             if isinstance(ctx.train_output, List):
@@ -86,7 +86,7 @@ def offline_logger() -> Callable:
 
     def _logger(ctx: "OfflineRLContext"):
         if not np.isinf(ctx.eval_value):
-            writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+            writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
         if ctx.train_output is not None:
             output = ctx.train_output
             for k, v in output.items():
@@ -105,7 +105,7 @@ def offline_logger() -> Callable:
 
 
 def wandb_online_logger(
-        cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module, anonymous: bool = False
+    cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module, anonymous: bool = False
 ) -> Callable:
     '''
     Overview:
@@ -200,11 +200,11 @@ def wandb_online_logger(
 
 
 def wandb_offline_logger(
-        cfg: EasyDict,
-        env: BaseEnvManagerV2,
-        model: torch.nn.Module,
-        datasetpath: str,
-        anonymous: bool = False
+    cfg: EasyDict,
+    env: BaseEnvManagerV2,
+    model: torch.nn.Module,
+    datasetpath: str,
+    anonymous: bool = False
 ) -> Callable:
     '''
     Overview:

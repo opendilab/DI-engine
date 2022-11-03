@@ -43,13 +43,13 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
     )
 
     def __init__(
-            self,
-            cfg: dict,
-            env: BaseEnvManager = None,
-            policy: List[namedtuple] = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'evaluator',
+        self,
+        cfg: dict,
+        env: BaseEnvManager = None,
+        policy: List[namedtuple] = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -169,11 +169,11 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
         return True
 
     def eval(
-            self,
-            save_ckpt_fn: Callable = None,
-            train_iter: int = -1,
-            envstep: int = -1,
-            n_episode: Optional[int] = None
+        self,
+        save_ckpt_fn: Callable = None,
+        train_iter: int = -1,
+        envstep: int = -1,
+        n_episode: Optional[int] = None
     ) -> Tuple[bool, List[dict]]:
         '''
         Overview:
@@ -219,7 +219,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                         for p in self._policy:
                             p.reset([env_id])
                         # policy0 is regarded as main policy default
-                        reward = t.info[0]['final_eval_reward']
+                        reward = t.info[0]['eval_episode_return']
                         if 'episode_info' in t.info[0]:
                             eval_monitor.update_info(env_id, t.info[0]['episode_info'])
                         eval_monitor.update_reward(env_id, reward)
@@ -232,7 +232,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                         )
                     envstep_count += 1
         duration = self._timer.value
-        episode_reward = eval_monitor.get_episode_reward()
+        episode_return = eval_monitor.get_episode_return()
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
@@ -242,11 +242,11 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             'evaluate_time': duration,
             'avg_envstep_per_sec': envstep_count / duration,
             'avg_time_per_episode': n_episode / duration,
-            'reward_mean': np.mean(episode_reward),
-            'reward_std': np.std(episode_reward),
-            'reward_max': np.max(episode_reward),
-            'reward_min': np.min(episode_reward),
-            # 'each_reward': episode_reward,
+            'reward_mean': np.mean(episode_return),
+            'reward_std': np.std(episode_return),
+            'reward_max': np.max(episode_return),
+            'reward_min': np.min(episode_return),
+            # 'each_reward': episode_return,
         }
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
@@ -260,7 +260,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                 continue
             self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
-        eval_reward = np.mean(episode_reward)
+        eval_reward = np.mean(episode_return)
         if eval_reward > self._max_eval_reward:
             if save_ckpt_fn:
                 save_ckpt_fn('ckpt_best.pth.tar')

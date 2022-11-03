@@ -20,12 +20,7 @@ class RocketEnv(BaseEnv):
         self._cfg = cfg
         self._init_flag = False
         self._save_replay = False
-        self._observation_space = gym.spaces.Box(
-            low=float("-inf"),
-            high=float("inf"),
-            shape=(8, ),
-            dtype=np.float32
-        )
+        self._observation_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(8, ), dtype=np.float32)
         self._action_space = gym.spaces.Discrete(9)
         self._action_space.seed(0)  # default seed
         self._reward_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
@@ -41,7 +36,7 @@ class RocketEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
             self._action_space.seed(self._seed)
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
         if self._save_replay:
@@ -64,21 +59,19 @@ class RocketEnv(BaseEnv):
 
         obs, rew, done, info = self._env.step(action)
         self._env.render()
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
 
         if self._save_replay:
             self._frames.extend(self._env.render())
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
             if self._save_replay:
-                path = os.path.join(
-                    self._replay_path, '{}_episode.gif'.format(self._save_replay_count)
-                )
+                path = os.path.join(self._replay_path, '{}_episode.gif'.format(self._save_replay_count))
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
         obs = to_ndarray(obs)
         # wrapped to be transfered to a array with shape (1,)
-        rew = to_ndarray([rew]).astype(np.float32)  
+        rew = to_ndarray([rew]).astype(np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:

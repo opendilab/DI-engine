@@ -16,12 +16,12 @@ from .utils import random_collect
 
 
 def serial_pipeline(
-        input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        max_train_iter: Optional[int] = int(1e10),
-        max_env_step: Optional[int] = int(1e10),
+    input_cfg: Union[str, Tuple[dict, dict]],
+    seed: int = 0,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    max_train_iter: Optional[int] = int(1e10),
+    max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -121,7 +121,7 @@ def serial_pipeline(
     import pickle
     import numpy as np
     with open(os.path.join(cfg.exp_name, 'result.pkl'), 'wb') as f:
-        eval_value_raw = [d['final_eval_reward'] for d in eval_info]
+        eval_value_raw = [d['eval_episode_return'] for d in eval_info]
         final_data = {
             'stop': stop,
             'env_step': collector.envstep,

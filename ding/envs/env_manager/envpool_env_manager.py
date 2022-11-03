@@ -80,7 +80,7 @@ class PoolEnvManager:
             self._ready_obs = deep_merge_dicts({i: o for i, o in zip(env_id, obs)}, self._ready_obs)
             if len(self._ready_obs) == self._env_num:
                 break
-        self._final_eval_reward = [0. for _ in range(self._env_num)]
+        self._eval_episode_return = [0. for _ in range(self._env_num)]
 
     def step(self, action: dict) -> Dict[int, namedtuple]:
         env_id = np.array(list(action.keys()))
@@ -98,11 +98,11 @@ class PoolEnvManager:
         for i in range(len(env_id)):
             d = bool(done[i])
             r = to_ndarray([rew[i]])
-            self._final_eval_reward[env_id[i]] += r
+            self._eval_episode_return[env_id[i]] += r
             timesteps[env_id[i]] = BaseEnvTimestep(obs[i], r, d, info={'env_id': i})
             if d:
-                timesteps[env_id[i]].info['final_eval_reward'] = self._final_eval_reward[env_id[i]]
-                self._final_eval_reward[env_id[i]] = 0.
+                timesteps[env_id[i]].info['eval_episode_return'] = self._eval_episode_return[env_id[i]]
+                self._eval_episode_return[env_id[i]] = 0.
             self._ready_obs[env_id[i]] = obs[i]
         return timesteps
 

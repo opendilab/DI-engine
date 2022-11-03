@@ -24,13 +24,13 @@ class BattleEpisodeSerialCollector(ISerialCollector):
     config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100, get_train_sample=False)
 
     def __init__(
-            self,
-            cfg: EasyDict,
-            env: BaseEnvManager = None,
-            policy: List[namedtuple] = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'collector'
+        self,
+        cfg: EasyDict,
+        env: BaseEnvManager = None,
+        policy: List[namedtuple] = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'collector'
     ) -> None:
         """
         Overview:
@@ -274,8 +274,8 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                 if timestep.done:
                     self._total_episode_count += 1
                     info = {
-                        'reward0': timestep.info[0]['final_eval_reward'],
-                        'reward1': timestep.info[1]['final_eval_reward'],
+                        'reward0': timestep.info[0]['eval_episode_return'],
+                        'reward1': timestep.info[1]['eval_episode_return'],
                         'time': self._env_info[env_id]['time'],
                         'step': self._env_info[env_id]['step'],
                     }
@@ -306,8 +306,8 @@ class BattleEpisodeSerialCollector(ISerialCollector):
             episode_count = len(self._episode_info)
             envstep_count = sum([d['step'] for d in self._episode_info])
             duration = sum([d['time'] for d in self._episode_info])
-            episode_reward0 = [d['reward0'] for d in self._episode_info]
-            episode_reward1 = [d['reward1'] for d in self._episode_info]
+            episode_return0 = [d['reward0'] for d in self._episode_info]
+            episode_return1 = [d['reward1'] for d in self._episode_info]
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -316,14 +316,14 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                 'avg_envstep_per_sec': envstep_count / duration,
                 'avg_episode_per_sec': episode_count / duration,
                 'collect_time': duration,
-                'reward0_mean': np.mean(episode_reward0),
-                'reward0_std': np.std(episode_reward0),
-                'reward0_max': np.max(episode_reward0),
-                'reward0_min': np.min(episode_reward0),
-                'reward1_mean': np.mean(episode_reward1),
-                'reward1_std': np.std(episode_reward1),
-                'reward1_max': np.max(episode_reward1),
-                'reward1_min': np.min(episode_reward1),
+                'reward0_mean': np.mean(episode_return0),
+                'reward0_std': np.std(episode_return0),
+                'reward0_max': np.max(episode_return0),
+                'reward0_min': np.min(episode_return0),
+                'reward1_mean': np.mean(episode_return1),
+                'reward1_std': np.std(episode_return1),
+                'reward1_max': np.max(episode_return1),
+                'reward1_min': np.min(episode_return1),
                 'total_envstep_count': self._total_envstep_count,
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,

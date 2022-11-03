@@ -18,13 +18,13 @@ from ding.utils.data import default_collate
 
 
 def eval(
-        input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        load_path: Optional[str] = None,
-        replay_path: Optional[str] = None,
+    input_cfg: Union[str, Tuple[dict, dict]],
+    seed: int = 0,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    load_path: Optional[str] = None,
+    replay_path: Optional[str] = None,
 ) -> float:
     r"""
     Overview:
@@ -72,21 +72,21 @@ def eval(
 
     # Evaluate
     _, episode_info = evaluator.eval()
-    reward = [e['final_eval_reward'] for e in episode_info]
+    reward = [e['eval_episode_return'] for e in episode_info]
     eval_reward = np.mean(to_ndarray(reward))
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
     return eval_reward
 
 
 def collect_demo_data(
-        input_cfg: Union[str, dict],
-        seed: int,
-        collect_count: int,
-        expert_data_path: Optional[str] = None,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        state_dict_path: Optional[str] = None,
+    input_cfg: Union[str, dict],
+    seed: int,
+    collect_count: int,
+    expert_data_path: Optional[str] = None,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    state_dict_path: Optional[str] = None,
 ) -> None:
     r"""
     Overview:
@@ -163,14 +163,14 @@ def collect_demo_data(
 
 
 def collect_episodic_demo_data(
-        input_cfg: Union[str, dict],
-        seed: int,
-        collect_count: int,
-        expert_data_path: str,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        state_dict_path: Optional[str] = None,
+    input_cfg: Union[str, dict],
+    seed: int,
+    collect_count: int,
+    expert_data_path: str,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    state_dict_path: Optional[str] = None,
 ) -> None:
     r"""
     Overview:
@@ -271,8 +271,8 @@ def episode_to_transitions_filter(data_path: str, expert_data_path: str, nstep: 
         _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
     post_process_data = []
     for i in range(len(_dict)):
-        episode_rewards = torch.stack([_dict[i][j]['reward'] for j in range(_dict[i].__len__())], axis=0)
-        if episode_rewards.sum() < min_episode_return:
+        episode_returns = torch.stack([_dict[i][j]['reward'] for j in range(_dict[i].__len__())], axis=0)
+        if episode_returns.sum() < min_episode_return:
             continue
         data = get_nstep_return_data(_dict[i], nstep)
         post_process_data.extend(data)

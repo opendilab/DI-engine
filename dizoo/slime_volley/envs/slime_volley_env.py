@@ -49,7 +49,7 @@ class SlimeVolleyEnv(BaseEnv):
         # So we have to put two actions into one tuple.
         obs1, rew, done, info = self._env.step((action1, action2))
         obs1 = to_ndarray(obs1).astype(np.float32)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         # info ('ale.lives', 'ale.otherLives', 'otherObs', 'state', 'otherState')
         if self._agent_vs_agent:
             info = [
@@ -63,14 +63,14 @@ class SlimeVolleyEnv(BaseEnv):
                 }
             ]
             if done:
-                info[0]['final_eval_reward'] = self._final_eval_reward
-                info[1]['final_eval_reward'] = -self._final_eval_reward
-                info[0]['result'] = self.get_episode_result(self._final_eval_reward)
-                info[1]['result'] = self.get_episode_result(-self._final_eval_reward)
+                info[0]['eval_episode_return'] = self._eval_episode_return
+                info[1]['eval_episode_return'] = -self._eval_episode_return
+                info[0]['result'] = self.get_episode_result(self._eval_episode_return)
+                info[1]['result'] = self.get_episode_result(-self._eval_episode_return)
         else:
             if done:
-                info['final_eval_reward'] = self._final_eval_reward
-                info['result'] = self.get_episode_result(self._final_eval_reward)
+                info['eval_episode_return'] = self._eval_episode_return
+                info['result'] = self.get_episode_result(self._eval_episode_return)
         reward = to_ndarray([rew]).astype(np.float32)
         if self._agent_vs_agent:
             obs2 = info[1]['obs']
@@ -82,8 +82,8 @@ class SlimeVolleyEnv(BaseEnv):
         else:
             return BaseEnvTimestep(obs1, reward, done, info)
 
-    def get_episode_result(self, final_eval_reward: float):
-        if final_eval_reward > 0:  # due to using 5 games (lives) in this env, the final_eval_reward can't be zero.
+    def get_episode_result(self, eval_episode_return: float):
+        if eval_episode_return > 0:  # due to using 5 games (lives) in this env, the eval_episode_return can't be zero.
             return "wins"
         else:
             return "losses"
@@ -122,7 +122,7 @@ class SlimeVolleyEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         if self._agent_vs_agent:

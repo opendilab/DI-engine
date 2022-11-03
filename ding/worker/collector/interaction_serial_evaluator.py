@@ -33,13 +33,13 @@ class InteractionSerialEvaluator(ISerialEvaluator):
     )
 
     def __init__(
-            self,
-            cfg: dict,
-            env: BaseEnvManager = None,
-            policy: namedtuple = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'evaluator',
+        self,
+        cfg: dict,
+        env: BaseEnvManager = None,
+        policy: namedtuple = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -180,12 +180,12 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         return True
 
     def eval(
-            self,
-            save_ckpt_fn: Callable = None,
-            train_iter: int = -1,
-            envstep: int = -1,
-            n_episode: Optional[int] = None,
-            force_render: bool = False,
+        self,
+        save_ckpt_fn: Callable = None,
+        train_iter: int = -1,
+        envstep: int = -1,
+        n_episode: Optional[int] = None,
+        force_render: bool = False,
     ) -> Tuple[bool, dict]:
         '''
         Overview:
@@ -242,7 +242,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                         if t.done:
                             # Env reset is done by env_manager automatically.
                             self._policy.reset([env_id])
-                            reward = t.info['final_eval_reward']
+                            reward = t.info['eval_episode_return']
                             if 'episode_info' in t.info:
                                 eval_monitor.update_info(env_id, t.info['episode_info'])
                             eval_monitor.update_reward(env_id, reward)
@@ -254,7 +254,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             )
                         envstep_count += 1
             duration = self._timer.value
-            episode_reward = eval_monitor.get_episode_reward()
+            episode_return = eval_monitor.get_episode_return()
             info = {
                 'train_iter': train_iter,
                 'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
@@ -264,11 +264,11 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 'evaluate_time': duration,
                 'avg_envstep_per_sec': envstep_count / duration,
                 'avg_time_per_episode': n_episode / duration,
-                'reward_mean': np.mean(episode_reward),
-                'reward_std': np.std(episode_reward),
-                'reward_max': np.max(episode_reward),
-                'reward_min': np.min(episode_reward),
-                # 'each_reward': episode_reward,
+                'reward_mean': np.mean(episode_return),
+                'reward_std': np.std(episode_return),
+                'reward_max': np.max(episode_return),
+                'reward_min': np.min(episode_return),
+                # 'each_reward': episode_return,
             }
             episode_info = eval_monitor.get_episode_info()
             if episode_info is not None:
@@ -290,7 +290,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 from ding.utils import fps
                 self._tb_logger.add_video(video_title, videos, render_iter, fps(self._env))
 
-            eval_reward = np.mean(episode_reward)
+            eval_reward = np.mean(episode_return)
             if eval_reward > self._max_eval_reward:
                 if save_ckpt_fn:
                     save_ckpt_fn('ckpt_best.pth.tar')

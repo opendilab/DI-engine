@@ -62,10 +62,10 @@ class MockOnlineWriter:
         self.ctx = get_online_ctx()
 
     def add_scalar(self, tag, scalar_value, global_step):
-        if tag in ['basic/eval_episode_reward_mean-env_step', 'basic/eval_episode_reward_mean']:
+        if tag in ['basic/eval_episode_return_mean-env_step', 'basic/eval_episode_return_mean']:
             assert scalar_value == self.ctx.eval_value
             assert global_step == self.ctx.env_step
-        elif tag == 'basic/eval_episode_reward_mean-train_iter':
+        elif tag == 'basic/eval_episode_return_mean-train_iter':
             assert scalar_value == self.ctx.eval_value
             assert global_step == self.ctx.train_iter
         elif tag in ['basic/train_td_error-env_step', 'basic/train_td_error']:
@@ -131,7 +131,7 @@ class MockOfflineWriter:
 
     def add_scalar(self, tag, scalar_value, global_step):
         assert global_step == self.ctx.train_iter
-        if tag == 'basic/eval_episode_reward_mean-train_iter':
+        if tag == 'basic/eval_episode_return_mean-train_iter':
             assert scalar_value == self.ctx.eval_value
         elif tag == 'basic/train_td_error-train_iter':
             assert scalar_value == self.ctx.train_output['td_error']

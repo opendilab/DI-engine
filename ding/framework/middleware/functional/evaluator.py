@@ -48,7 +48,7 @@ class VectorEvalMonitor(object):
             any thing, it is likely that we will get more short episodes than long episodes. As a result, \
             our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.
     Interfaces:
-        __init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,\
+        __init__, is_finished, update_info, update_reward, get_episode_return, get_latest_reward, get_current_episode,\
             get_episode_info
     """
 
@@ -105,7 +105,7 @@ class VectorEvalMonitor(object):
             env_id = env_id.item()
         self._reward[env_id].append(reward)
 
-    def get_episode_reward(self) -> list:
+    def get_episode_return(self) -> list:
         """
         Overview:
             Get the total reward of one episode.
@@ -192,10 +192,10 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
                 env_id = timestep.env_id.item()
                 if timestep.done:
                     policy.reset([env_id])
-                    reward = timestep.info.final_eval_reward
+                    reward = timestep.info.eval_episode_return
                     eval_monitor.update_reward(env_id, reward)
-        episode_reward = eval_monitor.get_episode_reward()
-        eval_reward = np.mean(episode_reward)
+        episode_return = eval_monitor.get_episode_return()
+        eval_reward = np.mean(episode_return)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
         if isinstance(ctx, OfflineRLContext):
             logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
@@ -207,7 +207,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
-        ctx.eval_output = {'output': output, 'reward': episode_reward}
+        ctx.eval_output = {'output': output, 'reward': episode_return}
 
         if stop_flag:
             task.finish = True

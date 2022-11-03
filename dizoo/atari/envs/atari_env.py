@@ -43,7 +43,7 @@ class AtariEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return obs
 
     def close(self) -> None:
@@ -61,11 +61,11 @@ class AtariEnv(BaseEnv):
         action = action.item()
         obs, rew, done, info = self._env.step(action)
         # self._env.render()
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a Tensor with shape (1,)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
@@ -133,7 +133,7 @@ class AtariEnvMR(AtariEnv):
             self._env.seed(self._seed + np_seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return obs
 
     def _make_env(self):
