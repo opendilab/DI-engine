@@ -27,13 +27,13 @@ class SampleSerialCollector(ISerialCollector):
     config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100)
 
     def __init__(
-        self,
-        cfg: EasyDict,
-        env: BaseEnvManager = None,
-        policy: namedtuple = None,
-        tb_logger: 'SummaryWriter' = None,  # noqa
-        exp_name: Optional[str] = 'default_experiment',
-        instance_name: Optional[str] = 'collector'
+            self,
+            cfg: EasyDict,
+            env: BaseEnvManager = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'collector'
     ) -> None:
         """
         Overview:
@@ -195,12 +195,12 @@ class SampleSerialCollector(ISerialCollector):
         self.close()
 
     def collect(
-        self,
-        n_sample: Optional[int] = None,
-        train_iter: int = 0,
-        drop_extra: bool = True,
-        policy_kwargs: Optional[dict] = None,
-        level_seeds: Optional[List] = None,
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            drop_extra: bool = True,
+            policy_kwargs: Optional[dict] = None,
+            level_seeds: Optional[List] = None,
     ) -> List[Any]:
         """
         Overview:

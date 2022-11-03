@@ -24,13 +24,13 @@ class EpisodeSerialCollector(ISerialCollector):
     config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100, get_train_sample=False)
 
     def __init__(
-        self,
-        cfg: EasyDict,
-        env: BaseEnvManager = None,
-        policy: namedtuple = None,
-        tb_logger: 'SummaryWriter' = None,  # noqa
-        exp_name: Optional[str] = 'default_experiment',
-        instance_name: Optional[str] = 'collector'
+            self,
+            cfg: EasyDict,
+            env: BaseEnvManager = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'collector'
     ) -> None:
         """
         Overview:

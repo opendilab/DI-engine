@@ -43,13 +43,13 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
     )
 
     def __init__(
-        self,
-        cfg: dict,
-        env: BaseEnvManager = None,
-        policy: List[namedtuple] = None,
-        tb_logger: 'SummaryWriter' = None,  # noqa
-        exp_name: Optional[str] = 'default_experiment',
-        instance_name: Optional[str] = 'evaluator',
+            self,
+            cfg: dict,
+            env: BaseEnvManager = None,
+            policy: List[namedtuple] = None,
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -169,11 +169,11 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
         return True
 
     def eval(
-        self,
-        save_ckpt_fn: Callable = None,
-        train_iter: int = -1,
-        envstep: int = -1,
-        n_episode: Optional[int] = None
+            self,
+            save_ckpt_fn: Callable = None,
+            train_iter: int = -1,
+            envstep: int = -1,
+            n_episode: Optional[int] = None
     ) -> Tuple[bool, List[dict]]:
         '''
         Overview:

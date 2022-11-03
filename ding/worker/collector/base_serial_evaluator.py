@@ -55,11 +55,11 @@ class ISerialEvaluator(ABC):
 
     @abstractmethod
     def eval(
-        self,
-        save_ckpt_fn: Callable = None,
-        train_iter: int = -1,
-        envstep: int = -1,
-        n_episode: Optional[int] = None
+            self,
+            save_ckpt_fn: Callable = None,
+            train_iter: int = -1,
+            envstep: int = -1,
+            n_episode: Optional[int] = None
     ) -> Any:
         raise NotImplementedError
 

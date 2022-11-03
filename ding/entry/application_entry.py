@@ -18,13 +18,13 @@ from ding.utils.data import default_collate
 
 
 def eval(
-    input_cfg: Union[str, Tuple[dict, dict]],
-    seed: int = 0,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-    state_dict: Optional[dict] = None,
-    load_path: Optional[str] = None,
-    replay_path: Optional[str] = None,
+        input_cfg: Union[str, Tuple[dict, dict]],
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        state_dict: Optional[dict] = None,
+        load_path: Optional[str] = None,
+        replay_path: Optional[str] = None,
 ) -> float:
     r"""
     Overview:
@@ -79,14 +79,14 @@ def eval(
 
 
 def collect_demo_data(
-    input_cfg: Union[str, dict],
-    seed: int,
-    collect_count: int,
-    expert_data_path: Optional[str] = None,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-    state_dict: Optional[dict] = None,
-    state_dict_path: Optional[str] = None,
+        input_cfg: Union[str, dict],
+        seed: int,
+        collect_count: int,
+        expert_data_path: Optional[str] = None,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        state_dict: Optional[dict] = None,
+        state_dict_path: Optional[str] = None,
 ) -> None:
     r"""
     Overview:
@@ -163,14 +163,14 @@ def collect_demo_data(
 
 
 def collect_episodic_demo_data(
-    input_cfg: Union[str, dict],
-    seed: int,
-    collect_count: int,
-    expert_data_path: str,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-    state_dict: Optional[dict] = None,
-    state_dict_path: Optional[str] = None,
+        input_cfg: Union[str, dict],
+        seed: int,
+        collect_count: int,
+        expert_data_path: str,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        state_dict: Optional[dict] = None,
+        state_dict_path: Optional[str] = None,
 ) -> None:
     r"""
     Overview:

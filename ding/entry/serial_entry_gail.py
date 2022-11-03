@@ -33,13 +33,13 @@ def save_reward_model(path, reward_model, weights_name='best'):
 
 
 def serial_pipeline_gail(
-    input_cfg: Tuple[dict, dict],
-    expert_cfg: Tuple[dict, dict],
-    seed: int = 0,
-    model: Optional[torch.nn.Module] = None,
-    max_train_iter: Optional[int] = int(1e10),
-    max_env_step: Optional[int] = int(1e10),
-    collect_data: bool = True,
+        input_cfg: Tuple[dict, dict],
+        expert_cfg: Tuple[dict, dict],
+        seed: int = 0,
+        model: Optional[torch.nn.Module] = None,
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
+        collect_data: bool = True,
 ) -> 'Policy':  # noqa
     """
     Overview:
