@@ -198,10 +198,10 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
         eval_reward = np.mean(episode_return)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
         if isinstance(ctx, OfflineRLContext):
-            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
+            logging.info('Evaluation: Train Iter({})\tEpisode Return({:.3f})'.format(ctx.train_iter, eval_reward))
         else:
             logging.info(
-                'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
+                'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
                     ctx.train_iter, ctx.env_step, eval_reward
                 )
             )
@@ -235,7 +235,7 @@ def metric_evaluator(cfg: EasyDict, policy: Policy, dataset: Dataset, metric: IM
         avg_eval_output = metric.reduce_mean(eval_output)
         stop_flag = metric.gt(avg_eval_output, cfg.env.stop_value) and ctx.train_iter > 0
         logging.info(
-            'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
+            'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
                 ctx.train_iter, ctx.env_step, avg_eval_output
             )
         )
