@@ -148,7 +148,14 @@ def wandb_online_logger(
             return
         for metric in metric_list:
             if metric in ctx.train_output[0]:
-                metric_value = np.mean([item[metric] for item in ctx.train_output])
+                # metric_value = np.mean([item[metric] for item in ctx.train_output])
+                metric_value_list = []
+                for item in ctx.train_output:
+                    if isinstance(item[metric], torch.Tensor):
+                        metric_value_list.append(item[metric].cpu().detach().numpy())
+                    else:
+                        metric_value_list.append(item[metric])
+                metric_value = np.mean(metric_value_list)
                 wandb.log({metric: metric_value})
 
         if ctx.eval_value != -np.inf:
