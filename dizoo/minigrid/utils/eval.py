@@ -8,11 +8,11 @@ from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 
 
 def eval(
-        input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        replay_path: Optional[str] = './video',
+    input_cfg: Union[str, Tuple[dict, dict]],
+    seed: int = 0,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    replay_path: Optional[str] = './video',
 ) -> float:
     r"""
     Overview:
@@ -44,7 +44,7 @@ def eval(
     env.enable_save_replay(replay_path=replay_path)
     obs = env.reset()
     obs = {0: obs}
-    eval_reward = 0.
+    episode_return = 0.
 
     beta_index = {i: 0 for i in range(1)}
     beta_index = to_tensor(beta_index, dtype=torch.int64)
@@ -73,7 +73,7 @@ def eval(
 
         timestep = timesteps[0]
         # print(timestep.info)
-        eval_reward += timestep.reward
+        episode_return += timestep.reward
 
         obs = timestep.obs
         obs = {0: obs}
@@ -81,7 +81,7 @@ def eval(
         if timestep.done:
             print(timestep.info)
             break
-    print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
+    print('Eval is over! The performance of your RL policy is {}'.format(episode_return))
 
 
 if __name__ == "__main__":

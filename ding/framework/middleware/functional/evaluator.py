@@ -195,18 +195,18 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
                     reward = timestep.info.eval_episode_return
                     eval_monitor.update_reward(env_id, reward)
         episode_return = eval_monitor.get_episode_return()
-        eval_reward = np.mean(episode_return)
-        stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
+        episode_return = np.mean(episode_return)
+        stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
         if isinstance(ctx, OfflineRLContext):
-            logging.info('Evaluation: Train Iter({})\tEpisode Return({:.3f})'.format(ctx.train_iter, eval_reward))
+            logging.info('Evaluation: Train Iter({})\tEpisode Return({:.3f})'.format(ctx.train_iter, episode_return))
         else:
             logging.info(
                 'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
-                    ctx.train_iter, ctx.env_step, eval_reward
+                    ctx.train_iter, ctx.env_step, episode_return
                 )
             )
         ctx.last_eval_iter = ctx.train_iter
-        ctx.eval_value = eval_reward
+        ctx.eval_value = episode_return
         ctx.eval_output = {'output': output, 'reward': episode_return}
 
         if stop_flag:

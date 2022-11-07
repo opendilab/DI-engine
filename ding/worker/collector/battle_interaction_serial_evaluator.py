@@ -43,13 +43,13 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
     )
 
     def __init__(
-            self,
-            cfg: dict,
-            env: BaseEnvManager = None,
-            policy: List[namedtuple] = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'evaluator',
+        self,
+        cfg: dict,
+        env: BaseEnvManager = None,
+        policy: List[namedtuple] = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -132,7 +132,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             self.reset_env(_env)
         if _policy is not None:
             self.reset_policy(_policy)
-        self._max_eval_reward = float("-inf")
+        self._max_episode_return = float("-inf")
         self._last_eval_iter = 0
         self._end_flag = False
 
@@ -169,11 +169,11 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
         return True
 
     def eval(
-            self,
-            save_ckpt_fn: Callable = None,
-            train_iter: int = -1,
-            envstep: int = -1,
-            n_episode: Optional[int] = None
+        self,
+        save_ckpt_fn: Callable = None,
+        train_iter: int = -1,
+        envstep: int = -1,
+        n_episode: Optional[int] = None
     ) -> Tuple[bool, List[dict]]:
         '''
         Overview:
@@ -260,16 +260,16 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                 continue
             self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
-        eval_reward = np.mean(episode_return)
-        if eval_reward > self._max_eval_reward:
+        episode_return = np.mean(episode_return)
+        if episode_return > self._max_episode_return:
             if save_ckpt_fn:
                 save_ckpt_fn('ckpt_best.pth.tar')
-            self._max_eval_reward = eval_reward
-        stop_flag = eval_reward >= self._stop_value and train_iter > 0
+            self._max_episode_return = episode_return
+        stop_flag = episode_return >= self._stop_value and train_iter > 0
         if stop_flag:
             self._logger.info(
                 "[DI-engine serial pipeline] " +
-                "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
+                "Current episode_return: {} is greater than stop_value: {}".format(episode_return, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, return_info

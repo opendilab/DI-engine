@@ -173,16 +173,16 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
             from ding.utils import fps
             self._tb_logger.add_video(video_title, videos, render_iter, fps(self._env))
 
-        eval_reward = np.mean(episode_return)
-        if eval_reward > self._max_eval_reward:
+        episode_return = np.mean(episode_return)
+        if episode_return > self._max_episode_return:
             if save_ckpt_fn:
                 save_ckpt_fn('ckpt_best.pth.tar')
-            self._max_eval_reward = eval_reward
-        stop_flag = eval_reward >= self._stop_value and train_iter > 0
+            self._max_episode_return = episode_return
+        stop_flag = episode_return >= self._stop_value and train_iter > 0
         if stop_flag:
             self._logger.info(
                 "[DI-engine serial pipeline] " +
-                "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
+                "Current episode_return: {} is greater than stop_value: {}".format(episode_return, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, return_info
