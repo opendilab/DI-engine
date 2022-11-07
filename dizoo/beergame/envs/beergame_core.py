@@ -1,10 +1,9 @@
 from __future__ import print_function
 from dizoo.beergame.envs import clBeerGame
 from torch import Tensor
-from .utilities import *
 import numpy as np
 import random
-from .config import get_config, update_config
+from .utils import get_config, update_config
 import gym
 import os
 from typing import Optional
@@ -12,7 +11,7 @@ from typing import Optional
 
 class BeerGame():
 
-    def __init__(self, role: int, agent_type: str) -> None:
+    def __init__(self, role: int, agent_type: str, demandDistribution: int) -> None:
         self._cfg, unparsed = get_config()
         self._role = role
         # prepare loggers and directories
@@ -25,6 +24,8 @@ class BeerGame():
         elif agent_type == 'Strm':
             self._cfg.agentTypes = ["Strm", "Strm", "Strm", "Strm"]
         self._cfg.agentTypes[role] = "srdqn"
+
+        self._cfg.demandDistribution = demandDistribution
 
         # load demands:0=uniform, 1=normal distribution, 2=the sequence of 4,4,4,4,8,..., 3= basket data, 4= forecast data
         if self._cfg.observation_data:

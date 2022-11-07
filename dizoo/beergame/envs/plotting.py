@@ -1,3 +1,4 @@
+# Code Reference: https://github.com/OptMLGroup/DeepBeerInventory-RL.
 import os
 import numpy as np
 import matplotlib
@@ -45,9 +46,6 @@ def plotting(plt, data, colori, pltLabel):
 
 
 def savePlot(players, curGame, Rsltdnn, RsltFrmu, RsltOptm, RsltRnd, config, m):
-    node1 = config.node1
-    node2 = config.node2
-    node3 = config.node3
     #add title to plot
     if config.if_titled_figure:
         plt.suptitle(
@@ -72,17 +70,3 @@ def savePlot(players, curGame, Rsltdnn, RsltFrmu, RsltOptm, RsltRnd, config, m):
     plt.savefig(path + str(curGame) + '-' + str(m) + '.png', format='png')
     print("figure" + str(curGame) + ".png saved in folder \"saved_figures\"")
     plt.close(curGame)
-
-
-def plotBaseStock(data, colori, pltLabel, curGame, config, m):
-    plt.figure(104, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
-    plt.plot(range(len(data)), data, colori, label=pltLabel)
-    plt.xlabel('Time')
-    plt.ylabel('Order-up-to level')
-    plt.grid(True)
-    plt.savefig(
-        os.path.join(config.figure_dir, 'saved_figures/') + "dnnBaseStock" + str(curGame) + '-' + str(m) + '.png',
-        format='png'
-    )
-    print("base stock figure" + str(curGame) + '-' + str(m) + ".pdf saved in folder \"saved_figures\"")
-    plt.close(104)

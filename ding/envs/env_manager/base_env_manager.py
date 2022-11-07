@@ -430,6 +430,8 @@ class BaseEnvManager(object):
         """
         if isinstance(figure_path, str):
             self._env[env_id].enable_save_figure(figure_path)
+        else:
+            raise TypeError("invalid figure_path arguments type: {}".format(type(figure_path)))
 
     def close(self) -> None:
         """
@@ -444,8 +446,8 @@ class BaseEnvManager(object):
             self._env_states[i] = EnvState.VOID
         self._closed = True
 
-    def reward_shaping(self, env_id: int, transitions: List[dict]) -> None:
-        transitions = self._envs[env_id].reward_shaping(transitions)
+    def reward_shaping(self, env_id: int, transitions: List[dict]) -> List[dict]:
+        return self._envs[env_id].reward_shaping(transitions)
 
     @property
     def closed(self) -> bool:

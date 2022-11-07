@@ -57,6 +57,8 @@ class Agent(object):
                 np.mean((self.config.leadRecItemLow[self.agentNum], self.config.leadRecItemUp[self.agentNum])) +
                 np.mean((self.config.leadRecOrderLow[self.agentNum], self.config.leadRecOrderUp[self.agentNum]))
             )  # parameters for the formula
+        else:
+            raise Exception('The demand distribution is not defined or it is not a valid type.!')
 
         self.hist = []  # this is used for plotting - keeps the history for only one game
         self.hist2 = []  # this is used for animation usage

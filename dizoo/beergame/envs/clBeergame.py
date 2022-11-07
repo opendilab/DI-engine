@@ -4,7 +4,7 @@ from random import randint
 from .BGAgent import Agent
 from matplotlib import rc
 rc('text', usetex=True)
-from .plotting import plotting, savePlot, plotBaseStock
+from .plotting import plotting, savePlot
 import matplotlib.pyplot as plt
 import os
 import time

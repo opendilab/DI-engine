@@ -1,2 +1,2 @@
 from .clBeergame import clBeerGame
-from .beergame_main import BeerGame
+from .beergame_core import BeerGame

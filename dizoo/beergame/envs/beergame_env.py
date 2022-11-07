@@ -1,5 +1,5 @@
 import numpy as np
-from dizoo.beergame.envs.beergame_main import BeerGame
+from dizoo.beergame.envs.beergame_core import BeerGame
 from typing import Union, List, Optional
 
 from ding.envs import BaseEnv, BaseEnvTimestep
@@ -17,7 +17,7 @@ class BeerGameEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = BeerGame(self._cfg.role, self._cfg.agent_type)
+            self._env = BeerGame(self._cfg.role, self._cfg.agent_type, self._cfg.demandDistribution)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = self._env.reward_space
