@@ -21,7 +21,9 @@ class EpisodeSerialCollector(ISerialCollector):
         envstep
     """
 
-    config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100, get_train_sample=False)
+    config = dict(
+        deepcopy_obs=False, transform_obs=False, collect_print_freq=100, get_train_sample=False, reward_shaping=False
+    )
 
     def __init__(
             self,
@@ -251,6 +253,8 @@ class EpisodeSerialCollector(ISerialCollector):
                     # prepare data
                     if timestep.done:
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
+                        if self._cfg.reward_shaping:
+                            self._env.reward_shaping(env_id, transitions)
                         if self._cfg.get_train_sample:
                             train_sample = self._policy.get_train_sample(transitions)
                             return_data.extend(train_sample)
