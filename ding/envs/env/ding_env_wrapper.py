@@ -73,7 +73,11 @@ class DingEnvWrapper(BaseEnv):
 
     # override
     def close(self) -> None:
-        self._env.close()
+        try:
+            self._env.close()
+            del self._env
+        except:  # noqa
+            pass
 
     # override
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:

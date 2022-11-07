@@ -34,13 +34,13 @@ class ResBlock(nn.Module):
         bias: bool = True,
         out_channels: Union[int, None] = None,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the Residual Block.
+            Init the 2D convolution residual block.
         Arguments:
             - in_channels (:obj:`int`): Number of channels in the input tensor.
             - activation (:obj:`nn.Module`): the optional activation function.
-            - norm_type (:obj:`str`): type of the normalization, defalut set to 'BN'(Batch Normalization), \
+            - norm_type (:obj:`str`): type of the normalization, default set to 'BN'(Batch Normalization), \
                 supports ['BN', 'IN', 'SyncBN', None].
             - res_type (:obj:`str`): type of residual block, supports ['basic', 'bottleneck', 'downsample']
             - bias (:obj:`bool`): whether adds a learnable bias to the conv2d_block. default set to True.
@@ -83,27 +83,27 @@ class ResBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            Return the residual block output
+            Return the redisual block output.
         Arguments:
-            - x (:obj:`torch.Tensor`): the input tensor
+            - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
-            - x(:obj:`torch.Tensor`): the resblock output tensor
+            - x (:obj:`torch.Tensor`): The resblock output tensor.
         """
-        residual = x
+        identity = x
         x = self.conv1(x)
         x = self.conv2(x)
         if self.res_type == 'bottleneck':
             x = self.conv3(x)
         elif self.res_type == 'downsample':
-            residual = self.conv3(residual)
-        x = self.act(x + residual)
+            identity = self.conv3(identity)
+        x = self.act(x + identity)
         return x
 
 
 class ResFCBlock(nn.Module):
     r'''
     Overview:
-        Residual Block with 2 fully connected block
+        Residual Block with 2 fully connected layers.
         x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
         \_____________________________________/+
 
@@ -114,11 +114,11 @@ class ResFCBlock(nn.Module):
     def __init__(self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN'):
         r"""
         Overview:
-            Init the Residual Block
+            Init the fully connected layer residual block.
         Arguments:
-            - in_channels (:obj:`int`): Number of channels in the input tensor
-            - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to 'BN'
+            - in_channels (:obj:`int`): The number of channels in the input tensor.
+            - activation (:obj:`nn.Module`): The optional activation function.
+            - norm_type (:obj:`str`): The type of the normalization, default set to 'BN'.
         """
         super(ResFCBlock, self).__init__()
         self.act = activation
@@ -128,14 +128,14 @@ class ResFCBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            Return the redisual block output
+            Return the redisual block output.
         Arguments:
-            - x (:obj:`torch.Tensor`): the input tensor
+            - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
-            - x(:obj:`torch.Tensor`): the resblock output tensor
+            - x (:obj:`torch.Tensor`): The resblock output tensor.
         """
-        residual = x
+        identity = x
         x = self.fc1(x)
         x = self.fc2(x)
-        x = self.act(x + residual)
+        x = self.act(x + identity)
         return x

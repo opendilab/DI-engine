@@ -321,7 +321,7 @@ class BaseEnvManager(object):
         logging.error("Env {} reset has exceeded max retries({})".format(env_id, self._max_retry))
         runtime_error = RuntimeError(
             "Env {} reset has exceeded max retries({}), and the latest exception is: {}".format(
-                env_id, self._max_retry, repr(exceptions[-1])
+                env_id, self._max_retry, str(exceptions[-1])
             )
         )
         runtime_error.__traceback__ = exceptions[-1].__traceback__
@@ -375,7 +375,7 @@ class BaseEnvManager(object):
         logging.error("Env {} step has exceeded max retries({})".format(env_id, self._max_retry))
         runtime_error = RuntimeError(
             "Env {} step has exceeded max retries({}), and the latest exception is: {}".format(
-                env_id, self._max_retry, repr(exceptions[-1])
+                env_id, self._max_retry, str(exceptions[-1])
             )
         )
         runtime_error.__traceback__ = exceptions[-1].__traceback__
