@@ -105,7 +105,7 @@ def offline_logger() -> Callable:
 
 
 def wandb_online_logger(
-    cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module, anonymous: bool = False
+        cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module, anonymous: bool = False
 ) -> Callable:
     '''
     Overview:
@@ -200,11 +200,11 @@ def wandb_online_logger(
 
 
 def wandb_offline_logger(
-    cfg: EasyDict,
-    env: BaseEnvManagerV2,
-    model: torch.nn.Module,
-    datasetpath: str,
-    anonymous: bool = False
+        cfg: EasyDict,
+        env: BaseEnvManagerV2,
+        model: torch.nn.Module,
+        datasetpath: str,
+        anonymous: bool = False
 ) -> Callable:
     '''
     Overview:

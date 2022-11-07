@@ -49,13 +49,13 @@ class MetricSerialEvaluator(ISerialEvaluator):
     )
 
     def __init__(
-        self,
-        cfg: dict,
-        env: Tuple[DataLoader, IMetric] = None,
-        policy: namedtuple = None,
-        tb_logger: 'SummaryWriter' = None,  # noqa
-        exp_name: Optional[str] = 'default_experiment',
-        instance_name: Optional[str] = 'evaluator',
+            self,
+            cfg: dict,
+            env: Tuple[DataLoader, IMetric] = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -160,10 +160,10 @@ class MetricSerialEvaluator(ISerialEvaluator):
         return True
 
     def eval(
-        self,
-        save_ckpt_fn: Callable = None,
-        train_iter: int = -1,
-        envstep: int = -1,
+            self,
+            save_ckpt_fn: Callable = None,
+            train_iter: int = -1,
+            envstep: int = -1,
     ) -> Tuple[bool, Any]:
         '''
         Overview:
