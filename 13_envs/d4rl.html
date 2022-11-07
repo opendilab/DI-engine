@@ -1,0 +1,785 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>D4RL (Mujoco) &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Google Research Football (Gfootball)" href="gfootball.html" />
+  <link rel="prev" title="SMAC" href="smac.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">RL Env Examples</a> &gt;</li>
+        
+      <li>D4RL (Mujoco)</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/d4rl.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="d4rl-mujoco">
+<h1>D4RL (Mujoco)<a class="headerlink" href="#d4rl-mujoco" title="Permalink to this headline">¶</a></h1>
+<section id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Permalink to this headline">¶</a></h2>
+<p>D4RL is an open source benchmark for offline Reinforcement Learning, which provides a standardized environment and dataset for training and benchmarking algorithms. The collecting strategy of datasets includes:</p>
+<ol class="arabic simple">
+<li><p>datasets generated by hand-designed rules and expert demonstrations</p></li>
+<li><p>nulti-task datasets (agents performing different tasks in the same environment)</p></li>
+<li><p>datasets collected with hybrid strategies</p></li>
+</ol>
+<p>Specifically, the following seven sub-environments are included</p>
+<ul class="simple">
+<li><p>Maze2D</p></li>
+<li><p>AntMaze</p></li>
+<li><p>Gym-MuJoco</p></li>
+<li><p>Adroit</p></li>
+<li><p>FrankaKitchen</p></li>
+<li><p>Flow</p></li>
+<li><p>Offline CARLA</p></li>
+</ul>
+<p>Note: offline RL is trained on the d4rl and tested by interacting with a specific RL environment, such as Mujoco.</p>
+<p>The Mujoco dataset is a physics engine designed to facilitate research and development in areas such as robotics, biomechanics, graphics, and animation that require fast and accurate simulations, and is often used as a benchmark testing environment for continuous space reinforcement learning algorithms. It is a collection of 20 subenvironments, in D4RL the subenvironments used are Half Cheetah, Hopper, and Walker2D.
+Each subenvironment contains 5 smaller subenvironments.</p>
+<ul class="simple">
+<li><p>expert: train a <a class="reference external" href="https://arxiv.org//abs/1801.01290">SAC</a> algorithm online until the strategy reaches the expert performance level, using the expert strategy to collect 1 million samples of data</p></li>
+<li><p>medium-expert: mix equal amounts of data collected by expert and medium strategies</p></li>
+<li><p>medium: first train a SAC algorithm online, stop training in the middle, and then use this partially trained strategy to collect 1 million samples of data</p></li>
+<li><p>medium-replay：train a SAC algorithm online until the strategy reaches a moderate performance level, collecting all the samples placed in the buffer during training</p></li>
+<li><p>random：use a random initialization strategy to collect</p></li>
+</ul>
+<p>The picture below shows one of the Hopper games.</p>
+<img alt="../_images/d4rl.gif" class="align-center" src="../_images/d4rl.gif" />
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<section id="method">
+<h3>Method<a class="headerlink" href="#method" title="Permalink to this headline">¶</a></h3>
+<p>Installing d4rl, gym and mujoco-py, and d4rl can be installed with one click via pip or via clone</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># pip install</span>
+pip install git+https://github.com/rail-berkeley/d4rl@master#egg<span class="o">=</span>d4rl
+
+<span class="c1"># installed by cloning the repository</span>
+git clone https://github.com/rail-berkeley/d4rl.git
+<span class="nb">cd</span> d4rl
+pip install -e .
+</pre></div>
+</div>
+<p>For mujoco, you only need to install gym and mujoco-py, either via pip or in combination with DI-engine</p>
+<ol class="arabic simple">
+<li><p>The mujoco-py library no longer requires an active license (<code class="docutils literal notranslate"><span class="pre">mujoco-py&gt;=2.1.0</span></code>) and can be installed via <a class="reference external" href="https://github.com/openai/mujoco-py/pull/640">pip install free-mujoco-py</a></p></li>
+<li><p>If you install <code class="docutils literal notranslate"><span class="pre">mujoco-py&gt;=2.1</span></code>, you can do the following:</p></li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Installation for Linux</span>
+<span class="c1"># Download the MuJoCo version 2.1 binaries for Linux.</span>
+wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz
+<span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
+tar xvf mujoco210-linux-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+<span class="c1"># Install and use mujoco-py</span>
+pip install gym
+pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
+
+<span class="c1"># Installation for macOS</span>
+<span class="c1"># Download the MuJoCo version 2.1 binaries for OSX.</span>
+wget https://mujoco.org/download/mujoco210-macos-x86_64.tar.gz
+<span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
+tar xvf mujoco210-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+<span class="c1"># Install and use mujoco-py</span>
+pip install gym
+pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>If you install <code class="docutils literal notranslate"><span class="pre">mujoco-py&lt;2.1</span></code>, you can do the following:</p></li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Installation for Linux</span>
+<span class="c1"># Download the MuJoCo version 2.0 binaries for Linux.</span>
+wget https://www.roboti.us/download/mujoco200_linux.zip
+<span class="c1"># Extract the downloaded mujoco200 directory into ~/.mujoco/mujoco200.</span>
+unzip mujoco200_linux.zip <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco200_linux ~/.mujoco/mujoco200
+<span class="c1"># Download unlocked activation key.</span>
+wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt
+<span class="c1"># Install and use mujoco-py</span>
+pip install gym
+pip install -U <span class="s1">&#39;mujoco-py&lt;2.1&#39;</span>
+
+<span class="c1"># Installation for macOS</span>
+<span class="c1"># Download the MuJoCo version 2.0 binaries for OSX.</span>
+wget https://www.roboti.us/download/mujoco200_macos.zip
+<span class="c1"># Extract the downloaded mujoco200 directory into ~/.mujoco/mujoco200.</span>
+tar xvf mujoco200-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco200_macos ~/.mujoco/mujoco200
+<span class="c1"># Download unlocked activation key.</span>
+wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt
+<span class="c1"># Install and use mujoco-py</span>
+pip install gym
+pip install -U <span class="s1">&#39;mujoco-py&lt;2.1&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="verifying-the-installation">
+<h3>Verifying the Installation<a class="headerlink" href="#verifying-the-installation" title="Permalink to this headline">¶</a></h3>
+<p>Once the installation is complete, you can verify that the installation was successful by running the following command from the Python command line.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">d4rl</span> <span class="c1"># Import required to register environments</span>
+
+<span class="c1"># Create the environment</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;maze2d-umaze-v1&#39;</span><span class="p">)</span>
+
+<span class="c1"># d4rl abides by the OpenAI gym interface</span>
+<span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
+
+<span class="c1"># Each task is associated with a dataset</span>
+<span class="c1"># dataset contains observations, actions, rewards, terminals, and infos</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;observations&#39;</span><span class="p">])</span> <span class="c1"># An N x dim_observation Numpy array of observations</span>
+
+<span class="c1"># Alternatively, use d4rl.qlearning_dataset which</span>
+<span class="c1"># also adds next_observations.</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">d4rl</span><span class="o">.</span><span class="n">qlearning_dataset</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="images">
+<h3>Images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h3>
+<p>The DI-engine is ready with images of the framework itself, which can be obtained by <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-mujoco</span></code> , or by visiting <a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker
+hub</a> for more images.</p>
+</section>
+</section>
+<section id="gym-mujoco-s-space-before-transformation-original-environment">
+<h2>Gym-Mujoco’s Space before Transformation (Original Environment)<a class="headerlink" href="#gym-mujoco-s-space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<section id="observation-space">
+<h3>Observation space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The vector consists of physical information(3D position, orientation, and joint angles etc.), and the specific size is <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">)</span></code>, which is determined by the environment. The data type is <code class="docutils literal notranslate"><span class="pre">float64</span></code></p></li>
+<li><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/entry/d4rl_cql_main.py">Fujimoto</a> mentions that doing obs norm for the d4rl dataset will improve the stability of offline training.</p></li>
+</ul>
+</section>
+<section id="action-space">
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The vector consists of physical information(torque etc.), which is often a continuous action space with N dimension (N varies with specific subenvironments), the data type is <code class="docutils literal notranslate"><span class="pre">float32</span></code>, np datasets need to be imported.（For example, the action is <code class="docutils literal notranslate"><span class="pre">array([-0.9266078</span> <span class="pre">,</span> <span class="pre">-0.4958926</span> <span class="pre">,</span>&#160; <span class="pre">0.46242517],</span> <span class="pre">dtype=float32)</span></code>）</p></li>
+<li><p>For example, if it’s in the Hooper, N is 3, then the action value be chosen in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>.</p></li>
+</ul>
+</section>
+<section id="reward-space">
+<h3>Reward space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Depending on the specific game content, the game score can vary very much and is usually a float value, which can be found in the performance section of the benchmark algorithm at the bottom.</p></li>
+</ul>
+</section>
+<section id="others">
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The end of the game is the end of the current environment episode</p></li>
+</ul>
+</section>
+</section>
+<section id="key-facts">
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Vector physical information input, empirically it is not advisable to subtract the mean value in normalization</p></li>
+<li><p>Continuous action space</p></li>
+<li><p>Dense rewards</p></li>
+<li><p>Large variation in the scale of reward taking</p></li>
+</ol>
+</section>
+<section id="the-space-after-transformation-rl-environment">
+<h2>The Space after Transformation（RL Environment）<a class="headerlink" href="#the-space-after-transformation-rl-environment" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>Observation space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Basically no change</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Action space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Basically no transformation, still a continuous action space of size N, with a range of values<code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>，size is <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">)</span></code>，data type is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code></p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>Reward space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Basically no change</p></li>
+</ul>
+<p>The above space can be represented using the gym environment space definition as follows</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+
+
+<span class="n">obs_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">act_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>Others<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>key-value pair, which represents the evaluation metrics for the entire episode, which in Mujoco is the cumulative sum of the rewards for the entire episode.</p></li>
+</ul>
+</section>
+</section>
+<section id="id5">
+<h2>Others<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<section id="inert-initialization">
+<h3>Inert initialization<a class="headerlink" href="#inert-initialization" title="Permalink to this headline">¶</a></h3>
+<p>To facilitate support for parallel operations such as environment vectorization, environment instances are generally implemented with inert initialization, i.e., the <code class="docutils literal notranslate"><span class="pre">_init_</span></code>method does not initialize the real original environment instance, but only sets the relevant parameters and configuration values, and initializes the concrete original environment instance when the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method is called for the first time.</p>
+</section>
+<section id="video-storage">
+<h3>Video storage<a class="headerlink" href="#video-storage" title="Permalink to this headline">¶</a></h3>
+<p>After the environment is created and before it is reset, the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method is called to specify the path where the game footage is saved. The environment will automatically save the session’s video files after each episode. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>is implemented), the code shown below will run an environment episode and save the results of that episode in <code class="docutils literal notranslate"><span class="pre">./video/</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">dizoo.mujoco.envs</span> <span class="kn">import</span> <span class="n">MujocoEnv</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Hoopper-v3&#39;</span> <span class="p">}))</span>
+<span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
+    <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="di-zoo-runnable-code-example">
+<h2>DI-ZOO RUNNABLE CODE EXAMPLE<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<p>The complete training profile is available in <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/d4rl/config">github link</a>
+, for specific profiles, like <code class="docutils literal notranslate"><span class="pre">https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_cql_default_config.py</span></code>，it works with the following demo:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">hopper_medium_cql_default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;hopper-medium-v0&#39;</span><span class="p">,</span>
+        <span class="n">norm_obs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">use_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="p">),</span>
+        <span class="n">norm_reward</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">use_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="p">),</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">use_act_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">6000</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">twin_critic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">actor_head_type</span><span class="o">=</span><span class="s1">&#39;reparameterization&#39;</span><span class="p">,</span>
+            <span class="n">actor_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">critic_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">train_epoch</span><span class="o">=</span><span class="mi">30000</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">learning_rate_q</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
+            <span class="n">learning_rate_policy</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+            <span class="n">learning_rate_alpha</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">reparameterization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">auto_alpha</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">lagrange_thresh</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">min_q_weight</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;d4rl&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">command</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="p">)),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">2000000</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">hopper_medium_cql_default_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">hopper_medium_cql_default_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">hopper_medium_cql_default_config</span>
+
+<span class="n">hopper_medium_cql_default_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;d4rl&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.d4rl.envs.d4rl_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;cql&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ding.policy.cql&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;naive&#39;</span><span class="p">,</span> <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">hopper_medium_cql_default_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">hopper_medium_cql_default_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">hopper_medium_cql_default_create_config</span>
+</pre></div>
+</div>
+<p>Note: For offline RL algorithms, such as TD3_bc, CQL, you need to use a special entry function, the example can be referred to
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/entry/d4rl_cql_main.py">link</a></p>
+</section>
+<section id="benchmark-algorithm-performance">
+<h2>BENCHMARK ALGORITHM PERFORMANCE<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Walker2d</p>
+<ul class="simple">
+<li><p>walker2d-medium-expert-v0 + CQL</p></li>
+</ul>
+<a class="reference internal image-reference" href="../_images/walker2d_medium_expert_cql.png"><img alt="../_images/walker2d_medium_expert_cql.png" class="align-center" src="../_images/walker2d_medium_expert_cql.png" style="width: 427.6px; height: 336.40000000000003px;" /></a>
+<ul class="simple">
+<li><p>Typical iteration of 1M iteration takes 9 hours (NVIDIA V100)</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="gfootball.html" class="btn btn-neutral float-right" title="Google Research Football (Gfootball)" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="smac.html" class="btn btn-neutral" title="SMAC" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">D4RL (Mujoco)</a><ul>
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#method">Method</a></li>
+<li><a class="reference internal" href="#verifying-the-installation">Verifying the Installation</a></li>
+<li><a class="reference internal" href="#images">Images</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gym-mujoco-s-space-before-transformation-original-environment">Gym-Mujoco’s Space before Transformation (Original Environment)</a><ul>
+<li><a class="reference internal" href="#observation-space">Observation space</a></li>
+<li><a class="reference internal" href="#action-space">Action Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward space</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#key-facts">Key Facts</a></li>
+<li><a class="reference internal" href="#the-space-after-transformation-rl-environment">The Space after Transformation（RL Environment）</a><ul>
+<li><a class="reference internal" href="#id1">Observation space</a></li>
+<li><a class="reference internal" href="#id2">Action space</a></li>
+<li><a class="reference internal" href="#id3">Reward space</a></li>
+<li><a class="reference internal" href="#id4">Others</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">Others</a><ul>
+<li><a class="reference internal" href="#inert-initialization">Inert initialization</a></li>
+<li><a class="reference internal" href="#video-storage">Video storage</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo-runnable-code-example">DI-ZOO RUNNABLE CODE EXAMPLE</a></li>
+<li><a class="reference internal" href="#benchmark-algorithm-performance">BENCHMARK ALGORITHM PERFORMANCE</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

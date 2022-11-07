@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Middleware specification &mdash; DI-engine 0.1.0 documentation</title>
+  <title>Specifications of DI-engine Config &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="Specifications of DI-engine Config" href="config_spec.html" />
-  <link rel="prev" title="Specification" href="index.html" />
+  <link rel="next" title="Code Style Guide" href="../21_code_style/index.html" />
+  <link rel="prev" title="Middleware specification" href="middleware.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -268,13 +268,13 @@
         
           <li><a href="index.html">Specification</a> &gt;</li>
         
-      <li>Middleware specification</li>
+      <li>Specifications of DI-engine Config</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/20_spec/middleware.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/20_spec/config_spec.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -298,66 +298,156 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="middleware-specification">
-<h1>Middleware specification<a class="headerlink" href="#middleware-specification" title="Permalink to this headline">¶</a></h1>
-<section id="file-structure-and-naming">
-<h2>File Structure and Naming<a class="headerlink" href="#file-structure-and-naming" title="Permalink to this headline">¶</a></h2>
-<p>The middleware in DI-engine can be divided into two categories, one we call <code class="docutils literal notranslate"><span class="pre">function</span></code>, which is an atomic operation method,
-focusing on doing one thing with a few lines of code, such as <code class="docutils literal notranslate"><span class="pre">train</span></code> middleware Execute the training of the model;
-The other, which we call <code class="docutils literal notranslate"><span class="pre">module</span></code>, may combine multiple <code class="docutils literal notranslate"><span class="pre">functions</span></code> to perform more complex logic.
-This classification refers to <a class="reference external" href="https://pytorch.org/docs/stable/nn.functional.html">pytorch’s nn and nn.functional</a>.</p>
-<p>Essentially they all belong to middleware, and the usage is exactly the same.</p>
-<p>In the directory structure, <code class="docutils literal notranslate"><span class="pre">module</span></code> is placed directly in the <code class="docutils literal notranslate"><span class="pre">middleware</span></code> directory, named after a noun;
-<code class="docutils literal notranslate"><span class="pre">function</span></code> is placed in the <code class="docutils literal notranslate"><span class="pre">middleware/functional</span></code> directory, named after a verb or noun.</p>
-<p>Multiple middleware of the same type can be written in one file.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ding</span><span class="o">/</span>
-  <span class="n">framework</span><span class="o">/</span>
-    <span class="n">middleware</span><span class="o">/</span>
-      <span class="n">functional</span><span class="o">/</span><span class="n">collect</span><span class="o">.</span><span class="n">py</span> <span class="c1"># Function</span>
-      <span class="n">collector</span><span class="o">.</span><span class="n">py</span> <span class="c1"># Module</span>
+  <section id="specifications-of-di-engine-config">
+<h1>Specifications of DI-engine Config<a class="headerlink" href="#specifications-of-di-engine-config" title="Permalink to this headline">¶</a></h1>
+<p>In order to ensure the ease of use, readability, and scalability of config, the config submitted by developers needs to comply with the following specifications.</p>
+<p>The config of DI-engine consists of two parts: main_config and create_config.</p>
+<section id="example-link">
+<h2>Example Link<a class="headerlink" href="#example-link" title="Permalink to this headline">¶</a></h2>
+<p>Example of Deep Q-Network (DQN)：</p>
+<p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py</a></p>
+<p>Example config for algorithms with model or data, e.g. SQIL:
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_sqil_config.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_sqil_config.py</a></p>
+</section>
+<section id="details-of-the-specification">
+<h2>Details of the specification<a class="headerlink" href="#details-of-the-specification" title="Permalink to this headline">¶</a></h2>
+<section id="specification-of-grammar">
+<h3>Specification of Grammar<a class="headerlink" href="#specification-of-grammar" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>config needs to pass python’s flake8 syntax check and execute yapf formatting.</p></li>
+</ul>
+</section>
+<section id="specification-of-naming">
+<h3>Specification of naming<a class="headerlink" href="#specification-of-naming" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The file name of X_config.py, related variable name in main_config and create_config</p>
+<ul>
+<li><p>X_config.py is uniformly named in the format of &lt;environment_name&gt;_&lt;algorithm_name&gt;_config.py.
+The name of the X_config.py and related variable names in the config file do not need to add the default field. For example, the config file name hopper_onppo_default_config.py should be changed into hopper_onppo_config.py.</p></li>
+<li><p>Similarly
+For algorithms like ICM, the full algorithm is the module proposed in the paper combined with a baseline algorithm, its corresponding config name should be named as &lt;env_name&gt;_&lt;module_name&gt;_&lt;baseline_name&gt;_config.py, e.g. cartpole_icm_offppo_config.py
+,such as cartpole_icm_offppo_config.py</p></li>
+<li><p>If the algorithm has verious versions including on-policy and off-policy, please unify the related name in X_config.py file name and related varible names in the file, and use onppo/offppo to distinguish on-policy and off-policy versions of the algorithm. For example, for the config of the on policy PPO algorithm, hopper_ppo_config.py should be changed to hopper_onppo_config.py.</p></li>
+</ul>
+</li>
+<li><p>exp_name field</p>
+<ul>
+<li><p>main_config must include exp_name filed</p></li>
+<li><p>The naming format is &lt;environemnt&gt;_&lt;algorithm&gt;_seed0, e.g. qbert_sqil_seed0</p></li>
+</ul>
+</li>
+<li><p>Name of the file path</p>
+<ul>
+<li><p>Please refer to the sqil example, commented accordingly. If multiple models need to be loaded, the model path variable is named as follows：prefix1_model_path, prefix2_model_path, …. The varibles of data_path are named in same way.</p></li>
+</ul>
+</li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="c1"># Users should add their own model path here. Model path should lead to a model.</span>
+    <span class="c1"># Absolute path is recommended.</span>
+    <span class="c1"># In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.</span>
+    <span class="n">model_path</span><span class="o">=</span><span class="s1">&#39;model_path_placeholder&#39;</span><span class="p">,</span>
+    <span class="c1"># Users should add their own data path here. Data path should lead to a file to store data or load the stored data.</span>
+    <span class="c1"># Absolute path is recommended.</span>
+    <span class="c1"># In DI-engine, it is usually located in ``exp_name`` directory</span>
+    <span class="n">data_path</span><span class="o">=</span><span class="s1">&#39;data_path_placeholder&#39;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="class-function-parameter">
-<h2>Class, Function, Parameter<a class="headerlink" href="#class-function-parameter" title="Permalink to this headline">¶</a></h2>
-<p>When writing <code class="docutils literal notranslate"><span class="pre">function</span></code>, functional-style code is recommended due to the brevity of the code; when writing <code class="docutils literal notranslate"><span class="pre">module</span></code>, classes are recommended. E.g:</p>
-<p>Passing explicitly named arguments is recommended for all functions, passing dict as arguments is deprecated. For too many parameters, we recommend using <a class="reference external" href="https://github.com/opendilab/DI-treetensor">TreeTensor</a>.</p>
-</section>
-<section id="construction-function">
-<h2>Construction Function<a class="headerlink" href="#construction-function" title="Permalink to this headline">¶</a></h2>
-<p>Most middleware has two layers of methods, such as the outer function of <code class="docutils literal notranslate"><span class="pre">function</span></code> and the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function of <code class="docutils literal notranslate"><span class="pre">module</span></code>,
-which are used to pass parameters and objects necessary for the middleware to run.</p>
-<p>The return function of <code class="docutils literal notranslate"><span class="pre">function</span></code> and the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method of <code class="docutils literal notranslate"><span class="pre">module</span></code> are the processes that are called cyclically at runtime,
-and only support <code class="docutils literal notranslate"><span class="pre">ctx</span></code> as one parameter.</p>
-<p>It is recommended to instantiate the object externally to pass to the middleware, rather than inside the middleware, to ensure stateless and procedural middleware:</p>
-</section>
-<section id="runtime-function">
-<h2>Runtime Function<a class="headerlink" href="#runtime-function" title="Permalink to this headline">¶</a></h2>
-<p>When writing the return function of <code class="docutils literal notranslate"><span class="pre">function</span></code> or the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method of <code class="docutils literal notranslate"><span class="pre">module</span></code>, there are a few things to keep in mind:</p>
-<ol class="arabic simple">
-<li><p>If there is an infinite loop in the method, make sure to check the <code class="docutils literal notranslate"><span class="pre">task.finish</span></code> condition to exit:</p></li>
-</ol>
-<ol class="arabic simple" start="2">
-<li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">task</span></code> supports two modes of sequential execution and asynchronous execution. The data passed by <code class="docutils literal notranslate"><span class="pre">ctx</span></code> may not be generated at the same time in the two modes.</dt><dd><p>It is necessary to pay attention to judgment in the middleware, and it is best to support both Two modes:</p>
-</dd>
-</dl>
+<section id="main-specification">
+<h3>Main Specification<a class="headerlink" href="#main-specification" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>For env_manager field in create_config, except for some simple environments such as cartpole, pendulum, bitflip</p></li>
+</ul>
+<p>we set it as base, for other environments, we seet env_manager as subprocess：</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li><p>Ensure evaluator_env_num：n_evaluator_episode = 1:1 （expect smac environment）</p></li>
+<li><p>manager field shoudl generally not be included in the env field of main_config</p></li>
+</ul>
+<p>(shared_memory defaults to True when the manager field is not included)：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>smac environment is an exception,due to the state dimension problem,smac needs to set shared_memory=Fasle.</p></li>
+<li><p>In environments other than the SMAC environment, if an error is reported due to the state dimension problem, you can include manager field and set shared_memory=False.</p></li>
+</ul>
+</div></blockquote>
+<ul>
+<li><p>If you want to turn on/off shared memory, please control it in env.manager filed</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </li>
-</ol>
-<ol class="arabic simple" start="3">
-<li><p>It is not recommended to open multiple processes inside the middleware, so as to avoid unforeseen problems caused by too many instantiated objects in the front,
-or multi-level nesting of processes. If you need to use multi-process parallelism, you can split the logic into multiple middleware. ,
-using the parallel capabilities of DI-engine to execute:</p></li>
-</ol>
+<li><p>create config</p>
+<ul class="simple">
+<li><p>iin env field, we have two fields: type and import_names :
+Such as：</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;atari&#39;</span><span class="p">,</span>
+    <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.atari.envs.atari_env&#39;</span><span class="p">],</span>
+<span class="p">),</span>
+</pre></div>
+</div>
+<ul>
+<li><p>Generally speaking, the field replay_buffer is unnecessary. But if you want to use the buffer stored as deque，you can specify the type of replay_buffer in following way：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;deque&#39;</span><span class="p">),</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p>serial_pipeline</p>
+<ul>
+<li><p>Please apple secondary references to avoid circular
+import：use <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">ding.entry</span> <span class="pre">import</span> <span class="pre">serial_pipeline</span></code>instead of <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">ding.entry.serial_entry</span> <span class="pre">import</span> <span class="pre">serial_pipeline</span></code></p></li>
+<li><p>Use<code class="docutils literal notranslate"><span class="pre">[main_config,</span> <span class="pre">create_config]</span></code>
+to unify the style,If an algorithm needs to call other config,this convention can be waived。Such as imitation
+learning algorithm needs to introduce expert config, see the example of sqil for details。</p></li>
+<li><p>Each config must have a startup command written in a format similar to the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">___name___</span> <span class="o">==</span> <span class="s2">&quot;___main___&quot;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial -c cartpole_dqn_config.py -s 0`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Remember this line from ding.entry import serial_pipeline should not as the head of the file,</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>but put it below if ___name___ == “___main___”:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>-  If the algorithm use different serial_pipeline_X,
+   you need to add corresponding starting command ``serial_X``\ in \ https://github.com/opendilab/DI-engine/blob/5d2beed4a8a07fb70599d910c6d53cf5157b133b/ding/entry/cli.py#L189\ .
+</pre></div>
+</div>
+<ul>
+<li><p>seed is set in the entry function, do not include seed in config.</p></li>
+<li><p>If the hyperparameters in the algorithm have a certain reasonable range, please write a comment on the corresponding hyperparameters of the algorithm config. For instance the alpha value of sqil：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>  <span class="c1"># alpha: 0.08-0.12</span>
+</pre></div>
+</div>
+</li>
+<li><p>Please make sure all parameters in config are valid, unused redundant parameters should be deleted.</p></li>
+<li><p>TODO is usually not included in the config, if you do need to write the TODO term, please clearly indicate the developer and content, e.g. TODO(name): xxx.</p></li>
+</ul>
 </section>
 </section>
-<section id="event-naming-convention">
-<h1>Event Naming Convention<a class="headerlink" href="#event-naming-convention" title="Permalink to this headline">¶</a></h1>
-<p>When using the event mechanism in DI-engine, we agree that events are named according to the following specifications:</p>
-<ol class="arabic simple">
-<li><p>Events with the purpose of broadcasting data are named using <code class="docutils literal notranslate"><span class="pre">(emitting</span> <span class="pre">position)_(data</span> <span class="pre">name)[_(parameter</span> <span class="pre">name)_(parameter</span> <span class="pre">value)]</span></code>, for example: <code class="docutils literal notranslate"><span class="pre">league_job_actor_0</span></code> (broadcast data from league to actor, passing job)</p></li>
-<li><p>Events for remote invocation are named with <code class="docutils literal notranslate"><span class="pre">(receive</span> <span class="pre">location)_(method</span> <span class="pre">name)</span></code>, for example: <code class="docutils literal notranslate"><span class="pre">league_get_job</span></code> (call league’s get_job function).</p></li>
-</ol>
 </section>
 
 
@@ -368,12 +458,12 @@ using the parallel capabilities of DI-engine to execute:</p></li>
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="config_spec.html" class="btn btn-neutral float-right" title="Specifications of DI-engine Config" accesskey="n"
+    <a href="../21_code_style/index.html" class="btn btn-neutral float-right" title="Code Style Guide" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="index.html" class="btn btn-neutral" title="Specification" accesskey="p"
+    <a href="middleware.html" class="btn btn-neutral" title="Middleware specification" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -403,14 +493,16 @@ using the parallel capabilities of DI-engine to execute:</p></li>
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Middleware specification</a><ul>
-<li><a class="reference internal" href="#file-structure-and-naming">File Structure and Naming</a></li>
-<li><a class="reference internal" href="#class-function-parameter">Class, Function, Parameter</a></li>
-<li><a class="reference internal" href="#construction-function">Construction Function</a></li>
-<li><a class="reference internal" href="#runtime-function">Runtime Function</a></li>
+<li><a class="reference internal" href="#">Specifications of DI-engine Config</a><ul>
+<li><a class="reference internal" href="#example-link">Example Link</a></li>
+<li><a class="reference internal" href="#details-of-the-specification">Details of the specification</a><ul>
+<li><a class="reference internal" href="#specification-of-grammar">Specification of Grammar</a></li>
+<li><a class="reference internal" href="#specification-of-naming">Specification of naming</a></li>
+<li><a class="reference internal" href="#main-specification">Main Specification</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#event-naming-convention">Event Naming Convention</a></li>
+</ul>
+</li>
 </ul>
 
             </div>
