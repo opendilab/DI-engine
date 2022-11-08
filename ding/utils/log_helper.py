@@ -34,7 +34,7 @@ def build_logger(
     """
     if name is None:
         name = 'default'
-    logger = LoggerFactory.create_logger(path, name=name) if need_text else None
+    logger = LoggerFactory.create_logger(path, name=name, level=text_level) if need_text else None
     tb_name = name + '_tb_logger'
     tb_logger = TBLoggerFactory.create_logger(os.path.join(path, tb_name)) if need_tb else None
     return logger, tb_logger

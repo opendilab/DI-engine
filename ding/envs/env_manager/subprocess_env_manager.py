@@ -279,7 +279,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     self._check_data({env_id: ret})
                     self._env_seed[env_id] = None  # seed only use once
                 except BaseException as e:
-                    logging.warning("subprocess reset set seed failed, ignore and continue...")
+                    logging.warning(
+                        "subprocess reset set seed failed, ignore and continue... \n subprocess exception traceback: \n"
+                        + traceback.format_exc()
+                    )
             self._env_states[env_id] = EnvState.RESET
             reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
@@ -321,6 +324,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 reset_fn()
                 return
             except BaseException as e:
+                logging.info("subprocess exception traceback: \n" + traceback.format_exc())
                 if self._retry_type == 'renew' or isinstance(e, pickle.UnpicklingError):
                     self._pipe_parents[env_id].close()
                     if self._subprocesses[env_id].is_alive():
@@ -498,6 +502,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 except Exception as e:
                     # when there are some errors in env, worker_fn will send the errors to env manager
                     # directly send error to another process will lose the stack trace, so we create a new Exception
+                    logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
                     c.send(
                         e.__class__(
                             '\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e)
@@ -553,6 +558,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     ret = None
                 return ret
             except BaseException as e:
+                logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
                 env.close()
                 raise e
 
@@ -586,6 +592,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 logging.debug("Sub env '{}' error when executing {}".format(str(env), cmd))
                 # when there are some errors in env, worker_fn will send the errors to env manager
                 # directly send error to another process will lose the stack trace, so we create a new Exception
+                logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
                 child.send(
                     e.__class__('\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
                 )
