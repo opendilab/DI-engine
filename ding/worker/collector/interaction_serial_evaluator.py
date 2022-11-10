@@ -241,6 +241,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             continue
                         if t.done:
                             # Env reset is done by env_manager automatically.
+                            if 'figure_path' in self._cfg:
+                                if self._cfg.figure_path is not None:
+                                    self._env.enable_save_figure(env_id, self._cfg.figure_path)
                             self._policy.reset([env_id])
                             reward = t.info['final_eval_reward']
                             if 'episode_info' in t.info:

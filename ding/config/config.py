@@ -319,9 +319,9 @@ def save_project_state(exp_name: str) -> None:
         short_sha = _fn("git describe --always")
         log = _fn("git log --stat -n 5")
         diff = _fn("git diff")
-        with open(os.path.join(exp_name, "git_log.txt"), "w") as f:
+        with open(os.path.join(exp_name, "git_log.txt"), "w", encoding='utf-8') as f:
             f.write(short_sha + '\n\n' + log)
-        with open(os.path.join(exp_name, "git_diff.txt"), "w") as f:
+        with open(os.path.join(exp_name, "git_diff.txt"), "w", encoding='utf-8') as f:
             f.write(diff)
 
 

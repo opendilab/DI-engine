@@ -1,4 +1,5 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
+from .common_utils import single_env_forward_wrapper
 from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .iqn import IQNPolicy
 from .fqf import FQFPolicy

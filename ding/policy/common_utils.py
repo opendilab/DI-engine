@@ -1,6 +1,7 @@
 from typing import List, Any
 import torch
 from ding.utils.data import default_collate
+from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze
 
 
 def default_preprocess_learn(
@@ -34,3 +35,14 @@ def default_preprocess_learn(
         data['reward'] = reward.permute(1, 0).contiguous()
 
     return data
+
+
+def single_env_forward_wrapper(forward_fn):
+
+    def _forward(obs):
+        obs = {0: unsqueeze(to_tensor(obs))}
+        action = forward_fn(obs)[0]['action']
+        action = to_ndarray(squeeze(action))
+        return action
+
+    return _forward

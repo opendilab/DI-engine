@@ -50,7 +50,7 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
-        'gym>=0.25.1, <0.26.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'numpy>=1.18.0',
         'pandas',
@@ -81,7 +81,11 @@ setup(
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
+        'wandb',
+        'matplotlib',
         'MarkupSafe==2.0.1',  # compatibility
+        'h5py',
+        'scikit-learn',
     ],
     extras_require={
         'test': [
@@ -99,6 +103,7 @@ setup(
         'style': [
             'yapf==0.29.0',
             'flake8<=3.9.2',
+            'importlib-metadata<5.0.0',  # compatibility
         ],
         'fast': [
             'numpy-stl',
@@ -126,7 +131,7 @@ setup(
             'bsuite',
         ],
         'minigrid_env': [
-            'gym-minigrid',
+            'minigrid',
         ],
         # 'd4rl_env': [
         #     'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',

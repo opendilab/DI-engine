@@ -388,6 +388,17 @@ def unsqueeze(data: Any, dim: int = 0) -> Any:
         raise TypeError("not support type in unsqueeze: {}".format(type(data)))
 
 
+def squeeze(data: Any, dim: int = 0) -> Any:
+    if isinstance(data, torch.Tensor):
+        return data.squeeze(dim)
+    elif isinstance(data, Sequence):
+        return [squeeze(d) for d in data]
+    elif isinstance(data, dict):
+        return {k: squeeze(v, 0) for k, v in data.items()}
+    else:
+        raise TypeError("not support type in squeeze: {}".format(type(data)))
+
+
 def get_null_data(template: Any, num: int) -> List[Any]:
     ret = []
     for _ in range(num):

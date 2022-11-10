@@ -1,13 +1,13 @@
 from easydict import EasyDict
 
 halfcheetah_td3_config = dict(
+    exp_name='halfcheetah_td3_seed0',
     env=dict(
-        env_id='halfcheetah_td3_seed0',
+        env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=11000,
     ),

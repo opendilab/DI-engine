@@ -1,14 +1,19 @@
-import pytest
-from ding.framework import OnlineRLContext, OfflineRLContext, ding_init
-from ding.framework.middleware.functional import online_logger, offline_logger
-from easydict import EasyDict
-import os
 from os import path
-import shutil
+import os
+import copy
+from easydict import EasyDict
 from collections import deque
+import pytest
+import shutil
+import wandb
+import h5py
+import torch.nn as nn
 from unittest.mock import Mock, patch
 from ding.utils import DistributedWriter
-import copy
+from ding.framework.middleware.tests import MockPolicy, CONFIG
+from ding.framework import OnlineRLContext, OfflineRLContext
+from ding.framework.middleware.functional import online_logger, offline_logger, wandb_online_logger, \
+    wandb_offline_logger
 
 test_folder = "test_exp"
 test_path = path.join(os.getcwd(), test_folder)
@@ -154,3 +159,112 @@ class TestOfflineLogger:
         with patch.object(DistributedWriter, 'get_instance', new=mock_get_offline_instance):
             with pytest.raises(NotImplementedError) as exc_info:
                 offline_logger()(offline_scalar_ctx)
+
+
+class TheModelClass(nn.Module):
+
+    def state_dict(self):
+        return 'fake_state_dict'
+
+
+class TheEnvClass(Mock):
+
+    def enable_save_replay(self, replay_path):
+        return
+
+
+class TheObsDataClass(Mock):
+
+    def __getitem__(self, index):
+        return [[1, 1, 1]] * 50
+
+
+class The1DDataClass(Mock):
+
+    def __getitem__(self, index):
+        return [[1]] * 50
+
+
+@pytest.mark.unittest
+def test_wandb_online_logger():
+
+    cfg = EasyDict(
+        dict(
+            record_path='./video_qbert_dqn', gradient_logger=True, plot_logger=True, action_logger='action probability'
+        )
+    )
+    env = TheEnvClass()
+    ctx = OnlineRLContext()
+    ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
+    model = TheModelClass()
+    wandb.init(config=cfg, anonymous="must")
+
+    def mock_metric_logger(metric_dict):
+        metric_list = [
+            "q_value", "target q_value", "loss", "lr", "entropy", "reward", "q value", "video", "q value distribution",
+            "train iter"
+        ]
+        assert set(metric_dict.keys()) < set(metric_list)
+
+    def mock_gradient_logger(input_model):
+        assert input_model == model
+
+    def test_wandb_online_logger_metric():
+        with patch.object(wandb, 'log', new=mock_metric_logger):
+            wandb_online_logger(cfg, env, model, anonymous=True)(ctx)
+
+    def test_wandb_online_logger_gradient():
+        with patch.object(wandb, 'watch', new=mock_gradient_logger):
+            wandb_online_logger(cfg, env, model, anonymous=True)(ctx)
+
+    test_wandb_online_logger_metric()
+    test_wandb_online_logger_gradient()
+
+
+@pytest.mark.unittest
+def test_wandb_offline_logger(mocker):
+
+    cfg = EasyDict(
+        dict(
+            record_path='./video_pendulum_cql',
+            gradient_logger=True,
+            plot_logger=True,
+            action_logger='action probability',
+            vis_dataset=True
+        )
+    )
+    env = TheEnvClass()
+    ctx = OnlineRLContext()
+    ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
+    model = TheModelClass()
+    wandb.init(config=cfg, anonymous="must")
+
+    def mock_metric_logger(metric_dict):
+        metric_list = [
+            "q_value", "target q_value", "loss", "lr", "entropy", "reward", "q value", "video", "q value distribution",
+            "train iter", 'dataset'
+        ]
+        assert set(metric_dict.keys()) < set(metric_list)
+
+    def mock_gradient_logger(input_model):
+        assert input_model == model
+
+    def mock_image_logger(imagepath):
+        assert os.path.splitext(imagepath)[-1] == '.png'
+
+    def test_wandb_offline_logger_gradient():
+        cfg.vis_dataset = False
+        with patch.object(wandb, 'watch', new=mock_gradient_logger):
+            wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
+
+    def test_wandb_offline_logger_dataset():
+        cfg.vis_dataset = True
+        m = mocker.MagicMock()
+        m.__enter__.return_value = {'obs': TheObsDataClass(), 'action': The1DDataClass(), 'reward': The1DDataClass()}
+        with patch.object(wandb, 'log', new=mock_metric_logger):
+            with patch.object(wandb, 'Image', new=mock_image_logger):
+                mocker.patch('h5py.File', return_value=m)
+                wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
+
+    test_wandb_offline_logger_gradient()
+    test_wandb_offline_logger_dataset()

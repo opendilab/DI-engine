@@ -203,7 +203,9 @@ class BaseEnvManager(object):
 
     @property
     def method_name_list(self) -> list:
-        return ['reset', 'step', 'seed', 'close', 'enable_save_replay', 'render']
+        return [
+            'reset', 'step', 'seed', 'close', 'enable_save_replay', 'render', 'reward_shaping', 'enable_save_figure'
+        ]
 
     def env_state_done(self, env_id: int) -> bool:
         return self._env_states[env_id] == EnvState.DONE
@@ -319,7 +321,7 @@ class BaseEnvManager(object):
         logging.error("Env {} reset has exceeded max retries({})".format(env_id, self._max_retry))
         runtime_error = RuntimeError(
             "Env {} reset has exceeded max retries({}), and the latest exception is: {}".format(
-                env_id, self._max_retry, repr(exceptions[-1])
+                env_id, self._max_retry, str(exceptions[-1])
             )
         )
         runtime_error.__traceback__ = exceptions[-1].__traceback__
@@ -373,7 +375,7 @@ class BaseEnvManager(object):
         logging.error("Env {} step has exceeded max retries({})".format(env_id, self._max_retry))
         runtime_error = RuntimeError(
             "Env {} step has exceeded max retries({}), and the latest exception is: {}".format(
-                env_id, self._max_retry, repr(exceptions[-1])
+                env_id, self._max_retry, str(exceptions[-1])
             )
         )
         runtime_error.__traceback__ = exceptions[-1].__traceback__
@@ -418,6 +420,19 @@ class BaseEnvManager(object):
             replay_path = [replay_path] * self.env_num
         self._env_replay_path = replay_path
 
+    def enable_save_figure(self, env_id: int, figure_path: Union[List[str], str]) -> None:
+        """
+        Overview:
+            Set each env's replay save path.
+        Arguments:
+            - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \
+                Or one path for all environments.
+        """
+        if isinstance(figure_path, str):
+            self._env[env_id].enable_save_figure(figure_path)
+        else:
+            raise TypeError("invalid figure_path arguments type: {}".format(type(figure_path)))
+
     def close(self) -> None:
         """
         Overview:
@@ -430,6 +445,9 @@ class BaseEnvManager(object):
         for i in range(self._env_num):
             self._env_states[i] = EnvState.VOID
         self._closed = True
+
+    def reward_shaping(self, env_id: int, transitions: List[dict]) -> List[dict]:
+        return self._envs[env_id].reward_shaping(transitions)
 
     @property
     def closed(self) -> bool:

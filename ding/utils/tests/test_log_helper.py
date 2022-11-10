@@ -1,6 +1,7 @@
 import random
 import pytest
 from easydict import EasyDict
+from ditk import logging
 
 from ding.utils.log_helper import build_logger, pretty_print
 from ding.utils.file_helper import remove_file
@@ -38,16 +39,16 @@ class TestLogger:
         pretty_print(cfg)
 
     def test_logger(self):
-        logger, tb_logger = build_logger(cfg.common.save_path, name="fake_test", need_tb=True)
-        vars = {'aa': 3.0, 'bb': 4, 'cc': 3e4}
+        logger, tb_logger = build_logger(cfg.common.save_path, name="fake_test", need_tb=True, text_level=logging.DEBUG)
+        variables = {'aa': 3.0, 'bb': 4, 'cc': 3e4}
         # text logger
         logger.info("I'm an info")
         logger.debug("I'm a bug")
         logger.error("I'm an error")
-        logger.info(logger.get_tabulate_vars(vars))
+        logger.info(logger.get_tabulate_vars(variables))
         # tensorboard logger
         for i in range(10):
-            new_vars = {k: v * (i + random.random()) for k, v in vars.items()}
+            new_vars = {k: v * (i + random.random()) for k, v in variables.items()}
             for k, v in new_vars.items():
                 tb_logger.add_scalar(k, v, i)
         remove_file(cfg.common.save_path)
