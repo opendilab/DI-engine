@@ -109,6 +109,7 @@ class QMIXPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For QMIX, ``ding.model.qmix.qmix``
@@ -122,7 +123,9 @@ class QMIXPolicy(Policy):
             Init the learner model of QMIXPolicy
         Arguments:
             .. note::
+
                 The _init_learn method takes the argument from the self._cfg.learn in the config file
+
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
@@ -276,6 +279,7 @@ class QMIXPolicy(Policy):
             Load the state_dict variable into policy learn mode.
         Arguments:
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
