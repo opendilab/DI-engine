@@ -71,7 +71,7 @@ create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='madqn_nstep'),
+    policy=dict(type='madqn'),
     collector=dict(type='episode', get_train_sample=True),
 )
 create_config = EasyDict(create_config)

@@ -4,12 +4,11 @@ import torch
 import copy
 
 from ding.torch_utils import RMSprop, to_device
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, v_nstep_td_data, v_nstep_td_error, get_nstep_return_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .qmix import QMIXPolicy
-
 
 @POLICY_REGISTRY.register('madqn')
 class MADQNPolicy(QMIXPolicy):
@@ -24,6 +23,7 @@ class MADQNPolicy(QMIXPolicy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        nstep=1,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -93,7 +93,7 @@ class MADQNPolicy(QMIXPolicy):
             weight_decay=1e-5
         )
         self._gamma = self._cfg.learn.discount_factor
-
+        self._nstep=self._cfg.nstep
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -203,14 +203,32 @@ class MADQNPolicy(QMIXPolicy):
             with torch.no_grad():
                 target_total_q = self._target_model.forward(next_inputs, boost=True, single_step=False)['total_q']
 
-            v_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-            loss, td_error_per_sample = v_1step_td_error(v_data, self._gamma)
-            # for visualization
-            with torch.no_grad():
-                if data['done'] is not None:
-                    target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
-                else:
-                    target_v = self._gamma * target_total_q + data['reward']
+            if self._nstep==1:
+
+                v_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
+                loss, td_error_per_sample = v_1step_td_error(v_data, self._gamma)
+                # for visualization
+                with torch.no_grad():
+                    if data['done'] is not None:
+                        target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
+                    else:
+                        target_v = self._gamma * target_total_q + data['reward']
+            else:
+                data['reward'] = data['reward'].permute(0, 2, 1).contiguous()
+                loss = []
+                td_error_per_sample = []
+                for t in range(self._cfg.collect.unroll_len):
+                    v_data = v_nstep_td_data(
+                        total_q[t], target_total_q[t], data['reward'][t], data['done'][t], data['weight'], self._gamma
+                    )
+                    #print(total_q[t])
+                # calculate v_nstep_td critic_loss
+                    loss_i, td_error_per_sample_i = v_nstep_td_error(v_data, self._gamma, self._nstep)
+                    loss.append(loss_i)
+                    td_error_per_sample.append(td_error_per_sample_i)
+                loss = sum(loss) / (len(loss) + 1e-8)
+                td_error_per_sample = sum(td_error_per_sample) / (len(td_error_per_sample) + 1e-8)
+            
             self._optimizer_current.zero_grad()
             loss.backward()
             grad_norm = torch.nn.utils.clip_grad_norm_(self._model.current.parameters(), self._cfg.learn.clip_value)
@@ -223,8 +241,17 @@ class MADQNPolicy(QMIXPolicy):
             next_inputs = {'obs': data['next_obs']}
             with torch.no_grad():
                 boost_target_total_q = self._target_model.forward(next_inputs, boost=True, single_step=False)['total_q']
-            v_data = v_1step_td_data(boost_total_q, boost_target_total_q, data['reward'], data['done'], data['weight'])
-            boost_loss, _ = v_1step_td_error(v_data, self._gamma)
+            
+            if self._nstep==1:
+                v_data = v_1step_td_data(boost_total_q, boost_target_total_q, data['reward'], data['done'], data['weight'])
+                boost_loss, _ = v_1step_td_error(v_data, self._gamma)
+            else:
+                boost_loss_all=[]
+                for t in range(self._cfg.collect.unroll_len):
+                    v_data = v_nstep_td_data(boost_total_q[t], boost_target_total_q[t], data['reward'][t], data['done'][t], data['weight'], self._gamma)
+                    boost_loss, _ = v_nstep_td_error(v_data, self._gamma,self._nstep)
+                    boost_loss_all.append(boost_loss)
+                boost_loss = sum(boost_loss_all) / (len(boost_loss_all) + 1e-8)
             self._optimizer_boost.zero_grad()
             boost_loss.backward()
             boost_grad_norm = torch.nn.utils.clip_grad_norm_(self._model.boost.parameters(), self._cfg.learn.clip_value)
@@ -286,6 +313,150 @@ class MADQNPolicy(QMIXPolicy):
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_current.load_state_dict(state_dict['optimizer_current'])
         self._optimizer_boost.load_state_dict(state_dict['optimizer_boost'])
+
+    def _init_collect(self) -> None:
+        r"""
+        Overview:
+            Collect mode init method. Called by ``self.__init__``.
+            Init traj and unroll length, collect model.
+            Enable the eps_greedy_sample and the hidden_state plugin.
+        """
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._nstep = self._cfg.nstep
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
+            state_num=self._cfg.collect.env_num,
+            save_prev_state=True,
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
+        )
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        self._collect_model.reset()
+
+    def _forward_collect(self, data: dict, eps: float) -> dict:
+        r"""
+        Overview:
+            Forward function for collect mode with eps_greedy
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
+        """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
+        self._collect_model.eval()
+        with torch.no_grad():
+            output = self._collect_model.forward(data, eps=eps, data_id=data_id)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset collect model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
+        self._collect_model.reset(data_id=data_id)
+
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        r"""
+        Overview:
+            Generate dict type transition data from inputs.
+        Arguments:
+            - obs (:obj:`Any`): Env observation
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action', 'prev_state']
+            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
+                (here 'obs' indicates obs after env step).
+        Returns:
+            - transition (:obj:`dict`): Dict type transition data, including 'obs', 'next_obs', 'prev_state',\
+                'action', 'reward', 'done'
+        """
+        transition = {
+            'obs': obs,
+            'next_obs': timestep.obs,
+            'prev_state': model_output['prev_state'],
+            'action': model_output['action'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
+        return transition
+
+    def _init_eval(self) -> None:
+        r"""
+        Overview:
+            Evaluate mode init method. Called by ``self.__init__``.
+            Init eval model with argmax strategy and the hidden_state plugin.
+        """
+        self._eval_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
+            state_num=self._cfg.eval.env_num,
+            save_prev_state=True,
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
+        )
+        self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
+
+    def _forward_eval(self, data: dict) -> dict:
+        r"""
+        Overview:
+            Forward function of eval mode, similar to ``self._forward_collect``.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
+        """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
+        self._eval_model.eval()
+        with torch.no_grad():
+            output = self._eval_model.forward(data, data_id=data_id)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset eval model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
+        self._eval_model.reset(data_id=data_id)
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        r"""
+        Overview:
+            Get the train sample from trajectory.
+        Arguments:
+            - data (:obj:`list`): The trajectory's cache
+        Returns:
+            - samples (:obj:`dict`): The training samples generated
+        """
+        if self._nstep==1:
+            return get_train_sample(data, self._unroll_len)
+        else:
+            data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+            return get_train_sample(data, self._unroll_len)   
 
     def default_model(self) -> Tuple[str, List[str]]:
         """

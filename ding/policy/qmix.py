@@ -297,6 +297,7 @@ class QMIXPolicy(Policy):
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
         self._unroll_len = self._cfg.collect.unroll_len
+        self._nstep = self._cfg.nstep
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
@@ -426,7 +427,11 @@ class QMIXPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        return get_train_sample(data, self._unroll_len)
+        if self._nstep==1:
+            return get_train_sample(data, self._unroll_len)
+        else:
+            data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+            return get_train_sample(data, self._unroll_len)            
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
