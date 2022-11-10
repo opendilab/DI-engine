@@ -109,7 +109,6 @@ class QMIXPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For QMIX, ``ding.model.qmix.qmix``
@@ -123,9 +122,7 @@ class QMIXPolicy(Policy):
             Init the learner model of QMIXPolicy
         Arguments:
             .. note::
-
                 The _init_learn method takes the argument from the self._cfg.learn in the config file
-
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
@@ -279,7 +276,6 @@ class QMIXPolicy(Policy):
             Load the state_dict variable into policy learn mode.
         Arguments:
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
-
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
@@ -297,7 +293,6 @@ class QMIXPolicy(Policy):
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._nstep = self._cfg.nstep
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
@@ -427,11 +422,7 @@ class QMIXPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        if self._nstep==1:
-            return get_train_sample(data, self._unroll_len)
-        else:
-            data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-            return get_train_sample(data, self._unroll_len)            
+        return get_train_sample(data, self._unroll_len)
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
