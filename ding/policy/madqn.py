@@ -266,7 +266,6 @@ class MADQNPolicy(QMIXPolicy):
             'cur_lr': self._optimizer_current.defaults['lr'],
             'total_loss': loss.item(),
             'total_q': total_q.mean().item() / self._cfg.model.agent_num,
-            'target_reward_total_q': target_v.mean().item() / self._cfg.model.agent_num,
             'target_total_q': target_total_q.mean().item() / self._cfg.model.agent_num,
             'grad_norm': grad_norm,
             'boost_grad_norm': boost_grad_norm,
