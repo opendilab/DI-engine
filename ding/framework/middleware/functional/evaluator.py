@@ -251,7 +251,11 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
-            obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
+            if hasattr(obs, "keys"):
+                num_envs = len(obs[list(obs.keys())[0]])
+            else:
+                num_envs = obs.shape[0]
+            obs = {i: obs[i] for i in range(num_envs)}  # TBD
             inference_output = policy.forward(obs)
             if render:
                 eval_monitor.update_video(env.ready_imgs)

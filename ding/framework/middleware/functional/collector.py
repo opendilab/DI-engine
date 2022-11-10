@@ -74,8 +74,11 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
         obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
         ctx.obs = obs
         # TODO mask necessary rollout
-
-        obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
+        if hasattr(obs, "keys"):
+            num_envs = len(obs[list(obs.keys())[0]])
+        else:
+            num_envs = obs.shape[0]
+        obs = {i: obs[i] for i in range(num_envs)}  # TBD
         inference_output = policy.forward(obs, **ctx.collect_kwargs)
         ctx.action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
         ctx.inference_output = inference_output
