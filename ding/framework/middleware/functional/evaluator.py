@@ -12,7 +12,7 @@ from ding.framework.context import OfflineRLContext
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
-from ding.torch_utils import to_list, to_ndarray
+from ding.torch_utils import to_list, to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
 
 if TYPE_CHECKING:
@@ -251,10 +251,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
-            if hasattr(obs, "keys"):
-                num_envs = len(obs[list(obs.keys())[0]])
-            else:
-                num_envs = obs.shape[0]
+            num_envs = get_shape0(obs)
             obs = {i: obs[i] for i in range(num_envs)}  # TBD
             inference_output = policy.forward(obs)
             if render:
