@@ -1,7 +1,9 @@
+import os
 import pytest
 import time
 import random
 import functools
+import tempfile
 from typing import Callable
 from ding.data.buffer import DequeBuffer
 from ding.data.buffer.buffer import BufferedData
@@ -85,6 +87,22 @@ def test_rate_limit_push_sample():
         buffer.push(i)
     assert buffer.count() == 5
     assert 5 not in buffer.sample(5)
+
+
+@pytest.mark.unittest
+def test_load_and_save():
+    buffer = DequeBuffer(size=10).use(RateLimit(max_rate=5))
+    for i in range(10):
+        buffer.push(i)
+    assert buffer.count() == 5
+    assert 5 not in buffer.sample(5)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_file = os.path.join(tmpdirname, "data.hkl")
+        buffer.save_data(test_file)
+        buffer_new = DequeBuffer(size=10).use(RateLimit(max_rate=5))
+        buffer_new.load_data(test_file)
+        assert buffer_new.count() == 5
+        assert 5 not in buffer_new.sample(5)
 
 
 @pytest.mark.unittest

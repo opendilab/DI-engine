@@ -1,7 +1,9 @@
+import os
 import itertools
 import random
 import uuid
 from ditk import logging
+import hickle
 from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import Counter
 from collections import defaultdict, deque, OrderedDict
@@ -208,6 +210,21 @@ class DequeBuffer(Buffer):
         remain_indices = [item.index for item in self.storage]
         key_value_pairs = zip(remain_indices, range(len(indices)))
         self.indices = BufferIndex(self.storage.maxlen, key_value_pairs)
+
+    def save_data(self, file_name: str):
+        if not os.path.exists(os.path.dirname(file_name)):
+            if os.path.dirname(file_name) != "":
+                os.makedirs(os.path.dirname(file_name))
+        hickle.dump(
+            py_obj=(
+                self.storage,
+                self.indices,
+                self.meta_index,
+            ), file_obj=file_name
+        )
+
+    def load_data(self, file_name: str):
+        self.storage, self.indices, self.meta_index = hickle.load(file_name)
 
     def count(self) -> int:
         """

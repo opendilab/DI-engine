@@ -86,6 +86,7 @@ setup(
         'MarkupSafe==2.0.1',  # compatibility
         'h5py',
         'scikit-learn',
+        'hickle',
     ],
     extras_require={
         'test': [

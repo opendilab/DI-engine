@@ -1,10 +1,11 @@
+import tempfile
 import pytest
 
 from ding.data.buffer import DequeBuffer
 
 from ding.framework import Context, OnlineRLContext, OfflineRLContext
 from ding.framework.middleware.functional.data_processor import \
-    data_pusher, offpolicy_data_fetcher, offline_data_fetcher, offline_data_saver, sqil_data_pusher
+    data_pusher, offpolicy_data_fetcher, offline_data_fetcher, offline_data_saver, sqil_data_pusher, buffer_saver
 
 from ding.data.buffer.middleware import PriorityExperienceReplay
 
@@ -233,3 +234,25 @@ def test_sqil_data_pusher():
     sqil_data_pusher(cfg=None, buffer_=buffer, expert=False)(ctx)
     assert buffer.count() == 5
     assert all(t.data.reward == 0 for t in buffer.export_data())
+
+
+@pytest.mark.unittest
+def test_buffer_saver():
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_folder = os.path.join(tmpdirname, "test_buffer_saver")
+        cfg = EasyDict({"exp_name": test_folder})
+        os.makedirs(test_folder)
+        buffer_ = DequeBuffer(size=10)
+        ctx = OnlineRLContext()
+        ctx.trajectories = [i for i in range(5)]
+        ctx.env_step = 0
+        data_pusher(cfg=cfg, buffer_=buffer_)(ctx)
+        assert buffer_.count() == 5
+        buffer_saver(cfg=cfg, buffer_=buffer_, replace=False)(ctx)
+        buffer_saver(cfg=cfg, buffer_=buffer_, replace=True)(ctx)
+        buffer_1 = DequeBuffer(size=10)
+        buffer_1.load_data(os.path.join(test_folder, "replaybuffer", "data.hkl"))
+        assert buffer_1.count() == 5
+        buffer_2 = DequeBuffer(size=10)
+        buffer_2.load_data(os.path.join(test_folder, "replaybuffer", "data-envstep-0.hkl"))
+        assert buffer_2.count() == 5
