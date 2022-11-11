@@ -66,5 +66,5 @@ create_config = gym_hybrid_hppo_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c gym_hybrid_hppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-    main_config.exp_name = "gym_hybrid_hppo_seed2"
-    serial_pipeline_onpolicy([main_config, create_config], seed=2, max_env_step=int(3e6))
+    main_config.exp_name = "gym_hybrid_hppo_seed0_ag"
+    serial_pipeline_onpolicy([main_config, create_config], seed=0, max_env_step=int(3e6))

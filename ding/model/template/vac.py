@@ -155,7 +155,8 @@ class VAC(nn.Module):
             action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
             action_shape.action_type_shape = squeeze(action_shape.action_type_shape)
             actor_action_args = ReparameterizationHead(
-                actor_head_hidden_size,
+                # actor_action_args will consider actor_action_type
+                actor_head_hidden_size + action_shape.action_type_shape,
                 action_shape.action_args_shape,
                 actor_head_layer_num,
                 sigma_type=sigma_type,
@@ -270,7 +271,8 @@ class VAC(nn.Module):
             return {'logit': x}
         elif self.action_space == 'hybrid':
             action_type = self.actor_head[0](x)
-            action_args = self.actor_head[1](x)
+            mx = torch.cat([x, action_type['logit']], dim=1)
+            action_args = self.actor_head[1](mx)
             return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}}
 
     def compute_critic(self, x: torch.Tensor) -> Dict:
@@ -354,5 +356,6 @@ class VAC(nn.Module):
             return {'logit': x, 'value': value}
         elif self.action_space == 'hybrid':
             action_type = self.actor_head[0](actor_embedding)
-            action_args = self.actor_head[1](actor_embedding)
+            m_actor_embedding = torch.cat([actor_embedding, action_type['logit']], dim=1)
+            action_args = self.actor_head[1](m_actor_embedding)
             return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}, 'value': value}
