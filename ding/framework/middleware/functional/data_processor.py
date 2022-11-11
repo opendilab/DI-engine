@@ -62,7 +62,7 @@ def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep=1000, replace=Fal
     def _save(ctx: "OnlineRLContext"):
         """
         Overview:
-            In ctx, either `ctx.env_step` should not be None.
+            In ctx, `ctx.env_step` should not be None.
         Input of ctx:
             - env_step (:obj:`int`): env step.
         """
@@ -72,13 +72,13 @@ def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep=1000, replace=Fal
 
                 buffer_saver_counter += 1
                 if replace:
-                    buffer_.save_data(os.path.join(cfg.exp_name, "replaybuffer", "data.hkl".format(ctx.env_step)))
+                    buffer_.save_data(os.path.join(cfg.exp_name, "replaybuffer", "data.hkl"))
                 else:
                     buffer_.save_data(
                         os.path.join(cfg.exp_name, "replaybuffer", "data-envstep-{}.hkl".format(ctx.env_step))
                     )
         else:
-            raise RuntimeError("Either ctx.env_step should be not None.")
+            raise RuntimeError("ctx.env_step should be not None.")
 
     return _save
 
