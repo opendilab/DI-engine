@@ -4,11 +4,13 @@ import torch
 import copy
 
 from ding.torch_utils import RMSprop, to_device
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, v_nstep_td_data, v_nstep_td_error, get_nstep_return_data
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
+    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .qmix import QMIXPolicy
+
 
 @POLICY_REGISTRY.register('madqn')
 class MADQNPolicy(QMIXPolicy):
@@ -93,7 +95,7 @@ class MADQNPolicy(QMIXPolicy):
             weight_decay=1e-5
         )
         self._gamma = self._cfg.learn.discount_factor
-        self._nstep=self._cfg.nstep
+        self._nstep = self._cfg.nstep
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -203,7 +205,7 @@ class MADQNPolicy(QMIXPolicy):
             with torch.no_grad():
                 target_total_q = self._target_model.forward(next_inputs, boost=True, single_step=False)['total_q']
 
-            if self._nstep==1:
+            if self._nstep == 1:
 
                 v_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
                 loss, td_error_per_sample = v_1step_td_error(v_data, self._gamma)
@@ -222,13 +224,13 @@ class MADQNPolicy(QMIXPolicy):
                         total_q[t], target_total_q[t], data['reward'][t], data['done'][t], data['weight'], self._gamma
                     )
                     #print(total_q[t])
-                # calculate v_nstep_td critic_loss
+                    # calculate v_nstep_td critic_loss
                     loss_i, td_error_per_sample_i = v_nstep_td_error(v_data, self._gamma, self._nstep)
                     loss.append(loss_i)
                     td_error_per_sample.append(td_error_per_sample_i)
                 loss = sum(loss) / (len(loss) + 1e-8)
                 td_error_per_sample = sum(td_error_per_sample) / (len(td_error_per_sample) + 1e-8)
-            
+
             self._optimizer_current.zero_grad()
             loss.backward()
             grad_norm = torch.nn.utils.clip_grad_norm_(self._model.current.parameters(), self._cfg.learn.clip_value)
@@ -241,15 +243,20 @@ class MADQNPolicy(QMIXPolicy):
             next_inputs = {'obs': data['next_obs']}
             with torch.no_grad():
                 boost_target_total_q = self._target_model.forward(next_inputs, boost=True, single_step=False)['total_q']
-            
-            if self._nstep==1:
-                v_data = v_1step_td_data(boost_total_q, boost_target_total_q, data['reward'], data['done'], data['weight'])
+
+            if self._nstep == 1:
+                v_data = v_1step_td_data(
+                    boost_total_q, boost_target_total_q, data['reward'], data['done'], data['weight']
+                )
                 boost_loss, _ = v_1step_td_error(v_data, self._gamma)
             else:
-                boost_loss_all=[]
+                boost_loss_all = []
                 for t in range(self._cfg.collect.unroll_len):
-                    v_data = v_nstep_td_data(boost_total_q[t], boost_target_total_q[t], data['reward'][t], data['done'][t], data['weight'], self._gamma)
-                    boost_loss, _ = v_nstep_td_error(v_data, self._gamma,self._nstep)
+                    v_data = v_nstep_td_data(
+                        boost_total_q[t], boost_target_total_q[t], data['reward'][t], data['done'][t], data['weight'],
+                        self._gamma
+                    )
+                    boost_loss, _ = v_nstep_td_error(v_data, self._gamma, self._nstep)
                     boost_loss_all.append(boost_loss)
                 boost_loss = sum(boost_loss_all) / (len(boost_loss_all) + 1e-8)
             self._optimizer_boost.zero_grad()
@@ -451,11 +458,11 @@ class MADQNPolicy(QMIXPolicy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        if self._nstep==1:
+        if self._nstep == 1:
             return get_train_sample(data, self._unroll_len)
         else:
             data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-            return get_train_sample(data, self._unroll_len)   
+            return get_train_sample(data, self._unroll_len)
 
     def default_model(self) -> Tuple[str, List[str]]:
         """

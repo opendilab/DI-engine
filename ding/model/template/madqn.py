@@ -5,6 +5,7 @@ from .qmix import QMix
 
 @MODEL_REGISTRY.register('madqn')
 class MADQN(nn.Module):
+
     def __init__(
             self,
             agent_num: int,
@@ -18,13 +19,31 @@ class MADQN(nn.Module):
             dueling: bool = False
     ) -> None:
         super(MADQN, self).__init__()
-        self.current = QMix(agent_num=agent_num, obs_shape=obs_shape, action_shape=action_shape, hidden_size_list=hidden_size_list, global_obs_shape=global_obs_shape, mixer=mixer, lstm_type=lstm_type, dueling=dueling)
+        self.current = QMix(
+            agent_num=agent_num,
+            obs_shape=obs_shape,
+            action_shape=action_shape,
+            hidden_size_list=hidden_size_list,
+            global_obs_shape=global_obs_shape,
+            mixer=mixer,
+            lstm_type=lstm_type,
+            dueling=dueling
+        )
         self.global_boost = global_boost
         if self.global_boost:
             boost_obs_shape = global_obs_shape
         else:
             boost_obs_shape = obs_shape
-        self.boost = QMix(agent_num=agent_num, obs_shape=boost_obs_shape, action_shape=action_shape, hidden_size_list=hidden_size_list, global_obs_shape=global_obs_shape, mixer=mixer, lstm_type=lstm_type, dueling=dueling)
+        self.boost = QMix(
+            agent_num=agent_num,
+            obs_shape=boost_obs_shape,
+            action_shape=action_shape,
+            hidden_size_list=hidden_size_list,
+            global_obs_shape=global_obs_shape,
+            mixer=mixer,
+            lstm_type=lstm_type,
+            dueling=dueling
+        )
 
     def forward(self, data: dict, boost: bool = False, single_step: bool = True) -> dict:
         if boost:
