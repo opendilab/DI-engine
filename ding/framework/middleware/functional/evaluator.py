@@ -50,7 +50,7 @@ class VectorEvalMonitor(object):
             our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.
     Interfaces:
         __init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,\
-            get_episode_info
+            get_episode_info, update_video, get_episode_video
     """
 
     def __init__(self, env_num: int, n_episode: int) -> None:
@@ -221,7 +221,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be evaluated.
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
-        - render (:obj:`bool`): Whether to render env images.
+        - render (:obj:`bool`): Whether to render env images and policy logits.
     """
 
     env.seed(cfg.seed, dynamic_seed=False)
@@ -281,13 +281,15 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
-        ctx.eval_output = {'output': output, 'reward': episode_reward}
+        ctx.eval_output = {'reward': episode_reward}
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
             ctx.eval_output['episode_info'] = episode_info
         if render:
             ctx.eval_output['replay_video'] = eval_monitor.get_episode_video()
             ctx.eval_output['output'] = eval_monitor.get_episode_output()
+        else:
+            ctx.eval_output['output'] = output  # for compatibility
 
         if stop_flag:
             task.finish = True
