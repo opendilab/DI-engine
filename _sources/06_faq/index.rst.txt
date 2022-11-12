@@ -81,3 +81,39 @@ The curve of learning rate is shown in the figure below
 .. image:: images/Q5_lr_scheduler.png
    :align: center
    :height: 250
+
+Q6: How to understand the printed [EVALUATOR] information
+***************************************************************
+
+:A6:
+
+We print out the evaluation information of ``evaluator`` in `interaction_serial_evaluator.py <https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L253>`_ ,
+including ``env``, ``final reward``, ``current episode``, which represent the ``eval_env`` index (``env_id``) corresponding to the current completed episode (in which ``timestep.done=True``),
+the final reward of the completed episode, and how many episodes it was evaluated by the ``evaluator``, respectively. A typical demonstration log is shown in the figure below:
+
+.. image:: images/Q6_evaluator_info.png
+   :align: center
+   :height: 250
+
+In some cases, different evaluator environment (abbreviated as ``eval_env``) in the ``evaluator`` may collect episodes with different lengths. For example, suppose we collect 16 episodes through ``evaluator``, but only have 5 ``eval_env``,
+i.e. setting ``n_evaluator_episode=16, evaluator_env_num=5`` in config,
+If we do not limit the number of evaluation episodes in each ``eval_env``, it is likely that we will get many episodes with short lengths.
+As a result, the average reward obtained in this evaluation phase will be biased and cannot fully reflect the performance of the current policy (Only reflects the performance on episodes with shorter lengths).
+
+To address this issue, we propose to utilize the `VectorEvalMonitor <https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L78>`_ class.
+In this class, we averagely specify the number of episodes each ``eval_env`` needs to evaluate in `here <https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L103>`_,
+e.g. if ``n_evaluator_episode=16`` and ``evaluator_env_num=8``, then only 2 episodes of each ``eval_env`` will be added into statistics.
+For the specific meaning of each method of ``VectorEvalMonitor``, please refer to the annotations in class `VectorEvalMonitor <https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L78>`_.
+
+..
+    and we use `dict <https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L110>`_ to store the rewards of the episodes evaluated on each ``eval_env``.
+    Note that, for each ``eval_env``, we specify a ``deque`` with ``max_length`` equal to ``the number of episodes each eval_env needs to evaluate`` (``each_env_episode[i]`` in code) to store the episode rewards.
+
+
+It is worth noting that when a certain  ``eval_env`` of the ``evaluator`` completes the number of ``each_env_episode[i]`` episodes, since the reset of the ``eval_env`` is controlled by
+`env_manager <https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_manager/subprocess_env_manager.py>`_ automatically, the certain ``eval_env`` will continue to run until exiting the whole evaluation phase.
+We utilize ``VectorEvalMonitor`` to control the termination/exiting of the evaluation phase, only if
+`eval_monitor.is_finished() <https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L224>`_ is True
+, i.e. the evaluator completes all evaluation episodes (``n_evaluator_episode`` in config), the ``evaluator`` will exit the evaluation phase.
+Thus there may be a case where the corresponding log information of an ``eval_env`` is still repeated even if it finishes the evaluation of ``each_env_episode[i]`` episodes, which
+do not adversely affect the evaluation results, so the users don't need to be worried about these repeated logs.

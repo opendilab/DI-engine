@@ -381,6 +381,32 @@ The following code provides a simple example. For more detail, see demo: <a clas
 <p>The curve of learning rate is shown in the figure below</p>
 <a class="reference internal image-reference" href="../_images/Q5_lr_scheduler.png"><img alt="../_images/Q5_lr_scheduler.png" class="align-center" src="../_images/Q5_lr_scheduler.png" style="height: 250px;" /></a>
 </section>
+<section id="q6-how-to-understand-the-printed-evaluator-information">
+<h2>Q6: How to understand the printed [EVALUATOR] information<a class="headerlink" href="#q6-how-to-understand-the-printed-evaluator-information" title="Permalink to this headline">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">A6</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<p>We print out the evaluation information of <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L253">interaction_serial_evaluator.py</a> ,
+including <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">final</span> <span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">episode</span></code>, which represent the <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> index (<code class="docutils literal notranslate"><span class="pre">env_id</span></code>) corresponding to the current completed episode (in which <code class="docutils literal notranslate"><span class="pre">timestep.done=True</span></code>),
+the final reward of the completed episode, and how many episodes it was evaluated by the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code>, respectively. A typical demonstration log is shown in the figure below:</p>
+<a class="reference internal image-reference" href="../_images/Q6_evaluator_info.png"><img alt="../_images/Q6_evaluator_info.png" class="align-center" src="../_images/Q6_evaluator_info.png" style="height: 250px;" /></a>
+<p>In some cases, different evaluator environment (abbreviated as <code class="docutils literal notranslate"><span class="pre">eval_env</span></code>) in the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> may collect episodes with different lengths. For example, suppose we collect 16 episodes through <code class="docutils literal notranslate"><span class="pre">evaluator</span></code>, but only have 5 <code class="docutils literal notranslate"><span class="pre">eval_env</span></code>,
+i.e. setting <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode=16,</span> <span class="pre">evaluator_env_num=5</span></code> in config,
+If we do not limit the number of evaluation episodes in each <code class="docutils literal notranslate"><span class="pre">eval_env</span></code>, it is likely that we will get many episodes with short lengths.
+As a result, the average reward obtained in this evaluation phase will be biased and cannot fully reflect the performance of the current policy (Only reflects the performance on episodes with shorter lengths).</p>
+<p>To address this issue, we propose to utilize the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L78">VectorEvalMonitor</a> class.
+In this class, we averagely specify the number of episodes each <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> needs to evaluate in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L103">here</a>,
+e.g. if <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode=16</span></code> and <code class="docutils literal notranslate"><span class="pre">evaluator_env_num=8</span></code>, then only 2 episodes of each <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> will be added into statistics.
+For the specific meaning of each method of <code class="docutils literal notranslate"><span class="pre">VectorEvalMonitor</span></code>, please refer to the annotations in class <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L78">VectorEvalMonitor</a>.</p>
+<p>It is worth noting that when a certain  <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> of the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> completes the number of <code class="docutils literal notranslate"><span class="pre">each_env_episode[i]</span></code> episodes, since the reset of the <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> is controlled by
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_manager/subprocess_env_manager.py">env_manager</a> automatically, the certain <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> will continue to run until exiting the whole evaluation phase.
+We utilize <code class="docutils literal notranslate"><span class="pre">VectorEvalMonitor</span></code> to control the termination/exiting of the evaluation phase, only if
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L224">eval_monitor.is_finished()</a> is True
+, i.e. the evaluator completes all evaluation episodes (<code class="docutils literal notranslate"><span class="pre">n_evaluator_episode</span></code> in config), the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> will exit the evaluation phase.
+Thus there may be a case where the corresponding log information of an <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> is still repeated even if it finishes the evaluation of <code class="docutils literal notranslate"><span class="pre">each_env_episode[i]</span></code> episodes, which
+do not adversely affect the evaluation results, so the users don’t need to be worried about these repeated logs.</p>
+</section>
 </section>
 
 
@@ -432,6 +458,7 @@ The following code provides a simple example. For more detail, see demo: <a clas
 <li><a class="reference internal" href="#q3-no-permission-error-occurred-during-installation">Q3: “No permission” error occurred during installation</a></li>
 <li><a class="reference internal" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></a></li>
 <li><a class="reference internal" href="#q5-how-to-adjust-the-learning-rate">Q5: How to adjust the learning rate</a></li>
+<li><a class="reference internal" href="#q6-how-to-understand-the-printed-evaluator-information">Q6: How to understand the printed [EVALUATOR] information</a></li>
 </ul>
 </li>
 </ul>

@@ -298,7 +298,7 @@
 <span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
 <span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">Policy</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span><span class="p">,</span> <span class="n">get_shape0</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
@@ -368,8 +368,8 @@
         <span class="n">obs</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_obs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span>
         <span class="c1"># TODO mask necessary rollout</span>
-
-        <span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])}</span>  <span class="c1"># TBD</span>
+        <span class="n">num_envs</span> <span class="o">=</span> <span class="n">get_shape0</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_envs</span><span class="p">)}</span>  <span class="c1"># TBD</span>
         <span class="n">inference_output</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="o">**</span><span class="n">ctx</span><span class="o">.</span><span class="n">collect_kwargs</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_ndarray</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>  <span class="c1"># TBD</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">inference_output</span> <span class="o">=</span> <span class="n">inference_output</span>

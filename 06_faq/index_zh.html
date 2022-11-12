@@ -380,6 +380,29 @@
 <p>学习率变化曲线如图所示</p>
 <a class="reference internal image-reference" href="../_images/Q5_lr_scheduler.png"><img alt="../_images/Q5_lr_scheduler.png" class="align-center" src="../_images/Q5_lr_scheduler.png" style="height: 250px;" /></a>
 </section>
+<section id="q6-evaluator">
+<h2>Q6: 如何理解打印出的 [EVALUATOR] 信息<a class="headerlink" href="#q6-evaluator" title="Permalink to this headline">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">A6</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<p>我们在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L253">interaction_serial_evaluator.py</a> ，打印出 <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> 的评估信息，
+包括 <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">final</span> <span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">episode</span></code> 分别代表当前已完成局 (<code class="docutils literal notranslate"><span class="pre">timestep.done=True</span></code>) 对应的环境索引 (<code class="docutils literal notranslate"><span class="pre">env_id</span></code>), 当前已完成局游戏的奖励， 以及它是 <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> 评估的第几局游戏。
+一个典型的 evaluator log 信息如下图所示：</p>
+<a class="reference internal image-reference" href="../_images/Q6_evaluator_info.png"><img alt="../_images/Q6_evaluator_info.png" class="align-center" src="../_images/Q6_evaluator_info.png" style="height: 250px;" /></a>
+<p>在某些情况下，<code class="docutils literal notranslate"><span class="pre">evaluator</span></code> 中的不同环境可能会收集不同长度的游戏局。 例如，假设我们通过 <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> 收集 16 局游戏，但只有 5 个评估环境 (<code class="docutils literal notranslate"><span class="pre">eval_env</span></code>)，即在 config 中设置 <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode=16,</span> <span class="pre">evaluator_env_num=5</span></code>，
+我们如果不对每个评估环境的评估总局数进行限制，很可能会得到许多步长较短的游戏局，这样一来，这次评估阶段得到的平均奖励就会有偏差，不能完全反映当前 policy 的性能 (只反映了在步数较短的游戏局上的性能)。</p>
+<p>我们通过使用 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L78">VectorEvalMonitor</a> 类来缓解这个问题。
+在这个类中，我们在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L103">这里</a> 平均指定每个 <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> 需要评估的局数，
+例如，如果设置 <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode=16</span></code> 和 <code class="docutils literal notranslate"><span class="pre">evaluator_env_num=8</span></code>，那么每个 <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> 只有 2 局将被添加到统计量中。
+关于 <code class="docutils literal notranslate"><span class="pre">VectorEvalMonitor</span></code> 每个方法的具体含义，请参考类 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/base_serial_evaluator.py#L78">VectorEvalMonitor</a> 的注释。</p>
+<p>值得注意的是，当 evaluator 的某一个 <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> 完成评估数量为 <code class="docutils literal notranslate"><span class="pre">each_env_episode[i]</span></code> 的游戏局后，由于环境的 reset 是由
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_manager/subprocess_env_manager.py">env_manager</a>  自动控制的，它还会继续运行下去, 除非整个评估阶段终止。
+我们是用 <code class="docutils literal notranslate"><span class="pre">VectorEvalMonitor</span></code> 控制评估阶段的终止，只有当
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L224">eval_monitor.is_finished()</a> 为True时，
+即 evaluator 完成了所有的评估任务后 (在所有 <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> 上一共评估了 <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode</span></code> 局)，才会退出本次评估, 所以可能会出现某个 <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> 在完成它自己的评估数量为 <code class="docutils literal notranslate"><span class="pre">each_env_episode[i]</span></code> 的游戏局后，其对应的log信息仍然重复出现的情况,
+用户不必担心这些重复的 logs，它们不会对评估结果产生不好的影响。</p>
+</section>
 </section>
 
 
@@ -431,6 +454,7 @@
 <li><a class="reference internal" href="#q3">Q3: 安装时出现”没有权限”相关错误</a></li>
 <li><a class="reference internal" href="#q4-syncsubprocessenvmanager">Q4: 如何设置SyncSubprocessEnvManager的相关运行参数</a></li>
 <li><a class="reference internal" href="#q5">Q5: 如何调整学习率</a></li>
+<li><a class="reference internal" href="#q6-evaluator">Q6: 如何理解打印出的 [EVALUATOR] 信息</a></li>
 </ul>
 </li>
 </ul>
