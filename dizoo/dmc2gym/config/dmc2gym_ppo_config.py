@@ -60,3 +60,5 @@ cartpole_balance_create_config = dict(
 )
 cartpole_balance_create_config = EasyDict(cartpole_balance_create_config)
 create_config = cartpole_balance_create_config
+
+# To use this config, you can enter dizoo/dmc2gym/entry to call dmc2gym_onppo_main.py

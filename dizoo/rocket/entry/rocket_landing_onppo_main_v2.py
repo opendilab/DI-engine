@@ -18,7 +18,7 @@ from ding.utils import set_pkg_seed
 from dizoo.rocket.config.rocket_landing_ppo_config import main_config, create_config
 
 
-class InfoWrapper(gym.Wrapper):
+class RocketLandingWrapper(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         self._observation_space = gym.spaces.Box(
@@ -37,7 +37,7 @@ def wrapped_rocket_env(task, max_steps):
         Rocket(task=task, max_steps=max_steps),
         cfg={
             'env_wrapper': [
-                lambda env: InfoWrapper(env),
+                lambda env: RocketLandingWrapper(env),
                 lambda env: FinalEvalRewardEnv(env),
             ]
         }

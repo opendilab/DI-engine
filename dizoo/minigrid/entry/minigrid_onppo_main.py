@@ -14,7 +14,7 @@ import os
 import gymnasium
 
 
-class InfoWrapper(gym.Wrapper):
+class MinigridWrapper(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         self._observation_space = gym.spaces.Box(
@@ -27,11 +27,6 @@ class InfoWrapper(gym.Wrapper):
         self._action_space.seed(0)  # default seed
         self.reward_range = (float('-inf'), float('inf'))
         self.max_steps = minigrid_ppo_config.env.max_step
-
-    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
-        self._seed = seed
-        self._dynamic_seed = dynamic_seed
-        np.random.seed(self._seed)
 
     def step(self, action):
         obs, reward, done, _, info = self.env.step(action)
@@ -51,14 +46,14 @@ def wrapped_minigrid_env():
         cfg={
             'env_wrapper': [
                 lambda env: FlatObsWrapper(env),
-                lambda env: InfoWrapper(env),
+                lambda env: MinigridWrapper(env),
                 lambda env: FinalEvalRewardEnv(env),
             ]
         }
     )
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
+def main(cfg, seed=0,  max_env_step=int(1e10), max_train_iter=int(1e10)):
     cfg = compile_config(
         cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator,
         save_cfg=True
@@ -84,13 +79,15 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
 
-    for _ in range(max_iterations):
+    while True:
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         new_data = collector.collect(train_iter=learner.train_iter)
         learner.train(new_data, collector.envstep)
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
 
 
 if __name__ == '__main__':
