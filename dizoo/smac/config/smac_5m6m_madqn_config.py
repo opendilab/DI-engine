@@ -6,7 +6,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
-    exp_name='smac_5m6m_madqn_s3_bs32_hs_64_d10000',
+    exp_name='smac_5m6m_madqn_seed0',
     env=dict(
         map_name='5m_vs_6m',
         difficulty=7,
@@ -28,26 +28,24 @@ main_config = dict(
             global_obs_shape=152,
             action_shape=12,
             hidden_size_list=[256,256],
-            mixer=False,
-            lstm_type='gru',
-            dueling=False,
         ),
         learn=dict(
-            multi_gpu=False,
             update_per_collect=40,
             batch_size=32,
             learning_rate=0.0005,
             clip_value=10,
-            double_q=False,
             target_update_theta=0.008,
             discount_factor=0.95,
         ),
         collect=dict(
+            collector=dict(
+                get_train_sample=True,
+            ),
             n_episode=32,
             unroll_len=10,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=100, )),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=1000, )),
         other=dict(
             eps=dict(
                 type='linear',
@@ -57,9 +55,6 @@ main_config = dict(
             ),
             replay_buffer=dict(
                 replay_buffer_size=50000,
-                # (int) The maximum reuse times of each data
-                max_reuse=1e+9,
-                max_staleness=1e+9,
             ),
         ),
     ),
@@ -72,7 +67,7 @@ create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='madqn'),
-    collector=dict(type='episode', get_train_sample=True),
+    collector=dict(type='episode'),
 )
 create_config = EasyDict(create_config)
 
@@ -95,7 +90,7 @@ if __name__ == "__main__":
 
 def train(args):
     config = [main_config, create_config]
-    serial_pipeline(config, seed=args.seed)
+    serial_pipeline(config, seed=args.seed, max_env_step=1e7)
 
 
 if __name__ == "__main__":

@@ -9,11 +9,11 @@ from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
-from .qmix import QMIXPolicy
+from .base_policy import Policy
 
 
 @POLICY_REGISTRY.register('madqn')
-class MADQNPolicy(QMIXPolicy):
+class MADQNPolicy(Policy):
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='madqn',
@@ -25,7 +25,7 @@ class MADQNPolicy(QMIXPolicy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        nstep=1,
+        nstep=3,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -44,8 +44,7 @@ class MADQNPolicy(QMIXPolicy):
             discount_factor=0.99,
             # (bool) Whether to use double DQN mechanism(target q for surpassing over estimation)
             double_q=False,
-            # (bool) Whether to use independent Q learning
-            iql=False,
+            weight_decay=1e-5,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
@@ -76,6 +75,15 @@ class MADQNPolicy(QMIXPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        """
+        return 'madqn', ['ding.model.template.madqn']
+
     def _init_learn(self) -> None:
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -85,14 +93,14 @@ class MADQNPolicy(QMIXPolicy):
             lr=self._cfg.learn.learning_rate,
             alpha=0.99,
             eps=0.00001,
-            weight_decay=1e-5
+            weight_decay=self._cfg.learn.weight_decay
         )
-        self._optimizer_boost = RMSprop(
-            params=self._model.boost.parameters(),
+        self._optimizer_cooperation = RMSprop(
+            params=self._model.cooperation.parameters(),
             lr=self._cfg.learn.learning_rate,
             alpha=0.99,
             eps=0.00001,
-            weight_decay=1e-5
+            weight_decay=self._cfg.learn.weight_decay
         )
         self._gamma = self._cfg.learn.discount_factor
         self._nstep = self._cfg.nstep
@@ -117,7 +125,6 @@ class MADQNPolicy(QMIXPolicy):
         )
         self._learn_model.reset()
         self._target_model.reset()
-        self._forward_count = 0
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
         r"""
@@ -164,107 +171,77 @@ class MADQNPolicy(QMIXPolicy):
         self._learn_model.reset(state=data['prev_state'][0])
         self._target_model.reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
-        if self._cfg.learn.iql:
-            # agent_q_act (T, B, A)
-            agent_q_act = self._learn_model.forward(inputs, single_step=False)['agent_q_act']
-            if self._cfg.learn.double_q:
-                next_inputs = {'obs': data['next_obs']}
-                self._learn_model.reset(state=data['prev_state'][1])
-                logit_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
-                next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
-            else:
-                next_inputs = {'obs': data['next_obs']}
-            with torch.no_grad():
-                target_agent_q_act = self._target_model.forward(next_inputs, single_step=False)['agent_q_act']
 
-            v_data = v_1step_td_data(agent_q_act, target_agent_q_act, data['reward'], data['done'], data['weight'])
+        total_q = self._learn_model.forward(inputs, single_step=False)['total_q']
+
+        if self._cfg.learn.double_q:
+            next_inputs = {'obs': data['next_obs']}
+            self._learn_model.reset(state=data['prev_state'][1])
+            logit_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
+            next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
+        else:
+            next_inputs = {'obs': data['next_obs']}
+        with torch.no_grad():
+            target_total_q = self._target_model.forward(next_inputs, cooperation=True, single_step=False)['total_q']
+
+        if self._nstep == 1:
+
+            v_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
             loss, td_error_per_sample = v_1step_td_error(v_data, self._gamma)
             # for visualization
             with torch.no_grad():
                 if data['done'] is not None:
-                    target_v = self._gamma * (1 - data['done']
-                                              ).unsqueeze(-1) * target_agent_q_act + data['reward'].unsqueeze(-1)
+                    target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
                 else:
-                    target_v = self._gamma * target_agent_q_act + data['reward'].unsqueeze(-1)
-            total_q = agent_q_act.sum(-1)  # sum in all the agent
-            target_total_q = target_agent_q_act.sum(-1)
-            self._optimizer.zero_grad()
-            loss.backward()
-            grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.learn.clip_value)
-            self._optimizer.step()
+                    target_v = self._gamma * target_total_q + data['reward']
         else:
-            total_q = self._learn_model.forward(inputs, single_step=False)['total_q']
-
-            if self._cfg.learn.double_q:
-                next_inputs = {'obs': data['next_obs']}
-                self._learn_model.reset(state=data['prev_state'][1])
-                logit_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
-                next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
-            else:
-                next_inputs = {'obs': data['next_obs']}
-            with torch.no_grad():
-                target_total_q = self._target_model.forward(next_inputs, boost=True, single_step=False)['total_q']
-
-            if self._nstep == 1:
-
-                v_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-                loss, td_error_per_sample = v_1step_td_error(v_data, self._gamma)
-                # for visualization
-                with torch.no_grad():
-                    if data['done'] is not None:
-                        target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
-                    else:
-                        target_v = self._gamma * target_total_q + data['reward']
-            else:
-                data['reward'] = data['reward'].permute(0, 2, 1).contiguous()
-                loss = []
-                td_error_per_sample = []
-                for t in range(self._cfg.collect.unroll_len):
-                    v_data = v_nstep_td_data(
-                        total_q[t], target_total_q[t], data['reward'][t], data['done'][t], data['weight'], self._gamma
-                    )
-                    #print(total_q[t])
-                    # calculate v_nstep_td critic_loss
-                    loss_i, td_error_per_sample_i = v_nstep_td_error(v_data, self._gamma, self._nstep)
-                    loss.append(loss_i)
-                    td_error_per_sample.append(td_error_per_sample_i)
-                loss = sum(loss) / (len(loss) + 1e-8)
-                td_error_per_sample = sum(td_error_per_sample) / (len(td_error_per_sample) + 1e-8)
-
-            self._optimizer_current.zero_grad()
-            loss.backward()
-            grad_norm = torch.nn.utils.clip_grad_norm_(self._model.current.parameters(), self._cfg.learn.clip_value)
-            self._optimizer_current.step()
-
-            # Boost
-            self._learn_model.reset(state=data['prev_state'][0])
-            self._target_model.reset(state=data['prev_state'][0])
-            boost_total_q = self._learn_model.forward(inputs, boost=True, single_step=False)['total_q']
-            next_inputs = {'obs': data['next_obs']}
-            with torch.no_grad():
-                boost_target_total_q = self._target_model.forward(next_inputs, boost=True, single_step=False)['total_q']
-
-            if self._nstep == 1:
-                v_data = v_1step_td_data(
-                    boost_total_q, boost_target_total_q, data['reward'], data['done'], data['weight']
+            data['reward'] = data['reward'].permute(0, 2, 1).contiguous()
+            loss = []
+            td_error_per_sample = []
+            for t in range(self._cfg.collect.unroll_len):
+                v_data = v_nstep_td_data(
+                    total_q[t], target_total_q[t], data['reward'][t], data['done'][t], data['weight'], self._gamma
                 )
-                boost_loss, _ = v_1step_td_error(v_data, self._gamma)
-            else:
-                boost_loss_all = []
-                for t in range(self._cfg.collect.unroll_len):
-                    v_data = v_nstep_td_data(
-                        boost_total_q[t], boost_target_total_q[t], data['reward'][t], data['done'][t], data['weight'],
-                        self._gamma
-                    )
-                    boost_loss, _ = v_nstep_td_error(v_data, self._gamma, self._nstep)
-                    boost_loss_all.append(boost_loss)
-                boost_loss = sum(boost_loss_all) / (len(boost_loss_all) + 1e-8)
-            self._optimizer_boost.zero_grad()
-            boost_loss.backward()
-            boost_grad_norm = torch.nn.utils.clip_grad_norm_(self._model.boost.parameters(), self._cfg.learn.clip_value)
-            self._optimizer_boost.step()
+                # calculate v_nstep_td critic_loss
+                loss_i, td_error_per_sample_i = v_nstep_td_error(v_data, self._gamma, self._nstep)
+                loss.append(loss_i)
+                td_error_per_sample.append(td_error_per_sample_i)
+            loss = sum(loss) / (len(loss) + 1e-8)
+            td_error_per_sample = sum(td_error_per_sample) / (len(td_error_per_sample) + 1e-8)
 
-        self._forward_count += 1
+        self._optimizer_current.zero_grad()
+        loss.backward()
+        grad_norm = torch.nn.utils.clip_grad_norm_(self._model.current.parameters(), self._cfg.learn.clip_value)
+        self._optimizer_current.step()
+
+        # cooperation
+        self._learn_model.reset(state=data['prev_state'][0])
+        self._target_model.reset(state=data['prev_state'][0])
+        cooperation_total_q = self._learn_model.forward(inputs, cooperation=True, single_step=False)['total_q']
+        next_inputs = {'obs': data['next_obs']}
+        with torch.no_grad():
+            cooperation_target_total_q = self._target_model.forward(next_inputs, cooperation=True, single_step=False)['total_q']
+
+        if self._nstep == 1:
+            v_data = v_1step_td_data(
+                cooperation_total_q, cooperation_target_total_q, data['reward'], data['done'], data['weight']
+            )
+            cooperation_loss, _ = v_1step_td_error(v_data, self._gamma)
+        else:
+            cooperation_loss_all = []
+            for t in range(self._cfg.collect.unroll_len):
+                v_data = v_nstep_td_data(
+                    cooperation_total_q[t], cooperation_target_total_q[t], data['reward'][t], data['done'][t], data['weight'],
+                    self._gamma
+                )
+                cooperation_loss, _ = v_nstep_td_error(v_data, self._gamma, self._nstep)
+                cooperation_loss_all.append(cooperation_loss)
+            cooperation_loss = sum(cooperation_loss_all) / (len(cooperation_loss_all) + 1e-8)
+        self._optimizer_cooperation.zero_grad()
+        cooperation_loss.backward()
+        cooperation_grad_norm = torch.nn.utils.clip_grad_norm_(self._model.cooperation.parameters(), self._cfg.learn.clip_value)
+        self._optimizer_cooperation.step()
+
         # =============
         # after update
         # =============
@@ -275,8 +252,8 @@ class MADQNPolicy(QMIXPolicy):
             'total_q': total_q.mean().item() / self._cfg.model.agent_num,
             'target_total_q': target_total_q.mean().item() / self._cfg.model.agent_num,
             'grad_norm': grad_norm,
-            'boost_grad_norm': boost_grad_norm,
-            'boost_loss': boost_loss.item(),
+            'cooperation_grad_norm': cooperation_grad_norm,
+            'cooperation_loss': cooperation_loss.item(),
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -300,7 +277,7 @@ class MADQNPolicy(QMIXPolicy):
             'model': self._learn_model.state_dict(),
             'target_model': self._target_model.state_dict(),
             'optimizer_current': self._optimizer_current.state_dict(),
-            'optimizer_boost': self._optimizer_boost.state_dict(),
+            'optimizer_cooperation': self._optimizer_cooperation.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
@@ -318,7 +295,7 @@ class MADQNPolicy(QMIXPolicy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_current.load_state_dict(state_dict['optimizer_current'])
-        self._optimizer_boost.load_state_dict(state_dict['optimizer_boost'])
+        self._optimizer_cooperation.load_state_dict(state_dict['optimizer_cooperation'])
 
     def _init_collect(self) -> None:
         r"""
@@ -464,15 +441,6 @@ class MADQNPolicy(QMIXPolicy):
             data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
             return get_train_sample(data, self._unroll_len)
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-        """
-        return 'madqn', ['ding.model.template.madqn']
-
     def _monitor_vars_learn(self) -> List[str]:
         r"""
         Overview:
@@ -482,5 +450,5 @@ class MADQNPolicy(QMIXPolicy):
         """
         return [
             'cur_lr', 'total_loss', 'total_q', 'target_total_q', 'grad_norm', 'target_reward_total_q',
-            'boost_grad_norm', 'boost_loss'
+            'cooperation_grad_norm', 'cooperation_loss'
         ]
