@@ -6,7 +6,7 @@ Message queue of Torchrpc uses [tensorpipe](https://github.com/pytorch/tensorpip
 
 ### 1. container environment
 
-Tensorpipe is not container aware. Processes can find themselves on the same physical machine through `/proc/sys/kernel/random/boot_id` ,but because in separated pod/container, they cannot use means of communication such as CUDA ipc. When tensorpipe finds that these communication methods cannot be used, it will report an error and exit. 
+Tensorpipe is not container aware. Processes can find themselves on the same physical machine through `/proc/sys/kernel/random/boot_id`, but because in separated pod/container, they cannot use means of communication such as CUDA ipc. When tensorpipe finds that these communication methods cannot be used, it will report an error and exit. 
 
 ### 2. RDMA and fork subprocess
 

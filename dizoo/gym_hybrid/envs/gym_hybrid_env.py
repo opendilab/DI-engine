@@ -1,20 +1,35 @@
+import copy
 import os
 from typing import Dict, Optional
 
 import gym
+import gym_hybrid
 import matplotlib.pyplot as plt
 import numpy as np
+from easydict import EasyDict
+from matplotlib import animation
+
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common import affine_transform
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
-from easydict import EasyDict
-from matplotlib import animation
 
 
 @ENV_REGISTRY.register('gym_hybrid')
 class GymHybridEnv(BaseEnv):
     default_env_id = ['Sliding-v0', 'Moving-v0', 'HardMove-v0']
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
+    config = dict(
+        replay_path=None,
+        save_replay_gif=False,
+        replay_path_gif=None,
+    )
 
     def __init__(self, cfg: EasyDict) -> None:
         self._cfg = cfg
@@ -22,10 +37,11 @@ class GymHybridEnv(BaseEnv):
         assert self._env_id in self.default_env_id
         self._act_scale = cfg.act_scale
         self._init_flag = False
-        self._save_replay = cfg.save_replay_gif
         self._replay_path = cfg.replay_path
+        self._save_replay_gif = cfg.save_replay_gif
+        self._replay_path_gif = cfg.replay_path_gif
         self._save_replay_count = 0
-        if self._save_replay:
+        if self._save_replay_gif:
             self._frames = []
 
     def reset(self) -> np.ndarray:
@@ -73,13 +89,13 @@ class GymHybridEnv(BaseEnv):
                 # we have already done the clip(-1,1) operation
                 action['action_args'][1] = affine_transform(action['action_args'][1], min_val=-1, max_val=1)
                 action = [action['action_type'], action['action_args']]
-        if self._save_replay:
+        if self._save_replay_gif:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-            if self._save_replay:
+            if self._save_replay_gif:
                 if self._env_id == 'HardMove-v0':
                     self._env_id = f'hardmove_n{self._cfg.num_actuators}'
                 path = os.path.join(

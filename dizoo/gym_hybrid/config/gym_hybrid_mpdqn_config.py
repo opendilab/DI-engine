@@ -10,6 +10,8 @@ gym_hybrid_mpdqn_config = dict(
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
         stop_value=1.8,
+        save_replay_gif=False,
+        replay_path_gif=None,
     ),
     policy=dict(
         cuda=True,
