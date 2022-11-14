@@ -220,7 +220,9 @@ class MADQNPolicy(Policy):
         cooperation_total_q = self._learn_model.forward(inputs, cooperation=True, single_step=False)['total_q']
         next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
-            cooperation_target_total_q = self._target_model.forward(next_inputs, cooperation=True, single_step=False)['total_q']
+            cooperation_target_total_q = self._target_model.forward(
+                next_inputs, cooperation=True, single_step=False
+            )['total_q']
 
         if self._nstep == 1:
             v_data = v_1step_td_data(
@@ -231,15 +233,17 @@ class MADQNPolicy(Policy):
             cooperation_loss_all = []
             for t in range(self._cfg.collect.unroll_len):
                 v_data = v_nstep_td_data(
-                    cooperation_total_q[t], cooperation_target_total_q[t], data['reward'][t], data['done'][t], data['weight'],
-                    self._gamma
+                    cooperation_total_q[t], cooperation_target_total_q[t], data['reward'][t], data['done'][t],
+                    data['weight'], self._gamma
                 )
                 cooperation_loss, _ = v_nstep_td_error(v_data, self._gamma, self._nstep)
                 cooperation_loss_all.append(cooperation_loss)
             cooperation_loss = sum(cooperation_loss_all) / (len(cooperation_loss_all) + 1e-8)
         self._optimizer_cooperation.zero_grad()
         cooperation_loss.backward()
-        cooperation_grad_norm = torch.nn.utils.clip_grad_norm_(self._model.cooperation.parameters(), self._cfg.learn.clip_value)
+        cooperation_grad_norm = torch.nn.utils.clip_grad_norm_(
+            self._model.cooperation.parameters(), self._cfg.learn.clip_value
+        )
         self._optimizer_cooperation.step()
 
         # =============
