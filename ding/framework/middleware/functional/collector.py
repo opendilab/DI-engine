@@ -4,7 +4,7 @@ from functools import reduce
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
-from ding.torch_utils import get_shape0, to_ndarray
+from ding.torch_utils import to_ndarray, get_shape0
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
