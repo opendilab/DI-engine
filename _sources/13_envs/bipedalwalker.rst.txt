@@ -62,7 +62,7 @@ Action Space
 
 - These four-dimensional continuous vectors control the torques of the robot's four leg joints, respectively. The robot has a total of 2 legs, each leg has two joints (waist joint and knee joint), a total of 4 joints need to be controlled.
 
-Bonus Space
+Reward Space
 ------------
 
 - The robot will get a negative reward for applying motor torque at each step, and a positive reward for each step forward. If it successfully moves to the farthest point, it will get a reward of more than 300 points. If the robot falls on the way, it will get -100 points and the game will end. The reward is a \ float\ numeric value in the range [-400, 300].

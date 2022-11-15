@@ -361,8 +361,8 @@ hub</a>for more mirror</p>
 </li>
 </ul>
 </section>
-<section id="bonus-space">
-<h3>Bonus Space<a class="headerlink" href="#bonus-space" title="Permalink to this headline">¶</a></h3>
+<section id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The game wins or loses, the victory is 1, and the defeat is 0, which is generally an <code class="docutils literal notranslate"><span class="pre">int</span></code>value.</p></li>
 </ul>
@@ -398,7 +398,7 @@ hub</a>for more mirror</p>
 </ul>
 </section>
 <section id="id3">
-<h3>Bonus Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transformation content: Set fake_reward, so that the agent can get rewards after making some actions. We set the fake_reward of each step to ‘killed enemy’s blood - lost one’s blood’, and destroying an enemy will reward 20 points, Get 200 points for a global victory</p></li>
 <li><p>Transformation result: a one-dimensional Tensor that contains only one float32 type of data</p></li>
@@ -695,7 +695,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 <li><a class="reference internal" href="#space-before-transformation-original-environment">Space before Transformation (Original Environment)</a><ul>
 <li><a class="reference internal" href="#observation-space">Observation Space</a></li>
 <li><a class="reference internal" href="#action-space">Action Space</a></li>
-<li><a class="reference internal" href="#bonus-space">Bonus Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward Space</a></li>
 <li><a class="reference internal" href="#other">Other</a></li>
 </ul>
 </li>
@@ -703,7 +703,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 <li><a class="reference internal" href="#transformed-space-rl-environment">Transformed Space (RL Environment)</a><ul>
 <li><a class="reference internal" href="#id1">Observation Space</a></li>
 <li><a class="reference internal" href="#id2">Action Space</a></li>
-<li><a class="reference internal" href="#id3">Bonus Space</a></li>
+<li><a class="reference internal" href="#id3">Reward Space</a></li>
 <li><a class="reference internal" href="#id4">Other</a></li>
 </ul>
 </li>

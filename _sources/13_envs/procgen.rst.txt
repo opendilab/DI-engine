@@ -77,7 +77,7 @@ Action Space
    -  4：DOWN
 
 
-Bonus Space
+Reward Space
 ------------
 
 - The game score will vary according to the specific game content. Generally, it is a \ ``float`` \ value. For example, in the Coinrun environment, if you eat coins, you will be rewarded 10.0 points, and there are no other rewards.
@@ -114,7 +114,7 @@ Action Space
 
 -  Basically no transformation, it is still a discrete action space of size N, but generally a one-dimensional np array, the size is \ ``(1, )`` \ , the data type is \ ``np.int64``
 
-Bonus Space
+Reward Space
 ------------
 
 -  Basically no transformation

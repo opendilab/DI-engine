@@ -366,8 +366,8 @@
 </pre></div>
 </div>
 </section>
-<section id="bonus-space">
-<h3>Bonus Space<a class="headerlink" href="#bonus-space" title="Permalink to this headline">¶</a></h3>
+<section id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <p>The reward of each step is set as the length of the agent’s distance from the target after the action is performed in the previous step minus the length of the distance from the target after the current step performs the action, ie <code class="docutils literal notranslate"><span class="pre">dist_t-1</span> <span class="pre">-</span> <span class="pre">dist_t</span></code> . The algorithm has a built-in <code class="docutils literal notranslate"><span class="pre">penalty</span></code> to motivate the agent to be faster
 Achieve goals. When the episode ends, if the agent stops in the target area, it will get an additional reward with a value of 1; if the agent goes out of bounds or exceeds the maximum number of steps of the episode, it will not get additional reward. The reward at the current moment is expressed by the formula as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reward</span> <span class="o">=</span> <span class="n">last_distance</span> <span class="o">-</span> <span class="n">distance</span> <span class="o">-</span> <span class="n">penalty</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">goal</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
@@ -534,7 +534,7 @@ Achieve goals. When the episode ends, if the agent stops in the target area, it 
 <li><a class="reference internal" href="#environment-introduction">Environment Introduction</a><ul>
 <li><a class="reference internal" href="#action-space">Action Space</a></li>
 <li><a class="reference internal" href="#state-space">State Space</a></li>
-<li><a class="reference internal" href="#bonus-space">Bonus Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward Space</a></li>
 <li><a class="reference internal" href="#termination-condition">Termination Condition</a></li>
 <li><a class="reference internal" href="#built-in-environment">Built-in Environment</a></li>
 </ul>

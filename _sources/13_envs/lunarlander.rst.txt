@@ -77,7 +77,7 @@ Action Space
 
 - 3: Fire left engine
 
-Bonus Space
+Reward Space
 -------------
 
 - a \ ``int``\ value
@@ -106,7 +106,7 @@ Action Space
 
 - It is still a discrete action space of size 4, but the data type is changed from ``int`` to ``np.int64``, the size is \ ``( )``\, that is, an array of 0-dim
 
-Bonus Space
+Reward Space
 ----------------------------
 
 - Transformation content: data structure transformation

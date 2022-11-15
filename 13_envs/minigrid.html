@@ -396,8 +396,8 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </li>
 </ul>
 </section>
-<section id="bonus-space">
-<h3>Bonus Space<a class="headerlink" href="#bonus-space" title="Permalink to this headline">¶</a></h3>
+<section id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Game score, different minigrid sub-environments have a small difference in the reward range, the maximum value is 1, which is generally a <code class="docutils literal notranslate"><span class="pre">float</span></code>value. Because it is a sparse reward environment, it can only be reached when the agent (displayed as a red point) reaches goal(displayed as green dots), there is a reward greater than zero. The specific value is determined by different environments and the total number of steps used to reach the goal. The reward before reaching the goal is all 0.</p></li>
 </ul>
@@ -433,7 +433,7 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </ul>
 </section>
 <section id="id3">
-<h3>Bonus Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transform content: basically no transform</p></li>
 </ul>
@@ -669,7 +669,7 @@ The specific configuration files, such as <code class="docutils literal notransl
 <li><a class="reference internal" href="#space-before-transformation-original-environment">Space before Transformation (Original Environment)</a><ul>
 <li><a class="reference internal" href="#observation-space">Observation Space</a></li>
 <li><a class="reference internal" href="#action-space">Action Space</a></li>
-<li><a class="reference internal" href="#bonus-space">Bonus Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward Space</a></li>
 <li><a class="reference internal" href="#other">Other</a></li>
 </ul>
 </li>
@@ -677,7 +677,7 @@ The specific configuration files, such as <code class="docutils literal notransl
 <li><a class="reference internal" href="#transformed-space-rl-environment">Transformed Space (RL environment)</a><ul>
 <li><a class="reference internal" href="#id1">Observation Space</a></li>
 <li><a class="reference internal" href="#id2">Action Space</a></li>
-<li><a class="reference internal" href="#id3">Bonus Space</a></li>
+<li><a class="reference internal" href="#id3">Reward Space</a></li>
 <li><a class="reference internal" href="#id4">Other</a></li>
 </ul>
 </li>

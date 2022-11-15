@@ -347,8 +347,8 @@ print<span class="o">(</span>obs<span class="o">)</span>
 <li><p><code class="docutils literal notranslate"><span class="pre">thetadot</span></code> : Angular angle of the pendulum, in the range <code class="docutils literal notranslate"><span class="pre">[-8,</span> <span class="pre">8]</span></code> .</p></li>
 </ul>
 </section>
-<section id="bonus-space">
-<h3>Bonus Space<a class="headerlink" href="#bonus-space" title="Permalink to this headline">¶</a></h3>
+<section id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <p>First calculate <code class="docutils literal notranslate"><span class="pre">cost</span></code> , including three terms:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">angle_normalize(th)**2</span></code> : Penalty for the angle difference between the current pendulum and the target position</p></li>
@@ -509,7 +509,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 <li><a class="reference internal" href="#environment-introduction">Environment Introduction</a><ul>
 <li><a class="reference internal" href="#action-space">Action Space</a></li>
 <li><a class="reference internal" href="#state-space">State Space</a></li>
-<li><a class="reference internal" href="#bonus-space">Bonus Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward Space</a></li>
 <li><a class="reference internal" href="#termination-condition">Termination Condition</a></li>
 </ul>
 </li>

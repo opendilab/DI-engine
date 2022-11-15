@@ -60,7 +60,7 @@ The state space of Pendulum has 3 elements that describe the angle and angular v
 - \ ``thetadot`` \: Angular angle of the pendulum, in the range \ ``[-8, 8]`` \.
 
 
-Bonus Space
+Reward Space
 -------------
 First calculate \ ``cost`` \, including three terms:
 

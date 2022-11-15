@@ -439,12 +439,29 @@ gym_super_mario_bros -e <span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;
 <section id="id11">
 <h3>状态空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <p>gym-super-mario-bros 的状态空间输入是图像信息，及三维的张量矩阵（datatype=uint8）。此外，游戏的不同版本对应的图像分辨率 <code class="docutils literal notranslate"><span class="pre">240*256*3</span></code> 相同，但版本越高，图像越简略（像素块化），具体如下所示：</p>
-<p><cite>v3</cite> 对应的游戏截图如下（ <cite>v0</cite> 游戏截图在文档最开始展示过了）</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; <span class="c1"># 查看观测空间</span>
+&gt;&gt;&gt; gym_super_mario_bros.make<span class="o">(</span><span class="s1">&#39;SuperMarioBros-v3&#39;</span><span class="o">)</span>.observation_space
+Box<span class="o">([[[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+...
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]]]</span>, <span class="o">[[[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+...
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]]]</span>, <span class="o">(</span><span class="m">240</span>, <span class="m">256</span>, <span class="m">3</span><span class="o">)</span>, uint8<span class="o">)</span>
+</pre></div>
+</div>
+<p><cite>v3</cite> 对应的游戏截图如下</p>
 <a class="reference internal image-reference" href="../_images/mario_v3.png"><img alt="../_images/mario_v3.png" class="align-center" src="../_images/mario_v3.png" style="width: 179.2px; height: 168.0px;" /></a>
 </section>
 <section id="id12">
 <h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
-<p>我们希望马里奥能更多地**向右**移动、更**快**地抵达终点而**不会死亡**，因此每一帧的奖励的设置由如下三部分组成：</p>
+<p>我们希望马里奥能更多地 <strong>向右</strong> 移动、更 <strong>快</strong> 地抵达终点而 <strong>不会死亡</strong> ，因此每一帧的奖励的设置由如下三部分组成：</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">v</span></code>：代表连续的两帧之间，马里奥的x坐标之差（可以理解为向右的速度），有正有负；</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">c</span></code>：每一帧的用时，简单理解为每一帧都有一个负的reward，用来push智能体更快到达终点；</p></li>

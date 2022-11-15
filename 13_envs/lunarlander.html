@@ -363,8 +363,8 @@ hub</a> for more images</p>
 <li><p>3: Fire left engine</p></li>
 </ul>
 </section>
-<section id="bonus-space">
-<h3>Bonus Space<a class="headerlink" href="#bonus-space" title="Permalink to this headline">¶</a></h3>
+<section id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>a <code class="docutils literal notranslate"><span class="pre">int</span></code>value</p></li>
 <li><p>The reward for moving from the top of the screen to the landing point and going to zero speed is about 100…140 points. If the lander travels in a direction away from the landing pad, it loses the reward. If the lander falls or stops, the episode ends, earning an extra -100 or +100 points. Ground contact for each leg is a +10 bonus. The launch main engine is -0.3 bonus per frame. A successful landing to the landing site is 200 points. Landing outside the landing gear is possible. Fuel is unlimited.</p></li>
@@ -398,7 +398,7 @@ hub</a> for more images</p>
 </ul>
 </section>
 <section id="id3">
-<h3>Bonus Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transformation content: data structure transformation</p></li>
 <li><p>Transformation result: it becomes an np array, the size is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>, and the data type is <code class="docutils literal notranslate"><span class="pre">np.float64</span></code></p></li>
@@ -608,7 +608,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 <li><a class="reference internal" href="#space-before-transformation-original-environment">Space before Transformation (Original Environment)</a><ul>
 <li><a class="reference internal" href="#observation-space">Observation Space</a></li>
 <li><a class="reference internal" href="#action-space">Action Space</a></li>
-<li><a class="reference internal" href="#bonus-space">Bonus Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward Space</a></li>
 <li><a class="reference internal" href="#other">Other</a></li>
 </ul>
 </li>
@@ -616,7 +616,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 <li><a class="reference internal" href="#transformed-space-rl-environment">Transformed Space (RL Environment)</a><ul>
 <li><a class="reference internal" href="#id1">Observation Space</a></li>
 <li><a class="reference internal" href="#id2">Action Space</a></li>
-<li><a class="reference internal" href="#id3">Bonus Space</a></li>
+<li><a class="reference internal" href="#id3">Reward Space</a></li>
 <li><a class="reference internal" href="#id4">Other</a></li>
 </ul>
 </li>

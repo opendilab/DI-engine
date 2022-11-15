@@ -78,7 +78,7 @@ Action Space
    - 6 - N: ATTACK ENEMY, the ID of the attacked enemy is N-6
 
 
-Bonus Space
+Reward Space
 --------------
 
 - The game wins or loses, the victory is 1, and the defeat is 0, which is generally an \ ``int``\ value.
@@ -118,7 +118,7 @@ Action Space
 - Basically no transformation, still a discrete action space of size N
 
 
-Bonus Space
+Reward Space
 -------------
 
 - Transformation content: Set fake_reward, so that the agent can get rewards after making some actions. We set the fake_reward of each step to 'killed enemy's blood - lost one's blood', and destroying an enemy will reward 20 points, Get 200 points for a global victory

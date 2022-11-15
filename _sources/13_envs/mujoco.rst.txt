@@ -119,7 +119,7 @@ Action Space
 - For example, in the Hopper environment, the size of N is 3, and the action takes the value in\ ``[-1, 1]``\
 
 
-Bonus Space
+Reward Space
 ------------
 
 - The game score will vary greatly depending on the specific game content. Generally, it is a \ ``float``\ value. For the specific value, please refer to the benchmark algorithm performance section at the bottom.
@@ -155,7 +155,7 @@ Action Space
 
 - Basically no transformation, it is still a continuous action space of size N, the value range is \ ``[-1, 1]``\, the size is \ ``(N, )``\ , and the data type is \ ``np.float32``
 
-Bonus Space
+Reward Space
 ------------
 
 - Basically no transformation

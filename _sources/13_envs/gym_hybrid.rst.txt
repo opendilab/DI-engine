@@ -82,7 +82,7 @@ The state space of Gym-hybrid is represented by a list of 10 elements, which des
                 current_step / max_step
             ]
 
-Bonus Space
+Reward Space
 -------------
 The reward of each step is set as the length of the agent's distance from the target after the action is performed in the previous step minus the length of the distance from the target after the current step performs the action, ie \ ``dist_t-1 - dist_t`` \. The algorithm has a built-in \ ``penalty`` \ to motivate the agent to be faster
 Achieve goals. When the episode ends, if the agent stops in the target area, it will get an additional reward with a value of 1; if the agent goes out of bounds or exceeds the maximum number of steps of the episode, it will not get additional reward. The reward at the current moment is expressed by the formula as follows:
