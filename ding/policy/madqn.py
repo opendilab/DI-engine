@@ -9,11 +9,11 @@ from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
-from .base_policy import Policy
+from .qmix import QMIXPolicy
 
 
 @POLICY_REGISTRY.register('madqn')
-class MADQNPolicy(Policy):
+class MADQNPolicy(QMIXPolicy):
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='madqn',
@@ -301,61 +301,6 @@ class MADQNPolicy(Policy):
         self._optimizer_current.load_state_dict(state_dict['optimizer_current'])
         self._optimizer_cooperation.load_state_dict(state_dict['optimizer_cooperation'])
 
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample and the hidden_state plugin.
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._nstep = self._cfg.nstep
-        self._collect_model = model_wrap(
-            self._model,
-            wrapper_name='hidden_state',
-            state_num=self._cfg.collect.env_num,
-            save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
-        )
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
-        self._collect_model.reset()
-
-    def _forward_collect(self, data: dict, eps: float) -> dict:
-        r"""
-        Overview:
-            Forward function for collect mode with eps_greedy
-        Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
-        Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        data = {'obs': data}
-        self._collect_model.eval()
-        with torch.no_grad():
-            output = self._collect_model.forward(data, eps=eps, data_id=data_id)
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        r"""
-        Overview:
-            Reset collect model to the state indicated by data_id
-        Arguments:
-            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
-                the model state to the state indicated by data_id
-        """
-        self._collect_model.reset(data_id=data_id)
-
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
@@ -379,57 +324,6 @@ class MADQNPolicy(Policy):
         }
         return transition
 
-    def _init_eval(self) -> None:
-        r"""
-        Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model with argmax strategy and the hidden_state plugin.
-        """
-        self._eval_model = model_wrap(
-            self._model,
-            wrapper_name='hidden_state',
-            state_num=self._cfg.eval.env_num,
-            save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
-        )
-        self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
-        self._eval_model.reset()
-
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
-        Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-        Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        data = {'obs': data}
-        self._eval_model.eval()
-        with torch.no_grad():
-            output = self._eval_model.forward(data, data_id=data_id)
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        r"""
-        Overview:
-            Reset eval model to the state indicated by data_id
-        Arguments:
-            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
-                the model state to the state indicated by data_id
-        """
-        self._eval_model.reset(data_id=data_id)
-
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
@@ -439,7 +333,7 @@ class MADQNPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        if self._nstep == 1:
+        if self._cfg.nstep == 1:
             return get_train_sample(data, self._unroll_len)
         else:
             data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
