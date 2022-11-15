@@ -27,6 +27,7 @@ main_config = dict(
             obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
             global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
             n_landmark * 2 + n_agent * (n_agent - 1) * 2,
+            agent_num=n_agent,
             action_shape=5,
             global_cooperation=True,
             hidden_size_list=[256, 256],
