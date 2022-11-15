@@ -9,40 +9,40 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.policy import DDPGPolicy
-from ding.model import QAC
+from ding.policy import PPOPolicy
 from ding.utils import set_pkg_seed
-from ding.rl_utils import get_epsilon_greedy_fn
-from dizoo.mujoco.envs.mujoco_env import MujocoEnv
-from dizoo.mujoco.config.ant_ddpg_config import ant_ddpg_config
+
+from dizoo.evogym.config.walker_ppo_config import main_config, create_config
 
 
-def main(main_cfg, seed=0):
+def main(cfg, create_cfg, seed=0):
     cfg = compile_config(
-        main_cfg,
+        cfg,
         BaseEnvManager,
-        DDPGPolicy,
+        PPOPolicy,
         BaseLearner,
         SampleSerialCollector,
         InteractionSerialEvaluator,
         AdvancedReplayBuffer,
-        MujocoEnv,
+        create_cfg=create_cfg,
         save_cfg=True
     )
 
+    create_cfg.policy.type = create_cfg.policy.type + '_command'
+    env_fn = None
+    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Create main components: env, policy
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
 
-    evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
+    evaluator_env.enable_save_replay(cfg.env.replay_path)
 
     # Set random seed for all package and instance
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = QAC(**cfg.policy.model)
-    policy = DDPGPolicy(cfg.policy, model=model)
+    policy = PPOPolicy(cfg.policy)
     policy.eval_mode.load_state_dict(torch.load(cfg.policy.load_path, map_location='cpu'))
 
     # evaluate
@@ -54,4 +54,4 @@ def main(main_cfg, seed=0):
 
 
 if __name__ == "__main__":
-    main(ant_ddpg_config, seed=0)
+    main(main_config, create_config, seed=0)

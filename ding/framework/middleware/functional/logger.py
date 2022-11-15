@@ -104,7 +104,9 @@ def offline_logger() -> Callable:
     return _logger
 
 
-def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module) -> Callable:
+def wandb_online_logger(
+        cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module, anonymous: bool = False
+) -> Callable:
     '''
     Overview:
         Wandb visualizer to track the experiment.
@@ -116,13 +118,18 @@ def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Mo
             - action_logger: `q_value` or `action probability`.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Model.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
+            The anonymous mode allows visualization of data without wandb count.
     '''
 
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
     metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    wandb.init()
+    if anonymous:
+        wandb.init(anonymous="must")
+    else:
+        wandb.init()
     # The visualizer is called to save the replay of the simulation
     # which will be uploaded to wandb later
     env.enable_save_replay(replay_path=cfg.record_path)
@@ -192,7 +199,13 @@ def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Mo
     return _plot
 
 
-def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module, datasetpath: str) -> Callable:
+def wandb_offline_logger(
+        cfg: EasyDict,
+        env: BaseEnvManagerV2,
+        model: torch.nn.Module,
+        datasetpath: str,
+        anonymous: bool = False
+) -> Callable:
     '''
     Overview:
         Wandb visualizer to track the experiment.
@@ -205,13 +218,18 @@ def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.M
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Model.
         - datasetpath (:obj:`str`): The path of offline dataset.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
+            The anonymous mode allows visualization of data without wandb count.
     '''
 
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
     metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    wandb.init()
+    if anonymous:
+        wandb.init(anonymous="must")
+    else:
+        wandb.init()
     # The visualizer is called to save the replay of the simulation
     # which will be uploaded to wandb later
     env.enable_save_replay(replay_path=cfg.record_path)
