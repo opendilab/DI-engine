@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-coinrun_ppo_default_config = dict(
+coinrun_ppo_config = dict(
     env=dict(
         is_train=True,
         env_id='coinrun',
@@ -39,8 +39,8 @@ coinrun_ppo_default_config = dict(
         ),
     ),
 )
-coinrun_ppo_default_config = EasyDict(coinrun_ppo_default_config)
-main_config = coinrun_ppo_default_config
+coinrun_ppo_config = EasyDict(coinrun_ppo_config)
+main_config = coinrun_ppo_config
 
 coinrun_ppo_create_config = dict(
     env=dict(
