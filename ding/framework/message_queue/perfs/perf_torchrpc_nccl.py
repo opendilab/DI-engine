@@ -18,9 +18,7 @@ from ding.utils.comm_perf_helper import tensor_size_beauty_print, byte_beauty_pr
 LENGTH = 5
 REPEAT = 2
 MAX_EXP_NUMS = 10
-UNIT_SIZE_LIST = [
-    64, 1024, 64 * 1024, 512 * 1024, 2 * 1024 * 1024, 32 * 1024 * 1024, 64 * 1024 * 1024, 128 * 1024 * 1024
-]
+UNIT_SIZE_LIST = [64, 1024, 64 * 1024, 512 * 1024, 2 * 1024 * 1024]
 
 
 @dataclass
@@ -260,7 +258,7 @@ def rpc_model_exchanger(rank: int, init_method: str, test_nccl: bool = False, us
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test torch rpc')
     parser.add_argument('--rank', type=int)
-    parser.add_argument('--init-method', type=str, default="tcp://127.0.0.1:12345")
+    parser.add_argument('--init-method', type=str, default="tcp://127.0.0.1:12347")
     parser.add_argument('--test_nccl', type=bool, default=False)
     parser.add_argument('--use_cuda', type=bool, default=False)
     args, _ = parser.parse_known_args()

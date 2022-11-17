@@ -13,7 +13,7 @@ import argparse
 
 LENGTH = 5
 REPEAT = 10
-UNIT_SIZE_LIST = [8, 64, 1024, 64 * 1024, 512 * 1024, 2 * 1024 * 1024, 32 * 1024 * 1024, 64 * 1024 * 1024]
+UNIT_SIZE_LIST = [64, 1024, 64 * 1024, 512 * 1024, 2 * 1024 * 1024]
 logging.getLogger().setLevel(logging.INFO)
 
 

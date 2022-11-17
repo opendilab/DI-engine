@@ -6,13 +6,13 @@ import torch
 import platform
 
 
-@pytest.mark.unittest
-@pytest.mark.benchmark
+@pytest.mark.mqbenchmark
 @pytest.mark.cudatest
-def test_shm_numpy_shm():
+@pytest.mark.multiprocesstest
+def test_perf_torchrpc_nccl():
     if platform.system().lower() != 'windows' and torch.cuda.is_available():
         if torch_ge_1121() and torch.cuda.device_count() >= 2:
-            params = [(0, "tcp://127.0.0.1:12345", False, True), (1, "tcp://127.0.0.1:12345", False, True)]
+            params = [(0, "tcp://127.0.0.1:12387", False, True), (1, "tcp://127.0.0.1:12387", False, True)]
             ctx = mp.get_context("spawn")
             with ctx.Pool(processes=2) as pool:
                 pool.starmap(rpc_model_exchanger, params)

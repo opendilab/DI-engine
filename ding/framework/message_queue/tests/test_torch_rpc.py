@@ -34,7 +34,7 @@ def torchrpc(rank):
     mq = TORCHRPCMQ(
         rpc_name=name_list[rank],
         global_rank=rank,
-        init_method="tcp://127.0.0.1:12346",
+        init_method="tcp://127.0.0.1:12398",
         remote_parallel_entrance=remote_mq_entrance,
         attach_to=attach_to,
         async_rpc=False,
@@ -96,7 +96,7 @@ def torchrpc_cuda(rank):
     mq = TORCHRPCMQ(
         rpc_name=name_list[rank],
         global_rank=rank,
-        init_method="tcp://127.0.0.1:12346",
+        init_method="tcp://127.0.0.1:12390",
         remote_parallel_entrance=remote_mq_entrance,
         attach_to=attach_to,
         device_maps=device_map,
@@ -134,7 +134,7 @@ def torchrpc_args_parser(rank):
         n_parallel_workers=1,
         attach_to=[],
         node_ids=[0],
-        init_method="tcp://127.0.0.1:12346",
+        init_method="tcp://127.0.0.1:12399",
         use_cuda=True,
         local_cuda_devices=None,
         cuda_device_map=None
@@ -200,15 +200,16 @@ def torchrpc_args_parser(rank):
     logging.debug("[Pass] 6. Set n_parallel_workers > 1.")
 
 
-@pytest.mark.unittest
+@pytest.mark.multiprocesstest
 def test_torchrpc():
+    ctx = get_context("spawn")
     if platform.system().lower() != 'windows' and torch_ge_1121():
-        with Pool(processes=4) as pool:
+        with ctx.Pool(processes=4) as pool:
             pool.map(torchrpc, range(4))
 
 
-@pytest.mark.unittest
 @pytest.mark.cudatest
+@pytest.mark.multiprocesstest
 def test_torchrpc_cuda():
     if platform.system().lower() != 'windows':
         if torch_ge_1121() and torch.cuda.is_available() and torch.cuda.device_count() >= 2:
@@ -217,8 +218,8 @@ def test_torchrpc_cuda():
                 pool.map(torchrpc_cuda, range(2))
 
 
-@pytest.mark.unittest
 @pytest.mark.cudatest
+@pytest.mark.multiprocesstest
 def test_torchrpc_parser():
     if platform.system().lower() != 'windows' and torch_ge_1121() and torch.cuda.is_available():
         ctx = get_context("spawn")
