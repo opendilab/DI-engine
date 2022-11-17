@@ -57,7 +57,7 @@ def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep: int = 1000, repl
         - replace (:obj:`bool`): Whether replace the last file.
     """
 
-    buffer_saver_env_counter = 0
+    buffer_saver_env_counter = -every_envstep
 
     def _save(ctx: "OnlineRLContext"):
         """

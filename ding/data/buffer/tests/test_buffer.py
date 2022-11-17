@@ -326,7 +326,3 @@ def test_insufficient_unroll_len_in_group():
         # Ensure samples in each group is continuous
         result = functools.reduce(lambda a, b: a and a.data + 1 == b.data and b, grouped_data)
         assert isinstance(result, BufferedData), "Not continuous"
-
-
-if __name__ == "__main__":
-    test_load_and_save()
