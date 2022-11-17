@@ -213,6 +213,7 @@ class DequeBuffer(Buffer):
 
     def save_data(self, file_name: str):
         if not os.path.exists(os.path.dirname(file_name)):
+            # If the folder for the specified file does not exist, it will be created.
             if os.path.dirname(file_name) != "":
                 os.makedirs(os.path.dirname(file_name))
         hickle.dump(
@@ -249,25 +250,6 @@ class DequeBuffer(Buffer):
         self.storage.clear()
         self.indices.clear()
         self.meta_index = {}
-
-    def import_data(self, data_with_meta: List[Tuple[Any, dict]]) -> None:
-        """
-        Overview:
-            The method that push data by sequence.
-        Arguments:
-            data_with_meta (List[Tuple[Any, dict]]): The sequence of (data, meta) tuples.
-        """
-        for data, meta in data_with_meta:
-            self._push(data, meta)
-
-    def export_data(self) -> List[BufferedData]:
-        """
-        Overview:
-            The method that export all data in the buffer by sequence.
-        Returns:
-            storage (List[BufferedData]): All ``BufferedData`` objects stored in the buffer.
-        """
-        return list(self.storage)
 
     def _push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
         index = uuid.uuid1().hex

@@ -46,7 +46,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
     return _push
 
 
-def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep=1000, replace=False):
+def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep: int = 1000, replace: bool = False):
     """
     Overview:
         Save current buffer data.
@@ -54,10 +54,10 @@ def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep=1000, replace=Fal
         - cfg (:obj:`EasyDict`): Config.
         - buffer (:obj:`Buffer`): Buffer to push the data in.
         - every_envstep (:obj:`int`): save at every env step.
-        - replace (:obj:`str`): Whether replace the last file.
+        - replace (:obj:`bool`): Whether replace the last file.
     """
 
-    buffer_saver_counter = 0
+    buffer_saver_env_counter = 0
 
     def _save(ctx: "OnlineRLContext"):
         """
@@ -66,19 +66,18 @@ def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep=1000, replace=Fal
         Input of ctx:
             - env_step (:obj:`int`): env step.
         """
-        nonlocal buffer_saver_counter
-        if ctx.env_step is not None:  # each data in buffer is a episode
-            if ctx.env_step >= every_envstep * buffer_saver_counter:
-
-                buffer_saver_counter += 1
+        nonlocal buffer_saver_env_counter
+        if ctx.env_step is not None:
+            if ctx.env_step >= every_envstep + buffer_saver_env_counter:
+                buffer_saver_env_counter = ctx.env_step
                 if replace:
-                    buffer_.save_data(os.path.join(cfg.exp_name, "replaybuffer", "data.hkl"))
+                    buffer_.save_data(os.path.join(cfg.exp_name, "replaybuffer", "data_latest.hkl"))
                 else:
                     buffer_.save_data(
-                        os.path.join(cfg.exp_name, "replaybuffer", "data-envstep-{}.hkl".format(ctx.env_step))
+                        os.path.join(cfg.exp_name, "replaybuffer", "data_envstep_{}.hkl".format(ctx.env_step))
                     )
         else:
-            raise RuntimeError("ctx.env_step should be not None.")
+            raise RuntimeError("buffer_saver only supports collecting data by step rather than episode.")
 
     return _save
 

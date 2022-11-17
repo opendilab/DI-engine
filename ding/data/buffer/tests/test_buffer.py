@@ -92,8 +92,9 @@ def test_rate_limit_push_sample():
 @pytest.mark.unittest
 def test_load_and_save():
     buffer = DequeBuffer(size=10).use(RateLimit(max_rate=5))
+    buffer.meta_index = {"label": []}
     for i in range(10):
-        buffer.push(i)
+        buffer.push(i, meta={"label": i})
     assert buffer.count() == 5
     assert 5 not in buffer.sample(5)
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -103,6 +104,8 @@ def test_load_and_save():
         buffer_new.load_data(test_file)
         assert buffer_new.count() == 5
         assert 5 not in buffer_new.sample(5)
+        assert len(buffer.meta_index["label"]) == 5
+        assert all([index < 5 for index in buffer.meta_index["label"]])
 
 
 @pytest.mark.unittest
@@ -269,17 +272,6 @@ def test_groupby():
 
 
 @pytest.mark.unittest
-def test_import_export():
-    buffer = DequeBuffer(size=10)
-    data_with_meta = [(i, {}) for i in range(10)]
-    buffer.import_data(data_with_meta)
-    assert buffer.count() == 10
-
-    sampled_data = buffer.export_data()
-    assert len(sampled_data) == 10
-
-
-@pytest.mark.unittest
 def test_dataset():
     buffer = DequeBuffer(size=10)
     for i in range(10):
@@ -334,3 +326,7 @@ def test_insufficient_unroll_len_in_group():
         # Ensure samples in each group is continuous
         result = functools.reduce(lambda a, b: a and a.data + 1 == b.data and b, grouped_data)
         assert isinstance(result, BufferedData), "Not continuous"
+
+
+if __name__ == "__main__":
+    test_load_and_save()

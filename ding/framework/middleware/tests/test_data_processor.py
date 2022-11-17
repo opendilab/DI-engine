@@ -62,14 +62,14 @@ def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_list=True):
     assert [d['reward'] for d in ctx.train_data] == [1 for i in range(20)]
     assert [d['info'] for d in ctx.train_data] == ['xxx' for i in range(20)]
     assert [d['priority_IS'] for d in ctx.train_data] == [torch.tensor([1]) for i in range(20)]
-    assert buffer.export_data()[0].meta['priority'] == 1.0
+    assert list(buffer.storage)[0].meta['priority'] == 1.0
     # assert sorted(ctx.train_data) == [i for i in range(20)]
 
     try:
         next(func_generator)
     except StopIteration:
         pass
-    assert buffer.export_data()[0].meta['priority'] == priority
+    assert list(buffer.storage)[0].meta['priority'] == priority
 
 
 def call_offpolicy_data_fetcher_type_buffer():
@@ -225,7 +225,7 @@ def test_sqil_data_pusher():
     buffer = DequeBuffer(size=10)
     sqil_data_pusher(cfg=None, buffer_=buffer, expert=True)(ctx)
     assert buffer.count() == 5
-    assert all(t.data.reward == 1 for t in buffer.export_data())
+    assert all(t.data.reward == 1 for t in list(buffer.storage))
 
     # expert = False
     ctx = OnlineRLContext()
@@ -233,7 +233,7 @@ def test_sqil_data_pusher():
     buffer = DequeBuffer(size=10)
     sqil_data_pusher(cfg=None, buffer_=buffer, expert=False)(ctx)
     assert buffer.count() == 5
-    assert all(t.data.reward == 0 for t in buffer.export_data())
+    assert all(t.data.reward == 0 for t in list(buffer.storage))
 
 
 @pytest.mark.unittest
@@ -251,8 +251,8 @@ def test_buffer_saver():
         buffer_saver(cfg=cfg, buffer_=buffer_, replace=False)(ctx)
         buffer_saver(cfg=cfg, buffer_=buffer_, replace=True)(ctx)
         buffer_1 = DequeBuffer(size=10)
-        buffer_1.load_data(os.path.join(test_folder, "replaybuffer", "data.hkl"))
+        buffer_1.load_data(os.path.join(test_folder, "replaybuffer", "data_latest.hkl"))
         assert buffer_1.count() == 5
         buffer_2 = DequeBuffer(size=10)
-        buffer_2.load_data(os.path.join(test_folder, "replaybuffer", "data-envstep-0.hkl"))
+        buffer_2.load_data(os.path.join(test_folder, "replaybuffer", "data_envstep_0.hkl"))
         assert buffer_2.count() == 5
