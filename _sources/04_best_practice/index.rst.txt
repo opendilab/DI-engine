@@ -6,3 +6,4 @@ Best Practice
    :maxdepth: 2
 
    ding_env
+   custom_model

@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Best Practice &mdash; DI-engine 0.1.0 documentation</title>
+  <title>零和博弈 &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,6 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="How to migrate your own environment to DI-engine" href="ding_env.html" />
-  <link rel="prev" title="Distributed" href="../03_system/distributed.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -204,30 +202,30 @@
         
         
         
-        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Best Practice</a></li>
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
 </ul>
 
         
@@ -260,19 +258,19 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="../index.html">
+        <a href="../index_zh.html">
             Docs
         </a> &gt;
       </li>
 
         
-      <li>Best Practice</li>
+      <li>零和博弈</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/04_best_practice/index.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/02_algo/league_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -296,25 +294,64 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="best-practice">
-<h1>Best Practice<a class="headerlink" href="#best-practice" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ding_env.html">How to migrate your own environment to DI-engine</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#basic">Basic</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#advanced">Advanced</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#dingenvwrapper">DingEnvWrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#q-a">Q &amp; A</a></li>
+  <section id="id1">
+<h1>零和博弈<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<section id="id2">
+<h2>问题定义与研究动机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>零和博弈，又称零和游戏，是博弈论的一个经典概念，意为所有博弈方的利益之和为零的博弈。零和博弈根据参与者的人数分类可分为双人零和博弈和多人零和博弈。
+经典的双人零和博弈场景如石头剪刀布，其中一方获胜必然存在另一方失败，意味着当其中的一方收益增加，必然会带来其他方等量的损失。
+在双人零和博弈的研究中，学界普遍认为，其研究难点在于如何找到这一问题的解，也就是Nash均衡解（ Nash Equilibrium Solution）。</p>
+</section>
+<section id="id3">
+<h2>研究历程<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>随着学者们对于零和博弈方向的研究深入，主要有以下几个发展阶段:</p>
+<p><strong>1. 自我博弈( Self-Play, SP)</strong></p>
+<p>自我博弈指的是训练中自己和自己对抗，常用于解决棋类游戏和建立一般游戏的基准。像围棋AI AlphaZero 和 Dota2的AI OpenAI Five，则没有利用任何人类数据，只通过自我博弈便达到了超越人类的水平。
+虽然Self-Play可以在很多游戏类型中达到超越人类水平的表现，但也有其不足之处。比如在石头剪刀布这一环境中假定人类的策略是只出剪刀，那么 Self-Play 模型会以一个类似剪刀，石头，布的顺序无限循环往复作为策略。</p>
+<p><strong>2. 虚拟自我博弈( Fictious Self-Play, FSP)</strong>  [<a class="footnote-reference brackets" href="#id12" id="id4">1</a>]</p>
+<p>为了解决上述 Self-Play局限性问题， FSP在训练中引入了训练智能体的过往版本加入训练，在 Self-Play的基础上，还会随机的以相同概率挑选过往版本的智能体对抗，这种训练方式被称为虚拟自我博弈。因为对手池的多样性，不管我们的初始策略是什么， FSP都会收敛到均匀随机出石头剪刀布的混合策略，同时该策略这也是此问题的纳什均衡解。</p>
+<p><strong>3. 优先虚拟自我博弈( Prioritised Fictious Self-Play, PFSP)</strong>  [<a class="footnote-reference brackets" href="#id13" id="id5">2</a>]</p>
+<p>PFSP( Prioritised Fictious Self-Play)是在 FSP的基础上，依照训练智能体和历史智能体之间的对战胜率分配对手，增加训练智能体对战胜率低的历史智能体的出现频率，从而达到更快的收敛速度，这种训练方式被称为优先虚拟自我博弈。星际争霸2的AI AlphaStar [<a class="footnote-reference brackets" href="#id14" id="id6">3</a>] 便采用了 PFSP来辅助训练。</p>
+<img alt="../_images/pfsp.png" class="align-center" src="../_images/pfsp.png" />
+</section>
+<section id="id7">
+<h2>未来展望<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>如何设计更为高效的匹配策略，用更少的训练资源，得到更强的智能体。</p></li>
+</ol>
+<p>在大量工程项目( ALphaStar, TstarBot [<a class="footnote-reference brackets" href="#id15" id="id8">4</a>] ) 中都有各自的设计，但往往是经验性的（依靠人类的主观判断），很少有在理论上论证为何高效。</p>
+<ol class="arabic simple" start="2">
+<li><p>如何考虑多人零和博弈乃至更为一般的多人博弈问题。</p></li>
+</ol>
+<ul class="simple">
+<li><p>在 Policy-Space Response Oracles [<a class="footnote-reference brackets" href="#id16" id="id9">5</a>] 这篇文章中提出了多人博弈时的一个求解框架。</p></li>
+<li><p>在 Alpha-Rank [<a class="footnote-reference brackets" href="#id17" id="id10">6</a>] 这篇文章中，考虑了除纳什均衡之外的另一种解。</p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="custom_model.html">How to customize the neural network model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="custom_model.html#default-model-used-in-a-policy">Default model used in a policy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="custom_model.html#id1">How to customize the neural network model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="custom_model.html#step-by-step-guide-to-customizing-a-model">Step-by-step guide to customizing a model</a></li>
-</ul>
-</li>
-</ul>
-</div>
+<img alt="../_images/psro.png" class="align-center" src="../_images/psro.png" />
+</section>
+<section id="id11">
+<h2>参考文献<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<dl class="footnote brackets">
+<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id4">1</a></span></dt>
+<dd><p>Heinrich, Johannes, Marc Lanctot, and David Silver. “Fictitious self-play in extensive-form games.” International conference on machine learning. PMLR, 2015.</p>
+</dd>
+<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id5">2</a></span></dt>
+<dd><p>Lanctot, Marc, et al. “A unified game-theoretic approach to multiagent reinforcement learning.” Advances in neural information processing systems 30 (2017).</p>
+</dd>
+<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id6">3</a></span></dt>
+<dd><p>Vinyals, Oriol, et al. “Grandmaster level in StarCraft II using multi-agent reinforcement learning.” Nature 575.7782 (2019): 350-354.</p>
+</dd>
+<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id8">4</a></span></dt>
+<dd><p>Han, Lei, et al. “Tstarbot-x: An open-sourced and comprehensive study for efficient league training in starcraft ii full game.” arXiv preprint arXiv:2011.13729 (2020).</p>
+</dd>
+<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id9">5</a></span></dt>
+<dd><p>Muller, Paul, et al. “A generalized training approach for multiagent learning.” arXiv preprint arXiv:1909.12823 (2019).</p>
+</dd>
+<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id10">6</a></span></dt>
+<dd><p>Omidshafiei, Shayegan, et al. “α-rank: Multi-agent evaluation by evolution.” Scientific reports 9.1 (2019): 1-29.</p>
+</dd>
+</dl>
+</section>
 </section>
 
 
@@ -322,18 +359,6 @@
               
             </div>
             <footer>
-  
-  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-    
-    <a href="ding_env.html" class="btn btn-neutral float-right" title="How to migrate your own environment to DI-engine" accesskey="n"
-      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
-        class="next-page"></a>
-    
-    
-    <a href="../03_system/distributed.html" class="btn btn-neutral" title="Distributed" accesskey="p"
-      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
-    
-  </div>
   
 
   <hr>
@@ -360,7 +385,13 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Best Practice</a></li>
+<li><a class="reference internal" href="#">零和博弈</a><ul>
+<li><a class="reference internal" href="#id2">问题定义与研究动机</a></li>
+<li><a class="reference internal" href="#id3">研究历程</a></li>
+<li><a class="reference internal" href="#id7">未来展望</a></li>
+<li><a class="reference internal" href="#id11">参考文献</a></li>
+</ul>
+</li>
 </ul>
 
             </div>

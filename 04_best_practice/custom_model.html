@@ -1,0 +1,717 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>How to customize the neural network model &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="API Doc" href="../05_api_doc/index.html" />
+  <link rel="prev" title="How to migrate your own environment to DI-engine" href="ding_env.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Best Practice</a> &gt;</li>
+        
+      <li>How to customize the neural network model</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/custom_model.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="how-to-customize-the-neural-network-model">
+<h1>How to customize the neural network model<a class="headerlink" href="#how-to-customize-the-neural-network-model" title="Permalink to this headline">¶</a></h1>
+<p>In using reinforcement learning methods, one would have to choose an appropriate neural networks depending on the nature of the decision problem and the policy that is used. In the context of the DI-engine framework, a user can do so in 2 primary ways. The first way involves a user making use of the configuration file <code class="docutils literal notranslate"><span class="pre">cfg.policy.model</span></code> to automatically generate the desired neural network. The second way gives the user more control by allowing the desired neural network (instantiated as an object) to be passed direcly into the policy.</p>
+<p>The purpose of this guide is to explain the details with regards to these 2 primary ways of choosing the appropriate neural network and as well as the principles behind them.</p>
+<section id="default-model-used-in-a-policy">
+<h2>Default model used in a policy<a class="headerlink" href="#default-model-used-in-a-policy" title="Permalink to this headline">¶</a></h2>
+<p>For a policy implemented in DI-engine, the <code class="docutils literal notranslate"><span class="pre">default_model</span></code> method contains the details of the default neural network model that was implemented. Take for example the SACPolicy implementation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
+ <span class="k">class</span> <span class="nc">SACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+ <span class="o">...</span>
+
+     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;maqac_continuous&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+ <span class="o">...</span>
+</pre></div>
+</div>
+<p>Observe here that the method either returns <code class="docutils literal notranslate"><span class="pre">'maqac_continuous',</span> <span class="pre">['ding.model.template.maqac']</span></code> or <code class="docutils literal notranslate"><span class="pre">'qac',</span> <span class="pre">['ding.model.template.qac']</span></code>. In both cases, the first item in the return tuple is the name registered with DI-engine’s model registry mechanism. The second item gives an indication of the file path of where the model file is located.</p>
+<p>When using the configuration file <code class="docutils literal notranslate"><span class="pre">cfg.policy.model</span></code>, DI-engine will correspondingly pass each argument into the model registered with DI-engine’s registry mechanism. (For example, argument <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>, <code class="docutils literal notranslate"><span class="pre">action_shape</span></code> etc will be passed into <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py#L13">QAC</a> ). The required neural network is then automatically generated in the model class based on the incoming arguments (e.g. a fully connected layer (FC) for vector input and a convolution (Conv) for image input).</p>
+</section>
+<section id="id1">
+<h2>How to customize the neural network model<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>It is often the case that the <code class="docutils literal notranslate"><span class="pre">default_model</span></code>chosen in a DI-engine <code class="docutils literal notranslate"><span class="pre">policy</span></code> is not suitable for one’s task at hand. Take for example the use of <code class="docutils literal notranslate"><span class="pre">sac</span></code> on the <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> task of <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code> (a wrapper for the Deep Mind Control Suite). Note the default values for observation is  <code class="docutils literal notranslate"><span class="pre">pixel</span></code>, while <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code> (For setting <code class="docutils literal notranslate"><span class="pre">from_pixel</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">channels_first</span> <span class="pre">=</span> <span class="pre">True</span></code>, see <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym</a> documentation for details)</p>
+<p>If one were to look at the source code of <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">sac</a>, it can be seen that the <code class="docutils literal notranslate"><span class="pre">default_model</span></code> is actually <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py">qac</a>. The <code class="docutils literal notranslate"><span class="pre">qac</span> <span class="pre">model</span></code> currently only supports an <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code> of one dimensoin (e.g. (4, )). Hence, it becomes apparent that one must customize a model according to one’s needs and ensure that the policy is setup accordingly.</p>
+</section>
+<section id="step-by-step-guide-to-customizing-a-model">
+<h2>Step-by-step guide to customizing a model<a class="headerlink" href="#step-by-step-guide-to-customizing-a-model" title="Permalink to this headline">¶</a></h2>
+<section id="choose-your-environment-and-policy">
+<h3>1. Choose your environment and policy<a class="headerlink" href="#choose-your-environment-and-policy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>For the purpose of this guide, let the choice of environment and policy to be the use of <code class="docutils literal notranslate"><span class="pre">sac</span></code> on the <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> task of <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code> (a wrapper for the Deep Mind Control Suite). (For details, see <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym</a> documentation)</p></li>
+</ul>
+</section>
+<section id="check-to-see-if-the-policy-s-default-model-is-suitable">
+<h3>2. Check to see if the policy’s default_model is suitable<a class="headerlink" href="#check-to-see-if-the-policy-s-default-model-is-suitable" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>This can be done in 1 of 2 ways. One either look up the documentation at <a class="reference external" href="https://xxx">policy-default_model</a> or read the source code of <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">ding/policy/sac:SACPolicy</a> and find out what is being used in the <code class="docutils literal notranslate"><span class="pre">default_model</span></code> method.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
+ <span class="k">class</span> <span class="nc">SACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+ <span class="o">...</span>
+
+     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;maqac_continuous&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+ <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Now that we see QAC is being used here, we can then further read up <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/69db77e2e54a0fba95d83c9411c6b11cd25beae9/ding/model/template/qac.py#L40">ding/model/template/qac:QAC</a>. The <code class="docutils literal notranslate"><span class="pre">qac</span> <span class="pre">model</span></code> implemented in DI-engine currently only supports <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>of 1. However, the observation space of the task chosen is an image of <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code></p></li>
+</ul>
+<p>Hence, we will need to do some customization.</p>
+</section>
+<section id="customizing-the-model">
+<h3>3. Customizing the model<a class="headerlink" href="#customizing-the-model" title="Permalink to this headline">¶</a></h3>
+<p>Using the default_model as a guide and reference when crafting the custom_model:</p>
+<ul class="simple">
+<li><p>All public methods in the default_model must be implemented in custom_model.</p></li>
+<li><p>Ensure that the type of return in custom_model is the same as the default_model.</p></li>
+</ul>
+<p>One can also reference the <code class="docutils literal notranslate"><span class="pre">encoder</span></code> implementation of <code class="docutils literal notranslate"><span class="pre">encoder.py</span></code> and <code class="docutils literal notranslate"><span class="pre">head</span></code> implementation of <code class="docutils literal notranslate"><span class="pre">head.py</span></code>. See <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/model/common">ding/model/common</a></p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">encoder</span></code> is used to encode inputs such as <code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code> etc. for subsequent processing. DI-engine have thus far implemented the following encoders:</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>encoder</p></th>
+<th class="head"><p>usage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ConvEncoder</p></td>
+<td><p>For encoding image inputs</p></td>
+</tr>
+<tr class="row-odd"><td><p>FCEncoder</p></td>
+<td><p>For encoding one dimensional inputs</p></td>
+</tr>
+<tr class="row-even"><td><p>StructEncoder</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">head</span></code> is used to process the encoded inputs and outputs data required by the policy or the overall RL process. DI-engine have thus far implemented the following heads:</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>head</p></th>
+<th class="head"><p>usage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DiscreteHead</p></td>
+<td><p>Output discrete action value</p></td>
+</tr>
+<tr class="row-odd"><td><p>DistributionHead</p></td>
+<td><p>Output Q value distribution</p></td>
+</tr>
+<tr class="row-even"><td><p>RainbowHead</p></td>
+<td><p>Output Q value distribution</p></td>
+</tr>
+<tr class="row-odd"><td><p>QRDQNHead</p></td>
+<td><p>Quantile regression
+continuous action value</p></td>
+</tr>
+<tr class="row-even"><td><p>QuantileHead</p></td>
+<td><p>Output action quantiles</p></td>
+</tr>
+<tr class="row-odd"><td><p>DuelingHead</p></td>
+<td><p>Output discrete action value logits</p></td>
+</tr>
+<tr class="row-even"><td><p>RegressionHead</p></td>
+<td><p>Output continuous action Q values</p></td>
+</tr>
+<tr class="row-odd"><td><p>ReparameterizationHead</p></td>
+<td><p>Output action mu and sigma</p></td>
+</tr>
+<tr class="row-even"><td><p>MultiHead</p></td>
+<td><p>Multi-dimensional action spaces</p></td>
+</tr>
+</tbody>
+</table>
+<p>From here, one will customize the model required specifically for the sac+dmc2gym+cartpole-swingup task combination. For now, we will name and instantiate the new custom_model as a <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code> type.</p>
+<ul class="simple">
+<li><p>With reference to the <code class="docutils literal notranslate"><span class="pre">QAC</span></code> implementation, the <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code> implementation must have the following methods:  <code class="docutils literal notranslate"><span class="pre">init</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code> and <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code>.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac&#39;</span><span class="p">)</span>
+  <span class="k">class</span> <span class="nc">QAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+  <span class="o">...</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+      <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
+      <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+      <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>In the case of image inputs, the <code class="docutils literal notranslate"><span class="pre">init</span></code>method of <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code> will have to adjust the definition its <code class="docutils literal notranslate"><span class="pre">self.actor</span></code> and <code class="docutils literal notranslate"><span class="pre">self.critic</span></code>. By observation, we can see that the <code class="docutils literal notranslate"><span class="pre">self.action</span></code> and <code class="docutils literal notranslate"><span class="pre">self.critic</span></code> of <code class="docutils literal notranslate"><span class="pre">QAC</span></code> uses an encoder that consists of only a single layer nn.Linear.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">QAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="o">...</span>
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+            <span class="n">ReparameterizationHead</span><span class="p">(</span>
+                <span class="o">...</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">critic_input_size</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+            <span class="n">RegressionHead</span><span class="p">(</span>
+                <span class="o">...</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>We define the type of encoder by defining the variable encoder_cls. In this case, we have defined it as a <code class="docutils literal notranslate"><span class="pre">ConvEncoder</span></code>. Since we need to connect the encoded obs with the action, <code class="docutils literal notranslate"><span class="pre">self.critic</span></code> is constructed from 2 parts: one part being <code class="docutils literal notranslate"><span class="pre">self.critic_encoder</span></code> and the other part <code class="docutils literal notranslate"><span class="pre">self.critic_head</span></code>.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac_pixel&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">QACPixel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">encoder_cls</span> <span class="o">=</span> <span class="n">ConvEncoder</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+          <span class="n">encoder_cls</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">),</span>
+          <span class="n">ReparameterizationHead</span><span class="p">(</span>
+              <span class="o">...</span>
+          <span class="p">)</span>
+      <span class="p">)</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">global_encoder_cls</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                                                   <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span> <span class="o">=</span> <span class="n">RegressionHead</span><span class="p">(</span>
+        <span class="o">...</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">])</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Finally, we will also have to make corresponding changes to <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code> and  <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code></p></li>
+</ul>
+</section>
+<section id="how-to-make-use-of-a-customized-model">
+<h3>4. How to make use of a customized model<a class="headerlink" href="#how-to-make-use-of-a-customized-model" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>New pipeline: Define the model with the corresponding imports, then pass the model into the policy as an argument as follows.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="kn">from</span> <span class="nn">ding.model.template.qac</span> <span class="kn">import</span> <span class="n">QACPixel</span>
+<span class="o">...</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">QACPixel</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+<span class="n">policy</span> <span class="o">=</span> <span class="n">SACPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Old pipeline: Pass the defined model into <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L22">serial_pipeline</a> as a argument. The model will then be passed on to <code class="docutils literal notranslate"><span class="pre">create_policy</span></code>.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="k">def</span> <span class="nf">serial_pipeline</span><span class="p">(</span>
+  <span class="n">input_cfg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]],</span>
+  <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="n">env_setting</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+  <span class="n">model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+  <span class="n">max_train_iter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">),</span>
+  <span class="n">max_env_step</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">),</span>
+  <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Policy&#39;</span><span class="p">:</span>
+  <span class="o">...</span>
+  <span class="n">policy</span> <span class="o">=</span> <span class="n">create_policy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">enable_field</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;learn&#39;</span><span class="p">,</span> <span class="s1">&#39;collect&#39;</span><span class="p">,</span> <span class="s1">&#39;eval&#39;</span><span class="p">,</span> <span class="s1">&#39;command&#39;</span><span class="p">])</span>
+  <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="unit-testing-a-customized-model">
+<h3>5. Unit testing a customized model<a class="headerlink" href="#unit-testing-a-customized-model" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>In general, when writing unit tests, one would need to first manually construct the <code class="docutils literal notranslate"><span class="pre">obs</span></code> and <code class="docutils literal notranslate"><span class="pre">action</span></code> inputs, define the model and verify that output dimensions and type are correct. Following that, if the model contains a neural network, it is also necessary to verify that the model is differentiable.</p></li>
+</ul>
+<p>Take for example the unit test written for our new model <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code>. We first construct <code class="docutils literal notranslate"><span class="pre">obs</span></code>with a shape of  <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">channel,</span> <span class="pre">height,</span> <span class="pre">width)</span></code> (where B = batch_size) and we construct <code class="docutils literal notranslate"><span class="pre">action</span></code> with a shape of <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">action_shape)</span></code>. Then we define the model <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code> and obtain and pass along the corresponding outputs of its <code class="docutils literal notranslate"><span class="pre">actor</span></code> and <code class="docutils literal notranslate"><span class="pre">critic</span></code>. Finally, we make sure that the shape sizes of <code class="docutils literal notranslate"><span class="pre">q,</span> <span class="pre">mu,</span> <span class="pre">sigma</span></code> are correct and that <code class="docutils literal notranslate"><span class="pre">actor</span></code> and <code class="docutils literal notranslate"><span class="pre">critic</span></code> is differentiable.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TestQACPiexl</span><span class="p">:</span>
+
+  <span class="k">def</span> <span class="nf">test_qacpixel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">twin</span><span class="p">):</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="p">))}</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">QACPixel</span><span class="p">(</span>
+        <span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span> <span class="p">),</span>
+        <span class="n">action_shape</span><span class="o">=</span><span class="n">action_shape</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">)</span>
+    <span class="o">...</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">twin</span><span class="p">:</span>
+        <span class="n">is_differentiable</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">is_differentiable</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">is_differentiable</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">critic_head</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">mu</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="o">*</span><span class="n">action_shape</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">sigma</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="o">*</span><span class="n">action_shape</span><span class="p">)</span>
+    <span class="n">is_differentiable</span><span class="p">(</span><span class="n">mu</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="n">sigma</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">actor</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<blockquote>
+<div><p>Alternatively, users can also reference existing unit tests implemented in DI-engine to get familiar with the various neural networks while customizing a model.</p>
+</div></blockquote>
+<p>For more on writing and running unit tests, refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/22_test/index_zh.html">Unit Testing Guidelines</a></p>
+</div>
+</section>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../05_api_doc/index.html" class="btn btn-neutral float-right" title="API Doc" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="ding_env.html" class="btn btn-neutral" title="How to migrate your own environment to DI-engine" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">How to customize the neural network model</a><ul>
+<li><a class="reference internal" href="#default-model-used-in-a-policy">Default model used in a policy</a></li>
+<li><a class="reference internal" href="#id1">How to customize the neural network model</a></li>
+<li><a class="reference internal" href="#step-by-step-guide-to-customizing-a-model">Step-by-step guide to customizing a model</a><ul>
+<li><a class="reference internal" href="#choose-your-environment-and-policy">1. Choose your environment and policy</a></li>
+<li><a class="reference internal" href="#check-to-see-if-the-policy-s-default-model-is-suitable">2. Check to see if the policy’s default_model is suitable</a></li>
+<li><a class="reference internal" href="#customizing-the-model">3. Customizing the model</a></li>
+<li><a class="reference internal" href="#how-to-make-use-of-a-customized-model">4. How to make use of a customized model</a></li>
+<li><a class="reference internal" href="#unit-testing-a-customized-model">5. Unit testing a customized model</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

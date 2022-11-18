@@ -292,7 +292,8 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.framework.middleware.functional.data_processor</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
 <span class="kn">import</span> <span class="nn">torch</span>
@@ -337,6 +338,42 @@
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Either ctx.trajectories or ctx.episodes should be not None.&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">_push</span></div>
+
+
+<span class="k">def</span> <span class="nf">buffer_saver</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">every_envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Save current buffer data.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Config.</span>
+<span class="sd">        - buffer (:obj:`Buffer`): Buffer to push the data in.</span>
+<span class="sd">        - every_envstep (:obj:`int`): save at every env step.</span>
+<span class="sd">        - replace (:obj:`bool`): Whether replace the last file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">buffer_saver_env_counter</span> <span class="o">=</span> <span class="o">-</span><span class="n">every_envstep</span>
+
+    <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            In ctx, `ctx.env_step` should not be None.</span>
+<span class="sd">        Input of ctx:</span>
+<span class="sd">            - env_step (:obj:`int`): env step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">nonlocal</span> <span class="n">buffer_saver_env_counter</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span> <span class="o">&gt;=</span> <span class="n">every_envstep</span> <span class="o">+</span> <span class="n">buffer_saver_env_counter</span><span class="p">:</span>
+                <span class="n">buffer_saver_env_counter</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span>
+                <span class="k">if</span> <span class="n">replace</span><span class="p">:</span>
+                    <span class="n">buffer_</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="s2">&quot;replaybuffer&quot;</span><span class="p">,</span> <span class="s2">&quot;data_latest.hkl&quot;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">buffer_</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="s2">&quot;replaybuffer&quot;</span><span class="p">,</span> <span class="s2">&quot;data_envstep_</span><span class="si">{}</span><span class="s2">.hkl&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span><span class="p">))</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;buffer_saver only supports collecting data by step rather than episode.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_save</span>
 
 
 <div class="viewcode-block" id="offpolicy_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offpolicy_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offpolicy_data_fetcher</span><span class="p">(</span>
