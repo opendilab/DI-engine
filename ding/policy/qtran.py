@@ -107,6 +107,18 @@ class QTRANPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For QTRAN, ``ding.model.qtran.qtran``
+        """
+        return 'qtran', ['ding.model.template.qtran']
+
     def _init_learn(self) -> None:
         """
         Overview:
@@ -436,18 +448,6 @@ class QTRANPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         return get_train_sample(data, self._unroll_len)
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For QTRAN, ``ding.model.qtran.qtran``
-        """
-        return 'qtran', ['ding.model.template.qtran']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

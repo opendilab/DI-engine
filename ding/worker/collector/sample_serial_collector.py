@@ -1,6 +1,7 @@
 from typing import Optional, Any, List
 from collections import namedtuple
 from easydict import EasyDict
+import copy
 import numpy as np
 import torch
 
@@ -46,7 +47,7 @@ class SampleSerialCollector(ISerialCollector):
         self._exp_name = exp_name
         self._instance_name = instance_name
         self._collect_print_freq = cfg.collect_print_freq
-        self._deepcopy_obs = cfg.deepcopy_obs
+        self._deepcopy_obs = cfg.deepcopy_obs  # avoid shallow copy, e.g., ovelap of s_t and s_t+1
         self._transform_obs = cfg.transform_obs
         self._cfg = cfg
         self._timer = EasyTimer()
@@ -134,7 +135,10 @@ class SampleSerialCollector(ISerialCollector):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
         maxlen = self._traj_len if self._traj_len != INF else None
-        self._traj_buffer = {env_id: TrajBuffer(maxlen=maxlen) for env_id in range(self._env_num)}
+        self._traj_buffer = {
+            env_id: TrajBuffer(maxlen=maxlen, deepcopy=self._deepcopy_obs)
+            for env_id in range(self._env_num)
+        }
         self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
 
         self._episode_info = []

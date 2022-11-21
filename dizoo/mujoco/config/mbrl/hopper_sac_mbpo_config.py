@@ -18,7 +18,6 @@ main_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=100000,
     ),
@@ -52,18 +51,15 @@ main_config = dict(
             unroll_len=1,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=500, )), # w.r.t envstep
+        eval=dict(evaluator=dict(eval_freq=500, )),  # w.r.t envstep
         other=dict(
             # environment buffer
-            replay_buffer=dict(
-                replay_buffer_size=1000000, 
-                periodic_thruput_seconds=60
-            ),
+            replay_buffer=dict(replay_buffer_size=1000000, periodic_thruput_seconds=60),
         ),
     ),
     world_model=dict(
         eval_freq=250,  # w.r.t envstep
-        train_freq=250, # w.r.t envstep
+        train_freq=250,  # w.r.t envstep
         cuda=cuda,
         rollout_length_scheduler=dict(
             type='linear',
@@ -76,7 +72,7 @@ main_config = dict(
             ensemble_size=7,
             elite_size=5,
             state_size=obs_shape,  # has to be specified
-            action_size=action_shape, # has to be specified
+            action_size=action_shape,  # has to be specified
             reward_size=1,
             hidden_size=200,
             use_decay=True,
@@ -114,7 +110,6 @@ create_config = dict(
     ),
 )
 create_config = EasyDict(create_config)
-
 
 if __name__ == '__main__':
     serial_pipeline_dyna((main_config, create_config), seed=0, max_env_step=100000)

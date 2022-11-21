@@ -10,7 +10,6 @@ halfcheetah_ppo_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        use_act_scale=True,
         n_evaluator_episode=1,
         stop_value=12000,
     ),

@@ -8,7 +8,6 @@ hopper_ddpg_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
     ),
@@ -59,7 +58,6 @@ hopper_ddpg_create_config = dict(
 )
 hopper_ddpg_create_config = EasyDict(hopper_ddpg_create_config)
 create_config = hopper_ddpg_create_config
-
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c hopper_ddpg_config.py -s 0`

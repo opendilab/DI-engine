@@ -2,10 +2,12 @@ from typing import Optional, Callable, Tuple
 from collections import namedtuple
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
+from ding.utils import get_world_size, get_rank
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 
 
@@ -49,15 +51,24 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         self._cfg = cfg
         self._exp_name = exp_name
         self._instance_name = instance_name
-        if tb_logger is not None:
-            self._logger, _ = build_logger(
-                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
-            )
-            self._tb_logger = tb_logger
+
+        # Logger (Monitor will be initialized in policy setter)
+        # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
+        if get_rank() == 0:
+            if tb_logger is not None:
+                self._logger, _ = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
+                )
+                self._tb_logger = tb_logger
+            else:
+                self._logger, self._tb_logger = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name
+                )
         else:
-            self._logger, self._tb_logger = build_logger(
-                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+            self._logger, _ = build_logger(
+                './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
             )
+            self._tb_logger = None
         self.reset(policy, env)
 
         self._timer = EasyTimer()
@@ -134,8 +145,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             return
         self._end_flag = True
         self._env.close()
-        self._tb_logger.flush()
-        self._tb_logger.close()
+        if self._tb_logger:
+            self._tb_logger.flush()
+            self._tb_logger.close()
 
     def __del__(self):
         """
@@ -187,99 +199,117 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
             - return_info (:obj:`dict`): Current evaluation return information.
         '''
-        if n_episode is None:
-            n_episode = self._default_n_episode
-        assert n_episode is not None, "please indicate eval n_episode"
-        envstep_count = 0
-        info = {}
-        return_info = []
-        eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
-        self._env.reset()
-        self._policy.reset()
+        if get_world_size() > 1:
+            # sum up envstep to rank0
+            envstep_tensor = torch.tensor(envstep).cuda()
+            dist.reduce(envstep_tensor, dst=0)
+            envstep = envstep_tensor.item()
 
-        # force_render overwrite frequency constraint
-        render = force_render or self._should_render(envstep, train_iter)
+        # evaluator only work on rank0
+        stop_flag, return_info = False, []
+        if get_rank() == 0:
+            if n_episode is None:
+                n_episode = self._default_n_episode
+            assert n_episode is not None, "please indicate eval n_episode"
+            envstep_count = 0
+            info = {}
+            eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
+            self._env.reset()
+            self._policy.reset()
 
-        with self._timer:
-            while not eval_monitor.is_finished():
-                obs = self._env.ready_obs
-                obs = to_tensor(obs, dtype=torch.float32)
+            # force_render overwrite frequency constraint
+            render = force_render or self._should_render(envstep, train_iter)
 
-                # update videos
-                if render:
-                    eval_monitor.update_video(self._env.ready_imgs)
+            with self._timer:
+                while not eval_monitor.is_finished():
+                    obs = self._env.ready_obs
+                    obs = to_tensor(obs, dtype=torch.float32)
 
-                policy_output = self._policy.forward(obs)
-                actions = {i: a['action'] for i, a in policy_output.items()}
-                actions = to_ndarray(actions)
-                timesteps = self._env.step(actions)
-                timesteps = to_tensor(timesteps, dtype=torch.float32)
-                for env_id, t in timesteps.items():
-                    if t.info.get('abnormal', False):
-                        # If there is an abnormal timestep, reset all the related variables(including this env).
-                        self._policy.reset([env_id])
-                        continue
-                    if t.done:
-                        # Env reset is done by env_manager automatically.
-                        self._policy.reset([env_id])
-                        reward = t.info['final_eval_reward']
-                        if 'episode_info' in t.info:
-                            eval_monitor.update_info(env_id, t.info['episode_info'])
-                        eval_monitor.update_reward(env_id, reward)
-                        return_info.append(t.info)
-                        self._logger.info(
-                            "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
-                                env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
+                    # update videos
+                    if render:
+                        eval_monitor.update_video(self._env.ready_imgs)
+
+                    policy_output = self._policy.forward(obs)
+                    actions = {i: a['action'] for i, a in policy_output.items()}
+                    actions = to_ndarray(actions)
+                    timesteps = self._env.step(actions)
+                    timesteps = to_tensor(timesteps, dtype=torch.float32)
+                    for env_id, t in timesteps.items():
+                        if t.info.get('abnormal', False):
+                            # If there is an abnormal timestep, reset all the related variables(including this env).
+                            self._policy.reset([env_id])
+                            continue
+                        if t.done:
+                            # Env reset is done by env_manager automatically.
+                            if 'figure_path' in self._cfg:
+                                if self._cfg.figure_path is not None:
+                                    self._env.enable_save_figure(env_id, self._cfg.figure_path)
+                            self._policy.reset([env_id])
+                            reward = t.info['final_eval_reward']
+                            if 'episode_info' in t.info:
+                                eval_monitor.update_info(env_id, t.info['episode_info'])
+                            eval_monitor.update_reward(env_id, reward)
+                            return_info.append(t.info)
+                            self._logger.info(
+                                "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
+                                    env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
+                                )
                             )
-                        )
-                    envstep_count += 1
-        duration = self._timer.value
-        episode_reward = eval_monitor.get_episode_reward()
-        info = {
-            'train_iter': train_iter,
-            'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
-            'episode_count': n_episode,
-            'envstep_count': envstep_count,
-            'avg_envstep_per_episode': envstep_count / n_episode,
-            'evaluate_time': duration,
-            'avg_envstep_per_sec': envstep_count / duration,
-            'avg_time_per_episode': n_episode / duration,
-            'reward_mean': np.mean(episode_reward),
-            'reward_std': np.std(episode_reward),
-            'reward_max': np.max(episode_reward),
-            'reward_min': np.min(episode_reward),
-            # 'each_reward': episode_reward,
-        }
-        episode_info = eval_monitor.get_episode_info()
-        if episode_info is not None:
-            info.update(episode_info)
-        self._logger.info(self._logger.get_tabulate_vars_hor(info))
-        # self._logger.info(self._logger.get_tabulate_vars(info))
-        for k, v in info.items():
-            if k in ['train_iter', 'ckpt_name', 'each_reward']:
-                continue
-            if not np.isscalar(v):
-                continue
-            self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
-            self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
+                        envstep_count += 1
+            duration = self._timer.value
+            episode_reward = eval_monitor.get_episode_reward()
+            info = {
+                'train_iter': train_iter,
+                'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
+                'episode_count': n_episode,
+                'envstep_count': envstep_count,
+                'avg_envstep_per_episode': envstep_count / n_episode,
+                'evaluate_time': duration,
+                'avg_envstep_per_sec': envstep_count / duration,
+                'avg_time_per_episode': n_episode / duration,
+                'reward_mean': np.mean(episode_reward),
+                'reward_std': np.std(episode_reward),
+                'reward_max': np.max(episode_reward),
+                'reward_min': np.min(episode_reward),
+                # 'each_reward': episode_reward,
+            }
+            episode_info = eval_monitor.get_episode_info()
+            if episode_info is not None:
+                info.update(episode_info)
+            self._logger.info(self._logger.get_tabulate_vars_hor(info))
+            # self._logger.info(self._logger.get_tabulate_vars(info))
+            for k, v in info.items():
+                if k in ['train_iter', 'ckpt_name', 'each_reward']:
+                    continue
+                if not np.isscalar(v):
+                    continue
+                self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
+                self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
 
-        if render:
-            video_title = '{}_{}/'.format(self._instance_name, self._render.mode)
-            videos = eval_monitor.get_video()
-            render_iter = envstep if self._render.mode == 'envstep' else train_iter
-            from ding.utils import fps
-            self._tb_logger.add_video(video_title, videos, render_iter, fps(self._env))
+            if render:
+                video_title = '{}_{}/'.format(self._instance_name, self._render.mode)
+                videos = eval_monitor.get_video()
+                render_iter = envstep if self._render.mode == 'envstep' else train_iter
+                from ding.utils import fps
+                self._tb_logger.add_video(video_title, videos, render_iter, fps(self._env))
 
-        eval_reward = np.mean(episode_reward)
-        if eval_reward > self._max_eval_reward:
-            if save_ckpt_fn:
-                save_ckpt_fn('ckpt_best.pth.tar')
-            self._max_eval_reward = eval_reward
-        stop_flag = eval_reward >= self._stop_value and train_iter > 0
-        if stop_flag:
-            self._logger.info(
-                "[DI-engine serial pipeline] " +
-                "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
-                ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
-            )
+            eval_reward = np.mean(episode_reward)
+            if eval_reward > self._max_eval_reward:
+                if save_ckpt_fn:
+                    save_ckpt_fn('ckpt_best.pth.tar')
+                self._max_eval_reward = eval_reward
+            stop_flag = eval_reward >= self._stop_value and train_iter > 0
+            if stop_flag:
+                self._logger.info(
+                    "[DI-engine serial pipeline] " +
+                    "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
+                    ", so your RL agent is converged, you can refer to " +
+                    "'log/evaluator/evaluator_logger.txt' for details."
+                )
+
+        if get_world_size() > 1:
+            objects = [stop_flag, return_info]
+            dist.broadcast_object_list(objects, src=0)
+            stop_flag, return_info = objects
+
         return stop_flag, return_info

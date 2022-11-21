@@ -4,12 +4,20 @@ import torch
 import numpy as np
 from ditk import logging
 from copy import deepcopy
+from dataclasses import dataclass
 
 from easydict import EasyDict
 from torch.utils.data import Dataset
 
 from ding.utils import DATASET_REGISTRY, import_module
 from ding.rl_utils import discount_cumsum
+
+
+@dataclass
+class DatasetStatistics:
+    mean: np.ndarray  # obs
+    std: np.ndarray  # obs
+    action_bounds: np.ndarray
 
 
 @DATASET_REGISTRY.register('naive')
@@ -50,8 +58,13 @@ class D4RLDataset(Dataset):
             d4rl.set_dataset_path(data_path)
         env = gym.make(env_id)
         dataset = d4rl.qlearning_dataset(env)
-        if cfg.policy.collect.get('normalize_states', None):
-            dataset = self._normalize_states(dataset)
+        self._cal_statistics(dataset, env)
+        try:
+            if cfg.env.norm_obs.use_norm and cfg.env.norm_obs.offline_stats.use_offline_stats:
+                dataset = self._normalize_states(dataset)
+        except (KeyError, AttributeError):
+            # do not normalize
+            pass
         self._data = []
         self._load_d4rl(dataset)
 
@@ -71,9 +84,18 @@ class D4RLDataset(Dataset):
             trans_data['done'] = dataset['terminals'][i]
             self._data.append(trans_data)
 
-    def _normalize_states(self, dataset, eps=1e-3):
-        self._mean = dataset['observations'].mean(0, keepdims=True)
-        self._std = dataset['observations'].std(0, keepdims=True) + eps
+    def _cal_statistics(self, dataset, env, eps=1e-3, add_action_buffer=True):
+        self._mean = dataset['observations'].mean(0)
+        self._std = dataset['observations'].std(0) + eps
+        action_max = dataset['actions'].max(0)
+        action_min = dataset['actions'].min(0)
+        if add_action_buffer:
+            action_buffer = 0.05 * (action_max - action_min)
+            action_max = (action_max + action_buffer).clip(max=env.action_space.high)
+            action_min = (action_min - action_buffer).clip(min=env.action_space.low)
+        self._action_bounds = np.stack([action_min, action_max], axis=0)
+
+    def _normalize_states(self, dataset):
         dataset['observations'] = (dataset['observations'] - self._mean) / self._std
         dataset['next_observations'] = (dataset['next_observations'] - self._mean) / self._std
         return dataset
@@ -85,6 +107,14 @@ class D4RLDataset(Dataset):
     @property
     def std(self):
         return self._std
+
+    @property
+    def action_bounds(self) -> np.ndarray:
+        return self._action_bounds
+
+    @property
+    def statistics(self) -> dict:
+        return DatasetStatistics(mean=self.mean, std=self.std, action_bounds=self.action_bounds)
 
 
 @DATASET_REGISTRY.register('hdf5')
@@ -98,8 +128,13 @@ class HDF5Dataset(Dataset):
         data_path = cfg.policy.collect.get('data_path', None)
         data = h5py.File(data_path, 'r')
         self._load_data(data)
-        if cfg.policy.collect.get('normalize_states', None):
-            self._normalize_states()
+        self._cal_statistics()
+        try:
+            if cfg.env.norm_obs.use_norm and cfg.env.norm_obs.offline_stats.use_offline_stats:
+                self._normalize_states()
+        except (KeyError, AttributeError):
+            # do not normalize
+            pass
 
     def __len__(self) -> int:
         return len(self._data['obs'])
@@ -113,9 +148,17 @@ class HDF5Dataset(Dataset):
             logging.info(f'Load {k} data.')
             self._data[k] = dataset[k][:]
 
-    def _normalize_states(self, eps=1e-3):
-        self._mean = self._data['obs'].mean(0, keepdims=True)
-        self._std = self._data['obs'].std(0, keepdims=True) + eps
+    def _cal_statistics(self, eps=1e-3):
+        self._mean = self._data['obs'].mean(0)
+        self._std = self._data['obs'].std(0) + eps
+        action_max = self._data['action'].max(0)
+        action_min = self._data['action'].min(0)
+        buffer = 0.05 * (action_max - action_min)
+        action_max = action_max.astype(float) + buffer
+        action_min = action_max.astype(float) - buffer
+        self._action_bounds = np.stack([action_min, action_max], axis=0)
+
+    def _normalize_states(self):
         self._data['obs'] = (self._data['obs'] - self._mean) / self._std
         self._data['next_obs'] = (self._data['next_obs'] - self._mean) / self._std
 
@@ -126,6 +169,14 @@ class HDF5Dataset(Dataset):
     @property
     def std(self):
         return self._std
+
+    @property
+    def action_bounds(self) -> np.ndarray:
+        return self._action_bounds
+
+    @property
+    def statistics(self) -> dict:
+        return DatasetStatistics(mean=self.mean, std=self.std, action_bounds=self.action_bounds)
 
 
 @DATASET_REGISTRY.register('d4rl_trajectory')
@@ -370,6 +421,30 @@ class D4RLTrajectoryDataset(Dataset):
             )
 
         return timesteps, states, actions, returns_to_go, traj_mask
+
+
+@DATASET_REGISTRY.register('bco')
+class BCODataset(Dataset):
+
+    def __init__(self, data=None):
+        if data is None:
+            raise ValueError('Dataset can not be empty!')
+        else:
+            self._data = data
+
+    def __len__(self):
+        return len(self._data['obs'])
+
+    def __getitem__(self, idx):
+        return {k: self._data[k][idx] for k in self._data.keys()}
+
+    @property
+    def obs(self):
+        return self._data['obs']
+
+    @property
+    def action(self):
+        return self._data['action']
 
 
 def hdf5_save(exp_data, expert_data_path):

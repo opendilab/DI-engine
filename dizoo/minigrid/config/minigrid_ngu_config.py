@@ -9,7 +9,9 @@ minigrid_ppo_ngu_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
-        # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
+        # typical MiniGrid env id:
+        # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
+        # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
         env_id='MiniGrid-DoorKey-16x16-v0',
         obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
         max_step=300,
@@ -18,7 +20,7 @@ minigrid_ppo_ngu_config = dict(
     rnd_reward_model=dict(
         intrinsic_reward_type='add',
         learning_rate=5e-4,
-        obs_shape=2739,
+        obs_shape=2835,
         action_shape=7,
         batch_size=320,  # transitions
         update_per_collect=10,  # 32*100/320=10
@@ -42,7 +44,6 @@ minigrid_ppo_ngu_config = dict(
         # means the rescale value for the last non-zero reward, only used when last_nonzero_reward_rescale is True
         # please refer to ngu_reward_model for details.
         last_nonzero_reward_weight=100,
-
         intrinsic_reward_type='add',
         learning_rate=5e-4,
         obs_shape=2739,

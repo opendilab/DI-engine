@@ -1,13 +1,15 @@
-from typing import Any, Union, List, Optional
 import copy
-import numpy as np
-from easydict import EasyDict
+import os
+from typing import Union, List, Optional
+
 import gym
+import numpy as np
 import torch
+from easydict import EasyDict
 
 from ding.envs import BaseEnv, BaseEnvTimestep
-from ding.envs.common.common_function import affine_transform
-from ding.torch_utils import to_ndarray, to_list
+from ding.envs.common import save_frames_as_gif
+from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 from .mujoco_wrappers import wrap_mujoco
 
@@ -22,16 +24,21 @@ class MujocoEnv(BaseEnv):
         return cfg
 
     config = dict(
-        use_act_scale=False,
+        action_clip=False,
         delay_reward_step=0,
+        replay_path=None,
+        save_replay_gif=False,
+        replay_path_gif=None,
     )
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._use_act_scale = cfg.use_act_scale
+        self._action_clip = cfg.action_clip
         self._delay_reward_step = cfg.delay_reward_step
         self._init_flag = False
         self._replay_path = None
+        self._replay_path_gif = cfg.replay_path_gif
+        self._save_replay_gif = cfg.save_replay_gif
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -58,6 +65,8 @@ class MujocoEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
+        self._final_eval_reward = 0.
+
         return obs
 
     def close(self) -> None:
@@ -72,10 +81,21 @@ class MujocoEnv(BaseEnv):
 
     def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
         action = to_ndarray(action)
-        if self._use_act_scale:
-            action_range = {'min': self.action_space.low[0], 'max': self.action_space.high[0], 'dtype': np.float32}
-            action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
+        if self._save_replay_gif:
+            self._frames.append(self._env.render(mode='rgb_array'))
+        if self._action_clip:
+            action = np.clip(action, -1, 1)
         obs, rew, done, info = self._env.step(action)
+        self._final_eval_reward += rew
+        if done:
+            if self._save_replay_gif:
+                path = os.path.join(
+                    self._replay_path_gif, '{}_episode_{}.gif'.format(self._cfg.env_id, self._save_replay_count)
+                )
+                save_frames_as_gif(self._frames, path)
+                self._save_replay_count += 1
+            info['final_eval_reward'] = self._final_eval_reward
+
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
@@ -127,6 +147,7 @@ class MujocoEnv(BaseEnv):
 
 @ENV_REGISTRY.register('mbmujoco')
 class MBMujocoEnv(MujocoEnv):
+
     def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
         """
         Overview:
@@ -173,13 +194,13 @@ class MBMujocoEnv(MujocoEnv):
             return done
         elif self._cfg.env_id in ['Ant-v2', 'AntTruncatedObs-v2']:
             x = next_obs[:, 0]
-            not_done = 	torch.isfinite(next_obs).all(axis=-1) \
+            not_done =  torch.isfinite(next_obs).all(axis=-1) \
                         * (x >= 0.2) \
                         * (x <= 1.0)
             done = ~not_done
             return done
         elif self._cfg.env_id in ['Humanoid-v2', 'HumanoidTruncatedObs-v2']:
-            z = next_obs[:,0]
+            z = next_obs[:, 0]
             done = (z < 1.0) + (z > 2.0)
             return done
         else:

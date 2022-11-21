@@ -87,7 +87,6 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
-
 if __name__ == '__main__':
 
     from ding.entry import serial_pipeline_onpolicy

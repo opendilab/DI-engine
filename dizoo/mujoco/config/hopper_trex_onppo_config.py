@@ -8,7 +8,6 @@ hopper_trex_onppo_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=8,
         evaluator_env_num=10,
-        use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=3000,
     ),
@@ -75,7 +74,6 @@ hopper_trex_onppo_create_config = dict(
 )
 hopper_trex_onppo_create_config = EasyDict(hopper_trex_onppo_create_config)
 create_config = hopper_trex_onppo_create_config
-
 
 if __name__ == '__main__':
     # Users should first run ``hopper_onppo_config.py`` to save models (or checkpoints).

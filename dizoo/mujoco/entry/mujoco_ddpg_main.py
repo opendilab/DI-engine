@@ -9,9 +9,7 @@ from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DDPGPolicy
 from ding.model import QAC
 from ding.utils import set_pkg_seed
-from dizoo.classic_control.pendulum.envs import PendulumEnv
 from dizoo.mujoco.envs.mujoco_env import MujocoEnv
-from dizoo.classic_control.pendulum.config.pendulum_ppo_config import pendulum_ppo_config
 from dizoo.mujoco.config.hopper_ddpg_config import hopper_ddpg_config
 
 
@@ -24,6 +22,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         SampleSerialCollector,
         InteractionSerialEvaluator,
         AdvancedReplayBuffer,
+        MujocoEnv,
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num

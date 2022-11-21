@@ -8,7 +8,6 @@ hopper_onppo_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=8,
         evaluator_env_num=10,
-        use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=4000,
     ),
@@ -61,7 +60,6 @@ hopper_onppo_create_config = dict(
 )
 hopper_onppo_create_config = EasyDict(hopper_onppo_create_config)
 create_config = hopper_onppo_create_config
-
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c hopper_onppo_config.py -s 0`

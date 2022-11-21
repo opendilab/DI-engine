@@ -5,7 +5,6 @@ import torch
 import subprocess
 from copy import deepcopy
 
-from ding.utils import K8sLauncher, OrchestratorLauncher
 from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data, serial_pipeline_onpolicy
 from ding.entry.serial_entry_sqil import serial_pipeline_sqil
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
@@ -394,7 +393,7 @@ def test_wqmix():
         f.write("28. wqmix\n")
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_td3_bc():
     # train expert
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
@@ -430,6 +429,7 @@ def test_td3_bc():
 # @pytest.mark.algotest
 def test_running_on_orchestrator():
     from kubernetes import config, client, dynamic
+    from ding.utils import K8sLauncher, OrchestratorLauncher
     cluster_name = 'test-k8s-launcher'
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')
     # create cluster

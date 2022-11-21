@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-
 obs_shape = 17
 act_shape = 6
 halfcheetah_sac_gail_config = dict(
@@ -11,7 +10,6 @@ halfcheetah_sac_gail_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=12000,
     ),

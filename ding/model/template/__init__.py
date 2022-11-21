@@ -6,7 +6,8 @@ from .vac import VAC
 from .bc import DiscreteBC, ContinuousBC
 # algorithm-specific
 from .ppg import PPG
-from .qmix import Mixer, QMix, CollaQ
+from .qmix import Mixer, QMix
+from .collaq import CollaQ
 from .wqmix import WQMix
 from .coma import COMA
 from .atoc import ATOC
@@ -17,5 +18,6 @@ from .mavac import MAVAC
 from .ngu import NGU
 from .qac_dist import QACDIST
 from .maqac import MAQAC, ContinuousMAQAC
+from .madqn import MADQN
 from .vae import VanillaVAE
 from .decision_transformer import DecisionTransformer

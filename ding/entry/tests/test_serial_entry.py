@@ -37,6 +37,7 @@ from dizoo.petting_zoo.config import ptz_simple_spread_qmix_config, ptz_simple_s
 from dizoo.petting_zoo.config import ptz_simple_spread_qtran_config, ptz_simple_spread_qtran_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_vdn_config, ptz_simple_spread_vdn_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_wqmix_config, ptz_simple_spread_wqmix_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_madqn_config, ptz_simple_spread_madqn_create_config  # noqa
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
@@ -46,6 +47,7 @@ from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_ibc_config import pendulum_ibc_config, pendulum_ibc_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_config, gym_hybrid_mpdqn_create_config
@@ -379,6 +381,20 @@ def test_wqmix():
 
 @pytest.mark.platformtest
 @pytest.mark.unittest
+def test_madqn():
+    config = [deepcopy(ptz_simple_spread_madqn_config), deepcopy(ptz_simple_spread_madqn_create_config)]
+    config[0].policy.cuda = False
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_train_iter=1)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf log ckpt*')
+
+
+@pytest.mark.platformtest
+@pytest.mark.unittest
 def test_qtran():
     config = [deepcopy(ptz_simple_spread_qtran_config), deepcopy(ptz_simple_spread_qtran_create_config)]
     config[0].policy.cuda = False
@@ -488,6 +504,42 @@ def test_cql():
     config = [deepcopy(pendulum_cql_config), deepcopy(pendulum_cql_create_config)]
     config[0].policy.learn.train_epoch = 1
     config[0].policy.eval.evaluator.eval_freq = 1
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.platformtest
+@pytest.mark.unittest
+def test_ibc():
+    # train expert
+    config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'sac_unittest'
+    try:
+        serial_pipeline(config, seed=0, max_train_iter=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(pendulum_sac_data_genearation_config), deepcopy(pendulum_sac_data_genearation_create_config)]
+    collect_count = 1000
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load('./sac_unittest/ckpt/iteration_0.pth.tar', map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # test cql
+    config = [deepcopy(pendulum_ibc_config), deepcopy(pendulum_ibc_create_config)]
+    config[0].policy.learn.train_epoch = 1
+    config[0].policy.eval.evaluator.eval_freq = 1
+    config[0].policy.model.stochastic_optim.iters = 2
     try:
         serial_pipeline_offline(config, seed=0)
     except Exception:

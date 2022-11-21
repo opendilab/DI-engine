@@ -5,9 +5,10 @@ from ding.policy import PPOPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
-from ding.framework import task
+from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, gae_estimator
+from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
+    gae_estimator, online_logger
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import main_config, create_config
 
@@ -15,6 +16,7 @@ from dizoo.classic_control.cartpole.config.cartpole_ppo_config import main_confi
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
             env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
@@ -35,6 +37,7 @@ def main():
         task.use(gae_estimator(cfg, policy.collect_mode))
         task.use(multistep_trainer(cfg, policy.learn_mode))
         task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(online_logger(train_show_freq=3))
         task.run()
 
 

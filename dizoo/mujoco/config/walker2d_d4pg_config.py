@@ -8,7 +8,6 @@ walker2d_d4pg_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=4,
         evaluator_env_num=4,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=7000,
     ),
@@ -63,7 +62,6 @@ walker2d_d4pg_create_config = dict(
 )
 walker2d_d4pg_create_config = EasyDict(walker2d_d4pg_create_config)
 create_config = walker2d_d4pg_create_config
-
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c walker2d_d4pg_config.py -s 0`

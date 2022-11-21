@@ -5,7 +5,7 @@ from .nn_module import fc_block, conv2d_block, one_hot, deconv2d_block, Bilinear
 from .normalization import build_normalization
 from .rnn import get_lstm, sequence_mask
 from .soft_argmax import SoftArgmax
-from .transformer import Transformer
+from .transformer import Transformer, ScaledDotProductAttention
 from .scatter_connection import ScatterConnection
 from .resnet import resnet18, ResNet
 from .gumbel_softmax import GumbelSoftmax

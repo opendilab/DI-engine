@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
 from ditk import logging
@@ -15,7 +16,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         Push episodes or trajectories into the buffer.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
-        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
+        - buffer (:obj:`Buffer`): Buffer to push the data in.
     """
 
     def _push(ctx: "OnlineRLContext"):
@@ -45,8 +46,46 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
     return _push
 
 
+def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep: int = 1000, replace: bool = False):
+    """
+    Overview:
+        Save current buffer data.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - buffer (:obj:`Buffer`): Buffer to push the data in.
+        - every_envstep (:obj:`int`): save at every env step.
+        - replace (:obj:`bool`): Whether replace the last file.
+    """
+
+    buffer_saver_env_counter = -every_envstep
+
+    def _save(ctx: "OnlineRLContext"):
+        """
+        Overview:
+            In ctx, `ctx.env_step` should not be None.
+        Input of ctx:
+            - env_step (:obj:`int`): env step.
+        """
+        nonlocal buffer_saver_env_counter
+        if ctx.env_step is not None:
+            if ctx.env_step >= every_envstep + buffer_saver_env_counter:
+                buffer_saver_env_counter = ctx.env_step
+                if replace:
+                    buffer_.save_data(os.path.join(cfg.exp_name, "replaybuffer", "data_latest.hkl"))
+                else:
+                    buffer_.save_data(
+                        os.path.join(cfg.exp_name, "replaybuffer", "data_envstep_{}.hkl".format(ctx.env_step))
+                    )
+        else:
+            raise RuntimeError("buffer_saver only supports collecting data by step rather than episode.")
+
+    return _save
+
+
 def offpolicy_data_fetcher(
-        cfg: EasyDict, buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]
+        cfg: EasyDict,
+        buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
+        data_shortage_warning: bool = False,
 ) -> Callable:
     """
     Overview:
@@ -54,7 +93,7 @@ def offpolicy_data_fetcher(
         a list of buffers, or a dict of buffers.
     Arguments:
         - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
-        - buffer\_ (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
+        - buffer (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
             The buffer where the data is fetched from. \
             ``Buffer`` type means a buffer.\
             ``List[Tuple[Buffer, float]]`` type means a list of tuple. In each tuple there is a buffer and a float. \
@@ -63,6 +102,7 @@ def offpolicy_data_fetcher(
             ``Dict[str, Buffer]`` type means a dict in which the value of each element is a buffer. \
             For each key-value pair of dict, batch_size of data will be sampled from the corresponding buffer \
             and assigned to the same key of `ctx.train_data`.
+        - data_shortage_warning (:obj:`bool`): Whether to output warning when data shortage occurs in fetching.
     """
 
     def _fetch(ctx: "OnlineRLContext"):
@@ -110,10 +150,12 @@ def offpolicy_data_fetcher(
 
             assert buffered_data is not None
         except (ValueError, AssertionError):
-            # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
-            logging.warning(
-                "Replay buffer's data is not enough to support training, so skip this training for waiting more data."
-            )
+            if data_shortage_warning:
+                # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
+                # Fetcher will skip this this attempt.
+                logging.warning(
+                    "Replay buffer's data is not enough to support training, so skip this training to wait more data."
+                )
             ctx.train_data = None
             return
 
@@ -199,7 +241,7 @@ def sqil_data_pusher(cfg: EasyDict, buffer_: Buffer, expert: bool) -> Callable:
         Push trajectories into the buffer in sqil learning pipeline.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
-        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
+        - buffer (:obj:`Buffer`): Buffer to push the data in.
         - expert (:obj:`bool`): Whether the pushed data is expert data or not. \
             In each element of the pushed data, the reward will be set to 1 if this attribute is `True`, otherwise 0.
     """

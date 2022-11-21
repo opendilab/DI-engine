@@ -10,7 +10,6 @@ walker2d_onppo_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=6000,
     ),
@@ -66,7 +65,6 @@ walker2d_onppo_create_config = dict(
 )
 walker2d_onppo_create_config = EasyDict(walker2d_onppo_create_config)
 create_config = walker2d_onppo_create_config
-
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c walker2d_onppo_config.py -s 0`

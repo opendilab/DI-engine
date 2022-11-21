@@ -1,3 +1,62 @@
+2022.10.31(v0.4.4)
+- env: add modified gym-hybrid including moving, sliding and hardmove (#505) (#519)
+- env: add evogym support (#495) (#527)
+- env: add save_replay_gif option (#506)
+- env: adapt minigrid_env and related config to latest MiniGrid v2.0.0 (#500)
+- algo: add pcgrad optimizer (#489)
+- algo: add some features in MLP and ResBlock (#511)
+- algo: delete mcts related modules (#518)
+- feature: add wandb middleware and demo (#488) (#523) (#528)
+- feature: add new properties in Context (#499)
+- feature: add single env policy wrapper for policy deployment
+- feature: add custom model demo and doc
+- fix: build logger args and unittests (#522)
+- fix: total_loss calculation in PDQN (#504)
+- fix: save gif function bug
+- fix: level sample unittest bug
+- style: update contact email address (#503)
+- style: polish env log and resblock name
+- style: add details button in readme
+
+2022.09.23(v0.4.3)
+- env: add rule-based gomoku expert (#465)
+- algo: fix a2c policy batch size bug (#481)
+- algo: enable activation option in collaq attention and mixer
+- algo: minor fix about IBC (#477)
+- feature: add IGM support (#486)
+- feature: add tb logger middleware and demo
+- fix: the type conversion in ding_env_wrapper (#483)
+- fix: di-orchestrator version bug in unittest (#479)
+- fix: data collection errors caused by shallow copies (#475)
+- fix: gym==0.26.0 seed args bug
+- style: add readme tutorial link(environment & algorithm) (#490) (#493)
+- style: adjust location of the default_model method in policy (#453)
+
+2022.09.08(v0.4.2)
+- env: add rocket env (#449)
+- env: updated pettingzoo env and improved related performance (#457)
+- env: add mario env demo (#443)
+- env: add MAPPO multi-agent config (#464)
+- env: add mountain car (discrete action) environment (#452)
+- env: fix multi-agent mujoco gym comaptibility bug
+- env: fix gfootball env save_replay variable init bug
+- algo: add IBC (Implicit Behaviour Cloning) algorithm (#401)
+- algo: add BCO (Behaviour Cloning from Observation) algorithm (#270)
+- algo: add continuous PPOPG algorithm (#414)
+- algo: add PER in CollaQ (#472)
+- algo: add activation option in QMIX and CollaQ
+- feature: update ctx to dataclass (#467)
+- fix: base_env FinalMeta bug about gym 0.25.0-0.25.1
+- fix: config inplace modification bug
+- fix: ding cli no argument problem
+- fix: import errors after running setup.py (jinja2, markupsafe)
+- fix: conda py3.6 and cross platform build bug
+- style: add project state and datetime in log dir (#455)
+- style: polish notes for q-learning model (#427)
+- style: revision to mujoco dockerfile and validation (#474)
+- style: add dockerfile for cityflow env
+- style: polish default output log format
+
 2022.08.12(v0.4.1)
 - env: add gym trading env (#424)
 - env: add board games env (tictactoe, gomuku, chess) (#356)

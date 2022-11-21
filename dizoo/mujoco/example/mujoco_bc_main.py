@@ -52,12 +52,14 @@ def main():
     collect_config = [deepcopy(half_td3_config), deepcopy(half_td3_create_config)]
 
     collect_episodic_demo_data(
-        deepcopy(collect_config), seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
+        deepcopy(collect_config),
+        seed=0,
+        state_dict=state_dict,
+        expert_data_path=expert_data_path,
+        collect_count=collect_count
     )
 
-    episode_to_transitions(
-        expert_data_path, expert_data_path, nstep=1
-    )
+    episode_to_transitions(expert_data_path, expert_data_path, nstep=1)
 
     # il training 2
     il_config = [deepcopy(half_td3_config), deepcopy(half_td3_create_config)]
@@ -71,5 +73,5 @@ def main():
     return bc_policy
 
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     policy = main()

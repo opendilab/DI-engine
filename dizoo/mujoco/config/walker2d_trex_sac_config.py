@@ -8,7 +8,6 @@ walker2d_trex_sac_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
     ),
@@ -84,7 +83,6 @@ walker2d_trex_sac_create_config = dict(
 )
 walker2d_trex_sac_create_config = EasyDict(walker2d_trex_sac_create_config)
 create_config = walker2d_trex_sac_create_config
-
 
 if __name__ == '__main__':
     # Users should first run ``walker2d_sac_config.py`` to save models (or checkpoints).

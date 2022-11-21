@@ -1,6 +1,6 @@
 """
 The code below is adapted from https://github.com/lich14/CDS/tree/main/CDS_GRF/envs/grf,
-which is from the codebase accompanies the CDS paper "Celebrating Diversity in Shared Multi-Agent Reinforcement Learning"
+which is from the codebase of the CDS paper "Celebrating Diversity in Shared Multi-Agent Reinforcement Learning"
 """
 
 import gfootball.env as football_env
@@ -47,6 +47,9 @@ class GfootballAcademyEnv(BaseEnv):
         obs_dim=34,
         """
         self._cfg = cfg
+        self._save_replay = False
+        self._save_replay_count = 0
+        self._replay_path = None
         self.dense_reward = dense_reward
         self.write_full_episode_dumps = write_full_episode_dumps
         self.write_goal_dumps = write_goal_dumps
@@ -84,11 +87,17 @@ class GfootballAcademyEnv(BaseEnv):
         obs_space_low = self._env.observation_space.low[0][:self.obs_dim]
         obs_space_high = self._env.observation_space.high[0][:self.obs_dim]
 
-        self._action_space =  gym.spaces.Dict({agent_i: gym.spaces.Discrete(self._env.action_space.nvec[1]) for agent_i in range(self.n_agents)})
-        self._observation_space = gym.spaces.Dict({agent_i:
-            gym.spaces.Box(low=obs_space_low, high=obs_space_high, dtype=self._env.observation_space.dtype)
-            for agent_i in range(self.n_agents)
-        })
+        self._action_space = gym.spaces.Dict(
+            {agent_i: gym.spaces.Discrete(self._env.action_space.nvec[1])
+             for agent_i in range(self.n_agents)}
+        )
+        self._observation_space = gym.spaces.Dict(
+            {
+                agent_i:
+                gym.spaces.Box(low=obs_space_low, high=obs_space_high, dtype=self._env.observation_space.dtype)
+                for agent_i in range(self.n_agents)
+            }
+        )
         self._reward_space = gym.spaces.Box(low=0, high=100, shape=(1, ), dtype=np.float32)  # TODO(pu)
 
         self.n_actions = self.action_space[0].n
@@ -257,9 +266,9 @@ class GfootballAcademyEnv(BaseEnv):
         if sum(rewards) <= 0:
             """
             This is based on the CDS paper:
-            "Environmental reward only occurs at the end of the game. 
+            "Environmental reward only occurs at the end of the game.
             They will get +100 if they win, else get -1."
-            If done=False, the reward is -1, 
+            If done=False, the reward is -1,
             If done=True and sum(rewards)<=0 the reward is 1.
             If done=True and sum(rewards)>0 the reward is 100.
             """
