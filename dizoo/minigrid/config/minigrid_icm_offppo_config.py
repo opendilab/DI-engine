@@ -19,6 +19,7 @@ minigrid_ppo_icm_config = dict(
         obs_shape=2739,
         batch_size=320,
         update_per_collect=10,
+        clear_buffer_per_iters=1000,
     ),
     policy=dict(
         cuda=True,
