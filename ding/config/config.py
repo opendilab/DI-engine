@@ -306,7 +306,7 @@ policy_config_template = dict(
     other=dict(replay_buffer=dict()),
 )
 policy_config_template = EasyDict(policy_config_template)
-env_config_template = dict(manager=dict(), )
+env_config_template = dict(manager=dict(), stop_value=int(1e10))
 env_config_template = EasyDict(env_config_template)
 
 

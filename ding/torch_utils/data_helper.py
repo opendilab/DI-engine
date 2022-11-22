@@ -51,6 +51,8 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
         return item
     elif item is None or isinstance(item, str):
         return item
+    elif isinstance(item, torch.distributions.Distribution):  # for compatibility
+        return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
 
