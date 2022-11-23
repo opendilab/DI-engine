@@ -449,11 +449,12 @@ def compile_config(
         default_config['reward_model'] = reward_model_config
     if len(world_model_config) > 0:
         default_config['world_model'] = world_model_config
+    stop_value_flag = 'stop_value' in cfg.env
     cfg = deep_merge_dicts(default_config, cfg)
     cfg.seed = seed
     # check important key in config
     if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation
-        if 'stop_value' in cfg.env:  # data generation task doesn't need these fields
+        if stop_value_flag:  # data generation task doesn't need these fields
             cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
             cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     if 'exp_name' not in cfg:
