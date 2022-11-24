@@ -20,8 +20,7 @@ Each episode lasts N steps with observation :math:`o_t=\left(c_t, t / N\right)` 
 action space :math:`\mathcal{A}=\{-1,+1\}`.
 
    - At the beginning of the episode the agent is provided a context of +1 or -1, which means :math:`c_1 \sim {Unif}(\mathcal{A})`.
-   - At all future timesteps the context is equal to zero and a countdown until the end of the episode, 
-    which means :math:`c_t=0` for all :math:`t>2`.
+   - At all future timesteps the context is equal to zero and a countdown until the end of the episode, which means :math:`c_t=0` for all :math:`t>2`.
    - At the end of the episode the agent must select the correct action corresponding to the context to reward. The reward :math:`r_t=0` for all :math:`t<N`, and :math:`r_N={Sign}\left(a_N=c_1\right)`
 
 
@@ -66,6 +65,7 @@ Observations Space
 -------------------
 
 -  The observation of agent is a 3-dimensional vector. Data type is ``float32``. Their specific meaning is as below:
+
   -  obs[0] shows the current time, ranging from [0, 1]. 
   -  obs[1] shows the query as an integer number between 0 and num of bit at the last step. It's always 0 in memory length experiment because there is only a single bit. (It's useful in memory size experiment.)
   -  obs[2] shows the context of +1 or -1 at the first step. At all future timesteps the context is equal to 0 and a countdown until the end of the episode
@@ -79,6 +79,7 @@ Rewards Space
 -------------
 
 -  The reward space is a discrete space of size 3, which is a ``float`` value.
+
   -  If it isn't the last step (t<N), the reward is 0.
   -  If it's the last step and the agent select the correct action, the reward is 1.
   -  If it's the last step andthe agent select a wrong action, the reward is -1.

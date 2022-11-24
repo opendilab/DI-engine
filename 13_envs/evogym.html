@@ -1,0 +1,676 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Evogym &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Specification" href="../20_spec/index.html" />
+  <link rel="prev" title="gym hybrid" href="gym_hybrid.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">RL Env Examples</a> &gt;</li>
+        
+      <li>Evogym</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/evogym.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="evogym">
+<h1>Evogym<a class="headerlink" href="#evogym" title="Permalink to this headline">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Evolution Gym (Evogym) is the first large-scale benchmark for co-optimizing the design and control of soft robots.
+Each robot is composed of different types of voxels (e.g., soft, rigid, actuators), resulting in a modular and expressive robot design space.
+The environment spans a wide range of tasks, including locomotion and manipulation on various types of terrains.
+The image below shows a robot in action.</p>
+<img alt="../_images/evogym.gif" class="align-center" src="../_images/evogym.gif" />
+</section>
+<section id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<section id="installation-method">
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<p>The Evogym environment can be downloaded from GitHub and installed using pip.
+Given that the installation procedure may vary a little according to your OS, you are invited to check the instructions in the original <a class="reference external" href="https://github.com/EvolutionGym/evogym#installation">repository</a> in case you should encounter any problem.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone --recurse-submodules https://github.com/EvolutionGym/evogym.git
+<span class="nb">cd</span> evogym
+pip install -r requirements.txt
+python setup.py install
+</pre></div>
+</div>
+</section>
+<section id="verify-installation">
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<p>After installation, you can verify whether if it is successful by running the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python gym_test.py
+</pre></div>
+</div>
+</section>
+</section>
+<section id="space-before-transformation-original-environment">
+<h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<section id="observation-space">
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The observation space includes the state information of the robot, a<code class="docutils literal notranslate"><span class="pre">(2N</span> <span class="pre">+</span> <span class="pre">3)</span></code>vector including the relative position of each voxel corner with respect to the center of mass of the robot <code class="docutils literal notranslate"><span class="pre">(2N)</span></code>, and the velocity and orientation of center of mass <code class="docutils literal notranslate"><span class="pre">(3)</span></code>. The data type is<code class="docutils literal notranslate"><span class="pre">float32</span></code>.</p></li>
+<li><p>To handle complex tasks, specifically those with varying terrain types, an additional observation vector including terrain information is provided.</p></li>
+<li><p>Furthermore, goal-related information is offered to inform the controller of the execution status of the current task.</p></li>
+<li><p>For instance, in manipulation tasks where the robot interacts with some object O, it is provided orientation and velocity as well as the position of O’s center of mass relative to the robot.</p></li>
+</ul>
+</section>
+<section id="action-space">
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The action space is continuous of size N. Each component of the N-size action vector is associated with an actuator voxel (either horizontal or vertical) of the robot, and instructs a deformation target of that voxel, compressing or stretching the size of voxel from 60% to 160%. The data type is <code class="docutils literal notranslate"><span class="pre">float</span></code>.</p></li>
+<li><p>Specifically, the action value<code class="docutils literal notranslate"><span class="pre">u</span></code>is within the range<code class="docutils literal notranslate"><span class="pre">[0.6,</span> <span class="pre">1.6]</span></code>, and corresponds to a gradual expansion/contraction of that actuator to<code class="docutils literal notranslate"><span class="pre">u</span></code>times its rest length.</p></li>
+</ul>
+</section>
+<section id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Each task is equipped with a reward function measuring the performance of the current robot and the control action. Generally, it is a <code class="docutils literal notranslate"><span class="pre">float</span></code> value.</p></li>
+</ul>
+</section>
+</section>
+<section id="key-facts">
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>1D observation input which can vary according to robot’s structure, task and environment.</p></li>
+<li><p>Continuous action space according to the structure of the robot.</p></li>
+<li><p>Top-performing policies not only can learn how to control a robot, but they can also learn how to create a better robot design tailored for a specific task.</p></li>
+</ol>
+</section>
+<section id="other">
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<section id="robot-and-environment-definition">
+<h3>Robot and environment definition<a class="headerlink" href="#robot-and-environment-definition" title="Permalink to this headline">¶</a></h3>
+<p>Evogym provides fixed tasks, but you can define your own robot structure and environment.
+For a concrete example you can refer to the following <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/envs/world_data/carry_bot.json">json file</a>
+and to the official <a class="reference external" href="https://evolutiongym.github.io/tutorials/new-env.html">documentation</a>.</p>
+</section>
+<section id="lazy-initialization">
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<p>In order to support parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. In the first call<code class="docutils literal notranslate"><span class="pre">reset</span></code> method initializes the concrete original environment instance.</p>
+</section>
+<section id="random-seed">
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>There are two parts of the random seed in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
+<li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment, no need to care about the specific implementation details</p></li>
+<li><p>Concrete implementation inside the environment: For the seed of the original environment, set before calling the<code class="docutils literal notranslate"><span class="pre">reset</span></code>method of the environment, the concrete original environment<code class="docutils literal notranslate"><span class="pre">reset</span></code></p></li>
+<li><p>Concrete implementation inside the environment: For random library seeds, the value is set directly in the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment</p></li>
+</ul>
+</section>
+<section id="the-difference-between-training-and-testing-environments">
+<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, and is generated by a random number generator, but the seed of this random number generator is fixed by the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment ;The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
+</ul>
+</section>
+<section id="store-video">
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method, specifying the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code> implementation ), the code shown below will run an environment episode and save the result of this episode in a folder<code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">from</span> <span class="nn">evogym</span> <span class="kn">import</span> <span class="n">sample_robot</span>
+<span class="c1"># import envs from the envs folder and register them</span>
+<span class="kn">import</span> <span class="nn">evogym.envs</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># create a random robot</span>
+    <span class="n">body</span><span class="p">,</span> <span class="n">connections</span> <span class="o">=</span> <span class="n">sample_robot</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Walker-v0&#39;</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gym</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">VERSION</span> <span class="o">&gt;</span> <span class="s1">&#39;0.22.0&#39;</span><span class="p">:</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;render_modes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">]})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;render.modes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">]})</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">wrappers</span><span class="o">.</span><span class="n">RecordVideo</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span>
+        <span class="n">video_folder</span><span class="o">=</span><span class="s2">&quot;./video&quot;</span><span class="p">,</span>
+        <span class="n">episode_trigger</span><span class="o">=</span><span class="k">lambda</span> <span class="n">episode_id</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">name_prefix</span><span class="o">=</span><span class="s1">&#39;rl-video-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+    <span class="p">)</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+    <span class="c1"># step the environment for 100 iterations</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+        <span class="n">ob</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="di-zoo-runnable-code-example">
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<p>The full training configuration files are at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/config/">github
+link</a>
+Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">walker_ppo_config.py</span></code> , use the following demo to run:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="n">walker_ppo_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;evogym_walker_ppo_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;Walker-v0&#39;</span><span class="p">,</span>
+        <span class="n">robot</span><span class="o">=</span><span class="s1">&#39;speed_bot&#39;</span><span class="p">,</span>
+        <span class="n">robot_dir</span><span class="o">=</span><span class="s1">&#39;./dizoo/evogym/envs&#39;</span><span class="p">,</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="p">),</span>
+        <span class="c1"># The path to save the game replay</span>
+        <span class="c1"># replay_path=&#39;./evogym_walker_ppo_seed0/video&#39;,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">recompute_adv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># load_path=&quot;./evogym_walker_ppo_seed0/ckpt/ckpt_best.pth.tar&quot;,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">58</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">value_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+            <span class="n">gae_lambda</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="p">)),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">walker_ppo_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">walker_ppo_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">walker_ppo_config</span>
+
+<span class="n">walker_ppo_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;evogym&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.evogym.envs.evogym_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ppo&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ding.policy.ppo&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;naive&#39;</span><span class="p">,</span> <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">walker_ppo_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">walker_ppo_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">walker_ppo_create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial -c evogym_walker_ppo_config.py -s 0 --env-step 1e7`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
+    <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="benchmark-algorithm-performance">
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Carrier（Reward of 1 is given to the agent for completing its task plus a small reward for getting close to it).</p></li>
+<li><p>The robot catches a box initialized on top of it and carries it as far as possible.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Carrier + PPO</p></li>
+</ul>
+<blockquote>
+<div><img alt="../_images/evogym_carry_ppo.png" class="align-center" src="../_images/evogym_carry_ppo.png" />
+</div></blockquote>
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../20_spec/index.html" class="btn btn-neutral float-right" title="Specification" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="gym_hybrid.html" class="btn btn-neutral" title="gym hybrid" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Evogym</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#install">Install</a><ul>
+<li><a class="reference internal" href="#installation-method">Installation Method</a></li>
+<li><a class="reference internal" href="#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#space-before-transformation-original-environment">Space Before Transformation (Original Environment)</a><ul>
+<li><a class="reference internal" href="#observation-space">Observation Space</a></li>
+<li><a class="reference internal" href="#action-space">Action Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward Space</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#key-facts">Key Facts</a></li>
+<li><a class="reference internal" href="#other">Other</a><ul>
+<li><a class="reference internal" href="#robot-and-environment-definition">Robot and environment definition</a></li>
+<li><a class="reference internal" href="#lazy-initialization">Lazy Initialization</a></li>
+<li><a class="reference internal" href="#random-seed">Random Seed</a></li>
+<li><a class="reference internal" href="#the-difference-between-training-and-testing-environments">The Difference between Training and Testing Environments</a></li>
+<li><a class="reference internal" href="#store-video">Store Video</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo-runnable-code-example">DI-zoo Runnable Code Example</a></li>
+<li><a class="reference internal" href="#benchmark-algorithm-performance">Benchmark Algorithm Performance</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

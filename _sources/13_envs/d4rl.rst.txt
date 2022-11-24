@@ -163,7 +163,7 @@ Reward space
 -  Depending on the specific game content, the game score can vary very much and is usually a float value, which can be found in the performance section of the benchmark algorithm at the bottom.
 
 Others
------
+--------
 
 -  The end of the game is the end of the current environment episode
 

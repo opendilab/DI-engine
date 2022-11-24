@@ -45,6 +45,7 @@ Environments:
    sokoban
    gym_hybrid
    gym_soccer
+   evogym
 
    image_cls
 

@@ -321,12 +321,7 @@ action space <span class="math notranslate nohighlight">\(\mathcal{A}=\{-1,+1\}\
 <blockquote>
 <div><ul class="simple">
 <li><p>At the beginning of the episode the agent is provided a context of +1 or -1, which means <span class="math notranslate nohighlight">\(c_1 \sim {Unif}(\mathcal{A})\)</span>.</p></li>
-<li><p>At all future timesteps the context is equal to zero and a countdown until the end of the episode,</p></li>
-</ul>
-<blockquote>
-<div><p>which means <span class="math notranslate nohighlight">\(c_t=0\)</span> for all <span class="math notranslate nohighlight">\(t&gt;2\)</span>.</p>
-</div></blockquote>
-<ul class="simple">
+<li><p>At all future timesteps the context is equal to zero and a countdown until the end of the episode, which means <span class="math notranslate nohighlight">\(c_t=0\)</span> for all <span class="math notranslate nohighlight">\(t&gt;2\)</span>.</p></li>
 <li><p>At the end of the episode the agent must select the correct action corresponding to the context to reward. The reward <span class="math notranslate nohighlight">\(r_t=0\)</span> for all <span class="math notranslate nohighlight">\(t&lt;N\)</span>, and <span class="math notranslate nohighlight">\(r_N={Sign}\left(a_N=c_1\right)\)</span></p></li>
 </ul>
 </div></blockquote>

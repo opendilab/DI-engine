@@ -4,10 +4,10 @@ Buffer 使用指南
 Buffer 入门
 -------------------------------
 
+**Buffer 的基本概念**
+
 在 Off-policy RL 算法中，我们通常会使用经验回放（Experience Replay）机制来提高样本利用效率，并降低样本之间的相关性。
 DI-engine 提供了 \ **DequeBuffer** \ 来实现经验回放池的常见功能，例如数据的存入、采样等。用户可以通过以下命令创建 DequeBuffer 对象:
-
-**Buffer 的基本概念**
 
 .. code-block:: python
 

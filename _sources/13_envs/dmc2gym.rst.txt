@@ -2,7 +2,7 @@ dmc2gym
 ~~~~~~~~~~~~
 
 Overview
-=======
+==========
 
 dmc2gym is a light wrapper for \ `DeepMind Control Suite <https://github.com/deepmind/dm_control>`__ \ , providing standard OpenAI Gym interface.
 DeepMind Control Suite is a set of continuous control tasks with standardized structures and interpretable rewards intended as a performance benchmark for reinforcement learning agents.
@@ -12,7 +12,7 @@ DeepMind Control Suite is a set of continuous control tasks with standardized st
    :align: center
 
 Installation
-====
+==============
 
 Method
 --------
@@ -30,7 +30,7 @@ Note: If you need to install the corresponding package to the user directory (If
     pip install git+git://github.com/denisyarats/dmc2gym.git
 
 Verify Installation
---------
+----------------------
 
 After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:
 
@@ -42,7 +42,7 @@ After the installation is complete, you can verify that the installation was suc
     print(obs.shape)    # (4,)
 
 Image
-----
+--------
 
 DI-engine image comes with the framwork and the dmc2gym environment, which is available via \ ``docker pull opendilab/ding:nightly-dmc2gym``\ , or by visiting\ `docker hub <https://hub.docker.com/r/opendilab/ding>`__\ to get more images.
 
@@ -158,7 +158,7 @@ Obervation Space
 ----------------
 
 Based on Image Observation
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  When setting \ ``from_pixels=True``\ , the observation space is a three-channel game image with height and width respectively.
 
@@ -173,21 +173,21 @@ Based on Image Observation
 -  The range of a single pixel value for each channel is \ ``[0, 255]``\ , and the data type is \ ``uint8``\
 
 Non-Image Based Observation 
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  When \ ``from_pixels=False``\ is set, the observation space dimension follows \ ``dim(O)``\ in the above table
 
 -  The default range is \ ``[-inf, inf]``\ 
 
 Action Space
---------
+--------------
 
 -  Action space dimensions follow \ ``dim(A)``\ in the above table
 
 -  dmc2gym normalizes the action space, the range of each dimension is \ ``[-1, 1]``\ , the type is \ ``float32``\ .
 
 Reward Space
---------
+---------------
 
 Image Based Observation 
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -199,26 +199,26 @@ Image Based Observation
    - The reward space of each frame is \ ``[0, 1]``\ , and the reward of \ ``frame_skip``\ are superimposed together as the overall reward
 
 Non-Image Based Observation 
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - The dimension is \ ``(1, )``\ , the range is  \ ``[0, 1]``\ , the type is \ ``float32``\ .
 
 Other
-====
+======
 
 Abort Condition
---------
+------------------
 
 Control tasks are divided into finite-horizon, firstexit and infinite-horizon. DeepMind Control Suite belongs to infinite-horizon, so there is no aborted state or time limit for tasks. 
 
 Lazy Initialization
-----------
+----------------------
 
 In order to facilitate parallel operations such as environment vectorization, environment instances generally implement lazy initialization , which means \ ``__init__``\ method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. The concrete original environment instance is initialized when the \ ``reset``\ method is used.
 
 
 Random Seeds
---------
+--------------
 
 -  There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations(such as \ ``random``\ , \ ``np.random``\)
 
@@ -261,7 +261,7 @@ After the environment is created, but before reset, call the \ ``enable_save_rep
 
 
 DI-zoo Runnable Code Example
-======================
+==============================
 
 
 The complete example file is at  `github

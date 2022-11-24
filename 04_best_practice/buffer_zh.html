@@ -302,9 +302,9 @@
 <h1>Buffer 使用指南<a class="headerlink" href="#buffer" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
 <h2>Buffer 入门<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p><strong>Buffer 的基本概念</strong></p>
 <p>在 Off-policy RL 算法中，我们通常会使用经验回放（Experience Replay）机制来提高样本利用效率，并降低样本之间的相关性。
 DI-engine 提供了 <strong>DequeBuffer</strong> 来实现经验回放池的常见功能，例如数据的存入、采样等。用户可以通过以下命令创建 DequeBuffer 对象:</p>
-<p><strong>Buffer 的基本概念</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>

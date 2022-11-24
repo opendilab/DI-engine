@@ -788,8 +788,8 @@
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (int) Only one of [n_sample, n_episode] shoule be set</span>
-            <span class="c1"># n_sample=64,</span>
+            <span class="c1"># (int) Only one of n_episode shoule be set</span>
+            <span class="c1"># n_episode=8,</span>
             <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="c1"># ==============================================================</span>
@@ -802,13 +802,7 @@
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;discrete_bc&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.bc&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;PPOPGPolicy doesn&#39;t have default_model, please define your own model and pass it &quot;</span> <span class="o">+</span>
-                <span class="s2">&quot;into policy, you can refer to &quot;</span> <span class="o">+</span> <span class="s2">&quot;dizoo/box2d/bipedalwalker/config/bipedalwalker_ppopg_config.py&quot;</span>
-            <span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;pg&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.pg&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span>
@@ -884,16 +878,6 @@
                     <span class="p">)</span>
                 <span class="n">return_infos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">return_info</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">return_infos</span>
-
-    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
-            <span class="s1">&#39;optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
-        <span class="p">}</span>
-
-    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span>

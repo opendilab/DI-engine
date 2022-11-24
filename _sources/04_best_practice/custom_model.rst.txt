@@ -28,14 +28,14 @@ Observe here that the method either returns \ ``'maqac_continuous', ['ding.model
 When using the configuration file ``cfg.policy.model``, DI-engine will correspondingly pass each argument into the model registered with DI-engine's registry mechanism. (For example, argument ``obs_shape``, ``action_shape`` etc will be passed into `QAC <https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py#L13>`_ ). The required neural network is then automatically generated in the model class based on the incoming arguments (e.g. a fully connected layer (FC) for vector input and a convolution (Conv) for image input).
 
 How to customize the neural network model
-----------------------------------
+-------------------------------------------
 
 It is often the case that the \ ``default_model``\ chosen in a DI-engine \ ``policy``\  is not suitable for one's task at hand. Take for example the use of \ ``sac``\  on the \ ``cartpole-swingup``\  task of \ ``dmc2gym``\  (a wrapper for the Deep Mind Control Suite). Note the default values for observation is  \ ``pixel``\, while \ ``obs_shape = (3, height, width)``\  (For setting \ ``from_pixel = True, channels_first = True``\, see \ `dmc2gym <https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst>`__\  documentation for details)
 
 If one were to look at the source code of \ `sac <https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py>`__\, it can be seen that the \ ``default_model``\  is actually \ `qac <https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py>`__\. The \ ``qac model``\  currently only supports an \ ``obs_shape``\  of one dimensoin (e.g. (4, )). Hence, it becomes apparent that one must customize a model according to one's needs and ensure that the policy is setup accordingly.
 
 Step-by-step guide to customizing a model
-----------------------------------
+------------------------------------------
 
 1. Choose your environment and policy
 +++++++++++++++++++++++++++++++++++++
@@ -43,7 +43,7 @@ Step-by-step guide to customizing a model
 -  For the purpose of this guide, let the choice of environment and policy to be the use of \ ``sac``\  on the \ ``cartpole-swingup``\  task of \ ``dmc2gym``\  (a wrapper for the Deep Mind Control Suite). (For details, see \ `dmc2gym <https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst>`__\  documentation)
 
 2. Check to see if the policy's default_model is suitable
-++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 -  This can be done in 1 of 2 ways. One either look up the documentation at \ `policy-default_model <https://xxx>`__\  or read the source code of \ `ding/policy/sac:SACPolicy <https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py>`__\  and find out what is being used in the \ ``default_model``\  method. 
 
@@ -180,7 +180,7 @@ From here, one will customize the model required specifically for the sac+dmc2gy
 -  Finally, we will also have to make corresponding changes to \ ``compute_actor``\  and  \ ``compute_critic``\
 
 4. How to make use of a customized model
-+++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++
 
 -  New pipeline: Define the model with the corresponding imports, then pass the model into the policy as an argument as follows.
 

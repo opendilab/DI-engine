@@ -15,7 +15,7 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 的观测状态 :math:`s_{t-1}, s_{t-2}, ...` 来推断 :math:`a_t`。这
 需要 RNN 智能体保存先前的观察结果并保存RNN 隐藏状态。
 
-DI-engine 支持 RNN网络，并提供易于使用的 API 让用户
+DI-engine 支持 RNN 网络，并提供易于使用的 API 让用户
 实现 RNN 的变体。
 
 DI-engine中的相关组件
@@ -57,7 +57,7 @@ sqn     ×
 
 在 DI-engine 中使用 RNN 的过程如下。
 
--  构建你的 RNN 模型
+-  构建包含 RNN 的模型
 
 -  将您的模型包装在策略中
 
@@ -67,13 +67,13 @@ sqn     ×
 
 -  Burn-in（Optional）
 
-构建 RNN 模型
+构建包含 RNN 的模型
 ~~~~~~~~~~~~~~~~~~~~~~
 
-您可以使用 DI-engine 的内置 RNN 模型或您自己的 RNN 模型。
+您可以使用 DI-engine 的已实现的包含 RNN 的模型或您自己的模型。
 
-1. 使用 DI-engine 的内置模型。 DI-engine的DRQN对于离散动作空间环境提供RNN
-   支持（默认为 LSTM）。你可以轻松地在配置中指定模型类型或在策略中设置默认模型以使用
+1. 使用 DI-engine 已实现的模型。 DI-engine 的 DRQN 对于离散动作空间环境提供 RNN 
+   支持（默认为 LSTM）。你可以在配置中指定模型类型或在策略中设置默认模型以使用
    它。
 
 .. code:: python
@@ -93,12 +93,12 @@ sqn     ×
      def default_model(self) -> Tuple[str, List[str]]:
          return 'drqn', ['ding.model.template.q_learning']
 
-2. 使用定制模型。 请参考 `Set up Policy and NN model <..//quick_start/index.html#set-up-policy-and-nn-model>`_.
-   为了使您的模型以最少的代码更改适应 Di-engine的入口文件（serial entry），模型的输出 dict 应包含 ``'next_state'`` 键。
+2. 使用定制模型。 请参考 `如何自定义神经网络模型（model） <https://di-engine-docs.readthedocs.io/zh_CN/latest/04_best_practice/custom_model_zh.html>`_.
+   为了使您的模型以最少的代码更改适应 Di-engine 的入口文件（serial entry），模型的输出 dict 应包含 ``next_state`` 键。
 
 .. code:: python
 
-   class your_rnn_model(nn.Module):
+   class your_model(nn.Module):
 
      def forward(x):
          # the input data `x` must be a dict, contains the key 'prev_state', the hidden state of last timestep
@@ -110,16 +110,17 @@ sqn     ×
          }
 
 .. note::
-    DI-engine也提供 RNN 模块。您可以通过 ``from ding.torch_utils import get_lstm`` 使用 ``get_lstm()`` 函数. 该功能允许用户使用由 ding/pytorch/HPC 实现的 LSTM。
+    DI-engine 也提供 RNN 模块。您可以通过 ``from ding.torch_utils import get_lstm`` 使用 ``get_lstm()`` 函数. 该功能允许用户使用由 ding/pytorch/HPC 实现的 LSTM。详情见
+    `ding/torch_utils/network/rnn.py <https://github.com/opendilab/DI-engine/blob/f8a596f6ad4a79a733cc1fbd5974b3f23c915d97/ding/torch_utils/network/rnn.py#L306>`_
 
 
 .. _use-model-wrapper-to-wrap-your-rnn-model-in--policy:
 
-使用模型 Wrapper 将您的 RNN 模型包装在策略中
+使用模型 Wrapper 将您的模型包装在策略中
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-由于 RNN 模型需要维护数据的隐藏状态（hidden states），DI-engine 提供 ``HiddenStateWrapper`` 来支持这个功能。 用户只需要在
-策略的学习/收集/评估初始化阶段来包装模型。 Wrapper 会帮助智能体在模型计算时保留隐藏状态（hidden states），并在下一次模型计算时发送这些隐藏状态（hidden states）。
+由于包含 RNN 的模型需要维护数据的隐藏状态（hidden states），DI-engine 提供 ``HiddenStateWrapper`` 来支持这个功能。 用户只需要在
+策略的学习/收集/评估的初始化阶段来包装模型。 ``HiddenStateWrapper`` 会帮助智能体在模型计算时保留隐藏状态（hidden states），并在下一次模型计算时发送这些隐藏状态（hidden states）。
 
 
 .. code:: python
@@ -142,7 +143,7 @@ sqn     ×
            self._eval_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.eval.env_num)
 
 .. note::
-   Set ``save_prev_state=True`` in collect model's wrapper to make sure there is previous hidden state for learner to initialize RNN.
+   在初始化 collect model 时设置 ``save_prev_state=True`` 是为了给 learner model 的 RNN 初始化提供 previous hidden state 。
 
 `HiddenStateWrapper` 的更多细节可以在 `model wrapper <./model_wrapper.rst>`__ 中找到，它的工作流程可以表示为下图：
 
@@ -154,39 +155,39 @@ sqn     ×
 数据处理
 ~~~~~~~~~~~~~~~~
 
-用于训练 RNN 的 mini-batch 数据不同于通常的数据。 这些数据通常应按时间序列排列. 对于 DI-engine, 这个处理是在
+用于训练 RNN 的 mini-batch 数据不同于通常的数据。 这些数据通常应按时间序列排列。 对于 DI-engine, 这个处理是在
 ``collector`` 阶段完成的。 用户需要在配置文件中指定 ``learn_unroll_len`` 以确保序列数据的长度与算法匹配。 对于大多数情况，
-``learn_unroll_len`` 应该等于 RNN 的历史长度（a.k.a 时间序列长度），但在某些情况下并非如此，比如，在r2d2中， 我们使用burn-in操作， 序列长度等于
-``learn_unroll_len`` + ``burnin_step``. 这里将在下一节中具体解释。
+``learn_unroll_len`` 应该等于 RNN 的历史长度（a.k.a 时间序列长度），但在某些情况下并非如此。比如，在 r2d2 中， 我们使用burn-in操作， 序列长度等于
+``learn_unroll_len`` + ``burnin_step`` 。 这里将在下一节中具体解释。
 
-比如原始采样数据是:math:`[x_1,x_2,x_3,x_4,x_5,x_6]`，每个
-:math:`x` 表示 :math:`[s_t,a_t,r_t,d_t,s_{t+1}]` （也许
-:math:`log_\pi(a_t|s_t)`，隐藏状态等），我们需要 RNN
-的序列长度为 3。
+比如原始采样数据是 :math:`[x_1,x_2,x_3,x_4,x_5,x_6]`，每个
+:math:`x` 表示 :math:`[s_t,a_t,r_t,d_t,s_{t+1}]` （或者
+:math:`log_\pi(a_t|s_t)`，隐藏状态等），此时 `n_sample = 6` 。此时根据所需 RNN
+的序列长度即 ``learn_unroll_len`` 有以下三种情况：
 
-1. ``n_sample`` >= ``learn_unroll_len`` 并且 ``n_sample`` 可以被 ``learn_unroll_len`` 除尽:
-例如``learn_unroll_len=3``，数据将被排列为:math:`[[x_1,x_2,x_3],[x_4,x_5,x_6]]`。
+   1. ``n_sample`` >= ``learn_unroll_len`` 并且 ``n_sample`` 可以被 ``learn_unroll_len`` 除尽:
+   例如 ``n_sample=6`` 和 ``learn_unroll_len=3``，数据将被排列为:math:`[[x_1,x_2,x_3],[x_4,x_5,x_6]]`。
 
-2. ``n_sample`` >= ``learn_unroll_len`` 并且 ``n_sample`` 不可以被 ``learn_unroll_len`` 除尽:
-默认情况下，残差数据将由上一个样本中的一部分数据填充，例如如果 ``n_sample=6`` 和 ``learn_unroll_len=4`` ，数据将被排列为
-:math:`[[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]`。
-
-
-3. ``n_sample`` < ``learn_unroll_len``：例如如果 ``n_sample=6`` 和 ``learn_unroll_len=7``，默认情况下，算法将使用 ``null_padding`` 方法，数据将被排列为
-:math:`[[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]`。 :math:`x_{null}` 类似于 :math:`x_6` 但它的 ``done=True`` 和 ``reward=0``。
-
-..
-    DI-engine's
-    ``get_train_sample`` have ``drop`` and ``null_padding`` method for this case, to
-    use it, you need to specify the arguments of ``get_train_sample`` method in policy's collect related method.
-    - For ``drop``, it means data will be arranged as :math:`[[x_1,x_2,x_3,x_4]]`,
-    - For ``null_padding``, it means data'll be arranged as :math:`[[x_1,x_2,x_3,x_4],[x_5,x_6,x_{null},x_{null}]]`,
-      :math:`x_{null}` is similar to :math:`x_6` but its ``done=True`` and ``reward=0``.
+   1. ``n_sample`` >= ``learn_unroll_len`` 并且 ``n_sample`` 不可以被 ``learn_unroll_len`` 除尽:
+   默认情况下，残差数据将由上一个样本中的一部分数据填充，例如如果 ``n_sample=6`` 和 ``learn_unroll_len=4`` ，数据将被排列为
+   :math:`[[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]`。
 
 
+   1. ``n_sample`` < ``learn_unroll_len``：例如如果 ``n_sample=6`` 和 ``learn_unroll_len=7``，默认情况下，算法将使用 ``null_padding`` 方法，数据将被排列为
+   :math:`[[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]`。 :math:`x_{null}` 类似于 :math:`x_6` 但它的 ``done=True`` 和 ``reward=0``。
 
-这里以r2d2算法为例，在r2d2中，在方法``_get_train_sample``中调用函数
-``get_nstep_return_data`` 和 ``get_train_sample``。
+   ..
+       DI-engine's
+       ``get_train_sample`` have ``drop`` and ``null_padding`` method for this case, to
+       use it, you need to specify the arguments of ``get_train_sample`` method in policy's collect related method.
+       - For ``drop``, it means data will be arranged as :math:`[[x_1,x_2,x_3,x_4]]`,
+       - For ``null_padding``, it means data'll be arranged as :math:`[[x_1,x_2,x_3,x_4],[x_5,x_6,x_{null},x_{null}]]`,
+         :math:`x_{null}` is similar to :math:`x_6` but its ``done=True`` and ``reward=0``.
+
+
+
+这里以r2d2算法为例，在r2d2中，在方法 ``_get_train_sample`` 中通过调用函数
+``get_nstep_return_data`` 和 ``get_train_sample`` 获取按时序排列的数据。
 
 .. code:: python
 
@@ -194,7 +195,7 @@ sqn     ×
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._sequence_len)
 
-有关这两个数据处理功能的更多详细信息，请参见`ding/rl_utilrs/adder.py <https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/adder.py#L125>`_ ,
+有关这两个数据处理功能的更多详细信息，请参见 `ding/rl_utilrs/adder.py <https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/adder.py#L125>`_ ,
 其数据处理的工作流程见下图：
 
         .. image:: images/r2d2_sequence.png
@@ -206,8 +207,8 @@ sqn     ×
 初始化隐藏状态 (Hidden State)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-策略的 ``_learn_model`` 需要初始化 RNN。这些隐藏状态来自 ``_collect_model`` 保存的``prev_state``。
-用户需要通过 _process_transition 函数将这些状态添加到 ``_learn_model`` 输入数据字典中。
+策略的 ``_learn_model`` 需要初始化 RNN。这些隐藏状态来自 ``_collect_model`` 保存的 ``prev_state``。
+用户需要通过 ``_process_transition`` 函数将这些状态添加到 ``_learn_model`` 输入数据字典中。?
 
 .. code:: python
 
@@ -238,9 +239,9 @@ Burn-in(in R2D2)
 
 Burn-in的概念来自 `R2D2 <https://www.deepmind.com/publications/recurrent-experience-replay-in-distributed-reinforcement-learning>`__ （Recurrent Experience Replay In Distributed Reinforcement Learning）论文。论文指出在使用 LSTM 时，最基础的方式是：
 
-1.将完整的 episode 轨迹切分为很多序列样本。在每个序列样本的初始时刻，使用全部为0的 tensor 作为 RNN 网络的初始化 hidden state。
+    1.将完整的 episode 轨迹切分为很多序列样本。在每个序列样本的初始时刻，使用全部为0的 tensor 作为 RNN 网络的初始化 hidden state。
 
-2.使用完整的 episode 轨迹用于 RNN 训练。
+    2.使用完整的 episode 轨迹用于 RNN 训练。
 
 对于第一种方法，由于每个序列样本的初始时刻的 hidden state 应该包含之前时刻的信息，这里简单使用全为0的 Tensor 带来很大的 bias
 对于第二种方法，往往在不同环境上，完整的一个episode的长度是变化的，很难直接用于 RNN 的训练。
@@ -252,10 +253,10 @@ Burn-in 给予 RNN 网络一个
 ``sequence length = burnin_step + learn_unroll_len``.
 所以在配置文件中， ``learn_unroll_len`` 应该设置为 ``sequence length - burnin_step``。
 
-在此设置中，原始展开的 obs 序列被拆分为 ``burnin_nstep_obs`` ， ``main_obs`` 和 ``marget_obs``。``burnin_nstep_obs`` 是
-用于计算 rnn 的初始隐藏状态，用便未来用于计算 q_value、target_q_value 和 target_q_action。
-``main_obs`` 用于计算 q_value。在下面的代码中，[bs:-self._nstep] 表示使用来自的数据
-``bs`` 时间步长到 ``sequence length`` -``self._nstep`` 时间步长。
+在此设置中，原始展开的 obs 序列被拆分为 ``burnin_nstep_obs`` ， ``main_obs`` 和 ``marget_obs``。 ``burnin_nstep_obs`` 是
+用于计算 RNN 的初始隐藏状态，用便未来用于计算 q_value、target_q_value 和 target_q_action。
+``main_obs`` 用于计算 q_value。在下面的代码中， [bs:-self._nstep] 表示使用来自的数据
+``bs`` 时间步长到 ``sequence length`` - ``self._nstep`` 时间步长。
 ``target_obs`` 用于计算 target_q_value。
 
 这个数据处理可以通过下面的代码来实现：
@@ -317,4 +318,4 @@ Burn-in 给予 RNN 网络一个
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
 
-RNN和burn-in的更多细节可以参考 `ding/policy/r2d2.py <https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py>` __。
+RNN和burn-in的更多细节可以参考 `ding/policy/r2d2.py <https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py>`__ 。
