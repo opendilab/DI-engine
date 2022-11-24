@@ -54,7 +54,7 @@ class PG(nn.Module):
                 sigma_type='independent'
             )
         else:
-            raise RuntimeError("not support action space: {}".format(self.action_space))
+            raise KeyError("not support action space: {}".format(self.action_space))
 
     def forward(self, x: torch.Tensor) -> Dict:
         x = self.encoder(x)
