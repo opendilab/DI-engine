@@ -1,6 +1,6 @@
 
 import json
-from luxai2021.game.actions import Action
+from .actions import Action
 from typing import List
 from .constants import Constants
 

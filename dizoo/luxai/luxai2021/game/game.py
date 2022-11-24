@@ -1,11 +1,11 @@
 import os
-from luxai2021.game.replay import Replay
+from dizoo.luxai.luxai2021.game.replay import Replay
 import math
 import random
 import sys
 import traceback
 
-from luxai2021.game.actions import MoveAction, PillageAction, SpawnCartAction, SpawnCityAction, SpawnWorkerAction, \
+from dizoo.luxai.luxai2021.game.actions import MoveAction, PillageAction, SpawnCartAction, SpawnCityAction, SpawnWorkerAction, \
     ResearchAction, TransferAction
 from .city import City
 from .position import Position

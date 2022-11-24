@@ -2,7 +2,7 @@ import time
 from unittest import TestCase
 import json
 import os
-from luxai2021.game.actions import MoveAction
+from dizoo.luxai.luxai2021.game.actions import MoveAction
 from ..game.constants import Constants
 from ..game.game import Game
 from ..game.game_constants import GAME_CONSTANTS

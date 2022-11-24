@@ -6,6 +6,7 @@ import gym
 import os
 from stable_baselines3.common.callbacks import BaseCallback
 
+from ding.envs import BaseEnv
 from dizoo.luxai.luxai2021.game.game import Game
 from dizoo.luxai.luxai2021.game.match_controller import GameStepFailedException, MatchController
 from dizoo.luxai.luxai2021.game.constants import Constants
@@ -220,4 +221,10 @@ class LuxEnvironment(gym.Env):
         return is_game_error
 
 if __name__ == "__main__":
+    from dizoo.luxai.luxai2021.game.constants import LuxMatchConfigs_Default
+    from dizoo.luxai.luxai2021.env.agent import Agent
+    cfg = LuxMatchConfigs_Default
+    opp = Agent()
+    player = Agent()
+    lux_env = LuxEnvironment(cfg, player, opp)
     print("Done!")

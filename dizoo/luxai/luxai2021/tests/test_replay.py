@@ -1,9 +1,9 @@
 import pytest
 import json
 import os
-from luxai2021.game.constants import LuxMatchConfigs_Default
-from luxai2021.env.lux_env import LuxEnvironment
-from luxai2021.env.agent import Agent, AgentFromReplay
+from dizoo.luxai.luxai2021.game.constants import LuxMatchConfigs_Default
+from dizoo.luxai.luxai2021.env.lux_env import LuxEnvironment
+from dizoo.luxai.luxai2021.env.agent import Agent, AgentFromReplay
 
 @pytest.mark.parametrize("replay_id",['27095556', 
                                       '26835897', 

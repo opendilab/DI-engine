@@ -1,4 +1,4 @@
-from luxai2021.game.city import CityTile
+from .city import CityTile
 import random
 import sys
 import time
