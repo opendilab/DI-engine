@@ -494,8 +494,8 @@ class PPOPGPolicy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=64,
+            # (int) Only one of n_episode shoule be set
+            # n_episode=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # ==============================================================
@@ -508,13 +508,7 @@ class PPOPGPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.action_space == 'discrete':
-            return 'discrete_bc', ['ding.model.template.bc']
-        else:
-            return RuntimeError(
-                "PPOPGPolicy doesn't have default_model, please define your own model and pass it " +
-                "into policy, you can refer to " + "dizoo/box2d/bipedalwalker/config/bipedalwalker_ppopg_config.py"
-            )
+        return 'pg', ['ding.model.template.pg']
 
     def _init_learn(self) -> None:
         self._action_space = self._cfg.action_space
@@ -590,16 +584,6 @@ class PPOPGPolicy(Policy):
                     )
                 return_infos.append(return_info)
         return return_infos
-
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        return {
-            'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
         self._action_space = self._cfg.action_space
