@@ -2,11 +2,11 @@ from typing import Any, Tuple, Callable, Optional, List, Dict
 from abc import ABC
 import numpy as np
 import torch
+import torch.nn.functional as F
+from torch.distributions import Categorical, Independent, Normal, MultivariateNormal
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
-from torch.distributions import Categorical, Independent, Normal
 from ding.utils.data import default_collate
-import torch.nn.functional as F
 
 
 class IModelWrapper(ABC):
@@ -739,7 +739,12 @@ class ReparamSample(IModelWrapper):
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         mu, sigma = output['logit']['mu'], output['logit']['sigma']
-        dist = Independent(Normal(mu, sigma), 1)
+        if sigma.dim() == 2:
+            dist = Independent(Normal(mu, sigma), 1)
+        elif sigma.dim() == 3:
+            dist = Independent(MultivariateNormal(mu, sigma), 1)
+        else:
+            raise ValueError("sigma.shape should be [B,D] or [B,D,D].")
         output['action'] = dist.sample()
         return output
 

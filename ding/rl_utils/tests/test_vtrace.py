@@ -1,6 +1,6 @@
 import pytest
 import torch
-from ding.rl_utils import vtrace_data, vtrace_error
+from ding.rl_utils import vtrace_data, vtrace_error_discrete_action
 
 
 @pytest.mark.unittest
@@ -12,7 +12,7 @@ def test_vtrace():
     behaviour_output = torch.randn(T, B, N)
     action = torch.randint(0, N, size=(T, B))
     data = vtrace_data(target_output, behaviour_output, action, value, reward, None)
-    loss = vtrace_error(data, rho_clip_ratio=1.1)
+    loss = vtrace_error_discrete_action(data, rho_clip_ratio=1.1)
     assert all([l.shape == tuple() for l in loss])
     assert target_output.grad is None
     assert value.grad is None

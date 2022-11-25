@@ -1,7 +1,10 @@
 import torch
+from torch.distributions import Categorical, Independent, Normal, MultivariateNormal
 
 
-def compute_importance_weights(target_output, behaviour_output, action, requires_grad=False):
+def compute_importance_weights(
+    target_output, behaviour_output, action, action_space_type: str = 'discrete', requires_grad: bool = False
+):
     """
     Overview:
         Computing importance sampling weight with given output and action
@@ -12,6 +15,7 @@ def compute_importance_weights(target_output, behaviour_output, action, requires
             usually this output is network output logit, which is used to produce the trajectory(collector)
         - action (:obj:`torch.Tensor`): the chosen action(index for the discrete action space) in trajectory,\
             i.e.: behaviour_action
+        - action_space_type (:obj:`str`): action space types in ['discrete', 'continuous']
         - requires_grad (:obj:`bool`): whether requires grad computation
     Returns:
         - rhos (:obj:`torch.Tensor`): Importance sampling weight
@@ -24,10 +28,27 @@ def compute_importance_weights(target_output, behaviour_output, action, requires
     """
     grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
     assert isinstance(action, torch.Tensor)
+    assert action_space_type in ['discrete', 'continuous']
 
     with grad_context:
-        dist_target = torch.distributions.Categorical(logits=target_output)
-        dist_behaviour = torch.distributions.Categorical(logits=behaviour_output)
-        rhos = dist_target.log_prob(action) - dist_behaviour.log_prob(action)
-        rhos = torch.exp(rhos)
-        return rhos
+        if action_space_type == 'continuous':
+            if target_output['sigma'].dim() == 3:  #T,B,env_action_dim
+                dist_target = Independent(Normal(loc=target_output['mu'], scale=target_output['sigma']), 1)
+                dist_behaviour = Independent(Normal(loc=behaviour_output['mu'], scale=behaviour_output['sigma']), 1)
+                rhos = dist_target.log_prob(action) - dist_behaviour.log_prob(action)
+                rhos = torch.exp(rhos)
+                return rhos
+            elif target_output['sigma'].dim() == 4:  #T,B,env_action_dim,env_action_dim
+                dist_target = Independent(MultivariateNormal(loc=target_output['mu'], scale=target_output['sigma']), 1)
+                dist_behaviour = Independent(
+                    MultivariateNormal(loc=behaviour_output['mu'], scale=behaviour_output['sigma']), 1
+                )
+                rhos = dist_target.log_prob(action) - dist_behaviour.log_prob(action)
+                rhos = torch.exp(rhos)
+                return rhos
+        elif action_space_type == 'discrete':
+            dist_target = Categorical(logits=target_output)
+            dist_behaviour = Categorical(logits=behaviour_output)
+            rhos = dist_target.log_prob(action) - dist_behaviour.log_prob(action)
+            rhos = torch.exp(rhos)
+            return rhos

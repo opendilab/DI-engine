@@ -4,6 +4,7 @@ from .qac import QAC, DiscreteQAC
 from .pdqn import PDQN
 from .vac import VAC
 from .bc import DiscreteBC, ContinuousBC
+from .pg import PG
 # algorithm-specific
 from .ppg import PPG
 from .qmix import Mixer, QMix

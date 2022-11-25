@@ -16,7 +16,7 @@ from .vtrace import vtrace_loss, compute_importance_weights
 from .upgo import upgo_loss
 from .adder import get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
 from .value_rescale import value_transform, value_inv_transform
-from .vtrace import vtrace_data, vtrace_error
+from .vtrace import vtrace_data, vtrace_error_discrete_action, vtrace_error_continuous_action
 from .beta_function import beta_function_map
 from .retrace import compute_q_retraces
 from .acer import acer_policy_error, acer_value_error, acer_trust_region_update
