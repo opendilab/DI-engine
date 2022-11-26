@@ -6,7 +6,8 @@ import gym
 import os
 from stable_baselines3.common.callbacks import BaseCallback
 
-from ding.envs import BaseEnv
+from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 from dizoo.luxai.luxai2021.game.game import Game
 from dizoo.luxai.luxai2021.game.match_controller import GameStepFailedException, MatchController
 from dizoo.luxai.luxai2021.game.constants import Constants
@@ -71,23 +72,30 @@ class SaveReplayAndModelCallback(BaseCallback):
                 print(f"Saved model checkpoint and replay to {path}")
         return True
 
-class LuxEnvironment(gym.Env):
+
+@ENV_REGISTRY.register("luxai2021")
+class LuxEnvironment(BaseEnv):
     """
     Custom Environment that follows gym interface
+    Edited by i-am-tc for compatibility with DI-engine
+    Credts to  glmcdona's LuxPythonEnvGym 
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, configs, learning_agent, opponent_agent, replay_validate=None, replay_folder=None, replay_prefix="replay"):
+    def __init__(self, cfg: EasyDict, learning_agent, opponent_agent, replay_validate=None, replay_folder=None, replay_prefix="replay"):
         """
-        THe initializer
+        The initializer
         :param configs:
         :param learning_agent:
         :param opponent_agent:
         """
         super(LuxEnvironment, self).__init__()
 
+        # For DI-engine compatibility
+        self._cfg = cfg
+
         # Create the game
-        self.game = Game(configs)
+        self.game = Game(self._cfg)
         self.match_controller = MatchController(self.game, 
                                                 agents=[learning_agent, opponent_agent], 
                                                 replay_validate=replay_validate)
@@ -111,6 +119,11 @@ class LuxEnvironment(gym.Env):
 
         self.last_observation_object = None
 
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
+        self._seed = seed
+        self._dynamic_seed = dynamic_seed
+        np.random.seed(self._seed)
+
     def set_replay_path(self, replay_folder, replay_prefix):
         """
         Override the replay prefix
@@ -121,7 +134,7 @@ class LuxEnvironment(gym.Env):
         self.replay_prefix = replay_prefix
         self.replay_folder = replay_folder
 
-    def step(self, action_code):
+    def step(self, action_code) -> BaseEnvTimestep:
         """
         Take this action, then get the state at the next action
         :param action_code:
@@ -159,13 +172,20 @@ class LuxEnvironment(gym.Env):
         # Calculate reward for this step
         reward = self.learning_agent.get_reward(self.game, is_game_over, is_new_turn, is_game_error)
 
-        return obs, reward, is_game_over, {}
+        # For DI-engine compatibility
+        self._final_eval_reward += reward
+        obs = to_ndarray(obs)
+        reward = to_ndarray([reward])
+        if is_game_over:
+            info['final_eval_reward'] = self._final_eval_reward
+        return BaseEnvTimestep(obs, reward, is_game_over, info)
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """
 
         :return:
         """
+
         self.current_step = 0
         self.last_observation_object = None
 
@@ -180,6 +200,10 @@ class LuxEnvironment(gym.Env):
 
         obs = self.learning_agent.get_observation(self.game, unit, city_tile, team, is_new_turn)
         self.last_observation_object = (unit, city_tile, team, is_new_turn)
+
+        # For DI-engine compatibility
+        obs = to_ndarray(obs)
+        self._final_eval_reward = 0.
 
         return obs
 
@@ -219,6 +243,9 @@ class LuxEnvironment(gym.Env):
             is_game_error = True
 
         return is_game_error
+
+        def  __repr__(self) -> str:
+            return "DI-engine Lux AI 2021 Env"
 
 if __name__ == "__main__":
     from dizoo.luxai.luxai2021.game.constants import LuxMatchConfigs_Default
