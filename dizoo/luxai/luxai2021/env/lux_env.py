@@ -93,16 +93,13 @@ class LuxEnvironment(BaseEnv):
 
         # For DI-engine compatibility
         self._cfg = cfg
-
-        # Create the game
-        self.game = Game(self._cfg)
-        self.match_controller = MatchController(self.game, 
-                                                agents=[learning_agent, opponent_agent], 
-                                                replay_validate=replay_validate)
+        self._init_flag = False
+        self.learning_agent = learning_agent
+        self.opponent_agent = opponent_agent
         
-        self.replay_prefix = replay_prefix
+        self.replay_validate = replay_validate
         self.replay_folder = replay_folder
-
+        self.replay_prefix = replay_prefix
 
         self.action_space = []
         if hasattr( learning_agent, 'action_space' ):
@@ -189,11 +186,22 @@ class LuxEnvironment(BaseEnv):
         self.current_step = 0
         self.last_observation_object = None
 
-        # Reset game + map
-        self.match_controller.reset()
+        # For DI-engine compatibility
+        if not self._init_flag:
+            # Create the game
+            self.game = Game(self._cfg)
+            self.match_controller = MatchController(self.game, 
+                                                    agents=[self.learning_agent, self.opponent_agent], 
+                                                    replay_validate=replay_validate)
+            # Reset game + map
+            self.match_controller.reset()
+            self._init_flag = True
+
         if self.replay_folder:
             # Tell the game to log replays
             self.game.start_replay_logging(stateful=True, replay_folder=self.replay_folder, replay_filename_prefix=self.replay_prefix)
+
+        #TODO: what is the difference betwene match_controllers observation & learning agent's observation? 
 
         self.match_generator = self.match_controller.run_to_next_observation()
         (unit, city_tile, team, is_new_turn) = next(self.match_generator)
