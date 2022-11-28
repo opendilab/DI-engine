@@ -6,6 +6,7 @@ from easydict import EasyDict
 import os
 import pickle
 import time
+import tempfile
 
 from ding.worker.replay_buffer import AdvancedReplayBuffer
 from ding.utils import deep_merge_dicts
@@ -72,6 +73,28 @@ class TestAdvancedBuffer:
             assert advanced_buffer._tail == (start_pointer + extend_num * i) % replay_buffer_size
             assert advanced_buffer._next_unique_id == start_data_id + extend_num * i
             assert advanced_buffer._valid_count == min(start_data_id + extend_num * i, replay_buffer_size)
+
+    def test_save_and_load_data(self):
+        buffer_cfg = deep_merge_dicts(AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
+        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
+        start_pointer = advanced_buffer._tail
+        start_vaildlen = advanced_buffer.count()
+        start_data_id = advanced_buffer._next_unique_id
+        valid_count = 0
+        for _ in range(100):
+            if advanced_buffer._data[advanced_buffer._tail] is None:
+                valid_count += 1
+            advanced_buffer.push(generate_data(), 0)
+        assert (advanced_buffer.replay_buffer_size == 64)
+        assert (advanced_buffer.count() == 64 == start_vaildlen + valid_count)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            test_file = os.path.join(tmpdirname, "data.hkl")
+            advanced_buffer.save_data(test_file)
+            advanced_buffer_new = AdvancedReplayBuffer(buffer_cfg, instance_name='test_new')
+            advanced_buffer_new.load_data(test_file)
+            assert (advanced_buffer_new.replay_buffer_size == 64)
+            assert (advanced_buffer_new.count() == 64 == start_vaildlen + valid_count)
+            assert (advanced_buffer_new.push_count == 64)
 
     def test_update(self):
         buffer_cfg = deep_merge_dicts(AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))

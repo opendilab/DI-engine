@@ -1,18 +1,19 @@
 from typing import Any, Union, List, Optional
+import os
+import time
 import copy
 import numpy as np
-from easydict import EasyDict
 import gym
-import evogym.envs
-from evogym import WorldObject, sample_robot
-from .viewer import DingEvoViewer
-from evogym.sim import EvoSim
-import os
+from easydict import EasyDict
+
 from ding.envs import BaseEnv, BaseEnvTimestep, FinalEvalRewardEnv
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
+import evogym.envs
+from evogym import WorldObject, sample_robot
+from evogym.sim import EvoSim
 
 @ENV_REGISTRY.register('evogym')
 class EvoGymEnv(BaseEnv):
@@ -59,11 +60,17 @@ class EvoGymEnv(BaseEnv):
             self._env.seed(self._seed)
         if self._replay_path is not None:
             gym.logger.set_level(gym.logger.DEBUG)
-            # use our own 'viewer' to make 'render' compatible with gym
-            self._env.default_viewer = DingEvoViewer(EvoSim(self._env.world))
-            self._env.__class__.render = self._env.default_viewer.render
-            self._env.metadata['render.modes'] = 'rgb_array'  # make render mode compatible with gym
-            self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
+            # make render mode compatible with gym
+            if gym.version.VERSION > '0.22.0':
+                self._env.metadata.update({'render_modes': ["rgb_array"]})
+            else:
+                self._env.metadata.update({'render.modes': ["rgb_array"]})
+            self._env = gym.wrappers.RecordVideo(
+                self._env,
+                video_folder=self._replay_path,
+                episode_trigger=lambda episode_id: True,
+                name_prefix='rl-video-{}-{}'.format(id(self),time.time())
+            )
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
         return obs

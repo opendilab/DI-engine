@@ -2,6 +2,7 @@ import pytest
 from easydict import EasyDict
 import os
 import time
+import tempfile
 
 from ding.worker.replay_buffer import NaiveReplayBuffer
 from ding.utils import deep_merge_dicts
@@ -36,6 +37,29 @@ class TestNaiveBuffer:
             data = generate_data_list(extend_num)
             naive_buffer.push(data, 0)
             assert naive_buffer._tail == (start_pointer + extend_num * i) % replay_buffer_size
+
+    def test_save_and_load_data(self):
+        buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
+        naive_buffer = NaiveReplayBuffer(buffer_cfg, instance_name='test')
+        start_pointer = naive_buffer._tail
+        start_vaildlen = naive_buffer.count()
+        valid_count = 0
+        for _ in range(100):
+            if naive_buffer._data[naive_buffer._tail] is None:
+                valid_count += 1
+            naive_buffer.push(generate_data(), 0)
+        assert (naive_buffer.replay_buffer_size == 64)
+        assert (naive_buffer.count() == 64 == start_vaildlen + valid_count)
+        assert (naive_buffer.push_count == start_vaildlen + 100)
+        assert (naive_buffer._tail == (start_pointer + 100) % naive_buffer.replay_buffer_size)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            test_file = os.path.join(tmpdirname, "data.hkl")
+            naive_buffer.save_data(test_file)
+            naive_buffer_new = NaiveReplayBuffer(buffer_cfg, instance_name='test_new')
+            naive_buffer_new.load_data(test_file)
+            assert (naive_buffer_new.replay_buffer_size == 64)
+            assert (naive_buffer_new.count() == 64 == start_vaildlen + valid_count)
+            assert (naive_buffer_new.push_count == 64)
 
     def test_sample(self):
         buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))

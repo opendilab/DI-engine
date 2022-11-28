@@ -8,6 +8,7 @@ from queue import Queue
 
 import numpy as np
 import torch
+import treetensor.torch as ttorch
 
 
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
@@ -49,6 +50,8 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     elif isinstance(item, np.ndarray) or isinstance(item, np.bool_):
         return item
     elif item is None or isinstance(item, str):
+        return item
+    elif isinstance(item, torch.distributions.Distribution):  # for compatibility
         return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
@@ -408,3 +411,20 @@ def get_null_data(template: Any, num: int) -> List[Any]:
         data['reward'].zero_()
         ret.append(data)
     return ret
+
+
+def get_shape0(data):
+    if isinstance(data, torch.Tensor):
+        return data.shape[0]
+    elif isinstance(data, ttorch.Tensor):
+
+        def fn(t):
+            item = list(t.values())[0]
+            if np.isscalar(item[0]):
+                return item[0]
+            else:
+                return fn(item)
+
+        return fn(data.shape)
+    else:
+        raise TypeError("not support type: {}".format(data))

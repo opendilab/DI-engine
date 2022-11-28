@@ -62,7 +62,7 @@ def call_gae_estimator(batch_size: int = 32, trajectory_end_idx_size: int = 5, b
         gae_estimator(cfg, MockPolicy(TheModelClass()), buffer)(ctx)
 
     if buffer is not None:
-        train_data = [d.data for d in buffer.export_data()]
+        train_data = [d.data for d in list(buffer.storage)]
         for d in train_data:
             d.logit = d.logit[0]
             d.next_obs = d.next_obs[0]

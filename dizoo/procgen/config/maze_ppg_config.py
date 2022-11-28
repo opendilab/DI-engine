@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-maze_ppg_default_config = dict(
+maze_ppg_config = dict(
     exp_name='maze_ppg_seed0',
     env=dict(
         is_train=True,
@@ -40,8 +40,8 @@ maze_ppg_default_config = dict(
         other=dict(),
     ),
 )
-maze_ppg_default_config = EasyDict(maze_ppg_default_config)
-main_config = maze_ppg_default_config
+maze_ppg_config = EasyDict(maze_ppg_config)
+main_config = maze_ppg_config
 
 maze_ppg_create_config = dict(
     env=dict(

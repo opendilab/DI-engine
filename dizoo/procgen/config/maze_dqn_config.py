@@ -1,9 +1,9 @@
 from easydict import EasyDict
 
-coinrun_dqn_default_config = dict(
+maze_dqn_config = dict(
     env=dict(
-        env_id='coinrun',
         collector_env_num=4,
+        env_id='maze',
         evaluator_env_num=4,
         n_evaluator_episode=4,
         stop_value=10,
@@ -22,6 +22,7 @@ coinrun_dqn_default_config = dict(
             batch_size=32,
             learning_rate=0.0005,
             target_update_freq=500,
+            discount_factor=0.99,
         ),
         collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
@@ -36,10 +37,10 @@ coinrun_dqn_default_config = dict(
         ),
     ),
 )
-coinrun_dqn_default_config = EasyDict(coinrun_dqn_default_config)
-main_config = coinrun_dqn_default_config
+maze_dqn_config = EasyDict(maze_dqn_config)
+main_config = maze_dqn_config
 
-coinrun_dqn_create_config = dict(
+maze_dqn_create_config = dict(
     env=dict(
         type='procgen',
         import_names=['dizoo.procgen.envs.procgen_env'],
@@ -47,5 +48,5 @@ coinrun_dqn_create_config = dict(
     env_manager=dict(type='subprocess', ),
     policy=dict(type='dqn'),
 )
-coinrun_dqn_create_config = EasyDict(coinrun_dqn_create_config)
-create_config = coinrun_dqn_create_config
+maze_dqn_create_config = EasyDict(maze_dqn_create_config)
+create_config = maze_dqn_create_config
