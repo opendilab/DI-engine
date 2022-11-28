@@ -15,6 +15,7 @@ from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy, PPOPGPolicy, PPOSTDIMPolicy
 from .offppo_collect_traj import OffPPOCollectTrajPolicy
 from .ppg import PPGPolicy, PPGOffPolicy
+from .pg import PGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
@@ -43,6 +44,7 @@ from .cql import CQLPolicy, CQLDiscretePolicy
 from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
+from .madqn import MADQNPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -188,6 +190,11 @@ class PPOOffCollectTrajCommandModePolicy(OffPPOCollectTrajPolicy, DummyCommandMo
     pass
 
 
+@POLICY_REGISTRY.register('pg_command')
+class PGCommandModePolicy(PGPolicy, DummyCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('a2c_command')
 class A2CCommandModePolicy(A2CPolicy, DummyCommandModePolicy):
     pass
@@ -205,6 +212,11 @@ class PPGOffCommandModePolicy(PPGOffPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppg_command')
 class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('madqn_command')
+class MADQNCommandModePolicy(MADQNPolicy, EpsCommandModePolicy):
     pass
 
 
