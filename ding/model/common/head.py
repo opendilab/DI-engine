@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Union, List
 
 import math
 import torch
@@ -1114,6 +1114,15 @@ class MultiHead(nn.Module):
             >>> torch.Size([4, 5])
         """
         return lists_to_dicts([m(x) for m in self.pred])
+
+
+def independent_normal_dist(logits: Union[List, Dict]) -> torch.distributions.Distribution:
+    if isinstance(logits, (list, tuple)):
+        return Independent(Normal(*logits), 1)
+    elif isinstance(logits, dict):
+        return Independent(Normal(logits['mu'], logits['sigma']), 1)
+    else:
+        raise TypeError("invalid logits type: {}".format(type(logits)))
 
 
 head_cls_map = {

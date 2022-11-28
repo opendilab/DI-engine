@@ -235,5 +235,7 @@ def default_decollate(
         tmp = {k: v if k in ignore else default_decollate(v) for k, v in batch.items()}
         B = len(list(tmp.values())[0])
         return [{k: tmp[k][i] for k in tmp.keys()} for i in range(B)]
+    elif isinstance(batch, torch.distributions.Distribution):  # for compatibility
+        return [None for _ in range(batch.batch_shape[0])]
 
     raise TypeError("not support batch type: {}".format(type(batch)))
