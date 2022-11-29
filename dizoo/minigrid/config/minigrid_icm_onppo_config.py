@@ -2,17 +2,13 @@ from easydict import EasyDict
 
 collector_env_num = 8
 evaluator_env_num = 5
-minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_rnd_onppo_seed0',
-    exp_name='minigrid_fourrooms_rnd_onppo_seed0',
+minigrid_icm_onppo_config = dict(
+    exp_name='minigrid_fourroom_icm_onppo_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
-        # typical MiniGrid env id:
-        # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
-        # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
-        # env_id='MiniGrid-Empty-8x8-v0',
+        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0'
         env_id='MiniGrid-FourRooms-v0',
         max_step=300,
         stop_value=2,  # run fixed env_steps
@@ -20,7 +16,7 @@ minigrid_ppo_rnd_config = dict(
     ),
     reward_model=dict(
         intrinsic_reward_type='add',
-        # intrinsic_reward_weight means the relative weight of RND intrinsic_reward.
+        # intrinsic_reward_weight means the relative weight of ICM intrinsic_reward.
         # Specifically for sparse reward env MiniGrid, in this env,
         # if reach goal, the agent get reward ~1, otherwise 0,
         # We could set the intrinsic_reward_weight approximately equal to the inverse of max_episode_steps.
@@ -38,8 +34,8 @@ minigrid_ppo_rnd_config = dict(
         extrinsic_reward_norm_max=1,
     ),
     policy=dict(
-        recompute_adv=True,
         cuda=True,
+        recompute_adv=True,
         action_space='discrete',
         model=dict(
             obs_shape=2835,
@@ -61,7 +57,6 @@ minigrid_ppo_rnd_config = dict(
             value_norm=True,
         ),
         collect=dict(
-            collector_env_num=collector_env_num,
             n_sample=3200,
             unroll_len=1,
             discount_factor=0.99,
@@ -70,21 +65,21 @@ minigrid_ppo_rnd_config = dict(
         eval=dict(evaluator=dict(eval_freq=1000, )),
     ),
 )
-minigrid_ppo_rnd_config = EasyDict(minigrid_ppo_rnd_config)
-main_config = minigrid_ppo_rnd_config
-minigrid_ppo_rnd_create_config = dict(
+minigrid_icm_onppo_config = EasyDict(minigrid_icm_onppo_config)
+main_config = minigrid_icm_onppo_config
+minigrid_icm_onppo_create_config = dict(
     env=dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
-    reward_model=dict(type='rnd'),
+    reward_model=dict(type='icm'),
 )
-minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
-create_config = minigrid_ppo_rnd_create_config
+minigrid_icm_onppo_create_config = EasyDict(minigrid_icm_onppo_create_config)
+create_config = minigrid_icm_onppo_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c minigrid_rnd_onppo_config.py -s 0`
+    # or you can enter `ding -m serial -c minigrid_icm_onppo_config.py -s 0`
     from ding.entry import serial_pipeline_reward_model_onpolicy
     serial_pipeline_reward_model_onpolicy([main_config, create_config], seed=0, max_env_step=int(10e6))
