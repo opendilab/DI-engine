@@ -213,7 +213,8 @@ class ICMRewardModel(BaseRewardModel):
         for item, icm_rew in zip(train_data_augmented, icm_reward):
             if self.intrinsic_reward_type == 'add':
                 if self.cfg.extrinsic_reward_norm:
-                    item['reward'] = item['reward']/self.cfg.extrinsic_reward_norm_max + icm_rew * self.cfg.intrinsic_reward_weight
+                    item['reward'] = item[
+                        'reward'] / self.cfg.extrinsic_reward_norm_max + icm_rew * self.cfg.intrinsic_reward_weight
                 else:
                     item['reward'] = item['reward'] + icm_rew * self.cfg.intrinsic_reward_weight
             elif self.intrinsic_reward_type == 'new':

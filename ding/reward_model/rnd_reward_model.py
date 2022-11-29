@@ -144,7 +144,8 @@ class RndRewardModel(BaseRewardModel):
         for item, rnd_rew in zip(train_data_augmented, rnd_reward):
             if self.intrinsic_reward_type == 'add':
                 if self.cfg.extrinsic_reward_norm:
-                    item['reward'] = item['reward']/self.cfg.extrinsic_reward_norm_max + rnd_rew * self.cfg.intrinsic_reward_weight
+                    item['reward'] = item[
+                        'reward'] / self.cfg.extrinsic_reward_norm_max + rnd_rew * self.cfg.intrinsic_reward_weight
                 else:
                     item['reward'] = item['reward'] + rnd_rew * self.cfg.intrinsic_reward_weight
             elif self.intrinsic_reward_type == 'new':
