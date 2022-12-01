@@ -1,0 +1,835 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Gym-Super-Mario-Bros &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+      <li>Gym-Super-Mario-Bros</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/gym-super-mario-bros.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="gym-super-mario-bros">
+<h1>Gym-Super-Mario-Bros<a class="headerlink" href="#gym-super-mario-bros" title="Permalink to this headline">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Here is the “Super Mario Bros” series of games, in which players need to control Mario to move and jump, avoid the pits and enemies in the process of leading to the end, gain more gold coins to get higher scores. This game also has many interesting props to enhance player experiences. <a class="reference external" href="https://github.com/Kautenja/gym-super-mario-bros">gym-super-mario-bros</a> , this environment is encapsulated from “Super Mario Bros” of Nintendo after OpenAI Gym.
+Here is the screeshot of game:</p>
+<a class="reference internal image-reference" href="../_images/mario.png"><img alt="../_images/mario.png" class="align-center" src="../_images/mario.png" style="width: 358.4px; height: 329.0px;" /></a>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<section id="installation-method">
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install gym-super-mario-bros
+</pre></div>
+</div>
+</section>
+<section id="verify-installation">
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<p>Run the following Python program, and if no errors are reported, the installation is successful.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
+
+<span class="n">done</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5000</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+    <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+
+<span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="solution-for-installation-failure">
+<h3>Solution for Installation Failure<a class="headerlink" href="#solution-for-installation-failure" title="Permalink to this headline">¶</a></h3>
+<p>A common error:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+File <span class="s2">&quot;test_mario.py&quot;</span>, line <span class="m">13</span>, <span class="k">in</span> &lt;module&gt;
+    state, reward, <span class="k">done</span>, <span class="nv">info</span> <span class="o">=</span> env.step<span class="o">(</span>env.action_space.sample<span class="o">())</span>
+File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/nes_py/wrappers/joypad_space.py&quot;</span>, line <span class="m">74</span>, <span class="k">in</span> step
+    <span class="k">return</span> self.env.step<span class="o">(</span>self._action_map<span class="o">[</span>action<span class="o">])</span>
+File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/gym/wrappers/time_limit.py&quot;</span>, line <span class="m">50</span>, <span class="k">in</span> step
+    observation, reward, terminated, truncated, <span class="nv">info</span> <span class="o">=</span> self.env.step<span class="o">(</span>action<span class="o">)</span>
+ValueError: not enough values to unpack <span class="o">(</span>expected <span class="m">5</span>, got <span class="m">4</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Due to the updates of gym-super-mario-bros code base cannot keep up with the updates of gym code base sometimes, while executing <cite>pip install gym-super-mario-bros</cite>, the latest gym would be installed by default.The solution is to downgrade gym.
+Here gym-super-mario-bros version is 7.4.0, gym version is 0.26.2. We may choose to downgrade gym version to 0.25.1 to solve problems.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install <span class="nv">gym</span><span class="o">==</span><span class="m">0</span>.25.1
+</pre></div>
+</div>
+</section>
+</section>
+<section id="environment-introduction">
+<h2>Environment Introduction<a class="headerlink" href="#environment-introduction" title="Permalink to this headline">¶</a></h2>
+<section id="game-rule">
+<h3>Game Rule<a class="headerlink" href="#game-rule" title="Permalink to this headline">¶</a></h3>
+<p>The simulator has two built-in games, Super Mario Bros. and Super Mario Bros.2 . For detailed gameplay and rules, please refer to the wikipedia link at the end of the text.
+For Super Mario Bros, in addition to the 32 level, the game also offers the option to play any individual level with one life, one random level (not currently supported in Super Mario Bros 2.).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Super Mario Bros. 3 lifes from 1-1 to 8-4</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="c1"># Super Mario Bros 2. 3 lifes from 1-1 to 8-4</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros2-v0&#39;</span><span class="p">)</span>
+<span class="c1"># 1 life 3-2</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-3-2-v0&#39;</span><span class="p">)</span>
+<span class="c1"># 1 life Random level 1-4 2-4 3-4 4-4 (Game end after death,environment would choose another level to begin a new game randomly.)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span><span class="p">,</span> <span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1-4&#39;</span><span class="p">,</span> <span class="s1">&#39;2-4&#39;</span><span class="p">,</span> <span class="s1">&#39;3-4&#39;</span><span class="p">,</span> <span class="s1">&#39;4-4&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="keyboard-interaction">
+<h3>Keyboard Interaction<a class="headerlink" href="#keyboard-interaction" title="Permalink to this headline">¶</a></h3>
+<p>When you have a display device for rendering, you can try to operate with the keyboard. The environment provides a command line interface, which starts as follows:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start 1-4 level</span>
+gym_super_mario_bros -e <span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span> -m <span class="s1">&#39;human&#39;</span> --stages <span class="s1">&#39;1-4&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="action-space">
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<p>The action space of gym-super-mario-bros contains the whole 256 discrete actions from Nintendo.
+To compress this size (and to facilitate learning by the intelligences), the environment provides the action wrapper <code class="docutils literal notranslate"><span class="pre">JoypadSpace</span></code> by default to reduce the action dimension: the optional set of actions and their meanings are as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># actions for the simple run right environment</span>
+<span class="n">RIGHT_ONLY</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;NOOP&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+<span class="p">]</span>
+
+
+<span class="c1"># actions for very simple movement</span>
+<span class="n">SIMPLE_MOVEMENT</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;NOOP&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">],</span>
+<span class="p">]</span>
+
+
+<span class="c1"># actions for more complex movement</span>
+<span class="n">COMPLEX_MOVEMENT</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;NOOP&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;down&#39;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;up&#39;</span><span class="p">],</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>for instance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="c1"># use SIMPLE_MOVEMENT</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
+
+<span class="c1"># or set your own action space to choose actions like jump to the left and to the right side</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>For the 7-dimensional discrete action space represented by SIMPLE_MOVEMENT, the definition using the gym environment space can be expressed as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">action_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="state-space">
+<h3>State Space<a class="headerlink" href="#state-space" title="Permalink to this headline">¶</a></h3>
+<p>The state space input to gym-super-mario-bros is the image information, and the tensor matrix in three dimensions (datatype=uint8). In addition, the different versions of the game correspond to the same image resolution <code class="docutils literal notranslate"><span class="pre">240*256*3</span></code>, but the higher the version, the more abbreviated the image is (pixel blocking), as follows:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; <span class="c1"># View observation space</span>
+&gt;&gt;&gt; gym_super_mario_bros.make<span class="o">(</span><span class="s1">&#39;SuperMarioBros-v3&#39;</span><span class="o">)</span>.observation_space
+Box<span class="o">([[[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+...
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]]]</span>, <span class="o">[[[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+...
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]]]</span>, <span class="o">(</span><span class="m">240</span>, <span class="m">256</span>, <span class="m">3</span><span class="o">)</span>, uint8<span class="o">)</span>
+</pre></div>
+</div>
+<p>The corresponding game screenshots of <code class="docutils literal notranslate"><span class="pre">v3</span></code> are as follows:</p>
+<a class="reference internal image-reference" href="../_images/mario_v3.png"><img alt="../_images/mario_v3.png" class="align-center" src="../_images/mario_v3.png" style="width: 179.2px; height: 168.0px;" /></a>
+</section>
+<section id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<p>We hope Mario could more likely to move to the <strong>right side</strong> , and move <strong>faster</strong> to the end successfully, the setting of the reward for each frame consists of three parts as follows:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">v</span></code>:represents the difference in Mario’s x-coordinate (which can be interpreted as the velocity to the right) between two consecutive frames, with positive and negative.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c</span></code>:represents the time used per frame, simply understood as a negative REVERSE for each frame, is used to push the intelligence to reach the end faster.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">d</span></code>:represents penalty for death, giving a high penalty of -15 if Mario dies.</p></li>
+</ol>
+<p>Total reward <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">v</span> <span class="pre">+</span> <span class="pre">c</span> <span class="pre">+</span> <span class="pre">d</span></code></p>
+<p>Reward is being clipped to <code class="docutils literal notranslate"><span class="pre">(-15,15)</span></code></p>
+</section>
+<section id="termination-conditions">
+<h3>Termination Conditions<a class="headerlink" href="#termination-conditions" title="Permalink to this headline">¶</a></h3>
+<p>For gym-super-mario-bros ,the termination condition for each episode of the environment is that any of the following conditions are encountered.</p>
+<ul class="simple">
+<li><p>Mario wins</p></li>
+<li><p>Mario is dead</p></li>
+<li><p>Countdown ends</p></li>
+</ul>
+</section>
+<section id="additional-information-contained-in-info">
+<h3>Additional information contained in info<a class="headerlink" href="#additional-information-contained-in-info" title="Permalink to this headline">¶</a></h3>
+<p>At each step of interaction with the environment , the environment returns the <code class="docutils literal notranslate"><span class="pre">info</span></code> dictionary, which contains information about the coins acquired, the current accumulated score, the time remaining, and Mario’s current coordinates. The details are as follows:</p>
+<table class="colwidths-given docutils align-default" id="id2">
+<caption><span class="caption-text">More Information</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 17%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">coins</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The number of collected coins</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">flag_get</div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>True if Mario reached a flag or ax</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">life</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The number of lives left, i.e., {3, 2, 1}</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">score</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The cumulative in-game score</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">stage</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The current stage, i.e., {1, …, 4}</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">status</div>
+</div>
+</td>
+<td><p>str</p></td>
+<td><p>Mario’s status, i.e., {‘small’, ‘tall’, ‘fireball’}</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">time</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The time left on the clock</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">world</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>The current world, i.e., {1, …, 8}</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">x_pos</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>Mario’s x position in the stage (from the left)</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">y_pos</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>Mario’s y position in the stage (from the bottom)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="built-in-environment">
+<h3>Built-in Environment<a class="headerlink" href="#built-in-environment" title="Permalink to this headline">¶</a></h3>
+<p>There are several built-in environments, including <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v0&quot;</span></code>、 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v1&quot;</span></code>、 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v2&quot;</span></code>、<code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-v3&quot;</span></code> for Super Mario Bros. And “<code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros2-v0&quot;</span></code>、 <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros2-v1&quot;</span></code> for Super Mario Bros. 2.
+In addition, Super Mario Bros. also allows you to select specific levels to break into, such as <code class="docutils literal notranslate"><span class="pre">&quot;SuperMarioBros-1-1-v0&quot;</span></code> .</p>
+</section>
+<section id="video-store">
+<h3>Video Store<a class="headerlink" href="#video-store" title="Permalink to this headline">¶</a></h3>
+<p>gym.wrappers.RecordVideo class is used to store video:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+
+<span class="n">video_dir_path</span> <span class="o">=</span> <span class="s1">&#39;mario_videos&#39;</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">wrappers</span><span class="o">.</span><span class="n">RecordVideo</span><span class="p">(</span>
+    <span class="n">env</span><span class="p">,</span>
+    <span class="n">video_folder</span><span class="o">=</span><span class="n">video_dir_path</span><span class="p">,</span>
+    <span class="n">episode_trigger</span><span class="o">=</span><span class="k">lambda</span> <span class="n">episode_id</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">name_prefix</span><span class="o">=</span><span class="s1">&#39;mario-video-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">ctime</span><span class="p">())</span>
+<span class="p">)</span>
+
+<span class="c1"># run 1 episode</span>
+<span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">done</span> <span class="ow">or</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">250</span><span class="p">:</span>
+        <span class="k">break</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Your mario video is saved in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">video_dir_path</span><span class="p">))</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># There is a problem with the destructor of the environment, so an exception is needed to avoid error reporting</span>
+    <span class="k">del</span> <span class="n">env</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="di-zoo-runnable-code-example">
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<p>Offers a complete gym-super-mario-bros environment config, use DQN as baseline. Please run <code class="docutils literal notranslate"><span class="pre">mario_dqn_main.py</span></code> doc under <code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/mario</span></code> catalogue.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">mario_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;mario_dqn_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+        <span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;mario_dqn_seed0/video&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">],</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
+            <span class="n">dueling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="p">)),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mi">250000</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">mario_dqn_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">mario_dqn_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">mario_dqn_config</span>
+<span class="n">mario_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">mario_dqn_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">mario_dqn_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">mario_dqn_create_config</span>
+<span class="c1"># you can run `python3 -u mario_dqn_main.py`</span>
+</pre></div>
+</div>
+</section>
+<section id="benchmark-algorithm-performance">
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>SuperMarioBros-x-x-v0</p>
+<ul class="simple">
+<li><p>SuperMarioBros-1-1-v0 + DQN</p></li>
+</ul>
+<img alt="../_images/mario_result_1_1.png" class="align-center" src="../_images/mario_result_1_1.png" />
+<ul class="simple">
+<li><p>SuperMarioBros-1-2-v0 + DQN</p></li>
+</ul>
+<img alt="../_images/mario_result_1_2.png" class="align-center" src="../_images/mario_result_1_2.png" />
+<ul class="simple">
+<li><p>SuperMarioBros-1-3-v0 + DQN</p></li>
+</ul>
+<img alt="../_images/mario_result_1_3.png" class="align-center" src="../_images/mario_result_1_3.png" />
+</li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>gym-super-mario-bros <a class="reference external" href="https://github.com/Kautenja/gym-super-mario-bros">source code</a></p></li>
+<li><p>Super Mario Bros. <a class="reference external" href="https://zh.wikipedia.org/wiki/%E8%B6%85%E7%BA%A7%E9%A9%AC%E5%8A%9B%E6%AC%A7%E5%85%84%E5%BC%9F">wikipedia-Super Mario Bros.</a></p></li>
+<li><p>Super Mario Bros 2. <a class="reference external" href="https://zh.wikipedia.org/wiki/%E8%B6%85%E7%BA%A7%E9%A9%AC%E5%8A%9B%E6%AC%A7%E5%85%84%E5%BC%9F">wikipedia-Super Mario Bros 2.</a></p></li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Gym-Super-Mario-Bros</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#installation-method">Installation Method</a></li>
+<li><a class="reference internal" href="#verify-installation">Verify Installation</a></li>
+<li><a class="reference internal" href="#solution-for-installation-failure">Solution for Installation Failure</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#environment-introduction">Environment Introduction</a><ul>
+<li><a class="reference internal" href="#game-rule">Game Rule</a></li>
+<li><a class="reference internal" href="#keyboard-interaction">Keyboard Interaction</a></li>
+<li><a class="reference internal" href="#action-space">Action Space</a></li>
+<li><a class="reference internal" href="#state-space">State Space</a></li>
+<li><a class="reference internal" href="#reward-space">Reward Space</a></li>
+<li><a class="reference internal" href="#termination-conditions">Termination Conditions</a></li>
+<li><a class="reference internal" href="#additional-information-contained-in-info">Additional information contained in info</a></li>
+<li><a class="reference internal" href="#built-in-environment">Built-in Environment</a></li>
+<li><a class="reference internal" href="#video-store">Video Store</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo-runnable-code-example">DI-zoo Runnable Code Example</a></li>
+<li><a class="reference internal" href="#benchmark-algorithm-performance">Benchmark Algorithm Performance</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

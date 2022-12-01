@@ -43,6 +43,7 @@ Environments:
    pybullet
    dmc2gym
    sokoban
+   gym_super_mario_bros
    gym_hybrid
    gym_soccer
    evogym

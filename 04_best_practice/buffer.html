@@ -1,0 +1,576 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Buffer User Guide &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="API Doc" href="../05_api_doc/index.html" />
+  <link rel="prev" title="How to customize the neural network model" href="custom_model.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Best Practice</a> &gt;</li>
+        
+      <li>Buffer User Guide</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/buffer.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="buffer-user-guide">
+<h1>Buffer User Guide<a class="headerlink" href="#buffer-user-guide" title="Permalink to this headline">¶</a></h1>
+<section id="buffer-getting-started">
+<h2>Buffer Getting Started<a class="headerlink" href="#buffer-getting-started" title="Permalink to this headline">¶</a></h2>
+<p><strong>Basic Concepts of Buffer</strong></p>
+<p>In the off-policy RL algorithms, we usually use Experience Replay to improve sample efficiency and reduce the correlation between samples from different time frames.
+DI-engine uses <strong>DequeBuffer</strong> to implement common features, like data input, sampling and so on, of experience replay pools. Users can create DequeBuffer object through the follwing codes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
+
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In DI-engine, we use the dataclass as a structural carrier of the data in buffer as well as some other components.
+Dataclass is a python3 feature that makes data neat and consistent by specifying the data type of a field (property of a class) in a class, as opposed to a Dict.
+Compared to a Namedtuple, it can be used to set default values to enable parameter defaults during the initialization phase, or to enable flexible assignment operations during use.
+In the following, we will introduce the specific operation of buffer for users.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Data is deposited and processed one sample at a time.</span>
+<span class="c1"># In the middleware of DI-engine, the cache data type is usually a Dict, which records the obs, next_obs, actions, rewards, etc. of the samples.</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="c1"># The BufferedData object contains three fields: data, index and meta.</span>
+    <span class="c1"># &quot;Data&quot; is the data to be cached and &quot;Meta&quot; is its meta information (optional, defaults to None), both of which are passed into the buffer via the push method.</span>
+    <span class="c1"># &quot;Index&quot; indicates the index of the logical storage address of the data in the buffer, which is automatically generated by the buffer and does not need to be set manually by the user.</span>
+    <span class="n">buffer</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="p">{})</span>
+
+<span class="c1"># Data sampling processes multiple samples at a time, and the user needs to explicitly specify the number of samples. The parameter &quot;replace&quot; indicates whether to put back when sampling, and the default value is False.</span>
+<span class="c1"># The sampling operation returns a data class object named BufferedData, e.g. BufferedData(data=&#39;a&#39;, index=&#39;67bdfadcd&#39;, meta={})</span>
+<span class="n">buffered_data</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">buffered_data</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Using Buffer to Complete Online Training</strong></p>
+<p>In the previous subsection, we introduced the actual storage structure of the data in the buffer, as well as the most basic deposit and sample operations.
+In fact, in most tasks, the user does not need to use these underlying atomic operations. We <strong>recommend</strong> user to call the buffer object through the DI-engine wrapped middleware to complete the training.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">OffPolicyLearner</span>
+
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer</span><span class="p">))</span>
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><strong>Using Buffer to Load Expert Data</strong></p>
+<p>During the imitation learning tasks, like SQIL and DQFD, we need to load some expert experiences before training. Actually, users can use another buffer to hold the expert data, taking SQIL as an example (the complete code can be found at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/sqil.py">./ding/example/sqil.py</a>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">sqil_data_pusher</span>
+
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">expert_buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">sqil_data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="o">=</span><span class="n">buffer</span><span class="p">,</span> <span class="n">expert</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">sqil_data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="o">=</span><span class="n">expert_buffer</span><span class="p">,</span> <span class="n">expert</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="p">[(</span><span class="n">buffer</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="p">(</span><span class="n">expert_buffer</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)]))</span>
+</pre></div>
+</div>
+</section>
+<section id="buffer-advanced">
+<h2>Buffer Advanced<a class="headerlink" href="#buffer-advanced" title="Permalink to this headline">¶</a></h2>
+<p>In the previous section, we provided a basic application scenario for buffer. Next, we will show you a more comprehensive view of the buffer’s capabilities.</p>
+<p><strong>Priority Experience Replay(PER)</strong></p>
+<p>In some algorithms, priority experience replay is needed. In DI-engine, you can use <strong>PriorityExperienceReplay middleware</strong> to enable the buffer priority experience replay function.
+If users enable the function when putting samples, they must explicitly pass the meta information about the priority of each sample, as shown below. <strong>Priority sampling increases the sample elapsed time</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
+
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">PriorityExperienceReplay</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">IS_weight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="c1"># The meta is essentially a Dict that complements the description of the sample and is empty by default.</span>
+    <span class="n">buffer</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;priority&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">})</span>
+<span class="n">buffered_data</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Sample Cloning</strong></p>
+<p>By default, for mutable objects stored in a buffer (such as list, np.array, torch.tensor, etc.), the sampling operation in fact returns a reference to that object.
+If the user subsequently makes changes to the content of the reference, it may cause the corresponding content in the sample pool to change as well.
+In some application scenarios, the user may expect the data in the sample pool to remain unchanged, and this can be done by using the <strong>clone_object middleware</strong> to return a copy of the object in the buffer at sampling time.
+In this way, modifications to the copy contents do not affect the original data in the buffer. <strong>Sample cloning significantly increases the sampling elapsed time</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">clone_object</span>
+
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">clone_object</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Group Sampling</strong></p>
+<blockquote>
+<div><p>In some specific environments or algorithms, users may wish to collect, store, and process samples by entire episodes.</p>
+</div></blockquote>
+<p>For example, in chess, Go, or card games where players are only rewarded at the end of the game, algorithms solving such tasks often want to process the entire game, and some algorithms like Hindsight Experience Replay (HER) need to sample complete episodes and process them in episodic units.
+In this case, the user can use group sampling to achieve this goal.</p>
+<ul>
+<li><p><strong>Custom Implementation via Atomic Operations</strong></p>
+<p>The aforementioned demand can be implemented by some atomic operations to achieve customization and more flexibility. For example, when storing samples, you can add “episode” information to the meta to specify the episode to which the sample belongs, and when sampling, you can set groupby=”episode” to enable group sampling with the episode keyword. <strong>Sampling in groups can seriously increase the sampling time</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># When storing data, the user needs to add grouping information to the meta, e.g., &quot;episode&quot; as the grouping keyword, and the corresponding value is the specific group</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;episode&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;episode&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;episode&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+
+<span class="c1"># Grouping according to the keyword &quot;episode&quot; requires that the number of different groups in the buffer is not less than the number of samples.</span>
+<span class="n">grouped_data</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s2">&quot;episode&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Implementation through Middleware</strong></p>
+<p>In DI-engine, we also provide an integral group sampling operation by the data_pusher middleware. Take the R2D2 algorithm, where episodes of samples are passed in sequences through the LSTM network, for example.</p>
+</li>
+</ul>
+<blockquote>
+<div><dl>
+<dt>In data collection, each env instance corresponds to a unique decision track, so the env_id is recommended to use as the key to distinguish different episodes.</dt><dd><p>The code for R2D2 using group sampling lies below, the full version can be found at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/r2d2.py">./ding/example/r2d2.py</a>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Here &#39;env&#39; is used as the keyword for grouping, so that samples with the same env_id will be classified into the same group when sampling.</span>
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">group_by_env</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>(Available Options)</strong>
+On top of group sampling, you can also use <strong>group_sample middleware</strong> to implement post-processing of samples, such as: choosing whether to disrupt data within the same group, and setting the maximum length of each group of data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">group_sample</span>
+
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="c1"># The maximum length of each group of data is set to 3, keeping the original order within the group</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">group_sample</span><span class="p">(</span><span class="n">size_in_group</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ordered_in_group</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><strong>Delete Multiple Use Samples</strong></p>
+<p>By default in the Dequebuffer, samples may be collected repeatedly by multiple sample function calls. If it is not controlled, the training performance will decay since it fits partial samples too many times.
+To avoid this problem, we can use <strong>use_time_check middleware</strong> to set the maximum number of times the samples can be used.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">use_time_check</span>
+
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="c1"># Set the maximum number of times a single sample can be used to 2</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">use_time_check</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">max_use</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The middleware maintains a counter to record the picked times of each sample and writes it to the use_count field in the meta. When a sample is picked, the count will ascend by 1 until it is greater than the maximum to tolerant times by setting and is deleted.</p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../05_api_doc/index.html" class="btn btn-neutral float-right" title="API Doc" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="custom_model.html" class="btn btn-neutral" title="How to customize the neural network model" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Buffer User Guide</a><ul>
+<li><a class="reference internal" href="#buffer-getting-started">Buffer Getting Started</a></li>
+<li><a class="reference internal" href="#buffer-advanced">Buffer Advanced</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>
