@@ -26,6 +26,9 @@ class ContextExchanger:
         if not task.router.is_active:
             raise RuntimeError("ContextHandler should be used in parallel mode!")
         self._state = {}
+        self._local_state = {}  # just save local state, not send to remote node
+        if task.has_role(task.role.COLLECTOR):
+            self._local_state['env_step'] = 0
         self._event_name = "context_exchanger_{role}"
         self._skip_n_iter = skip_n_iter
         self._storage_loader = storage_loader
@@ -153,13 +156,15 @@ class ContextExchanger:
         if task.has_role(task.role.COLLECTOR):
             return trajectory_end_idx
 
-    def _put_env_step(self, env_step: int):
+    def _put_env_step(self, env_step_increment: int):
         if not task.has_role(task.role.COLLECTOR):
-            self._state["env_step"] = env_step
+            self._state["env_step"] += env_step_increment
 
     def _fetch_env_step(self, env_step: int):
         if task.has_role(task.role.COLLECTOR):
-            return env_step
+            env_step_increment = env_step - self._local_state['env_step']
+            self._local_state['env_step'] = env_step
+            return env_step_increment
 
     def _put_env_episode(self, env_episode: int):
         if not task.has_role(task.role.COLLECTOR):
