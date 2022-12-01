@@ -29,6 +29,7 @@ class ContextExchanger:
         self._local_state = {}  # just save local state, not send to remote node
         if task.has_role(task.role.COLLECTOR):
             self._local_state['env_step'] = 0
+            self._local_state['env_episode'] = 0
         self._event_name = "context_exchanger_{role}"
         self._skip_n_iter = skip_n_iter
         self._storage_loader = storage_loader
@@ -119,7 +120,13 @@ class ContextExchanger:
                 sleep(0.01)
 
         for k, v in self._state.items():
-            setattr(ctx, k, v)
+            if not task.has_role(task.role.COLLECTOR) and k.startswith('increment_'):
+                pure_k = k.split('increment_')[-1]
+                setattr(ctx, pure_k, getattr(ctx, pure_k) + v)
+                if k == 'increment_env_step':
+                    pass  #print(task.has_role(task.role.LEARNER), v)
+            else:
+                setattr(ctx, k, v)
         self._state = {}
 
     # Handle each attibute of context
@@ -156,23 +163,29 @@ class ContextExchanger:
         if task.has_role(task.role.COLLECTOR):
             return trajectory_end_idx
 
-    def _put_env_step(self, env_step_increment: int):
+    def _put_env_step(self, increment_env_step: int):
         if not task.has_role(task.role.COLLECTOR):
-            self._state["env_step"] += env_step_increment
+            if 'increment_env_step' not in self._state:
+                self._state['increment_env_step'] = 0
+            self._state["increment_env_step"] += increment_env_step
 
     def _fetch_env_step(self, env_step: int):
         if task.has_role(task.role.COLLECTOR):
-            env_step_increment = env_step - self._local_state['env_step']
+            increment_env_step = env_step - self._local_state['env_step']
             self._local_state['env_step'] = env_step
-            return env_step_increment
+            return increment_env_step
 
-    def _put_env_episode(self, env_episode: int):
+    def _put_env_episode(self, increment_env_episode: int):
         if not task.has_role(task.role.COLLECTOR):
-            self._state["env_episode"] = env_episode
+            if 'increment_env_episode' not in self._state:
+                self._state['increment_env_episode'] = 0
+            self._state["increment_env_episode"] += increment_env_episode
 
     def _fetch_env_episode(self, env_episode: int):
         if task.has_role(task.role.COLLECTOR):
-            return env_episode
+            increment_env_episode = env_episode - self._local_state['env_episode']
+            self._local_state['env_episode'] = env_episode
+            return increment_env_episode
 
     def _put_train_iter(self, train_iter: int):
         if not task.has_role(task.role.LEARNER):
