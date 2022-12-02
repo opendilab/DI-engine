@@ -29,12 +29,12 @@ bipedalwalker_impala_config = dict(
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow impala serial pipeline
-            update_per_collect=3,  # update_per_collect show be in [1, 10]
+            update_per_collect=6,  # update_per_collect show be in [1, 10]
             # (int) the number of data for a train iteration
-            batch_size=128,
+            batch_size=64,
             grad_clip_type='clip_norm',
             clip_value=5,
-            learning_rate=0.0003,
+            learning_rate=0.0005,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
@@ -42,7 +42,7 @@ bipedalwalker_impala_config = dict(
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
             # (float) additional discounting parameter
-            lambda_=0.95,
+            lambda_=0.99,
             # (float) clip ratio of importance weights
             rho_clip_ratio=1.0,
             # (float) clip ratio of importance weights
@@ -52,7 +52,7 @@ bipedalwalker_impala_config = dict(
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=16,
+            n_sample=32,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
