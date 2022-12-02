@@ -9,10 +9,12 @@ def compute_importance_weights(
     Overview:
         Computing importance sampling weight with given output and action
     Arguments:
-        - target_output (:obj:`torch.Tensor`): the output taking the action by the current policy network,\
-            usually this output is network output logit
-        - behaviour_output (:obj:`torch.Tensor`): the output taking the action by the behaviour policy network,\
-            usually this output is network output logit, which is used to produce the trajectory(collector)
+        - target_output (:obj:`Union[torch.Tensor,dict]`): the output taking the action by the current policy network,\
+            usually this output is network output logit if action space is discrete, \
+            or is a dict containing parameters of action distribution if action space is continuous.
+        - behaviour_output (:obj:`Union[torch.Tensor,dict]`): the output taking the action by the behaviour policy network,\
+            usually this output is network output logit,  if action space is discrete, \
+            or is a dict containing parameters of action distribution if action space is continuous.
         - action (:obj:`torch.Tensor`): the chosen action(index for the discrete action space) in trajectory,\
             i.e.: behaviour_action
         - action_space_type (:obj:`str`): action space types in ['discrete', 'continuous']
@@ -20,9 +22,9 @@ def compute_importance_weights(
     Returns:
         - rhos (:obj:`torch.Tensor`): Importance sampling weight
     Shapes:
-        - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\
+        - target_output (:obj:`Union[torch.FloatTensor,dict]`): :math:`(T, B, N)`, where T is timestep, B is batch size and\
             N is action dim
-        - behaviour_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
+        - behaviour_output (:obj:`Union[torch.FloatTensor,dict]`): :math:`(T, B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(T, B)`
         - rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`
     """
