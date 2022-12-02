@@ -172,16 +172,9 @@ class IMPALAPolicy(Policy):
             data['logit']['mu'] = torch.cat(
                 data['logit']['mu'], dim=0
             ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-            if data['logit']['sigma'][0].dim() == 2:
-                data['logit']['sigma'] = torch.cat(
-                    data['logit']['sigma'], dim=0
-                ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-            elif data['logit']['sigma'][0].dim() == 3:
-                data['logit']['sigma'] = torch.cat(
-                    data['logit']['sigma'], dim=0
-                ).reshape(
-                    self._unroll_len, -1, self._action_shape, self._action_shape
-                )  # shape T,B,env_action_shape,env_action_shape
+            data['logit']['sigma'] = torch.cat(
+                data['logit']['sigma'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
             data['action'] = torch.cat(
                 data['action'], dim=0
             ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
@@ -271,15 +264,10 @@ class IMPALAPolicy(Policy):
         """
         if self._action_space == 'continuous':
             target_logit = {}
-            target_logit['mu'] = output['logit']['mu'].reshape(self._unroll_len + 1, -1, self._action_shape
-                                                               )[:-1]  # shape (T+1),B,env_obs_shape # ???
-            if output['logit']['sigma'].dim() == 2:
-                target_logit['sigma'] = output['logit']['sigma'].reshape(self._unroll_len + 1, -1, self._action_shape
-                                                                         )[:-1]  # shape (T+1),B,env_obs_shape
-            elif output['logit']['sigma'].dim() == 3:
-                target_logit['sigma'] = output['logit']['sigma'].reshape(
-                    self._unroll_len + 1, -1, self._action_shape, self._action_shape
-                )[:-1]  # shape (T+1),B,env_obs_shape,env_obs_shape
+            target_logit['mu'] = output['logit']['mu'].reshape(self._unroll_len + 1, -1,
+                                                               self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+            target_logit['sigma'] = output['logit']['sigma'].reshape(self._unroll_len + 1, -1, self._action_shape
+                                                                     )[:-1]  # shape (T+1),B,env_obs_shape
         elif self._action_space == 'discrete':
             target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
                                                    self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
@@ -415,7 +403,6 @@ class IMPALAPolicy(Policy):
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
         elif self._action_space == 'discrete':
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
-            #self._eval_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         else:
             raise ValueError("Action space should be continuous or discrete.")
 
