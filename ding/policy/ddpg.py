@@ -89,7 +89,7 @@ class DDPGPolicy(Policy):
         # (bool) Whether use batch normalization for reward
         reward_batch_norm=False,
         # (bool) Whether to enable multi-agent training setting
-        multi_agent=True,
+        multi_agent=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
