@@ -9,10 +9,12 @@ def compute_importance_weights(
     Overview:
         Computing importance sampling weight with given output and action
     Arguments:
-        - target_output (:obj:`Union[torch.Tensor,dict]`): the output taking the action by the current policy network,\
+        - target_output (:obj:`Union[torch.Tensor,dict]`): the output taking the action \
+            by the current policy network, \
             usually this output is network output logit if action space is discrete, \
             or is a dict containing parameters of action distribution if action space is continuous.
-        - behaviour_output (:obj:`Union[torch.Tensor,dict]`): the output taking the action by the behaviour policy network,\
+        - behaviour_output (:obj:`Union[torch.Tensor,dict]`): the output taking the action \
+            by the behaviour policy network,\
             usually this output is network output logit,  if action space is discrete, \
             or is a dict containing parameters of action distribution if action space is continuous.
         - action (:obj:`torch.Tensor`): the chosen action(index for the discrete action space) in trajectory,\
