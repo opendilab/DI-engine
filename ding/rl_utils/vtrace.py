@@ -141,10 +141,10 @@ def vtrace_error_continuous_action(
         Architectures), (arXiv:1802.01561)
     Arguments:
         - data (:obj:`namedtuple`): input data with fields shown in ``vtrace_data``
-            - target_output (:obj:`torch.Tensor`): the output taking the action by the current policy network,\
-                usually this output is network output logit
-            - behaviour_output (:obj:`torch.Tensor`): the output taking the action by the behaviour policy network,\
-                usually this output is network output logit, which is used to produce the trajectory(collector)
+            - target_output (:obj:`dict{key:torch.Tensor}`): the output taking the action by the current policy network,\
+                usually this output is network output, which represents the distribution by reparameterization trick.
+            - behaviour_output (:obj:`dict{key:torch.Tensor}`): the output taking the action by the behaviour policy network,\
+                usually this output is network output logit, which represents the distribution by reparameterization trick.
             - action (:obj:`torch.Tensor`): the chosen action(index for the discrete action space) in trajectory,\
                 i.e.: behaviour_action
         - gamma: (:obj:`float`): the future discount factor, defaults to 0.95
@@ -158,9 +158,9 @@ def vtrace_error_continuous_action(
     Returns:
         - trace_loss (:obj:`namedtuple`): the vtrace loss item, all of them are the differentiable 0-dim tensor
     Shapes:
-        - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\
-            N is action dim
-        - behaviour_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
+        - target_output (:obj:`dict{key:torch.FloatTensor}`): :math:`(T, B, N)`, where T is timestep, B is batch size and\
+            N is action dim. The keys are usually parameters of reparameterization trick.
+        - behaviour_output (:obj:`dict{key:torch.FloatTensor}`): :math:`(T, B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(T, B)`
         - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
         - reward (:obj:`torch.LongTensor`): :math:`(T, B)`
