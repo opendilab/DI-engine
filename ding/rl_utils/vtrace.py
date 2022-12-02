@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from torch.distributions import Categorical, Independent, Normal, MultivariateNormal
+from torch.distributions import Categorical, Independent, Normal
 from collections import namedtuple
 from .isw import compute_importance_weights
 from ding.hpc_rl import hpc_wrapper

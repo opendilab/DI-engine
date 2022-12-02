@@ -962,19 +962,6 @@ class RegressionHead(nn.Module):
         return {'pred': x}
 
 
-class LowerTriangularMatrixParam(nn.Module):
-
-    def __init__(self, dim: int):
-        assert dim >= 1, "dim should be a positive int."
-        self.dim = dim
-        self.sigma_param = nn.Parameter(torch.zeros((dim * (dim + 1)) // 2))
-        self.tril_ind = torch.tril_indices(dim, dim, 0)
-
-    def __call__(self):
-        low_triangle_matrix = torch.zeros(self.dim, self.dim)[self.tril_ind[0], self.tril_ind[1]] = self.sigma_param
-        return low_triangle_matrix
-
-
 class ReparameterizationHead(nn.Module):
     """
         Overview:
@@ -985,7 +972,7 @@ class ReparameterizationHead(nn.Module):
             ``__init__``, ``forward``.
     """
 
-    default_sigma_type = ['fixed', 'independent', 'full_independent', 'conditioned', 'full_conditioned']
+    default_sigma_type = ['fixed', 'independent', 'conditioned']
     default_bound_type = ['tanh', None]
 
     def __init__(
@@ -1019,7 +1006,6 @@ class ReparameterizationHead(nn.Module):
         """
         super(ReparameterizationHead, self).__init__()
         self.sigma_type = sigma_type
-        self.output_size = output_size
         assert sigma_type in self.default_sigma_type, "Please indicate sigma_type as one of {}".format(
             self.default_sigma_type
         )
@@ -1033,18 +1019,8 @@ class ReparameterizationHead(nn.Module):
             self.sigma = torch.full((1, output_size), fixed_sigma_value)
         elif self.sigma_type == 'independent':  # independent parameter
             self.log_sigma_param = nn.Parameter(torch.zeros(1, output_size))
-        elif self.sigma_type == 'full_independent':
-            # self.lower_triangular_matrix_param=LowerTriangularMatrixParam(output_size)
-            self.param_of_low_triangle_matrix = nn.Parameter(torch.zeros((output_size * (output_size + 1)) // 2))
-            self.tril_ind = torch.tril_indices(output_size, output_size, 0)
-            # self.low_triangle_matrix = torch.zeros(output_size, output_size)
-            # self.low_triangle_matrix[self.tril_ind] = self.sigma_param
         elif self.sigma_type == 'conditioned':
             self.log_sigma_layer = nn.Linear(hidden_size, output_size)
-        elif self.sigma_type == 'full_conditioned':
-            self.param_of_low_triangle_matrix = nn.Linear(hidden_size, ((output_size * (output_size + 1)) // 2))
-            self.tril_ind = torch.tril_indices(output_size, output_size, 0)
-            self.output_size
 
     def forward(self, x: torch.Tensor) -> Dict:
         """
@@ -1078,17 +1054,9 @@ class ReparameterizationHead(nn.Module):
         elif self.sigma_type == 'independent':
             log_sigma = self.log_sigma_param + torch.zeros_like(mu)  # addition aims to broadcast shape
             sigma = torch.exp(log_sigma)
-        elif self.sigma_type == 'full':
-            low_triangle_matrix = torch.zeros(self.output_size, self.output_size).to(mu.device)
-            low_triangle_matrix[self.tril_ind[0], self.tril_ind[1]] = self.param_of_low_triangle_matrix
-            sigma = torch.unsqueeze(low_triangle_matrix * low_triangle_matrix.T, dim=0) + torch.zeros_like(mu)
         elif self.sigma_type == 'conditioned':
             log_sigma = self.log_sigma_layer(x)
             sigma = torch.exp(torch.clamp(log_sigma, -20, 2))
-        elif self.sigma_type == 'full_conditioned':
-            low_triangle_matrix = torch.zeros(self.output_size, self.output_size).to(mu.device)
-            low_triangle_matrix[self.tril_ind[0], self.tril_ind[1]] = self.param_of_low_triangle_matrix(x)
-            sigma = torch.unsqueeze(low_triangle_matrix * low_triangle_matrix.T, dim=0) + torch.zeros_like(mu)
         return {'mu': mu, 'sigma': sigma}
 
 
