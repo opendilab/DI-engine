@@ -29,11 +29,11 @@ def test_vtrace_continuous_action():
     reward = torch.rand(T, B)
     target_output = {}
     target_output['mu'] = torch.randn(T, B, N).requires_grad_(True)
-    target_output['sigma'] = torch.randn(T, B, N).requires_grad_(True)
+    target_output['sigma'] = torch.exp(torch.randn(T, B, N).requires_grad_(True))
     behaviour_output = {}
     behaviour_output['mu'] = torch.randn(T, B, N)
-    behaviour_output['sigma'] = torch.randn(T, B, N)
-    action = torch.randint(0, N, size=(T, B))
+    behaviour_output['sigma'] = torch.exp(torch.randn(T, B, N))
+    action = torch.randn((T, B, N))
     data = vtrace_data(target_output, behaviour_output, action, value, reward, None)
     loss = vtrace_error_continuous_action(data, rho_clip_ratio=1.1)
     assert all([l.shape == tuple() for l in loss])
