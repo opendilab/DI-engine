@@ -427,6 +427,8 @@ class PPOPolicy(Policy):
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
+            # output = self._eval_model.forward(data, mode='temp_eval_ag_d2c')
+            # output = self._eval_model.forward(data, mode='temp_eval_ag_c2d')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

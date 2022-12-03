@@ -2,7 +2,7 @@ import imageio
 
 # from dizoo.box2d.lunarlander.config.lunarlander_cont_dqn_vqvae_ensemble_generation_config import main_config, \
     # create_config
-from dizoo.rocket.dt_data.collect_ppo_data_config import main_config, create_config
+from dizoo.gym_hybrid.dt_data.collect_hppo_data_config import main_config, create_config
 from ding.entry import collect_episodic_demo_data, eval
 import torch
 import copy
@@ -36,7 +36,7 @@ def train(args):
     # cfg.policy.collect.data_path = '/Users/puyuan/code/DI-engine/data_lunarlander_visualize/dqn_sbh_ensemble20_obs0_noema_smallnet_k8_upc50_seed1_3M/collect_in_seed1_mapping/data_iteration_best_1eps.pkl'
     # visualize_path = '/root/rocket_landing_onppo_seed0/data_rocket_ppo_visualize'
     original_gif_path = '/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/video/0_episode.mp4'
-    cfg.policy.collect.data_path = '/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/ppo_data_best_eps_seed1.pkl'
+    cfg.policy.collect.data_path = '/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/real_hybrid/ppo_data_best_eps_seed1.pkl'
     # Dataset
     dataset = create_dataset(cfg)
     print('num_episodes', dataset.__len__())

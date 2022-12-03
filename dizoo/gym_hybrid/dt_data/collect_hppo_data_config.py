@@ -3,16 +3,16 @@ from easydict import EasyDict
 gym_hybrid_hppo_config = dict(
     exp_name='gym_hybrid_hppo_collect_data_seed0',
     env=dict(
-        collector_env_num=8,
+        collector_env_num=1,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range, usually [-1, 1].
         act_scale=True,
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
         stop_value=1e6,
-        save_replay_gif=False,
-        replay_path_gif='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/video',
-        replay_path='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/video',
+        # save_replay_gif=True,
+        replay_path_gif='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/real_hybrid/video',
+        replay_path='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/real_hybrid/video',
     ),
     policy=dict(
         cuda=True,
@@ -40,15 +40,31 @@ gym_hybrid_hppo_config = dict(
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
+            learner=dict(
+                train_iterations=1000000000,
+                dataloader=dict(num_workers=0, ),
+                log_policy=True,
+                hook=dict(
+                    # load_ckpt_before_run='./lunarlander/ckpt/ckpt_best.pth.tar',
+                    load_ckpt_before_run='/mnt/nfs/renjiyuan/gym-hybrid-hppo-ag-result-1031/gym_hybrid_hppo_seed0_ag/ckpt/ckpt_best.pth.tar',
+                    log_show_after_iter=100,
+                    save_ckpt_after_iter=10000,
+                    save_ckpt_after_run=False,
+                ),
+                cfg_type='BaseLearnerDict',
+                # load_path='./cartpole/ckpt/ckpt_best.pth.tar',
+                load_path='/mnt/nfs/renjiyuan/gym-hybrid-hppo-ag-result-1031/gym_hybrid_hppo_seed0_ag/ckpt/ckpt_best.pth.tar',
+            )
         ),
         collect=dict(
+            data_type='naive',
             n_sample=int(3200),
             discount_factor=0.99,
             gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
-            save_path='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/ppo_data_best_eps_seed1.pkl',  # TODO(pu)
+            save_path='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/real_hybrid/ppo_data_best_eps_seed1.pkl',  # TODO(pu)
             # load
-            data_path='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/ppo_data_best_eps_seed1.pkl',  # TODO(pu)
+            data_path='/mnt/nfs/renjiyuan/test_file/hybrid_hppo_replay/real_hybrid/ppo_data_best_eps_seed1.pkl',  # TODO(pu)
         ),
         eval=dict(evaluator=dict(eval_freq=200, n_episode=5), ),
         other=dict(

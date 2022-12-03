@@ -6,7 +6,7 @@ from copy import deepcopy
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder, IMPALAConvEncoder
-
+import numpy as np
 
 @MODEL_REGISTRY.register('vac')
 class VAC(nn.Module):
@@ -16,7 +16,7 @@ class VAC(nn.Module):
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
-    mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
+    mode = ['compute_actor', 'compute_critic', 'compute_actor_critic', 'temp_eval_ag_d2c', 'temp_eval_ag_c2d']
 
     def __init__(
         self,
@@ -154,10 +154,33 @@ class VAC(nn.Module):
             # such as {'action_type_shape': torch.LongTensor([0]), 'action_args_shape': torch.FloatTensor([0.1, -0.27])}
             action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
             action_shape.action_type_shape = squeeze(action_shape.action_type_shape)
-            actor_action_args = ReparameterizationHead(
+            # actor_action_args = ReparameterizationHead(
+            #     # actor_action_args will consider actor_action_type
+            #     actor_head_hidden_size + action_shape.action_type_shape,
+            #     # actor_head_hidden_size,
+            #     action_shape.action_args_shape,
+            #     actor_head_layer_num,
+            #     sigma_type=sigma_type,
+            #     fixed_sigma_value=fixed_sigma_value,
+            #     activation=activation,
+            #     norm_type=norm_type,
+            #     bound_type=bound_type,
+            # )
+            actor_action_args_turn = ReparameterizationHead(
                 # actor_action_args will consider actor_action_type
-                actor_head_hidden_size + action_shape.action_type_shape,
-                action_shape.action_args_shape,
+                actor_head_hidden_size,
+                1,
+                actor_head_layer_num,
+                sigma_type=sigma_type,
+                fixed_sigma_value=fixed_sigma_value,
+                activation=activation,
+                norm_type=norm_type,
+                bound_type=bound_type,
+            )
+            actor_action_args_accl = ReparameterizationHead(
+                # actor_action_args will consider actor_action_type
+                actor_head_hidden_size,
+                1,
                 actor_head_layer_num,
                 sigma_type=sigma_type,
                 fixed_sigma_value=fixed_sigma_value,
@@ -166,13 +189,15 @@ class VAC(nn.Module):
                 bound_type=bound_type,
             )
             actor_action_type = DiscreteHead(
+                # actor_head_hidden_size + action_shape.action_args_shape*2,
                 actor_head_hidden_size,
                 action_shape.action_type_shape,
                 actor_head_layer_num,
                 activation=activation,
                 norm_type=norm_type,
             )
-            self.actor_head = nn.ModuleList([actor_action_type, actor_action_args])
+            # self.actor_head = nn.ModuleList([actor_action_type, actor_action_args])
+            self.actor_head = nn.ModuleList([actor_action_type, actor_action_args_accl, actor_action_args_turn])
 
         # must use list, not nn.ModuleList
         if self.share_encoder:
@@ -270,10 +295,77 @@ class VAC(nn.Module):
             x = self.actor_head(x)  # mu, sigma
             return {'logit': x}
         elif self.action_space == 'hybrid':
+            # action_type = self.actor_head[0](x)
+            # action_type_no_grad = action_type['logit'].detach()
+            # mx = torch.cat([x, action_type_no_grad], dim=1)
+            # action_args = self.actor_head[1](mx)
+
+            # c2d
+            # action_args = self.actor_head[1](x)
+            # action_args_mu_no_grad = action_args['mu'].detach()
+            # action_args_sigma_no_grad = action_args['sigma'].detach()
+            # mx = torch.cat([x, action_args_mu_no_grad, action_args_sigma_no_grad], dim=1)
+            # action_type = self.actor_head[0](mx)
+
+            # for two head
             action_type = self.actor_head[0](x)
-            mx = torch.cat([x, action_type['logit']], dim=1)
-            action_args = self.actor_head[1](mx)
+            action_type_logit = action_type['logit']
+            selected_actions = action_type_logit.argmax(dim=-1)
+            mus = []
+            sigma = []
+            for i, selected_action in enumerate(selected_actions):
+                if selected_action == 0:
+                    # choose 0-accl
+                    temp_arg = self.actor_head[1](x[i])
+                    temp_mu = [temp_arg['mu'][0], torch.tensor(0, dtype=torch.float)]
+                    temp_sigma = [temp_arg['sigma'][0], torch.tensor(0, dtype=torch.float)]
+                elif selected_action == 1:
+                    # choose 1-turn
+                    temp_arg = self.actor_head[2](x[i])
+                    temp_mu = [torch.tensor(0, dtype=torch.float), temp_arg['mu'][0]]
+                    temp_sigma = [torch.tensor(0, dtype=torch.float), temp_arg['sigma'][0]]
+                else:
+                    # choose break
+                    temp_mu = [torch.tensor(0, dtype=torch.float), torch.tensor(0, dtype=torch.float)]
+                    temp_sigma = [torch.tensor(0), torch.tensor(0, dtype=torch.float)]
+                    action_args = None
+                mus.append(temp_mu)
+                sigma.append(temp_sigma)
+            action_args = {'mu': torch.Tensor(mus), 'sigma': torch.Tensor(sigma)}
             return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}}
+        
+    def temp_eval_ag_d2c(self, x: torch.Tensor):
+        if self.share_encoder:
+            x = self.encoder(x)
+        else:
+            x = self.actor_encoder(x)
+        bs = x.shape[0]
+        # action_type_logits = torch.Tensor(np.repeat([[0, 1, 0]], bs, axis=0))    # choose 'turn'
+        action_type_logits = torch.Tensor(np.repeat([[1, 0, 0]], bs, axis=0))    # choose 'accl'
+        action_type = {}
+        action_type['logit'] = action_type_logits
+        action_type_no_grad = action_type['logit'].detach()
+        mx = torch.cat([x, action_type_no_grad], dim=1)
+        action_args = self.actor_head[1](mx)
+
+        return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}}
+
+    def temp_eval_ag_c2d(self, x: torch.Tensor):
+        if self.share_encoder:
+            x = self.encoder(x)
+        else:
+            x = self.actor_encoder(x)
+
+        action_args = self.actor_head[1](x)
+        action_args_mu_no_grad = action_args['mu'].detach()
+        mu_acc = np.linspace(0, 1.0, 50)
+        for i in range(50):
+            action_args['mu'][i][0] = mu_acc[i]
+        action_args_sigma_no_grad = action_args['sigma'].detach()
+        mx = torch.cat([x, action_args_mu_no_grad, action_args_sigma_no_grad], dim=1)
+        action_type = self.actor_head[0](mx)
+
+        return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}}
 
     def compute_critic(self, x: torch.Tensor) -> Dict:
         r"""
@@ -355,7 +447,15 @@ class VAC(nn.Module):
             x = self.actor_head(actor_embedding)
             return {'logit': x, 'value': value}
         elif self.action_space == 'hybrid':
-            action_type = self.actor_head[0](actor_embedding)
-            m_actor_embedding = torch.cat([actor_embedding, action_type['logit']], dim=1)
-            action_args = self.actor_head[1](m_actor_embedding)
+            # action_type = self.actor_head[0](actor_embedding)
+            # action_type_no_grad = action_type['logit'].detach()
+            # m_actor_embedding = torch.cat([actor_embedding, action_type_no_grad, dim=1)
+            # action_args = self.actor_head[1](m_actor_embedding)
+
+            action_args = self.actor_head[1](actor_embedding)
+            action_args_mu_no_grad = action_args['mu'].detach()
+            action_args_sigma_no_grad = action_args['sigma'].detach()
+            m_actor_embedding = torch.cat([actor_embedding, action_args_mu_no_grad, action_args_sigma_no_grad], dim=1)
+            action_type = self.actor_head[0](m_actor_embedding)
+
             return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}, 'value': value}

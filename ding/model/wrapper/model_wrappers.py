@@ -710,6 +710,7 @@ class HybridDeterministicArgmaxSampleWrapper(IModelWrapper):
         action = {'action_type': action_type, 'action_args': action_args}
         output['action'] = action
         return output
+        # return logit
 
 
 class DeterministicSample(IModelWrapper):

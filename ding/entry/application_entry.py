@@ -211,6 +211,9 @@ def collect_episodic_demo_data(
         env_fn, collector_env_cfg, _ = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     collector_env.seed(seed)
+    replay_path = cfg.env.get('replay_path', None)
+    if replay_path:
+        collector_env.enable_save_replay(replay_path)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['collect', 'eval'])
     collect_demo_policy = policy.collect_mode

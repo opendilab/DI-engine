@@ -1,4 +1,4 @@
-from dizoo.rocket.dt_data.collect_ppo_data_config import main_config, create_config
+from dizoo.gym_hybrid.dt_data.collect_hppo_data_config import main_config, create_config
 from ding.entry import collect_episodic_demo_data, eval
 import torch
 import copy
