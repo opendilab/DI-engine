@@ -6,7 +6,10 @@ import gym
 import os
 from stable_baselines3.common.callbacks import BaseCallback
 
+import numpy as np
+from easydict import EasyDict
 from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from dizoo.luxai.luxai2021.game.game import Game
 from dizoo.luxai.luxai2021.game.match_controller import GameStepFailedException, MatchController
@@ -175,6 +178,7 @@ class LuxEnvironment(BaseEnv):
         reward = to_ndarray([reward])
         if is_game_over:
             info['final_eval_reward'] = self._final_eval_reward
+
         return BaseEnvTimestep(obs, reward, is_game_over, info)
 
     def reset(self) -> np.ndarray:
@@ -252,14 +256,20 @@ class LuxEnvironment(BaseEnv):
 
         return is_game_error
 
-        def  __repr__(self) -> str:
-            return "DI-engine Lux AI 2021 Env"
+    def  __repr__(self) -> str:
+        return "DI-engine Lux AI 2021 Env"
 
 if __name__ == "__main__":
     from dizoo.luxai.luxai2021.game.constants import LuxMatchConfigs_Default
     from dizoo.luxai.luxai2021.env.agent import Agent
     cfg = LuxMatchConfigs_Default
-    opp = Agent()
-    player = Agent()
-    lux_env = LuxEnvironment(cfg, player, opp)
-    print("Done!")
+    # opp = Agent()
+    # player = Agent()
+    # lux_env = LuxEnvironment(cfg, player, opp)
+    print(cfg["mapType"])
+
+    from dizoo.luxai.luxai2021.config.lux_ppo_config import main_config, create_config
+    from ding.config import compile_config
+    # cfg = compile_config(main_config, create_config)
+    cfg = main_config
+    print(cfg["mapType"])
