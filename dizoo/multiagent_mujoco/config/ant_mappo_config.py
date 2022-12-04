@@ -41,10 +41,8 @@ main_config = dict(
         ),
         # used in state_num of hidden_state
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
-            epoch_per_collect=10,
-            batch_size=3200,
+            epoch_per_collect=3,
+            batch_size=800,
             learning_rate=5e-4,
             # ==============================================================
             # The following configs is algorithm-specific
@@ -52,19 +50,18 @@ main_config = dict(
             # (float) The loss weight of value network, policy network weight is set to 1
             value_weight=0.5,
             # (float) The loss weight of entropy regularization, policy network weight is set to 1
-            entropy_weight=0.0,
+            entropy_weight=0.001,
             # (float) PPO clip ratio, defaults to 0.2
-            clip_ratio=0.5,
+            clip_ratio=0.2,
             # (bool) Whether to use advantage norm in a whole training batch
-            adv_norm=False,
+            adv_norm=True,
             value_norm=True,
             ppo_param_init=True,
             grad_clip_type='clip_norm',
-            grad_clip_value=10,
-            ignore_done=False,
+            grad_clip_value=5,
         ),
         collect=dict(env_num=collector_env_num, n_sample=3200),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=200, )),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=1000, )),
     ),
 )
 main_config = EasyDict(main_config)
@@ -80,6 +77,5 @@ create_config = EasyDict(create_config)
 
 
 if __name__ == '__main__':
-
     from ding.entry import serial_pipeline_onpolicy
-    serial_pipeline_onpolicy((main_config, create_config), seed=0)
+    serial_pipeline_onpolicy((main_config, create_config), seed=0, max_env_step=int(1e7))

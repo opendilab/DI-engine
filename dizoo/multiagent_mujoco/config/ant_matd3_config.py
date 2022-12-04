@@ -63,4 +63,4 @@ create_config = ant_td3_default_create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c ant_matd3_config.py -s 0`
     from ding.entry.serial_entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7))
