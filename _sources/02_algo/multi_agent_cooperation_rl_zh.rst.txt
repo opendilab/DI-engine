@@ -6,7 +6,7 @@
 -----------------------------
 
 
-在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 SMAC ， 足球游戏 Gfootball ， 以及 Carla 等自动驾驶的环境。
+在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 `SMAC <https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/smac_zh.html>`_ , 足球游戏 `Gfootball <https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gfootball_zh.html>`_ , 以及 `Carla <https://carla.org/>`_ 等自动驾驶的环境。
 
 .. image:: images/smac.gif
    :align: center

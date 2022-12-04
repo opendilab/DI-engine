@@ -6,7 +6,7 @@ Problem Definition and Research Motivation
 -----------------------------------------------
 
 
-In many real-world scenarios, people need to control multiple agents that exist at the same time to complete specific tasks, such as traffic control, robot collaboration, autonomous driving, and multiplayer online games. Therefore, the research on reinforcement learning has gradually extended from the field of single agent to multi-agent reinforcement learning (MARL). In recent years, deep reinforcement learning has shown great potential in multi-agent environments and games, such as the sub-environment `SMAC <https://github.com/oxwhirl/smac>`_ of StarCraft II, the football game `Gfootball <https://github.com/google-research/football>`_ , and autonomous driving environments such as `Carla <https://carla.org/>`_ .
+In many real-world scenarios, people need to control multiple agents that exist at the same time to complete specific tasks, such as traffic control, robot collaboration, autonomous driving, and multiplayer online games. Therefore, the research on reinforcement learning has gradually extended from the field of single agent to multi-agent reinforcement learning (MARL). In recent years, deep reinforcement learning has shown great potential in multi-agent environments and games, such as the sub-environment `SMAC <https://di-engine-docs.readthedocs.io/en/latest/13_envs/smac.html>`_ of StarCraft II, the football game `Gfootball <https://di-engine-docs.readthedocs.io/en/latest/13_envs/gfootball.html>`_ , and autonomous driving environments such as `Carla <https://carla.org/>`_ .
 
 .. image:: images/smac.gif
    :align: center
@@ -49,11 +49,11 @@ At present, the cooperative tasks in MARL mainly adopt the CTDE paradigm (centra
 
 For Valued-based MARL, the main idea is the factorization of the joint action-value function :math:`Q_tot` into individual ones :math:`Q_a` for decentralized execution. In order to achieve CTDE, we need to ensure that factorization satisfy the IGM assumption: the a global argmax performed on :math:`Q_tot` yields the same result as a set of individual argmax operations performed on each :math:`Q_a`. There are mainly QMIX, WQMIX, QTRAN and other methods:
 
-- QMIX: The core of QMIX is to learn a monotonic Q-value mixed network, and the Q-value of each agent is summed by nonlinear transformation to generate :math:`Q_tot`. For details, please refer to `QMIX <https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/qmix.rst>`_ [2]_
+- QMIX: The core of QMIX is to learn a monotonic Q-value mixed network, and the Q-value of each agent is summed by nonlinear transformation to generate :math:`Q_tot`. For details, please refer to `QMIX <https://di-engine-docs.readthedocs.io/en/latest/12_policies/qmix.html>`_ [2]_
 
-- WQMIX: The core of WQMIX is the same as that of QMIX, and it also learns a Q-value mixed network, but it learns a Q-value mixed network that can break through the monotonicity limit through the weighted projection method. For details, please refer to `WQMIX <https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/wqmix.rst>`_ [1]_
+- WQMIX: The core of WQMIX is the same as that of QMIX, and it also learns a Q-value mixed network, but it learns a Q-value mixed network that can break through the monotonicity limit through the weighted projection method. For details, please refer to `WQMIX <https://di-engine-docs.readthedocs.io/en/latest/12_policies/wqmix.html>`_ [1]_
 
-- QTRAN: QTRAN breaks through the monotonicity limitation by learning independent action-value networks, hybrid action-value networks, and global state-value networks. For details, please refer to `QTRAN <https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/qtran.rst>`_ [4]_
+- QTRAN: QTRAN breaks through the monotonicity limitation by learning independent action-value networks, hybrid action-value networks, and global state-value networks. For details, please refer to `QTRAN <https://di-engine-docs.readthedocs.io/en/latest/12_policies/qtran.html>`_ [4]_
 
 - QPLEX: QPLEX decomposes the joint Q-value :math:`Q_tot` and the Q-value of each agent :math:`Q_i` using a Dueling structure, respectively. The IGM consistency is transformed into an easy-to-implement advantage function value range constraint, which facilitates the learning of value functions with a linear decomposition structure. For details, please refer to `QPLEX <https://arxiv.org/abs/2008.01062>`_ [10]_
 
@@ -61,9 +61,9 @@ For Valued-based MARL, the main idea is the factorization of the joint action-va
 
 For Actor-Critic MARL, the main idea is to use the policy gradient theorem to update the policy networks while learning a fully centralized state-action value function and use it to guide the optimization of decentralized policies.
 
-- COMA: COMA uses counterfactual baselines to address the challenge of credit assignment across multiple agents and a critic network to efficiently compute counterfactual baselines. For details, please refer to `COMA <https://github.com/opendilab/DI-engine-docs/blob/main/source/12_policies/coma.rst>`_ [5]_
+- COMA: COMA uses counterfactual baselines to address the challenge of credit assignment across multiple agents and a critic network to efficiently compute counterfactual baselines. For details, please refer to `COMA <https://di-engine-docs.readthedocs.io/en/latest/12_policies/coma.html>`_ [5]_
 
-- MAPPO: The basic idea of MAPPO is the same as that of PPO, but the input to the Actor network is the Local observation of each agent, and the input to the Critic network is the Agent specific global state of each agent. For details, please refer to `MAPPO <https://github.com/opendilab/DI-engine-docs/blob/main/source/best_practice/maac.rst>`_ [6]_
+- MAPPO: The basic idea of MAPPO is the same as that of PPO, but the input to the Actor network is the Local observation of each agent, and the input to the Critic network is the Agent specific global state of each agent. For details, please refer to `MAPPO <https://di-engine-docs.readthedocs.io/en/latest/12_policies/ppo.html>`_ [6]_
 
 
 Future Study

@@ -382,7 +382,7 @@
         <span class="c1"># (bool) Whether to need policy data in process transition</span>
         <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="c1"># (bool) Whether to enable multi-agent training setting</span>
-        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.</span>
             <span class="c1"># Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .</span>
@@ -508,7 +508,6 @@
 
         <span class="c1"># Algorithm config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">discount_factor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_multi_agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span>
         <span class="c1"># Init auto alpha</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">auto_alpha</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_target_entropy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target_entropy&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">action_shape</span><span class="p">))</span>
@@ -585,7 +584,7 @@
         <span class="c1"># target q value. SARSA: first predict next action, then calculate next q value</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">policy_output_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">({</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">next_obs</span><span class="p">},</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multi_agent</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
                 <span class="n">policy_output_next</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="n">policy_output_next</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e8</span>
             <span class="n">prob</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">policy_output_next</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">log_prob</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">prob</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
@@ -619,7 +618,7 @@
 
         <span class="c1"># 5. evaluate to get action distribution</span>
         <span class="n">policy_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">({</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]},</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multi_agent</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
             <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e8</span>
         <span class="n">logit</span> <span class="o">=</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
         <span class="n">prob</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logit</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -710,7 +709,6 @@
 <span class="sd">            Use action noise for exploration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_multi_agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span>
         <span class="c1"># Empirically, we found that eps_greedy_multinomial_sample works better than multinomial_sample</span>
         <span class="c1"># and eps_greedy_sample, and we don&#39;t divide logit by alpha,</span>
         <span class="c1"># for the details please refer to ding/model/wrapper/model_wrappers</span>

@@ -302,7 +302,7 @@
 <h1>多智能体强化学习<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <section id="id2">
 <h2>问题定义与研究动机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<p>在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 SMAC ， 足球游戏 Gfootball ， 以及 Carla 等自动驾驶的环境。</p>
+<p>在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/smac_zh.html">SMAC</a> , 足球游戏 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gfootball_zh.html">Gfootball</a> , 以及 <a class="reference external" href="https://carla.org/">Carla</a> 等自动驾驶的环境。</p>
 <a class="reference internal image-reference" href="../_images/smac.gif"><img alt="../_images/smac.gif" class="align-center" src="../_images/smac.gif" style="width: 230.0px; height: 132.5px;" /></a>
 <p>在MARL中，策略控制多个智能体同时与环境交互，其目标仍然是最大化能够获得的累积回报。此时，环境全局状态（global state）的转移以及奖励值（reward）是和所有智能体的联合动作（joint action）而非单个智能体的动作相关的。因此在策略的学习过程中，每个智能体的策略的更新需要考虑其他智能体的当前策略。</p>
 <a class="reference internal image-reference" href="../_images/MARL_summary.png"><img alt="../_images/MARL_summary.png" class="align-center" src="../_images/MARL_summary.png" style="width: 260.5px; height: 227.0px;" /></a>
