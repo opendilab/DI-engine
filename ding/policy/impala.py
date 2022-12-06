@@ -99,6 +99,7 @@ class IMPALAPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Initialize the optimizer, algorithm config and main model.
         """
+        assert self._cfg.action_space in ["continuous", "discrete"]
         self._action_space = self._cfg.action_space
         # Optimizer
         grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
@@ -314,7 +315,7 @@ class IMPALAPolicy(Policy):
             Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model.
             Use multinomial_sample to choose action.
         """
-
+        assert self._cfg.action_space in ["continuous", "discrete"]
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
@@ -397,7 +398,7 @@ class IMPALAPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model,
             and use argmax_sample to choose action.
         """
-
+        assert self._cfg.action_space in ["continuous", "discrete"]
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
