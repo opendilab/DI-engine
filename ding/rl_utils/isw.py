@@ -1,9 +1,14 @@
+from typing import Union
 import torch
 from torch.distributions import Categorical, Independent, Normal
 
 
 def compute_importance_weights(
-    target_output, behaviour_output, action, action_space_type: str = 'discrete', requires_grad: bool = False
+    target_output: Union[torch.Tensor, dict],
+    behaviour_output: Union[torch.Tensor, dict],
+    action: torch.Tensor,
+    action_space_type: str = 'discrete',
+    requires_grad: bool = False
 ):
     """
     Overview:
