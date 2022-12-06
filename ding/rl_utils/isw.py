@@ -24,8 +24,8 @@ def compute_importance_weights(
     Returns:
         - rhos (:obj:`torch.Tensor`): Importance sampling weight
     Shapes:
-        - target_output (:obj:`Union[torch.FloatTensor,dict]`): :math:`(T, B, N)`, where T is timestep, B is batch size and\
-            N is action dim
+        - target_output (:obj:`Union[torch.FloatTensor,dict]`): :math:`(T, B, N)`, \
+            where T is timestep, B is batch size and N is action dim
         - behaviour_output (:obj:`Union[torch.FloatTensor,dict]`): :math:`(T, B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(T, B)`
         - rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`
