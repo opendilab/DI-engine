@@ -18,8 +18,8 @@ bipedalwalker_impala_config = dict(
         cuda=True,
         # (int) the trajectory length to calculate v-trace target
         unroll_len=32,
-        random_collect_size=500,
-        load_path="./bipedalwalker_impala_seed0/ckpt/ckpt_best.pth.tar",
+        random_collect_size=256,
+        # load_path="./bipedalwalker_impala_seed0/ckpt/ckpt_best.pth.tar",
         action_space='continuous',
         model=dict(
             action_space='continuous',
@@ -29,12 +29,12 @@ bipedalwalker_impala_config = dict(
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow impala serial pipeline
-            update_per_collect=6,  # update_per_collect show be in [1, 10]
+            update_per_collect=3,  # update_per_collect show be in [1, 10]
             # (int) the number of data for a train iteration
             batch_size=64,
             grad_clip_type='clip_norm',
             clip_value=5,
-            learning_rate=0.0005,
+            learning_rate=0.0003,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
@@ -43,19 +43,13 @@ bipedalwalker_impala_config = dict(
             discount_factor=0.99,
             # (float) additional discounting parameter
             lambda_=0.99,
-            # (float) clip ratio of importance weights
-            rho_clip_ratio=1.0,
-            # (float) clip ratio of importance weights
-            c_clip_ratio=1.0,
-            # (float) clip ratio of importance sampling
-            rho_pg_clip_ratio=1.0,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=32,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     ),
 )
@@ -74,6 +68,6 @@ bipedalwalker_impala_create_config = EasyDict(bipedalwalker_impala_create_config
 create_config = bipedalwalker_impala_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c bipedalwalker_impala_config.py -s 0`
+    # or you can enter `ding -m serial_onpolicy -c bipedalwalker_impala_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)
