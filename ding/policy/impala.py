@@ -266,14 +266,15 @@ class IMPALAPolicy(Policy):
         if self._action_space == 'continuous':
             target_logit = {}
             target_logit['mu'] = output['logit']['mu'].reshape(self._unroll_len + 1, -1,
-                                                               self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+                                                               self._action_shape)[:-1
+                                                                                   ]  # shape (T+1),B,env_action_shape
             target_logit['sigma'] = output['logit']['sigma'].reshape(self._unroll_len + 1, -1, self._action_shape
-                                                                     )[:-1]  # shape (T+1),B,env_obs_shape
+                                                                     )[:-1]  # shape (T+1),B,env_action_shape
         elif self._action_space == 'discrete':
             target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
-                                                   self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+                                                   self._action_shape)[:-1]  # shape (T+1),B,env_action_shape
         behaviour_logit = data['logit']  # shape T,B
-        actions = data['action']  # shape T,B for discrete # shape T,B,env_obs_shape for continuous
+        actions = data['action']  # shape T,B for discrete # shape T,B,env_action_shape for continuous
         values = output['value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
         rewards = data['reward']  # shape T,B
         weights_ = 1 - data['done']  # shape T,B
@@ -321,8 +322,6 @@ class IMPALAPolicy(Policy):
             self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
         elif self._action_space == 'discrete':
             self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
-        else:
-            raise ValueError("Action space should be continuous or discrete.")
 
         self._collect_model.reset()
 
@@ -404,8 +403,6 @@ class IMPALAPolicy(Policy):
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
         elif self._action_space == 'discrete':
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        else:
-            raise ValueError("Action space should be continuous or discrete.")
 
         self._eval_model.reset()
 
