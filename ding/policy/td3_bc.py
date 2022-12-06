@@ -173,6 +173,9 @@ class TD3BCPolicy(DDPGPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'qac', ['ding.model.template.qac']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
