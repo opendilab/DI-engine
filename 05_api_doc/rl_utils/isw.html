@@ -310,9 +310,10 @@
 <dt>Overview:</dt><dd><p>Computing importance sampling weight with given output and action</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the current policy network,            usually this output is network output logit</p></li>
-<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the behaviour policy network,            usually this output is network output logit, which is used to produce the trajectory(collector)</p></li>
+<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,dict]</span></code>): the output taking the action             by the current policy network,             usually this output is network output logit if action space is discrete,             or is a dict containing parameters of action distribution if action space is continuous.</p></li>
+<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,dict]</span></code>): the output taking the action             by the behaviour policy network,            usually this output is network output logit,  if action space is discrete,             or is a dict containing parameters of action distribution if action space is continuous.</p></li>
 <li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the chosen action(index for the discrete action space) in trajectory,            i.e.: behaviour_action</p></li>
+<li><p>action_space_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): action space types in [‘discrete’, ‘continuous’]</p></li>
 <li><p>requires_grad (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether requires grad computation</p></li>
 </ul>
 </dd>
@@ -321,8 +322,8 @@
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span>, where T is timestep, B is batch size and            N is action dim</p></li>
-<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span></p></li>
+<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.FloatTensor,dict]</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span>,             where T is timestep, B is batch size and N is action dim</p></li>
+<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.FloatTensor,dict]</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span></p></li>
 <li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
 <li><p>rhos (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
 </ul>

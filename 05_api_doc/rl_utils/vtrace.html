@@ -304,42 +304,8 @@
 <h1>rl_tuils.vtrace<a class="headerlink" href="#rl-tuils-vtrace" title="Permalink to this headline">¶</a></h1>
 <section id="vtrace">
 <h2>vtrace<a class="headerlink" href="#vtrace" title="Permalink to this headline">¶</a></h2>
-<section id="module-ding.rl_utils.vtrace.vtrace_error">
-<span id="vtrace-error"></span><h3>vtrace_error<a class="headerlink" href="#module-ding.rl_utils.vtrace.vtrace_error" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Implementation of vtrace(IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner        Architectures), (arXiv:1802.01561)</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): input data with fields shown in <code class="docutils literal notranslate"><span class="pre">vtrace_data</span></code></dt><dd><ul>
-<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the current policy network,                usually this output is network output logit</p></li>
-<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the behaviour policy network,                usually this output is network output logit, which is used to produce the trajectory(collector)</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the chosen action(index for the discrete action space) in trajectory,                i.e.: behaviour_action</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p>gamma: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the future discount factor, defaults to 0.95</p></li>
-<li><p>lambda: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): mix factor between 1-step (lambda_=0) and n-step, defaults to 1.0</p></li>
-<li><p>rho_clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the clipping threshold for importance weights (rho) when calculating            the baseline targets (vs)</p></li>
-<li><p>c_clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the clipping threshold for importance weights (c) when calculating            the baseline targets (vs)</p></li>
-<li><p>rho_pg_clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the clipping threshold for importance weights (rho) when calculating            the policy gradient advantage</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>trace_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): the vtrace loss item, all of them are the differentiable 0-dim tensor</p></li>
-</ul>
-</dd>
-<dt>Shapes:</dt><dd><ul class="simple">
-<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span>, where T is timestep, B is batch size and            N is action dim</p></li>
-<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T+1, B)\)</span></p></li>
-<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
-<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
-</ul>
-</dd>
-</dl>
+<section id="vtrace-error">
+<h3>vtrace_error<a class="headerlink" href="#vtrace-error" title="Permalink to this headline">¶</a></h3>
 </section>
 </section>
 </section>
@@ -389,7 +355,7 @@
               <ul>
 <li><a class="reference internal" href="#">rl_tuils.vtrace</a><ul>
 <li><a class="reference internal" href="#vtrace">vtrace</a><ul>
-<li><a class="reference internal" href="#module-ding.rl_utils.vtrace.vtrace_error">vtrace_error</a></li>
+<li><a class="reference internal" href="#vtrace-error">vtrace_error</a></li>
 </ul>
 </li>
 </ul>
@@ -414,7 +380,6 @@
   <script src="../../_static/jquery.js"></script>
   <script src="../../_static/underscore.js"></script>
   <script src="../../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   
