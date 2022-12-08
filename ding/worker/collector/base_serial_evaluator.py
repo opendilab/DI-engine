@@ -83,7 +83,7 @@ class VectorEvalMonitor(object):
             any thing, it is likely that we will get more short episodes than long episodes. As a result, \
             our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.
     Interfaces:
-        __init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,\
+        __init__, is_finished, update_info, update_reward, get_episode_return, get_latest_reward, get_current_episode,\
             get_episode_info
     """
 
@@ -156,7 +156,7 @@ class VectorEvalMonitor(object):
         """
         videos = sum([list(v) for v in self._video.values()], [])
         videos = [np.transpose(np.stack(video, 0), [0, 3, 1, 2]) for video in videos]
-        sortarg = np.argsort(self.get_episode_reward())
+        sortarg = np.argsort(self.get_episode_return())
         # worst, median(s), best
         if len(sortarg) == 1:
             idxs = [sortarg[0]]
@@ -179,10 +179,10 @@ class VectorEvalMonitor(object):
         assert len(videos.shape) == 5, 'Need [N, T, C, H, W] input tensor for video logging!'
         return videos
 
-    def get_episode_reward(self) -> list:
+    def get_episode_return(self) -> list:
         """
         Overview:
-            Get the total reward of one episode.
+            Sum up all reward and get the total return of one episode.
         """
         return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
 
@@ -205,7 +205,7 @@ class VectorEvalMonitor(object):
     def get_episode_info(self) -> dict:
         """
         Overview:
-            Get all episode information, such as total reward of one episode.
+            Get all episode information, such as total return of one episode.
         """
         if len(self._info[0]) == 0:
             return None

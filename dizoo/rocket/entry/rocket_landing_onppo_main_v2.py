@@ -8,7 +8,7 @@ from rocket_recycling.rocket import Rocket
 from ditk import logging
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2, FinalEvalRewardEnv
+from ding.envs import DingEnvWrapper, BaseEnvManagerV2, EvalEpisodeReturnEnv
 from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
@@ -19,14 +19,10 @@ from dizoo.rocket.config.rocket_landing_ppo_config import main_config, create_co
 
 
 class RocketLandingWrapper(gym.Wrapper):
+
     def __init__(self, env):
         super().__init__(env)
-        self._observation_space = gym.spaces.Box(
-            low=float("-inf"),
-            high=float("inf"),
-            shape=(8,),
-            dtype=np.float32
-        )
+        self._observation_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(8, ), dtype=np.float32)
         self._action_space = gym.spaces.Discrete(9)
         self._action_space.seed(0)  # default seed
         self.reward_range = (float('-inf'), float('inf'))
@@ -35,13 +31,12 @@ class RocketLandingWrapper(gym.Wrapper):
 def wrapped_rocket_env(task, max_steps):
     return DingEnvWrapper(
         Rocket(task=task, max_steps=max_steps),
-        cfg={
-            'env_wrapper': [
-                lambda env: RocketLandingWrapper(env),
-                lambda env: FinalEvalRewardEnv(env),
-            ]
-        }
+        cfg={'env_wrapper': [
+            lambda env: RocketLandingWrapper(env),
+            lambda env: EvalEpisodeReturnEnv(env),
+        ]}
     )
+
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
@@ -51,14 +46,20 @@ def main():
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     num_seed = 4
     for seed_i in range(num_seed):
-        tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed'+str(seed_i)))
+        tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed' + str(seed_i)))
         with task.start(async_mode=False, ctx=OnlineRLContext()):
             collector_env = BaseEnvManagerV2(
-                env_fn=[lambda: wrapped_rocket_env(cfg.env.task, cfg.env.max_steps) for _ in range(cfg.env.collector_env_num)],
+                env_fn=[
+                    lambda: wrapped_rocket_env(cfg.env.task, cfg.env.max_steps)
+                    for _ in range(cfg.env.collector_env_num)
+                ],
                 cfg=cfg.env.manager
             )
             evaluator_env = BaseEnvManagerV2(
-                env_fn=[lambda: wrapped_rocket_env(cfg.env.task, cfg.env.max_steps) for _ in range(cfg.env.evaluator_env_num)],
+                env_fn=[
+                    lambda: wrapped_rocket_env(cfg.env.task, cfg.env.max_steps)
+                    for _ in range(cfg.env.evaluator_env_num)
+                ],
                 cfg=cfg.env.manager
             )
 

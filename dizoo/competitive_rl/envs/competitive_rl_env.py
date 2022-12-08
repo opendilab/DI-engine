@@ -92,9 +92,9 @@ class CompetitiveRlEnv(BaseEnv):
         obs = self.process_obs(obs)  # process
 
         if self._builtin_wrap:
-            self._final_eval_reward = np.array([0.])
+            self._eval_episode_return = np.array([0.])
         else:
-            self._final_eval_reward = np.array([0., 0.])
+            self._eval_episode_return = np.array([0., 0.])
         return obs
 
     def close(self) -> None:
@@ -116,13 +116,13 @@ class CompetitiveRlEnv(BaseEnv):
         if not isinstance(rew, tuple):
             rew = [rew]
         rew = np.array(rew)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
 
         obs = to_ndarray(obs)
         obs = self.process_obs(obs)  # process
 
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
 
         return BaseEnvTimestep(obs, rew, done, info)
 

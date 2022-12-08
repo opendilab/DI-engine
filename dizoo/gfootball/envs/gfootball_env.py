@@ -126,7 +126,7 @@ class GfootballEnv(BaseEnv):
 
         info = {'cum_reward': self._reward_helper.cum_reward}
         if self._is_done:
-            info['final_eval_reward'] = to_ndarray(self._reward_helper.cum_reward)
+            info['eval_episode_return'] = to_ndarray(self._reward_helper.cum_reward)
             if self._save_replay_gif:
                 path = os.path.join(
                     self._replay_path, '{}_episode_{}.gif'.format(self.env_name, self._save_replay_gif_count)

@@ -50,10 +50,10 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
         nonlocal last_train_show_iter
         if not np.isinf(ctx.eval_value):
             if record_train_iter:
-                writer.add_scalar('basic/eval_episode_reward_mean-env_step', ctx.eval_value, ctx.env_step)
-                writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+                writer.add_scalar('basic/eval_episode_return_mean-env_step', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
             else:
-                writer.add_scalar('basic/eval_episode_reward_mean', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean', ctx.eval_value, ctx.env_step)
         if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
             last_train_show_iter = ctx.train_iter
             if isinstance(ctx.train_output, List):
@@ -86,7 +86,7 @@ def offline_logger() -> Callable:
 
     def _logger(ctx: "OfflineRLContext"):
         if not np.isinf(ctx.eval_value):
-            writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+            writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
         if ctx.train_output is not None:
             output = ctx.train_output
             for k, v in output.items():
@@ -155,7 +155,7 @@ def wandb_online_logger(
             wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter})
 
             eval_output = ctx.eval_output['output']
-            eval_reward = ctx.eval_output['reward']
+            episode_return = ctx.eval_output['reward']
             if 'logit' in eval_output[0]:
                 action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
 
@@ -184,7 +184,7 @@ def wandb_online_logger(
             fig, ax = plt.subplots()
             ax = plt.gca()
             ax.set_ylim([0, 1])
-            hist, x_dim = return_distribution(eval_reward)
+            hist, x_dim = return_distribution(episode_return)
             assert len(hist) == len(x_dim)
             ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
             ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
@@ -303,7 +303,7 @@ def wandb_offline_logger(
             wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter})
 
             eval_output = ctx.eval_output['output']
-            eval_reward = ctx.eval_output['reward']
+            episode_return = ctx.eval_output['reward']
             if 'logit' in eval_output[0]:
                 action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
 
@@ -332,7 +332,7 @@ def wandb_offline_logger(
             fig, ax = plt.subplots()
             ax = plt.gca()
             ax.set_ylim([0, 1])
-            hist, x_dim = return_distribution(eval_reward)
+            hist, x_dim = return_distribution(episode_return)
             assert len(hist) == len(x_dim)
             ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
             ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)

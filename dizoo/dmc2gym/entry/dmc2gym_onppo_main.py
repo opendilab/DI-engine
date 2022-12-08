@@ -7,7 +7,7 @@ import dmc2gym
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, FinalEvalRewardEnv, BaseEnvManager
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, BaseEnvManager
 from ding.config import compile_config
 from ding.utils import set_pkg_seed
 from dizoo.dmc2gym.config.dmc2gym_ppo_config import cartpole_balance_ppo_config
@@ -15,6 +15,7 @@ from dizoo.dmc2gym.envs.dmc2gym_env import *
 
 
 class Dmc2GymWrapper(gym.Wrapper):
+
     def __init__(self, env, cfg):
         super().__init__(env)
         cfg = EasyDict(cfg)
@@ -50,15 +51,14 @@ class Dmc2GymWrapper(gym.Wrapper):
 
 def wrapped_dmc2gym_env(cfg):
     default_cfg = {
-            "frame_skip": 3,
-            "from_pixels": True,
-            "visualize_reward": False,
-            "height": 100,
-            "width": 100,
-            "channels_first": True,
+        "frame_skip": 3,
+        "from_pixels": True,
+        "visualize_reward": False,
+        "height": 100,
+        "width": 100,
+        "channels_first": True,
     }
     default_cfg.update(cfg)
-
 
     return DingEnvWrapper(
         dmc2gym.make(
@@ -70,27 +70,27 @@ def wrapped_dmc2gym_env(cfg):
             height=default_cfg["height"],
             width=default_cfg["width"],
             frame_skip=default_cfg["frame_skip"]
-        )
-        ,
-        cfg={
-            'env_wrapper': [
-                lambda env: Dmc2GymWrapper(env, default_cfg),
-                lambda env: FinalEvalRewardEnv(env),
-            ]
-        }
+        ),
+        cfg={'env_wrapper': [
+            lambda env: Dmc2GymWrapper(env, default_cfg),
+            lambda env: EvalEpisodeReturnEnv(env),
+        ]}
     )
 
 
 def main(cfg, seed=0, max_env_step=int(1e10), max_train_iter=int(1e10)):
     cfg = compile_config(
-        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator,
-        save_cfg=True
+        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[partial(wrapped_dmc2gym_env, cfg=cartpole_balance_ppo_config.env)
-                                           for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[partial(wrapped_dmc2gym_env, cfg=cartpole_balance_ppo_config.env)
-                                           for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[partial(wrapped_dmc2gym_env, cfg=cartpole_balance_ppo_config.env) for _ in range(collector_env_num)],
+        cfg=cfg.env.manager
+    )
+    evaluator_env = BaseEnvManager(
+        env_fn=[partial(wrapped_dmc2gym_env, cfg=cartpole_balance_ppo_config.env) for _ in range(evaluator_env_num)],
+        cfg=cfg.env.manager
+    )
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)

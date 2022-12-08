@@ -219,7 +219,7 @@ class MetricSerialEvaluator(ISerialEvaluator):
         if stop_flag:
             self._logger.info(
                 "[DI-engine serial pipeline] " +
-                "Current eval_reward: {} is greater than stop_value: {}".format(avg_eval_result, self._stop_value) +
+                "Current episode_return: {} is greater than stop_value: {}".format(avg_eval_result, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, avg_eval_result

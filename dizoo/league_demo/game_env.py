@@ -62,10 +62,10 @@ class GameEnv(BaseEnv):
         dones = True, True
         infos = {
             'result': results[0],
-            'final_eval_reward': rewards[0]
+            'eval_episode_return': rewards[0]
         }, {
             'result': results[1],
-            'final_eval_reward': rewards[1]
+            'eval_episode_return': rewards[1]
         }
         return BaseEnvTimestep(observations, rewards, True, infos)
 

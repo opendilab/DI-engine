@@ -31,10 +31,10 @@ class TestAtariEnv:
             assert timestep.obs.shape == (cfg.frame_stack, 84, 84)
             assert timestep.reward.shape == (1, )
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         print(pong_env.observation_space, pong_env.action_space, pong_env.reward_space)
-        print('final_eval_reward: {}'.format(timestep.info['final_eval_reward']))
+        print('eval_episode_return: {}'.format(timestep.info['eval_episode_return']))
         pong_env.close()
 
     def test_montezuma_revenge(self):
@@ -56,8 +56,8 @@ class TestAtariEnv:
             assert timestep.obs.shape == (cfg.frame_stack, 84, 84)
             assert timestep.reward.shape == (1, )
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         print(mr_env.observation_space, mr_env.action_space, mr_env.reward_space)
-        print('final_eval_reward: {}'.format(timestep.info['final_eval_reward']))
+        print('eval_episode_return: {}'.format(timestep.info['eval_episode_return']))
         mr_env.close()

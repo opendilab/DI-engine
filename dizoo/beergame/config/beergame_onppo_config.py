@@ -44,7 +44,7 @@ beergame_ppo_config = dict(
             gae_lambda=0.95,
             collector=dict(
                 get_train_sample=True,
-                reward_shaping=True,  # whether use total reward to reshape reward
+                reward_shaping=True,  # whether use total return to reshape reward
             ),
         ),
         eval=dict(evaluator=dict(eval_freq=500, )),

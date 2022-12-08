@@ -55,7 +55,7 @@ class PomdpAtariEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return obs
 
     def close(self) -> None:
@@ -72,11 +72,11 @@ class PomdpAtariEnv(BaseEnv):
         assert isinstance(action, np.ndarray), type(action)
         action = action.item()
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
 
     def _make_env(self, only_info=False):

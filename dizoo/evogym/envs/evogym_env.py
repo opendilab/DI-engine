@@ -6,7 +6,7 @@ import numpy as np
 import gym
 from easydict import EasyDict
 
-from ding.envs import BaseEnv, BaseEnvTimestep, FinalEvalRewardEnv
+from ding.envs import BaseEnv, BaseEnvTimestep, EvalEpisodeReturnEnv
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
@@ -14,6 +14,7 @@ from ding.utils import ENV_REGISTRY
 import evogym.envs
 from evogym import WorldObject, sample_robot
 from evogym.sim import EvoSim
+
 
 @ENV_REGISTRY.register('evogym')
 class EvoGymEnv(BaseEnv):
@@ -47,8 +48,7 @@ class EvoGymEnv(BaseEnv):
             self._observation_space = self._env.observation_space
             self.num_actuators = self._env.get_actuator_indices('robot').size
             # by default actions space is double (float64), create a new space with type of type float (float32)
-            self._action_space = gym.spaces.Box(
-                low=0.6, high=1.6, shape=(self.num_actuators, ), dtype=np.float32)
+            self._action_space = gym.spaces.Box(low=0.6, high=1.6, shape=(self.num_actuators, ), dtype=np.float32)
             self._reward_space = gym.spaces.Box(
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
@@ -69,7 +69,7 @@ class EvoGymEnv(BaseEnv):
                 self._env,
                 video_folder=self._replay_path,
                 episode_trigger=lambda episode_id: True,
-                name_prefix='rl-video-{}-{}'.format(id(self),time.time())
+                name_prefix='rl-video-{}-{}'.format(id(self), time.time())
             )
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
@@ -111,7 +111,7 @@ class EvoGymEnv(BaseEnv):
         else:
             structure = self.read_robot_from_file(self._cfg.robot, self._cfg.robot_dir)
         env = gym.make(self._cfg.env_id, body=structure[0])
-        env = FinalEvalRewardEnv(env)
+        env = EvalEpisodeReturnEnv(env)
         return env
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
