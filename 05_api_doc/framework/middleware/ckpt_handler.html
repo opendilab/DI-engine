@@ -319,11 +319,11 @@
 <dt class="sig sig-object py" id="ding.framework.middleware.ckpt_handler.CkptSaver.__call__">
 <span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">OnlineRLContext</span><span class="p"><span class="pre">,</span> </span><span class="pre">OfflineRLContext</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/ckpt_handler.html#CkptSaver.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.ckpt_handler.CkptSaver.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>The method used to save checkpoint data.             The checkpoint data will be saved in a file in following 3 cases:                 - When a multiple of <cite>self.train_freq</cite> iterations have elapsed since the beginning of training;                 - When the evaluation reward is the best eval reward so far;                 - When <cite>task.finish</cite> is True.</p>
+<dt>Overview:</dt><dd><p>The method used to save checkpoint data.             The checkpoint data will be saved in a file in following 3 cases:                 - When a multiple of <cite>self.train_freq</cite> iterations have elapsed since the beginning of training;                 - When the evaluation episode return is the best so far;                 - When <cite>task.finish</cite> is True.</p>
 </dd>
 <dt>Input of ctx:</dt><dd><ul class="simple">
 <li><p>train_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of training iteration, i.e. the number of updating policy related network.</p></li>
-<li><p>eval_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The eval reward of current iteration.</p></li>
+<li><p>eval_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The episode return of current iteration.</p></li>
 </ul>
 </dd>
 </dl>

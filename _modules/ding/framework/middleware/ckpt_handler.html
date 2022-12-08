@@ -334,11 +334,11 @@
 <span class="sd">            The method used to save checkpoint data. \</span>
 <span class="sd">            The checkpoint data will be saved in a file in following 3 cases: \</span>
 <span class="sd">                - When a multiple of `self.train_freq` iterations have elapsed since the beginning of training; \</span>
-<span class="sd">                - When the evaluation reward is the best eval reward so far; \</span>
+<span class="sd">                - When the evaluation episode return is the best so far; \</span>
 <span class="sd">                - When `task.finish` is True.</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - train_iter (:obj:`int`): Number of training iteration, i.e. the number of updating policy related network.</span>
-<span class="sd">            - eval_value (:obj:`float`): The eval reward of current iteration.</span>
+<span class="sd">            - eval_value (:obj:`float`): The episode return of current iteration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># train enough iteration</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_freq</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_save_iter</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_freq</span><span class="p">:</span>
@@ -347,7 +347,7 @@
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">last_save_iter</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span>
 
-        <span class="c1"># best eval reward so far</span>
+        <span class="c1"># best episode return so far</span>
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_eval_value</span><span class="p">:</span>
             <span class="n">save_file</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/eval.pth.tar&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">max_eval_value</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span>

@@ -345,7 +345,7 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>In some cases,  different environment in evaluator may collect different length episode. For example,             suppose we want to collect 12 episodes in evaluator but only have 5 environments, if we didn’t do             any thing, it is likely that we will get more short episodes than long episodes. As a result,             our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>__init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,            get_episode_info</p>
+<dt>Interfaces:</dt><dd><p>__init__, is_finished, update_info, update_reward, get_episode_return, get_latest_reward, get_current_episode,            get_episode_info</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -375,16 +375,7 @@
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info">
 <span class="sig-name descname"><span class="pre">get_episode_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Get all episode information, such as total reward of one episode.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_reward">
-<span class="sig-name descname"><span class="pre">get_episode_reward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_reward" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Get the total reward of one episode.</p>
+<dt>Overview:</dt><dd><p>Get all episode information, such as total return of one episode.</p>
 </dd>
 </dl>
 </dd></dl>

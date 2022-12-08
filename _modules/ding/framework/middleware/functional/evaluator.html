@@ -343,7 +343,7 @@
 <span class="sd">            any thing, it is likely that we will get more short episodes than long episodes. As a result, \</span>
 <span class="sd">            our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        __init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,\</span>
+<span class="sd">        __init__, is_finished, update_info, update_reward, get_episode_return, get_latest_reward, get_current_episode,\</span>
 <span class="sd">            get_episode_info, update_video, get_episode_video</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -407,10 +407,10 @@
             <span class="n">env_id</span> <span class="o">=</span> <span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_episode_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">get_episode_return</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Get the total reward of one episode.</span>
+<span class="sd">            Sum up all reward and get the total return of one episode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span> <span class="p">[])</span>  <span class="c1"># sum(iterable, start)</span>
 
@@ -433,7 +433,7 @@
     <span class="k">def</span> <span class="nf">get_episode_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Get all episode information, such as total reward of one episode.</span>
+<span class="sd">            Get all episode information, such as total return of one episode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -453,7 +453,7 @@
             <span class="k">return</span> <span class="n">new_dict</span>
 
     <span class="k">def</span> <span class="nf">_select_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">reward</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_episode_reward</span><span class="p">()]</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_episode_return</span><span class="p">()]</span>
         <span class="n">sortarg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
         <span class="c1"># worst, median(s), best</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sortarg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -558,24 +558,24 @@
                 <span class="n">env_id</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
                     <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">env_id</span><span class="p">])</span>
-                    <span class="n">reward</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">final_eval_reward</span>
+                    <span class="n">reward</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">eval_episode_return</span>
                     <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_reward</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">reward</span><span class="p">)</span>
                     <span class="k">if</span> <span class="s1">&#39;episode_info&#39;</span> <span class="ow">in</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
                         <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_info</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">episode_info</span><span class="p">)</span>
-        <span class="n">episode_reward</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_reward</span><span class="p">()</span>
-        <span class="n">eval_reward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">episode_reward</span><span class="p">)</span>
-        <span class="n">stop_flag</span> <span class="o">=</span> <span class="n">eval_reward</span> <span class="o">&gt;=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">stop_value</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">episode_return</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_return</span><span class="p">()</span>
+        <span class="n">episode_return</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">episode_return</span><span class="p">)</span>
+        <span class="n">stop_flag</span> <span class="o">=</span> <span class="n">episode_return</span> <span class="o">&gt;=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">stop_value</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">OfflineRLContext</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Evaluation: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Eval Reward(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">eval_reward</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Evaluation: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Episode Return(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">episode_return</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;Evaluation: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Env Step(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Eval Reward(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span><span class="p">,</span> <span class="n">eval_reward</span>
+                <span class="s1">&#39;Evaluation: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Env Step(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Episode Return(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span><span class="p">,</span> <span class="n">episode_return</span>
                 <span class="p">)</span>
             <span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">=</span> <span class="n">eval_reward</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">episode_reward</span><span class="p">}</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">=</span> <span class="n">episode_return</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">episode_return</span><span class="p">}</span>
         <span class="n">episode_info</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_info</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">episode_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span><span class="p">[</span><span class="s1">&#39;episode_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">episode_info</span>
@@ -611,7 +611,7 @@
         <span class="n">avg_eval_output</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">eval_output</span><span class="p">)</span>
         <span class="n">stop_flag</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">gt</span><span class="p">(</span><span class="n">avg_eval_output</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">stop_value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s1">&#39;Evaluation: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Env Step(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Eval Reward(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s1">&#39;Evaluation: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Env Step(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Episode Return(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span><span class="p">,</span> <span class="n">avg_eval_output</span>
             <span class="p">)</span>
         <span class="p">)</span>

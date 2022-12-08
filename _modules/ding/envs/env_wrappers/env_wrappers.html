@@ -588,8 +588,8 @@
         <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
 
-<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">FinalEvalRewardEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">EvalEpisodeReturnEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Accumulate rewards at every timestep, and return at the end of the episode in `info`.</span>
@@ -609,14 +609,14 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_episode_return</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span> <span class="o">+=</span> <span class="n">reward</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_episode_return</span> <span class="o">+=</span> <span class="n">reward</span>
         <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
-            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_episode_return</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
 
