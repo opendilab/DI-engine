@@ -116,7 +116,7 @@ class VectorEvalMonitor(object):
     def get_episode_return(self) -> list:
         """
         Overview:
-            Get the total reward of one episode.
+            Sum up all reward and get the total return of one episode.
         """
         return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
 
@@ -139,7 +139,7 @@ class VectorEvalMonitor(object):
     def get_episode_info(self) -> dict:
         """
         Overview:
-            Get all episode information, such as total reward of one episode.
+            Get all episode information, such as total return of one episode.
         """
         if len(self._info[0]) == 0:
             return None
@@ -159,7 +159,7 @@ class VectorEvalMonitor(object):
             return new_dict
 
     def _select_idx(self):
-        reward = [t.item() for t in self.get_episode_reward()]
+        reward = [t.item() for t in self.get_episode_return()]
         sortarg = np.argsort(reward)
         # worst, median(s), best
         if len(sortarg) == 1:

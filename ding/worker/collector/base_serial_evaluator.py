@@ -55,11 +55,11 @@ class ISerialEvaluator(ABC):
 
     @abstractmethod
     def eval(
-            self,
-            save_ckpt_fn: Callable = None,
-            train_iter: int = -1,
-            envstep: int = -1,
-            n_episode: Optional[int] = None
+        self,
+        save_ckpt_fn: Callable = None,
+        train_iter: int = -1,
+        envstep: int = -1,
+        n_episode: Optional[int] = None
     ) -> Any:
         raise NotImplementedError
 
@@ -182,7 +182,7 @@ class VectorEvalMonitor(object):
     def get_episode_return(self) -> list:
         """
         Overview:
-            Get the total reward of one episode.
+            Sum up all reward and get the total return of one episode.
         """
         return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
 
@@ -205,7 +205,7 @@ class VectorEvalMonitor(object):
     def get_episode_info(self) -> dict:
         """
         Overview:
-            Get all episode information, such as total reward of one episode.
+            Get all episode information, such as total return of one episode.
         """
         if len(self._info[0]) == 0:
             return None

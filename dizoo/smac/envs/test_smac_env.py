@@ -141,7 +141,7 @@ def main(policy, map_name="3m", two_player=False):
             draw += int(infos["draw"])
 
         print(
-            "Total reward in episode {} = {} (me), {} (opponent). Me win {}, Draw {}, Opponent win {}, total {}."
+            "Total return in episode {} = {} (me), {} (opponent). Me win {}, Draw {}, Opponent win {}, total {}."
             "".format(e, episode_return_me, episode_return_op, me_win, draw, op_win, e + 1)
         )
 
