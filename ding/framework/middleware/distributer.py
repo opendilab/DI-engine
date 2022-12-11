@@ -123,8 +123,6 @@ class ContextExchanger:
             if not task.has_role(task.role.COLLECTOR) and k.startswith('increment_'):
                 pure_k = k.split('increment_')[-1]
                 setattr(ctx, pure_k, getattr(ctx, pure_k) + v)
-                if k == 'increment_env_step':
-                    pass  #print(task.has_role(task.role.LEARNER), v)
             else:
                 setattr(ctx, k, v)
         self._state = {}
