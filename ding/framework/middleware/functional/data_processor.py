@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
 from ditk import logging
@@ -46,6 +47,42 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             raise RuntimeError("Either ctx.trajectories or ctx.episodes should be not None.")
 
     return _push
+
+
+def buffer_saver(cfg: EasyDict, buffer_: Buffer, every_envstep: int = 1000, replace: bool = False):
+    """
+    Overview:
+        Save current buffer data.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - buffer (:obj:`Buffer`): Buffer to push the data in.
+        - every_envstep (:obj:`int`): save at every env step.
+        - replace (:obj:`bool`): Whether replace the last file.
+    """
+
+    buffer_saver_env_counter = -every_envstep
+
+    def _save(ctx: "OnlineRLContext"):
+        """
+        Overview:
+            In ctx, `ctx.env_step` should not be None.
+        Input of ctx:
+            - env_step (:obj:`int`): env step.
+        """
+        nonlocal buffer_saver_env_counter
+        if ctx.env_step is not None:
+            if ctx.env_step >= every_envstep + buffer_saver_env_counter:
+                buffer_saver_env_counter = ctx.env_step
+                if replace:
+                    buffer_.save_data(os.path.join(cfg.exp_name, "replaybuffer", "data_latest.hkl"))
+                else:
+                    buffer_.save_data(
+                        os.path.join(cfg.exp_name, "replaybuffer", "data_envstep_{}.hkl".format(ctx.env_step))
+                    )
+        else:
+            raise RuntimeError("buffer_saver only supports collecting data by step rather than episode.")
+
+    return _save
 
 
 def offpolicy_data_fetcher(

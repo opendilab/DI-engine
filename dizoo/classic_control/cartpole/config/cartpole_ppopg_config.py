@@ -18,9 +18,9 @@ cartpole_ppopg_config = dict(
             epoch_per_collect=1,
             batch_size=64,
             learning_rate=0.001,
-            entropy_weight=0.01,
+            entropy_weight=0.001,
         ),
-        collect=dict(n_episode=160, unroll_len=1, discount_factor=0.9, collector=dict(get_train_sample=True)),
+        collect=dict(n_episode=80, unroll_len=1, discount_factor=0.9, collector=dict(get_train_sample=True)),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
     ),
 )

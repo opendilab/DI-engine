@@ -59,7 +59,7 @@ class DemoEnv(BaseEnv):
             done = False
         info = {}
         if done:
-            info['final_eval_reward'] = self.reward_space.sample() * 30
+            info['eval_episode_return'] = self.reward_space.sample() * 30
         return BaseEnvTimestep(obs, rew, done, info)
 
     def seed(self, seed: int) -> None:

@@ -1,10 +1,8 @@
 from easydict import EasyDict
 
-maze_ppo_default_config = dict(
+coinrun_dqn_config = dict(
     env=dict(
-        # frame_stack=4,
-        is_train=True,
-        env_id='maze',
+        env_id='coinrun',
         collector_env_num=4,
         evaluator_env_num=4,
         n_evaluator_episode=4,
@@ -12,20 +10,18 @@ maze_ppo_default_config = dict(
     ),
     policy=dict(
         cuda=False,
-        action_space='discrete',
         model=dict(
             obs_shape=[3, 64, 64],
             action_shape=15,
-            action_space='discrete',
-            encoder_hidden_size_list=[32, 32, 64],
+            encoder_hidden_size_list=[128, 128, 512],
+            dueling=False,
         ),
+        discount_factor=0.99,
         learn=dict(
-            update_per_collect=5,
-            batch_size=64,
-            value_weight=0.5,
-            entropy_weight=0.01,
-            clip_ratio=0.2,
-            learning_rate=0.0001,
+            update_per_collect=20,
+            batch_size=32,
+            learning_rate=0.0005,
+            target_update_freq=500,
         ),
         collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
@@ -40,16 +36,16 @@ maze_ppo_default_config = dict(
         ),
     ),
 )
-maze_ppo_default_config = EasyDict(maze_ppo_default_config)
-main_config = maze_ppo_default_config
+coinrun_dqn_config = EasyDict(coinrun_dqn_config)
+main_config = coinrun_dqn_config
 
-maze_ppo_create_config = dict(
+coinrun_dqn_create_config = dict(
     env=dict(
         type='procgen',
         import_names=['dizoo.procgen.envs.procgen_env'],
     ),
     env_manager=dict(type='subprocess', ),
-    policy=dict(type='ppo'),
+    policy=dict(type='dqn'),
 )
-maze_ppo_create_config = EasyDict(maze_ppo_create_config)
-create_config = maze_ppo_create_config
+coinrun_dqn_create_config = EasyDict(coinrun_dqn_create_config)
+create_config = coinrun_dqn_create_config

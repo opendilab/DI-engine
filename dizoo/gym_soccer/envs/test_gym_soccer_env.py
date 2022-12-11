@@ -28,7 +28,7 @@ class TestGymSoccerEnv:
             if timestep.done:
                 print('reset env')
                 env.reset()
-                assert env._final_eval_reward == 0
+                assert env._eval_episode_return == 0
         print(env.info())
         # env.replay_log("./video/20211019011053-base_left_0-vs-base_right_0.rcg")
         env.close()

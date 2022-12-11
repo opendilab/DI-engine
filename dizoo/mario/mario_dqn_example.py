@@ -4,7 +4,7 @@ from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    FinalEvalRewardEnv
+    EvalEpisodeReturnEnv
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
@@ -26,7 +26,7 @@ def wrapped_mario_env():
                 lambda env: WarpFrameWrapper(env, size=84),
                 lambda env: ScaledFloatFrameWrapper(env),
                 lambda env: FrameStackWrapper(env, n_frames=4),
-                lambda env: FinalEvalRewardEnv(env),
+                lambda env: EvalEpisodeReturnEnv(env),
             ]
         }
     )

@@ -48,7 +48,7 @@ class GymVectorEnvManager(BaseEnvManager):
             shared_memory=cfg.shared_memory,
         )
         self._env_states = {i: EnvState.INIT for i in range(self._env_num)}
-        self._final_eval_reward = [0. for _ in range(self._env_num)]
+        self._eval_episode_return = [0. for _ in range(self._env_num)]
 
     def reset(self, reset_param: Optional[Dict] = None) -> None:
         assert reset_param is None
@@ -58,7 +58,7 @@ class GymVectorEnvManager(BaseEnvManager):
         self._ready_obs = self._env_manager.reset()
         for env_id in range(self.env_num):
             self._env_states[env_id] = EnvState.RUN
-        self._final_eval_reward = [0. for _ in range(self._env_num)]
+        self._eval_episode_return = [0. for _ in range(self._env_num)]
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         assert isinstance(actions, Dict), type(actions)
@@ -95,10 +95,10 @@ class GymVectorEnvManager(BaseEnvManager):
                     timestep_collate_result[i] = BaseEnvTimestep(
                         timestep[0][i], timestep[1][i], timestep[2][i], timestep[3][i]
                     )
-                self._final_eval_reward[i] += timestep_collate_result[i].reward
+                self._eval_episode_return[i] += timestep_collate_result[i].reward
                 if timestep_collate_result[i].done:
-                    timestep_collate_result[i].info['final_eval_reward'] = self._final_eval_reward[i]
-                    self._final_eval_reward[i] = 0
+                    timestep_collate_result[i].info['eval_episode_return'] = self._eval_episode_return[i]
+                    self._eval_episode_return[i] = 0
                     self._env_episode_count[i] += 1
                     if self._env_episode_count[i] >= self._episode_num:
                         self._env_states[i] = EnvState.DONE

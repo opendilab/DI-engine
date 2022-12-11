@@ -7,7 +7,7 @@ from dizoo.mujoco.envs import MujocoDiscEnv
 
 
 @pytest.mark.envtest
-def test_mujoco_env_final_eval_reward():
+def test_mujoco_env_eval_episode_return():
     set_pkg_seed(1234, use_cuda=False)
     each_dim_disc_size = 2
     env = MujocoDiscEnv(
@@ -25,20 +25,20 @@ def test_mujoco_env_final_eval_reward():
     env.seed(1234)
     env.reset()
     action_dim = env._raw_action_space.shape
-    final_eval_reward = np.array([0.], dtype=np.float32)
+    eval_episode_return = np.array([0.], dtype=np.float32)
     while True:
         action = np.random.randint(0, each_dim_disc_size ** action_dim[0], 1)
         timestep = env.step(action)
-        final_eval_reward += timestep.reward
+        eval_episode_return += timestep.reward
         # print("{}(dtype: {})".format(timestep.reward, timestep.reward.dtype))
         if timestep.done:
             print(
                 "{}({}), {}({})".format(
-                    timestep.info['final_eval_reward'], type(timestep.info['final_eval_reward']), final_eval_reward,
-                    type(final_eval_reward)
+                    timestep.info['eval_episode_return'], type(timestep.info['eval_episode_return']),
+                    eval_episode_return, type(eval_episode_return)
                 )
             )
-            # timestep.reward and the cumulative reward in wrapper FinalEvalReward are not the same.
-            assert abs(timestep.info['final_eval_reward'].item() - final_eval_reward.item()) / \
-                   abs(timestep.info['final_eval_reward'].item()) < 1e-5
+            # timestep.reward and the cumulative reward in wrapper EvalEpisodeReturn are not the same.
+            assert abs(timestep.info['eval_episode_return'].item() - eval_episode_return.item()) / \
+                   abs(timestep.info['eval_episode_return'].item()) < 1e-5
             break

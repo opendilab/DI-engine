@@ -222,10 +222,14 @@ class Policy(ABC):
         return ['cur_lr', 'total_loss']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
-        return {'model': self._learn_model.state_dict()}
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'], strict=True)
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _get_batch_size(self) -> Union[int, Dict[str, int]]:
         return self._cfg.learn.batch_size

@@ -37,7 +37,7 @@ class D4RLEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return obs
 
     def close(self) -> None:
@@ -56,17 +56,20 @@ class D4RLEnv(BaseEnv):
             action_range = {'min': self.action_space.low[0], 'max': self.action_space.high[0], 'dtype': np.float32}
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         obs = to_ndarray(obs).astype('float32')
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
 
     def _make_env(self, only_info=False):
         return wrap_d4rl(
             self._cfg.env_id,
-            norm_obs=self._cfg.get('norm_obs', EasyDict(use_norm=False, offline_stats=dict(use_offline_stats=False, )),),
+            norm_obs=self._cfg.get(
+                'norm_obs',
+                EasyDict(use_norm=False, offline_stats=dict(use_offline_stats=False, )),
+            ),
             norm_reward=self._cfg.get('norm_reward', EasyDict(use_norm=False, )),
             only_info=only_info
         )

@@ -99,11 +99,11 @@ class MockEnv(Mock):
                 obs=torch.rand(self.obs_dim),
                 reward=1.0,
                 done=True,
-                info={'final_eval_reward': self._reward_grow_indicator * 1.0},
+                info={'eval_episode_return': self._reward_grow_indicator * 1.0},
                 env_id=i,
             )
             timesteps.append(tnp.array(timestep))
-        self._reward_grow_indicator += 1  # final_eval_reward will increase as step method is called
+        self._reward_grow_indicator += 1  # eval_episode_return will increase as step method is called
         return timesteps
 
 

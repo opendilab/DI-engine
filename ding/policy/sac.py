@@ -88,7 +88,7 @@ class SACDiscretePolicy(Policy):
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         # (bool) Whether to enable multi-agent training setting
-        multi_agent=True,
+        multi_agent=False,
         model=dict(
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
@@ -214,7 +214,6 @@ class SACDiscretePolicy(Policy):
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
-        self._multi_agent = self._cfg.multi_agent
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
             self._target_entropy = self._cfg.learn.get('target_entropy', -np.prod(self._cfg.model.action_shape))
@@ -291,7 +290,7 @@ class SACDiscretePolicy(Policy):
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
             policy_output_next = self._learn_model.forward({'obs': next_obs}, mode='compute_actor')
-            if self._multi_agent:
+            if self._cfg.multi_agent:
                 policy_output_next['logit'][policy_output_next['action_mask'] == 0.0] = -1e8
             prob = F.softmax(policy_output_next['logit'], dim=-1)
             log_prob = torch.log(prob + 1e-8)
@@ -325,7 +324,7 @@ class SACDiscretePolicy(Policy):
 
         # 5. evaluate to get action distribution
         policy_output = self._learn_model.forward({'obs': data['obs']}, mode='compute_actor')
-        if self._multi_agent:
+        if self._cfg.multi_agent:
             policy_output['logit'][policy_output['action_mask'] == 0.0] = -1e8
         logit = policy_output['logit']
         prob = F.softmax(logit, dim=-1)
@@ -413,7 +412,6 @@ class SACDiscretePolicy(Policy):
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._multi_agent = self._cfg.multi_agent
         # Empirically, we found that eps_greedy_multinomial_sample works better than multinomial_sample
         # and eps_greedy_sample, and we don't divide logit by alpha,
         # for the details please refer to ding/model/wrapper/model_wrappers

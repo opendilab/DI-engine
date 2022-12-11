@@ -26,7 +26,7 @@ class TestOvercooked:
             else:
                 assert obs.shape == env.observation_space.shape
         assert timestep.done
-        sum_rew += timestep.info['final_eval_reward'][0]
+        sum_rew += timestep.info['eval_episode_return'][0]
         print("sum reward is:", sum_rew)
 
     @pytest.mark.parametrize("concat_obs", [True, False])
@@ -40,5 +40,5 @@ class TestOvercooked:
             obs = timestep.obs
             assert obs.shape == env.observation_space.shape
         assert timestep.done
-        print("agent 0 sum reward is:", timestep.info[0]['final_eval_reward'])
-        print("agent 1 sum reward is:", timestep.info[1]['final_eval_reward'])
+        print("agent 0 sum reward is:", timestep.info[0]['eval_episode_return'])
+        print("agent 1 sum reward is:", timestep.info[1]['eval_episode_return'])

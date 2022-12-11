@@ -70,7 +70,7 @@ class MountainCarEnv(BaseEnv):
 
         # Init final reward : cumulative sum of the real rewards obtained by a whole episode,
         # used to evaluate the agent Performance on this environment, not used for training.
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return obs
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
@@ -85,11 +85,11 @@ class MountainCarEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
 
         # Cummulate reward
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
 
         # Save final cummulative reward when done.
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
 
         # Making sure we conform to di-engine conventions
         obs = to_ndarray(obs)

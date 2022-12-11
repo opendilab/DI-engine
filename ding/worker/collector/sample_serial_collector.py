@@ -302,7 +302,7 @@ class SampleSerialCollector(ISerialCollector):
                 # If env is done, record episode info and reset
                 if timestep.done:
                     self._total_episode_count += 1
-                    reward = timestep.info['final_eval_reward']
+                    reward = timestep.info['eval_episode_return']
                     info = {
                         'reward': reward,
                         'time': self._env_info[env_id]['time'],
@@ -339,7 +339,7 @@ class SampleSerialCollector(ISerialCollector):
             envstep_count = sum([d['step'] for d in self._episode_info])
             train_sample_count = sum([d['train_sample'] for d in self._episode_info])
             duration = sum([d['time'] for d in self._episode_info])
-            episode_reward = [d['reward'] for d in self._episode_info]
+            episode_return = [d['reward'] for d in self._episode_info]
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -351,15 +351,15 @@ class SampleSerialCollector(ISerialCollector):
                 'avg_train_sample_per_sec': train_sample_count / duration,
                 'avg_episode_per_sec': episode_count / duration,
                 'collect_time': duration,
-                'reward_mean': np.mean(episode_reward),
-                'reward_std': np.std(episode_reward),
-                'reward_max': np.max(episode_reward),
-                'reward_min': np.min(episode_reward),
+                'reward_mean': np.mean(episode_return),
+                'reward_std': np.std(episode_return),
+                'reward_max': np.max(episode_return),
+                'reward_min': np.min(episode_return),
                 'total_envstep_count': self._total_envstep_count,
                 'total_train_sample_count': self._total_train_sample_count,
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
-                # 'each_reward': episode_reward,
+                # 'each_reward': episode_return,
             }
             self._episode_info.clear()
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))

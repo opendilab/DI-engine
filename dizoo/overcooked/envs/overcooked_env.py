@@ -93,9 +93,9 @@ class OvercookEnv(BaseEnv):
 
         next_state, reward, done, env_info = self.base_env.step(joint_action)
         reward = np.array([float(reward)])
-        self._final_eval_reward += reward
+        self._eval_episode_return += reward
         if self._shape_reward:
-            self._final_eval_reward += sum(env_info['shaped_r_by_agent'])
+            self._eval_episode_return += sum(env_info['shaped_r_by_agent'])
             reward += sum(env_info['shaped_r_by_agent'])
 
         ob_p0, ob_p1 = self.featurize_fn(self.mdp, next_state)
@@ -110,7 +110,7 @@ class OvercookEnv(BaseEnv):
             both_agents_ob = np.stack(both_agents_ob)
 
         env_info["policy_agent_idx"] = self.agent_idx
-        env_info["final_eval_reward"] = self._final_eval_reward
+        env_info["eval_episode_return"] = self._eval_episode_return
         env_info["other_agent_env_idx"] = 1 - self.agent_idx
 
         action_mask = self.get_action_mask()
@@ -130,7 +130,7 @@ class OvercookEnv(BaseEnv):
 
     def reset(self):
         self.base_env.reset()
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         self.mdp = self.base_env.mdp
         # random init agent index
         self.agent_idx = np.random.choice([0, 1])
@@ -248,9 +248,9 @@ class OvercookGameEnv(BaseEnv):
         next_state, reward, done, env_info = self.base_env.step(joint_action)
 
         reward = np.array([float(reward)])
-        self._final_eval_reward += reward
+        self._eval_episode_return += reward
         if self._shape_reward:
-            self._final_eval_reward += sum(env_info['shaped_r_by_agent'])
+            self._eval_episode_return += sum(env_info['shaped_r_by_agent'])
             reward += sum(env_info['shaped_r_by_agent'])
         ob_p0, ob_p1 = self.featurize_fn(self.mdp, next_state)
         ob_p0, ob_p1 = self.obs_preprocess(ob_p0), self.obs_preprocess(ob_p1)
@@ -264,7 +264,7 @@ class OvercookGameEnv(BaseEnv):
             both_agents_ob = np.stack(both_agents_ob)
 
         env_info["policy_agent_idx"] = self.agent_idx
-        env_info["final_eval_reward"] = self._final_eval_reward
+        env_info["eval_episode_return"] = self._eval_episode_return
         env_info["other_agent_env_idx"] = 1 - self.agent_idx
 
         action_mask = self.get_action_mask()
@@ -280,7 +280,7 @@ class OvercookGameEnv(BaseEnv):
 
     def reset(self):
         self.base_env.reset()
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         self.mdp = self.base_env.mdp
         # random init agent index
         self.agent_idx = np.random.choice([0, 1])

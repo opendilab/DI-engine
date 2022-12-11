@@ -78,7 +78,7 @@ class MujocoDiscEnv(BaseEnv):
         self.n = self._cfg.each_dim_disc_size
         self.K = self.n ** self.m
         self.disc_to_cont = list(product(*[list(range(self.n)) for _ in range(self.m)]))
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         # the modified discrete action space
         self._action_space = gym.spaces.Discrete(self.K)
 
@@ -104,7 +104,7 @@ class MujocoDiscEnv(BaseEnv):
         if self._action_clip:
             action = np.clip(action, -1, 1)
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
 
         if done:
             if self._save_replay_gif:
@@ -113,7 +113,7 @@ class MujocoDiscEnv(BaseEnv):
                 )
                 save_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
 
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)

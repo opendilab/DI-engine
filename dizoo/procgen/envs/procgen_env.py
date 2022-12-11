@@ -59,7 +59,7 @@ class ProcgenEnv(BaseEnv):
                 self._env = gym.make(self._env_name, start_level=self._start_level, num_levels=self._num_levels)
             else:
                 self._env = gym.make(self._env_name, start_level=self._seed, num_levels=1)
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
@@ -80,9 +80,9 @@ class ProcgenEnv(BaseEnv):
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
         obs = obs.astype(np.float32)

@@ -27,7 +27,7 @@ class MujocoEnv(BaseEnv):
             self._env = MujocoMulti(env_args=self._cfg)
             self._init_flag = True
         obs = self._env.reset()
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
 
         # TODO:
         # self.env_info for scenario='Ant-v2', agent_conf="2x4d",
@@ -78,10 +78,10 @@ class MujocoEnv(BaseEnv):
     def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
         action = to_ndarray(action)
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
 
     def random_action(self) -> np.ndarray:
