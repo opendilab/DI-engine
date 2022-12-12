@@ -11,6 +11,7 @@ import torch
 import wandb
 import h5py
 import pickle
+from ding.framework import task
 from ding.envs import BaseEnvManagerV2
 from ding.utils import DistributedWriter
 from ding.torch_utils import to_ndarray
@@ -43,11 +44,16 @@ def return_distribution(reward):
 
 
 def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
     last_train_show_iter = -1
 
     def _logger(ctx: "OnlineRLContext"):
+        if task.finish:
+            writer.close()
         nonlocal last_train_show_iter
+
         if not np.isinf(ctx.eval_value):
             if record_train_iter:
                 writer.add_scalar('basic/eval_episode_return_mean-env_step', ctx.eval_value, ctx.env_step)
@@ -82,9 +88,13 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
 
 
 def offline_logger() -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
 
     def _logger(ctx: "OfflineRLContext"):
+        if task.finish:
+            writer.close()
         if not np.isinf(ctx.eval_value):
             writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
         if ctx.train_output is not None:
@@ -121,7 +131,8 @@ def wandb_online_logger(
         - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
             The anonymous mode allows visualization of data without wandb count.
     '''
-
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
     metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
     # Initialize wandb with default settings

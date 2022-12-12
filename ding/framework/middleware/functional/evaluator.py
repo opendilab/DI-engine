@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Any, List, Union
+from typing import Callable, Any, List, Union
 from abc import ABC, abstractmethod
 from collections import deque
 from ditk import logging
@@ -8,15 +8,12 @@ import treetensor.numpy as tnp
 import treetensor.torch as ttorch
 from easydict import EasyDict
 from ding.envs import BaseEnvManager
-from ding.framework.context import OfflineRLContext
+from ding.framework.context import Context, OfflineRLContext, OnlineRLContext
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
-from ding.torch_utils import to_list, to_ndarray, get_shape0
+from ding.torch_utils import tensor_to_list, to_list, to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
-
-if TYPE_CHECKING:
-    from ding.framework import Context, OnlineRLContext
 
 
 class IMetric(ABC):
@@ -223,10 +220,12 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
         - render (:obj:`bool`): Whether to render env images and policy logits.
     """
+    if task.router.is_active and not task.has_role(task.role.EVALUATOR):
+        return task.void()
 
     env.seed(cfg.seed, dynamic_seed=False)
 
-    def _evaluate(ctx: "OnlineRLContext"):
+    def _evaluate(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Overview:
             - The evaluation will be executed if the task begins and enough train_iter passed \
@@ -238,6 +237,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             - eval_value (:obj:`float`): The average reward in the current evaluation.
         """
 
+        # evaluation will be executed if the task begins or enough train_iter after last evaluation
         if ctx.last_eval_iter != -1 and \
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
             return
@@ -251,8 +251,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
-            num_envs = get_shape0(obs)
-            obs = {i: obs[i] for i in range(num_envs)}  # TBD
+            obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
             inference_output = policy.forward(obs)
             if render:
                 eval_monitor.update_video(env.ready_imgs)
@@ -271,14 +270,16 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         episode_return = eval_monitor.get_episode_return()
         episode_return = np.mean(episode_return)
         stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
-        if isinstance(ctx, OfflineRLContext):
-            logging.info('Evaluation: Train Iter({})\tEpisode Return({:.3f})'.format(ctx.train_iter, episode_return))
-        else:
+        if isinstance(ctx, OnlineRLContext):
             logging.info(
                 'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
                     ctx.train_iter, ctx.env_step, episode_return
                 )
             )
+        elif isinstance(ctx, OfflineRLContext):
+            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, episode_return))
+        else:
+            raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return
         ctx.eval_output = {'reward': episode_return}

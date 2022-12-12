@@ -11,7 +11,7 @@ import shutil
 
 from unittest.mock import Mock, patch
 from ding.framework import task
-from ding.utils import save_file
+from ding.policy.base_policy import Policy
 
 
 class TheModelClass(nn.Module):
@@ -22,9 +22,13 @@ class TheModelClass(nn.Module):
 
 class MockPolicy(Mock):
 
-    def __init__(self, model) -> None:
-        super(MockPolicy, self).__init__()
+    def __init__(self, model, **kwargs) -> None:
+        super(MockPolicy, self).__init__(model)
         self.learn_mode = model
+
+    @property
+    def eval_mode(self):
+        return EasyDict({"state_dict": lambda: {}})
 
 
 @pytest.mark.unittest
