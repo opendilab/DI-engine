@@ -415,7 +415,7 @@ pip install <span class="s2">&quot;.[procgen_env]&quot;</span>
 <section id="id14">
 <h3>其他<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个 episode 的评测指标，在 Procgen 中为整个 episode 的奖励累加和</p></li>
+<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在 Procgen 中为整个 episode 的奖励累加和</p></li>
 </ul>
 </section>
 </section>
@@ -454,7 +454,7 @@ pip install <span class="s2">&quot;.[procgen_env]&quot;</span>
     <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
     <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, eval episode return is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">]))</span>
         <span class="k">break</span>
 </pre></div>
 </div>

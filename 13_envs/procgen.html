@@ -413,7 +413,7 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 </section>
 <section id="id4">
 <h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the method <code class="docutils literal notranslate"><span class="pre">step</span></code>must contain<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>key - value pair, representing the evaluation metrics of the entire episode, and the cumulative sum of the rewards for the entire episode in Procgen</p>
+<p><code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the method <code class="docutils literal notranslate"><span class="pre">step</span></code>must contain<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key - value pair, representing the evaluation metrics of the entire episode, and the cumulative sum of the rewards for the entire episode in Procgen</p>
 </section>
 </section>
 <section id="id5">
@@ -449,7 +449,7 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
     <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
     <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, eval episode return is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">]))</span>
         <span class="k">break</span>
 </pre></div>
 </div>

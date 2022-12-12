@@ -156,5 +156,5 @@ Sokoban 是一种离散动作空间环境。在该游戏中，智能体需要在
       action = env.action_space.sample()
       timestep = env.step(action)
       if timestep.done:
-          print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+          print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
           break

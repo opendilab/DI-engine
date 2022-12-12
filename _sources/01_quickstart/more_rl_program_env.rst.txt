@@ -40,7 +40,7 @@ and you can find the whole code implementation and comments `here <https://githu
   - ``WarpFrameWrapper`` : Transform original RGB image to grayscale image and resize it to standard size for DRL training.
   - ``ScaledFloatFrameWrapper`` : Normalize origin image from [0-255] to [0-1], which is beneficial to neural network training.
   - ``FrameStackWrapper`` : Stack the consecutive frames. Due to we can't infer some information like direction speed from a single frame, stacked frames can provide more necessary information.
-  - ``FinalEvalRewardEnv`` : Record final evaluation reward (i.e., episode return in mario), which is adapted to DI-engine's environment format.
+  - ``EvalEpisodeReturnEnv`` : Record evaluation episode return (i.e., episode return in mario), which is adapted to DI-engine's environment format.
 
 
 .. note::
@@ -65,7 +65,7 @@ and you can find the whole code implementation and comments `here <https://githu
                     lambda env: WarpFrameWrapper(env, size=84),
                     lambda env: ScaledFloatFrameWrapper(env),
                     lambda env: FrameStackWrapper(env, n_frames=4),
-                    lambda env: FinalEvalRewardEnv(env),
+                    lambda env: EvalEpisodeReturnEnv(env),
                 ]
             }
         )

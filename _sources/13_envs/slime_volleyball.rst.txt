@@ -144,7 +144,7 @@ Using Slime Volleyball in 'OpenAI Gym' format:
 Other
 ------
 
-- The\ `info``\ returned form the environment\ ``step``\ must contain the\ ``final_eval_reward``\ key-value pair, which represents the evaluation metrics for the entire episode, containing the rewards for the episode (life value difference between two players).
+- The\ `info``\ returned form the environment\ ``step``\ must contain the\ ``eval_episode_return``\ key-value pair, which represents the evaluation metrics for the entire episode, containing the rewards for the episode (life value difference between two players).
 
 - The above spatial definitions are all descriptions of single intelligences. The multi-intelligence space splices the corresponding obs/action/reward information.
 
@@ -194,7 +194,7 @@ After env is initiated, and before it is reset, call ``enable_save_replay`` meth
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo runnable code

@@ -178,7 +178,7 @@ MPE 已经被集成在 DI-engine/dizoo 仓库中，所以只要安装 DI-engine 
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo 代码示例

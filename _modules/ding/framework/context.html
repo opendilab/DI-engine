@@ -305,6 +305,7 @@
 <span class="sd">        Context is an object that pass contextual data between middlewares, whose life cycle</span>
 <span class="sd">        is only one training iteration. It is a dict that reflect itself, so you can set</span>
 <span class="sd">        any properties as you wish.</span>
+<span class="sd">        Note that the initial value of the property must be equal to False.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_kept_keys</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span>
     <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -353,6 +354,8 @@
     <span class="n">trajectories</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">episodes</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">trajectory_end_idx</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">action</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">inference_output</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1"># eval</span>
     <span class="n">eval_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="n">last_eval_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>

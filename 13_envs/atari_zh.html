@@ -421,7 +421,7 @@ RGB 三通道图像输入，但单帧图像蕴含的信息不足（比如运动�
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">epsiode_life</span></code>：训练时的环境使用<code class="docutils literal notranslate"><span class="pre">episode_life</span></code>选项，即环境拥有多条生命值（一般为 5），原始环境游戏失败一次生命值减一，所有生命值耗尽才视为 episode 结束</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">noop_reset</span></code>：环境重置时，最开始设置 x 个原始游戏帧 ( 1 =&lt; x &lt;=30) 执行空动作（noop），以增加环境开局的随机性</p></li>
-<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个 episode 的评测指标，在Atari中为整个episode的奖励累加和</p></li>
+<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在Atari中为整个episode的奖励累加和</p></li>
 </ul>
 </section>
 </section>
@@ -461,7 +461,7 @@ RGB 三通道图像输入，但单帧图像蕴含的信息不足（比如运动�
     <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
     <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, eval episode return is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">]))</span>
         <span class="k">break</span>
 </pre></div>
 </div>

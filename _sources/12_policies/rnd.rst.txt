@@ -250,13 +250,13 @@ Because in collection phase, we use multinomial_sample to increase the diversity
 in evaluation phase, we use the argmax action to interact with env, and we run 5 different seeds and report the mean reward.
 In the experimental results below, the x-axis denotes the total env-steps interacting with the env in the training process.
 In the graph labeled "collector_step", the y-axis shows the rewards received during the collection phase, denoted as collect_reward;
-in the graph labeled "evaluator_step", the y-axis shows the rewards obtained during the evaluation phase, denoted as eval_reward.
+in the graph labeled "evaluator_step", the y-axis shows the rewards obtained during the evaluation phase, denoted as episode_return.
 In the sparse reward envs minigrid, only when the agent reach the goal, the agent will get a positive reward, zero otherwise, and its value will be inversely proportional to the steps used to reach the goal.
 In the easiest env MiniGrid-Empty-8x8-v0, different seeds will have the same room configurations, the optimal reward is about 0.96.
 But in MiniGrid-FourRooms-v0, different seeds will have different room configurations
-and corresponding optimal reward is also different, when the mean of eval_reward is greater than 0.6, we consider the env have been solved.
+and corresponding optimal reward is also different, when the mean of episode_return is greater than 0.6, we consider the env have been solved.
 
--  MiniGrid-Empty-8x8-v0（40k env steps，eval reward_mean>0.95）
+-  MiniGrid-Empty-8x8-v0（40k env steps，episode return_mean>0.95）
 
    - green line is rnd-onppo-weight100
    - red line is onppo
@@ -277,7 +277,7 @@ and corresponding optimal reward is also different, when the mean of eval_reward
      :scale: 50%
 
 
--  MiniGrid-FourRooms-v0（20M env steps，eval reward_mean>0.6）
+-  MiniGrid-FourRooms-v0（20M env steps，episode return_mean>0.6）
 
    - red line is onppo
    - grey line is rnd-onppo-weight1000

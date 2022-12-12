@@ -59,7 +59,7 @@ Reinforcement learning environments have some common major interfaces that are i
 
    The **Lazy Init** initialization method of DI-engine has been introduced in the ``__init__`` method, that is, the actual environment initialization is performed when **the first call** ``reset`` method is performed.
 
-   The ``reset`` method will judge whether the actual environment needs to be instantiated according to ``self._init_flag`` (if it is ``False``, it will be instantiated; otherwise, it has already been instantiated and can be used directly), and Set the random seed, then call the ``reset`` method of the original environment to get the observation value ``obs`` in the initial state, and convert it to the ``np.ndarray`` data format (will be explained in detail in 4) , and initialize the value of ``self._final_eval_reward`` (will be explained in detail in 5), in Atari ``self._final_eval_reward`` refers to the cumulative sum of the real rewards obtained by a whole episode, used to evaluate the agent Performance on this environment, not used for training.
+   The ``reset`` method will judge whether the actual environment needs to be instantiated according to ``self._init_flag`` (if it is ``False``, it will be instantiated; otherwise, it has already been instantiated and can be used directly), and Set the random seed, then call the ``reset`` method of the original environment to get the observation value ``obs`` in the initial state, and convert it to the ``np.ndarray`` data format (will be explained in detail in 4) , and initialize the value of ``self._eval_episode_return`` (will be explained in detail in 5), in Atari ``self._eval_episode_return`` refers to the cumulative sum of the real rewards obtained by a whole episode, used to evaluate the agent Performance on this environment, not used for training.
 
    .. code:: python
       
@@ -80,14 +80,14 @@ Reinforcement learning environments have some common major interfaces that are i
                self._env.seed(self._seed)
             obs = self._env.reset()
             obs = to_ndarray(obs)
-            self._final_eval_reward = 0.
+            self._eval_episode_return = 0.
             return obs
 
 4. ``step()``
 
-   The ``step`` method is responsible for receiving the ``action`` of the current timestep, and then giving the ``reward`` of the current timestep and the ``obs`` of the next timestep. In DI-engine, you also need to give: The flag ``done`` of whether the current episode ends (here requires ``done`` must be of type ``bool``, not ``np.bool``), other information in the form of a dictionary ``info`` (which includes at least the key ``self._final_eval_reward``).
+   The ``step`` method is responsible for receiving the ``action`` of the current timestep, and then giving the ``reward`` of the current timestep and the ``obs`` of the next timestep. In DI-engine, you also need to give: The flag ``done`` of whether the current episode ends (here requires ``done`` must be of type ``bool``, not ``np.bool``), other information in the form of a dictionary ``info`` (which includes at least the key ``self._eval_episode_return``).
 
-   After getting ``reward`` , ``obs`` , ``done`` , ``info`` and other data, it needs to be processed and converted into ``np.ndarray`` format to conform to the DI-engine specification. ``self._final_eval_reward`` will accumulate the actual reward obtained at the current step at each time step, and return the accumulated value at the end of an episode ( ``done == True``).
+   After getting ``reward`` , ``obs`` , ``done`` , ``info`` and other data, it needs to be processed and converted into ``np.ndarray`` format to conform to the DI-engine specification. ``self._eval_episode_return`` will accumulate the actual reward obtained at the current step at each time step, and return the accumulated value at the end of an episode ( ``done == True``).
 
    Finally, put the above four data into ``BaseEnvTimestep`` defined as ``namedtuple`` and return (defined as: ``BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done ', 'info'])`` )
    
@@ -101,22 +101,22 @@ Reinforcement learning environments have some common major interfaces that are i
             assert isinstance(action, np.ndarray), type(action)
             action = action.item()
             obs, rew, done, info = self._env.step(action)
-            self._final_eval_reward += rew
+            self._eval_episode_return += rew
             obs = to_ndarray(obs)
             rew = to_ndarray([rew])  # Transformed to an array with shape (1, )
             if done:
-               info['final_eval_reward'] = self._final_eval_reward
+               info['eval_episode_return'] = self._eval_episode_return
             return BaseEnvTimestep(obs, rew, done, info)
 
-5. ``self._final_eval_reward``
+5. ``self._eval_episode_return``
 
-   In the Atari environment, ``self._final_eval_reward`` refers to the cumulative sum of all rewards of an episode, and the data type of ``self._final_eval_reward`` must be a python native type, not ``np.array``.
+   In the Atari environment, ``self._eval_episode_return`` refers to the cumulative sum of all rewards of an episode, and the data type of ``self._eval_episode_return`` must be a python native type, not ``np.array``.
 
-      - In the ``reset`` method, set the current ``self._final_eval_reward`` to 0;
-      - In the ``step`` method, add the actual reward obtained at each time step to ``self._final_eval_reward``.
-      - In the ``step`` method, if the current episode has ended ( ``done == True`` ), then add to the ``info`` dictionary and return: ``info['final_eval_reward'] = self._final_eval_reward``
+      - In the ``reset`` method, set the current ``self._eval_episode_return`` to 0;
+      - In the ``step`` method, add the actual reward obtained at each time step to ``self._eval_episode_return``.
+      - In the ``step`` method, if the current episode has ended ( ``done == True`` ), then add to the ``info`` dictionary and return: ``info['eval_episode_return'] = self._eval_episode_return``
 
-   However, other environments may not require the sum of ``self._final_eval_reward``. For example, in smac, the winning percentage of the current episode is required, so it is necessary to modify the simple accumulation in the second step ``step`` method. Instead, we should record the game situation and finally return the calculated winning percentage at the end of the episode.
+   However, other environments may not require the sum of ``self._eval_episode_return``. For example, in smac, the winning percentage of the current episode is required, so it is necessary to modify the simple accumulation in the second step ``step`` method. Instead, we should record the game situation and finally return the calculated winning percentage at the end of the episode.
 
 6. Data Specifications
 

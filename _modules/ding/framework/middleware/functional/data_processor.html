@@ -299,6 +299,7 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">offline_data_save_type</span>
 <span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
+<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span><span class="p">,</span> <span class="n">OfflineRLContext</span>
@@ -312,6 +313,8 @@
 <span class="sd">        - cfg (:obj:`EasyDict`): Config.</span>
 <span class="sd">        - buffer (:obj:`Buffer`): Buffer to push the data in.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_push</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

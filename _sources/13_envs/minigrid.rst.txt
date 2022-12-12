@@ -167,7 +167,7 @@ The above space can be expressed as:
 Other
 --------
 
-- The \ ``info``\ returned by the environment \ ``step``\ method must contain the \ ``final_eval_reward``\ key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the rewards of the entire episode in minigrid
+- The \ ``info``\ returned by the environment \ ``step``\ method must contain the \ ``eval_episode_return``\ key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the rewards of the entire episode in minigrid
 
 Other
 ======
@@ -208,7 +208,7 @@ After the environment is created, but before reset, call the \ ``enable_save_rep
       random_action = np.random.randint(min_val, max_val, size=(1,))
       timestep = env.step(random_action)
       if timestep.done:
-          print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+          print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
           break
 
 DI-zoo Runnable Code Example

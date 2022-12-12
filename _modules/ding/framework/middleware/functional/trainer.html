@@ -297,10 +297,7 @@
 <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">Policy</span>
-<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">OfflineRLContext</span>
-
-<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
+<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">OfflineRLContext</span><span class="p">,</span> <span class="n">OnlineRLContext</span>
 
 
 <div class="viewcode-block" id="trainer"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/trainer.html#ding.framework.middleware.functional.trainer.trainer">[docs]</a><span class="k">def</span> <span class="nf">trainer</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
@@ -327,17 +324,18 @@
             <span class="k">return</span>
         <span class="n">train_output</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">%</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">log_show_after_iter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">OfflineRLContext</span><span class="p">):</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;Training: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Loss(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">train_output</span><span class="p">[</span><span class="s1">&#39;total_loss&#39;</span><span class="p">])</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">OnlineRLContext</span><span class="p">):</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Training: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Env Step(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Loss(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span><span class="p">,</span> <span class="n">train_output</span><span class="p">[</span><span class="s1">&#39;total_loss&#39;</span><span class="p">]</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
-
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">OfflineRLContext</span><span class="p">):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;Training: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Loss(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">train_output</span><span class="p">[</span><span class="s1">&#39;total_loss&#39;</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;not supported ctx type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ctx</span><span class="p">)))</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">train_output</span> <span class="o">=</span> <span class="n">train_output</span>
 

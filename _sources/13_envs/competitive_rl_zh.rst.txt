@@ -137,8 +137,8 @@ Competitive RL 目前提供两种游戏环境：
 其他
 ----
 
--  如果一个 episode 结束，环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``final_eval_reward``\ 键值对，表示整个 episode 的评测指标，即整个 episode 的奖励累加和
--  和奖励空间相同，只需要传左侧玩家的\ ``final_eval_reward``\
+-  如果一个 episode 结束，环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``eval_episode_return``\ 键值对，表示整个 episode 的评测指标，即整个 episode 的奖励累加和
+-  和奖励空间相同，只需要传左侧玩家的\ ``eval_episode_return``\
 
 
 其他

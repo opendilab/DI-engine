@@ -178,7 +178,7 @@ MiniGrid-ObstructedMaze-2Dlh-v0, MiniGrid-ObstructedMaze-Full-v0 等一系列环
 其他
 ----
 
--  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``final_eval_reward``\ 键值对，表示整个 episode 的评测指标，在 minigrid 中为整个 episode 的奖励累加和
+-  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``eval_episode_return``\ 键值对，表示整个 episode 的评测指标，在 minigrid 中为整个 episode 的奖励累加和
 
 
 其他
@@ -220,7 +220,7 @@ MiniGrid-ObstructedMaze-2Dlh-v0, MiniGrid-ObstructedMaze-Full-v0 等一系列环
       random_action = np.random.randint(min_val, max_val, size=(1,))
       timestep = env.step(random_action)
       if timestep.done:
-          print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+          print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
           break
 
 DI-zoo 可运行代码示例

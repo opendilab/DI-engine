@@ -105,7 +105,7 @@ After the environment is created, but before reset, call the  \ ``enable_save_re
        action = np.random.rand(24)
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
            
            

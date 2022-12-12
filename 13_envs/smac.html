@@ -409,7 +409,7 @@ hub</a>for more mirror</p>
 <ul class="simple">
 <li><p>Turn on <code class="docutils literal notranslate"><span class="pre">special_global_state</span></code>and the returned global_state is the information spliced ​​into each global information + each agent’s special information. If it is not turned on, only the global information will be returned</p></li>
 <li><p>Turn on <code class="docutils literal notranslate"><span class="pre">special_global_state</span></code>and turn on <code class="docutils literal notranslate"><span class="pre">death_mask</span></code>, if an agent dies, the returned global_state only contains its own ID information, and all other information is masked</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the fake_reward of the entire episode in SMAC</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the fake_reward of the entire episode in SMAC</p></li>
 <li><p>The final <code class="docutils literal notranslate"><span class="pre">reward</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method is victory or not</p></li>
 </ul>
 </section>
@@ -473,20 +473,20 @@ hub</a>for more mirror</p>
     <span class="n">policy</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
 
     <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-    <span class="n">eval_reward</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">episode_return</span> <span class="o">=</span> <span class="mf">0.</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">policy_output</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">forward</span><span class="p">({</span><span class="mi">0</span><span class="p">:</span><span class="n">obs</span><span class="p">})</span>
         <span class="n">action</span> <span class="o">=</span> <span class="n">policy_output</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-        <span class="n">eval_reward</span> <span class="o">+=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span>
+        <span class="n">episode_return</span> <span class="o">+=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span>
         <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
             <span class="k">break</span>
 
     <span class="n">env</span><span class="o">.</span><span class="n">save_replay</span><span class="p">(</span><span class="n">replay_dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">_map_name</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Eval is over! The performance of your RL policy is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">eval_reward</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Eval is over! The performance of your RL policy is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">episode_return</span><span class="p">))</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>

@@ -134,7 +134,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\ 获取更多镜像
 
 -  开启\ ``special_global_state``\ 且开启\ ``death_mask``\，则若一个agent阵亡，则其返回的 global_state 仅包含其自身的 ID 信息，其余信息全部被屏蔽
 
--  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``final_eval_reward``\ 键值对，表示整个 episode 的评测指标，在 SMAC 中为整个 episode 的 fake_reward 累加和
+-  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``eval_episode_return``\ 键值对，表示整个 episode 的评测指标，在 SMAC 中为整个 episode 的 fake_reward 累加和
 
 -  环境\ ``step``\ 方法最终返回的\ ``reward``\ 为胜利与否
 
@@ -206,20 +206,20 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\ 获取更多镜像
         policy.load_state_dict(state_dict)
 
         obs = env.reset()
-        eval_reward = 0.
+        episode_return = 0.
         while True:
             policy_output = policy.forward({0: obs})
             action = policy_output[0]['action']
             print(action)
             timestep = env.step(action)
-            eval_reward += timestep.reward
+            episode_return += timestep.reward
             obs = timestep.obs
             if timestep.done:
                 print(timestep.info)
                 break
 
         env.save_replay(replay_dir='.', prefix=env._map_name)
-        print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
+        print('Eval is over! The performance of your RL policy is {}'.format(episode_return))
 
 
     if __name__ == "__main__":

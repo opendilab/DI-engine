@@ -24,7 +24,7 @@ DI-engine 提供了大量已经定义好的、通用的 Env Wrapper，用户可�
 - FrameStack： 将堆叠好的n_frames个最近的状态帧设置为当前状态。
 
 - ObsTransposeWrapper：对观测状态的各个维度进行调整，将通道维（channel）放置在状态的第一维上。通常用于 atari 环境。
-- 
+
 - RunningMeanStd： 用于更新方差、均值和计数的 wrapper。
 
 - ObsNormEnv：根据运行均值和标准差（running mean and std）对观测状态进行归一化。

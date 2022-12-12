@@ -134,7 +134,7 @@ Other
 
 - Turn on \ ``special_global_state``\ and turn on \ ``death_mask``\, if an agent dies, the returned global_state only contains its own ID information, and all other information is masked
 
-- The \ ``info``\ returned by the environment \ ``step``\ method must contain the \ ``final_eval_reward``\ key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the fake_reward of the entire episode in SMAC
+- The \ ``info``\ returned by the environment \ ``step``\ method must contain the \ ``eval_episode_return``\ key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the fake_reward of the entire episode in SMAC
 
 - The final \ ``reward``\ returned by the environment \ ``step``\ method is victory or not
 
@@ -206,20 +206,20 @@ Use the method provided by \`<https://github.com/opendilab/DI-engine/blob/main/d
         policy.load_state_dict(state_dict)
 
         obs = env.reset()
-        eval_reward = 0.
+        episode_return = 0.
         while True:
             policy_output = policy.forward({0:obs})
             action = policy_output[0]['action']
             print(action)
             timestep = env.step(action)
-            eval_reward += timestep.reward
+            episode_return += timestep.reward
             obs = timestep.obs
             if timestep.done:
                 print(timestep.info)
                 break
 
         env.save_replay(replay_dir='.', prefix=env._map_name)
-        print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
+        print('Eval is over! The performance of your RL policy is {}'.format(episode_return))
 
 
     if __name__ == "__main__":

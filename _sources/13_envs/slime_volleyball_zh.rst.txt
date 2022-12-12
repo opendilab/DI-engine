@@ -146,7 +146,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\ 获取更多镜像
 其他
 ----
 
--  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``final_eval_reward``\ 键值对，表示整个 episode 的评测指标，在这里为整个 episode 的奖励累加和（即我方相比对手的生命值差异）
+-  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``eval_episode_return``\ 键值对，表示整个 episode 的评测指标，在这里为整个 episode 的奖励累加和（即我方相比对手的生命值差异）
 -  如果选择智能体对战内置 bot，请将环境输入配置的 ``agent_vs_agent`` 字段设置为 False，智能体对战智能体则设置为 True
 -  上述空间定义均是对单智能体的说明（即智能体对战内置 bot），多智能体的空间是将上述 obs/action/reward 进行对应拼接等操作，例如观察空间由 ``(12, )`` 变为 ``(2, 12)``，代表双方的观察信息
 
@@ -193,7 +193,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\ 获取更多镜像
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo可运行代码示例

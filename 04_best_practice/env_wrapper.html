@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Best Practice &mdash; DI-engine 0.1.0 documentation</title>
+  <title>Why do we need Env Wrapper &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="How to migrate your own environment to DI-engine" href="ding_env.html" />
-  <link rel="prev" title="Distributed" href="../03_system/distributed.html" />
+  <link rel="next" title="Buffer User Guide" href="buffer.html" />
+  <link rel="prev" title="How to customize the neural network model" href="custom_model.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -210,7 +210,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -266,13 +266,15 @@
       </li>
 
         
-      <li>Best Practice</li>
+          <li><a href="index.html">Best Practice</a> &gt;</li>
+        
+      <li>Why do we need Env Wrapper</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/04_best_practice/index.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/04_best_practice/env_wrapper.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -296,36 +298,95 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="best-practice">
-<h1>Best Practice<a class="headerlink" href="#best-practice" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ding_env.html">How to migrate your own environment to DI-engine</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#basic">Basic</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#advanced">Advanced</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#dingenvwrapper">DingEnvWrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ding_env.html#q-a">Q &amp; A</a></li>
+  <section id="why-do-we-need-env-wrapper">
+<h1>Why do we need Env Wrapper<a class="headerlink" href="#why-do-we-need-env-wrapper" title="Permalink to this headline">¶</a></h1>
+<p>Environment module is one of the most vital modules in reinforcement learning。 We train our agents in these environmnets and we allow them to explore and learn in these envirnments. In addition to a number of benchmark environments (such as atari or mujoco) reinforcement learning may also include a variety of custom environments.Overall，The essence of the Env Wrapper is to add certain generic additional features to our custom environment.
+For instance：When we are training agents, we usually need to change the definition of the environment in order to achieve better training results, and these processing techniques are somewhat universal.For some environments, normalising the observed state is a very common pre-processing method. This processing makes training faster and more stable. If we extract this common part and put this preprocessing in an Env Wrapper, we avoid duplicate development. That is, if we want to change the way we normalise the observation state in the future, we can simply change it in this Env Wrapper.</p>
+<p>Therefore, if the original environment is not perfectly adapted to our needs, we need to add functional modules to it to extend the functionality of the original environment and make it easy for the user to manipulate or adapt the environment’s inputs and outputs. Env Wrapper is a simple solution for adding functionality.</p>
+<section id="env-wrapper-offered-by-di-engine">
+<h2>Env Wrapper offered by DI-engine<a class="headerlink" href="#env-wrapper-offered-by-di-engine" title="Permalink to this headline">¶</a></h2>
+<p>DI-engine provides a large number of pre-defined and generic Env Wrapper. The user can wrap it directly on top of the environment they need to use according to their needs.In the process of implementation，we refered  <a class="reference external" href="https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py">OpenAI Baselines</a> ，and follow the form of gym.Wrapper，which is <a class="reference external" href="https://www.gymlibrary.dev/api/wrappers/">Gym.Wrapper</a> ，In total, these include the following:</p>
+<ul class="simple">
+<li><p>NoopResetEnv：add a reset method to the environment. Reset the environment after some no-operations..</p></li>
+<li><p>MaxAndSkipEnv： Each <code class="docutils literal notranslate"><span class="pre">skip</span></code> frame（doing the same action）returns the maximum value of the two most recent frames.(for max pooling across time steps)。</p></li>
+<li><p>WarpFrame： Convert the size of the image frame to 84x84, according to  <a class="reference external" href="https://www.deepmind.com/publications/human-level-control-through-deep-reinforcement-learning">Nature‘s paper</a>  and it’s following work. (Note that this registrar also converts RGB images to GREY images)</p></li>
+<li><p>ScaledFloatFrame： Normalize status values to 0~1。</p></li>
+<li><p>ClipRewardEnv： Clip the reward to {+1, 0, -1} by the positive or negative of the reward.</p></li>
+<li><p>FrameStack： Set the current state to be the stacked nearest n_frames.</p></li>
+<li><p>ObsTransposeWrapper：The dimensions of the observed state are adjusted to place the channel dimension on the first dimension of the state. It is typically used in atari environments.</p></li>
+<li><p>RunningMeanStd：a wrapper for updating variances, means and counts.</p></li>
+<li><p>ObsNormEnv：The observed states are normalised according to the running mean and std.</p></li>
+<li><p>RewardNormEnv： The environmental rewards are normalised according to the standard deviation of the runs (running mean and std).</p></li>
+<li><p>RamWrapper： Converting the ram state of the original environment into an image-like state by extending the dimensionality of the observed state.</p></li>
+<li><p>EpisodicLifeEnv：Let the death of an agent in the environment mark the end of an episode (game over), and only reset the game when the real game is over. In general, this helps the algorithm to estimate the value.</p></li>
+<li><p>FireResetEnv：  Take <code class="docutils literal notranslate"><span class="pre">fire</span></code> action when the environment is reset. For more information please click <a class="reference external" href="https://github.com/openai/baselines/issues/240">here</a></p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="custom_model.html">How to customize the neural network model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="custom_model.html#default-model-used-in-a-policy">Default model used in a policy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="custom_model.html#id1">How to customize the neural network model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="custom_model.html#step-by-step-guide-to-customizing-a-model">Step-by-step guide to customizing a model</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="env_wrapper.html">Why do we need Env Wrapper</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="env_wrapper.html#env-wrapper-offered-by-di-engine">Env Wrapper offered by DI-engine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="env_wrapper.html#how-to-use-env-wrapper">How to use Env Wrapper</a></li>
-<li class="toctree-l1"><a class="reference internal" href="env_wrapper.html#how-to-customise-an-env-wrapper-example">How to customise an Env Wrapper （Example）</a></li>
-<li class="toctree-l1"><a class="reference internal" href="buffer.html">Buffer User Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="buffer.html#buffer-getting-started">Buffer Getting Started</a></li>
-<li class="toctree-l2"><a class="reference internal" href="buffer.html#buffer-advanced">Buffer Advanced</a></li>
-</ul>
-</li>
-</ul>
+<p>Tip: update_shape：This is a function that helps to identify the shape of observed states, actions and rewards after the env wrapper has been applied.</p>
+</section>
+</section>
+<section id="how-to-use-env-wrapper">
+<h1>How to use Env Wrapper<a class="headerlink" href="#how-to-use-env-wrapper" title="Permalink to this headline">¶</a></h1>
+<p>The next question is how to wrap the environment with Env Wrapper. One solution is to wrap the environment manually and explicitly：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">evn_id</span><span class="p">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">MaxAndSkipEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">skip</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
 </div>
+<p>If it is necessary to convert an environment in gym format to DI-engine environment format and use the corresponding multiple Env Wrapper, this can be done as shown below：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span>
+    <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_id</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;env_wrapper&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">MaxAndSkipWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>In particular, the Env Wrappers in the list are wrapped outside the environment in order. In the example above, the Env Wrapper wraps a layer of MaxAndSkipWrapper and then a layer of ScaledFloatFrameWrapper, while the Env Wrapper serves to add functionality but does not change the original functionality.</p>
+</section>
+<section id="how-to-customise-an-env-wrapper-example">
+<h1>How to customise an Env Wrapper （Example）<a class="headerlink" href="#how-to-customise-an-env-wrapper-example" title="Permalink to this headline">¶</a></h1>
+<p>Taking ObsNormEnv wrapper as an example. In order to normalise the observed state，we only need to change two methods in the original environment class:step method and reset method, The rest of the method remains the same.
+Note that in some cases, as the normalised bounds of the observed state change, info is needed to be modified accordingly.Please also note that the essence of the ObsNormEnv wrapper is to add additional functionality to the original environment, which is what the wrapper is all about. </p>
+<p>In addition, since the distribution of the sampled data is highly correlated with the strategy, i.e., the distribution of the samples can vary significantly from strategy to strategy, we use running means and standard deviations to normalize the observed states, rather than fixed means and standard deviations.</p>
+<p>The structure of ObsNormEnv as below：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ObsNormEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">     Overview:</span>
+<span class="sd">     Normalize observations according to running mean and std.</span>
+<span class="sd">     Interface:</span>
+<span class="sd">         ``__init__``, ``step``, ``reset``, ``observation``, ``new_shape``</span>
+<span class="sd">     Properties:</span>
+<span class="sd">         - env (:obj:`gym.Env`): the environment to wrap.</span>
+
+<span class="sd">         - ``data_count``, ``clip_range``, ``rms``</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+         <span class="o">...</span>
+
+     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+         <span class="o">...</span>
+
+     <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+         <span class="o">...</span>
+
+     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+         <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>: initialize <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, <code class="docutils literal notranslate"><span class="pre">clip_range</span></code>, and <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean/std</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step</span></code>: use the given action to advance the environment，and update <code class="docutils literal notranslate"><span class="pre">data_count</span></code> and  <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean</span> <span class="pre">and</span> <span class="pre">std</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">observation</span></code>: obtain the result observed. if <code class="docutils literal notranslate"><span class="pre">data_count</span></code> Returns the normalised version if the total number exceeds 30.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reset</span></code>: Reset the state of the environment and reset <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean/std</span></code>.</p></li>
+</ul>
+<p>If the functionality to be added is not in the Env Wrapper we provide, the user can also follow the example presented above and follow the example + refer to the <a class="reference external" href="https://www.gymlibrary.dev/api/wrappers/">Related Documentation</a> on Wrappers in the gym to customise a wrapper to meet the requirements.</p>
+<p>For more details about env wrapper，please see
+<code class="docutils literal notranslate"><span class="pre">ding/envs/env_wrappers/env_wrappers.py</span></code></p>
 </section>
 
 
@@ -336,12 +397,12 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="ding_env.html" class="btn btn-neutral float-right" title="How to migrate your own environment to DI-engine" accesskey="n"
+    <a href="buffer.html" class="btn btn-neutral float-right" title="Buffer User Guide" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="../03_system/distributed.html" class="btn btn-neutral" title="Distributed" accesskey="p"
+    <a href="custom_model.html" class="btn btn-neutral" title="How to customize the neural network model" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -371,7 +432,12 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Best Practice</a></li>
+<li><a class="reference internal" href="#">Why do we need Env Wrapper</a><ul>
+<li><a class="reference internal" href="#env-wrapper-offered-by-di-engine">Env Wrapper offered by DI-engine</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-to-use-env-wrapper">How to use Env Wrapper</a></li>
+<li><a class="reference internal" href="#how-to-customise-an-env-wrapper-example">How to customise an Env Wrapper （Example）</a></li>
 </ul>
 
             </div>

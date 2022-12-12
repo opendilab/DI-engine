@@ -34,7 +34,7 @@ DI-engine 使用全局配置文件来控制环境和策略的所有变量，每�
   - ``WarpFrameWrapper`` : 将原始RGB图像转换为灰度图，并将其调整为标准大小以进行DRL训练。
   - ``ScaledFloatFrameWrapper`` : 将原始图像从[0-255]归一化到[0-1]，有利于神经网络训练。
   - ``FrameStackWrapper`` : 堆叠连续的帧。由于我们无法从单帧推断方向、速度等信息，堆叠帧可以提供更多的必要信息。
-  - ``FinalEvalRewardEnv`` : 记录最终的evaluation reward（即马里奥中的episode return），适配DI-engine的环境格式。
+  - ``EvalEpisodeReturnEnv`` : 记录最终的evaluation reward（即马里奥中的episode return），适配DI-engine的环境格式。
 
 
 .. note::
@@ -60,7 +60,7 @@ DI-engine 使用全局配置文件来控制环境和策略的所有变量，每�
                     lambda env: WarpFrameWrapper(env, size=84),
                     lambda env: ScaledFloatFrameWrapper(env),
                     lambda env: FrameStackWrapper(env, n_frames=4),
-                    lambda env: FinalEvalRewardEnv(env),
+                    lambda env: EvalEpisodeReturnEnv(env),
                 ]
             }
         )

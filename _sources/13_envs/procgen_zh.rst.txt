@@ -143,7 +143,7 @@ procgen 的全称是 Procedural Generation，表示程序化生成。对于 proc
 其他
 ----
 
--  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``final_eval_reward``\ 键值对，表示整个 episode 的评测指标，在 Procgen 中为整个 episode 的奖励累加和
+-  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``eval_episode_return``\ 键值对，表示整个 episode 的评测指标，在 Procgen 中为整个 episode 的奖励累加和
 
 
 其他
@@ -188,7 +188,7 @@ procgen 的全称是 Procedural Generation，表示程序化生成。对于 proc
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo 可运行代码示例

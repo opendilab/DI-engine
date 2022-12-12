@@ -413,7 +413,7 @@ hub</a> for more images</p>
 <section id="id4">
 <h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the rewards of the entire episode in lunarlander</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the rewards of the entire episode in lunarlander</p></li>
 </ul>
 </section>
 </section>
@@ -453,7 +453,7 @@ np_seed = 100 * np.random.randint(1, 1000).</p></li>
     <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
     <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, eval episode return is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">]))</span>
         <span class="k">break</span>
 </pre></div>
 </div>

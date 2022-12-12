@@ -451,12 +451,22 @@
 
         <span class="c1"># use model_wrapper for specialized demands of different modes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
-            <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span>
-            <span class="n">update_type</span><span class="o">=</span><span class="s1">&#39;assign&#39;</span><span class="p">,</span>
-            <span class="n">update_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">target_update_freq</span><span class="p">}</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;target_update_freq&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
+                <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span>
+                <span class="n">update_type</span><span class="o">=</span><span class="s1">&#39;assign&#39;</span><span class="p">,</span>
+                <span class="n">update_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">target_update_freq</span><span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;target_theta&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
+                <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span>
+                <span class="n">update_type</span><span class="o">=</span><span class="s1">&#39;momentum&#39;</span><span class="p">,</span>
+                <span class="n">update_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">target_theta</span><span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;DQN needs target network, please either indicate target_update_freq or target_theta&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;argmax_sample&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
@@ -497,7 +507,7 @@
         <span class="c1"># Target q value</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
-            <span class="c1"># Max q value action (main model)</span>
+            <span class="c1"># Max q value action (main model), i.e. Double DQN</span>
             <span class="n">target_q_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
 
         <span class="n">data_n</span> <span class="o">=</span> <span class="n">q_nstep_td_data</span><span class="p">(</span>

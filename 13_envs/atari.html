@@ -421,7 +421,7 @@ hub</a>.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">epsiode_life</span></code>: Use <code class="docutils literal notranslate"><span class="pre">episode_life</span></code> during training, i.e. Player has several lives (In general 5). One fail cause one minus in lives. Only after lives equals to 0, the episode is regarded to an ending.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">noop_reset</span></code>: When the environment is reset, in the first x original game frames (1 &lt;= x
 &lt;= 30), the player would perform an empty action (i.e. NOOP). This is aimed to increase the randomness of the environment’s at the beginning.</p></li>
-<li><p>Environment <code class="docutils literal notranslate"><span class="pre">step</span></code> method returned <code class="docutils literal notranslate"><span class="pre">info</span></code> s must contain <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code> key-value pair, indicating the entire episode’s performance. In Atari, it is the cumulative episode reward.</p></li>
+<li><p>Environment <code class="docutils literal notranslate"><span class="pre">step</span></code> method returned <code class="docutils literal notranslate"><span class="pre">info</span></code> s must contain <code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code> key-value pair, indicating the entire episode’s performance. In Atari, it is the cumulative episode reward.</p></li>
 </ul>
 </section>
 </section>
@@ -461,7 +461,7 @@ hub</a>.</p>
     <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
     <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, eval episode return is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">]))</span>
         <span class="k">break</span>
 </pre></div>
 </div>

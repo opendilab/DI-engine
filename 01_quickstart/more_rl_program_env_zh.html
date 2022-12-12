@@ -324,7 +324,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">WarpFrameWrapper</span></code> : 将原始RGB图像转换为灰度图，并将其调整为标准大小以进行DRL训练。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ScaledFloatFrameWrapper</span></code> : 将原始图像从[0-255]归一化到[0-1]，有利于神经网络训练。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FrameStackWrapper</span></code> : 堆叠连续的帧。由于我们无法从单帧推断方向、速度等信息，堆叠帧可以提供更多的必要信息。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FinalEvalRewardEnv</span></code> : 记录最终的evaluation reward（即马里奥中的episode return），适配DI-engine的环境格式。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EvalEpisodeReturnEnv</span></code> : 记录最终的evaluation reward（即马里奥中的episode return），适配DI-engine的环境格式。</p></li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
@@ -347,7 +347,7 @@
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">WarpFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">84</span><span class="p">),</span>
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FrameStackWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FinalEvalRewardEnv</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">EvalEpisodeReturnEnv</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="p">}</span>
     <span class="p">)</span>

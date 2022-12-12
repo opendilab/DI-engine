@@ -148,7 +148,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\ 获取更多镜像
 
 -  ``noop_reset``\ ：环境重置时，最开始设置 x 个原始游戏帧 ( 1 =< x <=30) 执行空动作（noop），以增加环境开局的随机性
 
--  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``final_eval_reward``\ 键值对，表示整个 episode 的评测指标，在Atari中为整个episode的奖励累加和
+-  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``eval_episode_return``\ 键值对，表示整个 episode 的评测指标，在Atari中为整个episode的奖励累加和
 
 
 其他
@@ -195,7 +195,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\ 获取更多镜像
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo 可运行代码示例

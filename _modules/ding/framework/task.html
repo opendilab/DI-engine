@@ -301,8 +301,11 @@
 <span class="kn">import</span> <span class="nn">concurrent.futures</span>
 <span class="kn">import</span> <span class="nn">fnmatch</span>
 <span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">GeneratorType</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">Context</span>
 <span class="kn">from</span> <span class="nn">ding.framework.parallel</span> <span class="kn">import</span> <span class="n">Parallel</span>
 <span class="kn">from</span> <span class="nn">ding.framework.event_loop</span> <span class="kn">import</span> <span class="n">EventLoop</span>
@@ -344,11 +347,27 @@
     <span class="k">return</span> <span class="n">runtime_handler</span>
 
 
+<span class="k">class</span> <span class="nc">Role</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">LEARNER</span> <span class="o">=</span> <span class="s2">&quot;learner&quot;</span>
+    <span class="n">COLLECTOR</span> <span class="o">=</span> <span class="s2">&quot;collector&quot;</span>
+    <span class="n">EVALUATOR</span> <span class="o">=</span> <span class="s2">&quot;evaluator&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">VoidMiddleware</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
+        <span class="k">return</span>
+
+
 <div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Tash will manage the execution order of the entire pipeline, register new middleware,</span>
 <span class="sd">    and generate new context objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">role</span> <span class="o">=</span> <span class="n">Role</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -365,6 +384,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_wrappers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ctx</span> <span class="ow">or</span> <span class="n">Context</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_roles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="c1"># Bind event loop functions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span> <span class="o">=</span> <span class="n">EventLoop</span><span class="p">(</span><span class="s2">&quot;task_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
 
@@ -379,7 +399,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="c1"># Parallel segment</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">async_mode</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_activate_async</span><span class="p">()</span>
 
@@ -392,6 +411,21 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">add_role</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role</span><span class="p">:</span> <span class="n">Role</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_roles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">role</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_role</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role</span><span class="p">:</span> <span class="n">Role</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_roles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">role</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roles</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">roles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="n">Role</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roles</span>
+
+    <span class="k">def</span> <span class="nf">void</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">VoidMiddleware</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">init_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_mode</span><span class="p">:</span>
@@ -414,6 +448,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - task (:obj:`Task`): The task.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">Callable</span><span class="p">),</span> <span class="s2">&quot;Middleware function should be a callable object, current fn </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">VoidMiddleware</span><span class="p">):</span>  <span class="c1"># Skip void function</span>
+            <span class="k">return</span> <span class="bp">self</span>
         <span class="k">for</span> <span class="n">wrapper</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrappers</span><span class="p">:</span>
             <span class="n">fn</span> <span class="o">=</span> <span class="n">wrapper</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">lock</span><span class="o">=</span><span class="n">lock</span><span class="p">))</span>
@@ -486,7 +523,6 @@
         <span class="k">if</span> <span class="n">lock</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">lock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread_lock</span>
 
-        <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">lock</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
@@ -505,6 +541,11 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">backward_stack</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">backward</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s2">&quot;__name__&quot;</span><span class="p">):</span>
+            <span class="n">forward</span> <span class="o">=</span> <span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)(</span><span class="n">forward</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">forward</span> <span class="o">=</span> <span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)(</span><span class="n">forward</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">forward</span></div>
 
@@ -551,6 +592,10 @@
                 <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
                 <span class="k">continue</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">running</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span>
 
 <div class="viewcode-block" id="Task.serial"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.serial">[docs]</a>    <span class="k">def</span> <span class="nf">serial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -624,6 +669,8 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Stop and cleanup every thing in the runtime of task.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;finish&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
@@ -766,8 +813,6 @@
     <span class="nd">@finish</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_finish</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;finish&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_wrap_event_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>

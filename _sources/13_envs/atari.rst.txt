@@ -144,7 +144,7 @@ Other
 -  ``noop_reset``: When the environment is reset, in the first x original game frames (1 <= x
    <= 30), the player would perform an empty action (i.e. NOOP). This is aimed to increase the randomness of the environment's at the beginning.
 
--  Environment ``step`` method returned ``info`` s must contain ``final_eval_reward`` key-value pair, indicating the entire episode's performance. In Atari, it is the cumulative episode reward.
+-  Environment ``step`` method returned ``info`` s must contain ``eval_episode_return`` key-value pair, indicating the entire episode's performance. In Atari, it is the cumulative episode reward.
 
 
 Other
@@ -191,7 +191,7 @@ After env is initiated, and before it is reset, call ``enable_save_replay`` meth
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo Code Example

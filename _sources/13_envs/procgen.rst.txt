@@ -131,7 +131,7 @@ The above space can be expressed as:
 Other
 ------
 
-\ ``info``\returned by the method \ ``step``\ must contain\ ``final_eval_reward``\ key - value pair, representing the evaluation metrics of the entire episode, and the cumulative sum of the rewards for the entire episode in Procgen
+\ ``info``\returned by the method \ ``step``\ must contain\ ``eval_episode_return``\ key - value pair, representing the evaluation metrics of the entire episode, and the cumulative sum of the rewards for the entire episode in Procgen
 
 
 Other
@@ -174,7 +174,7 @@ After the environment is created, but before reset, call the \ ``enable_save_rep
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo Runnable Code Example

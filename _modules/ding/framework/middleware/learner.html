@@ -311,6 +311,11 @@
 <span class="sd">            the `__call__` method to execute the whole learning process.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
 <div class="viewcode-block" id="OffPolicyLearner.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>

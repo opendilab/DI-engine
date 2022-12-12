@@ -218,7 +218,7 @@ Gym-MuJoco 变换前的空间（原始环境）
 其他
 ----
 
--  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``final_eval_reward``\ 键值对，表示整个episode的评测指标，在 Mujoco 中为整个episode的奖励累加和
+-  环境\ ``step``\ 方法返回的\ ``info``\ 必须包含\ ``eval_episode_return``\ 键值对，表示整个episode的评测指标，在 Mujoco 中为整个episode的奖励累加和
 
 
 其他
@@ -248,7 +248,7 @@ Gym-MuJoco 变换前的空间（原始环境）
        action = env.random_action()
        timestep = env.step(action)
        if timestep.done:
-           print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+           print('Episode is over, eval episode return is: {}'.format(timestep.info['eval_episode_return']))
            break
 
 DI-zoo 可运行代码示例

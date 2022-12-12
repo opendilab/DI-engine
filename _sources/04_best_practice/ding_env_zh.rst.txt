@@ -58,7 +58,7 @@
 3. ``reset()``
 
    在 ``__init__`` 方法中已经介绍了 DI-engine 的 **Lazy Init** 初始化方式，即实际的环境初始化是在 **第一次调用** ``reset`` 方法时进行的。
-   ``reset`` 方法中会根据 ``self._init_flag`` 判断是否需要实例化实际环境（如果为 ``False`` 则进行实例化；否则代表已经实例化过，直接使用即可），并进行随机种子的设置，然后调用原始环境的 ``reset`` 方法得到初始状态下的观测值 ``obs``，并转换为 ``np.ndarray`` 数据格式（将在 4 中详细讲解），并初始化 ``self._final_eval_reward`` 的值（将在 5 中详细讲解），在 Atari 中 ``self._final_eval_reward`` 指的是一整个 episode 所获得的真实 reward 的累积和，用于评价 agent 在该环境上的性能，不用于训练。
+   ``reset`` 方法中会根据 ``self._init_flag`` 判断是否需要实例化实际环境（如果为 ``False`` 则进行实例化；否则代表已经实例化过，直接使用即可），并进行随机种子的设置，然后调用原始环境的 ``reset`` 方法得到初始状态下的观测值 ``obs``，并转换为 ``np.ndarray`` 数据格式（将在 4 中详细讲解），并初始化 ``self._eval_episode_return`` 的值（将在 5 中详细讲解），在 Atari 中 ``self._eval_episode_return`` 指的是一整个 episode 所获得的真实 reward 的累积和，用于评价 agent 在该环境上的性能，不用于训练。
 
    .. code:: python
       
@@ -79,14 +79,14 @@
                self._env.seed(self._seed)
             obs = self._env.reset()
             obs = to_ndarray(obs)
-            self._final_eval_reward = 0.
+            self._eval_episode_return = 0.
             return obs
 
 4. ``step()``
 
-   ``step`` 方法负责接收当前时刻的 ``action`` ，然后给出当前时刻的 ``reward`` 和 下一时刻的 ``obs`` ，在 DI-engine中，还需要给出：当前episode是否结束的标志 ``done`` （ 此处要求 ``done`` 必须是 ``bool`` 类型，不能是 ``np.bool`` ）、字典形式的其它信息 ``info`` （其中至少包括键 ``self._final_eval_reward`` ）。
+   ``step`` 方法负责接收当前时刻的 ``action`` ，然后给出当前时刻的 ``reward`` 和 下一时刻的 ``obs`` ，在 DI-engine中，还需要给出：当前episode是否结束的标志 ``done`` （ 此处要求 ``done`` 必须是 ``bool`` 类型，不能是 ``np.bool`` ）、字典形式的其它信息 ``info`` （其中至少包括键 ``self._eval_episode_return`` ）。
 
-   在得到 ``reward`` , ``obs`` , ``done`` , ``info`` 等数据后，需要进行处理，转化为 ``np.ndarray`` 格式，以符合 DI-engine 的规范。在每一个时间步中 ``self._final_eval_reward`` 都会累加当前步获得的实际 reward，并在一个 episode 结束（ ``done == True`` ）的时候返回该累加值。
+   在得到 ``reward`` , ``obs`` , ``done`` , ``info`` 等数据后，需要进行处理，转化为 ``np.ndarray`` 格式，以符合 DI-engine 的规范。在每一个时间步中 ``self._eval_episode_return`` 都会累加当前步获得的实际 reward，并在一个 episode 结束（ ``done == True`` ）的时候返回该累加值。
 
    最终，将上述四个数据放入定义为 ``namedtuple`` 的 ``BaseEnvTimestep`` 中并返回
 
@@ -102,20 +102,20 @@
             assert isinstance(action, np.ndarray), type(action)
             action = action.item()
             obs, rew, done, info = self._env.step(action)
-            self._final_eval_reward += rew
+            self._eval_episode_return += rew
             obs = to_ndarray(obs)
             rew = to_ndarray([rew])  # Transformed to an array with shape (1, )
             if done:
-               info['final_eval_reward'] = self._final_eval_reward
+               info['eval_episode_return'] = self._eval_episode_return
             return BaseEnvTimestep(obs, rew, done, info)
 
-5. ``self._final_eval_reward``
+5. ``self._eval_episode_return``
 
-   在 Atari 环境中， ``self._final_eval_reward`` 是指一个 episode 的全部 reward 的累加和， ``self._final_eval_reward`` 的数据类型必须是 python 原生类型，不能是 ``np.array`` 。
+   在 Atari 环境中， ``self._eval_episode_return`` 是指一个 episode 的全部 reward 的累加和， ``self._eval_episode_return`` 的数据类型必须是 python 原生类型，不能是 ``np.array`` 。
 
-      - 在 ``reset`` 方法中，将当前 ``self._final_eval_reward`` 置 0；
-      - 在 ``step`` 方法中，将每个时间步获得的实际 reward 加到 ``self._final_eval_reward`` 中。
-      - 在 ``step`` 方法中，如果当前 episode 已经结束（ ``done == True`` ），那么就添加到 ``info`` 这个字典中并返回： ``info['final_eval_reward'] = self._final_eval_reward``
+      - 在 ``reset`` 方法中，将当前 ``self._eval_episode_return`` 置 0；
+      - 在 ``step`` 方法中，将每个时间步获得的实际 reward 加到 ``self._eval_episode_return`` 中。
+      - 在 ``step`` 方法中，如果当前 episode 已经结束（ ``done == True`` ），那么就添加到 ``info`` 这个字典中并返回： ``info['eval_episode_return'] = self._eval_episode_return``
 
    但是，在其他的环境中，可能需要的不是一个 episode 的 reward 之和。例如，在 smac 中，需要当前 episode 的胜率，因此就需要修改第二步 ``step`` 方法中简单的累加，改为记录对局情况，并最终在 episode 结束时返回计算得到的胜率。
 
