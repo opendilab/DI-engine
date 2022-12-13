@@ -52,10 +52,11 @@ qbert_a2c_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='a2c'),
+    replay_buffer=dict(type='naive'),
 )
 create_config = EasyDict(qbert_a2c_create_config)
 
 if __name__ == '__main__':
-    # or you can enter ding -m serial -c qbert_a2c_config.py -s 0
-    from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    # or you can enter ding -m serial_onpolicy -c qbert_a2c_config.py -s 0
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
