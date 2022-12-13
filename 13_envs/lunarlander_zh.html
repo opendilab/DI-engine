@@ -302,13 +302,15 @@
 <h1>LunarLander<a class="headerlink" href="#lunarlander" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>LunarLander，即月球登陆，任务目标是通过导航一个登陆器登录到指定的登陆地点。该环境同时具有离散动作空间和连续动作空间两个版本， 目前DI-engine 只支持离散动作空间版本， 后续会补充关于连续空间的版本及一些适配。以下主要介绍了离线动作空间版本的 lunarlander。</p>
+<p><a class="reference external" href="https://www.gymlibrary.dev/environments/box2d/lunar_lander">LunarLander</a> ，即月球着陆器，该环境模拟了一个经典的火箭弹道优化问题。
+游戏的目标是通过控制一个着陆器的油门使其飞行并登陆到指定的地点: 着陆台(landing pad)。
+该环境具有离散动作空间和连续动作空间两个版本，除了动作空间不同其他基本类似，以下主要以离散动作空间版本为例展开介绍。</p>
 <img alt="../_images/lunarlander.gif" class="align-center" src="../_images/lunarlander.gif" />
 </section>
-<section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h2>安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<section id="id4">
+<h3>安装方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装 gym 和 Box2d 两个库即可, 用户可以选择通过 pip 一键安装</p>
 <p>注：如果用户没有 root 权限，请在 install 的命令后面加上 <code class="docutils literal notranslate"><span class="pre">--user</span></code></p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Directly</span>
@@ -317,133 +319,184 @@ pip install Box2D
 </pre></div>
 </div>
 </section>
-<section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
+<section id="id5">
+<h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>安装完成后，可以通过在 Python 命令行中运行如下命令验证是否安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;LunarLander-v2&#39;</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (8,)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># 输出 (8,)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;LunarLanderContinuous-v2&#39;</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (8,)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># 输出 (8,)</span>
 </pre></div>
 </div>
 </section>
-<section id="id5">
-<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<p>DI-engine 的镜像配备有框架本身和 Lunarlander 环境，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code>获取，或访问<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker hub</a>获取更多镜像</p>
-</section>
-</section>
 <section id="id6">
-<h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<section id="id7">
-<h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>观察空间为8纬的np数组，数据类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
-<li><p>s[0] 是横坐标</p></li>
-<li><p>s[1] 是纵坐标</p></li>
-<li><p>s[2] 是水平的速度</p></li>
-<li><p>s[3] 是垂直的速度</p></li>
-<li><p>s[4] 是与纵坐标的的弧度（向右为正，相左为负，180 度 = pi 弧度）</p></li>
-<li><p>s[5] 是角速度</p></li>
-<li><p>s[6] 如果一只脚着陆, 此值为1, 其余情况为 0</p></li>
-<li><p>s[7] 如果第二只脚着陆, 此值为1, 其余情况为 0</p></li>
-</ul>
+<h3>镜像<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>DI-engine 的镜像包含 DI-engine 框架本身和 Lunarlander 等环境，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code> 获取，
+或访问<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker hub</a>获取更多镜像。</p>
 </section>
-<section id="id8">
-<h3>动作空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="id7">
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>具体细节，可以参考 gym 的 lunar_lander 代码实现 <a class="reference external" href="https://github.com/openai/gym/blob/6a04d49722724677610e36c1f92908e72f51da0c/gym/envs/box2d/lunar_lander.py">LunarLander</a>.</p>
+<section id="id9">
+<h3>观察空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>着陆器的观察空间为8维的 numpy 数组，数据类型为 <code class="docutils literal notranslate"><span class="pre">float32</span></code>, obs shape 为 (8,), 其中每维的物理含义及其范围为：</p>
 <ul class="simple">
-<li><p>对于 lunarlander 离散版本的游戏操作按键空间，一般是大小为 4 的离散动作空间，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
-<li><p>在 lunarlander 离散版本中，动作在 0-3 中取值，具体的含义是：</p>
-<ul>
-<li><p>0：Do nothing</p></li>
-<li><p>1：Fire right engine</p></li>
-<li><p>2：Fire down engine</p></li>
-<li><p>3：Fire left engine</p></li>
+<li><p>s[0] 是横坐标，范围为[-1.5, 1.5]</p></li>
+<li><p>s[1] 是纵坐标，范围为[-1.5, 1.5]</p></li>
+<li><p>s[2] 是水平速度，范围为[-5, 5]</p></li>
+<li><p>s[3] 是垂直速度，范围为[-5, 5]</p></li>
+<li><p>s[4] 是角度，即与正y轴的角度，向右为正，相左为负，以弧度为单位，范围为[-3.14, 3.14]</p></li>
+<li><p>s[5] 是角速度，顺时针为正，逆时针为负，范围为[-5, 5]</p></li>
+<li><p>s[6] 如果左脚着陆, 此值为1, 否则为0，范围为{0,1}</p></li>
+<li><p>s[7] 如果右脚着陆, 此值为1, 否则为0，范围为{0,1}</p></li>
 </ul>
+<p>着陆初始时刻的随机性：着陆器从屏幕的顶部中心开始，会有一个 <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/envs/box2d/lunar_lander.py#L371">随机初始力</a> 应用于其质心，
+保证不同 seed 下的初始状态中的水平速度,垂直速度, 角度和角速度不同。 同时，会根据采样的 <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/envs/box2d/lunar_lander.py#L326">随机数</a>
+决定月球地形的分布情况。</p>
+<p>着陆过程中的随机性：在着陆器的动力学方程中存在一个 <a class="reference external" href="https://github.com/openai/gym/blob/6a04d49722724677610e36c1f92908e72f51da0c/gym/envs/box2d/lunar_lander.py#L489">随机分散力(dispersion)</a>
+保证不同 seed 下的环境转移函数不同。</p>
+<p>除此之外，在定义环境时，还可以通过下面的方式指定额外的随机性：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
+    <span class="s2">&quot;LunarLander-v2&quot;</span><span class="p">,</span>
+    <span class="n">continuous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">gravity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">enable_wind</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">wind_power</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">,</span>
+    <span class="n">turbulence_power</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>其中 gravity 指定了引力常数，它被限制在 0 到 -12 之间。
+如果设置了 <cite>enable_wind=True</cite>，着陆器下降过程中就会有风的影响。 使用函数 <span class="math notranslate nohighlight">\(tanh(sin(2 k (t+C)) + sin(pi k (t+C)))\)</span> 生成风的大小。 k 设置为固定的 0.01。 C 在 -9999 和 9999 之间随机采样。
+wind_power 指定施加到飞行器的线性风的最大幅度。 wind_power 的推荐值为 0.0 和 20.0 之间。turbulence_power 指定施加到飞行器的旋转风的最大幅度。 turbulence_power 的推荐值为 0.0 和 2.0 之间。</p>
+</section>
+<section id="id12">
+<h3>动作空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p>离散动作空间版本 ‘LunarLander-v2’ 的动作空间是大小为4的离散动作空间，数据类型为 <code class="docutils literal notranslate"><span class="pre">int</span></code>，取值范围为{0,1,2,3}，具体的含义是：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>0：什么都不做</p></li>
+<li><p>1：启动左方向引擎</p></li>
+<li><p>2：启动主引擎 (纵向引擎)</p></li>
+<li><p>3：启动右方向引擎</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>连续动作空间版本 ‘LunarLandeContinuous-v2’ 的动作空间是2维连续动作空间, (a1, a2)，a1决定主引擎(纵向引擎)的油门，a2决定横向引擎的油门, 数据类型为 <code class="docutils literal notranslate"><span class="pre">float</span></code>，取值范围为[-1, 1]，具体的含义是：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>如果 a1&lt;0 主引擎将完全关闭, 如果0 &lt;= a1 &lt;= 1， 主引擎打开。(0,1)对应主引擎的油门强度从 50% 变化到 100%。</p></li>
+<li><p>如果 -0.5 &lt; a2 &lt; 0.5，横向引擎不会启动。 如果 a2 &lt; -0.5, 左方向引擎将启动，如果 a2 &gt; 0.5，右方向引擎将启动。 (-1, -0.5)和(0.5, 1)分别对应左方向引擎和
+和右方向引擎的油门强度从 50% 变化到 100%</p></li>
+</ul>
+</div></blockquote>
 </li>
 </ul>
 </section>
-<section id="id9">
-<h3>奖励空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<section id="id13">
+<h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>着陆器每一步都会获得奖励，奖励是一个 <code class="docutils literal notranslate"><span class="pre">int</span></code> 数值， 一局的总奖励是该局中所有时间步上的奖励总和。
+其中每一步的奖励的定义方式为：</p>
 <ul class="simple">
-<li><p>一个<code class="docutils literal notranslate"><span class="pre">int</span></code>数值</p></li>
-<li><p>从屏幕顶部移动到着陆点并且速度到零的奖励大约是 100…140 分。如果登陆器向着远离着陆台的方向行进，就会失去奖励。如果登陆器坠落或停止，episode 就会结束，获得额外的 -100 或 +100 分。每条腿的地面接触是 +10 的奖励。发射主引擎每帧为 -0.3 奖励。成功着陆到着陆点是200  分。在起落架外着陆是可能的。燃料是无限的。</p></li>
+<li><p>着陆器离着陆台(landing pad)越近，奖励越大。</p></li>
+<li><p>着陆器移动速度越慢，奖励越大。</p></li>
+<li><p>着陆器倾斜得越少（即 obs 中的角度越接近于0），奖励越大。</p></li>
+<li><p>每有一条腿与地面接触，增加 10 分。</p></li>
+<li><p>横向引擎每点火一次减少 0.03 分。</p></li>
+<li><p>纵向(主)引擎每点火一次减少 0.3 分。</p></li>
+</ul>
+<p>着陆器从屏幕顶部移动到月球的表面上的奖励和约为 100-140 分。
+特别注意的是，在着陆器安全降落到着陆台时，可以得到 +100 分的奖励，而坠毁则会得到 -100 分的奖励。
+综上所述，如果一局的奖励总和大于 200 分，则该局可以当做一次成功的着陆实验。</p>
+</section>
+<section id="id14">
+<h3>其他<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<p>如果出现以下情况，则判定 episode 结束：</p>
+<ul class="simple">
+<li><p>着陆器坠毁（着陆器主体与月球接触)</p></li>
+<li><p>着陆器超出观察窗口（横坐标大于1)</p></li>
+<li><p>着陆器安全着陆并处于静止状态</p></li>
 </ul>
 </section>
-<section id="id10">
-<h3>其他<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>游戏结束即为当前环境 episode 结束, 如果登陆器坠毁或者到达了静止状态，则当前 episode 结束</p></li>
-</ul>
-</section>
-</section>
-<section id="id11">
-<h2>关键事实<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic simple">
-<li><p>离散和连续动作空间</p></li>
-</ol>
 </section>
 <section id="rl">
 <h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<section id="id12">
-<h3>观察空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<section id="id15">
+<h3>观察空间<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>无变化</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>动作空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<section id="id16">
+<h3>动作空间<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>依然是大小为 4 的离散动作空间，但数据类型由 <code class="docutils literal notranslate"><span class="pre">int</span></code> 转为 <code class="docutils literal notranslate"><span class="pre">np.int64</span></code>, 尺寸为<code class="docutils literal notranslate"><span class="pre">(</span> <span class="pre">)</span></code>, 即 0-dim 的 array</p></li>
+<li><p>对于离散动作空间版本 ‘LunarLander-v2’, 依然是大小为 4 的离散动作空间，但数据类型由 <code class="docutils literal notranslate"><span class="pre">int</span></code> 转为 <code class="docutils literal notranslate"><span class="pre">np.int64</span></code>, 尺寸为<code class="docutils literal notranslate"><span class="pre">(</span> <span class="pre">)</span></code>, 即 0-dim 的 array</p></li>
+<li><p>对于连续动作空间版本 ‘LunarLandeContinuous-v2’ ，依然是大小为2维的连续动作空间, 但数据类型由 <code class="docutils literal notranslate"><span class="pre">float</span></code> 转为 <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>, 尺寸为<code class="docutils literal notranslate"><span class="pre">(2</span> <span class="pre">)</span></code>, 即 2-dim 的 array</p></li>
 </ul>
 </section>
-<section id="id14">
-<h3>奖励空间<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<section id="id17">
+<h3>奖励空间<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：数据结构变换</p></li>
-<li><p>变换结果：变为 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float64</span></code></p></li>
+<li><p>变换结果：变为 numpy 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float64</span></code></p></li>
 </ul>
-<p>上述空间使用gym环境空间定义则可表示为：</p>
+<p>上述空间使用 gym 环境的空间定义可表示为：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="n">obs_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">act_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="id15">
-<h3>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在lunarlander 中为整个 episode 的奖励累加和</p></li>
-</ul>
-</section>
-</section>
-<section id="id16">
-<h2>其他<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
-<section id="id17">
-<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
-<p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
-</section>
 <section id="id18">
-<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
-<li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
-<li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
-<li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值; 对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置为seed + np_seed, 其中seed为前述的随机库种子的值,
-np_seed = 100 * np.random.randint(1, 1000)。</p></li>
+<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在 lunarlander 中为整个 episode 的奖励累加和</p></li>
 </ul>
+</section>
 </section>
 <section id="id19">
-<h3>训练和测试环境的区别<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
+<h2>其他<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<section id="id20">
+<h3>惰性初始化<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<p>为了便于支持环境向量化等并行操作，具体的环境实例一般采用惰性初始化的方法，即在环境的<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，
+而在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
+</section>
+<section id="id21">
+<h3>随机种子<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
+<li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法设置这两个种子，而无需关心具体实现细节</p></li>
+<li><p>环境内部的具体实现为：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>对于随机库种子，在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
+<li><dl class="simple">
+<dt>对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置为 seed + np_seed, 其中 seed 为前述的随机库种子的值,</dt><dd><p>而np_seed = 100 * np.random.randint(1, 1000)。</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
 </ul>
 </section>
-<section id="id20">
-<h3>存储录像<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
-<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
+<section id="id22">
+<h3>训练和测试环境的区别<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的。</p></li>
+<li><p>测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
+</ul>
+</section>
+<section id="id23">
+<h3>存储录像<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），
+下面所示的代码将运行一个 episode，并将这个 episode 的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.envs</span> <span class="kn">import</span> <span class="n">LunarLanderEnv</span>
 
@@ -463,14 +516,14 @@ np_seed = 100 * np.random.randint(1, 1000)。</p></li>
 </section>
 <section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
-<p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/">github
+<p>各个算法在该环境上的训练配置文件在目录 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/">github
 link</a>
-内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">lunarlander_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
+里，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">lunarlander_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
 
 <span class="n">nstep</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">lunarlander_dqn_default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="n">lunarlander_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
         <span class="c1"># Whether to use shared memory. Only effective if &quot;env_manager_type&quot; is &#39;subprocess&#39;</span>
         <span class="n">manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="p">),</span>
@@ -524,8 +577,8 @@ link</a>
         <span class="p">),</span>
     <span class="p">),</span>
 <span class="p">)</span>
-<span class="n">lunarlander_dqn_default_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">lunarlander_dqn_default_config</span><span class="p">)</span>
-<span class="n">main_config</span> <span class="o">=</span> <span class="n">lunarlander_dqn_default_config</span>
+<span class="n">lunarlander_dqn_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">lunarlander_dqn_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">lunarlander_dqn_config</span>
 
 <span class="n">lunarlander_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -543,10 +596,10 @@ link</a>
 </pre></div>
 </div>
 </section>
-<section id="id21">
-<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<section id="id24">
+<h2>基准算法性能<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p>LunarLander（平均奖励大于等于200视为较好的 Agent）</p>
+<li><p>LunarLander（测试局的平均 episode return 大于等于200视为算法收敛到近似最优值）</p>
 <ul class="simple">
 <li><p>Lunarlander + DQFD</p></li>
 </ul>
@@ -601,36 +654,35 @@ link</a>
               <ul>
 <li><a class="reference internal" href="#">LunarLander</a><ul>
 <li><a class="reference internal" href="#id1">概述</a></li>
-<li><a class="reference internal" href="#id2">安装</a><ul>
-<li><a class="reference internal" href="#id3">安装方法</a></li>
-<li><a class="reference internal" href="#id4">验证安装</a></li>
-<li><a class="reference internal" href="#id5">镜像</a></li>
+<li><a class="reference internal" href="#id3">安装</a><ul>
+<li><a class="reference internal" href="#id4">安装方法</a></li>
+<li><a class="reference internal" href="#id5">验证安装</a></li>
+<li><a class="reference internal" href="#id6">镜像</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id6">变换前的空间（原始环境）</a><ul>
-<li><a class="reference internal" href="#id7">观察空间</a></li>
-<li><a class="reference internal" href="#id8">动作空间</a></li>
-<li><a class="reference internal" href="#id9">奖励空间</a></li>
-<li><a class="reference internal" href="#id10">其他</a></li>
+<li><a class="reference internal" href="#id7">变换前的空间（原始环境）</a><ul>
+<li><a class="reference internal" href="#id9">观察空间</a></li>
+<li><a class="reference internal" href="#id12">动作空间</a></li>
+<li><a class="reference internal" href="#id13">奖励空间</a></li>
+<li><a class="reference internal" href="#id14">其他</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id11">关键事实</a></li>
 <li><a class="reference internal" href="#rl">变换后的空间（RL 环境）</a><ul>
-<li><a class="reference internal" href="#id12">观察空间</a></li>
-<li><a class="reference internal" href="#id13">动作空间</a></li>
-<li><a class="reference internal" href="#id14">奖励空间</a></li>
-<li><a class="reference internal" href="#id15">其他</a></li>
+<li><a class="reference internal" href="#id15">观察空间</a></li>
+<li><a class="reference internal" href="#id16">动作空间</a></li>
+<li><a class="reference internal" href="#id17">奖励空间</a></li>
+<li><a class="reference internal" href="#id18">其他</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id16">其他</a><ul>
-<li><a class="reference internal" href="#id17">惰性初始化</a></li>
-<li><a class="reference internal" href="#id18">随机种子</a></li>
-<li><a class="reference internal" href="#id19">训练和测试环境的区别</a></li>
-<li><a class="reference internal" href="#id20">存储录像</a></li>
+<li><a class="reference internal" href="#id19">其他</a><ul>
+<li><a class="reference internal" href="#id20">惰性初始化</a></li>
+<li><a class="reference internal" href="#id21">随机种子</a></li>
+<li><a class="reference internal" href="#id22">训练和测试环境的区别</a></li>
+<li><a class="reference internal" href="#id23">存储录像</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
-<li><a class="reference internal" href="#id21">基准算法性能</a></li>
+<li><a class="reference internal" href="#id24">基准算法性能</a></li>
 </ul>
 </li>
 </ul>
@@ -653,6 +705,7 @@ link</a>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   
