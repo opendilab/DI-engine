@@ -69,7 +69,7 @@ class MujocoEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
 
         return obs
 
@@ -92,7 +92,7 @@ class MujocoEnv(BaseEnv):
         if self._action_clip:
             action = np.clip(action, -1, 1)
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
             if self._save_replay_gif:
                 path = os.path.join(
@@ -100,7 +100,7 @@ class MujocoEnv(BaseEnv):
                 )
                 save_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
 
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)
