@@ -155,9 +155,15 @@ class BDQ(nn.Module):
 
         # head
         self.head = BranchingHead(
-                head_hidden_size, num_branches=self.num_branches, action_per_branch=action_per_branch,
-                layer_num=layer_num, a_layer_num=a_layer_num, v_layer_num=v_layer_num, activation=activation,
-                norm_type=norm_type)
+            head_hidden_size,
+            num_branches=self.num_branches,
+            action_per_branch=action_per_branch,
+            layer_num=layer_num,
+            a_layer_num=a_layer_num,
+            v_layer_num=v_layer_num,
+            activation=activation,
+            norm_type=norm_type
+        )
 
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
