@@ -39,6 +39,10 @@ class MujocoEnv(BaseEnv):
         self._replay_path = None
         self._replay_path_gif = cfg.replay_path_gif
         self._save_replay_gif = cfg.save_replay_gif
+        self._action_per_branch = cfg.action_per_branch if 'action_per_branch' in cfg else None
+
+    def map_action(self, action: Union[np.ndarray, list]) -> Union[np.ndarray, list]:
+        return [2 * x / (self._action_per_branch - 1) - 1 for x in action]
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -65,7 +69,7 @@ class MujocoEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
-        self._eval_episode_return = 0.
+        self._final_eval_reward = 0.
 
         return obs
 
@@ -80,13 +84,15 @@ class MujocoEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
+        if self._action_per_branch:
+            action = self.map_action(action)
         action = to_ndarray(action)
         if self._save_replay_gif:
             self._frames.append(self._env.render(mode='rgb_array'))
         if self._action_clip:
             action = np.clip(action, -1, 1)
         obs, rew, done, info = self._env.step(action)
-        self._eval_episode_return += rew
+        self._final_eval_reward += rew
         if done:
             if self._save_replay_gif:
                 path = os.path.join(
@@ -94,7 +100,7 @@ class MujocoEnv(BaseEnv):
                 )
                 save_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
-            info['eval_episode_return'] = self._eval_episode_return
+            info['final_eval_reward'] = self._final_eval_reward
 
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)

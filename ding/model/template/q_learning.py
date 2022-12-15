@@ -5,7 +5,7 @@ import torch.nn as nn
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
-    QuantileHead, FQFHead, QRDQNHead, DistributionHead
+    QuantileHead, FQFHead, QRDQNHead, DistributionHead, BranchingHead
 from ding.torch_utils.network.gtrxl import GTrXL
 
 
@@ -92,6 +92,92 @@ class DQN(nn.Module):
             >>> inputs = torch.randn(4, 32)
             >>> outputs = model(inputs)
             >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 6])
+        """
+        x = self.encoder(x)
+        x = self.head(x)
+        return x
+
+
+@MODEL_REGISTRY.register('bdq')
+class BDQ(nn.Module):
+
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            num_branches: int = 0,
+            action_per_branch: int = 2,
+            layer_num: int = 3,
+            a_layer_num: Optional[int] = None,
+            v_layer_num: Optional[int] = None,
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            head_hidden_size: Optional[int] = None,
+            norm_type: Optional[nn.Module] = None,
+            activation: Optional[nn.Module] = nn.ReLU(),
+    ) -> None:
+        """
+        Overview:
+            Init the BDQ (encoder + head) Model according to input arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
+            - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension, such as 6.
+            - action_per_branch (:obj:`int`): The number of actions in each dimension.
+            - layer_num (:obj:`int`): The number of layers used in the network to compute Advantage and Value output.
+            - a_layer_num (:obj:`int`): The number of layers used in the network to compute Advantage output.
+            - v_layer_num (:obj:`int`): The number of layers used in the network to compute Value output.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
+                the last element must match ``head_hidden_size``.
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
+            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
+                ``ding.torch_utils.fc_block`` for more details.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
+                if ``None`` then default set it to ``nn.ReLU()``
+        """
+        super(BDQ, self).__init__()
+        # For compatibility: 1, (1, ), [4, 32, 32]
+        obs_shape = squeeze(obs_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
+
+        # backbone
+        # FC Encoder
+        if isinstance(obs_shape, int) or len(obs_shape) == 1:
+            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        # Conv Encoder
+        elif len(obs_shape) == 3:
+            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
+            )
+
+        self.num_branches = num_branches
+        self.action_per_branch = action_per_branch
+
+        # head
+        self.head = BranchingHead(
+                head_hidden_size, num_branches=self.num_branches, action_per_branch=action_per_branch,
+                layer_num=layer_num, a_layer_num=a_layer_num, v_layer_num=v_layer_num, activation=activation,
+                norm_type=norm_type)
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            BDQ forward computation graph, input observation tensor to predict q_value.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Observation inputs
+        Returns:
+            - outputs (:obj:`Dict`): BDQ forward outputs, such as q_value.
+        ReturnsKeys:
+            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each action dimension.
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is
+                ``num_branches * action_per_branch``
+        Examples:
+            >>> model = BDQ(8, 5, 2)  # arguments: 'obs_shape', 'num_branches' and 'action_per_branch'.
+            >>> inputs = torch.randn(4, 8)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 10])
         """
         x = self.encoder(x)
         x = self.head(x)
