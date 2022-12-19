@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Any, List, Union
+from typing import Callable, Any, List, Union
 from abc import ABC, abstractmethod
 from collections import deque
 from ditk import logging
@@ -8,15 +8,12 @@ import treetensor.numpy as tnp
 import treetensor.torch as ttorch
 from easydict import EasyDict
 from ding.envs import BaseEnvManager
-from ding.framework.context import OfflineRLContext
+from ding.framework.context import Context, OfflineRLContext, OnlineRLContext
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
-from ding.torch_utils import to_list, to_ndarray, get_shape0
+from ding.torch_utils import tensor_to_list, to_list, to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
-
-if TYPE_CHECKING:
-    from ding.framework import Context, OnlineRLContext
 
 
 class IMetric(ABC):
@@ -49,7 +46,7 @@ class VectorEvalMonitor(object):
             any thing, it is likely that we will get more short episodes than long episodes. As a result, \
             our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.
     Interfaces:
-        __init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,\
+        __init__, is_finished, update_info, update_reward, get_episode_return, get_latest_reward, get_current_episode,\
             get_episode_info, update_video, get_episode_video
     """
 
@@ -113,10 +110,10 @@ class VectorEvalMonitor(object):
             env_id = env_id.item()
         self._reward[env_id].append(reward)
 
-    def get_episode_reward(self) -> list:
+    def get_episode_return(self) -> list:
         """
         Overview:
-            Get the total reward of one episode.
+            Sum up all reward and get the total return of one episode.
         """
         return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
 
@@ -139,7 +136,7 @@ class VectorEvalMonitor(object):
     def get_episode_info(self) -> dict:
         """
         Overview:
-            Get all episode information, such as total reward of one episode.
+            Get all episode information, such as total return of one episode.
         """
         if len(self._info[0]) == 0:
             return None
@@ -159,7 +156,7 @@ class VectorEvalMonitor(object):
             return new_dict
 
     def _select_idx(self):
-        reward = [t.item() for t in self.get_episode_reward()]
+        reward = [t.item() for t in self.get_episode_return()]
         sortarg = np.argsort(reward)
         # worst, median(s), best
         if len(sortarg) == 1:
@@ -223,10 +220,12 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
         - render (:obj:`bool`): Whether to render env images and policy logits.
     """
+    if task.router.is_active and not task.has_role(task.role.EVALUATOR):
+        return task.void()
 
     env.seed(cfg.seed, dynamic_seed=False)
 
-    def _evaluate(ctx: "OnlineRLContext"):
+    def _evaluate(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Overview:
             - The evaluation will be executed if the task begins and enough train_iter passed \
@@ -238,6 +237,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             - eval_value (:obj:`float`): The average reward in the current evaluation.
         """
 
+        # evaluation will be executed if the task begins or enough train_iter after last evaluation
         if ctx.last_eval_iter != -1 and \
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
             return
@@ -251,8 +251,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
-            num_envs = get_shape0(obs)
-            obs = {i: obs[i] for i in range(num_envs)}  # TBD
+            obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
             inference_output = policy.forward(obs)
             if render:
                 eval_monitor.update_video(env.ready_imgs)
@@ -264,24 +263,26 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
                 env_id = timestep.env_id.item()
                 if timestep.done:
                     policy.reset([env_id])
-                    reward = timestep.info.final_eval_reward
+                    reward = timestep.info.eval_episode_return
                     eval_monitor.update_reward(env_id, reward)
                     if 'episode_info' in timestep.info:
                         eval_monitor.update_info(env_id, timestep.info.episode_info)
-        episode_reward = eval_monitor.get_episode_reward()
-        eval_reward = np.mean(episode_reward)
-        stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
-        if isinstance(ctx, OfflineRLContext):
-            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
-        else:
+        episode_return = eval_monitor.get_episode_return()
+        episode_return = np.mean(episode_return)
+        stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
+        if isinstance(ctx, OnlineRLContext):
             logging.info(
-                'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
-                    ctx.train_iter, ctx.env_step, eval_reward
+                'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
+                    ctx.train_iter, ctx.env_step, episode_return
                 )
             )
+        elif isinstance(ctx, OfflineRLContext):
+            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, episode_return))
+        else:
+            raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
-        ctx.eval_value = eval_reward
-        ctx.eval_output = {'reward': episode_reward}
+        ctx.eval_value = episode_return
+        ctx.eval_output = {'reward': episode_return}
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
             ctx.eval_output['episode_info'] = episode_info
@@ -317,7 +318,7 @@ def metric_evaluator(cfg: EasyDict, policy: Policy, dataset: Dataset, metric: IM
         avg_eval_output = metric.reduce_mean(eval_output)
         stop_flag = metric.gt(avg_eval_output, cfg.env.stop_value) and ctx.train_iter > 0
         logging.info(
-            'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
+            'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
                 ctx.train_iter, ctx.env_step, avg_eval_output
             )
         )

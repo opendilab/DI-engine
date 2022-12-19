@@ -1,9 +1,9 @@
 import multiprocessing as mp
 import ctypes
-from time import sleep
+from time import sleep, time
 from typing import Any, Dict, List
 import pytest
-from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType, SharedObject
+from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType
 
 
 class MockEnv():
@@ -25,13 +25,16 @@ class MockEnv():
     def block_reset(self):
         sleep(10)
 
+    def sleep1(self):
+        sleep(1)
+
 
 @pytest.mark.unittest
 @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
 def test_supervisor(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     for env_id in range(len(sv._children)):
@@ -71,6 +74,25 @@ def test_supervisor(type_):
     sv.shutdown()
 
 
+@pytest.mark.unittest
+def test_supervisor_spawn():
+    sv = Supervisor(type_=ChildType.PROCESS, mp_ctx=mp.get_context("spawn"))
+    for _ in range(3):
+        sv.register(MockEnv("AnyArgs"))
+    sv.start_link()
+
+    for env_id in range(len(sv._children)):
+        sv.send(SendPayload(proc_id=env_id, method="step", args=["any action"]))
+
+    recv_states: List[RecvPayload] = []
+    for _ in range(3):
+        recv_states.append(sv.recv())
+
+    assert sum([payload.proc_id for payload in recv_states]) == 3
+    assert all([payload.data == 1 for payload in recv_states])
+    sv.shutdown()
+
+
 class MockCrashEnv(MockEnv):
 
     def step(self, _):
@@ -86,8 +108,8 @@ class MockCrashEnv(MockEnv):
 def test_crash_supervisor(type_):
     sv = Supervisor(type_=type_)
     for _ in range(2):
-        sv.register(MockEnv, "AnyArgs")
-    sv.register(MockCrashEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
+    sv.register(lambda: MockCrashEnv("AnyArgs"))
     sv.start_link()
 
     # Send 6 messages, will cause the third subprocess crash
@@ -126,7 +148,7 @@ def test_crash_supervisor(type_):
 def test_recv_all(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     # Test recv_all
@@ -162,7 +184,7 @@ def test_recv_all(type_):
 def test_timeout(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     send_payloads = []
@@ -202,7 +224,7 @@ def test_timeout(type_):
 def test_timeout_with_callback(type_):
     sv = Supervisor(type_=type_)
     for _ in range(3):
-        sv.register(MockEnv, "AnyArgs")
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
     send_payloads = []
 
@@ -239,25 +261,50 @@ def test_timeout_with_callback(type_):
     sv.shutdown(timeout=1)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp  # gitlab ci and local test pass, github always fail
 def test_shared_memory():
     sv = Supervisor(type_=ChildType.PROCESS)
 
     def shm_callback(payload: RecvPayload, shm: Any):
-        shm[payload.proc_id] = payload.data
+        shm[payload.proc_id] = payload.req_id
         payload.data = 0
 
     shm = mp.Array(ctypes.c_uint8, 3)
     for i in range(3):
-        sv.register(MockEnv, "AnyArgs", shared_object=SharedObject(buf=shm, callback=shm_callback))
+        sv.register(lambda: MockEnv("AnyArgs"), shm_buffer=shm, shm_callback=shm_callback)
+    sv.start_link()
+
+    # Send init request
+    for env_id in range(len(sv._children)):
+        sv.send(SendPayload(proc_id=env_id, req_id=env_id, method="sleep1", args=[]))
+
+    start = time()
+    for i in range(6):
+        payload = sv.recv()
+        assert payload.data == 0
+        assert shm[payload.proc_id] == payload.req_id
+        sv.send(SendPayload(proc_id=payload.proc_id, req_id=i, method="sleep1", args=[]))
+
+    # Non blocking
+    assert time() - start < 3
+
+    sv.shutdown()
+
+
+@pytest.mark.benchmark
+@pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+def test_supervisor_benchmark(type_):
+    sv = Supervisor(type_=type_)
+    for _ in range(3):
+        sv.register(lambda: MockEnv("AnyArgs"))
     sv.start_link()
 
     for env_id in range(len(sv._children)):
-        sv.send(SendPayload(proc_id=env_id, method="step", args=["any action"]))
+        sv.send(SendPayload(proc_id=env_id, method="step", args=[""]))
 
-    for i in range(3):
+    start = time()
+    for _ in range(1000):
         payload = sv.recv()
-        assert payload.data == 0
-        assert shm[payload.proc_id] == 1
+        sv.send(SendPayload(proc_id=payload.proc_id, method="step", args=[""]))
 
-    sv.shutdown()
+    assert time() - start < 1

@@ -2,11 +2,11 @@ from typing import Any, Tuple, Callable, Optional, List, Dict
 from abc import ABC
 import numpy as np
 import torch
+import torch.nn.functional as F
+from torch.distributions import Categorical, Independent, Normal
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
-from torch.distributions import Categorical, Independent, Normal
 from ding.utils.data import default_collate
-import torch.nn.functional as F
 
 
 class IModelWrapper(ABC):

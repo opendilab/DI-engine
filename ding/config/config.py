@@ -315,7 +315,7 @@ def save_project_state(exp_name: str) -> None:
     def _fn(cmd: str):
         return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.strip().decode("utf-8")
 
-    if subprocess.run("git status", shell=True, stderr=subprocess.PIPE).returncode == 0:
+    if subprocess.run("git status", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0:
         short_sha = _fn("git describe --always")
         log = _fn("git log --stat -n 5")
         diff = _fn("git diff")

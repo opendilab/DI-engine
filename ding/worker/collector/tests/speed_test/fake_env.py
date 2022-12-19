@@ -40,7 +40,7 @@ class FakeEnv(BaseEnv):
         self._episode_step = int(random_change(self._episode_step_base))
         env_sleep(random_change(self._reset_time))
         self._step_count = 0
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         obs = np.random.randn(self._obs_dim).astype(np.float32)
         return obs
 
@@ -59,9 +59,9 @@ class FakeEnv(BaseEnv):
         rew = np.random.randint(2)
         done = True if self._step_count == self._episode_step else False
         info = {}
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         rew = to_ndarray([rew])  # to shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

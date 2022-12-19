@@ -295,7 +295,7 @@ class BattleSampleSerialCollector(ISerialCollector):
                         'train_sample': self._env_info[env_id]['train_sample'],
                     }
                     for i in range(self._policy_num):
-                        info['reward{}'.format(i)] = timestep.info[i]['final_eval_reward']
+                        info['reward{}'.format(i)] = timestep.info[i]['eval_episode_return']
                     self._episode_info.append(info)
                     for i, p in enumerate(self._policy):
                         p.reset([env_id])
@@ -322,10 +322,10 @@ class BattleSampleSerialCollector(ISerialCollector):
             episode_count = len(self._episode_info)
             envstep_count = sum([d['step'] for d in self._episode_info])
             duration = sum([d['time'] for d in self._episode_info])
-            episode_reward = []
+            episode_return = []
             for i in range(self._policy_num):
-                episode_reward_item = [d['reward{}'.format(i)] for d in self._episode_info]
-                episode_reward.append(episode_reward_item)
+                episode_return_item = [d['reward{}'.format(i)] for d in self._episode_info]
+                episode_return.append(episode_return_item)
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -341,7 +341,7 @@ class BattleSampleSerialCollector(ISerialCollector):
             for k, fn in {'mean': np.mean, 'std': np.std, 'max': np.max, 'min': np.min}.items():
                 for i in range(self._policy_num):
                     # such as reward0_mean
-                    info['reward{}_{}'.format(i, k)] = fn(episode_reward[i])
+                    info['reward{}_{}'.format(i, k)] = fn(episode_return[i])
             self._episode_info.clear()
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             for k, v in info.items():

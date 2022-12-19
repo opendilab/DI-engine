@@ -10,13 +10,14 @@ from ding.torch_utils import to_ndarray
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, FinalEvalRewardEnv, BaseEnvManager
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, BaseEnvManager
 from ding.config import compile_config
 from ding.utils import set_pkg_seed
 from dizoo.procgen.config.coinrun_ppo_config import coinrun_ppo_config
 
 
 class CoinrunWrapper(gym.Wrapper):
+
     def __init__(self, env, cfg):
         super().__init__(env)
         cfg = EasyDict(cfg)
@@ -53,30 +54,32 @@ def wrapped_procgen_env(cfg):
     default_cfg = EasyDict(default_cfg)
 
     return DingEnvWrapper(
-        gym.make('procgen:procgen-' + default_cfg.env_id + '-v0',
-                 start_level=default_cfg.start_level,
-                 num_levels=default_cfg.num_levels) if default_cfg.control_level else
-        gym.make('procgen:procgen-' + default_cfg.env_id + '-v0', start_level=0, num_levels=1)
-        ,
-        cfg={
-            'env_wrapper': [
-                lambda env: CoinrunWrapper(env, default_cfg),
-                lambda env: FinalEvalRewardEnv(env),
-            ]
-        }
+        gym.make(
+            'procgen:procgen-' + default_cfg.env_id + '-v0',
+            start_level=default_cfg.start_level,
+            num_levels=default_cfg.num_levels
+        ) if default_cfg.control_level else
+        gym.make('procgen:procgen-' + default_cfg.env_id + '-v0', start_level=0, num_levels=1),
+        cfg={'env_wrapper': [
+            lambda env: CoinrunWrapper(env, default_cfg),
+            lambda env: EvalEpisodeReturnEnv(env),
+        ]}
     )
 
 
 def main(cfg, seed=0, max_env_step=int(1e10), max_train_iter=int(1e10)):
     cfg = compile_config(
-        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator,
-        save_cfg=True
+        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[partial(wrapped_procgen_env, cfg=coinrun_ppo_config.env)
-                                           for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[partial(wrapped_procgen_env, cfg=coinrun_ppo_config.env)
-                                           for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[partial(wrapped_procgen_env, cfg=coinrun_ppo_config.env) for _ in range(collector_env_num)],
+        cfg=cfg.env.manager
+    )
+    evaluator_env = BaseEnvManager(
+        env_fn=[partial(wrapped_procgen_env, cfg=coinrun_ppo_config.env) for _ in range(evaluator_env_num)],
+        cfg=cfg.env.manager
+    )
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)

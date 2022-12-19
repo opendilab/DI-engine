@@ -17,6 +17,11 @@ class OffPolicyLearner:
             the `__call__` method to execute the whole learning process.
     """
 
+    def __new__(cls, *args, **kwargs):
+        if task.router.is_active and not task.has_role(task.role.LEARNER):
+            return task.void()
+        return super(OffPolicyLearner, cls).__new__(cls)
+
     def __init__(
             self,
             cfg: EasyDict,

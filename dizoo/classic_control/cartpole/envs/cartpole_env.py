@@ -48,7 +48,7 @@ class CartPoleEnv(BaseEnv):
             self._env.seed(self._seed)
             self._action_space.seed(self._seed)
         self._observation_space = self._env.observation_space
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
         return obs
@@ -67,9 +67,9 @@ class CartPoleEnv(BaseEnv):
         if isinstance(action, np.ndarray) and action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         obs = to_ndarray(obs)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)

@@ -310,7 +310,7 @@ class PybulletEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return obs
 
     def close(self) -> None:
@@ -329,11 +329,11 @@ class PybulletEnv(BaseEnv):
             action_range = self.info().act_space.value
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         obs = to_ndarray(obs).astype('float32')
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
