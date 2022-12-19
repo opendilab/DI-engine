@@ -11,6 +11,7 @@ class Context:
         Context is an object that pass contextual data between middlewares, whose life cycle
         is only one training iteration. It is a dict that reflect itself, so you can set
         any properties as you wish.
+        Note that the initial value of the property must be equal to False.
     """
     _kept_keys: set = dataclasses.field(default_factory=set)
     total_step: int = 0
@@ -59,6 +60,8 @@ class OnlineRLContext(Context):
     trajectories: List = None
     episodes: List = None
     trajectory_end_idx: List = dataclasses.field(default_factory=list)
+    action: Dict = None
+    inference_output: Dict = None
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1

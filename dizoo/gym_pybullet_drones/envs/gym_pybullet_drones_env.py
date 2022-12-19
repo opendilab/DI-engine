@@ -178,7 +178,7 @@ class GymPybulletDronesEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
 
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         self.env_step_count = 0
@@ -223,9 +223,9 @@ class GymPybulletDronesEnv(BaseEnv):
             if self.env_step_count % self._env.SIM_FREQ == 0:
                 self._env.render()
         self.env_step_count += 1
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
             if self._cfg["print_debug_info"]:
                 self.plot_observation_curve()
 

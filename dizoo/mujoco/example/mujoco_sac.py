@@ -37,7 +37,7 @@ def main():
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(CkptSaver(cfg, policy, train_freq=500))
-        task.use(termination_checker(max_train_iter=int(3e6)))
+        task.use(termination_checker(max_env_step=int(3e6)))
         task.run()
 
 

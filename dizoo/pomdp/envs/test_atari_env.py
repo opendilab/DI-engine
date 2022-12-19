@@ -30,6 +30,6 @@ def test_env():
         assert timestep.reward.shape == (1, )
         # assert isinstance(timestep, tuple)
         if timestep.done:
-            assert 'final_eval_reward' in timestep.info, timestep.info
+            assert 'eval_episode_return' in timestep.info, timestep.info
             break
     pong_env.close()

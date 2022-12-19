@@ -32,10 +32,10 @@ class PettingZooEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            # In order to align with the simple spread in Multiagent Particle Env (MPE), 
-            # instead of adopting the pettingzoo interface directly, 
+            # In order to align with the simple spread in Multiagent Particle Env (MPE),
+            # instead of adopting the pettingzoo interface directly,
             # we have redefined the way rewards are calculated
-            
+
             # import_module(['pettingzoo.{}.{}'.format(self._env_family, self._env_id)])
             # self._env = pettingzoo.__dict__[self._env_family].__dict__[self._env_id].parallel_env(
             #     N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
@@ -141,8 +141,8 @@ class PettingZooEnv(BaseEnv):
                 }
             )
             self._init_flag = True
-        # self._final_eval_reward = {agent: 0. for agent in self._agents}
-        self._final_eval_reward = 0.
+        # self._eval_episode_return = {agent: 0. for agent in self._agents}
+        self._eval_episode_return = 0.
         self._step_count = 0
         obs_n = self._process_obs(obs)
         return obs_n
@@ -182,7 +182,7 @@ class PettingZooEnv(BaseEnv):
         # collide_penalty = self._cfg.get('collide_penal', self._num_agent)
         # rew_n += collide_sum * (1.0 - collide_penalty)
         # rew_n = rew_n / (self._cfg.get('max_cycles', 25) * self._num_agent)
-        self._final_eval_reward += rew_n.item()
+        self._eval_episode_return += rew_n.item()
 
         # occupied_landmarks = info['n'][0][3]
         # if self._step_count >= self._max_step or occupied_landmarks >= self._n_agent \
@@ -193,9 +193,9 @@ class PettingZooEnv(BaseEnv):
         done_n = reduce(lambda x, y: x and y, done.values()) or self._step_count >= self._max_cycles
 
         # for agent in self._agents:
-        #     self._final_eval_reward[agent] += rew[agent]
+        #     self._eval_episode_return[agent] += rew[agent]
         if done_n:  # or reduce(lambda x, y: x and y, done.values())
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         # for agent in rew:
         #     rew[agent] = to_ndarray([rew[agent]])
         return BaseEnvTimestep(obs_n, rew_n, done_n, info)

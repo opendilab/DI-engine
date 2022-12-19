@@ -21,7 +21,7 @@ class TestBSuiteEnv:
             assert timestep.obs.shape == (3, )
             assert timestep.reward.shape == (1, )
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         memory_len_env.close()
 
@@ -38,6 +38,6 @@ class TestBSuiteEnv:
             assert timestep.obs.shape == (8, )
             assert timestep.reward.shape == (1, )
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         bandit_noise_env.close()

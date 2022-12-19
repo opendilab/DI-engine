@@ -223,7 +223,7 @@ class GfootballAcademyEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
 
         return obs
 
@@ -272,10 +272,10 @@ class GfootballAcademyEnv(BaseEnv):
             If done=True and sum(rewards)<=0 the reward is 1.
             If done=True and sum(rewards)>0 the reward is 100.
             """
-            infos['final_eval_reward'] = infos['score_reward']  # TODO(pu)
+            infos['eval_episode_return'] = infos['score_reward']  # TODO(pu)
             return BaseEnvTimestep(obs, np.array(-int(done)).astype(np.float32), done, infos)
         else:
-            infos['final_eval_reward'] = infos['score_reward']
+            infos['eval_episode_return'] = infos['score_reward']
             return BaseEnvTimestep(obs, np.array(100).astype(np.float32), done, infos)
 
     def get_obs(self):

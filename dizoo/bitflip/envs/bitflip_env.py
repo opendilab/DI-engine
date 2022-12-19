@@ -19,14 +19,14 @@ class BitFlipEnv(BaseEnv):
         self._goal = np.zeros(self._n_bits)
         self._curr_step = 0
         self._maxsize = self._n_bits
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         self._observation_space = gym.spaces.Box(low=0, high=1, shape=(2 * self._n_bits, ), dtype=np.float32)
         self._action_space = gym.spaces.Discrete(self._n_bits)
         self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
     def reset(self) -> np.ndarray:
         self._curr_step = 0
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             random_seed = 100 * random.randint(1, 1000)
             np.random.seed(self._seed + random_seed)
@@ -60,12 +60,12 @@ class BitFlipEnv(BaseEnv):
         else:
             rew = np.array([0]).astype(np.float32)
             done = False
-        self._final_eval_reward += float(rew)
+        self._eval_episode_return += float(rew)
         if self._curr_step >= self._maxsize - 1:
             done = True
         info = {}
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         self._curr_step += 1
         obs = np.concatenate([self._state, self._goal], axis=0)
         return BaseEnvTimestep(obs, rew, done, info)

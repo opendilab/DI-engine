@@ -36,7 +36,7 @@ class BSuiteEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         if obs.shape[0] == 1:
             obs = obs[0]
@@ -58,9 +58,9 @@ class BSuiteEnv(BaseEnv):
         if action.shape[0] == 1:
             action = action[0]
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         if obs.shape[0] == 1:
             obs = obs[0]
         obs = to_ndarray(obs)

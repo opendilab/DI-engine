@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-import multiprocessing as mp
+import functools
+import torch.multiprocessing as mp
+from multiprocessing.context import BaseContext
 import threading
 import queue
 import platform
@@ -10,6 +12,13 @@ from ditk import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 from enum import Enum
+
+
+@functools.lru_cache(maxsize=1)
+def get_mp_ctx() -> BaseContext:
+    context = 'spawn' if platform.system().lower() == 'windows' else 'fork'
+    mp_ctx = mp.get_context(context)
+    return mp_ctx
 
 
 @dataclass
@@ -29,6 +38,7 @@ class RecvPayload:
     method: str = None
     data: Any = None
     err: Exception = None
+    extra: Any = None
 
 
 class ReserveMethod(Enum):
@@ -41,27 +51,16 @@ class ChildType(Enum):
     THREAD = "thread"
 
 
-@dataclass
-class SharedObject:
-    buf: Any
-    callback: Callable
-
-
 class Child(ABC):
     """
     Abstract class of child process/thread.
     """
 
-    def __init__(
-            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
-    ) -> None:
+    def __init__(self, proc_id: int, init: Union[Callable, object], **kwargs) -> None:
         self._proc_id = proc_id
         self._init = init
-        self._args = args
-        self._kwargs = kwargs
         self._recv_queue = None
         self._send_queue = None
-        self._shared_object = shared_object
 
     @abstractmethod
     def start(self, recv_queue: Union[mp.Queue, queue.Queue]):
@@ -82,15 +81,17 @@ class Child(ABC):
     def _target(
         self,
         proc_id: int,
-        init: Callable,
-        args: List,
-        kwargs: Dict[str, Any],
+        init: Union[Callable, object],
         send_queue: Union[mp.Queue, queue.Queue],
         recv_queue: Union[mp.Queue, queue.Queue],
-        shared_object: Optional[SharedObject] = None
+        shm_buffer: Optional[Any] = None,
+        shm_callback: Optional[Callable] = None
     ):
         send_payload = SendPayload(proc_id=proc_id)
-        child_ins = init(*args, **kwargs)
+        if isinstance(init, Callable):
+            child_ins = init()
+        else:
+            child_ins = init
         while True:
             try:
                 send_payload: SendPayload = send_queue.get()
@@ -103,8 +104,8 @@ class Child(ABC):
                 recv_payload = RecvPayload(
                     proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, data=data
                 )
-                if shared_object:
-                    shared_object.callback(recv_payload, shared_object.buf)
+                if shm_callback is not None and shm_buffer is not None:
+                    shm_callback(recv_payload, shm_buffer)
                 recv_queue.put(recv_payload)
             except Exception as e:
                 logging.warning(traceback.format_exc())
@@ -121,27 +122,35 @@ class Child(ABC):
 class ChildProcess(Child):
 
     def __init__(
-            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
+            self,
+            proc_id: int,
+            init: Union[Callable, object],
+            shm_buffer: Optional[Any] = None,
+            shm_callback: Optional[Callable] = None,
+            mp_ctx: Optional[BaseContext] = None,
+            **kwargs
     ) -> None:
-        super().__init__(proc_id, init, *args, shared_object=shared_object, **kwargs)
+        super().__init__(proc_id, init, **kwargs)
         self._proc = None
+        self._mp_ctx = mp_ctx
+        self._shm_buffer = shm_buffer
+        self._shm_callback = shm_callback
 
     def start(self, recv_queue: mp.Queue):
-        self._recv_queue = recv_queue
-        context = 'spawn' if platform.system().lower() == 'windows' else 'fork'
-        ctx = mp.get_context(context)
-        self._send_queue = ctx.Queue()
-        proc = ctx.Process(
-            target=self._target,
-            args=(
-                self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue,
-                self._shared_object
-            ),
-            name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
-            daemon=True
-        )
-        proc.start()
-        self._proc = proc
+        if self._proc is None:
+            self._recv_queue = recv_queue
+            ctx = self._mp_ctx or get_mp_ctx()
+            self._send_queue = ctx.Queue()
+            proc = ctx.Process(
+                target=self._target,
+                args=(
+                    self._proc_id, self._init, self._send_queue, self._recv_queue, self._shm_buffer, self._shm_callback
+                ),
+                name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
+                daemon=True
+            )
+            proc.start()
+            self._proc = proc
 
     def shutdown(self, timeout: Optional[float] = None):
         if self._proc:
@@ -156,28 +165,30 @@ class ChildProcess(Child):
             self._send_queue = None
 
     def send(self, payload: SendPayload):
+        if self._send_queue is None:
+            logging.warning("Child worker has been terminated or not started.")
+            return
         self._send_queue.put(payload)
 
 
 class ChildThread(Child):
 
-    def __init__(
-            self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs
-    ) -> None:
-        super().__init__(proc_id, init, *args, shared_object=shared_object, **kwargs)
+    def __init__(self, proc_id: int, init: Union[Callable, object], *args, **kwargs) -> None:
+        super().__init__(proc_id, init, *args, **kwargs)
         self._thread = None
 
     def start(self, recv_queue: queue.Queue):
-        self._recv_queue = recv_queue
-        self._send_queue = queue.Queue()
-        thread = threading.Thread(
-            target=self._target,
-            args=(self._proc_id, self._init, self._args, self._kwargs, self._send_queue, self._recv_queue),
-            name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
-            daemon=True
-        )
-        thread.start()
-        self._thread = thread
+        if self._thread is None:
+            self._recv_queue = recv_queue
+            self._send_queue = queue.Queue()
+            thread = threading.Thread(
+                target=self._target,
+                args=(self._proc_id, self._init, self._send_queue, self._recv_queue),
+                name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
+                daemon=True
+            )
+            thread.start()
+            self._thread = thread
 
     def shutdown(self, timeout: Optional[float] = None):
         if self._thread:
@@ -187,6 +198,9 @@ class ChildThread(Child):
             self._send_queue = None
 
     def send(self, payload: SendPayload):
+        if self._send_queue is None:
+            logging.warning("Child worker has been terminated or not started.")
+            return
         self._send_queue.put(payload)
 
 
@@ -194,26 +208,32 @@ class Supervisor:
 
     TYPE_MAPPING = {ChildType.PROCESS: ChildProcess, ChildType.THREAD: ChildThread}
 
-    QUEUE_MAPPING = {
-        ChildType.PROCESS: mp.get_context('spawn' if platform.system().lower() == 'windows' else 'fork').Queue,
-        ChildType.THREAD: queue.Queue
-    }
-
-    def __init__(self, type_: ChildType) -> None:
+    def __init__(self, type_: ChildType, mp_ctx: Optional[BaseContext] = None) -> None:
         self._children: List[Child] = []
         self._type = type_
         self._child_class = self.TYPE_MAPPING[self._type]
         self._running = False
         self.__queue = None
+        self._mp_ctx = mp_ctx or get_mp_ctx()
 
-    def register(self, init: Callable, *args, shared_object: Optional[SharedObject] = None, **kwargs) -> None:
+    def register(
+            self,
+            init: Union[Callable, object],
+            shm_buffer: Optional[Any] = None,
+            shm_callback: Optional[Callable] = None
+    ) -> None:
         proc_id = len(self._children)
-        self._children.append(self._child_class(proc_id, init, *args, shared_object=shared_object, **kwargs))
+        self._children.append(
+            self._child_class(proc_id, init, shm_buffer=shm_buffer, shm_callback=shm_callback, mp_ctx=self._mp_ctx)
+        )
 
     @property
     def _recv_queue(self) -> Union[queue.Queue, mp.Queue]:
         if not self.__queue:
-            self.__queue = self.QUEUE_MAPPING[self._type]()
+            if self._type is ChildType.PROCESS:
+                self.__queue = self._mp_ctx.Queue()
+            elif self._type is ChildType.THREAD:
+                self.__queue = queue.Queue()
         return self.__queue
 
     @_recv_queue.setter
@@ -233,6 +253,9 @@ class Supervisor:
         Arguments:
             - payload (:obj:`SendPayload`): Send payload.
         """
+        if not self._running:
+            logging.warning("Please call start_link before sending any payload to child process.")
+            return
         self._children[payload.proc_id].send(payload)
 
     def recv(self, ignore_err: bool = False, timeout: float = None) -> RecvPayload:

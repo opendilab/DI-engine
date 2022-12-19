@@ -34,16 +34,16 @@ class TestApplication:
         cfg_for_stop_value = compile_config(cartpole_offppo_config, auto=True, create_cfg=cartpole_offppo_create_config)
         stop_value = cfg_for_stop_value.env.stop_value
         config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
-        eval_reward = eval(config, seed=0, state_dict=setup_state_dict['eval'])
-        assert eval_reward >= stop_value
+        episode_return = eval(config, seed=0, state_dict=setup_state_dict['eval'])
+        assert episode_return >= stop_value
         config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
-        eval_reward = eval(
+        episode_return = eval(
             config,
             seed=0,
             env_setting=[CartPoleEnv, None, [{} for _ in range(5)]],
             state_dict=setup_state_dict['eval']
         )
-        assert eval_reward >= stop_value
+        assert episode_return >= stop_value
 
     def test_collect_demo_data(self, setup_state_dict):
         config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)

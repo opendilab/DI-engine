@@ -75,7 +75,6 @@ class Policy(ABC):
             if len(set(self._enable_field).intersection(set(['learn']))) > 0:
                 self._rank = get_rank() if self._cfg.learn.multi_gpu else 0
                 if self._cuda:
-                    torch.cuda.set_device(self._rank % torch.cuda.device_count())
                     model.cuda()
                 if self._cfg.learn.multi_gpu:
                     bp_update_sync = self._cfg.learn.get('bp_update_sync', True)
@@ -84,7 +83,6 @@ class Policy(ABC):
             else:
                 self._rank = 0
                 if self._cuda:
-                    torch.cuda.set_device(self._rank % torch.cuda.device_count())
                     model.cuda()
             self._model = model
             self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
@@ -224,10 +222,14 @@ class Policy(ABC):
         return ['cur_lr', 'total_loss']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
-        return {'model': self._learn_model.state_dict()}
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'], strict=True)
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _get_batch_size(self) -> Union[int, Dict[str, int]]:
         return self._cfg.learn.batch_size

@@ -31,7 +31,7 @@ loop
     evaluator -> evaluator: eval_performance
     alt reach eval stop_value
       learner -> learner: save checkpoint and exit
-    else eval_reward is new highest
+    else episode_return is new highest
       learner -> learner: save checkpoint
     end
   end

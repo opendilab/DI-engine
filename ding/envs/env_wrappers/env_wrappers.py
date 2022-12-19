@@ -294,8 +294,8 @@ class DelayRewardWrapper(gym.Wrapper):
         return obs, reward, done, info
 
 
-@ENV_WRAPPER_REGISTRY.register('final_eval_reward')
-class FinalEvalRewardEnv(gym.Wrapper):
+@ENV_WRAPPER_REGISTRY.register('eval_episode_return')
+class EvalEpisodeReturnEnv(gym.Wrapper):
     """
     Overview:
         Accumulate rewards at every timestep, and return at the end of the episode in `info`.
@@ -315,14 +315,14 @@ class FinalEvalRewardEnv(gym.Wrapper):
         super().__init__(env)
 
     def reset(self):
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return self.env.reset()
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
-        self._final_eval_reward += reward
+        self._eval_episode_return += reward
         if done:
-            info['final_eval_reward'] = to_ndarray([self._final_eval_reward], dtype=np.float32)
+            info['eval_episode_return'] = to_ndarray([self._eval_episode_return], dtype=np.float32)
         return obs, reward, done, info
 
 
