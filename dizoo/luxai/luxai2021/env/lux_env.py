@@ -6,11 +6,6 @@ import gym
 import os
 from stable_baselines3.common.callbacks import BaseCallback
 
-import numpy as np
-from easydict import EasyDict
-from ding.envs import BaseEnv, BaseEnvTimestep
-from ding.utils import ENV_REGISTRY
-from ding.torch_utils import to_tensor, to_ndarray, to_list
 from dizoo.luxai.luxai2021.game.game import Game
 from dizoo.luxai.luxai2021.game.match_controller import GameStepFailedException, MatchController
 from dizoo.luxai.luxai2021.game.constants import Constants
@@ -75,34 +70,30 @@ class SaveReplayAndModelCallback(BaseCallback):
                 print(f"Saved model checkpoint and replay to {path}")
         return True
 
-
-@ENV_REGISTRY.register("luxai2021")
-class LuxEnvironment(BaseEnv):
+class LuxEnvironment(gym.Env):
     """
     Custom Environment that follows gym interface
-    Edited by i-am-tc for compatibility with DI-engine
-    Credts to  glmcdona's LuxPythonEnvGym 
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, cfg: EasyDict, learning_agent, opponent_agent, replay_validate=None, replay_folder=None, replay_prefix="replay"):
+    def __init__(self, configs, learning_agent, opponent_agent, replay_validate=None, replay_folder=None, replay_prefix="replay"):
         """
-        The initializer
+        THe initializer
         :param configs:
         :param learning_agent:
         :param opponent_agent:
         """
         super(LuxEnvironment, self).__init__()
 
-        # For DI-engine compatibility
-        self._cfg = cfg
-        self._init_flag = False
-        self.learning_agent = learning_agent
-        self.opponent_agent = opponent_agent
+        # Create the game
+        self.game = Game(configs)
+        self.match_controller = MatchController(self.game, 
+                                                agents=[learning_agent, opponent_agent], 
+                                                replay_validate=replay_validate)
         
-        self.replay_validate = replay_validate
-        self.replay_folder = replay_folder
         self.replay_prefix = replay_prefix
+        self.replay_folder = replay_folder
+
 
         self.action_space = []
         if hasattr( learning_agent, 'action_space' ):
@@ -119,11 +110,6 @@ class LuxEnvironment(BaseEnv):
 
         self.last_observation_object = None
 
-    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
-        self._seed = seed
-        self._dynamic_seed = dynamic_seed
-        np.random.seed(self._seed)
-
     def set_replay_path(self, replay_folder, replay_prefix):
         """
         Override the replay prefix
@@ -134,7 +120,7 @@ class LuxEnvironment(BaseEnv):
         self.replay_prefix = replay_prefix
         self.replay_folder = replay_folder
 
-    def step(self, action_code) -> BaseEnvTimestep:
+    def step(self, action_code):
         """
         Take this action, then get the state at the next action
         :param action_code:
@@ -172,50 +158,27 @@ class LuxEnvironment(BaseEnv):
         # Calculate reward for this step
         reward = self.learning_agent.get_reward(self.game, is_game_over, is_new_turn, is_game_error)
 
-        # For DI-engine compatibility
-        self._final_eval_reward += reward
-        obs = to_ndarray(obs)
-        reward = to_ndarray([reward])
-        if is_game_over:
-            info['final_eval_reward'] = self._final_eval_reward
+        return obs, reward, is_game_over, {}
 
-        return BaseEnvTimestep(obs, reward, is_game_over, info)
-
-    def reset(self) -> np.ndarray:
+    def reset(self):
         """
 
         :return:
         """
-
         self.current_step = 0
         self.last_observation_object = None
 
-        # For DI-engine compatibility
-        if not self._init_flag:
-            # Create the game
-            self.game = Game(self._cfg)
-            self.match_controller = MatchController(self.game, 
-                                                    agents=[self.learning_agent, self.opponent_agent], 
-                                                    replay_validate=replay_validate)
-            # Reset game + map
-            self.match_controller.reset()
-            self._init_flag = True
-
+        # Reset game + map
+        self.match_controller.reset()
         if self.replay_folder:
             # Tell the game to log replays
             self.game.start_replay_logging(stateful=True, replay_folder=self.replay_folder, replay_filename_prefix=self.replay_prefix)
-
-        #TODO: what is the difference betwene match_controllers observation & learning agent's observation? 
 
         self.match_generator = self.match_controller.run_to_next_observation()
         (unit, city_tile, team, is_new_turn) = next(self.match_generator)
 
         obs = self.learning_agent.get_observation(self.game, unit, city_tile, team, is_new_turn)
         self.last_observation_object = (unit, city_tile, team, is_new_turn)
-
-        # For DI-engine compatibility
-        obs = to_ndarray(obs)
-        self._final_eval_reward = 0.
 
         return obs
 
@@ -255,21 +218,3 @@ class LuxEnvironment(BaseEnv):
             is_game_error = True
 
         return is_game_error
-
-    def  __repr__(self) -> str:
-        return "DI-engine Lux AI 2021 Env"
-
-if __name__ == "__main__":
-    from dizoo.luxai.luxai2021.game.constants import LuxMatchConfigs_Default
-    from dizoo.luxai.luxai2021.env.agent import Agent
-    cfg = LuxMatchConfigs_Default
-    # opp = Agent()
-    # player = Agent()
-    # lux_env = LuxEnvironment(cfg, player, opp)
-    print(cfg["mapType"])
-
-    from dizoo.luxai.luxai2021.config.lux_ppo_config import main_config, create_config
-    from ding.config import compile_config
-    # cfg = compile_config(main_config, create_config)
-    cfg = main_config
-    print(cfg["mapType"])
