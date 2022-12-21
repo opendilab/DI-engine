@@ -30,6 +30,8 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     """
     if isinstance(item, torch.nn.Module):
         return item.to(device)
+    elif isinstance(item, ttorch.Tensor):
+        return item.to(device)
     elif isinstance(item, torch.Tensor):
         return item.to(device)
     elif isinstance(item, Sequence):
