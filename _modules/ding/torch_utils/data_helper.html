@@ -325,7 +325,14 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;prev_state&#39;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">prev_state</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">item</span><span class="o">.</span><span class="n">prev_state</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">prev_state</span> <span class="o">=</span> <span class="n">prev_state</span>
+            <span class="k">return</span> <span class="n">item</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>

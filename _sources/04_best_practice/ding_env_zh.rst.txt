@@ -164,7 +164,7 @@
 
    如果上述 wrapper 不能满足你的需要，也可以自行定制 wrapper。
 
-   值得一提的是，每个 wrapper 不仅要完成对相应的 observation/action/reward 值的变化，还要对应地修改其 space （当且仅当 shpae, dtype 等被修改时），这个方法将在下一节中详细介绍。
+   值得一提的是，每个 wrapper 不仅要完成对相应的 observation/action/reward 值的变化，还要对应地修改其 space （当且仅当 shape, dtype 等被修改时），这个方法将在下一节中详细介绍。
 
 2. 三个空间属性 ``observation/action/reward space``
 
