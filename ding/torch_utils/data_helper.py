@@ -31,7 +31,14 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     if isinstance(item, torch.nn.Module):
         return item.to(device)
     elif isinstance(item, ttorch.Tensor):
-        return item.to(device)
+        if 'prev_state' in item:
+            prev_state = to_device(item.prev_state, device)
+            del item.prev_state
+            item = item.to(device)
+            item.prev_state = prev_state
+            return item
+        else:
+            return item.to(device)
     elif isinstance(item, torch.Tensor):
         return item.to(device)
     elif isinstance(item, Sequence):
