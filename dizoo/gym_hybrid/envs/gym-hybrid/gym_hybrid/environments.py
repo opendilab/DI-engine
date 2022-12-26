@@ -4,10 +4,12 @@ from typing import Tuple
 
 import gym
 import numpy as np
+import cv2
+import os
 from gym import spaces
 from gym.utils import seeding
 
-gym.logger.set_level(40)  # noqa
+# gym.logger.set_level(40)  # noqa
 
 from .agents import BaseAgent, MovingAgent, SlidingAgent, HardMoveAgent
 
@@ -99,6 +101,12 @@ class BaseEnv(gym.Env):
 
         self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Box(parameters_min, parameters_max)))
         self.observation_space = spaces.Box(np.ones(10), -np.ones(10))
+        dirname = os.path.dirname(__file__)
+        self.bg = cv2.imread(os.path.join(dirname, 'bg.jpg'))
+        self.bg = cv2.cvtColor(self.bg, cv2.COLOR_BGR2RGB)
+        self.bg = cv2.resize(self.bg, (800, 800))
+        self.target_img = cv2.imread(os.path.join(dirname, 'target.png'), cv2.IMREAD_UNCHANGED)
+        self.target_img = cv2.resize(self.target_img, (60, 60))
 
     def seed(self, seed: Optional[int] = None) -> list:
         self.np_random, seed = seeding.np_random(seed)  # noqa
@@ -192,16 +200,32 @@ class BaseEnv(gym.Env):
             arrow.set_color(0, 0, 0)
             self.viewer.add_geom(arrow)
 
-            target = rendering.make_circle(unit_x * self.target_radius)
+            target = rendering.make_circle(unit_x * self.target_radius, filled=False)
             target_trans = rendering.Transform(translation=(unit_x * (1 + self.target.x), unit_y * (1 + self.target.y)))
             target.add_attr(target_trans)
-            target.set_color(1, 0.5, 0.5)
+            target.set_color(0, 0.6, 0)
             self.viewer.add_geom(target)
 
         self.arrow_trans.set_rotation(self.agent.theta)
         self.agent_trans.set_translation(unit_x * (1 + self.agent.x), unit_y * (1 + self.agent.y))
 
-        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
+        ret = self.viewer.render(return_rgb_array=mode == 'rgb_array')
+        # add background
+        ret = np.where(ret == 255, self.bg, ret)
+        # add target logo
+        # # x, y = int(unit_x * (1 + self.target.x)), int(unit_y * (1 - self.target.y))
+        # # x, y = x - 20, y + 25  # seed0
+        # target_area = ret[x:x+60, y:y+60]
+        # rgb_img = cv2.cvtColor(self.target_img[..., :3], cv2.COLOR_BGR2RGB)
+        # target_area = np.where(self.target_img[..., -1:] == 0, target_area, rgb_img)
+        # ret[x:x+60, y:y+60] = target_area
+        # add frame
+        frames = np.array([60, 60, 30]).reshape(1, 1, -1)
+        ret[:6] = frames
+        ret[:, :6] = frames
+        ret[-6:] = frames
+        ret[:, -6:] = frames
+        return ret
 
     def close(self):
         if self.viewer:
@@ -374,44 +398,6 @@ class HardMoveEnv(gym.Env):
     @staticmethod
     def get_distance(x1: float, y1: float, x2: float, y2: float) -> float:
         return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2))
-
-    def render(self, mode='human'):
-        screen_width = 400
-        screen_height = 400
-        unit_x = screen_width / 2
-        unit_y = screen_height / 2
-        agent_radius = 0.05
-
-        if self.viewer is None:
-            from gym.envs.classic_control import rendering
-            self.viewer = rendering.Viewer(screen_width, screen_height)
-
-            agent = rendering.make_circle(unit_x * agent_radius)
-            self.agent_trans = rendering.Transform(
-                translation=(unit_x * (1 + self.agent.x), unit_y * (1 + self.agent.y))
-            )  # noqa
-            agent.add_attr(self.agent_trans)
-            agent.set_color(0.1, 0.3, 0.9)
-            self.viewer.add_geom(agent)
-
-            t, r, m = 0.1 * unit_x, 0.04 * unit_y, 0.06 * unit_x
-            arrow = rendering.FilledPolygon([(t, 0), (m, r), (m, -r)])
-            self.arrow_trans = rendering.Transform(rotation=self.agent.theta)  # noqa
-            arrow.add_attr(self.arrow_trans)
-            arrow.add_attr(self.agent_trans)
-            arrow.set_color(0, 0, 0)
-            self.viewer.add_geom(arrow)
-
-            target = rendering.make_circle(unit_x * self.target_radius)
-            target_trans = rendering.Transform(translation=(unit_x * (1 + self.target.x), unit_y * (1 + self.target.y)))
-            target.add_attr(target_trans)
-            target.set_color(1, 0.5, 0.5)
-            self.viewer.add_geom(target)
-
-        self.arrow_trans.set_rotation(self.agent.theta)
-        self.agent_trans.set_translation(unit_x * (1 + self.agent.x), unit_y * (1 + self.agent.y))
-
-        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
     def close(self):
         if self.viewer:

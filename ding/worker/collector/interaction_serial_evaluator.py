@@ -251,7 +251,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             eval_monitor.update_reward(env_id, reward)
                             return_info.append(t.info)
                             self._logger.info(
-                                "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
+                                    "[EVALUATOR]env {} finish episode, final reward: {:.4f}, current episode: {}".format(
                                     env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
                                 )
                             )
@@ -301,7 +301,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             stop_flag = episode_return >= self._stop_value and train_iter > 0
             if stop_flag:
                 self._logger.info(
-                    "[DI-engine serial pipeline] " + "Current episode_return: {} is greater than stop_value: {}".
+                    "[DI-engine serial pipeline] " + "Current episode_return: {:.4f} is greater than stop_value: {}".
                     format(episode_return, self._stop_value) + ", so your RL agent is converged, you can refer to " +
                     "'log/evaluator/evaluator_logger.txt' for details."
                 )
