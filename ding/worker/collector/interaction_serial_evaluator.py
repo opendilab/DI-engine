@@ -251,7 +251,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             eval_monitor.update_reward(env_id, reward)
                             return_info.append(t.info)
                             self._logger.info(
-                                    "[EVALUATOR]env {} finish episode, final reward: {:.4f}, current episode: {}".format(
+                                "[EVALUATOR]env {} finish episode, final reward: {:.4f}, current episode: {}".format(
                                     env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
                                 )
                             )
