@@ -82,6 +82,9 @@ class MockOnlineWriter:
         assert values == [1, 2, 3, 4, 5, 6]
         assert global_step in [self.ctx.train_iter, self.ctx.env_step]
 
+    def close(self):
+        pass
+
 
 def mock_get_online_instance():
     return MockOnlineWriter()
