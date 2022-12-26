@@ -74,6 +74,7 @@ class Task:
 
     def __init__(self) -> None:
         self.router = Parallel()
+        self._finish = False
 
     def start(
             self,

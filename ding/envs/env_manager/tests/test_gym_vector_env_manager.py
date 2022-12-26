@@ -9,8 +9,7 @@ from ding.envs.env_manager.gym_vector_env_manager import GymVectorEnvManager
 from gym.vector.async_vector_env import AsyncState
 
 
-# @pytest.mark.unittest
-@pytest.mark.tmp
+@pytest.mark.unittest
 class TestGymVectorEnvManager:
 
     def test_naive(self, setup_gym_vector_manager_cfg):
