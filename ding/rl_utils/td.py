@@ -463,7 +463,15 @@ def bdq_nstep_td_error(
 ) -> torch.Tensor:
     """
     Overview:
-        Multistep (1 step or n step) td_error for BDQ algorithm
+        Multistep (1 step or n step) td_error for BDQ algorithm, \
+            referenced paper Action Branching Architectures for Deep Reinforcement Learning \
+            <https://arxiv.org/pdf/1711.08946>
+        In fact, the original paper only provides the 1-step TD-error calculation method, \
+            and here we extend the calculation method of n-step.
+                TD-error:
+                    y_d = \sigma_{t=0}^{nstep} \gamma^t * r_t + \gamma^{nstep} * Q_d'(s', argmax Q_d(s', a_d))
+                    TD-error = \frac{1}{D} * (y_d - Q_d(s, a_d))^2
+                    Loss = mean(TD-error)
     Arguments:
         - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
@@ -477,10 +485,10 @@ def bdq_nstep_td_error(
     Shapes:
         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
             ['q', 'next_n_q', 'action', 'reward', 'done']
-        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
-        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
-        - action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - q (:obj:`torch.FloatTensor`): :math:`(B, D, N)` i.e. [batch_size, branch_num, action_bins_per_branch]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, D, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, D)`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, D)`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`

@@ -17,8 +17,12 @@ from .common_utils import default_preprocess_learn
 class BDQPolicy(Policy):
     r"""
     Overview:
-        Policy class of BDQ algorithm, extended by PER/multi-step TD.
-
+        Policy class of BDQ algorithm, extended by PER/multi-step TD. \
+            referenced paper Action Branching Architectures for Deep Reinforcement Learning \
+            <https://arxiv.org/pdf/1711.08946>
+        .. note::
+            BDQ algorithm contains a neural architecture featuring a shared decision module \
+                followed by several network branches, one for each action dimension.
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
@@ -228,7 +232,7 @@ class BDQPolicy(Policy):
         # after update
         # =============
         self._target_model.update(self._learn_model.state_dict())
-        return {
+        update_info = {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
@@ -237,9 +241,13 @@ class BDQPolicy(Policy):
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
+        q_value_per_branch = torch.mean(q_value, 2, keepdim=False)
+        for i in range(self._model.num_branches):
+            update_info['q_value_b_' + str(i)] = q_value_per_branch[:, 0].mean().item()
+        return update_info
 
     def _monitor_vars_learn(self) -> List[str]:
-        return ['cur_lr', 'total_loss', 'q_value']
+        return ['cur_lr', 'total_loss', 'q_value'] + ['q_value_b_' + str(i) for i in range(self._model.num_branches)]
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """

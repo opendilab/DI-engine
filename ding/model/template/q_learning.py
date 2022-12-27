@@ -105,7 +105,7 @@ class BDQ(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             num_branches: int = 0,
-            action_per_branch: int = 2,
+            action_bins_per_branch: int = 2,
             layer_num: int = 3,
             a_layer_num: Optional[int] = None,
             v_layer_num: Optional[int] = None,
@@ -116,11 +116,14 @@ class BDQ(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the BDQ (encoder + head) Model according to input arguments.
+            Init the BDQ (encoder + head) Model according to input arguments. \
+                referenced paper Action Branching Architectures for Deep Reinforcement Learning \
+                <https://arxiv.org/pdf/1711.08946>
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
-            - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension, such as 6.
-            - action_per_branch (:obj:`int`): The number of actions in each dimension.
+            - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension, \
+                such as 6 in mujoco's halfcheetah environment.
+            - action_bins_per_branch (:obj:`int`): The number of actions in each dimension.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Advantage and Value output.
             - a_layer_num (:obj:`int`): The number of layers used in the network to compute Advantage output.
             - v_layer_num (:obj:`int`): The number of layers used in the network to compute Value output.
@@ -134,7 +137,7 @@ class BDQ(nn.Module):
         """
         super(BDQ, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
-        obs_shape = squeeze(obs_shape)
+        obs_shape, num_branches = squeeze(obs_shape), squeeze(num_branches)
         if head_hidden_size is None:
             head_hidden_size = encoder_hidden_size_list[-1]
 
@@ -151,13 +154,13 @@ class BDQ(nn.Module):
             )
 
         self.num_branches = num_branches
-        self.action_per_branch = action_per_branch
+        self.action_bins_per_branch = action_bins_per_branch
 
         # head
         self.head = BranchingHead(
             head_hidden_size,
             num_branches=self.num_branches,
-            action_per_branch=action_per_branch,
+            action_bins_per_branch=self.action_bins_per_branch,
             layer_num=layer_num,
             a_layer_num=a_layer_num,
             v_layer_num=v_layer_num,
@@ -178,14 +181,14 @@ class BDQ(nn.Module):
         Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is
-                ``num_branches * action_per_branch``
+                ``num_branches * action_bins_per_branch``
         Examples:
-            >>> model = BDQ(8, 5, 2)  # arguments: 'obs_shape', 'num_branches' and 'action_per_branch'.
+            >>> model = BDQ(8, 5, 2)  # arguments: 'obs_shape', 'num_branches' and 'action_bins_per_branch'.
             >>> inputs = torch.randn(4, 8)
             >>> outputs = model(inputs)
-            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 10])
+            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 5, 2])
         """
-        x = self.encoder(x)
+        x = self.encoder(x) / (self.num_branches + 1)  # corresponds to the "Gradient Rescaling" in the paper
         x = self.head(x)
         return x
 

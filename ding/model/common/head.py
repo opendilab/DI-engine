@@ -180,7 +180,7 @@ class BranchingHead(nn.Module):
             self,
             hidden_size: int,
             num_branches: int = 0,
-            action_per_branch: int = 2,
+            action_bins_per_branch: int = 2,
             layer_num: int = 1,
             a_layer_num: Optional[int] = None,
             v_layer_num: Optional[int] = None,
@@ -190,11 +190,15 @@ class BranchingHead(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the ``BranchingHead`` layers according to the provided arguments.
+            Init the ``BranchingHead`` layers according to the provided arguments. \
+                This head achieves a linear increase of the number of network outputs \
+                with the number of degrees of freedom by allowing a level of independence \
+                for each individual action dimension.
+                Therefore, this head is suitable for high dimensional action Spaces.
         Arguments:
             - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``BranchingHead``.
             - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension.
-            - action_per_branch (:obj:`int`): The number of actions in each dimension.
+            - action_bins_per_branch (:obj:int): The number of action bins in each dimension.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Advantage and Value output.
             - a_layer_num (:obj:`int`): The number of layers used in the network to compute Advantage output.
             - v_layer_num (:obj:`int`): The number of layers used in the network to compute Value output.
@@ -212,7 +216,7 @@ class BranchingHead(nn.Module):
         if v_layer_num is None:
             v_layer_num = layer_num
         self.num_branches = num_branches
-        self.action_per_branch = action_per_branch
+        self.action_bins_per_branch = action_bins_per_branch
 
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
@@ -230,7 +234,7 @@ class BranchingHead(nn.Module):
             ), block(hidden_size, 1)
         )
         # action branching network
-        action_output_dim = action_per_branch
+        action_output_dim = action_bins_per_branch
         self.branches = nn.ModuleList(
             [
                 nn.Sequential(
@@ -263,7 +267,7 @@ class BranchingHead(nn.Module):
             >>> head = BranchingHead(64, 5, 2)
             >>> inputs = torch.randn(4, 64)
             >>> outputs = head(inputs)
-            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 10])
+            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 5, 2])
         """
         value_out = self.V(x)
         value_out = torch.unsqueeze(value_out, 1)
@@ -271,6 +275,10 @@ class BranchingHead(nn.Module):
         for b in self.branches:
             action_out.append(b(x))
         action_scores = torch.stack(action_out, 1)
+        '''
+            From the paper, this implementation performs better than both the naive alternative (Q = V + A) \
+            and the local maximum reduction method (Q = V + max(A)).
+        '''
         action_scores = action_scores - torch.mean(action_scores, 2, keepdim=True)
         logits = value_out + action_scores
         return {'logit': logits}
