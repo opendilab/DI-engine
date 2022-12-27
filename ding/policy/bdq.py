@@ -243,7 +243,7 @@ class BDQPolicy(Policy):
         }
         q_value_per_branch = torch.mean(q_value, 2, keepdim=False)
         for i in range(self._model.num_branches):
-            update_info['q_value_b_' + str(i)] = q_value_per_branch[:, 0].mean().item()
+            update_info['q_value_b_' + str(i)] = q_value_per_branch[:, i].mean().item()
         return update_info
 
     def _monitor_vars_learn(self) -> List[str]:
