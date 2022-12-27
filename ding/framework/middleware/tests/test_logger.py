@@ -146,6 +146,9 @@ class MockOfflineWriter:
         assert values == [1, 2, 3, 4, 5, 6]
         assert global_step == self.ctx.train_iter
 
+    def close(self):
+        pass
+
 
 def mock_get_offline_instance():
     return MockOfflineWriter()

@@ -183,6 +183,7 @@ class LevelSampler():
                     continue
 
                 seed_t = level_seeds[start_t, actor_index].item()
+                seed_t = int(seed_t)
                 seed_idx_t = self.seed2index[seed_t]
 
                 score_function_kwargs = {}
