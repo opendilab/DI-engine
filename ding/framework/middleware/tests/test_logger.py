@@ -154,8 +154,6 @@ def mock_get_offline_instance():
     return MockOfflineWriter()
 
 
-@pytest.mark.tmp
-# @pytest.mark.unittest
 class TestOfflineLogger:
 
     def test_offline_logger_no_scalars(self, offline_ctx_output_dict):
@@ -228,7 +226,8 @@ def test_wandb_online_logger():
     test_wandb_online_logger_gradient()
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
+# @pytest.mark.unittest
 def test_wandb_offline_logger(mocker):
 
     cfg = EasyDict(
