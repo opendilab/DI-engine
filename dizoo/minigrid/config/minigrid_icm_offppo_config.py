@@ -6,10 +6,11 @@ minigrid_icm_offppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0'
-        env_id='MiniGrid-FourRooms-v0',
-        max_step=300,
+        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0','MiniGrid-AKTDT-7x7-1-v0'
+        env_id='MiniGrid-AKTDT-7x7-1-v0',
+        max_step=100,
         stop_value=0.96,
+        # stop_value=12,  # run fixed env_steps for MiniGrid-AKTDT-7x7-1-v0
     ),
     reward_model=dict(
         intrinsic_reward_type='add',
@@ -69,13 +70,12 @@ minigrid_icm_offppo_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
     reward_model=dict(type='icm'),
 )
 minigrid_icm_offppo_create_config = EasyDict(minigrid_icm_offppo_create_config)
 create_config = minigrid_icm_offppo_create_config
-
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c minigrid_icm_config.py -s 0`

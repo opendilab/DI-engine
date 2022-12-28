@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from MiniGrid.minigrid.minigrid_env import *
-from MiniGrid.minigrid.utils.rendering import *
-from MiniGrid.minigrid.core.world_object import WorldObj
+from minigrid.minigrid_env import *
+from minigrid.utils.rendering import *
+from minigrid.core.world_object import WorldObj
 
 
 class Ball(WorldObj):
@@ -28,10 +28,11 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
         self._agent_default_pos = agent_pos
         self._goal_default_pos = goal_pos
         self.apple = apple
-        super().__init__(grid_size=grid_size, max_steps=100)
+        mission_space = MissionSpace(mission_func=lambda: "Reach the goal")
+        super().__init__(mission_space=mission_space, grid_size=grid_size, max_steps=100)
 
     def _gen_grid(
-            self, width, height
+        self, width, height
     ):  # Note that it is inherited from MiniGridEnv that if width and height == None, width = grid_size , height = grid_size
         # Create the grid
         self.grid = Grid(width, height)
@@ -185,7 +186,7 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
 
         obs = self.gen_obs()
 
-        return obs, reward, done, {}
+        return obs, reward, done, done, {}
 
 
 class AppleKeyToDoorTreasure_13x13(AppleKeyToDoorTreasure):

@@ -10,7 +10,7 @@ import gymnasium
 import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
-from MiniGrid.minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
+from minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
 from ding.envs import ObsPlusPrevActRewWrapper
 
 from ding.envs import BaseEnv, BaseEnvTimestep
@@ -64,7 +64,7 @@ class MiniGridEnv(BaseEnv):
             self._observation_space.dtype = np.dtype('float32')
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
         )
 
         self._final_eval_reward = 0
@@ -96,7 +96,7 @@ class MiniGridEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1,):
+        if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
