@@ -226,8 +226,7 @@ def test_wandb_online_logger():
     test_wandb_online_logger_gradient()
 
 
-@pytest.mark.tmp
-# @pytest.mark.unittest
+@pytest.mark.unittest
 def test_wandb_offline_logger(mocker):
 
     cfg = EasyDict(
