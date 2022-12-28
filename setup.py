@@ -75,7 +75,7 @@ setup(
         'trueskill',
         'h5py',
         'mpire>=2.3.5',
-        'pynng',
+        'pynng==0.7.1',
         'redis',
         'pettingzoo==1.12.0',
         'DI-treetensor>=0.4.0',

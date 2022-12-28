@@ -170,8 +170,7 @@ def model_exchanger_main():
         task.run(2)
 
 
-@pytest.mark.tmp
-# @pytest.mark.unittest
+@pytest.mark.unittest
 def test_model_exchanger():
     Parallel.runner(n_parallel_workers=2, startup_interval=0)(model_exchanger_main)
 
