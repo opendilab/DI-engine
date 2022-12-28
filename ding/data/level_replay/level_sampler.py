@@ -65,7 +65,7 @@ class LevelSampler():
 
         self.unseen_seed_weights = np.ones(len(seeds))
         self.seed_scores = np.zeros(len(seeds))
-        self.partial_seed_scores = np.zeros((num_actors, len(seeds)), dtype=np.float)
+        self.partial_seed_scores = np.zeros((num_actors, len(seeds)), dtype=np.float32)
         self.partial_seed_steps = np.zeros((num_actors, len(seeds)), dtype=np.int64)
         self.seed_staleness = np.zeros(len(seeds))
 
@@ -235,7 +235,7 @@ class LevelSampler():
         sample_weights = self._sample_weights()
 
         if np.isclose(np.sum(sample_weights), 0):
-            sample_weights = np.ones_like(sample_weights, dtype=np.float) / len(sample_weights)
+            sample_weights = np.ones_like(sample_weights, dtype=np.float32) / len(sample_weights)
 
         seed_idx = np.random.choice(range(len(self.seeds)), 1, p=sample_weights)[0]
         seed = self.seeds[seed_idx]
