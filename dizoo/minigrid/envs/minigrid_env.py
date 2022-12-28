@@ -67,7 +67,7 @@ class MiniGridEnv(BaseEnv):
             low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
         )
 
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._seed = self._seed + np_seed
@@ -103,12 +103,12 @@ class MiniGridEnv(BaseEnv):
         # using the step method of Gymnasium env, return is (observation, reward, terminated, truncated, info)
         obs, rew, done, _, info = self._env.step(action)
         rew = float(rew)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         self._current_step += 1
         if self._current_step >= self._max_step:
             done = True
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
             info['current_step'] = self._current_step
             info['max_step'] = self._max_step
             if self._save_replay:

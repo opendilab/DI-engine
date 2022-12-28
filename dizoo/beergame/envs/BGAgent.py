@@ -20,7 +20,7 @@ class Agent(object):
         self.curState = []  # this function gets the current state of the game
         self.nextState = []
         self.curReward = 0  # the reward observed at the current step
-        self.cumReward = 0  # cumulative reward; reset at the begining of each episode
+        self.cumReward = 0  # cumulative reward; reset at the beginning of each episode
         self.totRew = 0  # it is reward of all players obtained for the current player.
         self.c_h = c_h  # holding cost
         self.c_p = c_p  # backorder cost

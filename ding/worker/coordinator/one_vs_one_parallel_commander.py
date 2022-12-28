@@ -237,7 +237,7 @@ class OneVsOneCommander(BaseCommander):
             print('===', eval_win, difficulty_inc)
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
-                    "[DI-engine parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
+                    "[DI-engine parallel pipeline] Current episode_return: {} is greater than the stop_value: {}".
                     format(finished_task['reward_mean'], eval_stop_value) + ", so the total training program is over."
                 )
                 self._end_flag = True

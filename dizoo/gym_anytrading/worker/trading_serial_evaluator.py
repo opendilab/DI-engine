@@ -30,14 +30,15 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
         ),
         type='trading_interaction',
     )
+
     def __init__(
-            self,
-            cfg: dict,
-            env: BaseEnvManager = None,
-            policy: namedtuple = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'evaluator',
+        self,
+        cfg: dict,
+        env: BaseEnvManager = None,
+        policy: namedtuple = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -48,12 +49,12 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
         super().__init__(cfg, env, policy, tb_logger, exp_name, instance_name)
 
     def eval(
-            self,
-            save_ckpt_fn: Callable = None,
-            train_iter: int = -1,
-            envstep: int = -1,
-            n_episode: Optional[int] = None,
-            force_render: bool = False,
+        self,
+        save_ckpt_fn: Callable = None,
+        train_iter: int = -1,
+        envstep: int = -1,
+        n_episode: Optional[int] = None,
+        force_render: bool = False,
     ) -> Tuple[bool, dict]:
         '''
         Overview:
@@ -103,7 +104,7 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
                     if t.done:
                         # Env reset is done by env_manager automatically.
                         self._policy.reset([env_id])
-                        reward = t.info['final_eval_reward']
+                        reward = t.info['eval_episode_return']
                         if 'episode_info' in t.info:
                             eval_monitor.update_info(env_id, t.info['episode_info'])
                         eval_monitor.update_reward(env_id, reward)
@@ -122,7 +123,7 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
                         )
                     envstep_count += 1
         duration = self._timer.value
-        episode_reward = eval_monitor.get_episode_reward()
+        episode_return = eval_monitor.get_episode_return()
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
@@ -132,11 +133,11 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
             'evaluate_time': duration,
             'avg_envstep_per_sec': envstep_count / duration,
             'avg_time_per_episode': n_episode / duration,
-            'reward_mean': np.mean(episode_reward),
-            'reward_std': np.std(episode_reward),
-            'reward_max': np.max(episode_reward),
-            'reward_min': np.min(episode_reward),
-            # 'each_reward': episode_reward,
+            'reward_mean': np.mean(episode_return),
+            'reward_std': np.std(episode_return),
+            'reward_max': np.max(episode_return),
+            'reward_min': np.min(episode_return),
+            # 'each_reward': episode_return,
         }
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
@@ -172,16 +173,16 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
             from ding.utils import fps
             self._tb_logger.add_video(video_title, videos, render_iter, fps(self._env))
 
-        eval_reward = np.mean(episode_reward)
-        if eval_reward > self._max_eval_reward:
+        episode_return = np.mean(episode_return)
+        if episode_return > self._max_episode_return:
             if save_ckpt_fn:
                 save_ckpt_fn('ckpt_best.pth.tar')
-            self._max_eval_reward = eval_reward
-        stop_flag = eval_reward >= self._stop_value and train_iter > 0
+            self._max_episode_return = episode_return
+        stop_flag = episode_return >= self._stop_value and train_iter > 0
         if stop_flag:
             self._logger.info(
                 "[DI-engine serial pipeline] " +
-                "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
+                "Current episode_return: {} is greater than stop_value: {}".format(episode_return, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, return_info
@@ -193,7 +194,7 @@ class TradingEvalMonitor(VectorEvalMonitor):
         Inherit VectorEvalMonitor for trading env.
         Add func update_max_profit and get_max_episode_profit in order to log the max_profit for every episode.
     Interfaces:
-        Besides (__init__, is_finished, update_info, update_reward, get_episode_reward,\
+        Besides (__init__, is_finished, update_info, update_reward, get_episode_return,\
             get_latest_reward, get_current_episode, get_episode_info), there are\
                 (update_max_profit, get_max_episode_profit).
     """

@@ -85,7 +85,7 @@ class TestDingEnvWrapper:
             # print(_, timestep.reward)
             assert timestep.reward.shape == (1, ), timestep.reward.shape
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         print(ding_env_mujoco.observation_space, ding_env_mujoco.action_space, ding_env_mujoco.reward_space)
         action = ding_env_mujoco.random_action()
@@ -113,7 +113,7 @@ class TestDingEnvWrapper:
             # print(timestep.reward)
             assert timestep.reward.shape == ding_env_atari.reward_space.shape, timestep.reward.shape  # (1, )
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         print(ding_env_atari.observation_space, ding_env_atari.action_space, ding_env_atari.reward_space)
         action = ding_env_atari.random_action()
@@ -147,7 +147,7 @@ class TestDingEnvWrapper:
             # print(timestep.reward)
             assert timestep.reward.shape == ding_env_lun_bip.reward_space.shape, timestep.reward.shape  # (1, )
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         print(ding_env_lun_bip.observation_space, ding_env_lun_bip.action_space, ding_env_lun_bip.reward_space)
         action = ding_env_lun_bip.random_action()
@@ -174,7 +174,7 @@ class TestDingEnvWrapper:
             # print(timestep.reward)
             assert timestep.reward.shape == ding_env_hybrid.reward_space.shape, timestep.reward.shape  # (1, )
             if timestep.done:
-                assert 'final_eval_reward' in timestep.info, timestep.info
+                assert 'eval_episode_return' in timestep.info, timestep.info
                 break
         print(ding_env_hybrid.observation_space, ding_env_hybrid.action_space, ding_env_hybrid.reward_space)
         action = ding_env_hybrid.random_action()

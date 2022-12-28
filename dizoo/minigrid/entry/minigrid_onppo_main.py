@@ -2,7 +2,7 @@ import gym
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, FinalEvalRewardEnv, BaseEnvManager
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, BaseEnvManager
 from ding.config import compile_config
 from ding.utils import set_pkg_seed
 
@@ -15,14 +15,10 @@ import gymnasium
 
 
 class MinigridWrapper(gym.Wrapper):
+
     def __init__(self, env):
         super().__init__(env)
-        self._observation_space = gym.spaces.Box(
-            low=float("-inf"),
-            high=float("inf"),
-            shape=(8,),
-            dtype=np.float32
-        )
+        self._observation_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(8, ), dtype=np.float32)
         self._action_space = gym.spaces.Discrete(9)
         self._action_space.seed(0)  # default seed
         self.reward_range = (float('-inf'), float('inf'))
@@ -47,22 +43,19 @@ def wrapped_minigrid_env():
             'env_wrapper': [
                 lambda env: FlatObsWrapper(env),
                 lambda env: MinigridWrapper(env),
-                lambda env: FinalEvalRewardEnv(env),
+                lambda env: EvalEpisodeReturnEnv(env),
             ]
         }
     )
 
 
-def main(cfg, seed=0,  max_env_step=int(1e10), max_train_iter=int(1e10)):
+def main(cfg, seed=0, max_env_step=int(1e10), max_train_iter=int(1e10)):
     cfg = compile_config(
-        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator,
-        save_cfg=True
+        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_minigrid_env for _ in range(collector_env_num)],
-                                   cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_minigrid_env for _ in range(evaluator_env_num)],
-                                   cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(env_fn=[wrapped_minigrid_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_minigrid_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)

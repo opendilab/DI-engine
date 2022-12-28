@@ -2,14 +2,14 @@ from easydict import EasyDict
 from typing import Optional, List
 import copy
 
-final_eval_reward_wrapper = EasyDict(type='final_eval_reward')
+eval_episode_return_wrapper = EasyDict(type='eval_episode_return')
 
 
 def get_default_wrappers(env_wrapper_name: str, env_id: Optional[str] = None) -> List[dict]:
     if env_wrapper_name == 'mujoco_default':
         return [
             EasyDict(type='delay_reward', kwargs=dict(delay_reward_step=3)),
-            copy.deepcopy(final_eval_reward_wrapper),
+            copy.deepcopy(eval_episode_return_wrapper),
         ]
     elif env_wrapper_name == 'atari_default':
         wrapper_list = []
@@ -23,14 +23,14 @@ def get_default_wrappers(env_wrapper_name: str, env_id: Optional[str] = None) ->
         wrapper_list.append(EasyDict(type='scaled_float_frame'))
         wrapper_list.append(EasyDict(type='clip_reward'))
         wrapper_list.append(EasyDict(type='frame_stack', kwargs=dict(n_frames=4)))
-        wrapper_list.append(copy.deepcopy(final_eval_reward_wrapper))
+        wrapper_list.append(copy.deepcopy(eval_episode_return_wrapper))
         return wrapper_list
     elif env_wrapper_name == 'gym_hybrid_default':
         return [
             EasyDict(type='gym_hybrid_dict_action'),
-            copy.deepcopy(final_eval_reward_wrapper),
+            copy.deepcopy(eval_episode_return_wrapper),
         ]
     elif env_wrapper_name == 'default':
-        return [copy.deepcopy(final_eval_reward_wrapper)]
+        return [copy.deepcopy(eval_episode_return_wrapper)]
     else:
         raise NotImplementedError()

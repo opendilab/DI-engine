@@ -185,7 +185,7 @@ class TradingEnv(BaseEnv):
             if self._env_id[-1] == 'e' and self.cnt % self.plot_freq == 0:
                 self.render()
             info['max_possible_profit'] = np.log(self.max_possible_profit())
-            info['final_eval_reward'] = self._total_reward
+            info['eval_episode_return'] = self._total_reward
 
         step_reward = to_ndarray([step_reward]).astype(np.float32)
         return BaseEnvTimestep(observation, step_reward, self._done, info)

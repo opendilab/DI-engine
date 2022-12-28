@@ -1,6 +1,7 @@
+import multiprocessing as mp
 import pytest
 from threading import Lock
-from time import sleep
+from time import sleep, time
 import random
 import dataclasses
 from ding.framework import task, Context, Parallel
@@ -125,7 +126,7 @@ def parallel_main():
 
 @pytest.mark.unittest
 def test_parallel_pipeline():
-    Parallel.runner(n_parallel_workers=2)(parallel_main)
+    Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(parallel_main)
 
 
 @pytest.mark.unittest
@@ -162,7 +163,7 @@ def emit_remote_main():
 
 @pytest.mark.unittest
 def test_emit_remote():
-    Parallel.runner(n_parallel_workers=2)(emit_remote_main)
+    Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(emit_remote_main)
 
 
 @pytest.mark.unittest
@@ -228,7 +229,7 @@ def early_stop_main():
 
 @pytest.mark.unittest
 def test_early_stop():
-    Parallel.runner(n_parallel_workers=2)(early_stop_main)
+    Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(early_stop_main)
 
 
 @pytest.mark.unittest
@@ -333,3 +334,49 @@ def test_use_lock():
         task.use(fast, lock=lock)
         task.run(1)
         assert task.ctx.result == "slowest"
+
+
+def broadcast_finish_main():
+    with task.start():
+
+        def tick(ctx: Context):
+            if task.router.node_id == 1 and ctx.total_step == 1:
+                task.finish = True
+            sleep(1)
+
+        task.use(tick)
+        task.run(20)
+
+
+def broadcast_main_target():
+    Parallel.runner(
+        n_parallel_workers=1, protocol="tcp", address="127.0.0.1", topology="mesh", ports=50555, startup_interval=0.1
+    )(broadcast_finish_main)
+
+
+def broadcast_secondary_target():
+    "Start two standalone processes and connect to the main process."
+    Parallel.runner(
+        n_parallel_workers=2,
+        protocol="tcp",
+        address="127.0.0.1",
+        topology="alone",
+        ports=50556,
+        attach_to=["tcp://127.0.0.1:50555"],
+        node_ids=[1, 2],
+        startup_interval=0.1
+    )(broadcast_finish_main)
+
+
+@pytest.mark.tmp  # gitlab ci and local test pass, github always fail
+@pytest.mark.timeout(10)
+def test_broadcast_finish():
+    start = time()
+    ctx = mp.get_context("spawn")
+    main_process = ctx.Process(target=broadcast_main_target)
+    secondary_process = ctx.Process(target=broadcast_secondary_target)
+    main_process.start()
+    secondary_process.start()
+    main_process.join()
+    secondary_process.join()
+    assert (time() - start) < 10

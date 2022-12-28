@@ -122,16 +122,6 @@ class BaseEnvManager(object):
             self._action_space = self._env_ref.action_space
             self._reward_space = self._env_ref.reward_space
             self._env_ref.close()
-        try:
-            global space_log_flag
-            if space_log_flag:
-                logging.info("Env Space Information:")
-                logging.info("\tObservation Space: {}".format(self._observation_space))
-                logging.info("\tAction Space: {}".format(self._action_space))
-                logging.info("\tReward Space: {}".format(self._reward_space))
-                space_log_flag = False
-        except:
-            pass
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
         self._episode_num = self._cfg.episode_num
@@ -240,6 +230,16 @@ class BaseEnvManager(object):
                 value is the cooresponding reset parameters.
         """
         assert self._closed, "Please first close the env manager"
+        try:
+            global space_log_flag
+            if space_log_flag:
+                logging.info("Env Space Information:")
+                logging.info("\tObservation Space: {}".format(self._observation_space))
+                logging.info("\tAction Space: {}".format(self._action_space))
+                logging.info("\tReward Space: {}".format(self._reward_space))
+                space_log_flag = False
+        except:
+            pass
         if reset_param is not None:
             assert len(reset_param) == len(self._env_fn)
         self._create_state()
@@ -475,6 +475,8 @@ class BaseEnvManagerV2(BaseEnvManager):
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
         obs = [self._ready_obs[i] for i in active_env]
+        if isinstance(obs[0], dict):
+            obs = [tnp.array(o) for o in obs]
         return tnp.stack(obs)
 
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:

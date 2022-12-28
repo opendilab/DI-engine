@@ -7,7 +7,7 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import SyncSubprocessEnvManager, DingEnvWrapper, BaseEnvManager
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    FinalEvalRewardEnv
+    EvalEpisodeReturnEnv
 from ding.policy import DQNPolicy
 from ding.model import DQN
 from ding.utils import set_pkg_seed
@@ -26,7 +26,7 @@ def wrapped_mario_env():
                 lambda env: WarpFrameWrapper(env, size=84),
                 lambda env: ScaledFloatFrameWrapper(env),
                 lambda env: FrameStackWrapper(env, n_frames=4),
-                lambda env: FinalEvalRewardEnv(env),
+                lambda env: EvalEpisodeReturnEnv(env),
             ]
         }
     )
@@ -94,9 +94,7 @@ def main(cfg, seed=0):
                 break
             learner.train(train_data, collector.envstep)
     # evaluate
-    evaluator_env = BaseEnvManager(
-        env_fn=[wrapped_mario_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager
-    )
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_mario_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
     evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name

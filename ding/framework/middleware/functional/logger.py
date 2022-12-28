@@ -11,6 +11,7 @@ import torch
 import wandb
 import h5py
 import pickle
+from ding.framework import task
 from ding.envs import BaseEnvManagerV2
 from ding.utils import DistributedWriter
 from ding.torch_utils import to_ndarray
@@ -43,17 +44,22 @@ def return_distribution(reward):
 
 
 def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
     last_train_show_iter = -1
 
     def _logger(ctx: "OnlineRLContext"):
+        if task.finish:
+            writer.close()
         nonlocal last_train_show_iter
+
         if not np.isinf(ctx.eval_value):
             if record_train_iter:
-                writer.add_scalar('basic/eval_episode_reward_mean-env_step', ctx.eval_value, ctx.env_step)
-                writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+                writer.add_scalar('basic/eval_episode_return_mean-env_step', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
             else:
-                writer.add_scalar('basic/eval_episode_reward_mean', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean', ctx.eval_value, ctx.env_step)
         if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
             last_train_show_iter = ctx.train_iter
             if isinstance(ctx.train_output, List):
@@ -82,11 +88,15 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
 
 
 def offline_logger() -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
 
     def _logger(ctx: "OfflineRLContext"):
+        if task.finish:
+            writer.close()
         if not np.isinf(ctx.eval_value):
-            writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+            writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
         if ctx.train_output is not None:
             output = ctx.train_output
             for k, v in output.items():
@@ -121,7 +131,8 @@ def wandb_online_logger(
         - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
             The anonymous mode allows visualization of data without wandb count.
     '''
-
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
     metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
     # Initialize wandb with default settings
@@ -155,7 +166,7 @@ def wandb_online_logger(
             wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter})
 
             eval_output = ctx.eval_output['output']
-            eval_reward = ctx.eval_output['reward']
+            episode_return = ctx.eval_output['reward']
             if 'logit' in eval_output[0]:
                 action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
 
@@ -184,7 +195,7 @@ def wandb_online_logger(
             fig, ax = plt.subplots()
             ax = plt.gca()
             ax.set_ylim([0, 1])
-            hist, x_dim = return_distribution(eval_reward)
+            hist, x_dim = return_distribution(episode_return)
             assert len(hist) == len(x_dim)
             ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
             ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
@@ -303,7 +314,7 @@ def wandb_offline_logger(
             wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter})
 
             eval_output = ctx.eval_output['output']
-            eval_reward = ctx.eval_output['reward']
+            episode_return = ctx.eval_output['reward']
             if 'logit' in eval_output[0]:
                 action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
 
@@ -332,7 +343,7 @@ def wandb_offline_logger(
             fig, ax = plt.subplots()
             ax = plt.gca()
             ax.set_ylim([0, 1])
-            hist, x_dim = return_distribution(eval_reward)
+            hist, x_dim = return_distribution(episode_return)
             assert len(hist) == len(x_dim)
             ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
             ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)

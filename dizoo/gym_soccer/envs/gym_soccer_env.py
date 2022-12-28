@@ -29,7 +29,7 @@ class GymSoccerEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make(self._env_id, replay_path=self._replay_path, port=self._cfg.port)  # TODO
             self._init_flag = True
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         return obs
@@ -45,9 +45,9 @@ class GymSoccerEnv(BaseEnv):
             action[5][0] = affine_transform(action[5][0], min_val=-180, max_val=180)
 
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         obs = to_ndarray(obs).astype(np.float32)
         # reward wrapped to be transfered to a numpy array with shape (1,)
         rew = to_ndarray([rew])

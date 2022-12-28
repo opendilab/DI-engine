@@ -31,6 +31,8 @@ def test_event_loop():
         assert counter == 10
 
         # Test once
+        counter = 0
+        loop.once("count", callback)
         loop.once("count", callback)
         loop.emit("count", 10, lock)
         sleep(0.1)

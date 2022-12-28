@@ -42,7 +42,7 @@ class BipedalWalkerEnv(BaseEnv):
                 episode_trigger=lambda episode_id: True,
                 name_prefix='rl-video-{}'.format(id(self))
             )
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         return obs
@@ -68,13 +68,13 @@ class BipedalWalkerEnv(BaseEnv):
             action = affine_transform(action, min_val=self.action_space.low, max_val=self.action_space.high)
 
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if self._rew_clip:
             rew = max(-10, rew)
         rew = np.float32(rew)
 
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)

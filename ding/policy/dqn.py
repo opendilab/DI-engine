@@ -157,12 +157,22 @@ class DQNPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
-        )
+        if 'target_update_freq' in self._cfg.learn:
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='assign',
+                update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            )
+        elif 'target_theta' in self._cfg.learn:
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='momentum',
+                update_kwargs={'theta': self._cfg.learn.target_theta}
+            )
+        else:
+            raise RuntimeError("DQN needs target network, please either indicate target_update_freq or target_theta")
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
@@ -203,7 +213,7 @@ class DQNPolicy(Policy):
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
-            # Max q value action (main model)
+            # Max q value action (main model), i.e. Double DQN
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
