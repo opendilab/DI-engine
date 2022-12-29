@@ -55,10 +55,10 @@ def test_bdq_nstep_td():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep, cum_reward=True)
+        loss, td_error_per_sample = bdq_nstep_td_error(data, 0.95, nstep=nstep, cum_reward=True)
         value_gamma = torch.tensor(0.9)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep, cum_reward=True, value_gamma=value_gamma)
+        loss, td_error_per_sample = bdq_nstep_td_error(data, 0.95, nstep=nstep, cum_reward=True, value_gamma=value_gamma)
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
 
