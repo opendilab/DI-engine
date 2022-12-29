@@ -31,7 +31,7 @@ class TestGymVectorEnvManager:
         while not env_manager.done:
             env_id = env_manager.ready_obs.keys()
             assert all(env_manager._env_episode_count[i] < env_manager._episode_num for i in env_id)
-            action = {i: np.random.randn(4) for i in env_id}
+            action = {i: np.random.randn(3) for i in env_id}
             timestep = env_manager.step(action)
             assert len(timestep) == len(env_id)
             print('Count {}'.format(count))
