@@ -497,7 +497,6 @@ def bdq_nstep_td_error(
     if weight is None:
         weight = torch.ones_like(reward)
     reward = reward.unsqueeze(-1)
-    weight = weight.unsqueeze(-1)
     done = done.unsqueeze(-1)
     if value_gamma is not None:
         value_gamma = value_gamma.unsqueeze(-1)
