@@ -119,7 +119,7 @@ class TestEnvSupervisorCompatible:
         assert not env_supervisor.closed
         # If retry type is renew, time id should not be equal
         assert env_supervisor.time_id[0] != env_id_0
-        assert len(env_supervisor.ready_obs) == 4
+        assert len(env_supervisor.ready_obs) == 3
         for i, obs in enumerate(env_supervisor.ready_obs):
             assert all(x == y for x, y in zip(obs, env_supervisor._ready_obs.get(i)))
 
@@ -132,7 +132,7 @@ class TestEnvSupervisorCompatible:
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_supervisor.env_num)])
         # With auto_reset, abnormal timestep with done==True will be auto reset.
         assert all([env_supervisor.env_states[i] == EnvState.RUN for i in range(env_supervisor.env_num)])
-        assert len(env_supervisor.ready_obs) == 4
+        assert len(env_supervisor.ready_obs) == 3
         env_supervisor.close()
 
     @pytest.mark.tmp  # gitlab ci and local test pass, github always fail
@@ -215,18 +215,18 @@ class TestEnvSupervisorCompatible:
         )
         env_supervisor.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)})
 
-        assert len(env_supervisor.ready_obs) == 4
-        assert len(env_supervisor.ready_obs_id) == 4
+        assert len(env_supervisor.ready_obs) == 3
+        assert len(env_supervisor.ready_obs_id) == 3
 
         timesteps = []
 
         for _ in range(10):
             action = {i: np.random.randn(4) for i in range(env_supervisor.env_num)}
             timesteps.append(env_supervisor.step(action))
-            assert len(env_supervisor.ready_obs) == 4
+            assert len(env_supervisor.ready_obs) == 3
             time.sleep(1)
         timesteps = tnp.stack(timesteps).reshape(-1)
-        assert len(timesteps.done) == 40
+        assert len(timesteps.done) == 30
         assert any(done for done in timesteps.done)
         assert all([env_supervisor.env_states[env_id] == EnvState.RUN for env_id in range(env_supervisor.env_num)])
         env_supervisor.close()
@@ -338,7 +338,7 @@ class TestEnvSupervisor:
             reset_obs.append(env_supervisor.recv(ignore_err=True))
 
         assert env_supervisor.time_id[0] != env_id_0
-        assert len(env_supervisor.ready_obs) == 4
+        assert len(env_supervisor.ready_obs) == 3
 
         # Test step catched error
         action = [np.random.randn(4) for i in range(env_supervisor.env_num)]
