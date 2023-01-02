@@ -199,7 +199,7 @@ class PPOFModel(nn.Module):
         elif self.action_space == 'hybrid':
             action_type = self.actor_head[0](x)
             action_args = self.actor_head[1](x)
-            return ttorch.as_tensor({'logit': {'action_type': action_type['logit'], 'action_args': action_args}})
+            return ttorch.as_tensor({'action_type': action_type, 'action_args': action_args})
 
     def compute_critic(self, x: ttorch.Tensor) -> ttorch.Tensor:
         if self.share_encoder:
@@ -227,12 +227,4 @@ class PPOFModel(nn.Module):
         elif self.action_space == 'hybrid':
             action_type = self.actor_head[0](actor_embedding)
             action_args = self.actor_head[1](actor_embedding)
-            return ttorch.as_tensor(
-                {
-                    'logit': {
-                        'action_type': action_type['logit'],
-                        'action_args': action_args
-                    },
-                    'value': value
-                }
-            )
+            return ttorch.as_tensor({'logit': {'action_type': action_type, 'action_args': action_args}, 'value': value})

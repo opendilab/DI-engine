@@ -2,6 +2,7 @@ from typing import List, Optional, Union, Dict
 import gym
 import copy
 import numpy as np
+import treetensor.numpy as tnp
 
 from ding.envs.common.common_function import affine_transform
 from ding.envs.env_wrappers import create_env_wrapper
@@ -109,6 +110,8 @@ class DingEnvWrapper(BaseEnv):
             for k, v in action.items():
                 action[k] = self._judge_action_type(v)
             return action
+        elif isinstance(action, tnp.ndarray):
+            return self._judge_action_type(action.json())
         else:
             raise TypeError(
                 '`action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(

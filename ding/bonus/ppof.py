@@ -1,5 +1,6 @@
 from typing import Optional, Union
 from ditk import logging
+from easydict import EasyDict
 import os
 import gym
 import torch
@@ -11,7 +12,7 @@ from ding.policy import PPOFPolicy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
 from ding.config import save_config_py
 from .model import PPOFModel
-from .config import get_instance_config, get_instance_env
+from .config import get_instance_config, get_instance_env, get_hybrid_shape
 
 
 class PPOF:
@@ -23,11 +24,20 @@ class PPOF:
         'hybrid_moving',
     ]
 
-    def __init__(self, env: Union[str, BaseEnv], seed: int = 0, exp_name: str = 'default_experiment') -> None:
+    def __init__(
+            self,
+            env: Union[str, BaseEnv],
+            seed: int = 0,
+            exp_name: str = 'default_experiment',
+            cfg: Optional[EasyDict] = None
+    ) -> None:
         if isinstance(env, str):
             assert env in PPOF.supported_env_list, "Please use supported envs: {}".format(PPOF.supported_env_list)
             self.env = get_instance_env(env)
+            assert cfg is None, 'It should be default env tuned config'
+            self.cfg = get_instance_config(env)
         elif isinstance(env, BaseEnv):
+            self.cfg = cfg
             raise NotImplementedError
         else:
             raise TypeError("not support env type: {}, only strings and instances of `BaseEnv` now".format(type(env)))
@@ -37,26 +47,29 @@ class PPOF:
         self.exp_name = exp_name
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
-        self.cfg = get_instance_config(env)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
 
         action_space = self.env.action_space
         if isinstance(action_space, gym.spaces.Discrete):
             action_shape = action_space.n
+        elif isinstance(action_space, gym.spaces.Tuple):
+            action_shape = get_hybrid_shape(action_space)
         else:
             action_shape = action_space.shape
-        model = PPOFModel(self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space)
-        logging.info(model)
+        model = PPOFModel(
+            self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
+        )
+        # logging.info(model)
         self.policy = PPOFPolicy(self.cfg, model=model)
 
     def train(
-        self,
-        step: int = int(1e7),
-        collector_env_num: int = 4,
-        evaluator_env_num: int = 4,
-        n_iter_log_show: int = 500,
-        n_iter_save_ckpt: int = 1000,
-        debug: bool = False
+            self,
+            step: int = int(1e7),
+            collector_env_num: int = 4,
+            evaluator_env_num: int = 4,
+            n_iter_log_show: int = 500,
+            n_iter_save_ckpt: int = 1000,
+            debug: bool = False
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -102,13 +115,13 @@ class PPOF:
         logging.info(f'PPOF deploy is finished, final epsiode return with {step} steps is: {return_}')
 
     def collect_demo_data(
-        self,
-        env_num: int = 8,
-        ckpt_path: Optional[str] = None,
-        save_data_path: Optional[str] = None,
-        n_sample: Optional[int] = None,
-        n_episode: Optional[int] = None,
-        debug: bool = False
+            self,
+            env_num: int = 8,
+            ckpt_path: Optional[str] = None,
+            save_data_path: Optional[str] = None,
+            n_sample: Optional[int] = None,
+            n_episode: Optional[int] = None,
+            debug: bool = False
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -133,7 +146,11 @@ class PPOF:
         )
 
     def batch_evaluate(
-        self, env_num: int = 4, ckpt_path: Optional[str] = None, n_evaluator_episode: int = 4, debug: bool = False
+            self,
+            env_num: int = 4,
+            ckpt_path: Optional[str] = None,
+            n_evaluator_episode: int = 4,
+            debug: bool = False
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)

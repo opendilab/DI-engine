@@ -9,7 +9,8 @@ import treetensor.torch as ttorch
 from torch.optim import AdamW
 
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, gae, gae_data, ppo_error_continuous, \
-    get_gae, ppo_policy_error_continuous, ArgmaxSampler, MultinomialSampler, ReparameterizationSampler, MuSampler
+    get_gae, ppo_policy_error_continuous, ArgmaxSampler, MultinomialSampler, ReparameterizationSampler, MuSampler, \
+    HybridStochasticSampler, HybridDeterminsticSampler
 from ding.utils import POLICY_REGISTRY, RunningMeanStd
 
 
@@ -35,7 +36,7 @@ class PPOFPolicy:
         ppo_param_init=True,
         grad_norm=0.5,
         # collect
-        n_sample=61,
+        n_sample=128,
         unroll_len=1,
         # eval
         deterministic_eval=True,
@@ -85,6 +86,8 @@ class PPOFPolicy:
                 self._collect_sampler = MultinomialSampler()
             elif self._action_space == 'continuous':
                 self._collect_sampler = ReparameterizationSampler()
+            elif self._action_space == 'hybrid':
+                self._collect_sampler = HybridStochasticSampler()
         if 'eval' in enable_mode:
             if self._action_space == 'discrete':
                 if self._cfg.deterministic_eval:
@@ -96,6 +99,11 @@ class PPOFPolicy:
                     self._eval_sampler = MuSampler()
                 else:
                     self._eval_sampler = ReparameterizationSampler()
+            elif self._action_space == 'hybrid':
+                if self._cfg.deterministic_eval:
+                    self._eval_sampler = HybridDeterminsticSampler()
+                else:
+                    self._eval_sampler = HybridStochasticSampler()
         # for compatibility
         self.learn_mode = self
         self.collect_mode = self
@@ -107,24 +115,25 @@ class PPOFPolicy:
                 torch.nn.init.orthogonal_(m.weight)
                 torch.nn.init.zeros_(m.bias)
         if self._action_space in ['continuous', 'hybrid']:
-            # init log sigma
-            if self._action_space == 'continuous':
-                torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
-            elif self._action_space == 'hybrid':  # actor_head[1]: ReparameterizationHead, for action_args
-                torch.nn.init.constant_(self._model.actor_head[1].log_sigma_param, -0.5)
-
             for m in list(self._model.critic.modules()) + list(self._model.actor.modules()):
                 if isinstance(m, torch.nn.Linear):
                     # orthogonal initialization
                     torch.nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
                     torch.nn.init.zeros_(m.bias)
-            # do last policy layer scaling, this will make initial actions have (close to)
-            # 0 mean and std, and will help boost performances,
-            # see https://arxiv.org/abs/2006.05990, Fig.24 for details
-            for m in self._model.actor_head.mu.modules():
-                if isinstance(m, torch.nn.Linear):
-                    torch.nn.init.zeros_(m.bias)
-                    m.weight.data.copy_(0.01 * m.weight.data)
+            # init log sigma
+            if self._action_space == 'continuous':
+                torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
+                for m in self._model.actor_head.mu.modules():
+                    if isinstance(m, torch.nn.Linear):
+                        torch.nn.init.zeros_(m.bias)
+                        m.weight.data.copy_(0.01 * m.weight.data)
+            elif self._action_space == 'hybrid':  # actor_head[1]: ReparameterizationHead, for action_args
+                if hasattr(self._model.actor_head[1], 'log_sigma_param'):
+                    torch.nn.init.constant_(self._model.actor_head[1].log_sigma_param, -0.5)
+                    for m in self._model.actor_head[1].mu.modules():
+                        if isinstance(m, torch.nn.Linear):
+                            torch.nn.init.zeros_(m.bias)
+                            m.weight.data.copy_(0.01 * m.weight.data)
 
     def forward(self, data: ttorch.Tensor) -> Dict[str, Any]:
         return_infos = []
@@ -180,7 +189,7 @@ class PPOFPolicy:
                     ppo_discrete_batch = ppo_policy_data(
                         output.logit.action_type, batch.logit.action_type, batch.action.action_type, adv, None
                     )
-                    ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(ppo_discrete_batch, self._clip_ratio)
+                    ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(ppo_discrete_batch, self._cfg.clip_ratio)
                     # continuous part (continuous policy loss and entropy loss, value loss)
                     ppo_continuous_batch = ppo_data(
                         output.logit.action_args, batch.logit.action_args, batch.action.action_args, output.value,
