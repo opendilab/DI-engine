@@ -297,7 +297,7 @@ class TestEnvSupervisor:
         # Normal step
         env_supervisor.step({i: np.random.randn(4) for i in range(env_supervisor.env_num)}, block=False)
         timestep = []
-        while len(timestep) != 4:
+        while len(timestep) != 3:
             payload = env_supervisor.recv()
             if payload.method == "step":
                 timestep.append(payload.data)
@@ -311,7 +311,7 @@ class TestEnvSupervisor:
         env_supervisor.reset(reset_param, block=False)  # Second try, error and recover
 
         reset_obs = []
-        while len(reset_obs) != 8:
+        while len(reset_obs) != 6:
             reset_obs.append(env_supervisor.recv(ignore_err=True))
         assert env_supervisor.time_id[0] == env_id_0
         assert all([state == EnvState.RUN for state in env_supervisor.env_states.values()])
@@ -334,7 +334,7 @@ class TestEnvSupervisor:
         env_supervisor.reset(reset_param, block=False)
 
         reset_obs = []
-        while len(reset_obs) != 8:
+        while len(reset_obs) != 6:
             reset_obs.append(env_supervisor.recv(ignore_err=True))
 
         assert env_supervisor.time_id[0] != env_id_0
@@ -346,7 +346,7 @@ class TestEnvSupervisor:
         env_supervisor.step(action, block=False)
 
         timestep = {}
-        while len(timestep) != 4:
+        while len(timestep) != 3:
             payload = env_supervisor.recv()
             if payload.method == "step":
                 timestep[payload.proc_id] = payload.data
