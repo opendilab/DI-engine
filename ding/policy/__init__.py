@@ -1,5 +1,5 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
-from .common_utils import single_env_forward_wrapper
+from .common_utils import single_env_forward_wrapper, single_env_forward_wrapper_ttorch
 from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .iqn import IQNPolicy
 from .fqf import FQFPolicy
@@ -43,3 +43,6 @@ from .pdqn import PDQNPolicy
 
 from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
+
+# new-type policy
+from .ppof import PPOFPolicy

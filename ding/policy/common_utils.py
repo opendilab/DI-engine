@@ -1,5 +1,6 @@
 from typing import List, Any
 import torch
+import treetensor.torch as ttorch
 from ding.utils.data import default_collate
 from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze
 
@@ -43,6 +44,17 @@ def single_env_forward_wrapper(forward_fn):
         obs = {0: unsqueeze(to_tensor(obs))}
         action = forward_fn(obs)[0]['action']
         action = to_ndarray(squeeze(action))
+        return action
+
+    return _forward
+
+
+def single_env_forward_wrapper_ttorch(forward_fn):
+
+    def _forward(obs):
+        obs = ttorch.as_tensor(obs).unsqueeze(0)
+        action = forward_fn(obs).action
+        action = action.squeeze(0).numpy()
         return action
 
     return _forward

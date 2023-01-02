@@ -20,3 +20,4 @@ from .vtrace import vtrace_data, vtrace_error_discrete_action, vtrace_error_cont
 from .beta_function import beta_function_map
 from .retrace import compute_q_retraces
 from .acer import acer_policy_error, acer_value_error, acer_trust_region_update
+from .sampler import ArgmaxSampler, MultinomialSampler, MuSampler, ReparameterizationSampler
