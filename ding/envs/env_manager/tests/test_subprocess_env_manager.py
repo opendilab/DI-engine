@@ -112,13 +112,13 @@ class TestSubprocessEnvManager:
         assert timestep[0].info['abnormal']
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
         assert env_manager._env_states[0] == EnvState.ERROR
-        assert len(env_manager.ready_obs) == 3
+        assert len(env_manager.ready_obs) == 2
         # wait for reset
         env_manager.reset({0: {'stat': 'stat_test'}})
         while not len(env_manager.ready_obs) == env_manager.env_num:
             time.sleep(0.1)
         assert env_manager._env_states[0] == EnvState.RUN
-        assert len(env_manager.ready_obs) == 4
+        assert len(env_manager.ready_obs) == 3
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
 
         # # Test step error
