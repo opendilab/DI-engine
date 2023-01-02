@@ -40,6 +40,8 @@ class PPOFPolicy:
         unroll_len=1,
         # eval
         deterministic_eval=True,
+        # model
+        model=dict(),
     )
     mode = ['learn', 'collect', 'eval']
 

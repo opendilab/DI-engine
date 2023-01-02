@@ -834,7 +834,7 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
                 info, env_id.
         """
-        split_action = tnp.split(actions, actions[list(actions.keys())[0]].shape[0])
+        split_action = tnp.split(actions, actions.shape[0])
         actions = {env_id: a for env_id, a in zip(self.ready_obs_id, split_action)}
         timesteps = super().step(actions)
         new_data = []

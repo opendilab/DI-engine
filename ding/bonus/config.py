@@ -13,6 +13,7 @@ def get_instance_config(env: str) -> EasyDict:
         cfg.n_sample = 400
     elif env == 'rocket_landing':
         cfg.n_sample = 2048
+        cfg.adv_norm = False
         cfg.model = dict(
             encoder_hidden_size_list=[64, 64, 128],
             actor_head_hidden_size=128,
