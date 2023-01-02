@@ -301,7 +301,7 @@
 
 
 <div class="viewcode-block" id="BaseCommLearner"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.base_comm_learner.BaseCommLearner">[docs]</a><span class="k">class</span> <span class="nc">BaseCommLearner</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Abstract baseclass for CommLearner.</span>
 <span class="sd">    Interfaces:</span>
@@ -311,7 +311,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseCommLearner.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="s1">&#39;EasyDict&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization method.</span>
 <span class="sd">        Arguments:</span>
@@ -329,7 +329,7 @@
 
 <div class="viewcode-block" id="BaseCommLearner.send_policy"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_policy">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">send_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save learner&#39;s policy in corresponding path.</span>
 <span class="sd">            Will be registered in base learner.</span>
@@ -340,7 +340,7 @@
 
 <div class="viewcode-block" id="BaseCommLearner.get_data"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.get_data">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get batched meta data from coordinator.</span>
 <span class="sd">            Will be registered in base learner.</span>
@@ -353,7 +353,7 @@
 
 <div class="viewcode-block" id="BaseCommLearner.send_learn_info"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_learn_info">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">send_learn_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learn_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Send learn info to coordinator.</span>
 <span class="sd">            Will be registered in base learner.</span>
@@ -363,14 +363,14 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="BaseCommLearner.start"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Start comm learner.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="BaseCommLearner.close"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Close comm learner.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -380,14 +380,14 @@
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">hooks4call</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - hooks (:obj:`list`): The hooks which comm learner has. Will be registered in learner as well.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span> <span class="nf">_create_learner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Receive ``task_info`` passed from coordinator and create a learner.</span>
 <span class="sd">        Arguments:</span>
@@ -416,7 +416,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_comm_learner</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseCommLearner</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Given the key(comm_learner_name), create a new comm learner instance if in comm_map&#39;s values,</span>
 <span class="sd">        or raise an KeyError. In other words, a derived comm learner must first register,</span>

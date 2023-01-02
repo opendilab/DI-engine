@@ -341,14 +341,14 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PPG.compute_actor"><a class="viewcode-back" href="../../../../12_policies/ppg.html#ding.model.template.ppg.PPG.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - necessary: ``logit``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PPG.compute_critic"><a class="viewcode-back" href="../../../../12_policies/ppg.html#ding.model.template.ppg.PPG.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - necessary: ``value``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -357,7 +357,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span></div>
 
 <div class="viewcode-block" id="PPG.compute_actor_critic"><a class="viewcode-back" href="../../../../12_policies/ppg.html#ding.model.template.ppg.PPG.compute_actor_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note::</span>
 <span class="sd">            ``compute_actor_critic`` interface aims to save computation when shares encoder.</span>
 

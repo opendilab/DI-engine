@@ -304,7 +304,7 @@
 
 
 <span class="k">def</span> <span class="nf">generate_id</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Use ``self.name`` and input ``id`` to generate a unique id for next data to be inserted.</span>
 <span class="sd">    Arguments:</span>
@@ -316,7 +316,7 @@
 
 
 <div class="viewcode-block" id="UsedDataRemover"><a class="viewcode-back" href="../../../../05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.UsedDataRemover">[docs]</a><span class="k">class</span> <span class="nc">UsedDataRemover</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        UsedDataRemover is a tool to remove file datas that will no longer be used anymore.</span>
 <span class="sd">    Interface:</span>
@@ -330,7 +330,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">True</span>
 
 <div class="viewcode-block" id="UsedDataRemover.start"><a class="viewcode-back" href="../../../../05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.UsedDataRemover.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Start the `delete_used_data` thread.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -338,7 +338,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_delete_used_data_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="UsedDataRemover.close"><a class="viewcode-back" href="../../../../05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.UsedDataRemover.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Delete all datas in `self._used_data`. Then join the `delete_used_data` thread.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -348,7 +348,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="UsedDataRemover.add_used_data"><a class="viewcode-back" href="../../../../05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.UsedDataRemover.add_used_data">[docs]</a>    <span class="k">def</span> <span class="nf">add_used_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Delete all datas in `self._used_data`. Then join the `delete_used_data` thread.</span>
 <span class="sd">        Arguments:</span>
@@ -367,7 +367,7 @@
 
 
 <div class="viewcode-block" id="SampledDataAttrMonitor"><a class="viewcode-back" href="../../../../05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.SampledDataAttrMonitor">[docs]</a><span class="k">class</span> <span class="nc">SampledDataAttrMonitor</span><span class="p">(</span><span class="n">LoggedModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        SampledDataAttrMonitor is to monitor read-out indicators for ``expire`` times recent read-outs.</span>
 <span class="sd">        Indicators include: read out time; average and max of read out data items&#39; use; average, max and min of</span>
@@ -416,7 +416,7 @@
 
 
 <div class="viewcode-block" id="PeriodicThruputMonitor"><a class="viewcode-back" href="../../../../05_api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.utils.PeriodicThruputMonitor">[docs]</a><span class="k">class</span> <span class="nc">PeriodicThruputMonitor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        PeriodicThruputMonitor is a tool to record and print logs(text &amp; tensorboard) how many datas are</span>
 <span class="sd">        pushed/sampled/removed/valid in a period of time. For tensorboard, you can view it in &#39;buffer_{$NAME}_sec&#39;.</span>
@@ -469,7 +469,7 @@
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thruput_print_seconds</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Join the `thruput_log` thread by setting `self._end_flag` to `True`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

@@ -326,7 +326,7 @@
 
 
 <span class="k">class</span> <span class="nc">CloudPickleWrapper</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -346,7 +346,7 @@
 
 <div class="viewcode-block" id="AsyncSubprocessEnvManager"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;async_subprocess&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">AsyncSubprocessEnvManager</span><span class="p">(</span><span class="n">BaseEnvManager</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create an AsyncSubprocessEnvManager to manage multiple environments.</span>
 <span class="sd">        Each Environment is run by a respective subprocess.</span>
@@ -377,7 +377,7 @@
             <span class="n">env_fn</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">({}),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the AsyncSubprocessEnvManager.</span>
 <span class="sd">        Arguments:</span>
@@ -409,7 +409,7 @@
             <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_inplace</span><span class="p">,</span> <span class="s2">&quot;reset_inplace is unavailable when auto_reset=False.&quot;</span>
 
     <span class="k">def</span> <span class="nf">_create_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Fork/spawn sub-processes(Call ``_create_env_subprocess``) and create pipes to transfer the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -475,7 +475,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ready_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the next observations.</span>
 <span class="sd">        Return:</span>
@@ -499,7 +499,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ready_imgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">render_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;rgb_array&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the next renderd frames.</span>
 <span class="sd">        Return:</span>
@@ -514,7 +514,7 @@
         <span class="k">return</span> <span class="n">data</span>
 
 <div class="viewcode-block" id="AsyncSubprocessEnvManager.launch"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.launch">[docs]</a>    <span class="k">def</span> <span class="nf">launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set up the environments and their parameters.</span>
 <span class="sd">        Arguments:</span>
@@ -528,7 +528,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">reset_param</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AsyncSubprocessEnvManager.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the environments their parameters.</span>
 <span class="sd">        Arguments:</span>
@@ -641,7 +641,7 @@
             <span class="k">raise</span> <span class="n">runtime_error</span>
 
 <div class="viewcode-block" id="AsyncSubprocessEnvManager.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step all environments. Reset an env if done.</span>
 <span class="sd">        Arguments:</span>
@@ -750,7 +750,7 @@
             <span class="n">method_name_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
             <span class="n">reset_inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Subprocess&#39;s target function to run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -819,7 +819,7 @@
             <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">reset_inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            A more robust version of subprocess&#39;s target function to run. Used by default.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -924,7 +924,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="AsyncSubprocessEnvManager.enable_save_replay"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set each env&#39;s replay save path.</span>
 <span class="sd">        Arguments:</span>
@@ -937,7 +937,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="AsyncSubprocessEnvManager.close"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            CLose the env manager and release all related resources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -962,7 +962,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">wait_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wait at least enough(len(ready_conn) &gt;= wait_num) connections within timeout constraint.</span>
 <span class="sd">            If timeout is None and wait_num == len(ready_conn), means sync mode;</span>
@@ -1008,7 +1008,7 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="SyncSubprocessEnvManager.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step all environments. Reset an env if done.</span>
 <span class="sd">        Arguments:</span>
@@ -1090,14 +1090,14 @@
 
 <span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;subprocess_v2&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SubprocessEnvManagerV2</span><span class="p">(</span><span class="n">SyncSubprocessEnvManager</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        SyncSubprocessEnvManager for new task pipeline and interfaces coupled with treetensor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ready_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.</span>
 <span class="sd">        Return:</span>
@@ -1119,7 +1119,7 @@
         <span class="k">return</span> <span class="n">tnp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_env</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute env step according to input actions. And reset an env if done.</span>
 <span class="sd">        Arguments:</span>

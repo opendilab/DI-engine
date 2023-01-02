@@ -1,0 +1,1093 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>如何构建多智能体环境 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="API Doc" href="../05_api_doc/index.html" />
+  <link rel="prev" title="Buffer 使用指南" href="buffer_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">最佳实践</a> &gt;</li>
+        
+      <li>如何构建多智能体环境</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/marl_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="id1">
+<h1>如何构建多智能体环境<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>在日常生活的许多任务场景中，往往包含大量与环境交互的智能体，包括无人机集群、无人驾驶、智能电网等。相较于单智能体与人类控制，多智能体有更多优势，且已经被包括我国在内的很多国家列为发展目标。研究如何在考虑其它协作智能体的情况下，最大化团队目标，具有重要实际应用价值、需求广阔！</p>
+<p>这篇文章将讲解如何结合特定的需求，构建多智能体强化学习环境，并将其融入到 <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 中，再利用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中自带的多智能体强化学习算法来解决多智能体问题。</p>
+<p>目前  <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 中已经融合了以下的多智能体强化学习常用环境：</p>
+<table class="colwidths-given docutils align-default" id="id11">
+<caption><span class="caption-text">MARL environments in DI-zoo</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Env Name</p></th>
+<th class="head"><p>Learning Mode</p></th>
+<th class="head"><p>Observability</p></th>
+<th class="head"><p>Action Space</p></th>
+<th class="head"><p>Observations</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/petting_zoo/envs/petting_zoo_simple_spread_env.py">PettingZoo(MPE)</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Cooperative + Collaborative + Mixed</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Both</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Both</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Continuous</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/envs/smac_env.py">SMAC</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Cooperative</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Partial</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Discrete</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Continuous</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/multiagent_mujoco/envs/multi_mujoco_env.py">MAMuJoCo</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Cooperative</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Partial</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Continuous</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Continuous</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/gfootball/envs/gfootball_academy_env.py">GRF</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Collaborative + Mixed</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Full</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Discrete</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Continuous</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>然而在很多情况下，用户实际要解决的多智能体问题是多种多样的，如果用户能基于 <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 构建出自己的多智能体环境，就可以将其快速迁移到 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中，使用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中的已有的基线多智能体强化学习算法来求解。</p>
+<p>因此，本文章将会简要介绍：</p>
+<ul class="simple">
+<li><p>如何在 <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 中构建自己的多智能体环境？</p></li>
+<li><p>如何利用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中已有的多智能体强化学习算法 (例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">QMIX</a> 与 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">MAPPO</a> ) 来求解构建好的多智能体问题？</p></li>
+</ul>
+<p>下面大部分情况下将以 <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> 环境中的 <code class="docutils literal notranslate"><span class="pre">simple</span> <span class="pre">spread</span></code> 为例进行说明：</p>
+<img alt="../_images/mpe_simple_spread.gif" class="align-center" src="../_images/mpe_simple_spread.gif" />
+<p>该环境实现的具体细节可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/petting_zoo/envs/petting_zoo_simple_spread_env.py">PettingZoo Env</a> 。</p>
+<p>多智能体环境和单智能体环境的构建方式基本是一致的，因此用户需要首先遵循 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中（单智能体）强化学习环境的 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/04_best_practice/ding_env_zh.html">构建方式</a> 。例如新建的环境文件需要在 <code class="docutils literal notranslate"><span class="pre">dizoo</span></code> 文件夹下，也需要实现 <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> 、 <code class="docutils literal notranslate"><span class="pre">seed()</span></code> 、 <code class="docutils literal notranslate"><span class="pre">reset()</span></code> 与 <code class="docutils literal notranslate"><span class="pre">step()</span></code> 方法等。</p>
+<p>特殊的是，在多智能体环境中，为了区分不同智能体，动作空间、奖励空间和观测空间有时需要用字典（ <code class="docutils literal notranslate"><span class="pre">gym.spaces.Dict</span></code> ）形式来实现，用以区分不同智能体的元素，下面以 <code class="docutils literal notranslate"><span class="pre">simple</span> <span class="pre">spread</span></code> 的动作空间和奖励空间举例：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">({</span><span class="n">agent</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agents</span><span class="p">})</span>
+<span class="o">...</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="n">agent</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span> <span class="n">high</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agents</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<ul>
+<li><p>在 <code class="docutils literal notranslate"><span class="pre">reset()</span></code> 方法中，利用 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Dict</span></code> 类定义动作空间与奖励空间，包含每个智能体的动作和奖励子空间。</p></li>
+<li><p>多智能体环境的观测空间， <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> 一般而言更加复杂，例如在 CTDE 的算法框架下，通常会包含两个部分，即 <code class="docutils literal notranslate"><span class="pre">agent_state</span></code> 与 <code class="docutils literal notranslate"><span class="pre">global_state</span></code> ，其中：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">agent_state</span></code> 代表每个智能体的 <strong>局部</strong> 观测，用于在执行过程中进行决策；例如在 SMAC 中， <code class="docutils literal notranslate"><span class="pre">agent_state</span></code> 代表每个单位视野内所能获取到的信息；</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">global_state</span></code> 代表环境的 <strong>全局</strong> 状态，在 MARL 算法训练中往往会使用这些全局信息，缓解多智能体环境中的非平稳问题；例如在 SMAC 中， <code class="docutils literal notranslate"><span class="pre">global_state</span></code> 代表除了当前单位视野内所能获取到的信息，还包括一个由环境提供的全局信息；</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>例如在 SMAC 中， <code class="docutils literal notranslate"><span class="pre">agent_state</span></code> 代表每个单位视野内所能获取到的信息，比如视野内敌人的血量、队友的数量等；而 <code class="docutils literal notranslate"><span class="pre">global_state</span></code> 除了当前单位视野内所能获取到的信息，还包括一个由环境提供的全局信息，例如所有敌人的血量、护盾值等。
+因此，在多智能体环境中，需要特别关注的是观测空间 <code class="docutils literal notranslate"><span class="pre">observation</span> <span class="pre">space</span></code> 的定义，特别需要留意不同智能体的观测、全局观测以及其它自定义观测形式的异同。以 PettingZoo 环境为例，其 <code class="docutils literal notranslate"><span class="pre">reset()</span></code> 函数中，是按下面的方式定义观测空间：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span>
+    <span class="p">{</span>
+    <span class="s1">&#39;agent_state&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+        <span class="n">low</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span>
+        <span class="n">high</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">observation_space</span><span class="p">(</span><span class="s1">&#39;agent_0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>  <span class="c1"># (self._num_agents, 30)</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;global_state&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+        <span class="n">low</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span>
+        <span class="n">high</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span>
+            <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_landmarks</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">*</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;agent_alone_state&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+        <span class="n">low</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span>
+        <span class="n">high</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_landmarks</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;agent_alone_padding_state&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+        <span class="n">low</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span>
+        <span class="n">high</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">observation_space</span><span class="p">(</span><span class="s1">&#39;agent_0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>  <span class="c1"># (self._num_agents, 30)</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;action_mask&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+        <span class="n">low</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span>
+        <span class="n">high</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>  <span class="c1"># (self._num_agents, 5)</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>即在每次环境返回的 observation 都需要返回一个字典，其中包含 <code class="docutils literal notranslate"><span class="pre">agent_state</span></code> 、 <code class="docutils literal notranslate"><span class="pre">global_state</span></code> 等信息。这些信息最终在模型前传的过程中被使用。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_process_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="s1">&#39;torch.Tensor&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">obs</span><span class="p">[</span><span class="n">agent</span><span class="p">]</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agents</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;agent_obs_only&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obs</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Raw agent observation structure is --</span>
+    <span class="c1"># [self_vel, self_pos, landmark_rel_positions, other_agent_rel_positions, communication]</span>
+    <span class="c1"># where `communication` are signals from other agents (two for each agent in `simple_spread_v2`` env)</span>
+
+    <span class="c1"># agent_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2).</span>
+    <span class="c1">#              Stacked observation. Contains</span>
+    <span class="c1">#              - agent itself&#39;s state(velocity + position)</span>
+    <span class="c1">#              - position of items that the agent can observe(e.g. other agents, landmarks)</span>
+    <span class="c1">#              - communication</span>
+    <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;agent_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
+    <span class="c1"># global_state: Shape (n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2, ).</span>
+    <span class="c1">#               1-dim vector. Contains</span>
+    <span class="c1">#               - all agents&#39; state(velocity + position) +</span>
+    <span class="c1">#               - all landmarks&#39; position +</span>
+    <span class="c1">#               - all agents&#39; communication</span>
+    <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;global_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">obs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span>  <span class="c1"># all agents&#39; position + all landmarks&#39; position</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>  <span class="c1"># all agents&#39; velocity</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>  <span class="c1"># all agents&#39; communication</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="c1"># agent_specific_global_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2).</span>
+    <span class="c1">#               2-dim vector. contains</span>
+    <span class="c1">#               - agent_state info</span>
+    <span class="c1">#               - global_state info</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agent_specific_global_state</span><span class="p">:</span>
+        <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;global_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ret</span><span class="p">[</span><span class="s1">&#39;agent_state&#39;</span><span class="p">],</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s1">&#39;global_state&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+    <span class="c1"># agent_alone_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2).</span>
+    <span class="c1">#                    Stacked observation. Exclude other agents&#39; positions from agent_state. Contains</span>
+    <span class="c1">#                    - agent itself&#39;s state(velocity + position) +</span>
+    <span class="c1">#                    - landmarks&#39; positions (do not include other agents&#39; positions)</span>
+    <span class="c1">#                    - communication</span>
+    <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;agent_alone_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:(</span><span class="mi">4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)],</span>  <span class="c1"># agent itself&#39;s state + landmarks&#39; position</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:],</span>  <span class="c1"># communication</span>
+        <span class="p">],</span>
+        <span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="c1"># agent_alone_padding_state: Shape (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2).</span>
+    <span class="c1">#                            Contains the same information as agent_alone_state;</span>
+    <span class="c1">#                            But 0-padding other agents&#39; positions.</span>
+    <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;agent_alone_padding_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:(</span><span class="mi">4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)],</span>  <span class="c1"># agent itself&#39;s state + landmarks&#39; position</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>  <span class="c1"># Other agents&#39; position(0-padding)</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:]</span>  <span class="c1"># communication</span>
+        <span class="p">],</span>
+        <span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="c1"># action_mask: All actions are of use(either 1 for discrete or 5 for continuous). Thus all 1.</span>
+    <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_dim</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ret</span>
+</pre></div>
+</div>
+<p>因此，在 <code class="docutils literal notranslate"><span class="pre">reset()</span></code> 与 <code class="docutils literal notranslate"><span class="pre">step()</span></code> 函数中，当获取到 observation 时，需要将 observation 处理为符合 observation_space 的内容后才能返回。对应于 <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> 环境中的 <code class="docutils literal notranslate"><span class="pre">_process_obs()</span></code> 函数。同理， <code class="docutils literal notranslate"><span class="pre">action</span></code> 与 <code class="docutils literal notranslate"><span class="pre">reward</span></code> 也要经过处理后才能传入环境或返回给智能体。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_action</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="n">rew_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">([</span><span class="n">rew</span><span class="p">[</span><span class="n">agent</span><span class="p">]</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agents</span><span class="p">])])</span>
+<span class="o">...</span>
+<span class="k">return</span> <span class="n">BaseEnvTimestep</span><span class="p">(</span><span class="n">obs_n</span><span class="p">,</span> <span class="n">rew_n</span><span class="p">,</span> <span class="n">done_n</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="di-engine-marl">
+<h1>如何使用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中的 MARL 算法<a class="headerlink" href="#di-engine-marl" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中集成了多种多智能体强化学习算法，包括属于 value-based 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">QMIX</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qtran.py">QTRAN</a> 以及属于 actor-critic 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/coma.py">COMA</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">MAPPO</a> ，具体如下：</p>
+<table class="colwidths-given docutils align-default" id="id12">
+<caption><span class="caption-text">MARL environments in DI-zoo</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Document</p></th>
+<th class="head"><p>Policy</p></th>
+<th class="head"><p>Envs with config</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/2103.01955.pdf">MAPPO</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/ppo.html">PPO doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">policy/ppo</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">MAMuJoCo</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> <code class="docutils literal notranslate"><span class="pre">GRF</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">MASAC</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/sac.html">SAC doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">policy/sac</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">MAMuJoCo</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> <code class="docutils literal notranslate"><span class="pre">GRF</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line"><a class="reference external" href="http://arxiv.org/pdf/1706.05296.pdf">VDN</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">VDN doc</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">policy/qmix (same as qmix)</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/1803.11485.pdf">QMIX</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/qmix.html">QMIX doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">policy/qmix</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/1905.05408.pdf">QTran</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">QTran doc</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qtran.py">policy/qtran</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/2006.10800.pdf">WQMIX</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/wqmix.html">WQMIX doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/wqmix.py">policy/wqmix</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/2010.08531.pdf">CollaQ</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/collaq.html">CollaQ doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/collaq.py">policy/collaq</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/1706.02275.pdf">MADDPG</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/ddpg.html">MADDPG doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ddpg.py">policy/maddpg</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">MAMuJoCo</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/1705.08926.pdf">COMA</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/coma.html">COMA doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/coma.py">policy/coma</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">SMAC</span></code> <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line"><a class="reference external" href="https://arxiv.org/pdf/1805.07733.pdf">ATOC</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/atoc.html">ATOC doc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/atoc.py">policy/atoc</a></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>下面以 QMIX 与 MAPPO 为例，介绍如何在用户自定义的环境上使用这些算法。</p>
+<p>当用户自定义的多智能体环境构建完成后，想要使用 DI-engine 中已经集成的多智能体算法进行基线的训练，只需要找到想调用的多智能体算法配置的模板，然后修改跟环境相关的参数即可。</p>
+<section id="id9">
+<h2>QMIX<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<p>例如，如果想要使用 QMIX 算法，那么首先找到 <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> 下的 QMIX config <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/petting_zoo/config/ptz_simple_spread_qmix_config.py">ptz_simple_spread_qmix_config.py</a> 文件，然后修改以下与环境相关的内容：</p>
+<p>需要修改的内容有以下几点：</p>
+<ul class="simple">
+<li><p>main_config 的 env 属性：其中包含需要传递给实现的多智能体环境类的 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 函数的参数，包括子环境的的名称、智能体数量等；</p></li>
+<li><p>main_config 中 policy 的 model 属性：其中包含需要传递给模型的参数，包括智能体的局部观测维度、全局观测维度、动作维度等；</p></li>
+<li><p>create_config 的 env 属性，包含实现的多智能体环境所在的路径以及其在装饰器中的 key (type)。</p></li>
+</ul>
+<p>其它的内容与环境无关，直接使用原设置即可 (当然不同环境 MARL 算法的最优参数一般也会不同，如果需要好的性能可能需要调整参数)，完整的配置文件示例如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">n_agent</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">n_landmark</span> <span class="o">=</span> <span class="n">n_agent</span>
+<span class="n">collector_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;ptz_simple_spread_qmix_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">env_family</span><span class="o">=</span><span class="s1">&#39;mpe&#39;</span><span class="p">,</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;simple_spread_v2&#39;</span><span class="p">,</span>
+        <span class="n">n_agent</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
+        <span class="n">n_landmark</span><span class="o">=</span><span class="n">n_landmark</span><span class="p">,</span>
+        <span class="n">max_cycles</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">agent_obs_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">agent_num</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">global_obs_shape</span><span class="o">=</span><span class="n">n_agent</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_agent</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+            <span class="n">mixer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0005</span><span class="p">,</span>
+            <span class="n">target_update_theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="n">double_q</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+            <span class="n">env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span> <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+            <span class="n">start</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+            <span class="n">decay</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+        <span class="p">),</span> <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">main_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.petting_zoo.envs.petting_zoo_simple_spread_env&#39;</span><span class="p">],</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;petting_zoo&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;qmix&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">create_config</span><span class="p">)</span>
+
+<span class="n">ptz_simple_spread_qmix_config</span> <span class="o">=</span> <span class="n">main_config</span>
+<span class="n">ptz_simple_spread_qmix_create_config</span> <span class="o">=</span> <span class="n">create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial -c ptz_simple_spread_qmix_config.py -s 0`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id10">
+<h2>MAPPO<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<p>如果想要利用 actor-critic 的 MAPPO 算法，则需要对环境作额外的改动，由于 critic 需要对每个智能体的价值做判断，而之前的全局信息对每个智能体都是相同的，不包含智能体的判别信息，即 critic 无从得知这是要对哪个智能体做出评价，因此无法为每个智能体给出特异的价值评估。为此，在环境中需要使用 <code class="docutils literal notranslate"><span class="pre">agent_specific_global_state</span></code> 来替代原来的 <code class="docutils literal notranslate"><span class="pre">global_state</span></code>。还是用 <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> 环境作为例子：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agent_specific_global_state</span><span class="p">:</span>
+    <span class="n">agent_specifig_global_state</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+        <span class="n">low</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span>
+        <span class="n">high</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">observation_space</span><span class="p">(</span><span class="s1">&#39;agent_0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">+</span>
+            <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_landmarks</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span><span class="p">[</span><span class="s1">&#39;global_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agent_specifig_global_state</span>
+</pre></div>
+</div>
+<p>所谓 <code class="docutils literal notranslate"><span class="pre">agent_specific_global_state</span></code>，一种常规的实现方式是，将智能体自己的局部观测与全局状态进行叠加，这样 <code class="docutils literal notranslate"><span class="pre">global_state</span></code> 就既有智能体的判别信息，也具有足够的全局信息来让 critic 给出正确的价值。
+同理，在 <code class="docutils literal notranslate"><span class="pre">reset()</span></code> 与 <code class="docutils literal notranslate"><span class="pre">step()</span></code> 中处理 observation 时，也要修改返回的 <code class="docutils literal notranslate"><span class="pre">global_state</span></code>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agent_specific_global_state</span><span class="p">:</span>
+    <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;global_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">ret</span><span class="p">[</span><span class="s1">&#39;agent_state&#39;</span><span class="p">],</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s1">&#39;global_state&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_agents</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>在环境修改完成后，同样对 config 文件做小的修改即可运行，以 PettingZoo 环境的 MAPPO 的配置文件为例：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">n_agent</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">n_landmark</span> <span class="o">=</span> <span class="n">n_agent</span>
+<span class="n">collector_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;ptz_simple_spread_mappo_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">env_family</span><span class="o">=</span><span class="s1">&#39;mpe&#39;</span><span class="p">,</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;simple_spread_v2&#39;</span><span class="p">,</span>
+        <span class="n">n_agent</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
+        <span class="n">n_landmark</span><span class="o">=</span><span class="n">n_landmark</span><span class="p">,</span>
+        <span class="n">max_cycles</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">agent_obs_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">agent_specific_global_state</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+            <span class="n">agent_num</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
+            <span class="n">agent_obs_shape</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">global_obs_shape</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_agent</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
+            <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_agent</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">5e-4</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs is algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (float) The loss weight of value network, policy network weight is set to 1</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="c1"># (float) The loss weight of entropy regularization, policy network weight is set to 1</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="c1"># (float) PPO clip ratio, defaults to 0.2</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether to use advantage norm in a whole training batch</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">value_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ppo_param_init</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">grad_clip_type</span><span class="o">=</span><span class="s1">&#39;clip_norm&#39;</span><span class="p">,</span>
+            <span class="n">grad_clip_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+            <span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">main_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.petting_zoo.envs.petting_zoo_simple_spread_env&#39;</span><span class="p">],</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;petting_zoo&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ppo&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">create_config</span><span class="p">)</span>
+<span class="n">ptz_simple_spread_mappo_config</span> <span class="o">=</span> <span class="n">main_config</span>
+<span class="n">ptz_simple_spread_mappo_create_config</span> <span class="o">=</span> <span class="n">create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial_onpolicy -c ptz_simple_spread_mappo_config.py -s 0`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
+    <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>相较于 QMIX 的改动外，唯一的区别就是增加了配置项 <code class="docutils literal notranslate"><span class="pre">agent_specific_global_state=True</span></code> 。</p>
+<p>最后，如有任何使用上的问题，可以以提 issue 的方式与 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 开发者们取得联系。同时我们欢迎任何人的加入以扩展 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中多智能体的方方面面！</p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../05_api_doc/index.html" class="btn btn-neutral float-right" title="API Doc" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="buffer_zh.html" class="btn btn-neutral" title="Buffer 使用指南" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">如何构建多智能体环境</a></li>
+<li><a class="reference internal" href="#di-engine-marl">如何使用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中的 MARL 算法</a><ul>
+<li><a class="reference internal" href="#id9">QMIX</a></li>
+<li><a class="reference internal" href="#id10">MAPPO</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

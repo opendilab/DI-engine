@@ -332,7 +332,7 @@
 
 <div class="viewcode-block" id="GuidedCostRewardModel"><a class="viewcode-back" href="../../../12_policies/guided_cost_zh.html#ding.reward_model.guided_cost_reward_model.GuidedCostRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;guided_cost&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GuidedCostRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Policy class of Guided cost algorithm.</span>
 
@@ -416,7 +416,7 @@
         <span class="k">return</span> <span class="n">train_data_augmented</span></div>
 
     <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting training data, not implemented if reward model (i.e. online_net) is only trained ones, \</span>
 <span class="sd">                if online_net is trained continuously, there should be some implementations in collect_data method</span>
@@ -425,7 +425,7 @@
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting clearing data, not implemented if reward model (i.e. online_net) is only trained ones, \</span>
 <span class="sd">                if online_net is trained continuously, there should be some implementations in clear_data method</span>

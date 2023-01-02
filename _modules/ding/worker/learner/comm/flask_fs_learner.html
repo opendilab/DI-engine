@@ -307,14 +307,14 @@
 
 
 <span class="k">class</span> <span class="nc">LearnerSlave</span><span class="p">(</span><span class="n">Slave</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A slave, whose master is coordinator.</span>
 <span class="sd">        Used to pass message between comm learner and coordinator.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">callback_fn</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init callback functions additionally. Callback functions are methods in comm learner.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -322,7 +322,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_callback_fn</span> <span class="o">=</span> <span class="n">callback_fn</span>
 
     <span class="k">def</span> <span class="nf">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">TaskFail</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Process a task according to input task info dict, which is passed in by master coordinator.</span>
 <span class="sd">            For each type of task, you can refer to corresponding callback function in comm learner for details.</span>
@@ -364,7 +364,7 @@
 
 <div class="viewcode-block" id="FlaskFileSystemLearner"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner">[docs]</a><span class="nd">@COMM_LEARNER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;flask_fs&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">FlaskFileSystemLearner</span><span class="p">(</span><span class="n">BaseCommLearner</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        An implementation of CommLearner, using flask and the file system.</span>
 <span class="sd">    Interfaces:</span>
@@ -374,7 +374,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FlaskFileSystemLearner.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="s1">&#39;EasyDict&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init method.</span>
 <span class="sd">        Arguments:</span>
@@ -411,7 +411,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_policy_id</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="FlaskFileSystemLearner.start"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Start comm learner itself and the learner slave.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -419,7 +419,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_slave</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="FlaskFileSystemLearner.close"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Join learner thread and close learner if still running.</span>
 <span class="sd">            Then close learner slave and comm learner itself.</span>
@@ -432,14 +432,14 @@
         <span class="n">BaseCommLearner</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Call ``close`` for deletion.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">deal_with_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Callback function. Return how many resources are needed to start current learner.</span>
 <span class="sd">        Returns:</span>
@@ -448,7 +448,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;gpu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_world_size</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">deal_with_learner_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Callback function. Create a learner and help register its hooks. Start a learner thread of the created one.</span>
 <span class="sd">        Arguments:</span>
@@ -468,7 +468,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_learner_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">deal_with_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Callback function. Get data demand info dict from ``_data_demand_queue``,</span>
 <span class="sd">            which will be sent to coordinator afterwards.</span>
@@ -479,7 +479,7 @@
         <span class="k">return</span> <span class="n">data_demand</span>
 
     <span class="k">def</span> <span class="nf">deal_with_learner_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Callback function. Put training data info dict (i.e. meta data), which is received from coordinator, into</span>
 <span class="sd">            ``_data_result_queue``, and wait for ``get_data`` to retrieve. Wait for learner training and</span>
@@ -501,7 +501,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="FlaskFileSystemLearner.send_policy"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_policy">[docs]</a>    <span class="k">def</span> <span class="nf">send_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save learner&#39;s policy in corresponding path, called by ``SendPolicyHook``.</span>
 <span class="sd">        Arguments:</span>
@@ -520,7 +520,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load_data_fn</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">decompressor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The function that is used to load data file.</span>
 <span class="sd">        Arguments:</span>
@@ -555,7 +555,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="FlaskFileSystemLearner.get_data"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.get_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get a list of data loading function, which can be implemented by dataloader to read data from files.</span>
 <span class="sd">        Arguments:</span>
@@ -586,7 +586,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="FlaskFileSystemLearner.send_learn_info"><a class="viewcode-back" href="../../../../../05_api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_learn_info">[docs]</a>    <span class="k">def</span> <span class="nf">send_learn_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learn_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Store learn info dict in queue, which will be retrieved by callback function &quot;deal_with_learner_learn&quot;</span>
 <span class="sd">            in learner slave, then will be sent to coordinator.</span>
@@ -599,7 +599,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hooks4call</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LearnerHook</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the hooks that are related to message passing with coordinator.</span>
 <span class="sd">        Returns:</span>
@@ -624,7 +624,7 @@
 
 
 <span class="k">class</span> <span class="nc">SendPolicyHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hook to send policy</span>
 <span class="sd">    Interfaces:</span>
@@ -634,7 +634,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init SendpolicyHook</span>
 <span class="sd">        Arguments:</span>
@@ -647,7 +647,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save learner&#39;s policy in corresponding path at interval iterations by calling ``engine``&#39;s ``send_policy``.</span>
 <span class="sd">            Saved file includes model_state_dict, learner_last_iter.</span>
@@ -665,7 +665,7 @@
 
 
 <span class="k">class</span> <span class="nc">SendLearnInfoHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hook to send learn info</span>
 <span class="sd">    Interfaces:</span>
@@ -675,7 +675,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init SendLearnInfoHook</span>
 <span class="sd">        Arguments:</span>
@@ -685,7 +685,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">ext_args</span><span class="p">[</span><span class="s1">&#39;freq&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Send learn info including last_iter at interval iterations and priority info</span>
 <span class="sd">        Arguments:</span>

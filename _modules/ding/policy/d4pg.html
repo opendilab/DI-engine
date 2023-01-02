@@ -308,7 +308,7 @@
 
 <div class="viewcode-block" id="D4PGPolicy"><a class="viewcode-back" href="../../../12_policies/d4pg.html#ding.policy.d4pg.D4PGPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;d4pg&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">D4PGPolicy</span><span class="p">(</span><span class="n">DDPGPolicy</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Policy class of D4PG algorithm.</span>
 <span class="sd">    Property:</span>
@@ -447,7 +447,7 @@
         <span class="k">return</span> <span class="s1">&#39;qac_dist&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac_dist&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
 <span class="sd">            Init actor and critic optimizers, algorithm config, main and target models.</span>
@@ -499,7 +499,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># count iterations</span>
 
     <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward and backward function of learn mode.</span>
 <span class="sd">        Arguments:</span>
@@ -586,7 +586,7 @@
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traj</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Overview:</span>
 <span class="sd">                Get the trajectory and the n step return data, then sample from the n_step return data</span>
 <span class="sd">            Arguments:</span>
@@ -598,7 +598,7 @@
         <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return variables&#39; name if variables are to used in monitor.</span>
 <span class="sd">        Returns:</span>

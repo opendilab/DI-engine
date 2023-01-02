@@ -304,7 +304,7 @@
 
 
 <span class="k">def</span> <span class="nf">weight_init_</span><span class="p">(</span><span class="n">weight</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">init_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;xavier&quot;</span><span class="p">,</span> <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Init weight according to the specified type.</span>
 <span class="sd">    Arguments:</span>
@@ -337,7 +337,7 @@
 
 
 <span class="k">def</span> <span class="nf">sequential_pack</span><span class="p">(</span><span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Pack the layers in the input list to a `nn.Sequential` module.</span>
 <span class="sd">        If there is a convolutional layer in module, an extra attribute `out_channels` will be added</span>
@@ -370,7 +370,7 @@
         <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a 1-dim convlution layer with activation and normalization.</span>
 <span class="sd">    Arguments:</span>
@@ -412,7 +412,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a 2-dim convolution layer with activation and normalization.</span>
 <span class="sd">    Arguments:</span>
@@ -474,7 +474,7 @@
         <span class="n">activation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">norm_type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a 2-dim transopse convlution layer with activation and normalization</span>
 <span class="sd">    Arguments:</span>
@@ -521,7 +521,7 @@
         <span class="n">use_dropout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">dropout_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a fully-connected block with activation, normalization and dropout.</span>
 <span class="sd">        Optional normalization can be done to the dim 1 (across the channels)</span>
@@ -552,7 +552,7 @@
 
 
 <span class="k">def</span> <span class="nf">normed_linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    nn.Linear but with normalized fan-in init</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -578,7 +578,7 @@
     <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">scale</span><span class="o">=</span><span class="mi">1</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    nn.Conv2d but with normalized fan-in init</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
@@ -612,7 +612,7 @@
     <span class="n">output_norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">last_linear_layer_init_zero</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        create a multi-layer perceptron using fully-connected blocks with activation, normalization and dropout,</span>
 <span class="sd">        optional normalization can be done to the dim 1 (across the channels).</span>
@@ -684,7 +684,7 @@
 
 
 <div class="viewcode-block" id="ChannelShuffle"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.ChannelShuffle">[docs]</a><span class="k">class</span> <span class="nc">ChannelShuffle</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Apply channelShuffle to the input tensor</span>
 <span class="sd">    Interface:</span>
@@ -696,7 +696,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init class ChannelShuffle</span>
 <span class="sd">        Arguments:</span>
@@ -706,7 +706,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">group_num</span> <span class="o">=</span> <span class="n">group_num</span>
 
 <div class="viewcode-block" id="ChannelShuffle.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.ChannelShuffle.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the upsampled input</span>
 <span class="sd">        Arguments:</span>
@@ -722,7 +722,7 @@
 
 
 <span class="k">def</span> <span class="nf">one_hot</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert a ``torch.LongTensor`` to one hot encoding.</span>
 <span class="sd">        This implementation can be slightly faster than ``torch.nn.functional.one_hot``</span>
@@ -774,7 +774,7 @@
 
 
 <div class="viewcode-block" id="NearestUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NearestUpsample">[docs]</a><span class="k">class</span> <span class="nc">NearestUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Upsamples the input to the given member varible scale_factor using mode nearest</span>
 <span class="sd">    Interface:</span>
@@ -782,7 +782,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init class NearestUpsample</span>
 <span class="sd">        Arguments:</span>
@@ -792,7 +792,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
 
 <div class="viewcode-block" id="NearestUpsample.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NearestUpsample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the upsampled input</span>
 <span class="sd">        Arguments:</span>
@@ -804,7 +804,7 @@
 
 
 <div class="viewcode-block" id="BilinearUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.BilinearUpsample">[docs]</a><span class="k">class</span> <span class="nc">BilinearUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Upsamples the input to the given member varible scale_factor using mode biliner</span>
 <span class="sd">    Interface:</span>
@@ -812,7 +812,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init class BilinearUpsample</span>
 
@@ -823,7 +823,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
 
 <div class="viewcode-block" id="BilinearUpsample.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.BilinearUpsample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the upsampled input</span>
 <span class="sd">        Arguments:</span>
@@ -835,7 +835,7 @@
 
 
 <span class="k">def</span> <span class="nf">binary_encode</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert elements in a tensor to its binary representation</span>
 <span class="sd">    Arguments:</span>
@@ -862,7 +862,7 @@
 
 
 <div class="viewcode-block" id="NoiseLinearLayer"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer">[docs]</a><span class="k">class</span> <span class="nc">NoiseLinearLayer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Linear layer with random noise.</span>
 <span class="sd">    Interface:</span>
@@ -889,7 +889,7 @@
         <span class="k">return</span> <span class="n">x</span>
 
 <div class="viewcode-block" id="NoiseLinearLayer.reset_noise"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise">[docs]</a>    <span class="k">def</span> <span class="nf">reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset noise settinngs in the layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -900,7 +900,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bias_eps</span> <span class="o">=</span> <span class="n">out_noise</span></div>
 
 <div class="viewcode-block" id="NoiseLinearLayer.reset_parameters"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">reset_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset parameters in the layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -914,7 +914,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bias_sigma</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="n">std_bias</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NoiseLinearLayer.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Layer forward with noise.</span>
 <span class="sd">        Arguments:</span>
@@ -941,7 +941,7 @@
     <span class="n">dropout_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
     <span class="n">sigma0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a fully-connected block with activation, normalization and dropout</span>
 <span class="sd">        Optional normalization can be done to the dim 1 (across the channels)</span>

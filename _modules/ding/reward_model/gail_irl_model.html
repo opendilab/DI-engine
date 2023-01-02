@@ -310,7 +310,7 @@
 
 
 <span class="k">def</span> <span class="nf">concat_state_action_pairs</span><span class="p">(</span><span class="n">iterator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Concatenate state and action pairs from input.</span>
 <span class="sd">    Arguments:</span>
@@ -329,7 +329,7 @@
 
 
 <span class="k">def</span> <span class="nf">concat_state_action_pairs_one_hot</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Concatenate state and action pairs from input. Action values are one-hot encoded</span>
 <span class="sd">    Arguments:</span>
@@ -400,7 +400,7 @@
 
 <div class="viewcode-block" id="GailRewardModel"><a class="viewcode-back" href="../../../12_policies/gail.html#ding.reward_model.gail_irl_model.GailRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gail&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GailRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The Gail reward model class (https://arxiv.org/abs/1606.03476)</span>
 <span class="sd">    Interface:</span>
@@ -439,7 +439,7 @@
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -470,7 +470,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">load_expert_data</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">load_expert_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting the expert data from ``config.data_path`` attribute in self</span>
 <span class="sd">        Effects:</span>
@@ -490,7 +490,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">expert_data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Helper function for ``train`` which calculates loss for train data and expert data.</span>
 <span class="sd">        Arguments:</span>
@@ -512,7 +512,7 @@
         <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Training the Gail reward model. The training and expert data are randomly sampled with designated\</span>
 <span class="sd">                 batch size abstracted from the ``batch_size`` attribute in ``self.cfg`` and \</span>
@@ -530,7 +530,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Estimate reward by rewriting the reward key in each row of the data.</span>
 <span class="sd">        Arguments:</span>
@@ -553,7 +553,7 @@
         <span class="k">return</span> <span class="n">train_data_augmented</span>
 
     <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting training data formatted by  ``fn:concat_state_action_pairs``.</span>
 <span class="sd">        Arguments:</span>
@@ -564,7 +564,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_state_action_pairs</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clearing training data. \</span>
 <span class="sd">            This is a side effect function which clears the data attribute in ``self``</span>

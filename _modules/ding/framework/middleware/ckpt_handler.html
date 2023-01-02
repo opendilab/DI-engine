@@ -306,7 +306,7 @@
 
 
 <div class="viewcode-block" id="CkptSaver"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/ckpt_handler.html#ding.framework.middleware.ckpt_handler.CkptSaver">[docs]</a><span class="k">class</span> <span class="nc">CkptSaver</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The class used to save checkpoint data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -317,7 +317,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">CkptSaver</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CkptSaver.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/ckpt_handler.html#ding.framework.middleware.ckpt_handler.CkptSaver.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span> <span class="n">train_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">save_finish</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the `CkptSaver`.</span>
 <span class="sd">        Arguments:</span>
@@ -336,7 +336,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">save_finish</span> <span class="o">=</span> <span class="n">save_finish</span></div>
 
 <div class="viewcode-block" id="CkptSaver.__call__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/ckpt_handler.html#ding.framework.middleware.ckpt_handler.CkptSaver.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">,</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The method used to save checkpoint data. \</span>
 <span class="sd">            The checkpoint data will be saved in a file in following 3 cases: \</span>

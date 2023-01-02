@@ -306,7 +306,7 @@
 
 
 <div class="viewcode-block" id="DiscreteHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DiscreteHead">[docs]</a><span class="k">class</span> <span class="nc">DiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``DiscreteHead`` used to output discrete actions logit. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -324,7 +324,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``DiscreteHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -354,7 +354,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="DiscreteHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DiscreteHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``DiscreteHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -376,7 +376,7 @@
 
 
 <div class="viewcode-block" id="DistributionHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DistributionHead">[docs]</a><span class="k">class</span> <span class="nc">DistributionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``DistributionHead`` used to output Q-value distribution. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -399,7 +399,7 @@
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">eps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``DistributionHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -438,7 +438,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>  <span class="c1"># for numerical stability</span></div>
 
 <div class="viewcode-block" id="DistributionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DistributionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``DistributionHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -469,7 +469,7 @@
 
 
 <div class="viewcode-block" id="RainbowHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead">[docs]</a><span class="k">class</span> <span class="nc">RainbowHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``RainbowHead`` used to output Q-value distribution. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -491,7 +491,7 @@
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">eps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``RainbowHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -541,7 +541,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span></div>
 
 <div class="viewcode-block" id="RainbowHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``RainbowHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -575,7 +575,7 @@
 
 
 <div class="viewcode-block" id="QRDQNHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QRDQNHead">[docs]</a><span class="k">class</span> <span class="nc">QRDQNHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -594,7 +594,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``QRDQNHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -627,7 +627,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">output_size</span> <span class="o">=</span> <span class="n">output_size</span></div>
 
 <div class="viewcode-block" id="QRDQNHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QRDQNHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``QRDQNHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -661,7 +661,7 @@
 
 
 <div class="viewcode-block" id="QuantileHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead">[docs]</a><span class="k">class</span> <span class="nc">QuantileHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``QuantileHead`` used to output action quantiles. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -682,7 +682,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``QuantileHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -721,7 +721,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">beta_function</span> <span class="o">=</span> <span class="n">beta_function_map</span><span class="p">[</span><span class="n">beta_function_type</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="QuantileHead.quantile_net"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead.quantile_net">[docs]</a>    <span class="k">def</span> <span class="nf">quantile_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Deterministic parametric function trained to reparameterize samples from a base distribution. \</span>
 <span class="sd">           By repeated Bellman update iterations of Q-learning, the optimal action-value function is estimated.</span>
@@ -748,7 +748,7 @@
         <span class="k">return</span> <span class="n">quantile_net</span></div>
 
 <div class="viewcode-block" id="QuantileHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``QuantileHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -794,7 +794,7 @@
 
 
 <span class="k">class</span> <span class="nc">FQFHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``FQFHead`` used to output action quantiles. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -814,7 +814,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``FQFHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -860,7 +860,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">quantiles_proposal</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">LogSoftmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">quantile_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Deterministic parametric function trained to reparameterize samples from the quantiles_proposal network. \</span>
 <span class="sd">           By repeated Bellman update iterations of Q-learning, the optimal action-value function is estimated.</span>
@@ -882,7 +882,7 @@
         <span class="k">return</span> <span class="n">quantile_net</span>
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``FQFHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -966,7 +966,7 @@
 
 
 <div class="viewcode-block" id="DuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead">[docs]</a><span class="k">class</span> <span class="nc">DuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``DuelingHead`` used to output discrete actions logit. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -986,7 +986,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``DuelingHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -1032,7 +1032,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="DuelingHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``DuelingHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -1057,7 +1057,7 @@
 
 
 <span class="k">class</span> <span class="nc">StochasticDuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \</span>
 <span class="sd">            Dueling network architecture in continuous action space. \</span>
@@ -1079,7 +1079,7 @@
         <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">last_tanh</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">             Init the ``Stochastic DuelingHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -1141,7 +1141,7 @@
             <span class="n">sigma</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
             <span class="n">sample_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``StochasticDuelingHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -1190,7 +1190,7 @@
 
 
 <div class="viewcode-block" id="RegressionHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RegressionHead">[docs]</a><span class="k">class</span> <span class="nc">RegressionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``RegressionHead`` used to output actions Q-value.</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -1208,7 +1208,7 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``RegressionHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -1229,7 +1229,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="RegressionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RegressionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``RegressionHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>
@@ -1257,7 +1257,7 @@
 
 
 <div class="viewcode-block" id="ReparameterizationHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.ReparameterizationHead">[docs]</a><span class="k">class</span> <span class="nc">ReparameterizationHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``.</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -1280,7 +1280,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">bound_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``ReparameterizationHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -1317,7 +1317,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">log_sigma_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ReparameterizationHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.ReparameterizationHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``ReparameterizationHead`` and return the prediction \</span>
 <span class="sd">            dictionary.</span>
@@ -1355,7 +1355,7 @@
 
 
 <div class="viewcode-block" id="MultiHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead">[docs]</a><span class="k">class</span> <span class="nc">MultiHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The ``MultiHead`` used to output actions logit. \</span>
 <span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
@@ -1365,7 +1365,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MultiHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="o">**</span><span class="n">head_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``MultiHead`` layers according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
@@ -1381,7 +1381,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">pred</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">head_cls</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">head_kwargs</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="MultiHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``MultiHead`` and return the prediction dictionary.</span>
 <span class="sd">        Arguments:</span>

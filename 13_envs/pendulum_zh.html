@@ -310,16 +310,16 @@
 <section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Pendulum 环境内置在 gym 中，直接安装 gym 即可。其环境 id 是<code class="docutils literal notranslate"><span class="pre">Pendulum-v0</span></code> 。</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install gym
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>gym
 </pre></div>
 </div>
 </section>
 <section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>运行如下 Python 程序，如果没有报错则证明安装成功。</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import gym
-<span class="nv">env</span> <span class="o">=</span> gym.make<span class="o">(</span><span class="s1">&#39;Pendulum-v0&#39;</span><span class="o">)</span>
-<span class="nv">obs</span> <span class="o">=</span> env.reset<span class="o">()</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>gym
+<span class="nv">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>gym.make<span class="o">(</span><span class="s1">&#39;Pendulum-v0&#39;</span><span class="o">)</span>
+<span class="nv">obs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>env.reset<span class="o">()</span>
 print<span class="o">(</span>obs<span class="o">)</span>
 </pre></div>
 </div>

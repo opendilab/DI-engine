@@ -306,7 +306,7 @@
 
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">base_func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Overview:</span>
 <span class="sd">                The real processing starts here, we apply the middleware one by one,</span>
 <span class="sd">                each middleware will receive next `chained` function, which is an executor of next</span>
@@ -348,7 +348,7 @@
 
 
 <div class="viewcode-block" id="Buffer"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer">[docs]</a><span class="k">class</span> <span class="nc">Buffer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Buffer is an abstraction of device storage, third-party services or data structures,</span>
 <span class="sd">    For example, memory queue, sum-tree, redis, or di-store.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -359,7 +359,7 @@
 
 <div class="viewcode-block" id="Buffer.push"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.push">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedData</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Push data and it&#39;s meta information in buffer.</span>
 <span class="sd">        Arguments:</span>
@@ -381,7 +381,7 @@
             <span class="n">groupby</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">unroll_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">BufferedData</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">BufferedData</span><span class="p">]]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample data with length ``size``.</span>
 <span class="sd">        Arguments:</span>
@@ -401,7 +401,7 @@
 
 <div class="viewcode-block" id="Buffer.update"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.update">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update data and meta by index</span>
 <span class="sd">        Arguments:</span>
@@ -415,7 +415,7 @@
 
 <div class="viewcode-block" id="Buffer.delete"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.delete">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Delete one data sample by index</span>
 <span class="sd">        Arguments:</span>
@@ -425,7 +425,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">save_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save buffer data into a file.</span>
 <span class="sd">        Arguments:</span>
@@ -435,7 +435,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load buffer data from a file.</span>
 <span class="sd">        Arguments:</span>
@@ -453,7 +453,7 @@
 
 <div class="viewcode-block" id="Buffer.get"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.get">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedData</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get item by subscript index</span>
 <span class="sd">        Arguments:</span>
@@ -464,7 +464,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Buffer.use"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.use">[docs]</a>    <span class="k">def</span> <span class="nf">use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Buffer&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use algorithm middleware to modify the behavior of the buffer.</span>
 <span class="sd">            Every middleware should be a callable function, it will receive three argument parts, including:</span>
@@ -486,7 +486,7 @@
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="Buffer.view"><a class="viewcode-back" href="../../../../05_api_doc/data/buffer/buffer.html#ding.data.buffer.buffer.Buffer.view">[docs]</a>    <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Buffer&quot;</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            A view is a new instance of buffer, with a deepcopy of every property except the storage.</span>
 <span class="sd">            The storage is shared among all the buffer instances.</span>

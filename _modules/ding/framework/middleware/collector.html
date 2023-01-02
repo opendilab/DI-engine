@@ -305,7 +305,7 @@
 
 
 <div class="viewcode-block" id="StepCollector"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/collector.html#ding.framework.middleware.collector.StepCollector">[docs]</a><span class="k">class</span> <span class="nc">StepCollector</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The class of the collector running by steps, including model inference and transition \</span>
 <span class="sd">            process. Use the `__call__` method to execute the whole collection process.</span>
@@ -317,7 +317,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">StepCollector</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
 <div class="viewcode-block" id="StepCollector.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/collector.html#ding.framework.middleware.collector.StepCollector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">random_collect_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - cfg (:obj:`EasyDict`): Config.</span>
 <span class="sd">            - policy (:obj:`Policy`): The policy to be collected.</span>
@@ -335,7 +335,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_rolloutor</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">rolloutor</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transitions</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="StepCollector.__call__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/collector.html#ding.framework.middleware.collector.StepCollector.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            An encapsulation of inference and rollout middleware. Stop when completing \</span>
 <span class="sd">                the target number of steps.</span>
@@ -362,14 +362,14 @@
 
 
 <div class="viewcode-block" id="EpisodeCollector"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/collector.html#ding.framework.middleware.collector.EpisodeCollector">[docs]</a><span class="k">class</span> <span class="nc">EpisodeCollector</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The class of the collector running by episodes, including model inference and transition \</span>
 <span class="sd">            process. Use the `__call__` method to execute the whole collection process.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EpisodeCollector.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/collector.html#ding.framework.middleware.collector.EpisodeCollector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">random_collect_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - cfg (:obj:`EasyDict`): Config.</span>
 <span class="sd">            - policy (:obj:`Policy`): The policy to be collected.</span>
@@ -387,7 +387,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_rolloutor</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">rolloutor</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transitions</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="EpisodeCollector.__call__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/collector.html#ding.framework.middleware.collector.EpisodeCollector.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            An encapsulation of inference and rollout middleware. Stop when completing the \</span>
 <span class="sd">                target number of episodes.</span>

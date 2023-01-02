@@ -300,7 +300,7 @@
 
 <div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../../05_api_doc/framework/context.html#ding.framework.context.Context">[docs]</a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">Context</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Context is an object that pass contextual data between middlewares, whose life cycle</span>
 <span class="sd">        is only one training iteration. It is a dict that reflect itself, so you can set</span>
@@ -311,7 +311,7 @@
     <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="Context.renew"><a class="viewcode-back" href="../../../05_api_doc/framework/context.html#ding.framework.context.Context.renew">[docs]</a>    <span class="k">def</span> <span class="nf">renew</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Context&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Renew context from self, add total_step and shift kept properties to the new instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -324,7 +324,7 @@
         <span class="k">return</span> <span class="n">ctx</span></div>
 
 <div class="viewcode-block" id="Context.keep"><a class="viewcode-back" href="../../../05_api_doc/framework/context.html#ding.framework.context.Context.keep">[docs]</a>    <span class="k">def</span> <span class="nf">keep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Keep this key/keys until next iteration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

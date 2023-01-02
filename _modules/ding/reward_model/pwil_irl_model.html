@@ -304,7 +304,7 @@
 
 <span class="k">def</span> <span class="nf">collect_state_action_pairs</span><span class="p">(</span><span class="n">iterator</span><span class="p">):</span>
     <span class="c1"># concat state and action</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Concate state and action pairs from input iterator.</span>
 <span class="sd">    Arguments:</span>
@@ -323,7 +323,7 @@
 
 <div class="viewcode-block" id="PwilRewardModel"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;pwil&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">PwilRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The Pwil reward model class (https://arxiv.org/pdf/2006.04678.pdf)</span>
 <span class="sd">    Interface:</span>
@@ -343,7 +343,7 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="PwilRewardModel.__init__"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -364,7 +364,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">load_expert_data</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="PwilRewardModel.load_expert_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel.load_expert_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_expert_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting the expert data from ``config[&#39;expert_data_path&#39;]`` attribute in self</span>
 <span class="sd">        Effects:</span>
@@ -382,7 +382,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;the expert data demonstrations is:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expert_data</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PwilRewardModel.collect_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting training data formatted by  ``fn:concat_state_action_pairs``.</span>
 <span class="sd">        Arguments:</span>
@@ -401,14 +401,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_factor</span> <span class="o">=</span> <span class="o">-</span><span class="n">beta</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">s_size</span> <span class="o">+</span> <span class="n">a_size</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PwilRewardModel.train"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Training the Pwil reward model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_train</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PwilRewardModel.estimate"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Estimate reward by rewriting the reward key in each row of the data.</span>
 <span class="sd">        Arguments:</span>
@@ -432,7 +432,7 @@
         <span class="k">return</span> <span class="n">train_data_augmented</span></div>
 
 <div class="viewcode-block" id="PwilRewardModel._get_state_distance"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel._get_state_distance">[docs]</a>    <span class="k">def</span> <span class="nf">_get_state_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s1</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">s2</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting distances of states given 2 state lists. One single state \</span>
 <span class="sd">                is of shape ``torch.Size([n])`` (``n`` referred in in-code comments)</span>
@@ -458,7 +458,7 @@
 
 <div class="viewcode-block" id="PwilRewardModel._get_action_distance"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel._get_action_distance">[docs]</a>    <span class="k">def</span> <span class="nf">_get_action_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a1</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">a2</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="c1"># TODO the metric of action distance maybe different from envs</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting distances of actions given 2 action lists. One single action \</span>
 <span class="sd">                is of shape ``torch.Size([n])`` (``n`` referred in in-code comments)</span>
@@ -479,7 +479,7 @@
         <span class="k">return</span> <span class="p">((</span><span class="n">a1</span> <span class="o">-</span> <span class="n">a2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Helper function for ``train``, find the min disctance ``s_e``, ``a_e``.</span>
 <span class="sd">        Arguments:</span>
@@ -514,7 +514,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">reward_table</span><span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">([</span><span class="n">reward</span><span class="p">])</span>
 
 <div class="viewcode-block" id="PwilRewardModel.clear_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel.clear_data">[docs]</a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clearing training data. \</span>
 <span class="sd">            This is a side effect function which clears the data attribute in ``self``</span>

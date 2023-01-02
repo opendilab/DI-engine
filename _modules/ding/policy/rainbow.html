@@ -307,7 +307,7 @@
 
 <div class="viewcode-block" id="RainbowDQNPolicy"><a class="viewcode-back" href="../../../12_policies/rainbow.html#ding.policy.rainbow.RainbowDQNPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;rainbow&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RainbowDQNPolicy</span><span class="p">(</span><span class="n">DQNPolicy</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Rainbow DQN contain several improvements upon DQN, including:</span>
 <span class="sd">            - target network</span>
@@ -436,7 +436,7 @@
         <span class="k">return</span> <span class="s1">&#39;rainbowdqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="RainbowDQNPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/rainbow.html#ding.policy.rainbow.RainbowDQNPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the learner model of RainbowDQNPolicy</span>
 
@@ -469,7 +469,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="RainbowDQNPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/rainbow.html#ding.policy.rainbow.RainbowDQNPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward and backward function of learn mode, acquire the data and calculate the loss and\</span>
 <span class="sd">            optimize learner model</span>
@@ -528,7 +528,7 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="RainbowDQNPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/rainbow.html#ding.policy.rainbow.RainbowDQNPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collect mode init moethod. Called by ``self.__init__``.</span>
 <span class="sd">            Init traj and unroll length, collect model.</span>
@@ -544,7 +544,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="RainbowDQNPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/rainbow.html#ding.policy.rainbow.RainbowDQNPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the noise from noise net and collect output according to eps_greedy plugin</span>
 
@@ -571,7 +571,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
 <div class="viewcode-block" id="RainbowDQNPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy/rainbow.html#ding.policy.rainbow.RainbowDQNPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traj</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the trajectory and the n step return data, then sample from the n_step return data</span>
 
@@ -585,7 +585,7 @@
         <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the noise of model</span>
 

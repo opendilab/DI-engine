@@ -306,7 +306,7 @@
 
 
 <span class="k">def</span> <span class="nf">to_device</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transfer data to certain device</span>
 <span class="sd">    Arguments:</span>
@@ -361,7 +361,7 @@
 
 
 <span class="k">def</span> <span class="nf">to_dtype</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Change data to certain dtype</span>
 <span class="sd">    Arguments:</span>
@@ -390,7 +390,7 @@
         <span class="n">ignore_keys</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[],</span>
         <span class="n">transform_scalar</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Change `numpy.ndarray`, sequence of scalars to torch.Tensor, and keep other data types unchanged.</span>
 <span class="sd">    Arguments:</span>
@@ -460,7 +460,7 @@
 
 
 <span class="k">def</span> <span class="nf">to_ndarray</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Change `torch.Tensor`, sequence of scalars to ndarray, and keep other data types unchanged.</span>
 <span class="sd">    Arguments:</span>
@@ -518,7 +518,7 @@
 
 
 <span class="k">def</span> <span class="nf">to_list</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transform `torch.Tensor`, `numpy.ndarray` to `list`, keep other data types unchanged</span>
 <span class="sd">    Arguments:</span>
@@ -548,7 +548,7 @@
 
 
 <span class="k">def</span> <span class="nf">tensor_to_list</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transform `torch.Tensor` to `list`, keep other data types unchanged</span>
 <span class="sd">    Arguments:</span>
@@ -575,7 +575,7 @@
 
 
 <span class="k">def</span> <span class="nf">same_shape</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Judge whether all data elements in a list have the same shape.</span>
 <span class="sd">    Arguments:</span>
@@ -589,7 +589,7 @@
 
 
 <span class="k">class</span> <span class="nc">LogDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Derived from ``dict``; Would transform ``torch.Tensor`` to ``list`` for convenient logging.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -611,7 +611,7 @@
 
 
 <span class="k">def</span> <span class="nf">build_log_buffer</span><span class="p">():</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Builg log buffer, a subclass of dict, which can transform the input data into log format.</span>
 <span class="sd">    Returns:</span>
@@ -621,7 +621,7 @@
 
 
 <div class="viewcode-block" id="CudaFetcher"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/data_helper.html#ding.torch_utils.data_helper.CudaFetcher">[docs]</a><span class="k">class</span> <span class="nc">CudaFetcher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Fetch data from source, and transfer it to specified device.</span>
 <span class="sd">    Interfaces:</span>
@@ -640,7 +640,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
 <div class="viewcode-block" id="CudaFetcher.run"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/data_helper.html#ding.torch_utils.data_helper.CudaFetcher.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Start ``producer`` thread: Keep fetching data from source,</span>
 <span class="sd">            change the device, and put into ``queue`` for request.</span>
@@ -649,7 +649,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_producer_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CudaFetcher.close"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/data_helper.html#ding.torch_utils.data_helper.CudaFetcher.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Stop ``producer`` thread by setting ``end_flag`` to ``True`` .</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -667,7 +667,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_tensor_data</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get pure tensor data from the given data(without disturbing grad computation graph)</span>
 <span class="sd">    &quot;&quot;&quot;</span>

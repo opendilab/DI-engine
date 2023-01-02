@@ -314,40 +314,40 @@ Compatible with OpenAI Gym API, it can not only be used for agent training, but 
 <li><p>Dependency package</p></li>
 </ol>
 <p><strong>Linux</strong></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo apt-get install git cmake build-essential libgl1-mesa-dev libsdl2-dev <span class="se">\</span>
-libsdl2-image-dev libsdl2-ttf-dev libsdl2-gfx-dev libboost-all-dev <span class="se">\</span>
-libdirectfb-dev libst-dev mesa-utils xvfb x11vnc python3-pip
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>git<span class="w"> </span>cmake<span class="w"> </span>build-essential<span class="w"> </span>libgl1-mesa-dev<span class="w"> </span>libsdl2-dev<span class="w"> </span><span class="se">\</span>
+libsdl2-image-dev<span class="w"> </span>libsdl2-ttf-dev<span class="w"> </span>libsdl2-gfx-dev<span class="w"> </span>libboost-all-dev<span class="w"> </span><span class="se">\</span>
+libdirectfb-dev<span class="w"> </span>libst-dev<span class="w"> </span>mesa-utils<span class="w"> </span>xvfb<span class="w"> </span>x11vnc<span class="w"> </span>python3-pip
 
-python3 -m pip install --upgrade pip setuptools psutil wheel
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip<span class="w"> </span>setuptools<span class="w"> </span>psutil<span class="w"> </span>wheel
 </pre></div>
 </div>
 <p><strong>MacOS</strong></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew install git python3 cmake sdl2 sdl2_image sdl2_ttf sdl2_gfx boost boost-python3
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>git<span class="w"> </span>python3<span class="w"> </span>cmake<span class="w"> </span>sdl2<span class="w"> </span>sdl2_image<span class="w"> </span>sdl2_ttf<span class="w"> </span>sdl2_gfx<span class="w"> </span>boost<span class="w"> </span>boost-python3
 
-python3 -m pip install --upgrade pip setuptools psutil wheel
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip<span class="w"> </span>setuptools<span class="w"> </span>psutil<span class="w"> </span>wheel
 </pre></div>
 </div>
 <p><strong>Windows</strong></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python -m pip install --upgrade pip setuptools psutil wheel
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip<span class="w"> </span>setuptools<span class="w"> </span>psutil<span class="w"> </span>wheel
 </pre></div>
 </div>
 <ol class="arabic simple">
 <li><p>Enviroment of installing gfootball</p></li>
 </ol>
 <p><strong>Install from pip</strong></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3 -m pip install gfootball
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>gfootball
 </pre></div>
 </div>
 <p><strong>Intall from github orgin code</strong></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/google-research/football.git
-<span class="nb">cd</span> football
-python3 -m pip install .
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/google-research/football.git
+<span class="nb">cd</span><span class="w"> </span>football
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 <ol class="arabic simple">
 <li><p>Validation of the environment installation</p></li>
 </ol>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3 -m gfootball.play_game --action_set<span class="o">=</span>full
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>gfootball.play_game<span class="w"> </span>--action_set<span class="o">=</span>full
 </pre></div>
 </div>
 <p>Enter the following game interface to prove that the installation is successful.</p>

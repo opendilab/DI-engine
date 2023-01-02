@@ -354,7 +354,7 @@ Note that in some cases, as the normalised bounds of the observed state change, 
 <p>In addition, since the distribution of the sampled data is highly correlated with the strategy, i.e., the distribution of the samples can vary significantly from strategy to strategy, we use running means and standard deviations to normalize the observed states, rather than fixed means and standard deviations.</p>
 <p>The structure of ObsNormEnv as below：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ObsNormEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
-     <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">     Overview:</span>
 <span class="sd">     Normalize observations according to running mean and std.</span>
 <span class="sd">     Interface:</span>

@@ -617,7 +617,7 @@ refer to doc of <code class="docutils literal notranslate"><span class="pre">din
     <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">get_train_sample</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">unroll_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">last_fn_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;last&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Process raw traj data by updating keys [&#39;next_obs&#39;, &#39;reward&#39;, &#39;done&#39;] in data&#39;s dict element.</span>
 <span class="sd">        If ``unroll_len`` equals to 1, which means no process is needed, can directly return ``data``.</span>
@@ -687,7 +687,7 @@ default and recommended.</p>
 <p>Now, we introduce the computation of <code class="docutils literal notranslate"><span class="pre">vtrace-value</span></code>.
 First, we use the following functions to compute importance_weights.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_importance_weights</span><span class="p">(</span><span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Shapes:</span>
 <span class="sd">        - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\</span>
 <span class="sd">            N is action dim</span>
@@ -712,7 +712,7 @@ First, we use the following functions to compute importance_weights.</p>
 Then we can compute vtrace value according to the following function. Notice, here bootstrap_values are just
 value function <span class="math notranslate nohighlight">\(V(x_s)\)</span> in vtrace definition.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">vtrace_nstep_return</span><span class="p">(</span><span class="n">clipped_rhos</span><span class="p">,</span> <span class="n">clipped_cs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Shapes:</span>
 <span class="sd">        - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size</span>
 <span class="sd">        - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
@@ -742,7 +742,7 @@ and 1, can give a subtle control on vtrace off-policy correction. Usually, we wi
 <p>Once we get vtrace value, or <code class="docutils literal notranslate"><span class="pre">vtrace_nstep_return</span></code>, the computation of loss functions are straightforward. The whole
 process is as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">vtrace_advantage</span><span class="p">(</span><span class="n">clipped_pg_rhos</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">return_</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Shapes:</span>
 <span class="sd">        - clipped_pg_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size</span>
 <span class="sd">        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
@@ -759,7 +759,7 @@ process is as follows.</p>
         <span class="n">rho_clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="n">c_clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="n">rho_pg_clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Shapes:</span>
 <span class="sd">        - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\</span>
 <span class="sd">            N is action dim</span>

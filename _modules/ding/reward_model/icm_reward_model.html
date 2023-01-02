@@ -322,7 +322,7 @@
 
 
 <span class="k">class</span> <span class="nc">ICMNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Intrinsic Curiosity Model (ICM Module)</span>
 <span class="sd">    Implementation of:</span>
 <span class="sd">    [1] Curiosity-driven Exploration by Self-supervised Prediction</span>
@@ -365,7 +365,7 @@
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">next_state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                 <span class="n">action_long</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation, next_observation and action to genearte ICM module</span>
 <span class="sd">            Parameter updates with ICMNetwork forward setup.</span>
@@ -419,7 +419,7 @@
 
 <div class="viewcode-block" id="ICMRewardModel"><a class="viewcode-back" href="../../../12_policies/icm_zh.html#ding.reward_model.icm_reward_model.ICMRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;icm&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ICMRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ICM reward model class (https://arxiv.org/pdf/1705.05363.pdf)</span>
 <span class="sd">    Interface:</span>

@@ -312,7 +312,7 @@
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/sisl">SISL</a>：3 collaborative environments from <a class="reference external" href="https://github.com/sisl/MADRL">https://github.com/sisl/MADRL</a></p></li>
 </ul>
 <p>The following figure shows the mpe_simple_spread environment in it：</p>
-<img alt="../_images/mpe_simple_spread.gif" class="align-center" src="../_images/mpe_simple_spread.gif" />
+<img alt="../_images/mpe_simple_spread1.gif" class="align-center" src="../_images/mpe_simple_spread1.gif" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It should be noted that PettingZoo maintains strict version management for reproducibility. All environments end with a suffix like<code class="docutils literal notranslate"><span class="pre">_v0</span></code> . When the environment changes that could affect the learning outcome, the number is incremented by one<code class="docutils literal notranslate"><span class="pre">_v0</span></code>-&gt;<code class="docutils literal notranslate"><span class="pre">_v1</span></code> to prevent potential confusion.</p>
@@ -325,16 +325,16 @@
 <p>Currently PettingZoo officially supports Python 3.7~3.9 on Linux and macOS。</p>
 <p>It can be installed directly through pip; in addition, since PettingZoo is used in unit tests in DI-engine, installing DI-engine will also install PettingZoo by default：</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install directly with pip</span>
-pip install pettingzoo
+pip<span class="w"> </span>install<span class="w"> </span>pettingzoo
 <span class="c1"># Method2: Just install DI-engine</span>
-pip install DI-engine
+pip<span class="w"> </span>install<span class="w"> </span>DI-engine
 </pre></div>
 </div>
 <p>Since PettingZoo contains a lot of environments, different environments have different installation conditions on different systems. Therefore the above installation does not contain all dependencies of all environment families. For a specific environment family dependency, you can install it like this：</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># install Atari family dependency</span>
-pip install pettingzoo<span class="o">[</span>atari<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class="o">[</span>atari<span class="o">]</span>
 <span class="c1"># or install all dependencies</span>
-pip install pettingzoo<span class="o">[</span>all<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class="o">[</span>all<span class="o">]</span>
 </pre></div>
 </div>
 </section>

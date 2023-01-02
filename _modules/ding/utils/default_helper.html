@@ -305,7 +305,7 @@
         <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">]],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">]]],</span>
         <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">NamedTuple</span><span class="p">]:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transform a list of dicts to a dict of lists.</span>
 <span class="sd">    Arguments:</span>
@@ -340,7 +340,7 @@
 
 
 <span class="k">def</span> <span class="nf">dicts_to_lists</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transform a dict of lists to a list of dicts.</span>
 
@@ -363,7 +363,7 @@
 <span class="k">def</span> <span class="nf">override</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span>
         <span class="n">Callable</span><span class="p">,</span>
 <span class="p">],</span> <span class="n">Callable</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Annotation for documenting method overrides.</span>
 
@@ -381,7 +381,7 @@
 
 
 <span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Squeeze data from tuple, list or dict to single object</span>
 <span class="sd">    Example:</span>
@@ -411,7 +411,7 @@
         <span class="n">default_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">judge_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Getting the value by input, checks generically on the inputs with \</span>
 <span class="sd">        at least ``data`` and ``name``. If ``name`` exists in ``data``, \</span>
@@ -443,7 +443,7 @@
 
 
 <span class="k">def</span> <span class="nf">list_split</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Split list of data by step.</span>
 <span class="sd">    Arguments:</span>
@@ -473,7 +473,7 @@
 
 
 <span class="k">def</span> <span class="nf">error_wrapper</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">default_ret</span><span class="p">,</span> <span class="n">warning_msg</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        wrap the function, so that any Exception in the function will be catched and return the default_ret</span>
 <span class="sd">    Arguments:</span>
@@ -502,7 +502,7 @@
 
 
 <div class="viewcode-block" id="LimitedSpaceContainer"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer">[docs]</a><span class="k">class</span> <span class="nc">LimitedSpaceContainer</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A space simulator.</span>
 <span class="sd">    Interface:</span>
@@ -510,7 +510,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LimitedSpaceContainer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set ``min_val`` and ``max_val`` of the container, also set ``cur`` to ``min_val`` for initialization.</span>
 <span class="sd">        Arguments:</span>
@@ -523,7 +523,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span></div>
 
 <div class="viewcode-block" id="LimitedSpaceContainer.get_residual_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.get_residual_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_residual_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get all residual pieces of space. Set ``cur`` to ``max_val``</span>
 <span class="sd">        Arguments:</span>
@@ -534,7 +534,7 @@
         <span class="k">return</span> <span class="n">ret</span></div>
 
 <div class="viewcode-block" id="LimitedSpaceContainer.acquire_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.acquire_space">[docs]</a>    <span class="k">def</span> <span class="nf">acquire_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Try to get one pice of space. If there is one, return True; Otherwise return False.</span>
 <span class="sd">        Returns:</span>
@@ -547,21 +547,21 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="LimitedSpaceContainer.release_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.release_space">[docs]</a>    <span class="k">def</span> <span class="nf">release_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Release only one piece of space. Decrement ``cur``, but ensure it won&#39;t be negative.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LimitedSpaceContainer.increase_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.increase_space">[docs]</a>    <span class="k">def</span> <span class="nf">increase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Increase one piece in space. Increment ``max_val``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">+=</span> <span class="mi">1</span></div>
 
 <div class="viewcode-block" id="LimitedSpaceContainer.decrease_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.decrease_space">[docs]</a>    <span class="k">def</span> <span class="nf">decrease_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Decrease one piece in space. Decrement ``max_val``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -569,7 +569,7 @@
 
 
 <span class="k">def</span> <span class="nf">deep_merge_dicts</span><span class="p">(</span><span class="n">original</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Merge two dicts by calling ``deep_update``</span>
 <span class="sd">    Arguments:</span>
@@ -593,7 +593,7 @@
     <span class="n">whitelist</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">override_all_if_type_changes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Update original dict with values from new_dict recursively.</span>
 <span class="sd">    Arguments:</span>
@@ -643,7 +643,7 @@
 
 
 <span class="k">def</span> <span class="nf">flatten_dict</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Flatten the dict, see example</span>
 <span class="sd">    Arguments:</span>
@@ -673,7 +673,7 @@
 
 
 <span class="k">def</span> <span class="nf">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">use_cuda</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Side effect function to set seed for ``random``, ``numpy random``, and ``torch&#39;s manual seed``.\</span>
 <span class="sd">        This is usaually used in entry scipt in the section of setting random seed for all package and instance</span>
@@ -746,7 +746,7 @@
 
 
 <span class="k">class</span> <span class="nc">RunningMeanStd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Wrapper to update new variable, new mean, and new count</span>
 <span class="sd">    Interface:</span>
@@ -756,7 +756,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">device</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">)):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate  \</span>
 <span class="sd">                signature; setup the properties.</span>
@@ -772,7 +772,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update mean, variable, and count</span>
 <span class="sd">        Arguments:</span>
@@ -795,7 +795,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="n">new_count</span>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties: ``_mean``, ``_var``, ``_count``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -808,7 +808,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Property ``mean`` gotten  from ``self._mean``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -819,7 +819,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Property ``std`` calculated  from ``self._var`` and the epsilon value of ``self._epsilon``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -831,7 +831,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged.</span>
 <span class="sd">        Arguments:</span>
@@ -843,7 +843,7 @@
 
 
 <span class="k">def</span> <span class="nf">make_key_as_identifier</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Make the key of dict into legal python identifier string so that it is</span>
 <span class="sd">        compatible with some python magic method such as ``__getattr``.</span>
@@ -866,7 +866,7 @@
 
 
 <span class="k">def</span> <span class="nf">remove_illegal_item</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Remove illegal item in dict info, like str, which is not compatible with Tensor.</span>
 <span class="sd">    Arguments:</span>

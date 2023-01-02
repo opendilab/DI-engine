@@ -304,7 +304,7 @@
 
 
 <div class="viewcode-block" id="CollaQMultiHeadAttention"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQMultiHeadAttention">[docs]</a><span class="k">class</span> <span class="nc">CollaQMultiHeadAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The head of collaq attention module.</span>
 <span class="sd">    Interface:</span>
@@ -322,7 +322,7 @@
         <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
         <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            initialize the head of collaq attention module</span>
 <span class="sd">        Arguments:</span>
@@ -356,7 +356,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm_v</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">n_head</span> <span class="o">*</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CollaQMultiHeadAttention.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQMultiHeadAttention.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            forward computation graph of collaQ multi head attention net.</span>
 <span class="sd">        Arguments:</span>
@@ -393,7 +393,7 @@
 
 
 <div class="viewcode-block" id="CollaQSMACAttentionModule"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQSMACAttentionModule">[docs]</a><span class="k">class</span> <span class="nc">CollaQSMACAttentionModule</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Collaq attention module. Used to get agent&#39;s attention observation. It includes agent&#39;s observation\</span>
 <span class="sd">            and agent&#39;s part of the observation information of the agent&#39;s concerned allies</span>
@@ -410,7 +410,7 @@
         <span class="n">attention_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            initialize collaq attention module</span>
 <span class="sd">        Arguments:</span>
@@ -429,7 +429,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="CollaQSMACAttentionModule._cut_obs"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQSMACAttentionModule._cut_obs">[docs]</a>    <span class="k">def</span> <span class="nf">_cut_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            cut the observed information into self&#39;s observation and allay&#39;s observation</span>
 <span class="sd">        Arguments:</span>
@@ -444,7 +444,7 @@
         <span class="k">return</span> <span class="n">self_features</span><span class="p">,</span> <span class="n">ally_features</span></div>
 
 <div class="viewcode-block" id="CollaQSMACAttentionModule.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQSMACAttentionModule.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            forward computation to get agent&#39;s attention observation information</span>
 <span class="sd">        Arguments:</span>
@@ -474,7 +474,7 @@
 
 <div class="viewcode-block" id="CollaQ"><a class="viewcode-back" href="../../../../12_policies/collaq.html#ding.model.template.collaq.CollaQ">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;collaq&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CollaQ</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        CollaQ network</span>
 <span class="sd">    Interface:</span>
@@ -498,7 +498,7 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">dueling</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize Collaq network.</span>
 <span class="sd">        Arguments:</span>
@@ -567,7 +567,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CollaQ.forward"><a class="viewcode-back" href="../../../../12_policies/collaq.html#ding.model.template.collaq.CollaQ.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">single_step</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            forward computation graph of collaQ network</span>
 <span class="sd">        Arguments:</span>
@@ -614,7 +614,7 @@
             <span class="n">agent_alone_padding_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_self_attention</span><span class="p">(</span><span class="n">agent_alone_padding_state</span><span class="p">)</span>
 
         <span class="c1"># prev state should be of size (B, 3, A) hidden_size)</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Note: to achieve such work, we should change the init_fn of hidden_state plugin in collaQ policy</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">prev_state</span><span class="p">)</span> <span class="o">==</span> <span class="n">B</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prev_state</span><span class="p">])</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
@@ -714,7 +714,7 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="CollaQ._setup_global_encoder"><a class="viewcode-back" href="../../../../05_api_doc/model/template/collaq.html#ding.model.template.collaq.CollaQ._setup_global_encoder">[docs]</a>    <span class="k">def</span> <span class="nf">_setup_global_encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Used to encoder global observation.</span>
 <span class="sd">        Arguments:</span>

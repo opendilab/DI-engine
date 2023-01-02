@@ -307,7 +307,7 @@
 
 <div class="viewcode-block" id="QMIXPolicy"><a class="viewcode-back" href="../../../12_policies/qmix.html#ding.policy.qmix.QMIXPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qmix&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QMIXPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \</span>
 <span class="sd">            you can view the paper in the following link https://arxiv.org/abs/1803.11485</span>
@@ -398,7 +398,7 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="QMIXPolicy.default_model"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy.default_model">[docs]</a>    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return this algorithm default model setting for demonstration.</span>
 <span class="sd">        Returns:</span>
@@ -411,7 +411,7 @@
         <span class="k">return</span> <span class="s1">&#39;qmix&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qmix&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
 <span class="sd">            Init the learner model of QMIXPolicy</span>
@@ -460,7 +460,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._data_preprocess_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._data_preprocess_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_data_preprocess_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Preprocess the data to fit the required data format for learning</span>
 <span class="sd">        Arguments:</span>
@@ -478,7 +478,7 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward and backward function of learn mode.</span>
 <span class="sd">        Arguments:</span>
@@ -545,7 +545,7 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._reset_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._reset_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset learn model to the state indicated by data_id</span>
 <span class="sd">        Arguments:</span>
@@ -555,7 +555,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="n">data_id</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the state_dict of learn mode, usually including model and optimizer.</span>
 <span class="sd">        Returns:</span>
@@ -568,7 +568,7 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._load_state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the state_dict variable into policy learn mode.</span>
 <span class="sd">        Arguments:</span>
@@ -584,7 +584,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collect mode init method. Called by ``self.__init__``.</span>
 <span class="sd">            Init traj and unroll length, collect model.</span>
@@ -602,7 +602,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward function for collect mode with eps_greedy</span>
 <span class="sd">        Arguments:</span>
@@ -628,7 +628,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._reset_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._reset_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset collect model to the state indicated by data_id</span>
 <span class="sd">        Arguments:</span>
@@ -638,7 +638,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="n">data_id</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate dict type transition data from inputs.</span>
 <span class="sd">        Arguments:</span>
@@ -661,7 +661,7 @@
         <span class="k">return</span> <span class="n">transition</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Evaluate mode init method. Called by ``self.__init__``.</span>
 <span class="sd">            Init eval model with argmax strategy and the hidden_state plugin.</span>
@@ -677,7 +677,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward function of eval mode, similar to ``self._forward_collect``.</span>
 <span class="sd">        Arguments:</span>
@@ -702,7 +702,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._reset_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._reset_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset eval model to the state indicated by data_id</span>
 <span class="sd">        Arguments:</span>
@@ -712,7 +712,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="n">data_id</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the train sample from trajectory.</span>
 <span class="sd">        Arguments:</span>
@@ -723,7 +723,7 @@
         <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return variables&#39; name if variables are to used in monitor.</span>
 <span class="sd">        Returns:</span>

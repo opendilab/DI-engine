@@ -3,7 +3,7 @@ gym hybrid
 
 Overview
 =========
-In the gym-hybrid task, the agent's task is simple: Accelerate, turn, or break within a square box of side length 2 to stay in the red target area. The target area is a circle with a radius of 0.1. As shown below.
+In the gym-hybrid task, the agent's task is simple: Accelerate, turn, or break within a square box to stay in the green target area. The target area is a circle with flag. The example is shown below.
 
 .. image:: ./images/hybrid.gif
    :align: center
@@ -16,7 +16,8 @@ Installation Method
 
 .. code:: shell
 
-    pip install git+https://github.com/thomashirtz/gym-hybrid@master#egg=gym-hybrid
+    cd ./DI-engine/dizoo/gym_hybrid/envs/gym-hybrid
+    pip install -e .
 
 Verify Installation
 --------------------
@@ -193,8 +194,4 @@ The following provides a complete gym hybrid environment config, using DDPG as t
 
 
     if __name__ == "__main__":
-        serial_pipeline([main_config, create_config], seed=0)
-
-References
-======================
-- gym-hybrid `source code <https://github.com/thomashirtz/gym-hybrid>`__
+        serial_pipeline([main_config, create_config], seed=0, max_env_step=int(1e7))

@@ -309,7 +309,7 @@
 
 
 <div class="viewcode-block" id="BaseEnv"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv">[docs]</a><span class="k">class</span> <span class="nc">BaseEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">,</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">FinalMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Basic environment class, extended from ``gym.Env``</span>
 <span class="sd">    Interface:</span>
@@ -319,7 +319,7 @@
 
 <div class="viewcode-block" id="BaseEnv.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.__init__">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Lazy init, only related arguments will be initialized in ``__init__`` method, and the concrete \</span>
 <span class="sd">            env will be initialized the first time ``reset`` method is called.</span>
@@ -330,7 +330,7 @@
 
 <div class="viewcode-block" id="BaseEnv.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.reset">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the env to an initial state and returns an initial observation.</span>
 <span class="sd">        Returns:</span>
@@ -340,7 +340,7 @@
 
 <div class="viewcode-block" id="BaseEnv.close"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.close">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Close env and all the related resources, it should be called after the usage of env instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -348,7 +348,7 @@
 
 <div class="viewcode-block" id="BaseEnv.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.step">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;BaseEnv.timestep&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Run one timestep of the environment&#39;s dynamics/simulation.</span>
 <span class="sd">        Arguments:</span>
@@ -360,7 +360,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set the seed for this env&#39;s random number generator(s).</span>
 <span class="sd">        Arguments:</span>
@@ -370,7 +370,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the information string of this env instance.</span>
 <span class="sd">        Returns:</span>
@@ -380,7 +380,7 @@
 
 <div class="viewcode-block" id="BaseEnv.create_collector_env_cfg"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.create_collector_env_cfg">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">create_collector_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return a list of all of the environment from input config, used in env manager \</span>
 <span class="sd">            (a series of vectorized env), and this method is mainly responsible for envs collecting data.</span>
@@ -398,7 +398,7 @@
 
 <div class="viewcode-block" id="BaseEnv.create_evaluator_env_cfg"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.create_evaluator_env_cfg">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">create_evaluator_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return a list of all of the environment from input config, used in env manager \</span>
 <span class="sd">            (a series of vectorized env), and this method is mainly responsible for envs evaluating performance.</span>
@@ -413,7 +413,7 @@
 
     <span class="c1"># optional method</span>
 <div class="viewcode-block" id="BaseEnv.enable_save_replay"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save replay file in the given path, and this method need to be self-implemented by each env class.</span>
 <span class="sd">        Arguments:</span>
@@ -423,7 +423,7 @@
 
     <span class="c1"># optional method</span>
 <div class="viewcode-block" id="BaseEnv.random_action"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.random_action">[docs]</a>    <span class="k">def</span> <span class="nf">random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return random action generated from the original action space, usually it is convenient for test.</span>
 <span class="sd">        Returns:</span>
@@ -433,7 +433,7 @@
 
 
 <div class="viewcode-block" id="get_vec_env_setting"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.get_vec_env_setting">[docs]</a><span class="k">def</span> <span class="nf">get_vec_env_setting</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">collect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">eval_</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get vectorized env setting (env_fn, collector_env_cfg, evaluator_env_cfg).</span>
 <span class="sd">    Arguments:</span>
@@ -455,7 +455,7 @@
 
 
 <div class="viewcode-block" id="get_env_cls"><a class="viewcode-back" href="../../../../05_api_doc/env/env.html#ding.envs.env.base_env.get_env_cls">[docs]</a><span class="k">def</span> <span class="nf">get_env_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the env class by correspondng module of ``cfg`` and return the callable class.</span>
 <span class="sd">    Arguments:</span>
@@ -468,7 +468,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_model_env</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create model env, which is used in model-based RL.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

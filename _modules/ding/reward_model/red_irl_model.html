@@ -304,7 +304,7 @@
 
 
 <span class="k">class</span> <span class="nc">SENet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;support estimation network&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;support estimation network&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SENet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -322,7 +322,7 @@
 
 <div class="viewcode-block" id="RedRewardModel"><a class="viewcode-back" href="../../../05_api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RedRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">         The implement of reward model in RED (https://arxiv.org/abs/1905.06750)</span>
 <span class="sd">    Interface:</span>
@@ -344,7 +344,7 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="RedRewardModel.__init__"><a class="viewcode-back" href="../../../05_api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -368,7 +368,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">load_expert_data</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="RedRewardModel.load_expert_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.load_expert_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_expert_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting the expert data from ``config[&#39;expert_data_path&#39;]`` attribute in self.</span>
 <span class="sd">        Effects:</span>
@@ -381,7 +381,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;the expert data size is:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expert_data</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Helper function for ``train`` which caclulates loss for train data and expert data.</span>
 <span class="sd">        Arguments:</span>
@@ -399,7 +399,7 @@
         <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
 <div class="viewcode-block" id="RedRewardModel.train"><a class="viewcode-back" href="../../../05_api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Training the RED reward model. In default, RED model should be trained once.</span>
 <span class="sd">        Effects:</span>
@@ -424,7 +424,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">train_once_flag</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="RedRewardModel.estimate"><a class="viewcode-back" href="../../../05_api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Estimate reward by rewriting the reward key</span>
 <span class="sd">        Arguments:</span>
@@ -455,7 +455,7 @@
         <span class="k">return</span> <span class="n">train_data_augmented</span></div>
 
 <div class="viewcode-block" id="RedRewardModel.collect_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting training data, not implemented if reward model (i.e. online_net) is only trained ones, \</span>
 <span class="sd">                if online_net is trained continuously, there should be some implementations in collect_data method</span>
@@ -464,7 +464,7 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="RedRewardModel.clear_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.clear_data">[docs]</a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting clearing data, not implemented if reward model (i.e. online_net) is only trained ones, \</span>
 <span class="sd">                if online_net is trained continuously, there should be some implementations in clear_data method</span>

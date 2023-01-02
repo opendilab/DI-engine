@@ -303,7 +303,7 @@
 
 
 <div class="viewcode-block" id="COMAActorNetwork"><a class="viewcode-back" href="../../../../05_api_doc/model/template/coma.html#ding.model.template.coma.COMAActorNetwork">[docs]</a><span class="k">class</span> <span class="nc">COMAActorNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Decentralized actor network in COMA</span>
 <span class="sd">    Interface:</span>
@@ -316,7 +316,7 @@
         <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            initialize COMA actor network</span>
 <span class="sd">        Arguments:</span>
@@ -328,7 +328,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">main</span> <span class="o">=</span> <span class="n">DRQN</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="COMAActorNetwork.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/template/coma.html#ding.model.template.coma.COMAActorNetwork.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        ArgumentsKeys:</span>
 <span class="sd">            - necessary: ``obs`` { ``agent_state``, ``action_mask`` }, ``prev_state``</span>
 <span class="sd">        ReturnsKeys:</span>
@@ -354,7 +354,7 @@
 
 
 <div class="viewcode-block" id="COMACriticNetwork"><a class="viewcode-back" href="../../../../05_api_doc/model/template/coma.html#ding.model.template.coma.COMACriticNetwork">[docs]</a><span class="k">class</span> <span class="nc">COMACriticNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Centralized critic network in COMA</span>
 <span class="sd">    Interface:</span>
@@ -367,7 +367,7 @@
         <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            initialize COMA critic network</span>
 <span class="sd">        Arguments:</span>
@@ -383,7 +383,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="COMACriticNetwork.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/template/coma.html#ding.model.template.coma.COMACriticNetwork.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            forward computation graph of qmix network</span>
 <span class="sd">        Arguments:</span>
@@ -401,7 +401,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="COMACriticNetwork._preprocess_data"><a class="viewcode-back" href="../../../../05_api_doc/model/template/coma.html#ding.model.template.coma.COMACriticNetwork._preprocess_data">[docs]</a>    <span class="k">def</span> <span class="nf">_preprocess_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            preprocess data to make it can be used by MLP net</span>
 <span class="sd">        Arguments:</span>
@@ -437,7 +437,7 @@
 
 <div class="viewcode-block" id="COMA"><a class="viewcode-back" href="../../../../12_policies/coma.html#ding.model.template.coma.COMA">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;coma&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">COMA</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        COMA network is QAC-type actor-critic.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -447,7 +447,7 @@
             <span class="bp">self</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">actor_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            initialize COMA network</span>
 <span class="sd">        Arguments:</span>
@@ -467,7 +467,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">COMACriticNetwork</span><span class="p">(</span><span class="n">critic_input_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">critic_hidden_size</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="COMA.forward"><a class="viewcode-back" href="../../../../12_policies/coma.html#ding.model.template.coma.COMA.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        ArgumentsKeys:</span>
 <span class="sd">            - necessary: ``obs`` { ``agent_state``, ``global_state``, ``action_mask`` }, ``action``, ``prev_state``</span>
 <span class="sd">        ReturnsKeys:</span>

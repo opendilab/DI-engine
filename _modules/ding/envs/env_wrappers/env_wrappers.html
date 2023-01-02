@@ -327,7 +327,7 @@
 
 <div class="viewcode-block" id="NoopResetWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;noop_reset&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">NoopResetWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Sample initial states by taking random number of no-ops on reset.  \</span>
 <span class="sd">       No-op is assumed to be action 0.</span>
@@ -339,7 +339,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="NoopResetWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -352,7 +352,7 @@
         <span class="k">assert</span> <span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">get_action_meanings</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;NOOP&#39;</span></div>
 
 <div class="viewcode-block" id="NoopResetWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and returns an initial observation.</span>
 <span class="sd">        Returns:</span>
@@ -369,7 +369,7 @@
 
 <div class="viewcode-block" id="MaxAndSkipWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;max_and_skip&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MaxAndSkipWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Return only every `skip`-th frame (frameskipping) using most  \</span>
 <span class="sd">       recent raw observations (for max pooling across time steps)</span>
@@ -381,7 +381,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MaxAndSkipWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -392,7 +392,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span> <span class="o">=</span> <span class="n">skip</span></div>
 
 <div class="viewcode-block" id="MaxAndSkipWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipWrapper.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action,  \</span>
 <span class="sd">                sum reward, and max over last observations.</span>
@@ -420,7 +420,7 @@
 
 <div class="viewcode-block" id="WarpFrameWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrameWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;warp_frame&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">WarpFrameWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Warp frames to 84x84 as done in the Nature paper and later work.</span>
 <span class="sd">    Interface:</span>
@@ -432,7 +432,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="WarpFrameWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrameWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">84</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -457,7 +457,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="WarpFrameWrapper.observation"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrameWrapper.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns the current observation from a frame</span>
 <span class="sd">        Arguments:</span>
@@ -478,7 +478,7 @@
 
 <div class="viewcode-block" id="ScaledFloatFrameWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrameWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;scaled_float_frame&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Normalize observations to 0~1.</span>
 <span class="sd">    Interface:</span>
@@ -486,7 +486,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ScaledFloatFrameWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrameWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
 <span class="sd">        Arguments:</span>
@@ -500,7 +500,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ScaledFloatFrameWrapper.observation"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrameWrapper.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns the scaled observation</span>
 <span class="sd">        Arguments:</span>
@@ -514,7 +514,7 @@
 
 <div class="viewcode-block" id="ClipRewardWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;clip_reward&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ClipRewardWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">RewardWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Clip the reward to {+1, 0, -1} by its sign.</span>
 <span class="sd">    Interface:</span>
@@ -526,7 +526,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ClipRewardWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
 <span class="sd">        Arguments:</span>
@@ -536,7 +536,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ClipRewardWrapper.reward"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper.reward">[docs]</a>    <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0.</span>
 <span class="sd">        Arguments:</span>
@@ -549,7 +549,7 @@
 
 <span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;delay_reward&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DelayRewardWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Return cumulative reward at intervals; At other time, return reward of 0.</span>
 <span class="sd">    Interface:</span>
@@ -560,7 +560,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">delay_reward_step</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
 <span class="sd">        Arguments:</span>
@@ -590,7 +590,7 @@
 
 <span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EvalEpisodeReturnEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Accumulate rewards at every timestep, and return at the end of the episode in `info`.</span>
 <span class="sd">    Interface:</span>
@@ -600,7 +600,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
 <span class="sd">        Arguments:</span>
@@ -622,7 +622,7 @@
 
 <div class="viewcode-block" id="FrameStackWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;frame_stack&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">FrameStackWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Stack latest n frames(usually 4 in Atari) as one observation.</span>
 <span class="sd">    Interface:</span>
@@ -634,7 +634,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FrameStackWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
 <span class="sd">        Arguments:</span>
@@ -659,7 +659,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="FrameStackWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and append new observation to frames</span>
 <span class="sd">        Returns:</span>
@@ -671,7 +671,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ob</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="FrameStackWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward,  \</span>
 <span class="sd">                and max over last observations, and append new observation to frames</span>
@@ -691,7 +691,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ob</span><span class="p">(),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
 
 <div class="viewcode-block" id="FrameStackWrapper._get_ob"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper._get_ob">[docs]</a>    <span class="k">def</span> <span class="nf">_get_ob</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The original wrapper use `LazyFrames` but since we use np buffer, it has no effect</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -700,7 +700,7 @@
 
 <div class="viewcode-block" id="ObsTransposeWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;obs_transpose&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ObsTransposeWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transpose observation to put channel to first dim.</span>
 <span class="sd">    Interface:</span>
@@ -711,7 +711,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ObsTransposeWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \</span>
 <span class="sd">                setup the properties.</span>
@@ -736,7 +736,7 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ObsTransposeWrapper.observation"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns the transposed observation</span>
 <span class="sd">        Arguments:</span>
@@ -755,7 +755,7 @@
 
 
 <div class="viewcode-block" id="RunningMeanStd"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd">[docs]</a><span class="k">class</span> <span class="nc">RunningMeanStd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Wrapper to update new variable, new mean, and new count</span>
 <span class="sd">    Interface:</span>
@@ -766,7 +766,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RunningMeanStd.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">()):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate  \</span>
 <span class="sd">                signature; setup the properties.</span>
@@ -781,7 +781,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="RunningMeanStd.update"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update mean, variable, and count</span>
 <span class="sd">        Arguments:</span>
@@ -804,7 +804,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="n">new_count</span></div>
 
 <div class="viewcode-block" id="RunningMeanStd.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties:  \</span>
 <span class="sd">                ``_mean``, ``_var``, ``_count``</span>
@@ -815,7 +815,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Property ``mean`` gotten  from ``self._mean``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -823,7 +823,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Property ``std`` calculated  from ``self._var`` and the epsilon value of ``self._epsilon``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -832,7 +832,7 @@
 
 <div class="viewcode-block" id="ObsNormWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;obs_norm&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ObsNormWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Normalize observations according to running mean and std.</span>
 <span class="sd">    Interface:</span>
@@ -844,7 +844,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ObsNormWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \</span>
 <span class="sd">                setup the properties according to running mean and std.</span>
@@ -857,7 +857,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rms</span> <span class="o">=</span> <span class="n">RunningMeanStd</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ObsNormWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward,  \</span>
 <span class="sd">                and update ``data_count``, and also update the ``self.rms`` property  \</span>
@@ -880,7 +880,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation</span><span class="p">(</span><span class="n">observation</span><span class="p">),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
 
 <div class="viewcode-block" id="ObsNormWrapper.observation"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get obeservation</span>
 <span class="sd">        Arguments:</span>
@@ -895,7 +895,7 @@
             <span class="k">return</span> <span class="n">observation</span></div>
 
 <div class="viewcode-block" id="ObsNormWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties.</span>
 <span class="sd">        Arguments:</span>
@@ -912,7 +912,7 @@
 
 <span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;static_obs_norm&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">StaticObsNormWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Normalize observations according to the mean and std in the fixed dataset.</span>
 <span class="sd">    Interface:</span>
@@ -924,7 +924,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \</span>
 <span class="sd">                setup the properties according to dataset mean and std.</span>
@@ -939,7 +939,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">clip_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get obeservation</span>
 <span class="sd">        Arguments:</span>
@@ -953,7 +953,7 @@
 
 <div class="viewcode-block" id="RewardNormWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;reward_norm&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RewardNormWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">RewardWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Normalize reward according to running std.</span>
 <span class="sd">    Interface:</span>
@@ -964,7 +964,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RewardNormWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">reward_discount</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \</span>
 <span class="sd">                setup the properties according to running mean and std.</span>
@@ -978,7 +978,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rms</span> <span class="o">=</span> <span class="n">RunningMeanStd</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">))</span></div>
 
 <div class="viewcode-block" id="RewardNormWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward,  \</span>
 <span class="sd">                and update ``data_count``, and also update the ``self.rms`` and ``self.cum_reward``  \</span>
@@ -1003,7 +1003,7 @@
         <span class="k">return</span> <span class="n">observation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="n">reward</span><span class="p">),</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
 
 <div class="viewcode-block" id="RewardNormWrapper.reward"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.reward">[docs]</a>    <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Normalize reward if ``data_count`` is more than 30</span>
 <span class="sd">        Arguments:</span>
@@ -1017,7 +1017,7 @@
             <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="RewardNormWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties (`NumType` ones to 0, \</span>
 <span class="sd">                and ``self.rms`` as reset rms wrapper)</span>
@@ -1032,7 +1032,7 @@
 
 <div class="viewcode-block" id="RamWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;ram&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RamWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Wrap ram env into image-like env</span>
 <span class="sd">    Interface:</span>
@@ -1044,7 +1044,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RamWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">render</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;</span>
 <span class="sd">        Arguments:</span>
@@ -1060,7 +1060,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="RamWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties.</span>
 
@@ -1072,7 +1072,7 @@
         <span class="k">return</span> <span class="n">obs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="RamWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward and \</span>
 <span class="sd">                reshape the observation.</span>
@@ -1094,7 +1094,7 @@
 
 <div class="viewcode-block" id="EpisodicLifeWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;episodic_life&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EpisodicLifeWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Make end-of-life == end-of-episode, but only reset on true game over. It helps \</span>
 <span class="sd">            the value estimation.</span>
@@ -1107,7 +1107,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EpisodicLifeWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; set \</span>
 <span class="sd">                lives to 0 at set done.</span>
@@ -1119,7 +1119,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">was_real_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EpisodicLifeWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward; set \</span>
 <span class="sd">                ``self.was_real_done`` as done, and step according to lives i.e. check \</span>
@@ -1150,7 +1150,7 @@
         <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
 
 <div class="viewcode-block" id="EpisodicLifeWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calls the Gym environment reset, only when lives are exhausted. This way all states are \</span>
 <span class="sd">                still reachable even though lives are episodic, and the learner need not know about \</span>
@@ -1171,7 +1171,7 @@
 
 <div class="viewcode-block" id="FireResetWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;fire_reset&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">FireResetWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Take fire action at environment reset.</span>
 <span class="sd">        Related discussion: https://github.com/openai/baselines/issues/240</span>
@@ -1182,7 +1182,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FireResetWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -1193,7 +1193,7 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">get_action_meanings</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">3</span></div>
 
 <div class="viewcode-block" id="FireResetWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties i.e. reset with action 1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1203,7 +1203,7 @@
 
 <span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gym_hybrid_dict_action&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GymHybridDictActionWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ActionWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Transform Gym-Hybrid&#39;s original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.</span>
 <span class="sd">    Interface:</span>
@@ -1214,7 +1214,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
@@ -1268,7 +1268,7 @@
 
 <span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;obs_plus_prev_action_reward&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ObsPlusPrevActRewWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       This wrapper is used in policy NGU.</span>
 <span class="sd">       Set a dict {&#39;obs&#39;: obs, &#39;prev_action&#39;: self.prev_action, &#39;prev_reward_extrinsic&#39;: self.prev_reward_extrinsic}</span>
@@ -1281,7 +1281,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
 <span class="sd">        Arguments:</span>
@@ -1301,7 +1301,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">prev_reward_extrinsic</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># null reward</span>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment.</span>
 <span class="sd">        Returns:</span>
@@ -1313,7 +1313,7 @@
         <span class="k">return</span> <span class="n">obs</span>
 
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action.</span>
 <span class="sd">            Save the previous action and reward to be used in next new obs</span>
@@ -1337,7 +1337,7 @@
 
 
 <span class="k">def</span> <span class="nf">update_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">,</span> <span class="n">wrapper_names</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get new shape of observation, acton, and reward given the wrapper.</span>
 <span class="sd">    Arguments:</span>
@@ -1355,7 +1355,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_env_wrapper</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">,</span> <span class="n">env_wrapper_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create an env wrapper according to env_wrapper_cfg and env instance.</span>
 <span class="sd">    Arguments:</span>
@@ -1373,7 +1373,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_env_wrapper_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get an env wrapper class according to cfg.</span>
 <span class="sd">    Arguments:</span>

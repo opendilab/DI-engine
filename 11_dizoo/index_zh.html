@@ -322,16 +322,16 @@
 <section id="id3">
 <h2>DI-zoo 的用法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>您可以直接通过执行 DI-zoo 提供的 <code class="docutils literal notranslate"><span class="pre">config.py</span></code> 文件，来进行某个环境/策略组合的强化学习训练。对于 CartPole/DQN ，您可以通过以下代码来轻易进行它的强化学习训练：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python dizoo/classic_control/cartpole/config/cartpole_dqn_config.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dizoo/classic_control/cartpole/config/cartpole_dqn_config.py
 </pre></div>
 </div>
 <p>DI-engine还为用户准备了CLI工具，您可以在终端中键入以下命令：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -v
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding<span class="w"> </span>-v
 </pre></div>
 </div>
 <p>如果终端返回正确的信息，您可以使用这个CLI工具进行常见的训练和评估，您可以键入 <code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-h</span></code> 查看更多帮助。</p>
 <p>对于 CartPole/DQN 的训练，您可以直接通过在终端键入以下命令来完成：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -m serial -c cartpole_dqn_config.py -s <span class="m">0</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding<span class="w"> </span>-m<span class="w"> </span>serial<span class="w"> </span>-c<span class="w"> </span>cartpole_dqn_config.py<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>
 </pre></div>
 </div>
 <p>其中 <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">serial</span></code> 代表您调用的训练管线是 <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code>。 <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">cartpole_dqn_config.py</span></code> 代表您使用的 <code class="docutils literal notranslate"><span class="pre">config</span></code> 文件是 <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code>。 <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">0</span></code> 代表 <code class="docutils literal notranslate"><span class="pre">seed</span></code> 为0。</p>
@@ -405,7 +405,7 @@
 <p>其中 <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config</span></code> 和 <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_create_config</span></code> 这两个字典对象，包含了 CartPole/DQN 训练需要的关键配置。您可以通过改变这里的配置，来改变训练管线的行为。比如通过更改 <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.policy.cuda</span></code> ， 您可以选择是否使用 cuda 设备来运行整个训练流程。</p>
 <p>如果想要使用 DI-engine 提供的其他训练管线，或者使用自己自定义的训练管线的话，您只需要更改 <code class="docutils literal notranslate"><span class="pre">config</span></code> 文件最下方， <code class="docutils literal notranslate"><span class="pre">__main__</span></code> 函数中调用训练管线的部分即可。比如您可以把例子中的 <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> 改成 <code class="docutils literal notranslate"><span class="pre">parallel_pipeline</span></code>，来调用并行的训练管线。</p>
 <p>对于CLI工具 <code class="docutils literal notranslate"><span class="pre">ding</span></code>，您也可以把之前的cli命令改成</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -m parallel -c cartpole_dqn_config.py -s <span class="m">0</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding<span class="w"> </span>-m<span class="w"> </span>parallel<span class="w"> </span>-c<span class="w"> </span>cartpole_dqn_config.py<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>
 </pre></div>
 </div>
 <p>来调用 <code class="docutils literal notranslate"><span class="pre">parallel_pipeline</span></code>。</p>

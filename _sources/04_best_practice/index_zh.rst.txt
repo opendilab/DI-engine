@@ -14,3 +14,4 @@
    rnn_zh
    training_generated_folders_zh
    buffer_zh
+   marl_zh

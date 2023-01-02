@@ -305,7 +305,7 @@
 
 
 <div class="viewcode-block" id="ISerialEvaluator"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.ISerialEvaluator">[docs]</a><span class="k">class</span> <span class="nc">ISerialEvaluator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Basic interface class for serial evaluator.</span>
 <span class="sd">    Interfaces:</span>
@@ -316,7 +316,7 @@
 
 <div class="viewcode-block" id="ISerialEvaluator.default_config"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.ISerialEvaluator.default_config">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get evaluator&#39;s default config. We merge evaluator&#39;s default config with other default configs\</span>
 <span class="sd">                and user&#39;s config to get the final config.</span>
@@ -359,7 +359,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_serial_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ISerialEvaluator</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a specific evaluator instance based on the config.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -370,7 +370,7 @@
 
 
 <div class="viewcode-block" id="VectorEvalMonitor"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor">[docs]</a><span class="k">class</span> <span class="nc">VectorEvalMonitor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        In some cases,  different environment in evaluator may collect different length episode. For example, \</span>
 <span class="sd">            suppose we want to collect 12 episodes in evaluator but only have 5 environments, if we didn’t do \</span>
@@ -382,7 +382,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="VectorEvalMonitor.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_episode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init method. According to the number of episodes and the number of environments, determine how many \</span>
 <span class="sd">                episodes need to be opened for each environment, and initialize the reward, info and other \</span>
@@ -405,7 +405,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">maxlen</span><span class="p">)</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">maxlen</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">each_env_episode</span><span class="p">)}</span></div>
 
 <div class="viewcode-block" id="VectorEvalMonitor.is_finished"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.is_finished">[docs]</a>    <span class="k">def</span> <span class="nf">is_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Determine whether the evaluator has completed the work.</span>
 <span class="sd">        Return:</span>
@@ -414,7 +414,7 @@
         <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">maxlen</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span></div>
 
 <div class="viewcode-block" id="VectorEvalMonitor.update_info"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_info">[docs]</a>    <span class="k">def</span> <span class="nf">update_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update the information of the environment indicated by env_id.</span>
 <span class="sd">        Arguments:</span>
@@ -425,7 +425,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="VectorEvalMonitor.update_reward"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_reward">[docs]</a>    <span class="k">def</span> <span class="nf">update_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">reward</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update the reward indicated by env_id.</span>
 <span class="sd">        Arguments:</span>
@@ -443,7 +443,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_video</span><span class="p">[</span><span class="n">env_id</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="p">[</span><span class="n">env_id</span><span class="p">])]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_video</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Convert list of videos into [N, T, C, H, W] tensor, containing</span>
 <span class="sd">            worst, median, best evaluation trajectories for video logging.</span>
@@ -474,14 +474,14 @@
         <span class="k">return</span> <span class="n">videos</span>
 
     <span class="k">def</span> <span class="nf">get_episode_return</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sum up all reward and get the total return of one episode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span> <span class="p">[])</span>  <span class="c1"># sum(iterable, start)</span>
 
 <div class="viewcode-block" id="VectorEvalMonitor.get_latest_reward"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_latest_reward">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the latest reward of a certain environment.</span>
 <span class="sd">        Arguments:</span>
@@ -490,14 +490,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="p">[</span><span class="n">env_id</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="VectorEvalMonitor.get_current_episode"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_current_episode">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the current episode. We can know which episode our evaluator is executing now.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span></div>
 
 <div class="viewcode-block" id="VectorEvalMonitor.get_episode_info"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_episode_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get all episode information, such as total return of one episode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

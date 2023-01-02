@@ -324,7 +324,7 @@
 <h2>举例<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>在这里，我们提供了一个多重离散动作空间环境的案例，它是通过将 Atari 游戏的单个动作空间分解为多个动作空间的笛卡尔积而得出的，例如6=2*3。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MultiDiscreteEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Map the actions from the factorized action spaces to the original single action space.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map the actions from the factorized action spaces to the original single action space.</span>
 
 <span class="sd">    :param gym.Env env: the environment to wrap.</span>
 <span class="sd">    :param list action_shape: dims of the the factorized action spaces.</span>
@@ -335,7 +335,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">action_shape</span><span class="p">))))</span>
 
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given factorized actions.</span>
 <span class="sd">        Arguments:</span>

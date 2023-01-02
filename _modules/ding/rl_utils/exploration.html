@@ -302,7 +302,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_epsilon_greedy_fn</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">decay</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;exp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Generate an epsilon_greedy function with decay, which inputs current timestep and outputs current epsilon.</span>
 <span class="sd">    Arguments:</span>
@@ -329,7 +329,7 @@
 
 
 <div class="viewcode-block" id="BaseNoise"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.BaseNoise">[docs]</a><span class="k">class</span> <span class="nc">BaseNoise</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base class for action noise</span>
 <span class="sd">    Interface:</span>
@@ -340,7 +340,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseNoise.__init__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.BaseNoise.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization method</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -348,7 +348,7 @@
 
 <div class="viewcode-block" id="BaseNoise.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.BaseNoise.__call__">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate noise according to action tensor&#39;s shape, device</span>
 <span class="sd">        Arguments:</span>
@@ -362,7 +362,7 @@
 
 
 <div class="viewcode-block" id="GaussianNoise"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.GaussianNoise">[docs]</a><span class="k">class</span> <span class="nc">GaussianNoise</span><span class="p">(</span><span class="n">BaseNoise</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Derived class for generating gaussian noise, which satisfies :math:`X \sim N(\mu, \sigma^2)`</span>
 <span class="sd">    Interface:</span>
@@ -370,7 +370,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="GaussianNoise.__init__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.GaussianNoise.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mu</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize :math:`\mu` and :math:`\sigma` in Gaussian Distribution</span>
 <span class="sd">        Arguments:</span>
@@ -383,7 +383,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sigma</span> <span class="o">=</span> <span class="n">sigma</span></div>
 
 <div class="viewcode-block" id="GaussianNoise.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.GaussianNoise.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate gaussian noise according to action tensor&#39;s shape, device</span>
 <span class="sd">        Arguments:</span>
@@ -399,7 +399,7 @@
 
 
 <div class="viewcode-block" id="OUNoise"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.OUNoise">[docs]</a><span class="k">class</span> <span class="nc">OUNoise</span><span class="p">(</span><span class="n">BaseNoise</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Derived class for generating Ornstein-Uhlenbeck process noise.</span>
 <span class="sd">        Satisfies :math:`dx_t=\theta(\mu-x_t)dt + \sigma dW_t`,</span>
@@ -416,7 +416,7 @@
             <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-2</span><span class="p">,</span>
             <span class="n">x0</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``_alpha`` :math:`=\theta * dt\`,</span>
 <span class="sd">            ``beta`` :math:`= \sigma * \sqrt{dt}`,  in Ornstein-Uhlenbeck process</span>
@@ -436,14 +436,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="OUNoise.reset"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.OUNoise.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset ``_x`` to the initial state ``_x0``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x0</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="OUNoise.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/exploration.html#ding.rl_utils.exploration.OUNoise.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mu</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate gaussian noise according to action tensor&#39;s shape, device</span>
 <span class="sd">        Arguments:</span>
@@ -470,7 +470,7 @@
 
     <span class="nd">@x0</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">x0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_x0</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set ``self._x0`` and reset ``self.x`` to ``self._x0`` as well</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -482,7 +482,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_noise_generator</span><span class="p">(</span><span class="n">noise_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">noise_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseNoise</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Given the key (noise_type), create a new noise generator instance if in noise_mapping&#39;s values,</span>
 <span class="sd">        or raise an KeyError. In other words, a derived noise generator must first register,</span>

@@ -4,7 +4,7 @@ BipedalWalker
 概述
 =======
 
-在 BipedalWalker 环境里，智能体需要输出 4 维的连续动作，控制 2D 的双足机器人在崎岖的地形上前进，在每一步应用电机扭矩会得到小的负的奖励，每前进一步会得到小的正的奖励，成功移动到最远端累计可以得到超过 300 分的奖励。如果机器人途中摔倒，会得到 -100 的奖励，且游戏结束。智能体的状态是 24 维连续向量，包括船体角速度(hull angle speed)、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及 10 次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。
+BipedalWalker是Gym中经典的一个双足四关节机器人环境，机器人需要在1600个时间步中得到300分方可通关这一环境。在这个环境中，机器人需要与环境不断交互，并最终习得跑步、跳跃、处理不同地形的运动方式等一系列技能。
 
 .. image:: ./images/bipedal_walker.gif
    :align: center
@@ -52,7 +52,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\
 观察空间
 --------
 
--  智能体的状态是 24 维连续向量，包括船体角速度（hull angle speed）、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及 10 次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。
+-  机器人的状态是由船体角速度（hull angle speed）、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及 10 次激光雷达测距仪的测量值组成的24维向量。需要注意的是 **该状态向量中不包含机器人的坐标**。
 
 
 动作空间
@@ -65,7 +65,7 @@ hub <https://hub.docker.com/r/opendilab/ding>`__\
 奖励空间
 --------
 
--  机器人在每一步应用电机扭矩会得到小的负的奖励，每前进一步会得到小的正的奖励，成功移动到最远端累计可以得到超过 300 分的奖励。如果机器人途中摔倒，会得到 -100 的奖励，且游戏结束。 奖励是一个\ float\ 数值，范围是 [-400, 300]。
+-  机器人驱动关节转动将得到少量的负奖励，前进则获得少量的正奖励，成功移动到最远端累计可以得到超过 300 分的奖励。如果机器人途中摔倒，会得到 -100 的奖励，且游戏结束。 奖励是一个\ float\ 数值，范围是 [-400, 300]。
 
 
 其他
@@ -110,80 +110,16 @@ DI-zoo 可运行代码示例
 
 完整的训练配置文件在 `github
 link <https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/bipedalwalker/config>`__
-内，对于具体的配置文件，例如\ ``bipedalwalker_td3_config.py``\ ，使用如下的demo即可运行：
+内，对于具体的配置文件，例如 `bipedalwalker_td3_config.py <https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/bipedalwalker/config/bipedalwalker_td3_config.py>`__ ，使用如下命令即可运行：
 
-.. code:: python
+.. code:: shell
 
-    bipedalwalker_td3_config = dict(
-        env=dict(
-            collector_env_num=1,
-            evaluator_env_num=5,
-            # (bool) Scale output action into legal range.
-            act_scale=True,
-            n_evaluator_episode=5,
-            stop_value=300,
-            rew_clip=True,
-            replay_path=None,
-        ),
-        policy=dict(
-            cuda=True,
-            priority=False,
-            model=dict(
-                obs_shape=24,
-                action_shape=4,
-                twin_critic=True,
-                actor_head_hidden_size=400,
-                critic_head_hidden_size=400,
-                actor_head_type='regression',
-            ),
-            learn=dict(
-                update_per_collect=4,
-                discount_factor=0.99,
-                batch_size=128,
-                learning_rate_actor=0.001,
-                learning_rate_critic=0.001,
-                target_theta=0.005,
-                ignore_done=False,
-                actor_update_freq=2,
-                noise=True,
-                noise_sigma=0.2,
-                noise_range=dict(
-                    min=-0.5,
-                    max=0.5,
-                ),
-            ),
-            collect=dict(
-                n_sample=256,
-                noise_sigma=0.1,
-                collector=dict(collect_print_freq=1000, ),
-            ),
-            eval=dict(evaluator=dict(eval_freq=100, ), ),
-            other=dict(replay_buffer=dict(replay_buffer_size=50000, ), ),
-        ),
-    )
-    bipedalwalker_td3_config = EasyDict(bipedalwalker_td3_config)
-    main_config = bipedalwalker_td3_config
-
-    bipedalwalker_td3_create_config = dict(
-        env=dict(
-            type='bipedalwalker',
-            import_names=['dizoo.box2d.bipedalwalker.envs.bipedalwalker_env'],
-        ),
-        env_manager=dict(type='base'),
-        policy=dict(type='td3'),
-    )
-    bipedalwalker_td3_create_config = EasyDict(bipedalwalker_td3_create_config)
-    create_config = bipedalwalker_td3_create_config
-
-   if __name__ == '__main__':
-       from ding.entry import serial_pipeline
-       serial_pipeline((main_config, create_config), seed=0)
-
-
+    python3 ./DI-engine/dizoo/bipdalwalker/config/box2dbipedalwalker_td3_config.py
+    
 基准算法性能
 ============
 
--  平均奖励大于等于 300 视为较好的 Agent
+-  平均奖励大于等于 300 视为表现较好的智能体
 
     - BipedalWalker + TD3
 

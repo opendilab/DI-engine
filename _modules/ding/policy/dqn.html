@@ -309,7 +309,7 @@
 
 <div class="viewcode-block" id="DQNPolicy"><a class="viewcode-back" href="../../../12_policies/dqn_zh.html#ding.policy.dqn.DQNPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DQNPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Policy class of DQN algorithm, extended by Double DQN/Dueling DQN/PER/multi-step TD.</span>
 
@@ -423,7 +423,7 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="DQNPolicy.default_model"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy.default_model">[docs]</a>    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return this algorithm default model setting for demonstration.</span>
 <span class="sd">        Returns:</span>
@@ -436,7 +436,7 @@
         <span class="k">return</span> <span class="s1">&#39;dqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Learn mode init method. Called by ``self.__init__``, initialize the optimizer, algorithm arguments, main \</span>
 <span class="sd">            and target model.</span>
@@ -472,7 +472,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward computation graph of learn mode(updating policy).</span>
 <span class="sd">        Arguments:</span>
@@ -543,7 +543,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="DQNPolicy._state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the state_dict of learn mode, usually including model and optimizer.</span>
 <span class="sd">        Returns:</span>
@@ -556,7 +556,7 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._load_state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the state_dict variable into policy learn mode.</span>
 <span class="sd">        Arguments:</span>
@@ -572,7 +572,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model, \</span>
 <span class="sd">            enable the eps_greedy_sample for exploration.</span>
@@ -584,7 +584,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.</span>
 <span class="sd">        Arguments:</span>
@@ -612,7 +612,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \</span>
 <span class="sd">            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \</span>
@@ -632,7 +632,7 @@
         <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate a transition(e.g.: &lt;s, a, s&#39;, r, d&gt;) for this algorithm training.</span>
 <span class="sd">        Arguments:</span>
@@ -654,7 +654,7 @@
         <span class="k">return</span> <span class="n">transition</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -662,7 +662,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DQNPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/dqn.html#ding.policy.dqn.DQNPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward computation graph of eval mode(evaluate policy performance), at most cases, it is similar to \</span>
 <span class="sd">            ``self._forward_collect``.</span>
@@ -691,7 +691,7 @@
 
 <span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn_stdim&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DQNSTDIMPolicy</span><span class="p">(</span><span class="n">DQNPolicy</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Policy class of DQN algorithm, extended by auxiliary objectives.</span>
 <span class="sd">    Config:</span>
@@ -808,7 +808,7 @@
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
 <span class="sd">            Init the auxiliary model, its optimizer, and the axuliary loss weight to the main loss.</span>
@@ -822,7 +822,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_aux_loss_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">aux_loss_weight</span>
 
     <span class="k">def</span> <span class="nf">_get_encoding_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the input encoding size of the ST-DIM axuiliary model.</span>
 <span class="sd">        Returns:</span>
@@ -842,7 +842,7 @@
         <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
 
     <span class="k">def</span> <span class="nf">_model_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the encoding of the main model as input for the auxiliary model.</span>
 <span class="sd">        Arguments:</span>
@@ -858,7 +858,7 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
 
     <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward computation graph of learn mode(updating policy).</span>
 <span class="sd">        Arguments:</span>
@@ -959,7 +959,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;bellman_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;aux_loss_learn&#39;</span><span class="p">,</span> <span class="s1">&#39;aux_loss_eval&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the state_dict of learn mode, usually including model and optimizer.</span>
 <span class="sd">        Returns:</span>
@@ -973,7 +973,7 @@
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the state_dict variable into policy learn mode.</span>
 <span class="sd">        Arguments:</span>

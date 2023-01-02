@@ -309,7 +309,7 @@
 
 
 <div class="viewcode-block" id="BaseLeague"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague">[docs]</a><span class="k">class</span> <span class="nc">BaseLeague</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        League, proposed by Google Deepmind AlphaStar. Can manage multiple players in one league.</span>
 <span class="sd">    Interface:</span>
@@ -361,7 +361,7 @@
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization method.</span>
 <span class="sd">        Arguments:</span>
@@ -384,7 +384,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_players</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_init_players</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize players (active &amp; historical) in the league.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -430,7 +430,7 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_players_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_players_ids</span><span class="p">))</span>
 
 <div class="viewcode-block" id="BaseLeague.get_job_info"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.get_job_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get info dict of the job which is to be launched to an active player.</span>
 <span class="sd">        Arguments:</span>
@@ -452,7 +452,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">_get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Real `get_job` method. Called by ``_launch_job``.</span>
 <span class="sd">        Arguments:</span>
@@ -464,7 +464,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseLeague.judge_snapshot"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.judge_snapshot">[docs]</a>    <span class="k">def</span> <span class="nf">judge_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Judge whether a player is trained enough for snapshot. If yes, call player&#39;s ``snapshot``, create a</span>
 <span class="sd">            historical player(prepare the checkpoint and add it to the shared payoff), then mutate it, and return True.</span>
@@ -491,7 +491,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">_mutate_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Players have the probability to mutate, e.g. Reset network parameters.</span>
 <span class="sd">            Called by ``self.judge_snapshot``.</span>
@@ -501,7 +501,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseLeague.update_active_player"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.update_active_player">[docs]</a>    <span class="k">def</span> <span class="nf">update_active_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update an active player&#39;s info.</span>
 <span class="sd">        Arguments:</span>
@@ -518,7 +518,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">_update_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update an active player. Called by ``self.update_active_player``.</span>
 <span class="sd">        Arguments:</span>
@@ -528,7 +528,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseLeague.finish_job"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.finish_job">[docs]</a>    <span class="k">def</span> <span class="nf">finish_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Finish current job. Update shared payoff to record the game results.</span>
 <span class="sd">        Arguments:</span>
@@ -554,7 +554,7 @@
 
 <div class="viewcode-block" id="BaseLeague.save_checkpoint"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.save_checkpoint">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">save_checkpoint</span><span class="p">(</span><span class="n">src_checkpoint</span><span class="p">,</span> <span class="n">dst_checkpoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Copy a checkpoint from path ``src_checkpoint`` to path ``dst_checkpoint``.</span>
 <span class="sd">        Arguments:</span>
@@ -581,7 +581,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_league</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseLeague</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Given the key (league_type), create a new league instance if in league_mapping&#39;s values,</span>
 <span class="sd">        or raise an KeyError. In other words, a derived league must first register then call ``create_league``</span>

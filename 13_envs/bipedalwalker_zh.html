@@ -302,7 +302,7 @@
 <h1>BipedalWalker<a class="headerlink" href="#bipedalwalker" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>在 BipedalWalker 环境里，智能体需要输出 4 维的连续动作，控制 2D 的双足机器人在崎岖的地形上前进，在每一步应用电机扭矩会得到小的负的奖励，每前进一步会得到小的正的奖励，成功移动到最远端累计可以得到超过 300 分的奖励。如果机器人途中摔倒，会得到 -100 的奖励，且游戏结束。智能体的状态是 24 维连续向量，包括船体角速度(hull angle speed)、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及 10 次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。</p>
+<p>BipedalWalker是Gym中经典的一个双足四关节机器人环境，机器人需要在1600个时间步中得到300分方可通关这一环境。在这个环境中，机器人需要与环境不断交互，并最终习得跑步、跳跃、处理不同地形的运动方式等一系列技能。</p>
 <img alt="../_images/bipedal_walker.gif" class="align-center" src="../_images/bipedal_walker.gif" />
 </section>
 <section id="id2">
@@ -311,11 +311,11 @@
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>安装 gym 和 box2d 两个库即可，可以通过 pip 一键安装或结合 DI-engine 安装</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
-pip install gym
-pip install box2d
+pip<span class="w"> </span>install<span class="w"> </span>gym
+pip<span class="w"> </span>install<span class="w"> </span>box2d
 <span class="c1"># Method2: Install with DI-engine requirements</span>
-<span class="nb">cd</span> DI-engine
-pip install <span class="s2">&quot;.[common_env]&quot;</span>
+<span class="nb">cd</span><span class="w"> </span>DI-engine
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[common_env]&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -340,7 +340,7 @@ hub</a></p>
 <section id="id7">
 <h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>智能体的状态是 24 维连续向量，包括船体角速度（hull angle speed）、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及 10 次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。</p></li>
+<li><p>机器人的状态是由船体角速度（hull angle speed）、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及 10 次激光雷达测距仪的测量值组成的24维向量。需要注意的是 <strong>该状态向量中不包含机器人的坐标</strong>。</p></li>
 </ul>
 </section>
 <section id="id8">
@@ -353,7 +353,7 @@ hub</a></p>
 <section id="id9">
 <h3>奖励空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>机器人在每一步应用电机扭矩会得到小的负的奖励，每前进一步会得到小的正的奖励，成功移动到最远端累计可以得到超过 300 分的奖励。如果机器人途中摔倒，会得到 -100 的奖励，且游戏结束。 奖励是一个float数值，范围是 [-400, 300]。</p></li>
+<li><p>机器人驱动关节转动将得到少量的负奖励，前进则获得少量的正奖励，成功移动到最远端累计可以得到超过 300 分的奖励。如果机器人途中摔倒，会得到 -100 的奖励，且游戏结束。 奖励是一个float数值，范围是 [-400, 300]。</p></li>
 </ul>
 </section>
 </section>
@@ -392,78 +392,15 @@ hub</a></p>
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/bipedalwalker/config">github
 link</a>
-内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">bipedalwalker_td3_config.py</span></code>，使用如下的demo即可运行：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="n">bipedalwalker_td3_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-         <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-         <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-         <span class="c1"># (bool) Scale output action into legal range.</span>
-         <span class="n">act_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-         <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-         <span class="n">stop_value</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
-         <span class="n">rew_clip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-         <span class="n">replay_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-     <span class="p">),</span>
-     <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-         <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-             <span class="n">obs_shape</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
-             <span class="n">action_shape</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-             <span class="n">twin_critic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-             <span class="n">actor_head_hidden_size</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
-             <span class="n">critic_head_hidden_size</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
-             <span class="n">actor_head_type</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span>
-         <span class="p">),</span>
-         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-             <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-             <span class="n">batch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
-             <span class="n">learning_rate_actor</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-             <span class="n">learning_rate_critic</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-             <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
-             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-             <span class="n">actor_update_freq</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-             <span class="n">noise</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-             <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-             <span class="n">noise_range</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                 <span class="nb">min</span><span class="o">=-</span><span class="mf">0.5</span><span class="p">,</span>
-                 <span class="nb">max</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-             <span class="p">),</span>
-         <span class="p">),</span>
-         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-             <span class="n">n_sample</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
-             <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-             <span class="n">collector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">collect_print_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="p">),</span>
-         <span class="p">),</span>
-         <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
-         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
-     <span class="p">),</span>
- <span class="p">)</span>
- <span class="n">bipedalwalker_td3_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">bipedalwalker_td3_config</span><span class="p">)</span>
- <span class="n">main_config</span> <span class="o">=</span> <span class="n">bipedalwalker_td3_config</span>
-
- <span class="n">bipedalwalker_td3_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;bipedalwalker&#39;</span><span class="p">,</span>
-         <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.box2d.bipedalwalker.envs.bipedalwalker_env&#39;</span><span class="p">],</span>
-     <span class="p">),</span>
-     <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
-     <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;td3&#39;</span><span class="p">),</span>
- <span class="p">)</span>
- <span class="n">bipedalwalker_td3_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">bipedalwalker_td3_create_config</span><span class="p">)</span>
- <span class="n">create_config</span> <span class="o">=</span> <span class="n">bipedalwalker_td3_create_config</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
-    <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+内，对于具体的配置文件，例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/bipedalwalker/config/bipedalwalker_td3_config.py">bipedalwalker_td3_config.py</a> ，使用如下命令即可运行：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>./DI-engine/dizoo/bipdalwalker/config/box2dbipedalwalker_td3_config.py
 </pre></div>
 </div>
 </section>
 <section id="id13">
 <h2>基准算法性能<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p>平均奖励大于等于 300 视为较好的 Agent</p>
+<li><p>平均奖励大于等于 300 视为表现较好的智能体</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>BipedalWalker + TD3</p></li>

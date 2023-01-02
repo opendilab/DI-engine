@@ -306,7 +306,7 @@ Here is the screeshot of game:</p>
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <section id="installation-method">
 <h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install gym-super-mario-bros
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>gym-super-mario-bros
 </pre></div>
 </div>
 </section>
@@ -333,19 +333,19 @@ Here is the screeshot of game:</p>
 <section id="solution-for-installation-failure">
 <h3>Solution for Installation Failure<a class="headerlink" href="#solution-for-installation-failure" title="Permalink to this headline">¶</a></h3>
 <p>A common error:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
-File <span class="s2">&quot;test_mario.py&quot;</span>, line <span class="m">13</span>, <span class="k">in</span> &lt;module&gt;
-    state, reward, <span class="k">done</span>, <span class="nv">info</span> <span class="o">=</span> env.step<span class="o">(</span>env.action_space.sample<span class="o">())</span>
-File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/nes_py/wrappers/joypad_space.py&quot;</span>, line <span class="m">74</span>, <span class="k">in</span> step
-    <span class="k">return</span> self.env.step<span class="o">(</span>self._action_map<span class="o">[</span>action<span class="o">])</span>
-File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/gym/wrappers/time_limit.py&quot;</span>, line <span class="m">50</span>, <span class="k">in</span> step
-    observation, reward, terminated, truncated, <span class="nv">info</span> <span class="o">=</span> self.env.step<span class="o">(</span>action<span class="o">)</span>
-ValueError: not enough values to unpack <span class="o">(</span>expected <span class="m">5</span>, got <span class="m">4</span><span class="o">)</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Traceback<span class="w"> </span><span class="o">(</span>most<span class="w"> </span>recent<span class="w"> </span>call<span class="w"> </span>last<span class="o">)</span>:
+File<span class="w"> </span><span class="s2">&quot;test_mario.py&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">13</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>&lt;module&gt;
+<span class="w">    </span>state,<span class="w"> </span>reward,<span class="w"> </span><span class="k">done</span>,<span class="w"> </span><span class="nv">info</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>env.step<span class="o">(</span>env.action_space.sample<span class="o">())</span>
+File<span class="w"> </span><span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/nes_py/wrappers/joypad_space.py&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">74</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>step
+<span class="w">    </span><span class="k">return</span><span class="w"> </span>self.env.step<span class="o">(</span>self._action_map<span class="o">[</span>action<span class="o">])</span>
+File<span class="w"> </span><span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/gym/wrappers/time_limit.py&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">50</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>step
+<span class="w">    </span>observation,<span class="w"> </span>reward,<span class="w"> </span>terminated,<span class="w"> </span>truncated,<span class="w"> </span><span class="nv">info</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>self.env.step<span class="o">(</span>action<span class="o">)</span>
+ValueError:<span class="w"> </span>not<span class="w"> </span>enough<span class="w"> </span>values<span class="w"> </span>to<span class="w"> </span>unpack<span class="w"> </span><span class="o">(</span>expected<span class="w"> </span><span class="m">5</span>,<span class="w"> </span>got<span class="w"> </span><span class="m">4</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>Due to the updates of gym-super-mario-bros code base cannot keep up with the updates of gym code base sometimes, while executing <cite>pip install gym-super-mario-bros</cite>, the latest gym would be installed by default.The solution is to downgrade gym.
 Here gym-super-mario-bros version is 7.4.0, gym version is 0.26.2. We may choose to downgrade gym version to 0.25.1 to solve problems.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install <span class="nv">gym</span><span class="o">==</span><span class="m">0</span>.25.1
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">gym</span><span class="o">==</span><span class="m">0</span>.25.1
 </pre></div>
 </div>
 </section>
@@ -371,7 +371,7 @@ For Super Mario Bros, in addition to the 32 level, the game also offers the opti
 <h3>Keyboard Interaction<a class="headerlink" href="#keyboard-interaction" title="Permalink to this headline">¶</a></h3>
 <p>When you have a display device for rendering, you can try to operate with the keyboard. The environment provides a command line interface, which starts as follows:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start 1-4 level</span>
-gym_super_mario_bros -e <span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span> -m <span class="s1">&#39;human&#39;</span> --stages <span class="s1">&#39;1-4&#39;</span>
+gym_super_mario_bros<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span><span class="w"> </span>-m<span class="w"> </span><span class="s1">&#39;human&#39;</span><span class="w"> </span>--stages<span class="w"> </span><span class="s1">&#39;1-4&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -435,21 +435,21 @@ To compress this size (and to facilitate learning by the intelligences), the env
 <section id="state-space">
 <h3>State Space<a class="headerlink" href="#state-space" title="Permalink to this headline">¶</a></h3>
 <p>The state space input to gym-super-mario-bros is the image information, and the tensor matrix in three dimensions (datatype=uint8). In addition, the different versions of the game correspond to the same image resolution <code class="docutils literal notranslate"><span class="pre">240*256*3</span></code>, but the higher the version, the more abbreviated the image is (pixel blocking), as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; <span class="c1"># View observation space</span>
-&gt;&gt;&gt; gym_super_mario_bros.make<span class="o">(</span><span class="s1">&#39;SuperMarioBros-v3&#39;</span><span class="o">)</span>.observation_space
-Box<span class="o">([[[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt;<span class="w"> </span><span class="c1"># View observation space</span>
+&gt;&gt;&gt;<span class="w"> </span>gym_super_mario_bros.make<span class="o">(</span><span class="s1">&#39;SuperMarioBros-v3&#39;</span><span class="o">)</span>.observation_space
+Box<span class="o">([[[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
 ...
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]]]</span>, <span class="o">[[[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]]]</span>,<span class="w"> </span><span class="o">[[[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
 ...
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]]]</span>, <span class="o">(</span><span class="m">240</span>, <span class="m">256</span>, <span class="m">3</span><span class="o">)</span>, uint8<span class="o">)</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]]]</span>,<span class="w"> </span><span class="o">(</span><span class="m">240</span>,<span class="w"> </span><span class="m">256</span>,<span class="w"> </span><span class="m">3</span><span class="o">)</span>,<span class="w"> </span>uint8<span class="o">)</span>
 </pre></div>
 </div>
 <p>The corresponding game screenshots of <code class="docutils literal notranslate"><span class="pre">v3</span></code> are as follows:</p>

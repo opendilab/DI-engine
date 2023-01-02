@@ -301,7 +301,7 @@
 
 
 <div class="viewcode-block" id="BaseCommCollector"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector">[docs]</a><span class="k">class</span> <span class="nc">BaseCommCollector</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Abstract baseclass for common collector.</span>
 <span class="sd">    Interfaces:</span>
@@ -312,7 +312,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseCommCollector.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization method.</span>
 <span class="sd">        Arguments:</span>
@@ -324,7 +324,7 @@
 
 <div class="viewcode-block" id="BaseCommCollector.get_policy_update_info"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector.get_policy_update_info">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">get_policy_update_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get policy information in corresponding path.</span>
 <span class="sd">            Will be registered in base collector.</span>
@@ -335,7 +335,7 @@
 
 <div class="viewcode-block" id="BaseCommCollector.send_metadata"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector.send_metadata">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">send_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Store meta data in queue, which will be retrieved by callback function &quot;deal_with_collector_data&quot;</span>
 <span class="sd">            in collector slave, then will be sent to coordinator.</span>
@@ -347,7 +347,7 @@
 
 <div class="viewcode-block" id="BaseCommCollector.send_stepdata"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector.send_stepdata">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">send_stepdata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stepdata</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save step data in corresponding path.</span>
 <span class="sd">            Will be registered in base collector.</span>
@@ -357,14 +357,14 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="BaseCommCollector.start"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Start comm collector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="BaseCommCollector.close"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Close comm collector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -375,7 +375,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collector_uid</span>
 
 <div class="viewcode-block" id="BaseCommCollector._create_collector"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.base_comm_collector.BaseCommCollector._create_collector">[docs]</a>    <span class="k">def</span> <span class="nf">_create_collector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseParallelCollector</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Receive ``task_info`` passed from coordinator and create a collector.</span>
 <span class="sd">        Arguments:</span>
@@ -396,7 +396,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_comm_collector</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseCommCollector</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Given the key(comm_collector_name), create a new comm collector instance if in comm_map&#39;s values,</span>
 <span class="sd">        or raise an KeyError. In other words, a derived comm collector must first register,</span>

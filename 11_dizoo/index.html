@@ -322,16 +322,16 @@
 <section id="how-to-use-di-zoo">
 <h2>How to use DI-zoo<a class="headerlink" href="#how-to-use-di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>You can directly execute the <code class="docutils literal notranslate"><span class="pre">config.py</span></code> file provided by DI-zoo to train a certain environment/policy pair. For CartPole/DQN, you can easily perform the RL experiment with the following code:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python dizoo/classic_control/cartpole/config/cartpole_dqn_config.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dizoo/classic_control/cartpole/config/cartpole_dqn_config.py
 </pre></div>
 </div>
 <p>DI-engine also provides the CLI tool for users, you can type the following command in your terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -v
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding<span class="w"> </span>-v
 </pre></div>
 </div>
 <p>If the terminal returns the correct information, you can use this CLI tool for the common training and evaluation, and you can type <code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-h</span></code> for further usage。</p>
 <p>To train CartPole/DQN, you can directly type the following command in the terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -m serial -c cartpole_dqn_config.py -s <span class="m">0</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding<span class="w"> </span>-m<span class="w"> </span>serial<span class="w"> </span>-c<span class="w"> </span>cartpole_dqn_config.py<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">serial</span></code> means that the training pipeline you call is <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code>. <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">cartpole_dqn_config.py</span></code> means that the <code class="docutils literal notranslate"><span class="pre">config</span></code> file you use is <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code>. <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">0</span></code> means <code class="docutils literal notranslate"><span class="pre">seed</span></code> is 0.</p>
@@ -405,7 +405,7 @@
 <p>The two dictionary objects <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config</span></code> and <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_create_config</span></code> contain the key configurations required for CartPole/DQN training. You can change the behavior of your training pipeline by changing the configuration here. For example, by changing <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.policy.cuda</span></code> , you can choose whether to use your cuda device to run the entire training process.</p>
 <p>If you want to use other training pipelines provided by DI-engine, or use your own customized training pipelines, you only need to change the <code class="docutils literal notranslate"><span class="pre">__main__</span></code> function of <code class="docutils literal notranslate"><span class="pre">config.py</span></code> that calls the training pipeline. For example, you can change the <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> in the example to <code class="docutils literal notranslate"><span class="pre">parallel_pipeline</span></code> to call the parallel training pipeline.</p>
 <p>For the CLI tool <code class="docutils literal notranslate"><span class="pre">ding</span></code>, you can also change the previous cli command to</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -m parallel -c cartpole_dqn_config.py -s <span class="m">0</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding<span class="w"> </span>-m<span class="w"> </span>parallel<span class="w"> </span>-c<span class="w"> </span>cartpole_dqn_config.py<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>
 </pre></div>
 </div>
 <p>to call <code class="docutils literal notranslate"><span class="pre">parallel_pipeline</span></code>.</p>

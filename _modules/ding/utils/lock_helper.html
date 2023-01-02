@@ -308,7 +308,7 @@
 
 <span class="nd">@unique</span>
 <span class="k">class</span> <span class="nc">LockContextType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Enum to express the type of the lock</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">THREAD_LOCK</span> <span class="o">=</span> <span class="mi">1</span>
@@ -322,7 +322,7 @@
 
 
 <div class="viewcode-block" id="LockContext"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext">[docs]</a><span class="k">class</span> <span class="nc">LockContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Generate a LockContext in order to make sure the thread safety.</span>
 
@@ -335,7 +335,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LockContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">LockContextType</span> <span class="o">=</span> <span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the lock according to given type</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -348,14 +348,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 
 <div class="viewcode-block" id="LockContext.__enter__"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext.__enter__">[docs]</a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Entering the context and acquire lock</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="LockContext.__exit__"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext.__exit__">[docs]</a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Quiting the context and release lock</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -366,7 +366,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_rw_file_lock</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get generated file lock with name and operator</span>
 <span class="sd">    Arguments:</span>

@@ -301,7 +301,7 @@
 
 
 <div class="viewcode-block" id="BaseCommander"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.BaseCommander">[docs]</a><span class="k">class</span> <span class="nc">BaseCommander</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base parallel commander abstract class.</span>
 <span class="sd">    Interface:</span>
@@ -333,7 +333,7 @@
 
 <div class="viewcode-block" id="NaiveCommander"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander">[docs]</a><span class="nd">@COMMANDER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;naive&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">NaiveCommander</span><span class="p">(</span><span class="n">BaseCommander</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A naive implementation of parallel commander.</span>
 <span class="sd">    Interface:</span>
@@ -347,7 +347,7 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="NaiveCommander.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the naive commander according to config</span>
 <span class="sd">        Arguments:</span>
@@ -372,7 +372,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_task_finish_count</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 <div class="viewcode-block" id="NaiveCommander.get_collector_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_collector_task">[docs]</a>    <span class="k">def</span> <span class="nf">get_collector_task</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get a new collector task when ``collector_task_count`` is smaller than ``collector_task_space``.</span>
 <span class="sd">        Return:</span>
@@ -396,7 +396,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="NaiveCommander.get_learner_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_learner_task">[docs]</a>    <span class="k">def</span> <span class="nf">get_learner_task</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the new learner task when task_count is less than task_space</span>
 <span class="sd">        Return:</span>
@@ -418,7 +418,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="NaiveCommander.finish_collector_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_collector_task">[docs]</a>    <span class="k">def</span> <span class="nf">finish_collector_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">finished_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            finish collector task will add the collector_task_finish_count</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -426,7 +426,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_task_finish_count</span> <span class="o">+=</span> <span class="mi">1</span></div>
 
 <div class="viewcode-block" id="NaiveCommander.finish_learner_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_learner_task">[docs]</a>    <span class="k">def</span> <span class="nf">finish_learner_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">finished_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            finish learner task will add the learner_task_finish_count and get the buffer_id of task to close the buffer</span>
 <span class="sd">        Return:</span>
@@ -437,21 +437,21 @@
         <span class="k">return</span> <span class="n">finished_task</span><span class="p">[</span><span class="s1">&#39;buffer_id&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="NaiveCommander.notify_fail_collector_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task">[docs]</a>    <span class="k">def</span> <span class="nf">notify_fail_collector_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            naive coordinator will pass when need to notify_fail_collector_task</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_task_space</span><span class="o">.</span><span class="n">release_space</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="NaiveCommander.notify_fail_learner_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_learner_task">[docs]</a>    <span class="k">def</span> <span class="nf">notify_fail_learner_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            naive coordinator will pass when need to notify_fail_learner_task</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learner_task_space</span><span class="o">.</span><span class="n">release_space</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">update_learner_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            append the info to learner:</span>
 <span class="sd">        Arguments:</span>
@@ -461,14 +461,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_learner_info</span><span class="p">[</span><span class="n">task_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">increase_collector_task_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">        Increase task space when a new collector has added dynamically.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_task_space</span><span class="o">.</span><span class="n">increase_space</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">decrease_collector_task_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">        Decrease task space when a new collector has removed dynamically.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -476,7 +476,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_parallel_commander</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseCommander</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        create the commander according to cfg</span>
 <span class="sd">    Arguments:</span>

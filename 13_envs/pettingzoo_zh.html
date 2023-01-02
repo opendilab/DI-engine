@@ -312,7 +312,7 @@
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/sisl">SISL</a>：3 个合作环境，源于 <a class="reference external" href="https://github.com/sisl/MADRL">https://github.com/sisl/MADRL</a></p></li>
 </ul>
 <p>下图所示为其中的 mpe_simple_spread 环境：</p>
-<img alt="../_images/mpe_simple_spread.gif" class="align-center" src="../_images/mpe_simple_spread.gif" />
+<img alt="../_images/mpe_simple_spread1.gif" class="align-center" src="../_images/mpe_simple_spread1.gif" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>需要注意的是，PettingZoo 出于可重复的考虑，保持严格的版本管理。所有环境都以<code class="docutils literal notranslate"><span class="pre">_v0</span></code> 这样的后缀结尾。当环境发生变化而可能影响学习结果时，数字会增加一个（例如<code class="docutils literal notranslate"><span class="pre">_v0</span></code>-&gt;<code class="docutils literal notranslate"><span class="pre">_v1</span></code>），以防止潜在的混淆。</p>
@@ -325,16 +325,16 @@
 <p>目前 PettingZoo 官方支持 Linux 和 macOS 上的 Python 3.7~3.9。</p>
 <p>可以通过 pip 直接安装；此外，由于 DI-engine 中有单元测试用到了 PettingZoo，因此安装 DI-engine 也会默认安装 PettingZoo：</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install directly with pip</span>
-pip install pettingzoo
+pip<span class="w"> </span>install<span class="w"> </span>pettingzoo
 <span class="c1"># Method2: Just install DI-engine</span>
-pip install DI-engine
+pip<span class="w"> </span>install<span class="w"> </span>DI-engine
 </pre></div>
 </div>
 <p>由于 PettingZoo 所包含的环境非常多，不同的环境在不同的系统上安装情况也各不相同。因此以上的安装并没有包含所有环境家族的所有依赖。对于特定的环境家族依赖，你可以这样安装：</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># install Atari family dependency</span>
-pip install pettingzoo<span class="o">[</span>atari<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class="o">[</span>atari<span class="o">]</span>
 <span class="c1"># or install all dependencies</span>
-pip install pettingzoo<span class="o">[</span>all<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class="o">[</span>all<span class="o">]</span>
 </pre></div>
 </div>
 </section>

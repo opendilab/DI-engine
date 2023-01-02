@@ -303,7 +303,7 @@
 
 
 <div class="viewcode-block" id="Pd"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd">[docs]</a><span class="k">class</span> <span class="nc">Pd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Abstract class for parameterizable probability distributions and sampling functions.</span>
 <span class="sd">    Interface:</span>
@@ -315,7 +315,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Pd.neglogp"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd.neglogp">[docs]</a>    <span class="k">def</span> <span class="nf">neglogp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate cross_entropy between input x and logits</span>
 <span class="sd">        Arguments:</span>
@@ -326,7 +326,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Pd.entropy"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the softmax entropy of logits</span>
 <span class="sd">        Arguments:</span>
@@ -337,21 +337,21 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Pd.noise_mode"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd.noise_mode">[docs]</a>    <span class="k">def</span> <span class="nf">noise_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Add noise to logits. This method is designed for randomness</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Pd.mode"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return logits argmax result. This method is designed for deterministic.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Pd.sample"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.Pd.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from logits&#39;s distribution by using softmax. This method is designed for multinomial.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -359,7 +359,7 @@
 
 
 <div class="viewcode-block" id="CategoricalPd"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd">[docs]</a><span class="k">class</span> <span class="nc">CategoricalPd</span><span class="p">(</span><span class="n">Pd</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Catagorical probility distribution sampler</span>
 <span class="sd">    Interface:</span>
@@ -367,7 +367,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Pd with logits</span>
 <span class="sd">        Arguments:</span>
@@ -376,7 +376,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">update_logits</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CategoricalPd.update_logits"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.update_logits">[docs]</a>    <span class="k">def</span> <span class="nf">update_logits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Updata logits</span>
 <span class="sd">        Arguments:</span>
@@ -385,7 +385,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.neglogp"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.neglogp">[docs]</a>    <span class="k">def</span> <span class="nf">neglogp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">reduction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mean&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate cross_entropy between input x and logits</span>
 <span class="sd">        Arguments:</span>
@@ -397,7 +397,7 @@
         <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logits</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="n">reduction</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.entropy"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reduction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mean&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the softmax entropy of logits</span>
 <span class="sd">        Arguments:</span>
@@ -417,7 +417,7 @@
             <span class="k">return</span> <span class="n">entropy</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.noise_mode"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.noise_mode">[docs]</a>    <span class="k">def</span> <span class="nf">noise_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            add noise to logits</span>
 <span class="sd">        Arguments:</span>
@@ -441,7 +441,7 @@
             <span class="k">return</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.mode"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            return logits argmax result</span>
 <span class="sd">        Arguments:</span>
@@ -460,7 +460,7 @@
             <span class="k">return</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.sample"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from logits&#39;s distribution by using softmax</span>
 <span class="sd">        Arguments:</span>
@@ -481,7 +481,7 @@
 
 
 <div class="viewcode-block" id="CategoricalPdPytorch"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch">[docs]</a><span class="k">class</span> <span class="nc">CategoricalPdPytorch</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Wrapped ``torch.distributions.Categorical``</span>
 
@@ -494,7 +494,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">update_probs</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CategoricalPdPytorch.update_logits"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.update_logits">[docs]</a>    <span class="k">def</span> <span class="nf">update_logits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Updata logits</span>
 <span class="sd">        Arguments:</span>
@@ -503,7 +503,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CategoricalPdPytorch.update_probs"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.update_probs">[docs]</a>    <span class="k">def</span> <span class="nf">update_probs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Updata probs</span>
 <span class="sd">        Arguments:</span>
@@ -512,7 +512,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">probs</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CategoricalPdPytorch.sample"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from logits&#39;s distribution by using softmax</span>
 <span class="sd">        Return:</span>
@@ -521,7 +521,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CategoricalPdPytorch.neglogp"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.neglogp">[docs]</a>    <span class="k">def</span> <span class="nf">neglogp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">reduction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mean&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate cross_entropy between input x and logits</span>
 <span class="sd">        Arguments:</span>
@@ -538,7 +538,7 @@
             <span class="k">return</span> <span class="n">neglogp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CategoricalPdPytorch.mode"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return logits argmax result</span>
 <span class="sd">        Return:</span>
@@ -547,7 +547,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CategoricalPdPytorch.entropy"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reduction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the softmax entropy of logits</span>
 <span class="sd">        Arguments:</span>

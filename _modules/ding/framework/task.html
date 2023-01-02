@@ -313,7 +313,7 @@
 
 
 <span class="k">def</span> <span class="nf">enable_async</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Empower the function with async ability.</span>
 <span class="sd">    Arguments:</span>
@@ -324,7 +324,7 @@
 
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">runtime_handler</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">async_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Task&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            If task&#39;s async mode is enabled, execute the step in current loop executor asyncly,</span>
 <span class="sd">            or execute the task sync.</span>
@@ -360,7 +360,7 @@
 
 
 <div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Tash will manage the execution order of the entire pipeline, register new middleware,</span>
 <span class="sd">    and generate new context objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -368,6 +368,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finish</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -439,7 +440,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;standalone&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Task.use"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.use">[docs]</a>    <span class="k">def</span> <span class="nf">use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">lock</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Register middleware to task. The middleware will be executed by it&#39;s registry order.</span>
 <span class="sd">        Arguments:</span>
@@ -457,7 +458,7 @@
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="Task.use_wrapper"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.use_wrapper">[docs]</a>    <span class="k">def</span> <span class="nf">use_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Register wrappers to task. A wrapper works like a decorator, but task will apply this \</span>
 <span class="sd">            decorator on top of each middleware.</span>
@@ -473,7 +474,7 @@
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="Task.match_labels"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.match_labels">[docs]</a>    <span class="k">def</span> <span class="nf">match_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patterns</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            A list of patterns to match labels.</span>
 <span class="sd">        Arguments:</span>
@@ -484,7 +485,7 @@
         <span class="k">return</span> <span class="nb">any</span><span class="p">([</span><span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Task.run"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e12</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute the iterations, when reach the max_step or task.finish is true,</span>
 <span class="sd">            The loop will be break.</span>
@@ -509,7 +510,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">renew</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Task.wrap"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.wrap">[docs]</a>    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">lock</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wrap the middleware, make it can be called directly in other middleware.</span>
 <span class="sd">        Arguments:</span>
@@ -551,7 +552,7 @@
 
 <div class="viewcode-block" id="Task.forward"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.forward">[docs]</a>    <span class="nd">@enable_async</span>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Context</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Generator</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            This function will execute the middleware until the first yield statment,</span>
 <span class="sd">            or the end of the middleware.</span>
@@ -575,7 +576,7 @@
 
 <div class="viewcode-block" id="Task.backward"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.backward">[docs]</a>    <span class="nd">@enable_async</span>
     <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backward_stack</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Generator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute the rest part of middleware, by the reversed order of registry.</span>
 <span class="sd">        Arguments:</span>
@@ -598,7 +599,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span>
 
 <div class="viewcode-block" id="Task.serial"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.serial">[docs]</a>    <span class="k">def</span> <span class="nf">serial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wrap functions and keep them run in serial, Usually in order to avoid the confusion</span>
 <span class="sd">            of dependencies in async mode.</span>
@@ -623,7 +624,7 @@
         <span class="k">return</span> <span class="n">_serial</span></div>
 
 <div class="viewcode-block" id="Task.parallel"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.parallel">[docs]</a>    <span class="k">def</span> <span class="nf">parallel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wrap functions and keep them run in parallel, should not use this funciton in async mode.</span>
 <span class="sd">        Arguments:</span>
@@ -650,7 +651,7 @@
         <span class="k">return</span> <span class="n">_parallel</span></div>
 
 <div class="viewcode-block" id="Task.renew"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.renew">[docs]</a>    <span class="k">def</span> <span class="nf">renew</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Renew the context instance, this function should be called after backward in the end of iteration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -665,7 +666,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Task.stop"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Stop and cleanup every thing in the runtime of task.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -706,7 +707,7 @@
                     <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">async_executor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute task in background, then apppend the future instance in _async_stack.</span>
 <span class="sd">        Arguments:</span>
@@ -718,7 +719,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_async_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Task.emit"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.emit">[docs]</a>    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">only_remote</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">only_local</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Emit an event, call listeners.</span>
 <span class="sd">        Arguments:</span>
@@ -740,7 +741,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Task.on"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.on">[docs]</a>    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Subscribe to an event, execute this function every time the event is emitted.</span>
 <span class="sd">        Arguments:</span>
@@ -752,7 +753,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wrap_event_name</span><span class="p">(</span><span class="n">event</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">emit</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Task.once"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.once">[docs]</a>    <span class="k">def</span> <span class="nf">once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Subscribe to an event, execute this function only once when the event is emitted.</span>
 <span class="sd">        Arguments:</span>
@@ -764,7 +765,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wrap_event_name</span><span class="p">(</span><span class="n">event</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">emit</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unsubscribe an event</span>
 <span class="sd">        Arguments:</span>
@@ -776,7 +777,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">off</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wrap_event_name</span><span class="p">(</span><span class="n">event</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Task.wait_for"><a class="viewcode-back" href="../../../05_api_doc/framework/task.html#ding.framework.task.Task.wait_for">[docs]</a>    <span class="k">def</span> <span class="nf">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">ignore_timeout_exception</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wait for an event and block the thread.</span>
 <span class="sd">        Arguments:</span>
@@ -815,7 +816,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_finish</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="k">def</span> <span class="nf">_wrap_event_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wrap the event name sent to the router.</span>
 <span class="sd">        Arguments:</span>

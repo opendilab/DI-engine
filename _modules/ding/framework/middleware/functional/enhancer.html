@@ -304,7 +304,7 @@
 
 
 <div class="viewcode-block" id="reward_estimator"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/enhancer.html#ding.framework.middleware.functional.enhancer.reward_estimator">[docs]</a><span class="k">def</span> <span class="nf">reward_estimator</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">reward_model</span><span class="p">:</span> <span class="s2">&quot;BaseRewardModel&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Estimate the reward of `train_data` using `reward_model`.</span>
 <span class="sd">    Arguments:</span>
@@ -315,7 +315,7 @@
         <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_enhance</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - train_data (:obj:`List`): The list of data used for estimation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -325,7 +325,7 @@
 
 
 <div class="viewcode-block" id="her_data_enhancer"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/enhancer.html#ding.framework.middleware.functional.enhancer.her_data_enhancer">[docs]</a><span class="k">def</span> <span class="nf">her_data_enhancer</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="s2">&quot;Buffer&quot;</span><span class="p">,</span> <span class="n">her_reward_model</span><span class="p">:</span> <span class="s2">&quot;HerRewardModel&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Fetch a batch of data/episode from `buffer_`, \</span>
 <span class="sd">        then use `her_reward_model` to get HER processed episodes from original episodes.</span>
@@ -340,7 +340,7 @@
         <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_fetch_and_enhance</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Output of ctx:</span>
 <span class="sd">            - train_data (:obj:`List[treetensor.torch.Tensor]`): The HER processed episodes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

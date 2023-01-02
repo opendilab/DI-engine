@@ -322,7 +322,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">gt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric1</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">metric2</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Whether metric1 is greater than metric2 (&gt;=)</span>
 
@@ -333,7 +333,7 @@
 
 
 <span class="k">class</span> <span class="nc">VectorEvalMonitor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        In some cases,  different environment in evaluator may collect different length episode. For example, \</span>
 <span class="sd">            suppose we want to collect 12 episodes in evaluator but only have 5 environments, if we didn’t do \</span>
@@ -345,7 +345,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_episode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init method. According to the number of episodes and the number of environments, determine how many \</span>
 <span class="sd">                episodes need to be opened for each environment, and initialize the reward, info and other \</span>
@@ -372,7 +372,7 @@
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">is_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Determine whether the evaluator has completed the work.</span>
 <span class="sd">        Return:</span>
@@ -381,7 +381,7 @@
         <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">maxlen</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
     <span class="k">def</span> <span class="nf">update_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update the information of the environment indicated by env_id.</span>
 <span class="sd">        Arguments:</span>
@@ -391,7 +391,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">update_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">reward</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update the reward indicated by env_id.</span>
 <span class="sd">        Arguments:</span>
@@ -405,14 +405,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_episode_return</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sum up all reward and get the total return of one episode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span> <span class="p">[])</span>  <span class="c1"># sum(iterable, start)</span>
 
     <span class="k">def</span> <span class="nf">get_latest_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the latest reward of a certain environment.</span>
 <span class="sd">        Arguments:</span>
@@ -421,14 +421,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="p">[</span><span class="n">env_id</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">get_current_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the current episode. We can know which episode our evaluator is executing now.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
     <span class="k">def</span> <span class="nf">get_episode_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get all episode information, such as total return of one episode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -472,7 +472,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_video</span><span class="p">[</span><span class="n">env_id</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reward</span><span class="p">[</span><span class="n">env_id</span><span class="p">])]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_episode_video</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Convert list of videos into [N, T, C, H, W] tensor, containing</span>
 <span class="sd">            worst, median, best evaluation trajectories for video logging.</span>
@@ -505,7 +505,7 @@
 
 
 <div class="viewcode-block" id="interaction_evaluator"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/evaluator.html#ding.framework.middleware.functional.evaluator.interaction_evaluator">[docs]</a><span class="k">def</span> <span class="nf">interaction_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The middleware that executes the evaluation.</span>
 <span class="sd">    Arguments:</span>
@@ -520,7 +520,7 @@
     <span class="n">env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">,</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            - The evaluation will be executed if the task begins and enough train_iter passed \</span>
 <span class="sd">                since last evaluation.</span>

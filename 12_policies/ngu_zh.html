@@ -830,7 +830,7 @@ The corresponding paper is <cite>never give up: learning directed exploration st
 </div>
 <p>2.我们是在收集一批样本后，从 replay buffer 中采样一个 mini-batch 的样本序列，调用上面的 <code class="docutils literal notranslate"><span class="pre">_compute_intrinsic_reward</span></code> 计算局内内在奖励。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Rewrite the reward key in each row of the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">obs</span><span class="p">,</span> <span class="n">is_null</span> <span class="o">=</span> <span class="n">collect_data_episodic</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -882,7 +882,7 @@ The corresponding paper is <cite>never give up: learning directed exploration st
 <li><p>计算局间内在奖励。</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Rewrite the reward key in each row of the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">obs</span><span class="p">,</span> <span class="n">is_null</span> <span class="o">=</span> <span class="n">collect_data_rnd</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>

@@ -300,7 +300,7 @@
 
 
 <div class="viewcode-block" id="BaseRewardModel"><a class="viewcode-back" href="../../../05_api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel">[docs]</a><span class="k">class</span> <span class="nc">BaseRewardModel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        the base class of reward model</span>
 <span class="sd">    Interface:</span>
@@ -315,7 +315,7 @@
 
 <div class="viewcode-block" id="BaseRewardModel.estimate"><a class="viewcode-back" href="../../../05_api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.estimate">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            estimate reward</span>
 <span class="sd">        Arguments:</span>
@@ -328,7 +328,7 @@
 
 <div class="viewcode-block" id="BaseRewardModel.train"><a class="viewcode-back" href="../../../05_api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.train">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Training the reward model</span>
 <span class="sd">        Arguments:</span>
@@ -340,7 +340,7 @@
 
 <div class="viewcode-block" id="BaseRewardModel.collect_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.collect_data">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting training data in designated formate or with designated transition.</span>
 <span class="sd">        Arguments:</span>
@@ -352,7 +352,7 @@
 
 <div class="viewcode-block" id="BaseRewardModel.clear_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.clear_data">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clearing training data. \</span>
 <span class="sd">            This can be a side effect function which clears the data attribute in ``self``</span>
@@ -360,7 +360,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BaseRewardModel.load_expert_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.load_expert_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_expert_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting the expert data, usually used in inverse RL reward model</span>
 <span class="sd">        Arguments:</span>
@@ -371,7 +371,7 @@
         <span class="k">pass</span></div>
 
     <span class="k">def</span> <span class="nf">reward_deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            this method deepcopy reward part in train_data, and other parts keep shallow copy</span>
 <span class="sd">            to avoid the reward part of train_data in the replay buffer be incorrectly modified.</span>
@@ -386,7 +386,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_reward_model</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseRewardModel</span><span class="p">:</span>  <span class="c1"># noqa</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Reward Estimation Model.</span>
 <span class="sd">    Arguments:</span>

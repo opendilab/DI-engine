@@ -302,7 +302,7 @@
 
 <div class="viewcode-block" id="MainPlayer"><a class="viewcode-back" href="../../../05_api_doc/league/player.html#ding.league.starcraft_player.MainPlayer">[docs]</a><span class="nd">@PLAYER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;main_player&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MainPlayer</span><span class="p">(</span><span class="n">ActivePlayer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Main player in league training.</span>
 <span class="sd">        Default branch (0.5 pfsp, 0.35 sp, 0.15 veri).</span>
@@ -316,7 +316,7 @@
     <span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;MainPlayer&quot;</span>
 
     <span class="k">def</span> <span class="nf">_pfsp_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HistoricalPlayer</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Select prioritized fictitious self-play opponent, should be a historical player.</span>
 <span class="sd">        Returns:</span>
@@ -328,7 +328,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opponent</span><span class="p">(</span><span class="n">historical</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_sp_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Select normal self-play opponent</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -349,7 +349,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opponent</span><span class="p">(</span><span class="n">historical</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_verification_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Verify no strong historical main exploiter and no forgotten historical past main player</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -395,7 +395,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="MainPlayer.mutate"><a class="viewcode-back" href="../../../05_api_doc/league/player.html#ding.league.starcraft_player.MainPlayer.mutate">[docs]</a>    <span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            MainPlayer does not mutate</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -404,7 +404,7 @@
 
 <div class="viewcode-block" id="MainExploiter"><a class="viewcode-back" href="../../../05_api_doc/league/player.html#ding.league.starcraft_player.MainExploiter">[docs]</a><span class="nd">@PLAYER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;main_exploiter&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MainExploiter</span><span class="p">(</span><span class="n">ActivePlayer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Main exploiter in league training. Can identify weaknesses of main agents, and consequently make them</span>
 <span class="sd">        more robust.</span>
@@ -420,7 +420,7 @@
     <span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;MainExploiter&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``min_valid_win_rate`` additionally</span>
 <span class="sd">        Note:</span>
@@ -431,7 +431,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_min_valid_win_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">min_valid_win_rate</span>
 
     <span class="k">def</span> <span class="nf">_main_players_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Select main player or historical player snapshot from main player as opponent</span>
 <span class="sd">        Returns:</span>
@@ -458,7 +458,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="MainExploiter.mutate"><a class="viewcode-back" href="../../../05_api_doc/league/player.html#ding.league.starcraft_player.MainExploiter.mutate">[docs]</a>    <span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Main exploiter is sure to mutate(reset) to the supervised learning player</span>
 <span class="sd">        Returns:</span>
@@ -469,7 +469,7 @@
 
 <div class="viewcode-block" id="LeagueExploiter"><a class="viewcode-back" href="../../../05_api_doc/league/player.html#ding.league.starcraft_player.LeagueExploiter">[docs]</a><span class="nd">@PLAYER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;league_exploiter&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">LeagueExploiter</span><span class="p">(</span><span class="n">ActivePlayer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        League exploiter in league training. Can identify global blind spots in the league (strategies that no player</span>
 <span class="sd">        in the league can beat, but that are not necessarily robust themselves).</span>
@@ -484,7 +484,7 @@
     <span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;LeagueExploiter&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``mutate_prob`` additionally</span>
 <span class="sd">        Note:</span>
@@ -495,7 +495,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mutate_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">mutate_prob</span>
 
     <span class="k">def</span> <span class="nf">_pfsp_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HistoricalPlayer</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Select prioritized fictitious self-play opponent</span>
 <span class="sd">        Returns:</span>
@@ -515,7 +515,7 @@
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="LeagueExploiter.mutate"><a class="viewcode-back" href="../../../05_api_doc/league/player.html#ding.league.starcraft_player.LeagueExploiter.mutate">[docs]</a>    <span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            League exploiter can mutate to the supervised learning player with 0.25 prob</span>
 <span class="sd">        Returns:</span>

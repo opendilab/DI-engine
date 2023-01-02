@@ -304,7 +304,7 @@
 
 
 <div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.Hook">[docs]</a><span class="k">class</span> <span class="nc">Hook</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Abstract class for hooks.</span>
 <span class="sd">    Interfaces:</span>
@@ -314,7 +314,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Hook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.Hook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">priority</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init method for hooks. Set name and priority.</span>
 <span class="sd">        Arguments:</span>
@@ -336,7 +336,7 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Should be overwritten by subclass.</span>
 <span class="sd">        Arguments:</span>
@@ -346,7 +346,7 @@
 
 
 <div class="viewcode-block" id="LearnerHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LearnerHook">[docs]</a><span class="k">class</span> <span class="nc">LearnerHook</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Abstract class for hooks used in Learner.</span>
 <span class="sd">    Interfaces:</span>
@@ -361,7 +361,7 @@
     <span class="n">positions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;before_run&#39;</span><span class="p">,</span> <span class="s1">&#39;after_run&#39;</span><span class="p">,</span> <span class="s1">&#39;before_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;after_iter&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="LearnerHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LearnerHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init LearnerHook.</span>
 <span class="sd">        Arguments:</span>
@@ -378,7 +378,7 @@
 
 
 <div class="viewcode-block" id="LoadCkptHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LoadCkptHook">[docs]</a><span class="k">class</span> <span class="nc">LoadCkptHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hook to load checkpoint</span>
 <span class="sd">    Interfaces:</span>
@@ -388,7 +388,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LoadCkptHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LoadCkptHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init LoadCkptHook.</span>
 <span class="sd">        Arguments:</span>
@@ -398,7 +398,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_load_path</span> <span class="o">=</span> <span class="n">ext_args</span><span class="p">[</span><span class="s1">&#39;load_path&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="LoadCkptHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LoadCkptHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load checkpoint to learner. Checkpoint info includes policy state_dict and iter num.</span>
 <span class="sd">        Arguments:</span>
@@ -416,7 +416,7 @@
 
 
 <div class="viewcode-block" id="SaveCkptHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.SaveCkptHook">[docs]</a><span class="k">class</span> <span class="nc">SaveCkptHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hook to save checkpoint</span>
 <span class="sd">    Interfaces:</span>
@@ -426,7 +426,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="SaveCkptHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.SaveCkptHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init SaveCkptHook</span>
 <span class="sd">        Arguments:</span>
@@ -439,7 +439,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">ext_args</span><span class="o">.</span><span class="n">freq</span></div>
 
 <div class="viewcode-block" id="SaveCkptHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.SaveCkptHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save checkpoint in corresponding path.</span>
 <span class="sd">            Checkpoint info includes policy state_dict and iter num.</span>
@@ -465,7 +465,7 @@
 
 
 <div class="viewcode-block" id="LogShowHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook">[docs]</a><span class="k">class</span> <span class="nc">LogShowHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hook to show log</span>
 <span class="sd">    Interfaces:</span>
@@ -475,7 +475,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LogShowHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init LogShowHook</span>
 <span class="sd">        Arguments:</span>
@@ -488,7 +488,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">ext_args</span><span class="o">.</span><span class="n">freq</span></div>
 
 <div class="viewcode-block" id="LogShowHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Show log, update record and tb_logger if rank is 0 and at interval iterations,</span>
 <span class="sd">            clear the log buffer for all learners regardless of rank</span>
@@ -531,7 +531,7 @@
 
 
 <div class="viewcode-block" id="LogReduceHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook">[docs]</a><span class="k">class</span> <span class="nc">LogReduceHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hook to reduce the distributed(multi-gpu) logs</span>
 <span class="sd">    Interfaces:</span>
@@ -541,7 +541,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LogReduceHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init LogReduceHook</span>
 <span class="sd">        Arguments:</span>
@@ -550,7 +550,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LogReduceHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            reduce the logs from distributed(multi-gpu) learners</span>
 <span class="sd">        Arguments:</span>
@@ -558,7 +558,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Overview:</span>
 <span class="sd">                aggregate the information from all ranks(usually use sync allreduce)</span>
 <span class="sd">            Arguments:</span>
@@ -604,7 +604,7 @@
 
 
 <span class="k">def</span> <span class="nf">register_learner_hook</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hook_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Add a new LearnerHook class to hook_mapping, so you can build one instance with `build_learner_hook_by_cfg`.</span>
 <span class="sd">    Arguments:</span>
@@ -652,7 +652,7 @@
 
 
 <span class="k">def</span> <span class="nf">build_learner_hook_by_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Build the learner hooks in hook_mapping by config.</span>
 <span class="sd">        This function is often used to initialize ``hooks`` according to cfg,</span>
@@ -686,7 +686,7 @@
 
 
 <span class="k">def</span> <span class="nf">add_learner_hook</span><span class="p">(</span><span class="n">hooks</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]],</span> <span class="n">hook</span><span class="p">:</span> <span class="n">LearnerHook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Add a learner hook(:obj:`LearnerHook`) to hooks(:obj:`Dict[str, List[Hook]`)</span>
 <span class="sd">    Arguments:</span>
@@ -705,7 +705,7 @@
 
 
 <span class="k">def</span> <span class="nf">merge_hooks</span><span class="p">(</span><span class="n">hooks1</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]],</span> <span class="n">hooks2</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Hook</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Merge two hooks dict, which have the same keys, and each value is sorted by hook priority with stable method.</span>
 <span class="sd">    Arguments:</span>

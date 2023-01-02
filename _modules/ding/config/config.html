@@ -319,7 +319,7 @@
 
 
 <div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base class for config.</span>
 <span class="sd">    Interface:</span>
@@ -334,7 +334,7 @@
             <span class="n">cfg_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init method. Create config including dict type config and text type config.</span>
 <span class="sd">        Arguments:</span>
@@ -359,7 +359,7 @@
 
 <div class="viewcode-block" id="Config.file_to_dict"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.Config.file_to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Config&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Read config file and create config.</span>
 <span class="sd">        Arguments:</span>
@@ -372,7 +372,7 @@
 
 <div class="viewcode-block" id="Config._file_to_dict"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.Config._file_to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Read config file and convert the config file to dict type config and text type config.</span>
 <span class="sd">        Arguments:</span>
@@ -411,7 +411,7 @@
 
 
 <div class="viewcode-block" id="read_config_yaml"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.read_config_yaml">[docs]</a><span class="k">def</span> <span class="nf">read_config_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        read configuration from path</span>
 <span class="sd">    Arguments:</span>
@@ -426,7 +426,7 @@
 
 
 <div class="viewcode-block" id="save_config_yaml"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.save_config_yaml">[docs]</a><span class="k">def</span> <span class="nf">save_config_yaml</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        save configuration to path</span>
 <span class="sd">    Arguments:</span>
@@ -439,7 +439,7 @@
 
 
 <div class="viewcode-block" id="save_config_py"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.save_config_py">[docs]</a><span class="k">def</span> <span class="nf">save_config_py</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        save configuration to python file</span>
 <span class="sd">    Arguments:</span>
@@ -456,7 +456,7 @@
 
 
 <span class="k">def</span> <span class="nf">read_config_directly</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read configuration from a file path(now only support python file) and directly return results.</span>
 <span class="sd">    Arguments:</span>
@@ -472,7 +472,7 @@
 
 
 <div class="viewcode-block" id="read_config"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.read_config">[docs]</a><span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read configuration from a file path(now only suport python file). And select some proper parts.</span>
 <span class="sd">    Arguments:</span>
@@ -492,7 +492,7 @@
 
 
 <span class="k">def</span> <span class="nf">read_config_with_system</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read configuration from a file path(now only suport python file). And select some proper parts</span>
 <span class="sd">    Arguments:</span>
@@ -513,7 +513,7 @@
 
 
 <div class="viewcode-block" id="save_config"><a class="viewcode-back" href="../../../05_api_doc/config/config.html#ding.config.save_config">[docs]</a><span class="k">def</span> <span class="nf">save_config</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="n">save_formatted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        save configuration to python file or yaml file</span>
 <span class="sd">    Arguments:</span>
@@ -636,7 +636,7 @@
         <span class="n">save_cfg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;total_config.py&#39;</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Combine the input config information with other input information.</span>
 <span class="sd">        Compile config to make it easy to be called by other programs</span>
@@ -781,7 +781,7 @@
         <span class="n">learner_port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">collector_port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Combine the input parallel mode configuration information with other input information. Compile config\</span>
 <span class="sd">             to make it easy to be called by other programs</span>

@@ -314,7 +314,7 @@
 
 
 <div class="viewcode-block" id="ShmBuffer"><a class="viewcode-back" href="../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer">[docs]</a><span class="k">class</span> <span class="nc">ShmBuffer</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Shared memory buffer to store numpy array.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -326,7 +326,7 @@
             <span class="n">copy_on_get</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
             <span class="n">ctype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">type</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the buffer.</span>
 <span class="sd">        Arguments:</span>
@@ -344,7 +344,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">=</span> <span class="n">ctype</span>
 
 <div class="viewcode-block" id="ShmBuffer.fill"><a class="viewcode-back" href="../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.fill">[docs]</a>    <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Fill the shared memory buffer with a numpy array. (Replace the original one.)</span>
 <span class="sd">        Arguments:</span>
@@ -358,7 +358,7 @@
         <span class="n">np</span><span class="o">.</span><span class="n">copyto</span><span class="p">(</span><span class="n">dst_arr</span><span class="p">,</span> <span class="n">src_arr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShmBuffer.get"><a class="viewcode-back" href="../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the array stored in the buffer.</span>
 <span class="sd">        Return:</span>
@@ -373,7 +373,7 @@
 
 
 <div class="viewcode-block" id="ShmBufferContainer"><a class="viewcode-back" href="../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer">[docs]</a><span class="k">class</span> <span class="nc">ShmBufferContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Support multiple shared memory buffers. Each key-value is name-buffer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -384,7 +384,7 @@
             <span class="n">shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">],</span>
             <span class="n">copy_on_get</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the buffer container.</span>
 <span class="sd">        Arguments:</span>
@@ -402,7 +402,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="n">shape</span>
 
 <div class="viewcode-block" id="ShmBufferContainer.fill"><a class="viewcode-back" href="../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.fill">[docs]</a>    <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_arr</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Fill the one or many shared memory buffer.</span>
 <span class="sd">        Arguments:</span>
@@ -415,7 +415,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">src_arr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShmBufferContainer.get"><a class="viewcode-back" href="../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the one or many arrays stored in the buffer.</span>
 <span class="sd">        Return:</span>

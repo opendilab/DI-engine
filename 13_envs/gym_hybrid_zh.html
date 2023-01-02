@@ -302,21 +302,22 @@
 <h1>Gym-Hybrid<a class="headerlink" href="#gym-hybrid" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>在 gym-hybrid 任务中, agent 的任务很简单：在边长为 2 的正方形框内加速（Accelerate）、转向（Turn）或刹车（Break），以停留在红色目标区域。目标区域是一个半径为 0.1 的圆。如下图所示。</p>
-<a class="reference internal image-reference" href="../_images/hybrid.gif"><img alt="../_images/hybrid.gif" class="align-center" src="../_images/hybrid.gif" style="width: 280.0px; height: 280.0px;" /></a>
+<p>在 gym-hybrid 任务中, 智能体需要在一个正方形框内，从随机出发点启动，通过加速（Accelerate）、转向（Turn）或刹车（Break）等一系列控制操作，最终希望停留在绿色目标区域（一个有目标旗帜的圆）。如下图所示：</p>
+<a class="reference internal image-reference" href="../_images/hybrid.gif"><img alt="../_images/hybrid.gif" class="align-center" src="../_images/hybrid.gif" style="width: 448.0px; height: 336.0px;" /></a>
 </section>
 <section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/thomashirtz/gym-hybrid@master#egg<span class="o">=</span>gym-hybrid
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>./DI-engine/dizoo/gym_hybrid/envs/gym-hybrid
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
 <section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>方法一: 运行如下命令, 如果能正常显示版本信息，即顺利安装完成。</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip show gym-hybrid
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>show<span class="w"> </span>gym-hybrid
 </pre></div>
 </div>
 <p>方法二: 运行如下 Python 程序，如果没有报错则证明安装成功。</p>
@@ -333,13 +334,13 @@
 <h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <section id="id6">
 <h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
-<p>Gym-hybrid 的动作空间属于离散连续动作混合空间，有3 个离散动作：Accelerate，Turn，Break，其中动作 Accelerate，Turn 需要给出对应的 1 维连续参数。</p>
+<p>Gym-hybrid 的动作空间属于离散连续动作混合空间，有3 个离散动作：<code class="docutils literal notranslate"><span class="pre">Accelerate</span></code> ，<code class="docutils literal notranslate"><span class="pre">Turn</span></code> ，<code class="docutils literal notranslate"><span class="pre">Break</span></code> ，其中动作 <code class="docutils literal notranslate"><span class="pre">Accelerate</span></code> ，<code class="docutils literal notranslate"><span class="pre">Turn</span></code> 需要给出对应的 1 维连续参数。</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Accelerate</span> <span class="pre">(Acceleration</span> <span class="pre">value)</span></code> : 表示让agent以 <code class="docutils literal notranslate"><span class="pre">acceleration</span> <span class="pre">value</span></code> 的大小加速。 <code class="docutils literal notranslate"><span class="pre">Acceleration</span> <span class="pre">value</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[0,1]</span></code> 。数值类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Turn</span> <span class="pre">(Rotation</span> <span class="pre">value)</span></code> : 表示让agent朝 <code class="docutils literal notranslate"><span class="pre">rotation</span> <span class="pre">value</span></code> 的方向转身。 <code class="docutils literal notranslate"><span class="pre">Rotation</span> <span class="pre">value</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[-1,1]</span></code> 。数值类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Accelerate</span> <span class="pre">(Acceleration</span> <span class="pre">value)</span></code> : 表示让智能体以 <code class="docutils literal notranslate"><span class="pre">acceleration</span> <span class="pre">value</span></code> 的大小加速。 <code class="docutils literal notranslate"><span class="pre">Acceleration</span> <span class="pre">value</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[0,1]</span></code> 。数值类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Turn</span> <span class="pre">(Rotation</span> <span class="pre">value)</span></code> : 表示让智能体朝 <code class="docutils literal notranslate"><span class="pre">rotation</span> <span class="pre">value</span></code> 的方向转身。 <code class="docutils literal notranslate"><span class="pre">Rotation</span> <span class="pre">value</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[-1,1]</span></code> 。数值类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Break</span> <span class="pre">()</span></code> : 表示停止。</p></li>
 </ul>
-<p>使用gym环境空间定义则可表示为：</p>
+<p>使用 gym 环境空间定义则可表示为：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">gym</span> <span class="kn">import</span> <span class="n">spaces</span>
 
 <span class="n">action_space</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">Tuple</span><span class="p">((</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
@@ -350,7 +351,7 @@
 </section>
 <section id="id7">
 <h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
-<p>Gym-hybrid 的状态空间由一个有 10 个元素的 list 表示，描述了当前 agent 的状态，包含 agent 当前的坐标，速度，朝向角度的正余弦值，目标的坐标，agent 距离目标的距离，与目标距离相关的 bool 值，当前相对步数。</p>
+<p>Gym-hybrid 的状态空间是一个有 10 个元素的数组，描述了当前智能体的状态，包含智能体当前的坐标，速度，朝向角度的正余弦值，目标的坐标，距离目标的距离，是否达到目标，当前相对步数。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">agent</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
             <span class="n">agent</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
@@ -368,19 +369,19 @@
 </section>
 <section id="id8">
 <h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<p>每一步的奖励设置为 agent 上一个 step 执行动作后距离目标的长度减去当前 step 执行动作后距离目标的长度，即<code class="docutils literal notranslate"><span class="pre">dist_t-1</span> <span class="pre">-</span> <span class="pre">dist_t</span></code> 。算法内置了一个<code class="docutils literal notranslate"><span class="pre">penalty</span></code> 来激励agent更快的
-达到目标。当 episode 结束时，如果 agent 在目标区域停下来，就会获得额外的 reward，值为 1；如果 agent 出界或是超过 episode 最大 step 次数，则不会获得额外奖励。用公式表示当前时刻的 reward 如下：</p>
+<p>每一步的奖励设置为，智能体上一个 step 执行动作后到目标的距离，减去当前 step 执行动作后距离目标的距离，即<code class="docutils literal notranslate"><span class="pre">dist_t-1</span> <span class="pre">-</span> <span class="pre">dist_t</span></code> 。另外，算法内置了一个惩罚项<code class="docutils literal notranslate"><span class="pre">penalty</span></code> 来激励智能体更快的
+达到目标。当 episode 结束时，如果智能体在目标区域停下来，就会获得额外的 reward，值为 1；如果智能体出界或是超过 episode 最大步数，则不会获得额外奖励。奖励的伪代码实现如下：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reward</span> <span class="o">=</span> <span class="n">last_distance</span> <span class="o">-</span> <span class="n">distance</span> <span class="o">-</span> <span class="n">penalty</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">goal</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="id9">
 <h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
-<p>Gym-hybrid 环境每个 episode 的终止条件是遇到以下任何一种情况：</p>
+<p>遇到以下任何一种情况，则环境会该认为当前 episode 终止：</p>
 <ul class="simple">
-<li><p>agent 成功进入目标区域</p></li>
-<li><p>agent 出界</p></li>
-<li><p>达到 episode 的最大 step</p></li>
+<li><p>智能体成功进入目标区域</p></li>
+<li><p>智能体出界，触及边缘</p></li>
+<li><p>达到 episode 的最大上限步数（默认设置为200）</p></li>
 </ul>
 </section>
 <section id="id10">
@@ -390,120 +391,24 @@
 </section>
 <section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
-<p>下面提供一个完整的 gym hybrid 环境 config，采用 DDPG 作为基线算法。请在<code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/gym_hybrid</span></code> 目录下运行<code class="docutils literal notranslate"><span class="pre">gym_hybrid_ddpg_config.py</span></code> 文件，如下。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
-
-<span class="n">gym_hybrid_ddpg_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;gym_hybrid_ddpg_seed0&#39;</span><span class="p">,</span>
-    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-        <span class="c1"># (bool) Scale output action into legal range [-1, 1].</span>
-        <span class="n">act_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;Moving-v0&#39;</span><span class="p">,</span>  <span class="c1"># [&#39;Sliding-v0&#39;, &#39;Moving-v0&#39;]</span>
-        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-        <span class="n">stop_value</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># 1.85 for hybrid_ddpg</span>
-    <span class="p">),</span>
-    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># hybrid action space not support random collect now</span>
-        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
-        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-            <span class="n">action_shape</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">action_type_shape</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                <span class="n">action_args_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">twin_critic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">actor_head_type</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
-            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>  <span class="c1"># [5, 10]</span>
-            <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-            <span class="n">learning_rate_actor</span><span class="o">=</span><span class="mf">0.0003</span><span class="p">,</span>  <span class="c1"># [0.001, 0.0003]</span>
-            <span class="n">learning_rate_critic</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-            <span class="n">actor_update_freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">noise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">n_sample</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-            <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-            <span class="n">collector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">collect_print_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="p">),</span>
-        <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
-        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
-                <span class="n">start</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
-                <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-                <span class="n">decay</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>  <span class="c1"># [50000, 100000]</span>
-            <span class="p">),</span>
-            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="p">),</span>
-        <span class="p">),</span>
-    <span class="p">),</span>
-<span class="p">)</span>
-<span class="n">gym_hybrid_ddpg_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">gym_hybrid_ddpg_config</span><span class="p">)</span>
-<span class="n">main_config</span> <span class="o">=</span> <span class="n">gym_hybrid_ddpg_config</span>
-
-<span class="n">gym_hybrid_ddpg_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;gym_hybrid&#39;</span><span class="p">,</span>
-        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.gym_hybrid.envs.gym_hybrid_env&#39;</span><span class="p">],</span>
-    <span class="p">),</span>
-    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
-    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ddpg&#39;</span><span class="p">),</span>
-<span class="p">)</span>
-<span class="n">gym_hybrid_ddpg_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">gym_hybrid_ddpg_create_config</span><span class="p">)</span>
-<span class="n">create_config</span> <span class="o">=</span> <span class="n">gym_hybrid_ddpg_create_config</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_hybrid/config">github
+link</a>
+内，对于具体的配置文件，例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/gym_hybrid/config/gym_hybrid_ddpg_config.py">gym_hybrid_ddpg_config.py</a> ，使用如下命令即可运行：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>./DI-engine/dizoo/gym_hybrid/config/gym_hybrid_ddpg_config.py
 </pre></div>
 </div>
 </section>
 <section id="id11">
 <h2>基准算法性能<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p>Moving-v0（10M env step 后停止，平均奖励大于等于 1.8 视为较好的 Agent）</p>
+<li><p>Moving-v0（10M env step 后停止，平均奖励大于等于 1.8 视为表现较好的智能体）</p>
 <ul class="simple">
-<li><p>Moving-v0 + PDQN</p></li>
+<li><p>Moving-v0</p></li>
 </ul>
-<img alt="../_images/gym_hybrid_Moving-v0_pdqn.png" class="align-center" src="../_images/gym_hybrid_Moving-v0_pdqn.png" />
-<ul class="simple">
-<li><p>Moving-v0 + MPDQN</p></li>
-</ul>
-<img alt="../_images/gym_hybrid_Moving-v0_mpdqn.png" class="align-center" src="../_images/gym_hybrid_Moving-v0_mpdqn.png" />
-<ul class="simple">
-<li><p>Moving-v0 + PADDPG</p></li>
-</ul>
-<img alt="../_images/gym_hybrid_Moving-v0_paddpg.png" class="align-center" src="../_images/gym_hybrid_Moving-v0_paddpg.png" />
-</li>
-<li><p>Sliding-v0（10M env step 后停止，平均奖励大于等于 1.8 视为较好的 Agent）</p>
-<ul class="simple">
-<li><p>Sliding-v0 + PDQN</p></li>
-</ul>
-<img alt="../_images/gym_hybrid_Sliding-v0_pdqn.png" class="align-center" src="../_images/gym_hybrid_Sliding-v0_pdqn.png" />
-<ul class="simple">
-<li><p>Sliding-v0 + MPDQN</p></li>
-</ul>
-<img alt="../_images/gym_hybrid_Sliding-v0_mpdqn.png" class="align-center" src="../_images/gym_hybrid_Sliding-v0_mpdqn.png" />
-<ul class="simple">
-<li><p>Sliding-v0 + PADDPG</p></li>
-</ul>
-<img alt="../_images/gym_hybrid_Sliding-v0_paddpg.png" class="align-center" src="../_images/gym_hybrid_Sliding-v0_paddpg.png" />
+<img alt="../_images/gym_hybrid_Moving-v0.png" class="align-center" src="../_images/gym_hybrid_Moving-v0.png" />
 </li>
 </ul>
-</section>
-<section id="id12">
-<h2>参考资料<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Gym-hybrid <a class="reference external" href="https://github.com/thomashirtz/gym-hybrid">源码</a></p></li>
-</ul>
+<p>图1：HPPO 和其他混合动作空间算法在 Moving-v0 上的训练曲线图。实线表示各个算法在5个种子上的测试局对应 return 的平均值，阴影部分表示5个种子上的标准差，在每个种子的每个测试点上我们一共评估8局。横坐标为训练时与环境交互的步数。return&gt;=1.5 的轨迹视为一次成功的移动。关于对比算法的详细信息，可以参考 <a class="reference external" href="https://zhuanlan.zhihu.com/p/478728586">知乎博客</a></p>
 </section>
 </section>
 
@@ -567,7 +472,6 @@
 </li>
 <li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
 <li><a class="reference internal" href="#id11">基准算法性能</a></li>
-<li><a class="reference internal" href="#id12">参考资料</a></li>
 </ul>
 </li>
 </ul>

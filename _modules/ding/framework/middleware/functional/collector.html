@@ -340,7 +340,7 @@
 
 
 <div class="viewcode-block" id="inferencer"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/collector.html#ding.framework.middleware.functional.collector.inferencer">[docs]</a><span class="k">def</span> <span class="nf">inferencer</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The middleware that executes the inference process.</span>
 <span class="sd">    Arguments:</span>
@@ -353,7 +353,7 @@
     <span class="n">env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_inference</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Output of ctx:</span>
 <span class="sd">            - obs (:obj:`Union[torch.Tensor, Dict[torch.Tensor]]`): The input observations collected \</span>
 <span class="sd">                from all collector environments.</span>
@@ -378,7 +378,7 @@
 
 
 <div class="viewcode-block" id="rolloutor"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/collector.html#ding.framework.middleware.functional.collector.rolloutor">[docs]</a><span class="k">def</span> <span class="nf">rolloutor</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">TransitionList</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The middleware that executes the transition process in the env.</span>
 <span class="sd">    Arguments:</span>
@@ -395,7 +395,7 @@
     <span class="n">current_id</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">env_num</span>
 
     <span class="k">def</span> <span class="nf">_rollout</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - action: (:obj:`List[np.ndarray]`): The inferred actions from previous inference process.</span>
 <span class="sd">            - obs (:obj:`Dict[Tensor]`): The states fed into the transition dict.</span>

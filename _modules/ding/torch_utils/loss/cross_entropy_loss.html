@@ -299,7 +299,7 @@
 
 
 <div class="viewcode-block" id="LabelSmoothCELoss"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss">[docs]</a><span class="k">class</span> <span class="nc">LabelSmoothCELoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Label smooth cross entropy loss.</span>
 <span class="sd">    Interfaces:</span>
@@ -311,7 +311,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
 
 <div class="viewcode-block" id="LabelSmoothCELoss.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate label smooth cross entropy loss.</span>
 <span class="sd">        Arguments:</span>
@@ -329,7 +329,7 @@
 
 
 <div class="viewcode-block" id="SoftFocalLoss"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss">[docs]</a><span class="k">class</span> <span class="nc">SoftFocalLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Soft focal loss.</span>
 <span class="sd">    Interfaces:</span>
@@ -344,7 +344,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">nll_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">NLLLoss2d</span><span class="p">(</span><span class="n">weight</span><span class="p">,</span> <span class="n">size_average</span><span class="p">,</span> <span class="n">reduce</span><span class="o">=</span><span class="n">reduce</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SoftFocalLoss.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate soft focal loss.</span>
 <span class="sd">        Arguments:</span>
@@ -357,7 +357,7 @@
 
 
 <span class="k">def</span> <span class="nf">build_ce_criterion</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get a cross enntropy loss instance according to given config.</span>
 <span class="sd">    Arguments:</span>

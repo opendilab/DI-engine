@@ -390,7 +390,7 @@
 
 <div class="viewcode-block" id="RndNGURewardModel"><a class="viewcode-back" href="../../../12_policies/ngu_zh.html#ding.reward_model.ngu_reward_model.RndNGURewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;rnd-ngu&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RndNGURewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        inter-episodic/RND reward model for NGU.</span>
 <span class="sd">        The corresponding paper is `never give up: learning directed exploration strategies`.</span>
@@ -464,7 +464,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_train</span><span class="p">()</span>
 
 <div class="viewcode-block" id="RndNGURewardModel.estimate"><a class="viewcode-back" href="../../../12_policies/ngu_zh.html#ding.reward_model.ngu_reward_model.RndNGURewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Rewrite the reward key in each row of the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">is_null</span> <span class="o">=</span> <span class="n">collect_data_rnd</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -492,7 +492,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">train_data_total</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">reward_deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        this method deepcopy reward part in train_data, and other parts keep shallow copy</span>
 <span class="sd">        to avoid the reward part of train_data in the replay buffer be incorrectly modified.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -538,7 +538,7 @@
 
 <div class="viewcode-block" id="EpisodicNGURewardModel"><a class="viewcode-back" href="../../../12_policies/ngu_zh.html#ding.reward_model.ngu_reward_model.EpisodicNGURewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;episodic&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EpisodicNGURewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Episodic reward model for NGU.</span>
 <span class="sd">        The corresponding paper is `never give up: learning directed exploration strategies`.</span>
@@ -654,7 +654,7 @@
         <span class="c1"># average value 1/( ( 10* 1e-4/(1+1e-4) )**(1/2)+1e-3 ) = 30</span>
 
 <div class="viewcode-block" id="EpisodicNGURewardModel.estimate"><a class="viewcode-back" href="../../../12_policies/ngu_zh.html#ding.reward_model.ngu_reward_model.EpisodicNGURewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Rewrite the reward key in each row of the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -732,18 +732,18 @@
             <span class="c1"># transform to [0,1]: er01</span>
             <span class="n">episodic_reward</span> <span class="o">=</span> <span class="p">(</span><span class="n">episodic_reward</span> <span class="o">-</span>
                                <span class="n">episodic_reward</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">episodic_reward</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">episodic_reward</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-11</span><span class="p">)</span>
-            <span class="sd">&quot;&quot;&quot;1. transform to batch mean1: erbm1&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;1. transform to batch mean1: erbm1&quot;&quot;&quot;</span>
             <span class="c1"># episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)</span>
             <span class="c1"># the null_padding transition have episodic reward=0,</span>
             <span class="c1"># episodic_reward = episodic_reward / (episodic_reward_real_mean + 1e-11)</span>
-            <span class="sd">&quot;&quot;&quot;2. transform to long-term mean1: erlm1&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;2. transform to long-term mean1: erlm1&quot;&quot;&quot;</span>
             <span class="c1"># episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean</span>
-            <span class="sd">&quot;&quot;&quot;3. transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should &gt;0,</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;3. transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should &gt;0,</span>
 <span class="sd">            otherwise, e.g. when the  episodic_reward is -2, the rnd_reward larger,</span>
 <span class="sd">            the total intrinsic reward smaller, which is not correct.&quot;&quot;&quot;</span>
             <span class="c1"># episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean)</span>
             <span class="c1"># / self._running_mean_std_episodic_reward.std</span>
-            <span class="sd">&quot;&quot;&quot;4. transform to std1, which is not very meaningful&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;4. transform to std1, which is not very meaningful&quot;&quot;&quot;</span>
             <span class="c1"># episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std</span>
 
         <span class="k">return</span> <span class="n">episodic_reward</span></div>

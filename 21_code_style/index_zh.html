@@ -314,11 +314,11 @@
 <section id="yapf">
 <h2>yapf<a class="headerlink" href="#yapf" title="Permalink to this headline">¶</a></h2>
 <p>对于 <a class="reference external" href="https://github.com/google/yapf">yapf</a> ，我们可以使用现有的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/Makefile">Makefile</a> 进行一键修复</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make format
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>format
 </pre></div>
 </div>
 <p>考虑到整个项目规模较大，文件数量较多，因此可以使用下列命令对特定路径下的源代码文件进行代码风格一键修复</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make format <span class="nv">RANGE_DIR</span><span class="o">=</span>./ding/xxx
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>format<span class="w"> </span><span class="nv">RANGE_DIR</span><span class="o">=</span>./ding/xxx
 </pre></div>
 </div>
 <p>在该项目中，我们使用基于PEP8的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/.style.yapf">yapf代码规范配置</a> ，关于配置的详细信息，可以参考 <a class="reference external" href="https://github.com/google/yapf#knobs">Github主页的描述</a> 。 <a class="reference external" href="https://peps.python.org/pep-0008/">PEP8</a> 为Python官方推荐的代码风格配置，对代码风格的注重可以提高代码的可读性，也可以最大限度减少不符合预期的行为。</p>
@@ -330,11 +330,11 @@
 <section id="flake8">
 <h2>flake8<a class="headerlink" href="#flake8" title="Permalink to this headline">¶</a></h2>
 <p>对于 <a class="reference external" href="https://github.com/PyCQA/flake8">flake8</a> ，我们可以使用现有的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/Makefile">Makefile</a> 进行代码设计上的检查</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make flake_check
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>flake_check
 </pre></div>
 </div>
 <p>考虑到整个项目规模较大，文件数量较多，因此可以使用下列命令对特定路径下的源代码文件进行代码设计上的检查</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make flake_check <span class="nv">RANGE_DIR</span><span class="o">=</span>./ding/xxx
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>flake_check<span class="w"> </span><span class="nv">RANGE_DIR</span><span class="o">=</span>./ding/xxx
 </pre></div>
 </div>
 <p>在该项目中，我们使用基于PEP8的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/.flake8">flake8代码设计规范配置</a> ，关于配置的详细信息，可以参考 <a class="reference external" href="https://flake8.pycqa.org/en/latest/user/configuration.html">flake8官方文档的描述</a> 。 <a class="reference external" href="https://peps.python.org/pep-0008/">PEP8</a> 为Python官方推荐的代码风格配置，对代码风格的注重可以提高代码的可读性，也可以最大限度减少不符合预期的行为。</p>

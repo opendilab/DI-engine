@@ -318,45 +318,45 @@
 <h2>发布版本<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>您可以使用以下命令安装 DI-engine 的稳定发行版：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Current stable release of DI-engine</span>
-pip install DI-engine
+pip<span class="w"> </span>install<span class="w"> </span>DI-engine
 </pre></div>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>如果你需要升级 pip 版本，可以使用以下命令：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Windows</span>
-&gt; python -m pip install --upgrade pip
+&gt;<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
 <span class="c1"># Linux</span>
-$ pip install --upgrade pip
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
 <span class="c1"># MacOS</span>
-$ pip install --upgrade pip
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
 </pre></div>
 </div>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>如果您在下载软件包时遇到超时错误，您可以尝试采用更换其他常用镜像源，例如使用阿里源：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install requests -i https://mirrors.aliyun.com/pypi/simple/ DI-engine
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>requests<span class="w"> </span>-i<span class="w"> </span>https://mirrors.aliyun.com/pypi/simple/<span class="w"> </span>DI-engine
 </pre></div>
 </div>
 </div>
 <p>如果您需要借助 Anaconda 或者 Miniconda , 建议您采用如下命令:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c opendilab di-engine
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>opendilab<span class="w"> </span>di-engine
 </pre></div>
 </div>
 </section>
 <section id="id4">
 <h2>开发版本<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>如果您需要从 Github 源码安装最新的 DI-engine 开发版本，可以使用如下方法：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/opendilab/DI-engine.git
-<span class="nb">cd</span> DI-engine
-pip install .
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/opendilab/DI-engine.git
+<span class="nb">cd</span><span class="w"> </span>DI-engine
+pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>如果您希望将 DI-engine 的安装目录设置为操作系统的当前用户目录，您可以使用如下方式：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install . --user
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="w"> </span>--user
 </pre></div>
 </div>
 <p>如果您正在使用诸如 virtualenv 等程序生成的虚拟 python 环境，<code class="docutils literal notranslate"><span class="pre">--user</span></code> 选项将不会生效。</p>
@@ -366,19 +366,19 @@ pip install .
 <h2>特殊版本<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>如果您希望启用 DI-engine 的额外功能并安装相关依赖，可以使用如下方法：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># install atari and box-2d related packages</span>
-pip install DI-engine<span class="o">[</span>common_env<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>DI-engine<span class="o">[</span>common_env<span class="o">]</span>
 <span class="c1"># install unittest(pytest) related packages</span>
-pip install DI-engine<span class="o">[</span>test<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>DI-engine<span class="o">[</span>test<span class="o">]</span>
 <span class="c1"># enable numba acceleration</span>
-pip install DI-engine<span class="o">[</span>fast<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>DI-engine<span class="o">[</span>fast<span class="o">]</span>
 <span class="c1"># install multi extra packages</span>
-pip install DI-engine<span class="o">[</span>common_env,test,fast<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>DI-engine<span class="o">[</span>common_env,test,fast<span class="o">]</span>
 </pre></div>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>某些类型的终端可能需要将安装包名称的整体，使用引号注释后才能生效该指令，如下所示：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install <span class="s1">&#39;DI-engine[common_env,test,fast]&#39;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;DI-engine[common_env,test,fast]&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -393,9 +393,9 @@ pip install DI-engine<span class="o">[</span>common_env,test,fast<span class="o"
 <h2>使用 Docker 运行<a class="headerlink" href="#docker" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine 的镜像可以在 <a class="reference external" href="https://hub.docker.com/r/opendilab/ding">DockerHub</a> 获得。拉取镜像的方法如下：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download Stable release DI-engine Docker image</span>
-docker pull opendilab/ding:nightly
+docker<span class="w"> </span>pull<span class="w"> </span>opendilab/ding:nightly
 <span class="c1"># Run Docker image</span>
-docker run -it opendilab/ding:nightly /bin/bash
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>opendilab/ding:nightly<span class="w"> </span>/bin/bash
 </pre></div>
 </div>
 </section>
@@ -407,7 +407,7 @@ docker run -it opendilab/ding:nightly /bin/bash
 </pre></div>
 </div>
 <p>您也可以直接在终端使用 DI-engine 的命令行工具：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -v
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding<span class="w"> </span>-v
 </pre></div>
 </div>
 </section>

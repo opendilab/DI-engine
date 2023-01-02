@@ -308,7 +308,7 @@
 
 <div class="viewcode-block" id="PdeilRewardModel"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pdeil_irl_model.html#ding.reward_model.pdeil_irl_model.PdeilRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;pdeil&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">PdeilRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The Pdeil reward model class</span>
 <span class="sd">    Interface:</span>
@@ -323,7 +323,7 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="PdeilRewardModel.__init__"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pdeil_irl_model.html#ding.reward_model.pdeil_irl_model.PdeilRewardModel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">            Some rules in naming the attributes of ``self.``:</span>
@@ -377,7 +377,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">e_sigma_s_a</span> <span class="o">=</span> <span class="n">cov</span><span class="p">(</span><span class="n">state_actions</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PdeilRewardModel.load_expert_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pdeil_irl_model.html#ding.reward_model.pdeil_irl_model.PdeilRewardModel.load_expert_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_expert_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting the expert data from ``config[&#39;expert_data_path&#39;]`` attribute in self.</span>
 <span class="sd">        Effects:</span>
@@ -388,7 +388,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">expert_data</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Helper function for ``train`` which caclulates loss for train data and expert data.</span>
 <span class="sd">        Arguments:</span>
@@ -401,7 +401,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">p_sigma_s</span> <span class="o">=</span> <span class="n">cov</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PdeilRewardModel.train"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pdeil_irl_model.html#ding.reward_model.pdeil_irl_model.PdeilRewardModel.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Training the Pdeil reward model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -409,14 +409,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_train</span><span class="p">(</span><span class="n">states</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_batch_mn_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">cov</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Get multivariate normal pdf of given np array.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">allow_singular</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PdeilRewardModel.estimate"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pdeil_irl_model.html#ding.reward_model.pdeil_irl_model.PdeilRewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Estimate reward by rewriting the reward keys.</span>
 <span class="sd">        Arguments:</span>
@@ -466,7 +466,7 @@
         <span class="k">return</span> <span class="n">train_data_augmented</span></div>
 
 <div class="viewcode-block" id="PdeilRewardModel.collect_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pdeil_irl_model.html#ding.reward_model.pdeil_irl_model.PdeilRewardModel.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collecting training data by iterating data items in the input list</span>
 <span class="sd">        Arguments:</span>
@@ -478,7 +478,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PdeilRewardModel.clear_data"><a class="viewcode-back" href="../../../05_api_doc/reward_model/pdeil_irl_model.html#ding.reward_model.pdeil_irl_model.PdeilRewardModel.clear_data">[docs]</a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clearing training data. \</span>
 <span class="sd">            This is a side effect function which clears the data attribute in ``self``</span>

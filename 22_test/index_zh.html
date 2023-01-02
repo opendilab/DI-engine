@@ -381,11 +381,11 @@
 <section id="id11">
 <h2>如何进行单元测试<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <p>在DI-engine中，我们使用 <code class="docutils literal notranslate"><span class="pre">pytest</span></code> 启动单元测试。对于极为简单的情况，可以直接使用命令</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest -sv ./ding
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-sv<span class="w"> </span>./ding
 </pre></div>
 </div>
 <p>当需要得知单元测试覆盖率及具体覆盖分布情况时，则需要用到如下命令：</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest -sv ./ding -m unittest --cov-report term-missing --cov<span class="o">=</span>./ding
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-sv<span class="w"> </span>./ding<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>--cov-report<span class="w"> </span>term-missing<span class="w"> </span>--cov<span class="o">=</span>./ding
 </pre></div>
 </div>
 <p>其中各个参数含义如下：</p>
@@ -399,12 +399,12 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>一种更加推荐的做法是使用 <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> 中封装完毕的脚本进行快速启动，例如：</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make unittest  <span class="c1"># 全面进行单元测试</span>
-make unittest <span class="nv">RANGR_DIR</span><span class="o">=</span>./ding/xxx  <span class="c1"># 针对特定子模块进行测试</span>
-make algotest
-make cudatest
-make envpooltest
-make platformtext
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>unittest<span class="w">  </span><span class="c1"># 全面进行单元测试</span>
+make<span class="w"> </span>unittest<span class="w"> </span><span class="nv">RANGR_DIR</span><span class="o">=</span>./ding/xxx<span class="w">  </span><span class="c1"># 针对特定子模块进行测试</span>
+make<span class="w"> </span>algotest
+make<span class="w"> </span>cudatest
+make<span class="w"> </span>envpooltest
+make<span class="w"> </span>platformtext
 </pre></div>
 </div>
 </div>

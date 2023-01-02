@@ -302,21 +302,22 @@
 <h1>gym hybrid<a class="headerlink" href="#gym-hybrid" title="Permalink to this headline">¶</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>In the gym-hybrid task, the agent’s task is simple: Accelerate, turn, or break within a square box of side length 2 to stay in the red target area. The target area is a circle with a radius of 0.1. As shown below.</p>
+<p>In the gym-hybrid task, the agent’s task is simple: Accelerate, turn, or break within a square box to stay in the green target area. The target area is a circle with flag. The example is shown below.</p>
 <img alt="../_images/hybrid.gif" class="align-center" src="../_images/hybrid.gif" />
 </section>
 <section id="install">
 <h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
 <section id="installation-method">
 <h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/thomashirtz/gym-hybrid@master#egg<span class="o">=</span>gym-hybrid
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>./DI-engine/dizoo/gym_hybrid/envs/gym-hybrid
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
 <section id="verify-installation">
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
 <p>Method 1: Run the following command, if the version information can be displayed normally, the installation is completed successfully.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip show gym-hybrid
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>show<span class="w"> </span>gym-hybrid
 </pre></div>
 </div>
 <p>Method 2: Run the following Python program, if no error is reported, the installation is successful.</p>
@@ -469,15 +470,9 @@ Achieve goals. When the episode ends, if the agent stops in the target area, it 
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_env_step</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">))</span>
 </pre></div>
 </div>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>gym-hybrid <a class="reference external" href="https://github.com/thomashirtz/gym-hybrid">source code</a></p></li>
-</ul>
 </section>
 </section>
 
@@ -544,7 +539,6 @@ Achieve goals. When the episode ends, if the agent stops in the target area, it 
 </ul>
 </li>
 <li><a class="reference internal" href="#di-zoo-runnable-code-example">DI-zoo Runnable Code Example</a></li>
-<li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 </ul>

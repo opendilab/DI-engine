@@ -310,7 +310,7 @@
 <h2>安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <section id="id4">
 <h3>安装方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install gym-super-mario-bros
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>gym-super-mario-bros
 </pre></div>
 </div>
 </section>
@@ -337,19 +337,19 @@
 <section id="id6">
 <h3>安装失败的解决办法<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>常见的一个错误：</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
-File <span class="s2">&quot;test_mario.py&quot;</span>, line <span class="m">13</span>, <span class="k">in</span> &lt;module&gt;
-    state, reward, <span class="k">done</span>, <span class="nv">info</span> <span class="o">=</span> env.step<span class="o">(</span>env.action_space.sample<span class="o">())</span>
-File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/nes_py/wrappers/joypad_space.py&quot;</span>, line <span class="m">74</span>, <span class="k">in</span> step
-    <span class="k">return</span> self.env.step<span class="o">(</span>self._action_map<span class="o">[</span>action<span class="o">])</span>
-File <span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/gym/wrappers/time_limit.py&quot;</span>, line <span class="m">50</span>, <span class="k">in</span> step
-    observation, reward, terminated, truncated, <span class="nv">info</span> <span class="o">=</span> self.env.step<span class="o">(</span>action<span class="o">)</span>
-ValueError: not enough values to unpack <span class="o">(</span>expected <span class="m">5</span>, got <span class="m">4</span><span class="o">)</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Traceback<span class="w"> </span><span class="o">(</span>most<span class="w"> </span>recent<span class="w"> </span>call<span class="w"> </span>last<span class="o">)</span>:
+File<span class="w"> </span><span class="s2">&quot;test_mario.py&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">13</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>&lt;module&gt;
+<span class="w">    </span>state,<span class="w"> </span>reward,<span class="w"> </span><span class="k">done</span>,<span class="w"> </span><span class="nv">info</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>env.step<span class="o">(</span>env.action_space.sample<span class="o">())</span>
+File<span class="w"> </span><span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/nes_py/wrappers/joypad_space.py&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">74</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>step
+<span class="w">    </span><span class="k">return</span><span class="w"> </span>self.env.step<span class="o">(</span>self._action_map<span class="o">[</span>action<span class="o">])</span>
+File<span class="w"> </span><span class="s2">&quot;/Users/wangzilin/opt/anaconda3/envs/mario_test/lib/python3.8/site-packages/gym/wrappers/time_limit.py&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">50</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>step
+<span class="w">    </span>observation,<span class="w"> </span>reward,<span class="w"> </span>terminated,<span class="w"> </span>truncated,<span class="w"> </span><span class="nv">info</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>self.env.step<span class="o">(</span>action<span class="o">)</span>
+ValueError:<span class="w"> </span>not<span class="w"> </span>enough<span class="w"> </span>values<span class="w"> </span>to<span class="w"> </span>unpack<span class="w"> </span><span class="o">(</span>expected<span class="w"> </span><span class="m">5</span>,<span class="w"> </span>got<span class="w"> </span><span class="m">4</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>这是由于 gym-super-mario-bros 库的更新有时跟不上 gym 库的更新，而在执行 <cite>pip install gym-super-mario-bros</cite> 时会默认安装最新的 gym。 那么解决办法就是给 gym 降级。
 这里 gym-super-mario-bros 版本为 7.4.0，gym 版本为0.26.2。我们将 gym 版本降低到 0.25.1 可以解决问题。</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install <span class="nv">gym</span><span class="o">==</span><span class="m">0</span>.25.1
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">gym</span><span class="o">==</span><span class="m">0</span>.25.1
 </pre></div>
 </div>
 </section>
@@ -375,7 +375,7 @@ ValueError: not enough values to unpack <span class="o">(</span>expected <span c
 <h3>键盘交互<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>在拥有用于渲染的显示器设备时，可以尝试用键盘操作。环境提供了命令行接口，具体的启动方式如下：</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># 启动 1-4 关卡</span>
-gym_super_mario_bros -e <span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span> -m <span class="s1">&#39;human&#39;</span> --stages <span class="s1">&#39;1-4&#39;</span>
+gym_super_mario_bros<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;</span><span class="w"> </span>-m<span class="w"> </span><span class="s1">&#39;human&#39;</span><span class="w"> </span>--stages<span class="w"> </span><span class="s1">&#39;1-4&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -439,21 +439,21 @@ gym_super_mario_bros -e <span class="s1">&#39;SuperMarioBrosRandomStages-v0&#39;
 <section id="id11">
 <h3>状态空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <p>gym-super-mario-bros 的状态空间输入是图像信息，及三维的张量矩阵（datatype=uint8）。此外，游戏的不同版本对应的图像分辨率 <code class="docutils literal notranslate"><span class="pre">240*256*3</span></code> 相同，但版本越高，图像越简略（像素块化），具体如下所示：</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; <span class="c1"># 查看观测空间</span>
-&gt;&gt;&gt; gym_super_mario_bros.make<span class="o">(</span><span class="s1">&#39;SuperMarioBros-v3&#39;</span><span class="o">)</span>.observation_space
-Box<span class="o">([[[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt;<span class="w"> </span><span class="c1"># 查看观测空间</span>
+&gt;&gt;&gt;<span class="w"> </span>gym_super_mario_bros.make<span class="o">(</span><span class="s1">&#39;SuperMarioBros-v3&#39;</span><span class="o">)</span>.observation_space
+Box<span class="o">([[[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
 ...
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]</span>
-<span class="o">[</span><span class="m">0</span> <span class="m">0</span> <span class="m">0</span><span class="o">]]]</span>, <span class="o">[[[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]</span>
+<span class="o">[</span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="o">]]]</span>,<span class="w"> </span><span class="o">[[[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
 ...
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]</span>
-<span class="o">[</span><span class="m">255</span> <span class="m">255</span> <span class="m">255</span><span class="o">]]]</span>, <span class="o">(</span><span class="m">240</span>, <span class="m">256</span>, <span class="m">3</span><span class="o">)</span>, uint8<span class="o">)</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]</span>
+<span class="o">[</span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="w"> </span><span class="m">255</span><span class="o">]]]</span>,<span class="w"> </span><span class="o">(</span><span class="m">240</span>,<span class="w"> </span><span class="m">256</span>,<span class="w"> </span><span class="m">3</span><span class="o">)</span>,<span class="w"> </span>uint8<span class="o">)</span>
 </pre></div>
 </div>
 <p><cite>v3</cite> 对应的游戏截图如下</p>

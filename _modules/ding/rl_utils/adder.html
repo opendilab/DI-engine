@@ -302,7 +302,7 @@
 
 
 <div class="viewcode-block" id="Adder"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/adder.html#ding.rl_utils.adder.Adder">[docs]</a><span class="k">class</span> <span class="nc">Adder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Adder is a component that handles different transformations and calculations for transitions</span>
 <span class="sd">        in Collector Module(data generation and processing), such as GAE, n-step return, transition sampling etc.</span>
@@ -313,7 +313,7 @@
 <div class="viewcode-block" id="Adder.get_gae"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/adder.html#ding.rl_utils.adder.Adder.get_gae">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_gae</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">last_value</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                 <span class="n">cuda</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get GAE advantage for stacked transitions(T timestep, 1 batch). Call ``gae`` for calculation.</span>
 <span class="sd">        Arguments:</span>
@@ -344,7 +344,7 @@
 <div class="viewcode-block" id="Adder.get_gae_with_default_last_value"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/adder.html#ding.rl_utils.adder.Adder.get_gae_with_default_last_value">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_gae_with_default_last_value</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">deque</span><span class="p">,</span> <span class="n">done</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                                         <span class="n">cuda</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Like ``get_gae`` above to get GAE advantage for stacked transitions. However, this function is designed in</span>
 <span class="sd">            case ``last_value`` is not passed. If transition is not done yet, it wouold assign last value in ``data``</span>
@@ -377,7 +377,7 @@
             <span class="n">correct_terminate_gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">gamma</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">deque</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Process raw traj data by updating keys [&#39;next_obs&#39;, &#39;reward&#39;, &#39;done&#39;] in data&#39;s dict element.</span>
 <span class="sd">        Arguments:</span>
@@ -425,7 +425,7 @@
             <span class="n">last_fn_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;last&#39;</span><span class="p">,</span>
             <span class="n">null_transition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Process raw traj data by updating keys [&#39;next_obs&#39;, &#39;reward&#39;, &#39;done&#39;] in data&#39;s dict element.</span>
 <span class="sd">            If ``unroll_len`` equals to 1, which means no process is needed, can directly return ``data``.</span>
@@ -487,7 +487,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_get_null_transition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">template</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">null_transition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get null transition for padding. If ``cls._null_transition`` is None, return input ``template`` instead.</span>
 <span class="sd">        Arguments:</span>

@@ -309,7 +309,7 @@
 
 <div class="viewcode-block" id="BaseLearner"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner">[docs]</a><span class="nd">@LEARNER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BaseLearner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base class for policy learning.</span>
 <span class="sd">    Interface:</span>
@@ -349,7 +349,7 @@
             <span class="n">exp_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;default_experiment&#39;</span><span class="p">,</span>
             <span class="n">instance_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;learner&#39;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization method, build common learner components according to cfg, such as hook, wrapper and so on.</span>
 <span class="sd">        Arguments:</span>
@@ -422,7 +422,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup_hook</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BaseLearner._setup_hook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner._setup_hook">[docs]</a>    <span class="k">def</span> <span class="nf">_setup_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Setup hook for base_learner. Hook is the way to implement some functions at specific time point</span>
 <span class="sd">            in base_learner. You can refer to ``learner_hook.py``.</span>
@@ -433,7 +433,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span> <span class="o">=</span> <span class="n">build_learner_hook_by_cfg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">hook</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseLearner._setup_wrapper"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner._setup_wrapper">[docs]</a>    <span class="k">def</span> <span class="nf">_setup_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use ``_time_wrapper`` to get ``train_time``.</span>
 <span class="sd">        Note:</span>
@@ -443,7 +443,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">,</span> <span class="s1">&#39;scalar&#39;</span><span class="p">,</span> <span class="s1">&#39;train_time&#39;</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_time_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">var_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">var_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wrap a function and record the time it used in ``_log_buffer``.</span>
 <span class="sd">        Arguments:</span>
@@ -463,7 +463,7 @@
         <span class="k">return</span> <span class="n">wrapper</span>
 
 <div class="viewcode-block" id="BaseLearner.register_hook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.register_hook">[docs]</a>    <span class="k">def</span> <span class="nf">register_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">LearnerHook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Add a new learner hook.</span>
 <span class="sd">        Arguments:</span>
@@ -472,7 +472,7 @@
         <span class="n">add_learner_hook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span><span class="p">,</span> <span class="n">hook</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseLearner.train"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Given training data, implement network update for one iteration and update related variables.</span>
 <span class="sd">            Learner&#39;s API for serial entry.</span>
@@ -539,7 +539,7 @@
 
     <span class="nd">@auto_checkpoint</span>
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            [Only Used In Parallel Mode] Learner&#39;s API for parallel entry.</span>
 <span class="sd">            For each iteration, learner will get data through ``_next_data`` and call ``train`` to train.</span>
@@ -564,7 +564,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">call_hook</span><span class="p">(</span><span class="s1">&#39;after_run&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseLearner.setup_dataloader"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.setup_dataloader">[docs]</a>    <span class="k">def</span> <span class="nf">setup_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            [Only Used In Parallel Mode] Setup learner&#39;s dataloader.</span>
 
@@ -586,7 +586,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_next_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_next_data</span><span class="p">,</span> <span class="s1">&#39;scalar&#39;</span><span class="p">,</span> <span class="s1">&#39;data_time&#39;</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_next_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            [Only Used In Parallel Mode] Call ``_dataloader``&#39;s ``__next__`` method to return next training data.</span>
 <span class="sd">        Returns:</span>
@@ -595,7 +595,7 @@
         <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dataloader</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseLearner.close"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            [Only Used In Parallel Mode] Close the related resources, e.g. dataloader, tensorboard logger, etc.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -612,7 +612,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 <div class="viewcode-block" id="BaseLearner.call_hook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.call_hook">[docs]</a>    <span class="k">def</span> <span class="nf">call_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Call the corresponding hook plugins according to position name.</span>
 <span class="sd">        Arguments:</span>
@@ -623,7 +623,7 @@
             <span class="n">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Log string info by ``self._logger.info``.</span>
 <span class="sd">        Arguments:</span>
@@ -635,7 +635,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;[RANK</span><span class="si">{}</span><span class="s1">]: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
 
 <div class="viewcode-block" id="BaseLearner.save_checkpoint"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.save_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ckpt_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Directly call ``save_ckpt_after_run`` hook to save checkpoint.</span>
 <span class="sd">        Note:</span>
@@ -657,7 +657,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">learn_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get current info dict, which will be sent to commander, e.g. replay buffer priority update,</span>
 <span class="sd">            current iteration, hyper-parameter adjustment, whether task is finished, etc.</span>
@@ -721,7 +721,7 @@
 
     <span class="nd">@policy</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_policy</span><span class="p">:</span> <span class="s1">&#39;Policy&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Note:</span>
 <span class="sd">            Policy variable monitor is set alongside with policy, because variables are determined by specific policy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -751,7 +751,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_learner</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseLearner</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Given the key(learner_name), create a new learner instance if in learner_mapping&#39;s values,</span>
 <span class="sd">        or raise an KeyError. In other words, a derived learner must first register, then can call ``create_learner``</span>
@@ -767,7 +767,7 @@
 
 
 <span class="k">class</span> <span class="nc">TickMonitor</span><span class="p">(</span><span class="n">LoggedModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        TickMonitor is to monitor related info during training.</span>
 <span class="sd">        Info includes: cur_lr, time(data, train, forward, backward), loss(total,...)</span>
@@ -807,7 +807,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_simple_monitor_type</span><span class="p">(</span><span class="n">properties</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">TickMonitor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Besides basic training variables provided in ``TickMonitor``, many policies have their own customized</span>
 <span class="sd">        ones to record and monitor. This function can return a customized tick monitor.</span>

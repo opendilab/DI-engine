@@ -306,7 +306,7 @@
 
 
 <div class="viewcode-block" id="data_pusher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.data_pusher">[docs]</a><span class="k">def</span> <span class="nf">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">group_by_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Push episodes or trajectories into the buffer.</span>
 <span class="sd">    Arguments:</span>
@@ -317,7 +317,7 @@
         <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_push</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            In ctx, either `ctx.trajectories` or `ctx.episodes` should not be None.</span>
 <span class="sd">        Input of ctx:</span>
@@ -344,7 +344,7 @@
 
 
 <span class="k">def</span> <span class="nf">buffer_saver</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">every_envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save current buffer data.</span>
 <span class="sd">    Arguments:</span>
@@ -357,7 +357,7 @@
     <span class="n">buffer_saver_env_counter</span> <span class="o">=</span> <span class="o">-</span><span class="n">every_envstep</span>
 
     <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            In ctx, `ctx.env_step` should not be None.</span>
 <span class="sd">        Input of ctx:</span>
@@ -384,7 +384,7 @@
         <span class="n">buffer_</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Buffer</span><span class="p">]],</span>
         <span class="n">data_shortage_warning</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The return function is a generator which meanly fetch a batch of data from a buffer, \</span>
 <span class="sd">        a list of buffers, or a dict of buffers.</span>
@@ -403,7 +403,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - train_output (:obj:`Union[Dict, Deque[Dict]]`): This attribute should exist \</span>
 <span class="sd">                if `buffer_` is of type Buffer and if `buffer_` use the middleware `PriorityExperienceReplay`. \</span>
@@ -475,7 +475,7 @@
 
 
 <div class="viewcode-block" id="offline_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The outer function transforms a Pytorch `Dataset` to `DataLoader`. \</span>
 <span class="sd">        The return function is a generator which each time fetches a batch of data from the previous `DataLoader`.\</span>
@@ -489,7 +489,7 @@
     <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Every time this generator is iterated, the fetched data will be assigned to ctx.train_data. \</span>
 <span class="sd">            After the dataloader is empty, the attribute `ctx.train_epoch` will be incremented by 1.</span>
@@ -509,7 +509,7 @@
 
 
 <div class="viewcode-block" id="offline_data_saver"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_saver">[docs]</a><span class="k">def</span> <span class="nf">offline_data_saver</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save the expert data of offline RL in a directory.</span>
 <span class="sd">    Arguments:</span>
@@ -521,7 +521,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - trajectories (:obj:`List[Tensor]`): The expert data to be saved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -533,7 +533,7 @@
 
 
 <div class="viewcode-block" id="sqil_data_pusher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.sqil_data_pusher">[docs]</a><span class="k">def</span> <span class="nf">sqil_data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">expert</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Push trajectories into the buffer in sqil learning pipeline.</span>
 <span class="sd">    Arguments:</span>
@@ -544,7 +544,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_pusher</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - trajectories (:obj:`List[Dict]`): The trajectories to be pushed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
