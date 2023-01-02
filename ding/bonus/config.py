@@ -11,6 +11,13 @@ def get_instance_config(env: str) -> EasyDict:
     elif env == 'lunarlander_continuous':
         cfg.action_space = 'continuous'
         cfg.n_sample = 400
+    elif env == 'rocket_landing':
+        cfg.n_sample = 2048
+        cfg.model = dict(
+            encoder_hidden_size_list=[64, 64, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
+        )
     elif env == 'hybrid_moving':
         cfg.action_space = 'hybrid'
         cfg.n_sample = 3200
@@ -36,6 +43,13 @@ def get_instance_env(env: str) -> BaseEnv:
     elif env == 'hybrid_moving':
         import gym_hybrid
         return DingEnvWrapper(gym.make('Moving-v0'))
+    elif env == 'rocket_landing':
+        from dizoo.rocket.envs import RocketEnv
+        cfg = EasyDict({
+            'task': 'landing',
+            'max_steps': 800,
+        })
+        return RocketEnv(cfg)
     else:
         raise KeyError("not supported env type: {}".format(env))
 

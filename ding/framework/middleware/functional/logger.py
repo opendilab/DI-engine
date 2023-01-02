@@ -191,7 +191,9 @@ def wandb_online_logger(
 
             eval_output = ctx.eval_output['output']
             episode_return = ctx.eval_output['episode_return']
-            episode_return = np.array(episode_return).squeeze(1)
+            episode_return = np.array(episode_return)
+            if len(episode_return.shape) == 2:
+                episode_return = episode_return.squeeze(1)
 
             if cfg.video_logger:
                 file_list = []
