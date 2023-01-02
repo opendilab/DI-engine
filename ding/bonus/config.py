@@ -19,6 +19,12 @@ def get_instance_config(env: str) -> EasyDict:
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
         )
+    elif env == 'drone_fly':
+        cfg.action_space = 'continuous'
+        cfg.adv_norm = False
+        cfg.epoch_per_collect = 5
+        cfg.learning_rate = 5e-5
+        cfg.n_sample = 640
     elif env == 'hybrid_moving':
         cfg.action_space = 'hybrid'
         cfg.n_sample = 3200
@@ -41,9 +47,6 @@ def get_instance_env(env: str) -> BaseEnv:
         return DingEnvWrapper(gym.make('LunarLander-v2'))
     elif env == 'lunarlander_continuous':
         return DingEnvWrapper(gym.make('LunarLander-v2', continuous=True))
-    elif env == 'hybrid_moving':
-        import gym_hybrid
-        return DingEnvWrapper(gym.make('Moving-v0'))
     elif env == 'rocket_landing':
         from dizoo.rocket.envs import RocketEnv
         cfg = EasyDict({
@@ -51,6 +54,16 @@ def get_instance_env(env: str) -> BaseEnv:
             'max_steps': 800,
         })
         return RocketEnv(cfg)
+    elif env == 'drone_fly':
+        from dizoo.gym_pybullet_drones.envs import GymPybulletDronesEnv
+        cfg = EasyDict({
+            'env_id': 'flythrugate-aviary-v0',
+            'action_type': 'VEL',
+        })
+        return GymPybulletDronesEnv(cfg)
+    elif env == 'hybrid_moving':
+        import gym_hybrid
+        return DingEnvWrapper(gym.make('Moving-v0'))
     else:
         raise KeyError("not supported env type: {}".format(env))
 

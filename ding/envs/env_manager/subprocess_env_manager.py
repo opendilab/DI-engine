@@ -835,6 +835,7 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
                 info, env_id.
         """
         split_action = tnp.split(actions, actions.shape[0])
+        split_action = [s.squeeze(0) for s in split_action]
         actions = {env_id: a for env_id, a in zip(self.ready_obs_id, split_action)}
         timesteps = super().step(actions)
         new_data = []

@@ -59,7 +59,6 @@ class PPOF:
         model = PPOFModel(
             self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
         )
-        # logging.info(model)
         self.policy = PPOFPolicy(self.cfg, model=model)
 
     def train(
@@ -73,6 +72,7 @@ class PPOF:
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
+        logging.debug(self.policy._model)
         # define env and policy
         collector_env = self._setup_env_manager(collector_env_num, debug)
         evaluator_env = self._setup_env_manager(evaluator_env_num, debug)
