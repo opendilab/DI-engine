@@ -195,7 +195,12 @@ def test_wandb_online_logger():
 
     cfg = EasyDict(
         dict(
-            record_path='./video_qbert_dqn', gradient_logger=True, plot_logger=True, action_logger='action probability', return_logger=True, video_logger=True,
+            record_path='./video_qbert_dqn',
+            gradient_logger=True,
+            plot_logger=True,
+            action_logger='action probability',
+            return_logger=True,
+            video_logger=True,
         )
     )
     env = TheEnvClass()

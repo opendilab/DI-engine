@@ -68,14 +68,15 @@ class PPOF:
             evaluator_env_num: int = 4,
             n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
+            context: Optional[str] = None,
             debug: bool = False
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         logging.debug(self.policy._model)
         # define env and policy
-        collector_env = self._setup_env_manager(collector_env_num, debug)
-        evaluator_env = self._setup_env_manager(evaluator_env_num, debug)
+        collector_env = self._setup_env_manager(collector_env_num, context, debug)
+        evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
@@ -121,6 +122,7 @@ class PPOF:
             save_data_path: Optional[str] = None,
             n_sample: Optional[int] = None,
             n_episode: Optional[int] = None,
+            context: Optional[str] = None,
             debug: bool = False
     ) -> None:
         if debug:
@@ -128,7 +130,7 @@ class PPOF:
         if n_episode is not None:
             raise NotImplementedError
         # define env and policy
-        env = self._setup_env_manager(env_num, debug)
+        env = self._setup_env_manager(env_num, context, debug)
         if ckpt_path is None:
             ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
         if save_data_path is None:
@@ -150,12 +152,13 @@ class PPOF:
             env_num: int = 4,
             ckpt_path: Optional[str] = None,
             n_evaluator_episode: int = 4,
+            context: Optional[str] = None,
             debug: bool = False
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
-        env = self._setup_env_manager(env_num, debug)
+        env = self._setup_env_manager(env_num, context, debug)
         if ckpt_path is None:
             ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
         state_dict = torch.load(ckpt_path, map_location='cpu')
@@ -166,9 +169,13 @@ class PPOF:
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode))
             task.run(max_step=1)
 
-    def _setup_env_manager(self, env_num: int, debug: bool = False) -> BaseEnvManagerV2:
+    def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
         if debug:
             env_cls = BaseEnvManagerV2
+            manager_cfg = env_cls.default_config()
         else:
             env_cls = SubprocessEnvManagerV2
-        return env_cls([self.env.clone for _ in range(env_num)], env_cls.default_config())
+            manager_cfg = env_cls.default_config()
+            if context is not None:
+                manager_cfg.context = context
+        return env_cls([self.env.clone for _ in range(env_num)], manager_cfg)
