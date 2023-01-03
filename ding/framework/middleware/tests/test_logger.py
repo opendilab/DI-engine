@@ -195,7 +195,7 @@ def test_wandb_online_logger():
 
     cfg = EasyDict(
         dict(
-            record_path='./video_qbert_dqn', gradient_logger=True, plot_logger=True, action_logger='action probability'
+            record_path='./video_qbert_dqn', gradient_logger=True, plot_logger=True, action_logger='action probability', return_logger=True, video_logger=True,
         )
     )
     env = TheEnvClass()
@@ -216,11 +216,11 @@ def test_wandb_online_logger():
 
     def test_wandb_online_logger_metric():
         with patch.object(wandb, 'log', new=mock_metric_logger):
-            wandb_online_logger(cfg, env, model, anonymous=True)(ctx)
+            wandb_online_logger(cfg.record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     def test_wandb_online_logger_gradient():
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_online_logger(cfg, env, model, anonymous=True)(ctx)
+            wandb_online_logger(cfg.record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     test_wandb_online_logger_metric()
     test_wandb_online_logger_gradient()

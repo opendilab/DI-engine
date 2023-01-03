@@ -112,9 +112,9 @@ class PPOF:
             step += 1
             if done:
                 break
-        logging.info(f'PPOF deploy is finished, final epsiode return with {step} steps is: {return_}')
+        logging.info(f'PPOF deploy is finished, final episode return with {step} steps is: {return_}')
 
-    def collect_demo_data(
+    def collect_data(
             self,
             env_num: int = 8,
             ckpt_path: Optional[str] = None,
