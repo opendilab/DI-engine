@@ -50,7 +50,7 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
-        'gym>=0.25.1, <0.26.0',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'numpy>=1.18.0',
         'pandas',
@@ -84,6 +84,9 @@ setup(
         'wandb',
         'matplotlib',
         'MarkupSafe==2.0.1',  # compatibility
+        'h5py',
+        'scikit-learn',
+        'hickle',
     ],
     extras_require={
         'test': [

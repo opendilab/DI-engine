@@ -67,7 +67,7 @@ class LunarLanderEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
         if self._save_replay_gif:
@@ -96,9 +96,9 @@ class LunarLanderEnv(BaseEnv):
         if self._save_replay_gif:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
             if self._save_replay_gif:
                 if not os.path.exists(self._replay_path_gif):
                     os.makedirs(self._replay_path_gif)

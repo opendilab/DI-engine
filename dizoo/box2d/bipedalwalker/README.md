@@ -6,6 +6,6 @@ Bipedalwalker is a continuous action space environment in openAI gym. With 24 di
 
 ## Train BipedalWalker with DI-engine
 
-DI-engine can achive 300+ return on average within 2000 episodes by TD3. The tuned example can be found in `dizoo/box2d/bipedalwalker/config/bipedalwalker_td3_config.py`. The training episode reward is as follows.
+DI-engine can achive 300+ return on average within 2000 episodes by TD3. The tuned example can be found in `dizoo/box2d/bipedalwalker/config/bipedalwalker_td3_config.py`. The training episode return is as follows.
 
 ![tb](./bipedalwalkertb.png)

@@ -1,4 +1,5 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
+from .common_utils import single_env_forward_wrapper
 from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .iqn import IQNPolicy
 from .fqf import FQFPolicy
@@ -9,8 +10,9 @@ from .ddpg import DDPGPolicy
 from .d4pg import D4PGPolicy
 from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
-
 from .td3_bc import TD3BCPolicy
+
+from .pg import PGPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy, PPOPGPolicy, PPOOffPolicy
 from .sac import SACPolicy, SACDiscretePolicy, SQILSACPolicy

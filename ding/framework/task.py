@@ -7,8 +7,11 @@ import asyncio
 import concurrent.futures
 import fnmatch
 import math
+import enum
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
+import inspect
+
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from ding.framework.event_loop import EventLoop
@@ -50,11 +53,28 @@ def enable_async(func: Callable) -> Callable:
     return runtime_handler
 
 
+class Role(str, enum.Enum):
+    LEARNER = "learner"
+    COLLECTOR = "collector"
+    EVALUATOR = "evaluator"
+
+
+class VoidMiddleware:
+
+    def __call__(self, _):
+        return
+
+
 class Task:
     """
     Tash will manage the execution order of the entire pipeline, register new middleware,
     and generate new context objects.
     """
+    role = Role
+
+    def __init__(self) -> None:
+        self.router = Parallel()
+        self._finish = False
 
     def start(
             self,
@@ -71,6 +91,7 @@ class Task:
         self._wrappers = []
         self.ctx = ctx or Context()
         self._backward_stack = OrderedDict()
+        self._roles = set()
         # Bind event loop functions
         self._event_loop = EventLoop("task_{}".format(id(self)))
 
@@ -85,7 +106,6 @@ class Task:
         self.labels = labels or set()
 
         # Parallel segment
-        self.router = Parallel()
         if async_mode or self.router.is_active:
             self._activate_async()
 
@@ -98,6 +118,21 @@ class Task:
 
         self.init_labels()
         return self
+
+    def add_role(self, role: Role):
+        self._roles.add(role)
+
+    def has_role(self, role: Role) -> bool:
+        if len(self._roles) == 0:
+            return True
+        return role in self._roles
+
+    @property
+    def roles(self) -> Set[Role]:
+        return self._roles
+
+    def void(self):
+        return VoidMiddleware()
 
     def init_labels(self):
         if self.async_mode:
@@ -120,6 +155,9 @@ class Task:
         Returns:
             - task (:obj:`Task`): The task.
         """
+        assert isinstance(fn, Callable), "Middleware function should be a callable object, current fn {}".format(fn)
+        if isinstance(fn, VoidMiddleware):  # Skip void function
+            return self
         for wrapper in self._wrappers:
             fn = wrapper(fn)
         self._middleware.append(self.wrap(fn, lock=lock))
@@ -192,7 +230,6 @@ class Task:
         if lock is True:
             lock = self._thread_lock
 
-        @wraps(fn)
         def forward(ctx: Context):
             if lock:
                 with lock:
@@ -211,6 +248,11 @@ class Task:
                     self.backward(backward_stack, async_mode=False)
 
             return backward
+
+        if hasattr(fn, "__name__"):
+            forward = wraps(fn)(forward)
+        else:
+            forward = wraps(fn.__class__)(forward)
 
         return forward
 
@@ -257,6 +299,10 @@ class Task:
                 next(g)
             except StopIteration:
                 continue
+
+    @property
+    def running(self):
+        return self._running
 
     def serial(self, *fns: List[Callable]) -> Callable:
         """
@@ -330,6 +376,8 @@ class Task:
         Overview:
             Stop and cleanup every thing in the runtime of task.
         """
+        if self.router.is_active:
+            self.emit("finish", True)
         if self._thread_pool:
             self._thread_pool.shutdown()
         self._event_loop.stop()
@@ -472,8 +520,6 @@ class Task:
     @finish.setter
     def finish(self, value: bool):
         self._finish = value
-        if self.router.is_active and value is True:
-            self.emit("finish", value)
 
     def _wrap_event_name(self, event: str) -> str:
         """

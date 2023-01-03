@@ -1,7 +1,9 @@
+import os
 import pytest
 import time
 import random
 import functools
+import tempfile
 from typing import Callable
 from ding.data.buffer import DequeBuffer
 from ding.data.buffer.buffer import BufferedData
@@ -85,6 +87,25 @@ def test_rate_limit_push_sample():
         buffer.push(i)
     assert buffer.count() == 5
     assert 5 not in buffer.sample(5)
+
+
+@pytest.mark.unittest
+def test_load_and_save():
+    buffer = DequeBuffer(size=10).use(RateLimit(max_rate=5))
+    buffer.meta_index = {"label": []}
+    for i in range(10):
+        buffer.push(i, meta={"label": i})
+    assert buffer.count() == 5
+    assert 5 not in buffer.sample(5)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_file = os.path.join(tmpdirname, "data.hkl")
+        buffer.save_data(test_file)
+        buffer_new = DequeBuffer(size=10).use(RateLimit(max_rate=5))
+        buffer_new.load_data(test_file)
+        assert buffer_new.count() == 5
+        assert 5 not in buffer_new.sample(5)
+        assert len(buffer.meta_index["label"]) == 5
+        assert all([index < 5 for index in buffer.meta_index["label"]])
 
 
 @pytest.mark.unittest
@@ -248,17 +269,6 @@ def test_groupby():
     buffer.delete(last.index)
     sampled_data = buffer.sample(2, groupby="group")
     assert len(sampled_data) == 2
-
-
-@pytest.mark.unittest
-def test_import_export():
-    buffer = DequeBuffer(size=10)
-    data_with_meta = [(i, {}) for i in range(10)]
-    buffer.import_data(data_with_meta)
-    assert buffer.count() == 10
-
-    sampled_data = buffer.export_data()
-    assert len(sampled_data) == 10
 
 
 @pytest.mark.unittest

@@ -10,11 +10,11 @@ from ding.utils import set_pkg_seed
 
 
 def eval(
-        input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
+    input_cfg: Union[str, Tuple[dict, dict]],
+    seed: int = 0,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
 ) -> float:
     r"""
     Overview:
@@ -46,20 +46,20 @@ def eval(
     policy.load_state_dict(state_dict)
 
     obs = env.reset()
-    eval_reward = 0.
+    episode_return = 0.
     while True:
         policy_output = policy.forward({0: obs})
         action = policy_output[0]['action']
         print(action)
         timestep = env.step(action)
-        eval_reward += timestep.reward
+        episode_return += timestep.reward
         obs = timestep.obs
         if timestep.done:
             print(timestep.info)
             break
 
     env.save_replay(replay_dir='.', prefix=env._map_name)
-    print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
+    print('Eval is over! The performance of your RL policy is {}'.format(episode_return))
 
 
 if __name__ == "__main__":

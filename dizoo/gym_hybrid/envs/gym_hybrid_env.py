@@ -1,32 +1,44 @@
+import copy
 import os
 from typing import Dict, Optional
 
 import gym
+import gym_hybrid
 import matplotlib.pyplot as plt
 import numpy as np
+from easydict import EasyDict
+from matplotlib import animation
+
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common import affine_transform
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
-from easydict import EasyDict
-from matplotlib import animation
 
 
 @ENV_REGISTRY.register('gym_hybrid')
 class GymHybridEnv(BaseEnv):
     default_env_id = ['Sliding-v0', 'Moving-v0', 'HardMove-v0']
 
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
+    config = dict(
+        env_id='Moving-v0',
+        act_scale=True,
+    )
+
     def __init__(self, cfg: EasyDict) -> None:
         self._cfg = cfg
         self._env_id = cfg.env_id
         assert self._env_id in self.default_env_id
         self._act_scale = cfg.act_scale
-        self._init_flag = False
-        self._save_replay = cfg.save_replay_gif
-        self._replay_path = cfg.replay_path
+        self._replay_path = None
+        self._save_replay = False
         self._save_replay_count = 0
-        if self._save_replay:
-            self._frames = []
+        self._init_flag = False
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -45,7 +57,7 @@ class GymHybridEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         return obs
@@ -76,9 +88,9 @@ class GymHybridEnv(BaseEnv):
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
             if self._save_replay:
                 if self._env_id == 'HardMove-v0':
                     self._env_id = f'hardmove_n{self._cfg.num_actuators}'
@@ -86,6 +98,7 @@ class GymHybridEnv(BaseEnv):
                     self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
                 )
                 self.display_frames_as_gif(self._frames, path)
+                self._frames = []
                 self._save_replay_count += 1
 
         obs = to_ndarray(obs)
@@ -115,11 +128,6 @@ class GymHybridEnv(BaseEnv):
     def __repr__(self) -> str:
         return "DI-engine gym hybrid Env"
 
-    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
-        if replay_path is None:
-            replay_path = './video'
-        self._replay_path = replay_path
-
     @property
     def observation_space(self) -> gym.spaces.Space:
         return self._observation_space
@@ -135,9 +143,10 @@ class GymHybridEnv(BaseEnv):
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
             replay_path = './video'
-        self._save_replay = True
         self._replay_path = replay_path
+        self._save_replay = True
         self._save_replay_count = 0
+        self._frames = []
 
     @staticmethod
     def display_frames_as_gif(frames: list, path: str) -> None:

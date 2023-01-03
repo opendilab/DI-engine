@@ -351,7 +351,7 @@ class BaseLearner(object):
                 - ``auto_checkpoint`` (``torch_utils/checkpoint_helper.py``), which is designed for \
                     saving checkpoint whenever an exception raises.
                 - ``serial_pipeline`` (``entry/serial_entry.py``). Used to save checkpoint when reaching \
-                    new highest evaluation reward.
+                    new highest episode return.
         """
         if ckpt_name is not None:
             self.ckpt_name = ckpt_name

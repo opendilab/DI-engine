@@ -9,7 +9,7 @@ try:
 except ImportError:
     _test_mark = pytest.mark.ignore
 else:
-    _test_mark = pytest.mark.unittest
+    _test_mark = pytest.mark.envtest
 
 
 @_test_mark

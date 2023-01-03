@@ -13,9 +13,6 @@ gym_hybrid_pdqn_config = dict(
     ),
     policy=dict(
         cuda=True,
-        priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=False,
         discount_factor=0.99,
         nstep=1,
         model=dict(
@@ -81,4 +78,4 @@ create_config = gym_hybrid_pdqn_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c gym_hybrid_pdqn_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+    serial_pipeline([main_config, create_config], seed=0, max_env_step=int(1e7))

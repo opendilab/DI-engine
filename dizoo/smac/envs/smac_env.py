@@ -552,10 +552,10 @@ class SMACEnv(SC2Env, BaseEnv):
             self._final_eval_fake_reward += rewards
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
-            new_infos['final_eval_reward'] = infos['final_eval_reward']
+            new_infos['eval_episode_return'] = infos['eval_episode_return']
             if 'episode_info' in infos:
                 new_infos['episode_info'] = infos['episode_info']
-            new_infos['fake_final_eval_reward'] = infos['fake_final_eval_reward']
+            new_infos['fake_eval_episode_return'] = infos['fake_eval_episode_return']
             infos = new_infos
             if self.obs_alone:
                 agent_state, agent_alone_state, agent_alone_padding_state = self.get_obs()
@@ -611,8 +611,8 @@ class SMACEnv(SC2Env, BaseEnv):
             OPPONENT_AGENT: {
                 "battle_won": False
             },
-            'final_eval_reward': 0.,
-            'fake_final_eval_reward': 0.
+            'eval_episode_return': 0.,
+            'fake_eval_episode_return': 0.
         }
 
         if game_end_code is not None:
@@ -625,7 +625,7 @@ class SMACEnv(SC2Env, BaseEnv):
                 self.win_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = True
                 info[OPPONENT_AGENT]["battle_won"] = False
-                info['final_eval_reward'] = 1.
+                info['eval_episode_return'] = 1.
             elif game_end_code == -1 and not self.defeat_counted:
                 self.defeat_counted = True
                 info[ORIGINAL_AGENT]["battle_won"] = False
@@ -639,7 +639,7 @@ class SMACEnv(SC2Env, BaseEnv):
                 info[OPPONENT_AGENT]["episode_limit"] = True
             self.battles_game += 1
             self.timeouts += 1
-            # info['final_eval_reward'] = -0.5
+            # info['eval_episode_return'] = -0.5
 
             # if sum(u.health + u.shield for u in self.agents.values()) >= \
             #         sum(u.health + u.shield for u in self.enemies.values()):
@@ -678,7 +678,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
         # Test purpose
         # reward = {k: 0 * v + 100 for k, v in reward.items()}
-        info['fake_final_eval_reward'] = reward[ORIGINAL_AGENT]
+        info['fake_eval_episode_return'] = reward[ORIGINAL_AGENT]
         return reward, {ORIGINAL_AGENT: terminated, OPPONENT_AGENT: terminated, "__all__": terminated}, info
 
     def close(self):

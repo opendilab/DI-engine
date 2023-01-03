@@ -38,7 +38,7 @@ class FakeSMACEnv(BaseEnv):
         done = self.step_count >= 314
         info = {}
         if done:
-            info['final_eval_reward'] = 0.71
+            info['eval_episode_return'] = 0.71
         self.step_count += 1
         return FakeSMACEnvTimestep(obs, reward, done, info)
 

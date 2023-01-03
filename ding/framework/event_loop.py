@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import Callable, Optional
 from concurrent.futures import ThreadPoolExecutor
+from copy import copy
 import fnmatch
 from ditk import logging
 
@@ -35,7 +36,10 @@ class EventLoop:
         """
         for e in fnmatch.filter(self._listeners.keys(), event):
             if fn:
-                self._listeners[e].remove(fn)
+                try:
+                    self._listeners[e].remove(fn)
+                except:
+                    pass
             else:
                 self._listeners[e] = []
 
@@ -79,7 +83,7 @@ class EventLoop:
         if event not in self._listeners:
             logging.debug("Event {} is not registered in the callbacks of {}!".format(event, self._name))
             return
-        for fn in self._listeners[event]:
+        for fn in copy(self._listeners[event]):
             try:
                 fn(*args, **kwargs)
             except Exception as e:

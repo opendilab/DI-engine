@@ -5,6 +5,7 @@ omit =
   ding/utils/linklink_dist_helper.py
   ding/utils/pytorch_ddp_dist_helper.py
   ding/utils/k8s_helper.py
+  ding/utils/tests/test_k8s_launcher.py
   ding/utils/time_helper_cuda.py
   ding/utils/time_helper_base.py
   ding/utils/data/tests/test_dataloader.py

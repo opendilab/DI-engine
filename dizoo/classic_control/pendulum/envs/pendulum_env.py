@@ -54,7 +54,7 @@ class PendulumEnv(BaseEnv):
             self._action_space.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return obs
 
     def close(self) -> None:
@@ -76,12 +76,12 @@ class PendulumEnv(BaseEnv):
         if self._act_scale:
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         obs = to_ndarray(obs).astype(np.float32)
         # wrapped to be transfered to a array with shape (1,)
         rew = to_ndarray([rew]).astype(np.float32)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:

@@ -182,7 +182,7 @@ class ZerglingParallelCollector(BaseParallelCollector):
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
                 self._policy.reset([env_id])
-                reward = t.info['final_eval_reward']
+                reward = t.info['eval_episode_return']
                 if isinstance(reward, torch.Tensor):
                     reward = reward.item()
                 self._episode_result[env_id].append(reward)

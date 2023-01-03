@@ -165,7 +165,7 @@ class DMC2GymEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
 
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         obs = self._env.reset()
 
         if self._cfg["from_pixels"]:
@@ -188,9 +188,9 @@ class DMC2GymEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         action = action.astype('float32')
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
 
         if self._cfg["from_pixels"]:
             obs = to_ndarray(obs).astype(np.uint8)

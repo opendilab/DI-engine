@@ -1,6 +1,8 @@
+import os
 import copy
 from typing import Union, Any, Optional, List
 import numpy as np
+import hickle
 from easydict import EasyDict
 
 from ding.worker.replay_buffer import IBuffer
@@ -145,6 +147,15 @@ class NaiveReplayBuffer(IBuffer):
             sample_data = self._sample_with_indices(indices, cur_learner_iter)
         self._periodic_thruput_monitor.sample_data_count += len(sample_data)
         return sample_data
+
+    def save_data(self, file_name: str):
+        if not os.path.exists(os.path.dirname(file_name)):
+            if os.path.dirname(file_name) != "":
+                os.makedirs(os.path.dirname(file_name))
+        hickle.dump(py_obj=self._data, file_obj=file_name)
+
+    def load_data(self, file_name: str):
+        self.push(hickle.load(file_name), 0)
 
     def _append(self, ori_data: Any, cur_collector_envstep: int = -1) -> None:
         r"""

@@ -13,7 +13,6 @@ gym_hybrid_hppo_config = dict(
     ),
     policy=dict(
         cuda=True,
-        priority=False,
         action_space='hybrid',
         recompute_adv=True,
         model=dict(
@@ -32,14 +31,12 @@ gym_hybrid_hppo_config = dict(
             epoch_per_collect=10,
             batch_size=320,
             learning_rate=3e-4,
-            value_weight=0.5,
             entropy_weight=0.03,
-            clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
         ),
         collect=dict(
-            n_sample=int(3200),
+            n_sample=3200,
             discount_factor=0.99,
             gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
@@ -64,4 +61,4 @@ create_config = gym_hybrid_hppo_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c gym_hybrid_hppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-    serial_pipeline_onpolicy([main_config, create_config], seed=0)
+    serial_pipeline_onpolicy([main_config, create_config], seed=0, max_env_step=int(1e7))

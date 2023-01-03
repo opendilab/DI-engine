@@ -1,3 +1,43 @@
+2022.12.13(v0.4.5)
+- env: add beergame supply chain optimization env (#512)
+- env: add env gym_pybullet_drones (#526)
+- env: rename eval reward to episode return (#536)
+- algo: add policy gradient algo implementation (#544)
+- algo: add MADDPG algo implementation (#550)
+- algo: add IMPALA continuous algo implementation (#551)
+- algo: add MADQN algo implementation (#540)
+- feature: add new task IMPALA-type distributed training scheme (#321)
+- feature: add load and save method for replaybuffer (#542)
+- feature: add more DingEnvWrapper example (#525)
+- feature: add evaluator more info viz support (#538)
+- feature: add trackback log for subprocess env manager (#534)
+- fix: halfcheetah td3 config file (#537)
+- fix: mujoco action_clip args compatibility bug (#535)
+- fix: atari a2c config entry bug
+- fix: drex unittest compatibility bug
+- style: add Roadmap issue of DI-engine (#548)
+- style: update related project link and new env doc
+
+2022.10.31(v0.4.4)
+- env: add modified gym-hybrid including moving, sliding and hardmove (#505) (#519)
+- env: add evogym support (#495) (#527)
+- env: add save_replay_gif option (#506)
+- env: adapt minigrid_env and related config to latest MiniGrid v2.0.0 (#500)
+- algo: add pcgrad optimizer (#489)
+- algo: add some features in MLP and ResBlock (#511)
+- algo: delete mcts related modules (#518)
+- feature: add wandb middleware and demo (#488) (#523) (#528)
+- feature: add new properties in Context (#499)
+- feature: add single env policy wrapper for policy deployment
+- feature: add custom model demo and doc
+- fix: build logger args and unittests (#522)
+- fix: total_loss calculation in PDQN (#504)
+- fix: save gif function bug
+- fix: level sample unittest bug
+- style: update contact email address (#503)
+- style: polish env log and resblock name
+- style: add details button in readme
+
 2022.09.23(v0.4.3)
 - env: add rule-based gomoku expert (#465)
 - algo: fix a2c policy batch size bug (#481)

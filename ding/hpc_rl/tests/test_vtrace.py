@@ -1,7 +1,7 @@
 import time
 import torch
 import torch.nn.functional as F
-from hpc_rll.origin.vtrace import vtrace_error, vtrace_data
+from hpc_rll.origin.vtrace import vtrace_error_discrete_action, vtrace_data
 from hpc_rll.rl_utils.vtrace import VTrace
 from testbase import mean_relative_error, times
 
@@ -48,7 +48,7 @@ def vtrace_val():
 
     ori_target_output.requires_grad_(True)
     ori_value.requires_grad_(True)
-    ori_loss = vtrace_error(
+    ori_loss = vtrace_error_discrete_action(
         vtrace_data(ori_target_output, ori_behaviour_output, ori_action, ori_value, ori_reward, None)
     )
     ori_loss = sum(ori_loss)
@@ -114,7 +114,7 @@ def vtrace_perf():
     ori_value.requires_grad_(True)
     for i in range(times):
         t = time.time()
-        ori_loss = vtrace_error(
+        ori_loss = vtrace_error_discrete_action(
             vtrace_data(ori_target_output, ori_behaviour_output, ori_action, ori_value, ori_reward, None)
         )
         ori_loss = sum(ori_loss)

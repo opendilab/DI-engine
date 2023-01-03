@@ -5,7 +5,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from ding.torch_utils.loss.contrastive_loss import ContrastiveLoss
 
 
-@pytest.mark.benchmark
+@pytest.mark.unittest
 @pytest.mark.parametrize('noise', [0.1, 1.0])
 @pytest.mark.parametrize('dims', [16, [1, 16, 16], [1, 40, 40]])
 def test_infonce_loss(noise, dims):
