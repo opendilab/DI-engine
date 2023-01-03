@@ -468,6 +468,116 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s1">&#39;distribution&#39;</span><span class="p">:</span> <span class="n">dist</span><span class="p">}</span></div></div>
 
 
+<span class="k">class</span> <span class="nc">BranchingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">num_branches</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">action_bins_per_branch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">a_layer_num</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">v_layer_num</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the ``BranchingHead`` layers according to the provided arguments. \</span>
+<span class="sd">                This head achieves a linear increase of the number of network outputs \</span>
+<span class="sd">                with the number of degrees of freedom by allowing a level of independence \</span>
+<span class="sd">                for each individual action dimension.</span>
+<span class="sd">                Therefore, this head is suitable for high dimensional action Spaces.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``BranchingHead``.</span>
+<span class="sd">            - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension.</span>
+<span class="sd">            - action_bins_per_branch (:obj:int): The number of action bins in each dimension.</span>
+<span class="sd">            - layer_num (:obj:`int`): The number of layers used in the network to compute Advantage and Value output.</span>
+<span class="sd">            - a_layer_num (:obj:`int`): The number of layers used in the network to compute Advantage output.</span>
+<span class="sd">            - v_layer_num (:obj:`int`): The number of layers used in the network to compute Value output.</span>
+<span class="sd">            - output_size (:obj:`int`): The number of outputs.</span>
+<span class="sd">            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \</span>
+<span class="sd">                for more details. Default ``None``.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \</span>
+<span class="sd">                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.</span>
+<span class="sd">            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks&#39; MLP. \</span>
+<span class="sd">                Default ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BranchingHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">a_layer_num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a_layer_num</span> <span class="o">=</span> <span class="n">layer_num</span>
+        <span class="k">if</span> <span class="n">v_layer_num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">v_layer_num</span> <span class="o">=</span> <span class="n">layer_num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span> <span class="o">=</span> <span class="n">num_branches</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_bins_per_branch</span> <span class="o">=</span> <span class="n">action_bins_per_branch</span>
+
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">NoiseLinearLayer</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="n">noise_block</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">fc_block</span>
+        <span class="c1"># value network</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">MLP</span><span class="p">(</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">v_layer_num</span><span class="p">,</span>
+                <span class="n">layer_fn</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+            <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># action branching network</span>
+        <span class="n">action_output_dim</span> <span class="o">=</span> <span class="n">action_bins_per_branch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">branches</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                    <span class="n">MLP</span><span class="p">(</span>
+                        <span class="n">hidden_size</span><span class="p">,</span>
+                        <span class="n">hidden_size</span><span class="p">,</span>
+                        <span class="n">hidden_size</span><span class="p">,</span>
+                        <span class="n">a_layer_num</span><span class="p">,</span>
+                        <span class="n">layer_fn</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                        <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                        <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                    <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">action_output_dim</span><span class="p">)</span>
+                <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use encoded embedding tensor to run MLP with ``BranchingHead`` and return the prediction dictionary.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Tensor containing input embedding.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Dict containing keyword ``logit`` (:obj:`torch.Tensor`).</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
+<span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; head = BranchingHead(64, 5, 2)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = head(inputs)</span>
+<span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict) and outputs[&#39;logit&#39;].shape == torch.Size([4, 5, 2])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">value_out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="n">value_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">action_out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="n">action_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">action_scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">action_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            From the paper, this implementation performs better than both the naive alternative (Q = V + A) \</span>
+<span class="sd">            and the local maximum reduction method (Q = V + max(A)).</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">action_scores</span> <span class="o">=</span> <span class="n">action_scores</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">action_scores</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">value_out</span> <span class="o">+</span> <span class="n">action_scores</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">}</span>
+
+
 <div class="viewcode-block" id="RainbowHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead">[docs]</a><span class="k">class</span> <span class="nc">RainbowHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
