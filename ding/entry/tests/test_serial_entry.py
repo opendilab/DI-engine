@@ -51,6 +51,7 @@ from dizoo.classic_control.pendulum.config.pendulum_ibc_config import pendulum_i
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_config, gym_hybrid_mpdqn_create_config
+from dizoo.classic_control.pendulum.config.pendulum_bdq_config import pendulum_bdq_config, pendulum_bdq_create_config  # noqa
 
 
 @pytest.mark.platformtest
@@ -65,6 +66,20 @@ def test_dqn():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf cartpole_dqn_unittest')
+
+
+@pytest.mark.platformtest
+@pytest.mark.unittest
+def test_bdq():
+    config = [deepcopy(pendulum_bdq_config), deepcopy(pendulum_bdq_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'pendulum_bdq_unittest'
+    try:
+        serial_pipeline(config, seed=0, max_train_iter=1)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf pendulum_bdq_unittest')
 
 
 @pytest.mark.platformtest
