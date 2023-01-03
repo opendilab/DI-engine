@@ -361,6 +361,18 @@
         <span class="n">ctx</span><span class="o">.</span><span class="n">trajectories</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">_gae</span></div>
+
+
+<span class="k">def</span> <span class="nf">ppof_adv_estimator</span><span class="p">(</span><span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">_estimator</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">ttorch_collate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">trajectories</span><span class="p">)</span>
+        <span class="n">traj_flag</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">done</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="n">traj_flag</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">trajectory_end_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">traj_flag</span> <span class="o">=</span> <span class="n">traj_flag</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="n">data</span>
+
+    <span class="k">return</span> <span class="n">_estimator</span>
 </pre></div>
 
               </article>

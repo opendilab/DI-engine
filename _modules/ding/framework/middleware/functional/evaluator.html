@@ -292,7 +292,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.framework.middleware.functional.evaluator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
@@ -590,6 +590,95 @@
             <span class="n">task</span><span class="o">.</span><span class="n">finish</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">return</span> <span class="n">_evaluate</span></div>
+
+
+<span class="k">def</span> <span class="nf">interaction_evaluator_ttorch</span><span class="p">(</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span>
+        <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">eval_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The middleware that executes the evaluation with ttorch data.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - policy (:obj:`Policy`): The policy to be evaluated.</span>
+<span class="sd">        - env (:obj:`BaseEnvManager`): The env for the evaluation.</span>
+<span class="sd">        - render (:obj:`bool`): Whether to render env images and policy logits.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">EVALUATOR</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_evaluator_episode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_evaluator_episode</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">env_num</span>
+
+    <span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            - The evaluation will be executed if the task begins and enough train_iter passed \</span>
+<span class="sd">                since last evaluation.</span>
+<span class="sd">        Input of ctx:</span>
+<span class="sd">            - last_eval_iter (:obj:`int`): Last evaluation iteration.</span>
+<span class="sd">            - train_iter (:obj:`int`): Current train iteration.</span>
+<span class="sd">        Output of ctx:</span>
+<span class="sd">            - eval_value (:obj:`float`): The average reward in the current evaluation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># evaluation will be executed if the task begins or enough train_iter after last evaluation</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">&lt;</span> <span class="n">eval_freq</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">eval_monitor</span> <span class="o">=</span> <span class="n">VectorEvalMonitor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">env_num</span><span class="p">,</span> <span class="n">n_evaluator_episode</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">is_finished</span><span class="p">():</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_obs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">inference_output</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
+                <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_video</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_imgs</span><span class="p">)</span>
+                <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_output</span><span class="p">(</span><span class="n">inference_output</span><span class="p">)</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="n">timesteps</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="p">:</span>
+                <span class="n">env_id</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+                    <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">env_id</span><span class="p">])</span>
+                    <span class="n">reward</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">eval_episode_return</span>
+                    <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_reward</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">reward</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="s1">&#39;episode_info&#39;</span> <span class="ow">in</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+                        <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_info</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">episode_info</span><span class="p">)</span>
+        <span class="n">episode_return</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_return</span><span class="p">()</span>
+        <span class="n">episode_return_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">episode_return</span><span class="p">)</span>
+        <span class="n">stop_flag</span> <span class="o">=</span> <span class="n">episode_return_mean</span> <span class="o">&gt;=</span> <span class="n">stop_value</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Evaluation: Train Iter(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Env Step(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\t</span><span class="s1">Mean Episode Return(</span><span class="si">{:.3f}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span><span class="p">,</span> <span class="n">episode_return_mean</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">=</span> <span class="n">episode_return_mean</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;episode_return&#39;</span><span class="p">:</span> <span class="n">episode_return</span><span class="p">}</span>
+        <span class="n">episode_info</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_info</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">episode_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span><span class="p">[</span><span class="s1">&#39;episode_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">episode_info</span>
+        <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span><span class="p">[</span><span class="s1">&#39;replay_video&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_video</span><span class="p">()</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_output</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>  <span class="c1"># for compatibility</span>
+
+        <span class="k">if</span> <span class="n">stop_flag</span><span class="p">:</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">finish</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">_evaluate</span>
 
 
 <span class="k">def</span> <span class="nf">metric_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="n">IMetric</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>

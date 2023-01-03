@@ -508,12 +508,11 @@
     <span class="k">return</span> <span class="n">_fetch</span></div>
 
 
-<div class="viewcode-block" id="offline_data_saver"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_saver">[docs]</a><span class="k">def</span> <span class="nf">offline_data_saver</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="offline_data_saver"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_saver">[docs]</a><span class="k">def</span> <span class="nf">offline_data_saver</span><span class="p">(</span><span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save the expert data of offline RL in a directory.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - cfg (:obj:`EasyDict`): Config.</span>
 <span class="sd">        - data_path (:obj:`str`): File path where the expert data will be written into, which is usually ./expert.pkl&#39;.</span>
 <span class="sd">        - data_type (:obj:`str`): Define the type of the saved data. \</span>
 <span class="sd">            The type of saved data is pkl if `data_type == &#39;naive&#39;`. \</span>
