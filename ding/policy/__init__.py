@@ -23,6 +23,7 @@ from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
 from .ppg import PPGPolicy, PPGOffPolicy
 from .sqn import SQNPolicy
+from .bdq import BDQPolicy
 
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
