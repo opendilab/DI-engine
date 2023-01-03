@@ -96,7 +96,7 @@ class PPOF:
         if enable_save_replay:
             env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
         if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/final.pth.tar')
+            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
         state_dict = torch.load(ckpt_path, map_location='cpu')
         self.policy.load_state_dict(state_dict)
         forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval)
@@ -130,7 +130,7 @@ class PPOF:
         # define env and policy
         env = self._setup_env_manager(env_num, debug)
         if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/final.pth.tar')
+            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
         if save_data_path is None:
             save_data_path = os.path.join(self.exp_name, 'demo_data')
         state_dict = torch.load(ckpt_path, map_location='cpu')
@@ -157,7 +157,7 @@ class PPOF:
         # define env and policy
         env = self._setup_env_manager(env_num, debug)
         if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/final.pth.tar')
+            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
         state_dict = torch.load(ckpt_path, map_location='cpu')
         self.policy.load_state_dict(state_dict)
 

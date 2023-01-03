@@ -246,7 +246,7 @@ class PPOFPolicy:
             'model': self._model.state_dict(),
         }
         if 'learn' in self.enable_mode:
-            state_dict['optimizer'] = self._optimizer.state_dict(),
+            state_dict['optimizer'] = self._optimizer.state_dict()
         return state_dict
 
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
