@@ -35,8 +35,8 @@ def main():
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(gae_estimator(cfg, policy.collect_mode))
-        task.use(multistep_trainer(cfg, policy.learn_mode))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(multistep_trainer(policy.learn_mode, log_freq=50))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.use(online_logger(train_show_freq=3))
         task.run()
 

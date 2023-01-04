@@ -52,7 +52,7 @@ def test_ckpt_saver():
             assert path == "{}/eval.pth.tar".format(prefix)
 
         with patch("ding.framework.middleware.ckpt_handler.save_file", mock_save_file):
-            ctx.train_iter = 0
+            ctx.train_iter = 1
             ctx.eval_value = 9.4
             ckpt_saver = CkptSaver(policy, exp_name, train_freq)
             ckpt_saver(ctx)

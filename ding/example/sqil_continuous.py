@@ -61,7 +61,7 @@ def main():
         )  # expert data collector
         task.use(sqil_data_pusher(cfg, expert_buffer, expert=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, [(buffer_, 0.5), (expert_buffer, 0.5)]))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.use(termination_checker(max_train_iter=10000))
         task.run()
 
