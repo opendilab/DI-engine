@@ -31,7 +31,9 @@ def setup_state_dict():
 class TestApplication:
 
     def test_eval(self, setup_state_dict):
-        cfg_for_stop_value = compile_config(cartpole_ppo_offpolicy_config, auto=True, create_cfg=cartpole_ppo_offpolicy_create_config)
+        cfg_for_stop_value = compile_config(
+            cartpole_ppo_offpolicy_config, auto=True, create_cfg=cartpole_ppo_offpolicy_create_config
+        )
         stop_value = cfg_for_stop_value.env.stop_value
         config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
         episode_return = eval(config, seed=0, state_dict=setup_state_dict['eval'])
