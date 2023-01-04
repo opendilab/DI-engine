@@ -635,6 +635,7 @@
         <span class="n">create_cfg</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">save_cfg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;total_config.py&#39;</span><span class="p">,</span>
+        <span class="n">renew_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -655,6 +656,7 @@
 <span class="sd">        - create_cfg (:obj:`dict`): Input create config dict</span>
 <span class="sd">        - save_cfg (:obj:`bool`): Save config or not</span>
 <span class="sd">        - save_path (:obj:`str`): Path of saving file</span>
+<span class="sd">        - renew_dir (:obj:`bool`): Whether to new a directory for saving config.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - cfg (:obj:`EasyDict`): Config after compiling</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -754,7 +756,7 @@
     <span class="k">if</span> <span class="s1">&#39;exp_name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">:</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;default_experiment&#39;</span>
     <span class="k">if</span> <span class="n">save_cfg</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">renew_dir</span><span class="p">:</span>
             <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;_%y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
