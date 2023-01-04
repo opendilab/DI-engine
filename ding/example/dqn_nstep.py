@@ -40,7 +40,7 @@ def main():
         task.use(nstep_reward_enhancer(cfg))
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.use(final_ctx_saver(cfg.exp_name))
         task.run()
 

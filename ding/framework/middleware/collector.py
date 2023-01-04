@@ -53,7 +53,7 @@ class StepCollector:
         if self.random_collect_size > 0 and old < self.random_collect_size:
             target_size = self.random_collect_size - old
             random_policy = get_random_policy(self.cfg, self.policy, self.env)
-            current_inferencer = task.wrap(inferencer(self.cfg, random_policy, self.env))
+            current_inferencer = task.wrap(inferencer(self.cfg.seed, random_policy, self.env))
         else:
             # compatible with old config, a train sample = unroll_len step
             target_size = self.cfg.policy.collect.n_sample * self.cfg.policy.collect.unroll_len
