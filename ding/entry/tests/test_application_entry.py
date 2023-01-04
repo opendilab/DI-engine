@@ -3,8 +3,8 @@ import pytest
 import os
 import pickle
 
-from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config, \
-    cartpole_offppo_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, \
+    cartpole_ppo_offpolicy_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_offppo_config,\
      cartpole_trex_offppo_create_config
 from dizoo.classic_control.cartpole.envs import CartPoleEnv
@@ -15,7 +15,7 @@ from ding.entry.application_entry import collect_episodic_demo_data, episode_to_
 
 @pytest.fixture(scope='module')
 def setup_state_dict():
-    config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
+    config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
     try:
         policy = serial_pipeline(config, seed=0)
     except Exception:
@@ -31,12 +31,12 @@ def setup_state_dict():
 class TestApplication:
 
     def test_eval(self, setup_state_dict):
-        cfg_for_stop_value = compile_config(cartpole_offppo_config, auto=True, create_cfg=cartpole_offppo_create_config)
+        cfg_for_stop_value = compile_config(cartpole_ppo_offpolicy_config, auto=True, create_cfg=cartpole_ppo_offpolicy_create_config)
         stop_value = cfg_for_stop_value.env.stop_value
-        config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
+        config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
         episode_return = eval(config, seed=0, state_dict=setup_state_dict['eval'])
         assert episode_return >= stop_value
-        config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
+        config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
         episode_return = eval(
             config,
             seed=0,
@@ -46,7 +46,7 @@ class TestApplication:
         assert episode_return >= stop_value
 
     def test_collect_demo_data(self, setup_state_dict):
-        config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
+        config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
         collect_count = 16
         expert_data_path = './expert.data'
         collect_demo_data(

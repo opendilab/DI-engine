@@ -9,8 +9,8 @@ from ding.entry import serial_pipeline
 from ding.entry import serial_pipeline_preference_based_irl
 from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_offppo_config,\
      cartpole_trex_offppo_create_config
-from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config,\
-     cartpole_offppo_create_config
+from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
+     cartpole_ppo_offpolicy_create_config
 from ding.entry.application_entry_trex_collect_data import trex_collecting_data
 from ding.reward_model.trex_reward_model import TrexConvEncoder
 from ding.torch_utils import is_differentiable
@@ -19,7 +19,7 @@ from ding.torch_utils import is_differentiable
 @pytest.mark.unittest
 def test_serial_pipeline_trex():
     exp_name = 'test_serial_pipeline_trex_expert'
-    config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.learner.hook.save_ckpt_after_iter = 100
     config[0].exp_name = exp_name
     expert_policy = serial_pipeline(config, seed=0)

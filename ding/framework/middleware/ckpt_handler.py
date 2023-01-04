@@ -54,7 +54,7 @@ class CkptSaver:
             - eval_value (:obj:`float`): The episode return of current iteration.
         """
         # train enough iteration
-        if self.train_freq :
+        if self.train_freq:
             if ctx.train_iter == 0 or ctx.train_iter - self.last_save_iter >= self.train_freq:
                 save_file(
                     "{}/iteration_{}.pth.tar".format(self.prefix, ctx.train_iter), self.policy.learn_mode.state_dict()
