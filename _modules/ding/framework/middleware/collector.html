@@ -399,6 +399,7 @@
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - env_step (:obj:`int`): The env steps which will increase during collection.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">_device</span>
         <span class="n">old</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span>
         <span class="n">target_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_sample</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">unroll_len</span>
 
@@ -407,7 +408,9 @@
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">obs</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">ready_obs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
             <span class="n">inference_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="o">**</span><span class="n">ctx</span><span class="o">.</span><span class="n">collect_kwargs</span><span class="p">)</span>
+            <span class="n">inference_output</span> <span class="o">=</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="n">timesteps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>

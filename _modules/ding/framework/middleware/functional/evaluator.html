@@ -637,11 +637,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">_device</span>
         <span class="n">eval_monitor</span> <span class="o">=</span> <span class="n">VectorEvalMonitor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">env_num</span><span class="p">,</span> <span class="n">n_evaluator_episode</span><span class="p">)</span>
 
         <span class="k">while</span> <span class="ow">not</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">is_finished</span><span class="p">():</span>
             <span class="n">obs</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_obs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
             <span class="n">inference_output</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">inference_output</span> <span class="o">=</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
                 <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_video</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_imgs</span><span class="p">)</span>
                 <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_output</span><span class="p">(</span><span class="n">inference_output</span><span class="p">)</span>
