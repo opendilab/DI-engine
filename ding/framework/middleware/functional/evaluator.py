@@ -343,11 +343,14 @@ def interaction_evaluator_ttorch(
         else:
             env.reset()
         policy.reset()
+        device = policy._device
         eval_monitor = VectorEvalMonitor(env.env_num, n_evaluator_episode)
 
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
+            obs = obs.to(device)
             inference_output = policy.eval(obs)
+            inference_output = inference_output.cpu()
             if render:
                 eval_monitor.update_video(env.ready_imgs)
                 eval_monitor.update_output(inference_output)

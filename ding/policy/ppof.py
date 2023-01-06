@@ -64,6 +64,7 @@ class PPOFPolicy:
             self._model = model
         if self._cfg.cuda and torch.cuda.is_available():
             self._device = 'cuda'
+            self._model.cuda()
         else:
             self._device = 'cpu'
         assert self._cfg.action_space in ["continuous", "discrete", "hybrid", 'multi_discrete']

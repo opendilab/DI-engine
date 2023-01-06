@@ -71,7 +71,8 @@ def multistep_trainer(policy: Policy, log_freq: int) -> Callable:
 
         if ctx.train_data is None:  # no enough data from data fetcher
             return
-        train_output = policy.forward(ctx.train_data)
+        data = ctx.train_data.to(policy._device)
+        train_output = policy.forward(data)
         nonlocal last_log_iter
         if ctx.train_iter - last_log_iter >= log_freq:
             loss = np.mean([o['total_loss'] for o in train_output])

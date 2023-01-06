@@ -105,6 +105,7 @@ class PPOFStepCollector:
         Input of ctx:
             - env_step (:obj:`int`): The env steps which will increase during collection.
         """
+        device = self.policy._device
         old = ctx.env_step
         target_size = self.n_sample * self.unroll_len
 
@@ -113,7 +114,9 @@ class PPOFStepCollector:
 
         while True:
             obs = ttorch.as_tensor(self.env.ready_obs).to(dtype=ttorch.float32)
+            obs = obs.to(device)
             inference_output = self.policy.collect(obs, **ctx.collect_kwargs)
+            inference_output = inference_output.cpu()
             action = inference_output.action.numpy()
             timesteps = self.env.step(action)
             ctx.env_step += len(timesteps)
