@@ -8,8 +8,8 @@ import torch
 
 from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_offppo_config,\
      cartpole_trex_offppo_create_config
-from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config,\
-     cartpole_offppo_create_config
+from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
+     cartpole_ppo_offpolicy_create_config
 from ding.entry.application_entry_trex_collect_data import collect_episodic_demo_data_for_trex, trex_collecting_data
 from ding.entry import serial_pipeline
 
@@ -18,7 +18,7 @@ from ding.entry import serial_pipeline
 def test_collect_episodic_demo_data_for_trex():
     exp_name = "test_collect_episodic_demo_data_for_trex_expert"
     expert_policy_state_dict_path = os.path.join(exp_name, 'expert_policy.pth.tar')
-    config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].exp_name = exp_name
     expert_policy = serial_pipeline(config, seed=0)
     torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
@@ -41,7 +41,7 @@ def test_collect_episodic_demo_data_for_trex():
 @pytest.mark.unittest
 def test_trex_collecting_data():
     expert_policy_dir = 'test_trex_collecting_data_expert'
-    config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].exp_name = expert_policy_dir
     config[0].policy.learn.learner.hook.save_ckpt_after_iter = 100
     serial_pipeline(config, seed=0)

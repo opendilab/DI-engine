@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from dizoo.rocket.envs.rocket_env import RocketEnv
+from dizoo.rocket.envs import RocketEnv
 from easydict import EasyDict
 
 

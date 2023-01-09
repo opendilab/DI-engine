@@ -67,3 +67,15 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         ctx.trajectories = None
 
     return _gae
+
+
+def ppof_adv_estimator(policy: Policy) -> Callable:
+
+    def _estimator(ctx: "OnlineRLContext"):
+        data = ttorch_collate(ctx.trajectories)
+        traj_flag = data.done.clone()
+        traj_flag[ctx.trajectory_end_idx] = True
+        data.traj_flag = traj_flag
+        ctx.train_data = data
+
+    return _estimator
