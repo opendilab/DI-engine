@@ -104,6 +104,7 @@ def serial_pipeline_reward_model_offpolicy(
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         reward_model.train()
+        # clear buffer per fix iters to make sure replay buffer's data count isn't too few.
         if count % cfg.reward_model.clear_buffer_per_iters == 0:
             reward_model.clear_data()
         # Learn policy from collected data

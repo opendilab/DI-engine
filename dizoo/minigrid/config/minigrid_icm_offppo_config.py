@@ -44,7 +44,6 @@ minigrid_icm_offppo_config = dict(
             actor_head_hidden_size=64,
         ),
         learn=dict(
-            epoch_per_collect=10,
             update_per_collect=1,
             batch_size=320,
             learning_rate=3e-4,
@@ -70,7 +69,7 @@ minigrid_icm_offppo_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
     reward_model=dict(type='icm'),
 )

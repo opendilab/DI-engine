@@ -76,7 +76,6 @@ class MiniGridEnv(BaseEnv):
             obs, _ = self._env.reset(seed=self._seed)
         else:
             obs, _ = self._env.reset()
-
         obs = to_ndarray(obs)
         self._current_step = 0
         if self._save_replay:

@@ -26,7 +26,7 @@ minigrid_ppo_rnd_config = dict(
         # if reach goal, the agent get reward ~1, otherwise 0,
         # We could set the intrinsic_reward_weight approximately equal to the inverse of max_episode_steps.
         # Please refer to rnd_reward_model for details.
-        intrinsic_reward_weight=0.001,  # 1/300
+        intrinsic_reward_weight=0.001,  # 1/100
         learning_rate=3e-4,
         obs_shape=2835,
         batch_size=320,

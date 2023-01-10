@@ -61,6 +61,8 @@ class RndRewardModel(BaseRewardModel):
         obs_norm_clamp_max=1,
         # means the relative weight of RND intrinsic_reward.
         intrinsic_reward_weight=0.01,
+        extrinsic_reward_norm=True,
+        extrinsic_reward_norm_max=1,
     )
 
     def __init__(self, config: EasyDict, device: str = 'cpu', tb_logger: 'SummaryWriter' = None) -> None:  # noqa

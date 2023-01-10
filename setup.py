@@ -132,7 +132,7 @@ setup(
             'bsuite',
         ],
         'minigrid_env': [
-            'minigrid==2.0.0',
+            'minigrid>=2.0.0',
         ],
         # 'd4rl_env': [
         #     'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',

@@ -185,7 +185,7 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
             done = True
 
         obs = self.gen_obs()
-
+        # return is (observation, reward, terminated, truncated, info)
         return obs, reward, done, done, {}
 
 
