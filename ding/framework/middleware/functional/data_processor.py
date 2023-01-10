@@ -214,12 +214,11 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
     return _fetch
 
 
-def offline_data_saver(cfg: EasyDict, data_path: str, data_type: str = 'hdf5') -> Callable:
+def offline_data_saver(data_path: str, data_type: str = 'hdf5') -> Callable:
     """
     Overview:
         Save the expert data of offline RL in a directory.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config.
         - data_path (:obj:`str`): File path where the expert data will be written into, which is usually ./expert.pkl'.
         - data_type (:obj:`str`): Define the type of the saved data. \
             The type of saved data is pkl if `data_type == 'naive'`. \

@@ -92,7 +92,7 @@ setup(
         'test': [
             'gym[box2d]>=0.25.0',
             'opencv-python',  # pypy incompatible
-            'coverage>=5',
+            'coverage>=5,<=7.0.1',
             'mock>=4.0.3',
             'pytest~=7.0.1',  # required by gym>=0.25.0
             'pytest-cov~=3.0.0',

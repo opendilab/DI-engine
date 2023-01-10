@@ -1,7 +1,7 @@
 import pytest
 from itertools import product
 import torch
-from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN
+from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ
 from ding.torch_utils import is_differentiable
 
 T, B = 3, 4
@@ -39,6 +39,25 @@ class TestQLearning:
             for i, s in enumerate(act_shape):
                 assert outputs['logit'][i].shape == (B, s)
         self.output_check(model, outputs['logit'])
+
+    @pytest.mark.parametrize('obs_shape, act_shape', args)
+    def test_bdq(self, obs_shape, act_shape):
+        if isinstance(obs_shape, int):
+            inputs = torch.randn(B, obs_shape)
+        else:
+            inputs = torch.randn(B, *obs_shape)
+        if not isinstance(act_shape, int) and len(act_shape) > 1:
+            return
+        num_branches = act_shape
+        for action_bins_per_branch in range(1, 10):
+            model = BDQ(obs_shape, num_branches, action_bins_per_branch)
+            outputs = model(inputs)
+            assert isinstance(outputs, dict)
+            if isinstance(act_shape, int):
+                assert outputs['logit'].shape == (B, act_shape, action_bins_per_branch)
+            else:
+                assert outputs['logit'].shape == (B, *act_shape, action_bins_per_branch)
+            self.output_check(model, outputs['logit'])
 
     @pytest.mark.parametrize('obs_shape, act_shape', args)
     def test_rainbowdqn(self, obs_shape, act_shape):

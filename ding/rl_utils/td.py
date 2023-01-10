@@ -453,6 +453,69 @@ def q_nstep_td_error(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
+def bdq_nstep_td_error(
+        data: namedtuple,
+        gamma: Union[float, list],
+        nstep: int = 1,
+        cum_reward: bool = False,
+        value_gamma: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep (1 step or n step) td_error for BDQ algorithm, \
+            referenced paper Action Branching Architectures for Deep Reinforcement Learning \
+            <https://arxiv.org/pdf/1711.08946>
+        In fact, the original paper only provides the 1-step TD-error calculation method, \
+            and here we extend the calculation method of n-step.
+                TD-error:
+                    y_d = \sigma_{t=0}^{nstep} \gamma^t * r_t + \gamma^{nstep} * Q_d'(s', argmax Q_d(s', a_d))
+                    TD-error = \frac{1}{D} * (y_d - Q_d(s, a_d))^2
+                    Loss = mean(TD-error)
+    Arguments:
+        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - nstep (:obj:`int`): nstep num, default set to 1
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+        - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+            ['q', 'next_n_q', 'action', 'reward', 'done']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, D, N)` i.e. [batch_size, branch_num, action_bins_per_branch]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, D, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, D)`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, D)`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+    """
+    q, next_n_q, action, next_n_action, reward, done, weight = data
+    if weight is None:
+        weight = torch.ones_like(reward)
+    reward = reward.unsqueeze(-1)
+    done = done.unsqueeze(-1)
+    if value_gamma is not None:
+        value_gamma = value_gamma.unsqueeze(-1)
+
+    q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
+    target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
+
+    if cum_reward:
+        if value_gamma is None:
+            target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+        else:
+            target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
+    else:
+        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+    td_error_per_sample = td_error_per_sample.mean(-1)
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
+
+
 def shape_fn_qntd_rescale(args, kwargs):
     r"""
     Overview:

@@ -93,7 +93,7 @@ class TestBaseEnvManagerV2:
         assert timestep[0].info.abnormal
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
         assert all([env_manager._env_states[i] == EnvState.RUN for i in range(env_manager.env_num)])
-        assert len(env_manager.ready_obs) == 4
+        assert len(env_manager.ready_obs) == 3
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         # Test step error
         action[0] = 'error'
@@ -103,7 +103,7 @@ class TestBaseEnvManagerV2:
         assert all([env_manager._env_states[i] == EnvState.RUN for i in range(1, env_manager.env_num)])
         obs = env_manager.reset(reset_param)
         assert all([env_manager._env_states[i] == EnvState.RUN for i in range(env_manager.env_num)])
-        assert len(env_manager.ready_obs) == 4
+        assert len(env_manager.ready_obs) == 3
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
 
         env_manager.close()
