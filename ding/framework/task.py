@@ -536,5 +536,13 @@ class Task:
         if not self._async_loop:
             self._async_loop = asyncio.new_event_loop()
 
+    def get_attch_to_len(self):
+        """
+        Returns:
+            [int]: The length of 'attach_to' list.
+        """
+        if self.router.is_active:
+            return self.router.get_attch_to_len()
+
 
 task = Task()
