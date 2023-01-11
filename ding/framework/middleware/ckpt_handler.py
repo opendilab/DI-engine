@@ -22,19 +22,19 @@ class CkptSaver:
             return task.void()
         return super(CkptSaver, cls).__new__(cls)
 
-    def __init__(self, cfg: EasyDict, policy: Policy, train_freq: Optional[int] = None, save_finish: bool = True):
+    def __init__(self, policy: Policy, save_dir: str, train_freq: Optional[int] = None, save_finish: bool = True):
         """
         Overview:
             Initialize the `CkptSaver`.
         Arguments:
-            - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.exp_name`.
             - policy (:obj:`Policy`): Policy used to save the checkpoint.
+            - save_dir (:obj:`str`): The directory path to save ckpt.
             - train_freq (:obj:`int`): Number of training iterations between each saving checkpoint data.
             - save_finish (:obj:`bool`): Whether save final ckpt when ``task.finish = True``.
         """
         self.policy = policy
         self.train_freq = train_freq
-        self.prefix = '{}/ckpt'.format(cfg.exp_name)
+        self.prefix = '{}/ckpt'.format(save_dir)
         if not os.path.exists(self.prefix):
             os.makedirs(self.prefix)
         self.last_save_iter = 0
@@ -54,11 +54,12 @@ class CkptSaver:
             - eval_value (:obj:`float`): The episode return of current iteration.
         """
         # train enough iteration
-        if self.train_freq and ctx.train_iter - self.last_save_iter >= self.train_freq:
-            save_file(
-                "{}/iteration_{}.pth.tar".format(self.prefix, ctx.train_iter), self.policy.learn_mode.state_dict()
-            )
-            self.last_save_iter = ctx.train_iter
+        if self.train_freq:
+            if ctx.train_iter == 0 or ctx.train_iter - self.last_save_iter >= self.train_freq:
+                save_file(
+                    "{}/iteration_{}.pth.tar".format(self.prefix, ctx.train_iter), self.policy.learn_mode.state_dict()
+                )
+                self.last_save_iter = ctx.train_iter
 
         # best episode return so far
         if ctx.eval_value is not None and ctx.eval_value > self.max_eval_value:

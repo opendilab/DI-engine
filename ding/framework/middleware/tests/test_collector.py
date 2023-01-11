@@ -10,12 +10,11 @@ from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
 
 @pytest.mark.unittest
 def test_inferencer():
-    cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
     with patch("ding.policy.Policy", MockPolicy), patch("ding.envs.BaseEnvManagerV2", MockEnv):
         policy = MockPolicy()
         env = MockEnv()
-        inferencer(cfg, policy, env)(ctx)
+        inferencer(0, policy, env)(ctx)
     assert isinstance(ctx.inference_output, dict)
     assert ctx.inference_output[0] == {'action': torch.Tensor([0.])}  # sum of zeros([2, 2])
     assert ctx.inference_output[1] == {'action': torch.Tensor([4.])}  # sum of ones([2, 2])
@@ -23,15 +22,14 @@ def test_inferencer():
 
 @pytest.mark.unittest
 def test_rolloutor():
-    cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
     transitions = TransitionList(2)
     with patch("ding.policy.Policy", MockPolicy), patch("ding.envs.BaseEnvManagerV2", MockEnv):
         policy = MockPolicy()
         env = MockEnv()
         for _ in range(10):
-            inferencer(cfg, policy, env)(ctx)
-            rolloutor(cfg, policy, env, transitions)(ctx)
+            inferencer(0, policy, env)(ctx)
+            rolloutor(policy, env, transitions)(ctx)
     assert ctx.env_episode == 20  # 10 * env_num
     assert ctx.env_step == 20  # 10 * env_num
 

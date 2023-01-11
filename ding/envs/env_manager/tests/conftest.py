@@ -164,7 +164,7 @@ def setup_model_type():
     return FakeModel
 
 
-def get_base_manager_cfg(env_num=4):
+def get_base_manager_cfg(env_num=3):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
@@ -178,7 +178,7 @@ def get_base_manager_cfg(env_num=4):
     return EasyDict(manager_cfg)
 
 
-def get_subprecess_manager_cfg(env_num=4):
+def get_subprecess_manager_cfg(env_num=3):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
@@ -194,7 +194,7 @@ def get_subprecess_manager_cfg(env_num=4):
     return EasyDict(manager_cfg)
 
 
-def get_gym_vector_manager_cfg(env_num=4):
+def get_gym_vector_manager_cfg(env_num=3):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
@@ -210,7 +210,7 @@ def get_gym_vector_manager_cfg(env_num=4):
 
 @pytest.fixture(scope='function')
 def setup_base_manager_cfg():
-    manager_cfg = get_base_manager_cfg(4)
+    manager_cfg = get_base_manager_cfg(3)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
     return deep_merge_dicts(BaseEnvManager.default_config(), EasyDict(manager_cfg))
@@ -218,7 +218,7 @@ def setup_base_manager_cfg():
 
 @pytest.fixture(scope='function')
 def setup_fast_base_manager_cfg():
-    manager_cfg = get_base_manager_cfg(4)
+    manager_cfg = get_base_manager_cfg(3)
     env_cfg = manager_cfg.pop('env_cfg')
     for e in env_cfg:
         e['scale'] = 0.1
@@ -228,7 +228,7 @@ def setup_fast_base_manager_cfg():
 
 @pytest.fixture(scope='function')
 def setup_sync_manager_cfg():
-    manager_cfg = get_subprecess_manager_cfg(4)
+    manager_cfg = get_subprecess_manager_cfg(3)
     env_cfg = manager_cfg.pop('env_cfg')
     # TODO(nyz) test fail when shared_memory = True
     manager_cfg['shared_memory'] = False
@@ -238,7 +238,7 @@ def setup_sync_manager_cfg():
 
 @pytest.fixture(scope='function')
 def setup_async_manager_cfg():
-    manager_cfg = get_subprecess_manager_cfg(4)
+    manager_cfg = get_subprecess_manager_cfg(3)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
     manager_cfg['shared_memory'] = False
@@ -247,7 +247,7 @@ def setup_async_manager_cfg():
 
 @pytest.fixture(scope='function')
 def setup_gym_vector_manager_cfg():
-    manager_cfg = get_subprecess_manager_cfg(4)
+    manager_cfg = get_subprecess_manager_cfg(3)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeGymEnv, cfg=c) for c in env_cfg]
     manager_cfg['shared_memory'] = False

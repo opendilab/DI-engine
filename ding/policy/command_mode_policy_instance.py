@@ -45,6 +45,7 @@ from .decision_transformer import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 from .madqn import MADQNPolicy
+from .bdq import BDQPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -93,6 +94,11 @@ class DummyCommandModePolicy(CommandModePolicy):
 
     def _get_setting_eval(self, command_info: dict) -> dict:
         return {}
+
+
+@POLICY_REGISTRY.register('bdq_command')
+class BDQCommandModePolicy(BDQPolicy, EpsCommandModePolicy):
+    pass
 
 
 @POLICY_REGISTRY.register('dqn_command')

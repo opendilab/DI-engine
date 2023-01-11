@@ -74,7 +74,7 @@ def test_multistep_trainer():
     with patch("ding.policy.Policy", MultiStepMockPolicy):
         policy = MultiStepMockPolicy()
         for _ in range(30):
-            multistep_trainer(cfg, policy)(ctx)
+            multistep_trainer(policy, 10)(ctx)
     assert ctx.train_iter == 60
     assert ctx.train_output[0]["total_loss"] == 0.1
     assert ctx.train_output[1]["total_loss"] == 1.0

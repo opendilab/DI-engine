@@ -187,7 +187,7 @@ def test_offline_data_saver():
 
     with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
                mock_offline_data_save_type):
-        offline_data_saver(cfg=None, data_path=data_path_, data_type='naive')(ctx)
+        offline_data_saver(data_path=data_path_, data_type='naive')(ctx)
 
     assert ctx.trajectories is None
 
@@ -201,7 +201,7 @@ def test_offline_data_saver():
 
     with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
                mock_offline_data_save_type):
-        offline_data_saver(cfg=None, data_path=data_path_, data_type='hdf5')(ctx)
+        offline_data_saver(data_path=data_path_, data_type='hdf5')(ctx)
 
     assert ctx.trajectories is None
 

@@ -1,9 +1,10 @@
 from collections.abc import Iterable
-from easydict import EasyDict
-import numpy as np
-import pickle
 from copy import deepcopy
 from typing import Tuple, Optional, List, Dict
+from easydict import EasyDict
+import pickle
+import os
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -196,14 +197,14 @@ class TrexRewardModel(BaseRewardModel):
     def load_expert_data(self) -> None:
         """
         Overview:
-            Getting the expert data from ``config.data_path`` attribute in self
+            Getting the expert data.
         Effects:
             This is a side effect function which updates the expert data attribute \
                 (i.e. ``self.expert_data``) with ``fn:concat_state_action_pairs``
         """
-        with open(self.cfg.reward_model.data_path + '/episodes_data.pkl', 'rb') as f:
+        with open(os.path.join(self.cfg.exp_name, 'episodes_data.pkl'), 'rb') as f:
             self.pre_expert_data = pickle.load(f)
-        with open(self.cfg.reward_model.data_path + '/learning_returns.pkl', 'rb') as f:
+        with open(os.path.join(self.cfg.exp_name, 'learning_returns.pkl'), 'rb') as f:
             self.learning_returns = pickle.load(f)
 
         self.create_training_data()
@@ -316,12 +317,13 @@ class TrexRewardModel(BaseRewardModel):
                 item_loss = loss.item()
                 cum_loss += item_loss
                 if i % 100 == 99:
-                    self._logger.info("epoch {}:{} loss {}".format(epoch, i, cum_loss))
+                    self._logger.info("[epoch {}:{}] loss {}".format(epoch, i, cum_loss))
                     self._logger.info("abs_returns: {}".format(abs_rewards))
                     cum_loss = 0.0
                     self._logger.info("check pointing")
-                    torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
-        torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
+        if not os.path.exists(os.path.join(self.cfg.exp_name, 'ckpt_reward_model')):
+            os.makedirs(os.path.join(self.cfg.exp_name, 'ckpt_reward_model'))
+        torch.save(self.reward_model.state_dict(), os.path.join(self.cfg.exp_name, 'ckpt_reward_model/latest.pth.tar'))
         self._logger.info("finished training")
 
     def train(self):

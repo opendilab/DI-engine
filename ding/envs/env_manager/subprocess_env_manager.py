@@ -195,7 +195,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while not any([self._env_states[i] == EnvState.RUN for i in no_done_env_idx]):
-            if sleep_count % 1000 == 0:
+            if sleep_count != 0 and sleep_count % 10000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
                 )
@@ -258,7 +258,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         sleep_count = 0
         while any([self._env_states[i] == EnvState.RESET for i in reset_env_list]):
-            if sleep_count % 1000 == 0:
+            if sleep_count != 0 and sleep_count % 10000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: not all the envs finish resetting, sleep {} times'.format(sleep_count)
                 )
@@ -816,7 +816,7 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while not any([self._env_states[i] == EnvState.RUN for i in no_done_env_idx]):
-            if sleep_count % 1000 == 0:
+            if sleep_count != 0 and sleep_count % 10000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
                 )
@@ -834,7 +834,10 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
                 info, env_id.
         """
-        actions = {env_id: a for env_id, a in zip(self.ready_obs_id, actions)}
+        # zip operation will lead to wrong behaviour if not split data
+        split_action = tnp.split(actions, actions.shape[0])
+        split_action = [s.squeeze(0) for s in split_action]
+        actions = {env_id: a for env_id, a in zip(self.ready_obs_id, split_action)}
         timesteps = super().step(actions)
         new_data = []
         for env_id, timestep in timesteps.items():

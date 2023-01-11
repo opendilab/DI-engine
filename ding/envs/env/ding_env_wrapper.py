@@ -2,6 +2,7 @@ from typing import List, Optional, Union, Dict
 import gym
 import copy
 import numpy as np
+import treetensor.numpy as tnp
 
 from ding.envs.common.common_function import affine_transform
 from ding.envs.env_wrappers import create_env_wrapper
@@ -20,6 +21,7 @@ class DingEnvWrapper(BaseEnv):
             - A config to create an env instance: Parameter `cfg` dict must contain `env_id`.
         '''
         self._cfg = cfg
+        self._raw_env = env
         if self._cfg is None:
             self._cfg = dict()
         if env is not None:
@@ -98,7 +100,9 @@ class DingEnvWrapper(BaseEnv):
     def _judge_action_type(self, action: Union[np.ndarray, dict]) -> Union[np.ndarray, dict]:
         if isinstance(action, int):
             return action
-        if isinstance(action, np.ndarray):
+        elif isinstance(action, np.int64):
+            return int(action)
+        elif isinstance(action, np.ndarray):
             if action.shape == (1, ) and action.dtype == np.int64:
                 action = action.item()
             return action
@@ -106,6 +110,8 @@ class DingEnvWrapper(BaseEnv):
             for k, v in action.items():
                 action[k] = self._judge_action_type(v)
             return action
+        elif isinstance(action, tnp.ndarray):
+            return self._judge_action_type(action.json())
         else:
             raise TypeError(
                 '`action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
@@ -176,3 +182,6 @@ class DingEnvWrapper(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
+
+    def clone(self) -> BaseEnv:
+        return DingEnvWrapper(self._raw_env, self._cfg)

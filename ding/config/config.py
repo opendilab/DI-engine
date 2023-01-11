@@ -341,6 +341,7 @@ def compile_config(
         create_cfg: dict = None,
         save_cfg: bool = True,
         save_path: str = 'total_config.py',
+        renew_dir: bool = True,
 ) -> EasyDict:
     """
     Overview:
@@ -361,6 +362,7 @@ def compile_config(
         - create_cfg (:obj:`dict`): Input create config dict
         - save_cfg (:obj:`bool`): Save config or not
         - save_path (:obj:`str`): Path of saving file
+        - renew_dir (:obj:`bool`): Whether to new a directory for saving config.
     Returns:
         - cfg (:obj:`EasyDict`): Config after compiling
     """
@@ -460,7 +462,7 @@ def compile_config(
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:
-        if os.path.exists(cfg.exp_name):
+        if os.path.exists(cfg.exp_name) and renew_dir:
             cfg.exp_name += datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
         try:
             os.makedirs(cfg.exp_name)
