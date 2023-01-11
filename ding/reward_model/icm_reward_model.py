@@ -232,7 +232,7 @@ class ICMRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('icm_reward/icm_reward_min', icm_reward.min(), self.estimate_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/icm_reward_std', icm_reward.std(), self.estimate_cnt_icm)
             icm_reward = (raw_icm_reward - raw_icm_reward.min()) / (raw_icm_reward.max() - raw_icm_reward.min() + 1e-8)
-            icm_reward = icm_reward.to(train_data_augmented[0]['reward'].device)
+            icm_reward = icm_reward.to(self.device)
         for item, icm_rew in zip(train_data_augmented, icm_reward):
             if self.intrinsic_reward_type == 'add':
                 if self.cfg.extrinsic_reward_norm:

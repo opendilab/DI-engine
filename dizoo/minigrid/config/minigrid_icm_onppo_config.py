@@ -3,15 +3,15 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_icm_onppo_config = dict(
-    exp_name='minigrid_fourroom_icm_onppo_seed0',
+    exp_name='minigrid_AKTDT-7x7_icm_onppo_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
-        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0'
-        env_id='MiniGrid-FourRooms-v0',
-        max_step=300,
-        stop_value=2,  # run fixed env_steps
+        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0','MiniGrid-AKTDT-7x7-1-v0'
+        env_id='MiniGrid-AKTDT-7x7-1-v0',
+        max_step=100,
+        stop_value=12,  # run fixed env_steps for MiniGrid-AKTDT-7x7-1-v0
         # stop_value=0.96,
     ),
     reward_model=dict(
@@ -23,7 +23,7 @@ minigrid_icm_onppo_config = dict(
         # Please refer to rnd_reward_model for details.
         intrinsic_reward_weight=0.003,  # 1/300
         learning_rate=3e-4,
-        obs_shape=2835,
+        obs_shape=2715,  # 2715 in MiniGrid-AKTDT-7x7-1-v0 env
         batch_size=320,
         update_per_collect=50,
         clear_buffer_per_iters=int(1e3),
@@ -35,7 +35,7 @@ minigrid_icm_onppo_config = dict(
         recompute_adv=True,
         action_space='discrete',
         model=dict(
-            obs_shape=2835,
+            obs_shape=2715,  # 2715 in MiniGrid-AKTDT-7x7-1-v0 env
             action_shape=7,
             action_space='discrete',
             encoder_hidden_size_list=[256, 128, 64, 64],

@@ -10,7 +10,8 @@ import gymnasium
 import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
-from minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
+from minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper
+from .minigrid_wrapper import ViewSizeWrapper
 from ding.envs import ObsPlusPrevActRewWrapper
 
 from ding.envs import BaseEnv, BaseEnvTimestep

@@ -7,10 +7,9 @@ minigrid_icm_offppo_config = dict(
         evaluator_env_num=5,
         n_evaluator_episode=5,
         # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0','MiniGrid-AKTDT-7x7-1-v0'
-        env_id='MiniGrid-AKTDT-7x7-1-v0',
+        env_id='MiniGrid-FourRooms-v0',
         max_step=100,
         stop_value=0.96,
-        # stop_value=12,  # run fixed env_steps for MiniGrid-AKTDT-7x7-1-v0
     ),
     reward_model=dict(
         intrinsic_reward_type='add',
