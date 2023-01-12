@@ -6,9 +6,9 @@ import torch
 import platform
 
 
-@pytest.mark.mqbenchmark
+@pytest.mark.benchmark
 @pytest.mark.cudatest
-@pytest.mark.multiprocesstest
+# @pytest.mark.multiprocesstest
 def test_perf_torchrpc_nccl():
     if platform.system().lower() != 'windows' and torch.cuda.is_available():
         if torch_ge_1121() and torch.cuda.device_count() >= 2:

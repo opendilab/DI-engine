@@ -200,7 +200,7 @@ def torchrpc_args_parser(rank):
     logging.debug("[Pass] 6. Set n_parallel_workers > 1.")
 
 
-@pytest.mark.multiprocesstest
+@pytest.mark.unittest
 def test_torchrpc():
     ctx = get_context("spawn")
     if platform.system().lower() != 'windows' and torch_ge_1121():
@@ -209,7 +209,7 @@ def test_torchrpc():
 
 
 @pytest.mark.cudatest
-@pytest.mark.multiprocesstest
+@pytest.mark.unittest
 def test_torchrpc_cuda():
     if platform.system().lower() != 'windows':
         if torch_ge_1121() and torch.cuda.is_available() and torch.cuda.device_count() >= 2:
@@ -219,7 +219,7 @@ def test_torchrpc_cuda():
 
 
 @pytest.mark.cudatest
-@pytest.mark.multiprocesstest
+@pytest.mark.unittest
 def test_torchrpc_parser():
     if platform.system().lower() != 'windows' and torch_ge_1121() and torch.cuda.is_available():
         ctx = get_context("spawn")

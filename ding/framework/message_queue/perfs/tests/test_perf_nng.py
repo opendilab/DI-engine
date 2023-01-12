@@ -3,8 +3,8 @@ import multiprocessing as mp
 import pytest
 
 
-@pytest.mark.mqbenchmark
-@pytest.mark.multiprocesstest
+@pytest.mark.benchmark
+# @pytest.mark.multiprocesstest
 def test_nng():
     params = [
         ("12376", None, "127.0.0.1", "learner", "0"), ("12378", "tcp://127.0.0.1:12376", "127.0.0.1", "collector", "1")

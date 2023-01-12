@@ -48,7 +48,7 @@ def test_shm_buffer():
 
 @pytest.mark.benchmark
 @pytest.mark.cudatest
-@pytest.mark.multiprocesstest
+# @pytest.mark.multiprocesstest
 def test_cuda_shm():
     if torch.cuda.is_available() and torch.cuda.device_count() >= 2:
         import torch.multiprocessing as mp
