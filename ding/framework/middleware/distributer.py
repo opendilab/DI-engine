@@ -13,11 +13,7 @@ if TYPE_CHECKING:
 
 class ContextExchanger:
 
-    def __init__(
-            self,
-            skip_n_iter: int = 1,
-            storage_loader: Optional[StorageLoader] = None,
-    ) -> None:
+    def __init__(self, skip_n_iter: int = 1, storage_loader: Optional[StorageLoader] = None) -> None:
         """
         Overview:
             Exchange context between processes,
@@ -41,9 +37,8 @@ class ContextExchanger:
         self._storage_loader = storage_loader
 
         # Both nng and torchrpc use background threads to trigger the receiver's recv action,
-        # there is a race condition between sender and sender, and between senders and receiver.
+        # there is a race condition between the listen thread and the polling thread.
         self._put_lock = LockContext(LockContextType.THREAD_LOCK)
-        self._recv_ready = False
         self._bypass_eventloop = task.router.mq_type == MQType.RPC
 
         for role in task.role:  # Only subscribe to other roles
@@ -101,7 +96,6 @@ class ContextExchanger:
                         getattr(self, fn_name)(item)
                     else:
                         logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
-                self._recv_ready = True
 
         if isinstance(payload, Storage):
             assert self._storage_loader is not None, "Storage loader is not defined when data is a storage object."
@@ -126,19 +120,27 @@ class ContextExchanger:
         return payload
 
     def merge(self, ctx: "Context"):
-
+        # Dict's assignment is not an atomic operation, even if len(self._state)
+        # is not 0, the value corresponding to the key maybe empty.
+        ready = 0
         if task.has_role(task.role.LEARNER):
             # Learner should always wait for trajs.
             # TODO: Automaticlly wait based on properties, not roles.
-            while self._recv_ready is False:
-                sleep(0.01)
+            while ready == 0:
+                with self._put_lock:
+                    ready = len(self._state)
+                if ready == 0:
+                    sleep(0.01)
         elif ctx.total_step >= self._skip_n_iter:
             start = time()
-            while self._recv_ready is False:
-                if time() - start > 60:
-                    logging.warning("Timeout when waiting for new context! Node id: {}".format(task.router.node_id))
-                    break
-                sleep(0.01)
+            while ready == 0:
+                with self._put_lock:
+                    ready = len(self._state)
+                if ready == 0:
+                    if time() - start > 60:
+                        logging.warning("Timeout when waiting for new context! Node id: {}".format(task.router.node_id))
+                        break
+                    sleep(0.01)
 
         with self._put_lock:
             for k, v in self._state.items():
@@ -148,7 +150,6 @@ class ContextExchanger:
                 else:
                     setattr(ctx, k, v)
             self._state = {}
-            self._recv_ready = False
 
     # Handle each attibute of context
     def _put_trajectories(self, traj: List[Any]):
@@ -173,14 +174,14 @@ class ContextExchanger:
         if task.has_role(task.role.COLLECTOR):
             return episodes
 
-    def _put_trajectory_end_idx(self, trajectory_end_idx: List[int]):
+    def _put_trajectory_end_idx(self, trajectory_end_idx: List[str]):
         if not task.has_role(task.role.LEARNER):
             return
         if "trajectory_end_idx" not in self._state:
             self._state["trajectory_end_idx"] = []
         self._state["trajectory_end_idx"].extend(trajectory_end_idx)
 
-    def _fetch_trajectory_end_idx(self, trajectory_end_idx: List[int]):
+    def _fetch_trajectory_end_idx(self, trajectory_end_idx: List[str]):
         if task.has_role(task.role.COLLECTOR):
             return trajectory_end_idx
 
@@ -201,6 +202,12 @@ class ContextExchanger:
             if 'increment_env_episode' not in self._state:
                 self._state['increment_env_episode'] = 0
             self._state["increment_env_episode"] += increment_env_episode
+
+    def _fetch_env_episode(self, env_episode: int):
+        if task.has_role(task.role.COLLECTOR):
+            increment_env_episode = env_episode - self._local_state['env_episode']
+            self._local_state['env_episode'] = env_episode
+            return increment_env_episode
 
     def _put_train_iter(self, train_iter: int):
         if not task.has_role(task.role.LEARNER):

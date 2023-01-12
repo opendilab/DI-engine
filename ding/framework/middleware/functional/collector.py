@@ -84,7 +84,12 @@ def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 
-def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList) -> Callable:
+def rolloutor(
+        policy: Policy,
+        env: BaseEnvManager,
+        transitions: TransitionList,
+        use_cuda_shared_memory: bool = False
+) -> Callable:
     """
     Overview:
         The middleware that executes the transition process in the env.
@@ -99,10 +104,6 @@ def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList) 
 
     env_episode_id = [_ for _ in range(env.env_num)]
     current_id = env.env_num
-    use_cuda_shared_memory = False
-
-    if hasattr(cfg, "env") and hasattr(cfg.env, "manager"):
-        use_cuda_shared_memory = cfg.env.manager.cuda_shared_memory
 
     def _rollout(ctx: "OnlineRLContext"):
         """

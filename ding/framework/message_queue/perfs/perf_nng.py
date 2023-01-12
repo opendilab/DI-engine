@@ -20,7 +20,7 @@ logging.getLogger().setLevel(logging.INFO)
 REPEAT = 10
 LENGTH = 5
 EXP_NUMS = 2
-UNIT_SIZE_LIST = [64, 1024, 64 * 1024, 512 * 1024, 2 * 1024 * 1024]
+UNIT_SIZE_LIST = [64, 512, 1 * 1024, 4 * 1024, 64 * 1024]
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

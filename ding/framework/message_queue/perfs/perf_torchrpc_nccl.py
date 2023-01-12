@@ -18,7 +18,7 @@ from ding.utils.comm_perf_helper import tensor_size_beauty_print, byte_beauty_pr
 LENGTH = 5
 REPEAT = 2
 MAX_EXP_NUMS = 10
-UNIT_SIZE_LIST = [64, 1024, 64 * 1024, 512 * 1024, 2 * 1024 * 1024]
+UNIT_SIZE_LIST = [64, 512, 1 * 1024, 4 * 1024, 64 * 1024]
 
 
 @dataclass
