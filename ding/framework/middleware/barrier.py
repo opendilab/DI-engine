@@ -109,7 +109,7 @@ class BarrierRuntime(metaclass=SingletonMetaclass):
 
         task.off(self._event_name_detect)
         logging.info(
-            "Barrier detect node done, node:[{}] has connected with {} active nodes!".format(self.node_id, expected)
+            "Barrier detect node done, node-[{}] has connected with {} active nodes!".format(self.node_id, expected)
         )
 
 
