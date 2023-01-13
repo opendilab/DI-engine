@@ -122,6 +122,8 @@ def test_star_topology_barrier():
     ctx = mp.get_context("spawn")
     with ctx.Pool(processes=4) as pool:
         pool.map(launch_barrier, [[i, 'star', star_barrier, 0] for i in range(4)])
+        pool.close()
+        pool.join()
 
 
 @pytest.mark.unittest
@@ -129,6 +131,8 @@ def test_mesh_topology_barrier():
     ctx = mp.get_context("spawn")
     with ctx.Pool(processes=4) as pool:
         pool.map(launch_barrier, [[i, 'mesh', mesh_barrier, 1] for i in range(4)])
+        pool.close()
+        pool.join()
 
 
 @pytest.mark.unittest
@@ -136,3 +140,5 @@ def test_unmatch_barrier():
     ctx = mp.get_context("spawn")
     with ctx.Pool(processes=4) as pool:
         pool.map(launch_barrier, [[i, 'mesh', unmatch_barrier, 2] for i in range(4)])
+        pool.close()
+        pool.join()

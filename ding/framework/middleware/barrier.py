@@ -154,9 +154,8 @@ class Barrier:
                 list is empty, it cannot perceive how many processes will establish connections with it,
                 resulting in any form of synchronization cannot be performed.
 
-            3. Barrier() is thread-safe, but it is not recommended to use barrier in multithreading.
-                You need to carefully calculate the number of times each thread calls Barrier() to
-                avoid deadlock.
+            3. Barrier() is thread-safe, but it is not recommended to use barrier in multithreading. You need
+                to carefully calculate the number of times each thread calls Barrier() to avoid deadlock.
 
             4. In normal training tasks, please do not use Barrier(), which will force the step synchronization
                 between each process, so it will greatly damage the training efficiency. In addition, if your
