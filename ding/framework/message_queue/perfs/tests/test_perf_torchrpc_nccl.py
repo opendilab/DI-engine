@@ -16,3 +16,5 @@ def test_perf_torchrpc_nccl():
             ctx = mp.get_context("spawn")
             with ctx.Pool(processes=2) as pool:
                 pool.starmap(rpc_model_exchanger, params)
+                pool.close()
+                pool.join()

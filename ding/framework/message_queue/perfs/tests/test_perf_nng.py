@@ -12,3 +12,5 @@ def test_nng():
     ctx = mp.get_context("spawn")
     with ctx.Pool(processes=2) as pool:
         pool.starmap(nng_perf_main, params)
+        pool.close()
+        pool.join()

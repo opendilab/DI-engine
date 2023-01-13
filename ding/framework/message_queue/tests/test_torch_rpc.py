@@ -206,6 +206,8 @@ def test_torchrpc():
     if platform.system().lower() != 'windows' and torch_ge_1121():
         with ctx.Pool(processes=4) as pool:
             pool.map(torchrpc, range(4))
+            pool.close()
+            pool.join()
 
 
 @pytest.mark.cudatest
@@ -216,6 +218,8 @@ def test_torchrpc_cuda():
             ctx = get_context("spawn")
             with ctx.Pool(processes=2) as pool:
                 pool.map(torchrpc_cuda, range(2))
+                pool.close()
+                pool.join()
 
 
 @pytest.mark.cudatest
@@ -225,3 +229,5 @@ def test_torchrpc_parser():
         ctx = get_context("spawn")
         with ctx.Pool(processes=1) as pool:
             pool.map(torchrpc_args_parser, range(1))
+            pool.close()
+            pool.join()
