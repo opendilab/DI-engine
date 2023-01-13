@@ -1,13 +1,15 @@
+import pytest
+import torch
+import platform
+import time
+import socket
+
 from ding.framework.message_queue.torch_rpc import DeviceMap, TORCHRPCMQ, DEFAULT_DEVICE_MAP_NUMS
 from torch.distributed import rpc
 from multiprocessing import Pool, get_context
 from ding.compatibility import torch_ge_1121
 from ditk import logging
-
-import pytest
-import torch
-import platform
-import time
+from ding.utils.system_helper import find_free_port
 
 mq = None
 recv_tensor_list = [None, None, None, None]
@@ -22,6 +24,7 @@ def torchrpc(rank):
     global mq
     global recv_tensor_list
     mq = None
+    address = socket.gethostbyname(socket.gethostname())
     recv_tensor_list = [None, None, None, None]
     logging.getLogger().setLevel(logging.DEBUG)
     name_list = ["A", "B", "C", "D"]
@@ -34,7 +37,7 @@ def torchrpc(rank):
     mq = TORCHRPCMQ(
         rpc_name=name_list[rank],
         global_rank=rank,
-        init_method="tcp://127.0.0.1:12398",
+        init_method="tcp://{}:12398".format(address),
         remote_parallel_entrance=remote_mq_entrance,
         attach_to=attach_to,
         async_rpc=False,
@@ -81,6 +84,7 @@ def torchrpc_cuda(rank):
     mq = None
     recv_tensor_list = [None, None, None, None]
     name_list = ["A", "B"]
+    address = socket.gethostbyname(socket.gethostname())
     logging.getLogger().setLevel(logging.DEBUG)
 
     if rank == 0:
@@ -96,7 +100,7 @@ def torchrpc_cuda(rank):
     mq = TORCHRPCMQ(
         rpc_name=name_list[rank],
         global_rank=rank,
-        init_method="tcp://127.0.0.1:12390",
+        init_method="tcp://{}:12390".format(address),
         remote_parallel_entrance=remote_mq_entrance,
         attach_to=attach_to,
         device_maps=device_map,

@@ -1,5 +1,5 @@
 [run]
-concurrency = multiprocessing
+concurrency = multiprocessing,thread
 omit =
   ding/utils/slurm_helper.py
   ding/utils/file_helper.py
