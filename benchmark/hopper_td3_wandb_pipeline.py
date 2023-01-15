@@ -1,3 +1,5 @@
+import os
+import pathlib
 from ditk import logging
 from ding.model.template.qac import QAC
 from ding.policy import TD3Policy
@@ -88,7 +90,7 @@ def main(seed=0, max_env_step=10000000):
 
     wandb.init(
         # Set the project where this run will be logged
-        project='hopper-td3',
+        project='hopper-td3-0111',
         # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
         name=str(main_config["DI-toolkit-hpo-id"]),
         # Track hyperparameters and run metadata
@@ -119,11 +121,11 @@ def main(seed=0, max_env_step=10000000):
         )
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy=policy,save_dir=os.path.join(cfg["exp_name"],"model"), train_freq=100))
         task.use(wandb_online_logger(cfg.policy.logger, evaluator_env, model))
         task.use(termination_checker(max_env_step=max_env_step))
         task.run()
 
 
 if __name__ == "__main__":
-    main(seed=main_config.seed, max_env_step=10000000)
+    main(seed=main_config.seed, max_env_step=10000000) 
