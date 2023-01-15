@@ -1,3 +1,4 @@
+import os
 import gym
 from ditk import logging
 from ding.model.template.qac import QAC
@@ -42,7 +43,7 @@ def main(seed):
         )
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy=policy,save_dir=os.path.join(cfg["exp_name"],"model"), train_freq=100))
         task.run()
 
 
