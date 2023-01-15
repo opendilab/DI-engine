@@ -122,7 +122,7 @@ def main(seed=0, max_env_step=10000000):
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(CkptSaver(policy=policy,save_dir=os.path.join(cfg["exp_name"],"model"), train_freq=100))
-        task.use(wandb_online_logger(cfg.policy.logger, evaluator_env, model))
+        task.use(wandb_online_logger(record_path=cfg.policy.logger.record_path,cfg=cfg.policy.logger, env=evaluator_env, model=model))
         task.use(termination_checker(max_env_step=max_env_step))
         task.run()
 
