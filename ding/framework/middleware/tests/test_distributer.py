@@ -176,6 +176,7 @@ def test_model_exchanger():
 
 
 def model_exchanger_main_with_model_loader():
+    sleep(1)  # Wait some time for the sub-process to start.
     with task.start(ctx=OnlineRLContext()):
         set_pkg_seed(0, use_cuda=False)
         policy = MockPolicy()
