@@ -57,11 +57,20 @@ benchmark:
 		--durations=0 \
 		-sv -m benchmark
 
+multiprocesstest:
+	pytest ${TEST_DIR} \
+		--cov-report=xml \
+		--cov-report term-missing \
+		--cov=${COV_DIR} \
+		${DURATIONS_COMMAND} \
+		${WORKERS_COMMAND} \
+		-sv -m multiprocesstest
+
 test: unittest  # just for compatibility, can be changed later
 
 cpu_test: unittest algotest benchmark
 
-all_test: unittest algotest cudatest benchmark
+all_test: unittest algotest cudatest benchmark multiprocesstest
 
 format:
 	yapf --in-place --recursive -p --verbose --style .style.yapf ${FORMAT_DIR}

@@ -8,7 +8,6 @@ from ding.framework.message_queue.torch_rpc import DeviceMap, TORCHRPCMQ, DEFAUL
 from torch.distributed import rpc
 from multiprocessing import Pool, get_context
 from ding.compatibility import torch_ge_1121
-from ditk import logging
 from ding.utils.system_helper import find_free_port
 
 mq = None
@@ -26,7 +25,6 @@ def torchrpc(rank):
     mq = None
     address = socket.gethostbyname(socket.gethostname())
     recv_tensor_list = [None, None, None, None]
-    logging.getLogger().setLevel(logging.DEBUG)
     name_list = ["A", "B", "C", "D"]
 
     if rank == 0:
@@ -85,7 +83,6 @@ def torchrpc_cuda(rank):
     recv_tensor_list = [None, None, None, None]
     name_list = ["A", "B"]
     address = socket.gethostbyname(socket.gethostname())
-    logging.getLogger().setLevel(logging.DEBUG)
 
     if rank == 0:
         attach_to = name_list[1:]
@@ -95,7 +92,7 @@ def torchrpc_cuda(rank):
     peer_rank = int(rank == 0) or 0
     peer_name = name_list[peer_rank]
     device_map = DeviceMap(rank, [peer_name], [rank], [peer_rank])
-    logging.debug(device_map)
+    print(device_map)
 
     mq = TORCHRPCMQ(
         rpc_name=name_list[rank],
@@ -132,7 +129,6 @@ def torchrpc_args_parser(rank):
     global mq
     global recv_tensor_list
     from ding.framework.parallel import Parallel
-    logging.getLogger().setLevel(logging.DEBUG)
 
     params = Parallel._torchrpc_args_parser(
         n_parallel_workers=1,
@@ -143,8 +139,7 @@ def torchrpc_args_parser(rank):
         local_cuda_devices=None,
         cuda_device_map=None
     )[0]
-
-    logging.debug(params)
+    print(params)
 
     # 1. If attach_to is empty, init_rpc will not block.
     mq = TORCHRPCMQ(**params)
@@ -152,13 +147,14 @@ def torchrpc_args_parser(rank):
     assert mq._running
     mq.stop()
     assert not mq._running
-    logging.debug("[Pass] 1. If attach_to is empty, init_rpc will not block.")
+    print("[Pass] 1. If attach_to is empty, init_rpc will not block.")
 
     # 2. n_parallel_workers != len(node_ids)
     try:
         Parallel._torchrpc_args_parser(n_parallel_workers=999, attach_to=[], node_ids=[1, 2])[0]
     except RuntimeError as e:
-        logging.debug("[Pass] 2. n_parallel_workers != len(node_ids).")
+        print("[Pass] 2. n_parallel_workers != len(node_ids).")
+        pass
     else:
         assert False
 
@@ -166,7 +162,7 @@ def torchrpc_args_parser(rank):
     try:
         Parallel._torchrpc_args_parser(n_parallel_workers=8, node_ids=[1], local_cuda_devices=[1, 2, 3])[0]
     except RuntimeError as e:
-        logging.debug("[Pass] 3. len(local_cuda_devices) != n_parallel_workers.")
+        print("[Pass] 3. len(local_cuda_devices) != n_parallel_workers.")
     else:
         assert False
 
@@ -175,7 +171,7 @@ def torchrpc_args_parser(rank):
     try:
         Parallel._torchrpc_args_parser(n_parallel_workers=999, node_ids=[1], use_cuda=True)[0]
     except RuntimeError as e:
-        logging.debug("[Pass] 4. n_parallel_workers > gpu_nums.")
+        print("[Pass] 4. n_parallel_workers > gpu_nums.")
     else:
         assert False
 
@@ -186,8 +182,7 @@ def torchrpc_args_parser(rank):
     assert params['device_maps'].peer_name_list == ["Node_0", "Node_0", "Node_1"]
     assert params['device_maps'].our_device_list == [0, 1, 1]
     assert params['device_maps'].peer_device_list == [0, 2, 4]
-    # logging.debug(params['device_maps'])
-    logging.debug("[Pass] 5. Set custom device map.")
+    print("[Pass] 5. Set custom device map.")
 
     # 6. Set n_parallel_workers > 1
     params = Parallel._torchrpc_args_parser(n_parallel_workers=8, node_ids=[1])
@@ -201,7 +196,7 @@ def torchrpc_args_parser(rank):
         params = Parallel._torchrpc_args_parser(n_parallel_workers=2, node_ids=[1], use_cuda=True)
         assert params[0]['use_cuda']
         assert len(params[0]['device_maps'].peer_name_list) == DEFAULT_DEVICE_MAP_NUMS - 1
-    logging.debug("[Pass] 6. Set n_parallel_workers > 1.")
+    print("[Pass] 6. Set n_parallel_workers > 1.")
 
 
 @pytest.mark.unittest

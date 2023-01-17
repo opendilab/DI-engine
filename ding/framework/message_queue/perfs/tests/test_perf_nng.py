@@ -6,7 +6,8 @@ from ding.framework.message_queue.perfs.perf_nng import nng_perf_main
 
 
 @pytest.mark.benchmark
-# @pytest.mark.multiprocesstest
+@pytest.mark.multiprocesstest
+@pytest.mark.cudatest
 def test_nng():
     if torch.cuda.is_available() and torch.cuda.device_count() >= 2:
         address = socket.gethostbyname(socket.gethostname())

@@ -10,7 +10,7 @@ from ding.compatibility import torch_ge_1121
 
 @pytest.mark.benchmark
 @pytest.mark.cudatest
-# @pytest.mark.multiprocesstest
+@pytest.mark.multiprocesstest
 def test_perf_torchrpc_nccl():
     address = socket.gethostbyname(socket.gethostname())
     init_method = "tcp://{}:{}".format(address, find_free_port(address))

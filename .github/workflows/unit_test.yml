@@ -47,6 +47,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
+        env:
+          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
         with:
           python-version: ${{ matrix.python-version }}
       - name: do_benchmark
@@ -55,3 +57,48 @@ jobs:
           python -m pip install ".[test,k8s]"
           ./ding/scripts/install-k8s-tools.sh
           make benchmark
+
+  test_multiprocess:
+    runs-on: self-hosted
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: do_multiprocesstest
+        timeout-minutes: 40
+        run: |
+          python -m pip install  box2d-py
+          python -m pip install .
+          python -m pip install ".[test,k8s]"
+          ./ding/scripts/install-k8s-tools.sh
+          make multiprocesstest
+
+  test_cuda:
+    runs-on: self-hosted
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        env:
+          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: do_unittest
+        timeout-minutes: 40
+        run: |
+          python -m pip install torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
+          python -m pip install box2d-py
+          python -m pip install .
+          python -m pip install ".[test,k8s]"
+          ./ding/scripts/install-k8s-tools.sh
+          make cudatest
