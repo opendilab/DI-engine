@@ -302,11 +302,11 @@
 <h1>Bsuite<a class="headerlink" href="#bsuite" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">bsuite</span></code>  是一个精心设计的实验集合，研究强化学习代理的核心能力。其主要有两个目标：</p>
+<p><code class="docutils literal notranslate"><span class="pre">bsuite</span></code>  是一个精心设计的环境集合，研究强化学习智能体的在不同方面的核心能力。其主要有两个目标：</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><p>收集明确的、信息量大的、可扩展的问题，抓住高效和通用学习算法设计中的关键问题。</p></li>
-<li><p>通过他们在这些共享基准上的表现来研究代理行为。</p></li>
+<li><p>收集明确的、信息量大的、可扩展的问题，试图抓住高效和通用学习算法设计中的关键问题。</p></li>
+<li><p>通过他们在这些共享基准上的表现来研究智能体行为。</p></li>
 </ol>
 </div></blockquote>
 <figure class="align-center" id="id14">
@@ -315,13 +315,14 @@
 <p><span class="caption-text">图片选自: <a class="reference external" href="https://github.com/deepmind/bsuite">https://github.com/deepmind/bsuite</a></span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<p>这里我们以 <em>Memory Length</em> 为示例环境。 它的目的是测试一个代理人能够记住一个比特的连续步骤的数量。底层环境是基于一个风格化的 <a class="reference external" href="https://en.wikipedia.org/wiki/T-maze">T-maze</a> 问题， 以一个长度 <span class="math notranslate nohighlight">\(N \in \mathbb{N}\)</span> and
+<p>这里我们以 <em>Memory Length</em> 为示例环境。 它的目的是测试智能体能够记住一个比特的连续步骤的数量。底层环境是基于一个风格化的 <a class="reference external" href="https://en.wikipedia.org/wiki/T-maze">T-maze</a> 问题， 以一个长度 <span class="math notranslate nohighlight">\(N \in \mathbb{N}\)</span> 为参数。
+每个 episode lasts N steps，观察空间 <span class="math notranslate nohighlight">\(o_t=\left(c_t, t / N\right)\)</span> and
 action space <span class="math notranslate nohighlight">\(\mathcal{A}=\{-1,+1\}\)</span>.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>在 episode 开始时，提供给智能体一个 +1 或 -1的上下文， 这意味着 <span class="math notranslate nohighlight">\(c_1 \sim {Unif}(\mathcal{A})\)</span>。</p></li>
 <li><p>在所有未来的时间步骤中，上下文等于零，并倒计时直到 episode 结束，这意味着所有 <span class="math notranslate nohighlight">\(t&gt;2\)</span> 都有  <span class="math notranslate nohighlight">\(c_t=0\)</span> 。</p></li>
-<li><p>在 episode 结束时，智能体必须选择与环境相对应的正确行动来获得奖励。对于所有 <span class="math notranslate nohighlight">\(t&lt;N\)</span>， 奖励 <span class="math notranslate nohighlight">\(r_t=0\)</span>。</p></li>
+<li><p>在 episode 结束时，智能体必须选择与环境相对应的正确行动来获得奖励。对于所有 <span class="math notranslate nohighlight">\(t&lt;N\)</span> ， 奖励 <span class="math notranslate nohighlight">\(r_t=0\)</span> 并且 <span class="math notranslate nohighlight">\(r_N={Sign}\left(a_N=c_1\right)\)</span>。</p></li>
 </ul>
 </div></blockquote>
 <figure class="align-center" id="id15">
@@ -335,12 +336,9 @@ action space <span class="math notranslate nohighlight">\(\mathcal{A}=\{-1,+1\}\
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>你只需要使用 <code class="docutils literal notranslate"><span class="pre">pip</span></code> 命令来安装 bsuite，在安装 DI-engine 时它也会自动安装。</p>
+<p>你需要使用下列 <code class="docutils literal notranslate"><span class="pre">pip</span></code> 命令来安装 bsuite。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>bsuite
-<span class="c1"># Method2: Install with DI-engine requirements</span>
-<span class="nb">cd</span><span class="w"> </span>DI-engine
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[common_env]&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -384,8 +382,8 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 <blockquote>
 <div><ul class="simple">
 <li><p>如果不是最后一步 (t&lt;N), 奖励为 0。</p></li>
-<li><p>如果是最后一步，代理人选择了正确的行动，那么奖励就是 1。</p></li>
-<li><p>如果是最后一步，代理人选择了一个错误的行动，那么奖励是 -1。</p></li>
+<li><p>如果是最后一步，智能体选择了正确的行动，那么奖励就是 1。</p></li>
+<li><p>如果是最后一步，智能体选择了一个错误的行动，那么奖励是 -1。</p></li>
 </ul>
 </div></blockquote>
 </section>

@@ -1,0 +1,646 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Hello World for DI &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="First Reinforcement Learning Program" href="first_rl_program.html" />
+  <link rel="prev" title="Installation Guide" href="installation.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Quickstart</a> &gt;</li>
+        
+      <li>Hello World for DI</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/01_quickstart/hello_world_for_DI.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="hello-world-for-di">
+<h1>Hello World for DI<a class="headerlink" href="#hello-world-for-di" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>Decision intelligence is the most important direction in the field of artificial intelligence.
+Its general form is to use an agent to process information from an environment, give reasonable feedback and responses, and make the state of the environment changing as designer’s expectations.
+For example, a autodrive car will receive information about road conditions from the environment, and give real-time autonomous driving decisions, and let the vehicle drive to the set destination.</p>
+<p>We first use the “lunarlander” environment to introduce the agent in the DI-engine and how it interacts with the environment.
+In this simulated environment, the agent needs to land the lunarlander safely and smoothly to the designated area and avoid crashing.</p>
+<a class="reference internal image-reference" href="../_images/lunarlander.gif"><img alt="../_images/lunarlander.gif" class="align-center" src="../_images/lunarlander.gif" style="width: 1000px;" /></a>
+<section id="let-the-agent-run">
+<h2>Let the Agent Run<a class="headerlink" href="#let-the-agent-run" title="Permalink to this headline">¶</a></h2>
+<p>An agent is an object that can interact with the environment freely, and is essentially a mathematical model that accepts input and feeds back output.
+Its model consists of a model structure and a set of model parameters.
+In general, we will write the model into a file for saving, or read the model from that file for deploying.
+Here we provide an agent model trained by the DI-engine framework using the DQN algorithm:
+<a class="reference external" href="https://opendilab.net/download/DI-engine-docs/01_quickstart/final.pth.tar">final.pth.tar</a> Just use the following code to make the agent run, remember to replace the model address in the function (“ckpt_path=’./final.pth.tar’”), with the locally saved model file path, such as “’~/Download/final.pth.tar’”:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span> <span class="c1"># Load the gym library, which is used to standardize the reinforcement learning environment</span>
+<span class="kn">import</span> <span class="nn">torch</span> <span class="c1"># Load the PyTorch library for loading the Tensor model and defining the computing network</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span> <span class="c1"># Load EasyDict for instantiating configuration files</span>
+<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span> <span class="c1"># Load configuration related components in DI-engine config module</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span> <span class="c1"># Load environment related components in DI-engine env module</span>
+<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span><span class="p">,</span> <span class="n">single_env_forward_wrapper</span> <span class="c1"># Load policy-related components in DI-engine policy module</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span> <span class="c1"># Load model related components in DI-engine model module</span>
+<span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span> <span class="c1"># Load DI-zoo lunarlander environment and DQN algorithm related configurations</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">main_config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">create_config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">main_config</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;lunarlander_dqn_deploy&#39;</span> <span class="c1"># Set the name of the experiment to be run in this deployment, which is the name of the project folder to be created</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Compile and generate all configurations</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">env_id</span><span class="p">),</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">))</span> <span class="c1"># Add the DI-engine environment decorator upon the gym&#39;s environment instance</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./lunarlander_dqn_deploy/video&#39;</span><span class="p">)</span> <span class="c1"># Enable the video recording of the environment and set the video saving folder</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span> <span class="c1"># Import model configuration, instantiate DQN model</span>
+    <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">)</span> <span class="c1"># Load model parameters from file</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span> <span class="c1"># Load model parameters into the model</span>
+    <span class="n">policy</span> <span class="o">=</span> <span class="n">DQNPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">eval_mode</span> <span class="c1"># Import policy configuration, import model, instantiate DQN policy, and turn to evaluation mode</span>
+    <span class="n">forward_fn</span> <span class="o">=</span> <span class="n">single_env_forward_wrapper</span><span class="p">(</span><span class="n">policy</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span> <span class="c1"># Use the strategy decorator of the simple environment to decorate the decision method of the DQN strategy</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># Reset the initialization environment to get the initial observations</span>
+    <span class="n">returns</span> <span class="o">=</span> <span class="mf">0.</span> <span class="c1"># Initialize total reward</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span> <span class="c1"># Let the agent&#39;s strategy and environment interact cyclically until the end</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">forward_fn</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span> <span class="c1"># According to the observed state, make a decision and generate action</span>
+        <span class="n">obs</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="c1"># Execute actions, interact with the environment, get the next observation state, the reward of this interaction, the signal of whether to end, and other information</span>
+        <span class="n">returns</span> <span class="o">+=</span> <span class="n">rew</span> <span class="c1"># Cumulative reward return</span>
+        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Deploy is finished, final epsiode return is: </span><span class="si">{</span><span class="n">returns</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">main_config</span><span class="o">=</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="s1">&#39;./final.pth.tar&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As shown in the codes, the PyTorch object parameters of the model can be obtained by using torch.load.
+And then the model parameters can be loaded into the DQN model of DI-engine using load_state_dict to make the model rebuilt.
+Then load the DQN model into the DQN policy, and use the forward_fn function of the evaluation mode to make the agent generate feedback action for the environmental state, obs.
+The action of the agent will interact with the environment once to generate the environment state, obs, at the next moment, the reward, rew, of this interaction, the signal, done, of whether the environment is over, and other information, info.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The environment state is generally a set of vectors or tensors. The reward is generally a real value. The signal whether the environment has ended is a boolean variable, yes or no. Other information is an additional message that the creator of the environment wants to pass, in any format.</p>
+</div>
+<p>The reward value at all times will be accumulated as the total score of the agent in this task.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can see the total score of the deployed agent in the log, and you can see the replay video in the experiment folder.</p>
+</div>
+<a class="reference internal image-reference" href="../_images/evaluator_info.png"><img alt="../_images/evaluator_info.png" class="align-center" src="../_images/evaluator_info.png" style="width: 600px;" /></a>
+</section>
+<section id="to-better-evaluate-agents">
+<h2>To Better Evaluate Agents<a class="headerlink" href="#to-better-evaluate-agents" title="Permalink to this headline">¶</a></h2>
+<p>In various contexts of reinforcement learning, the initial states of the agents are not always exactly the same.
+The performance of the agent may fluctuate with different initial states.
+For example, in the environment of “lunarlander”, the lunar surface is different every time.</p>
+<p>Therefore, we need to set up multiple environments and run several more evaluation tests to better score it.
+DI-engine designed the environment manager env_manager to do this, we can do this with the following slightly more complex code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">AdvancedReplayBuffer</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">DingEnvWrapper</span>
+<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">get_epsilon_greedy_fn</span>
+<span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+
+<span class="c1"># Get DI-engine form env class</span>
+<span class="k">def</span> <span class="nf">wrapped_cartpole_env</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">DingEnvWrapper</span><span class="p">(</span>
+        <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">main_config</span><span class="p">[</span><span class="s1">&#39;env&#39;</span><span class="p">][</span><span class="s1">&#39;env_id&#39;</span><span class="p">]),</span>
+        <span class="n">EasyDict</span><span class="p">(</span><span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;exp_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lunarlander_dqn_eval&#39;</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span>
+        <span class="n">BaseEnvManager</span><span class="p">,</span>
+        <span class="n">DQNPolicy</span><span class="p">,</span>
+        <span class="n">BaseLearner</span><span class="p">,</span>
+        <span class="n">SampleSerialCollector</span><span class="p">,</span>
+        <span class="n">InteractionSerialEvaluator</span><span class="p">,</span>
+        <span class="n">AdvancedReplayBuffer</span><span class="p">,</span>
+        <span class="n">save_cfg</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">load_path</span> <span class="o">=</span> <span class="s1">&#39;./final.pth.tar&#39;</span>
+
+    <span class="c1"># build multiple environments and use env_manager to manage them</span>
+    <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span>
+    <span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_cartpole_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+    <span class="c1"># switch save replay interface</span>
+    <span class="c1"># evaluator_env.enable_save_replay(cfg.env.replay_path)</span>
+    <span class="n">evaluator_env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./lunarlander_dqn_eval/video&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Set random seed for all package and instance</span>
+    <span class="n">evaluator_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span><span class="p">)</span>
+
+    <span class="c1"># Set up RL Policy</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">policy</span> <span class="o">=</span> <span class="n">DQNPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">load_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Evaluate</span>
+    <span class="n">tb_logger</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">),</span> <span class="s1">&#39;serial&#39;</span><span class="p">))</span>
+    <span class="n">evaluator</span> <span class="o">=</span> <span class="n">InteractionSerialEvaluator</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
+    <span class="p">)</span>
+    <span class="n">evaluator</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">main_config</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When evaluating multiple environments in parallel, the environment manager of DI-engine will also count the average, maximum and minimum rewards, as well as other indicators related to some algorithms.</p>
+</div>
+</section>
+<section id="training-stronger-agents-from-zero">
+<h2>Training Stronger Agents from Zero<a class="headerlink" href="#training-stronger-agents-from-zero" title="Permalink to this headline">¶</a></h2>
+<p>Run the following code using DI-engine to get the agent model in the above test.
+Try generating an agent model yourself, maybe it will be stronger:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
+<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">ding_init</span>
+<span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
+<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> \
+    <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span><span class="p">,</span> <span class="n">online_logger</span><span class="p">,</span> <span class="n">nstep_reward_enhancer</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ding_init</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
+        <span class="n">collector_env</span> <span class="o">=</span> <span class="n">SubprocessEnvManagerV2</span><span class="p">(</span>
+            <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">env_id</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">)],</span>
+            <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+        <span class="p">)</span>
+        <span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">SubprocessEnvManagerV2</span><span class="p">(</span>
+            <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">env_id</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span><span class="p">)],</span>
+            <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+        <span class="p">)</span>
+
+        <span class="n">set_pkg_seed</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">buffer_</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">replay_buffer_size</span><span class="p">)</span>
+        <span class="n">policy</span> <span class="o">=</span> <span class="n">DQNPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">interaction_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">eps_greedy_handler</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">StepCollector</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">collector_env</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">nstep_reward_enhancer</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">online_logger</span><span class="p">(</span><span class="n">train_show_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">CkptSaver</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">train_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The above code takes about 10 minutes to train to the default termination point with an Intel i5-10210U 1.6GHz CPU and no GPU device.
+If you want the training time to be shorter, try the simpler <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">Cartpole</a>  environment.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DI-engine integrates the tensorboard component to record key information during the training process. You can turn it on during training, so you can see real-time updated information, such as the average total reward value recorded by the evaluator, etc.</p>
+</div>
+<p>Well done! So far, you have completed the Hello World task of DI-engine, used the provided code and model, and learned how the reinforcement learning agent interacts with the environment.
+Please continue to read this document, <a class="reference external" href="../01_quickstart/first_rl_program.html">First Reinforcement Learning Program</a>, to understand how the RL pipeline is built in DI-engine.</p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="first_rl_program.html" class="btn btn-neutral float-right" title="First Reinforcement Learning Program" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="installation.html" class="btn btn-neutral" title="Installation Guide" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Hello World for DI</a><ul>
+<li><a class="reference internal" href="#let-the-agent-run">Let the Agent Run</a></li>
+<li><a class="reference internal" href="#to-better-evaluate-agents">To Better Evaluate Agents</a></li>
+<li><a class="reference internal" href="#training-stronger-agents-from-zero">Training Stronger Agents from Zero</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

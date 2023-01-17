@@ -58,16 +58,16 @@ Action Space
 Reward Space
 ------------
 
-- Each task is equipped with a reward function measuring the performance of the current robot and the control action. Generally, it is a \ ``float`` \ value.
+- Each task is equipped with a reward function measuring the robot's current performance of the control action. Generally, it is a \ ``float`` \ value.
 
 Key Facts
 ==========
 
-1. 1D observation input which can vary according to robot's structure, task and environment.
+1. Vector observation space (1D vector) varies according to robot's structure, task and environment.
 
-2. Continuous action space according to the structure of the robot.
+2. Continuous action space varies according to the structure of the robot.
 
-3. Top-performing policies not only can learn how to control a robot, but they can also learn how to create a better robot design tailored for a specific task.
+3. Top-performing policies learned can not only be used to control a robot, but also be beneficial for creating a better robot design for a specific task.
 
 Other
 ======
@@ -219,8 +219,9 @@ Benchmark Algorithm Performance
 ================================
 
 
-- Carrier（Reward of 1 is given to the agent for completing its task plus a small reward for getting close to it).
-- The robot catches a box initialized on top of it and carries it as far as possible.
+Carrier
+
+- Task description: The robot catches the box initialized above and carries it as far as possible without dropping it, the farther the distance carried the greater the reward.
 
    - Carrier + PPO
 

@@ -5,10 +5,10 @@ Bsuite
 概述
 ============
 
-``bsuite``  是一个精心设计的实验集合，研究强化学习代理的核心能力。其主要有两个目标：
+``bsuite``  是一个精心设计的环境集合，研究强化学习智能体的在不同方面的核心能力。其主要有两个目标：
 
-    1. 收集明确的、信息量大的、可扩展的问题，抓住高效和通用学习算法设计中的关键问题。
-    2. 通过他们在这些共享基准上的表现来研究代理行为。
+    1. 收集明确的、信息量大的、可扩展的问题，试图抓住高效和通用学习算法设计中的关键问题。
+    2. 通过他们在这些共享基准上的表现来研究智能体行为。
 
 .. figure:: ./images/bsuite.png
    :align: center
@@ -16,13 +16,13 @@ Bsuite
 
    图片选自: https://github.com/deepmind/bsuite
 
-这里我们以 *Memory Length* 为示例环境。 它的目的是测试一个代理人能够记住一个比特的连续步骤的数量。底层环境是基于一个风格化的 `T-maze <https://en.wikipedia.org/wiki/T-maze>`__ 问题， 以一个长度 :math:`N \in \mathbb{N}`为参数。 
+这里我们以 *Memory Length* 为示例环境。 它的目的是测试智能体能够记住一个比特的连续步骤的数量。底层环境是基于一个风格化的 `T-maze <https://en.wikipedia.org/wiki/T-maze>`__ 问题， 以一个长度 :math:`N \in \mathbb{N}` 为参数。 
 每个 episode lasts N steps，观察空间 :math:`o_t=\left(c_t, t / N\right)` and 
 action space :math:`\mathcal{A}=\{-1,+1\}`.
 
    - 在 episode 开始时，提供给智能体一个 +1 或 -1的上下文， 这意味着 :math:`c_1 \sim {Unif}(\mathcal{A})`。
    - 在所有未来的时间步骤中，上下文等于零，并倒计时直到 episode 结束，这意味着所有 :math:`t>2` 都有  :math:`c_t=0` 。
-   - 在 episode 结束时，智能体必须选择与环境相对应的正确行动来获得奖励。对于所有 :math:`t<N`， 奖励 :math:`r_t=0`并且 :math:`r_N={Sign}\left(a_N=c_1\right)`。
+   - 在 episode 结束时，智能体必须选择与环境相对应的正确行动来获得奖励。对于所有 :math:`t<N` ， 奖励 :math:`r_t=0` 并且 :math:`r_N={Sign}\left(a_N=c_1\right)`。
 
 
 .. figure:: ./images/bsuite_memory_length.png
@@ -37,15 +37,12 @@ action space :math:`\mathcal{A}=\{-1,+1\}`.
 安装方法
 -----------------
 
-你只需要使用 ``pip`` 命令来安装 bsuite，在安装 DI-engine 时它也会自动安装。
+你需要使用下列 ``pip`` 命令来安装 bsuite。
 
 .. code:: shell
 
    # Method1: Install Directly
    pip install bsuite
-   # Method2: Install with DI-engine requirements
-   cd DI-engine
-   pip install ".[common_env]"
 
 验证安装
 --------------------
@@ -82,8 +79,8 @@ action space :math:`\mathcal{A}=\{-1,+1\}`.
 -   奖励空间是一个大小为 3 的离散空间，是一个 ``float`` 值。
 
   -  如果不是最后一步 (t<N), 奖励为 0。
-  -  如果是最后一步，代理人选择了正确的行动，那么奖励就是 1。
-  -  如果是最后一步，代理人选择了一个错误的行动，那么奖励是 -1。
+  -  如果是最后一步，智能体选择了正确的行动，那么奖励就是 1。
+  -  如果是最后一步，智能体选择了一个错误的行动，那么奖励是 -1。
 
 其他 
 -------

@@ -36,15 +36,12 @@ Installation
 How To install
 -----------------
 
-You just need to use the command ``pip`` to install bsuite, however it will be automatically installed when installing DI-engine.
+You just need to use the command ``pip`` to install bsuite.
 
 .. code:: shell
 
    # Method1: Install Directly
    pip install bsuite
-   # Method2: Install with DI-engine requirements
-   cd DI-engine
-   pip install ".[common_env]"
 
 Verify Installation
 --------------------

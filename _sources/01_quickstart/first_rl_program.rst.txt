@@ -4,6 +4,7 @@ First Reinforcement Learning Program
 .. toctree::
    :maxdepth: 2
 
+Reinforcement learning is a promising algorithm for making a decision-intelligence artificial agent, among many machine learning algorithms.
 CartPole is the ideal learning environment for an introduction to reinforcement learning, \
 and using the DQN algorithm allows CartPole to converge (maintain equilibrium) in a very short time. \
 We will introduce the use of DI-engine based on CartPole + DQN.
