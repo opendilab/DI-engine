@@ -11,5 +11,6 @@ coverage:
 # The unittests of the torchrpc module are tested by different runners and cannot be included
 # in the test_unittest's coverage report. To keep CI happy, we don't count torchrpc related coverage.
 ignore: 
-  - /mnt/cache/wangguoteng/DI-engine/ding/framework/message_queue/torch_rpc.py
-  - /mnt/cache/wangguoteng/DI-engine/ding/framework/message_queue/perfs/*
+  - ./ding/framework/message_queue/torch_rpc.py
+  - ./ding/framework/message_queue/tests/test_torch_rpc.py
+  - ./ding/framework/message_queue/perfs/*

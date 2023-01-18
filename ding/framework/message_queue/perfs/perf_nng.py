@@ -127,6 +127,8 @@ def nng_dist_main(labels, node_id, listen_to, attach_to, *arg, **kwargs) -> None
                     continue
                 elif topic == "f":
                     finish_tag.append(1)
+                    send_t("f")
+                    mq.stop()
                     return
                 else:
                     raise RuntimeError("Unkown topic")

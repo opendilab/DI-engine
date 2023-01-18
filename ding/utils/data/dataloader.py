@@ -116,12 +116,12 @@ class AsyncDataLoader(IDataLoader):
         p, c = self.mp_context.Pipe()
 
         # Async process (Main worker): Process data if num_workers <= 1; Assign job to other workers if num_workers > 1.
-        self.async_process = self.mp_context.Process(target=self._async_loop, args=(p, c))
+        self.async_process = self.mp_context.Process(target=self._async_loop, args=(p, c), name="async_process")
         self.async_process.daemon = True
         self.async_process.start()
 
         # Get data thread: Get data from ``data_source`` and send it to ``async_process``.`
-        self.get_data_thread = threading.Thread(target=self._get_data, args=(p, c))
+        self.get_data_thread = threading.Thread(target=self._get_data, args=(p, c), name="get_data_thread")
         self.get_data_thread.daemon = True
         self.get_data_thread.start()
 
@@ -350,6 +350,9 @@ class AsyncDataLoader(IDataLoader):
         self.end_flag = True
         self.async_process.terminate()
         self.async_process.join()
+        if self.use_cuda:
+            self.cuda_thread.join()
+        self.get_data_thread.join()
         if self.num_workers > 1:
             for w in self.worker:
                 w.terminate()
