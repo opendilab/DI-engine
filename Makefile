@@ -22,6 +22,7 @@ docs:
 
 unittest:
 	pytest ${TEST_DIR} \
+		--timeout=180    \
 		--cov-report=xml \
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
@@ -36,6 +37,7 @@ algotest:
 
 cudatest:
 	pytest ${TEST_DIR} \
+		--timeout=180  \
 		-sv -m cudatest
 
 envpooltest:
