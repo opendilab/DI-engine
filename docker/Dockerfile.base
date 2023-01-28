@@ -3,7 +3,7 @@ FROM pytorch/pytorch:1.7.1-cuda11.0-cudnn8-runtime as base
 WORKDIR /ding
 
 RUN apt update \
-    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils -y \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils zip -y \
     && apt clean \
     && rm -rf /var/cache/apt/* \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
@@ -33,7 +33,7 @@ RUN apt-get update && \
     python3.8 python3-pip python3.8-dev
 
 RUN apt update \
-    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils -y \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils zip -y \
     && apt clean \
     && rm -rf /var/cache/apt/* \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
