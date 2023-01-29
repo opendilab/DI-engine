@@ -12,6 +12,7 @@ from ding.framework.middleware.tests import MockHerRewardModel, CONFIG
 
 class MockPolicy(Mock):
     _device = 'cpu'
+
     # MockPolicy class for train mode
     def forward(self, train_data, **kwargs):
         res = {
@@ -22,6 +23,7 @@ class MockPolicy(Mock):
 
 class MultiStepMockPolicy(Mock):
     _device = 'cpu'
+
     # MockPolicy class for multi-step train mode
     def forward(self, train_data, **kwargs):
         res = [
