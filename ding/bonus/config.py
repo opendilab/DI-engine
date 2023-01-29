@@ -11,6 +11,10 @@ def get_instance_config(env: str) -> EasyDict:
     elif env == 'lunarlander_continuous':
         cfg.action_space = 'continuous'
         cfg.n_sample = 400
+    elif env == 'bipedalwalker':
+        cfg.learning_rate = 1e-3
+        cfg.action_space = 'continuous'
+        cfg.n_sample = 1024
     elif env == 'rocket_landing':
         cfg.n_sample = 2048
         cfg.adv_norm = False
@@ -47,6 +51,8 @@ def get_instance_env(env: str) -> BaseEnv:
         return DingEnvWrapper(gym.make('LunarLander-v2'))
     elif env == 'lunarlander_continuous':
         return DingEnvWrapper(gym.make('LunarLander-v2', continuous=True))
+    elif env == 'bipedalwalker':
+        return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True})
     elif env == 'rocket_landing':
         from dizoo.rocket.envs import RocketEnv
         cfg = EasyDict({

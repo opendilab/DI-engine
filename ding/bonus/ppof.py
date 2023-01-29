@@ -17,11 +17,19 @@ from .config import get_instance_config, get_instance_env, get_hybrid_shape
 
 class PPOF:
     supported_env_list = [
+        # tutorial
         'lunarlander_discrete',
         'lunarlander_continuous',
+        'bipedalwalker',
+        # action
         'rocket_landing',
         'drone_fly',
         'hybrid_moving',
+        # obs
+        'evogym_carrier',
+        'mario',
+        'di_sheep',
+        'procgen_bigfish',
     ]
 
     def __init__(
