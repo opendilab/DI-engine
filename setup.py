@@ -50,6 +50,7 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
+        'setuptools<=66.1.1',
         'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'numpy>=1.18.0',
