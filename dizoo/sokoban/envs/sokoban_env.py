@@ -50,17 +50,17 @@ class SokobanEnv(BaseEnv):
                 self._env.seed(self._seed)
             obs = self._env.reset()
             obs = to_ndarray(obs).astype('float32')
-            self._final_eval_reward = 0.
+            self._eval_episode_return = 0.
             return obs
 
     def step(self, action: np.array):
         action = to_ndarray(action)
         obs, rew, done, info = self._env.step(int(action))
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         obs = to_ndarray(obs).astype('float32')
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
 
     def _make_env(self, only_info=False):

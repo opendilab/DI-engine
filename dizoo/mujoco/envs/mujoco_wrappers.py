@@ -2,14 +2,14 @@ from typing import Dict
 import gym
 import numpy as np
 
-from ding.envs import ObsNormWrapper, RewardNormWrapper, DelayRewardWrapper, FinalEvalRewardEnv
+from ding.envs import ObsNormWrapper, RewardNormWrapper, DelayRewardWrapper, EvalEpisodeReturnEnv
 
 
 def wrap_mujoco(
-        env_id,
-        norm_obs: Dict = dict(use_norm=False, ),
-        norm_reward: Dict = dict(use_norm=False, ),
-        delay_reward_step: int = 1
+    env_id,
+    norm_obs: Dict = dict(use_norm=False, ),
+    norm_reward: Dict = dict(use_norm=False, ),
+    delay_reward_step: int = 1
 ) -> gym.Env:
     r"""
     Overview:
@@ -25,7 +25,7 @@ def wrap_mujoco(
     # import customized gym environment
     from . import mujoco_gym_env
     env = gym.make(env_id)
-    env = FinalEvalRewardEnv(env)
+    env = EvalEpisodeReturnEnv(env)
     if norm_obs is not None and norm_obs.use_norm:
         env = ObsNormWrapper(env)
     if norm_reward is not None and norm_reward.use_norm:

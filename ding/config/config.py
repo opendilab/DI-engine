@@ -306,7 +306,7 @@ policy_config_template = dict(
     other=dict(replay_buffer=dict()),
 )
 policy_config_template = EasyDict(policy_config_template)
-env_config_template = dict(manager=dict(), )
+env_config_template = dict(manager=dict(), stop_value=int(1e10))
 env_config_template = EasyDict(env_config_template)
 
 
@@ -315,7 +315,7 @@ def save_project_state(exp_name: str) -> None:
     def _fn(cmd: str):
         return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.strip().decode("utf-8")
 
-    if subprocess.run("git status", shell=True, stderr=subprocess.PIPE).returncode == 0:
+    if subprocess.run("git status", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0:
         short_sha = _fn("git describe --always")
         log = _fn("git log --stat -n 5")
         diff = _fn("git diff")
@@ -341,6 +341,7 @@ def compile_config(
         create_cfg: dict = None,
         save_cfg: bool = True,
         save_path: str = 'total_config.py',
+        renew_dir: bool = True,
 ) -> EasyDict:
     """
     Overview:
@@ -361,6 +362,7 @@ def compile_config(
         - create_cfg (:obj:`dict`): Input create config dict
         - save_cfg (:obj:`bool`): Save config or not
         - save_path (:obj:`str`): Path of saving file
+        - renew_dir (:obj:`bool`): Whether to new a directory for saving config.
     Returns:
         - cfg (:obj:`EasyDict`): Config after compiling
     """
@@ -449,17 +451,18 @@ def compile_config(
         default_config['reward_model'] = reward_model_config
     if len(world_model_config) > 0:
         default_config['world_model'] = world_model_config
+    stop_value_flag = 'stop_value' in cfg.env
     cfg = deep_merge_dicts(default_config, cfg)
     cfg.seed = seed
     # check important key in config
     if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation
-        if 'stop_value' in cfg.env:  # data generation task doesn't need these fields
+        if stop_value_flag:  # data generation task doesn't need these fields
             cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
             cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:
-        if os.path.exists(cfg.exp_name):
+        if os.path.exists(cfg.exp_name) and renew_dir:
             cfg.exp_name += datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
         try:
             os.makedirs(cfg.exp_name)

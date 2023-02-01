@@ -11,7 +11,7 @@ import shutil
 
 from unittest.mock import Mock, patch
 from ding.framework import task
-from ding.utils import save_file
+from ding.policy.base_policy import Policy
 
 
 class TheModelClass(nn.Module):
@@ -22,24 +22,28 @@ class TheModelClass(nn.Module):
 
 class MockPolicy(Mock):
 
-    def __init__(self, model) -> None:
-        super(MockPolicy, self).__init__()
+    def __init__(self, model, **kwargs) -> None:
+        super(MockPolicy, self).__init__(model)
         self.learn_mode = model
+
+    @property
+    def eval_mode(self):
+        return EasyDict({"state_dict": lambda: {}})
 
 
 @pytest.mark.unittest
 def test_ckpt_saver():
-    cfg = EasyDict({'exp_name': 'test_ckpt_saver_exp'})
+    exp_name = 'test_ckpt_saver_exp'
 
     ctx = OnlineRLContext()
 
     train_freq = 100
     model = TheModelClass()
 
-    if not os.path.exists(cfg.exp_name):
-        os.makedirs(cfg.exp_name)
+    if not os.path.exists(exp_name):
+        os.makedirs(exp_name)
 
-    prefix = '{}/ckpt'.format(cfg.exp_name)
+    prefix = '{}/ckpt'.format(exp_name)
 
     with patch("ding.policy.Policy", MockPolicy), task.start():
         policy = MockPolicy(model)
@@ -48,9 +52,9 @@ def test_ckpt_saver():
             assert path == "{}/eval.pth.tar".format(prefix)
 
         with patch("ding.framework.middleware.ckpt_handler.save_file", mock_save_file):
-            ctx.train_iter = 0
+            ctx.train_iter = 1
             ctx.eval_value = 9.4
-            ckpt_saver = CkptSaver(cfg, policy, train_freq)
+            ckpt_saver = CkptSaver(policy, exp_name, train_freq)
             ckpt_saver(ctx)
 
         def mock_save_file(path, data, fs_type=None, use_lock=False):
@@ -68,4 +72,4 @@ def test_ckpt_saver():
             task.finish = True
             ckpt_saver(ctx)
 
-    shutil.rmtree(cfg.exp_name)
+    shutil.rmtree(exp_name)

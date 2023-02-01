@@ -65,11 +65,12 @@ def default_collate(batch: Sequence,
         - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data field.\
             the return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
     """
-    elem = batch[0]
 
-    elem_type = type(elem)
     if isinstance(batch, ttorch.Tensor):
         return batch.json()
+
+    elem = batch[0]
+    elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
         out = None
         if torch_ge_131() and torch.utils.data.get_worker_info() is not None:
@@ -235,5 +236,7 @@ def default_decollate(
         tmp = {k: v if k in ignore else default_decollate(v) for k, v in batch.items()}
         B = len(list(tmp.values())[0])
         return [{k: tmp[k][i] for k in tmp.keys()} for i in range(B)]
+    elif isinstance(batch, torch.distributions.Distribution):  # for compatibility
+        return [None for _ in range(batch.batch_shape[0])]
 
     raise TypeError("not support batch type: {}".format(type(batch)))

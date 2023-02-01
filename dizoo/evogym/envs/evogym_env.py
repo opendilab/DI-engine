@@ -1,17 +1,19 @@
 from typing import Any, Union, List, Optional
+import os
+import time
 import copy
 import numpy as np
-from easydict import EasyDict
 import gym
-import evogym.envs
-from evogym import WorldObject, sample_robot
-from .viewer import DingEvoViewer
-from evogym.sim import EvoSim
-import os
-from ding.envs import BaseEnv, BaseEnvTimestep, FinalEvalRewardEnv
+from easydict import EasyDict
+
+from ding.envs import BaseEnv, BaseEnvTimestep, EvalEpisodeReturnEnv
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
+
+import evogym.envs
+from evogym import WorldObject, sample_robot
+from evogym.sim import EvoSim
 
 
 @ENV_REGISTRY.register('evogym')
@@ -46,8 +48,7 @@ class EvoGymEnv(BaseEnv):
             self._observation_space = self._env.observation_space
             self.num_actuators = self._env.get_actuator_indices('robot').size
             # by default actions space is double (float64), create a new space with type of type float (float32)
-            self._action_space = gym.spaces.Box(
-                low=0.6, high=1.6, shape=(self.num_actuators, ), dtype=np.float32)
+            self._action_space = gym.spaces.Box(low=0.6, high=1.6, shape=(self.num_actuators, ), dtype=np.float32)
             self._reward_space = gym.spaces.Box(
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
@@ -59,11 +60,17 @@ class EvoGymEnv(BaseEnv):
             self._env.seed(self._seed)
         if self._replay_path is not None:
             gym.logger.set_level(gym.logger.DEBUG)
-            # use our own 'viewer' to make 'render' compatible with gym
-            self._env.default_viewer = DingEvoViewer(EvoSim(self._env.world))
-            self._env.__class__.render = self._env.default_viewer.render
-            self._env.metadata['render.modes'] = 'rgb_array'  # make render mode compatible with gym
-            self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
+            # make render mode compatible with gym
+            if gym.version.VERSION > '0.22.0':
+                self._env.metadata.update({'render_modes': ["rgb_array"]})
+            else:
+                self._env.metadata.update({'render.modes': ["rgb_array"]})
+            self._env = gym.wrappers.RecordVideo(
+                self._env,
+                video_folder=self._replay_path,
+                episode_trigger=lambda episode_id: True,
+                name_prefix='rl-video-{}-{}'.format(id(self), time.time())
+            )
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
         return obs
@@ -104,7 +111,7 @@ class EvoGymEnv(BaseEnv):
         else:
             structure = self.read_robot_from_file(self._cfg.robot, self._cfg.robot_dir)
         env = gym.make(self._cfg.env_id, body=structure[0])
-        env = FinalEvalRewardEnv(env)
+        env = EvalEpisodeReturnEnv(env)
         return env
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:

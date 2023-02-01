@@ -2,8 +2,7 @@ import pytest
 import torch
 from ding.framework import OnlineRLContext
 from ding.data.buffer import DequeBuffer
-from easydict import EasyDict
-from typing import Any, List, Dict, Optional
+from typing import Any
 import numpy as np
 import copy
 from ding.framework.middleware.functional.enhancer import reward_estimator, her_data_enhancer

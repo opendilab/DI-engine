@@ -25,7 +25,8 @@ def test_cli_ditask():
         "node_ids": 0,
         "mq_type": "nng",
         "redis_host": "",
-        "redis_port": ""
+        "redis_port": "",
+        "startup_interval": 1
     }
     os.environ["DI_NODES"] = '127.0.0.1'
     os.environ["DI_RANK"] = '0'

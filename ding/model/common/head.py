@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Union, List
 
 import math
 import torch
@@ -172,6 +172,116 @@ class DistributionHead(nn.Module):
         q = dist * torch.linspace(self.v_min, self.v_max, self.n_atom).to(x)
         q = q.sum(-1)
         return {'logit': q, 'distribution': dist}
+
+
+class BranchingHead(nn.Module):
+
+    def __init__(
+            self,
+            hidden_size: int,
+            num_branches: int = 0,
+            action_bins_per_branch: int = 2,
+            layer_num: int = 1,
+            a_layer_num: Optional[int] = None,
+            v_layer_num: Optional[int] = None,
+            norm_type: Optional[str] = None,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            noise: Optional[bool] = False,
+    ) -> None:
+        """
+        Overview:
+            Init the ``BranchingHead`` layers according to the provided arguments. \
+                This head achieves a linear increase of the number of network outputs \
+                with the number of degrees of freedom by allowing a level of independence \
+                for each individual action dimension.
+                Therefore, this head is suitable for high dimensional action Spaces.
+        Arguments:
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``BranchingHead``.
+            - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension.
+            - action_bins_per_branch (:obj:int): The number of action bins in each dimension.
+            - layer_num (:obj:`int`): The number of layers used in the network to compute Advantage and Value output.
+            - a_layer_num (:obj:`int`): The number of layers used in the network to compute Advantage output.
+            - v_layer_num (:obj:`int`): The number of layers used in the network to compute Value output.
+            - output_size (:obj:`int`): The number of outputs.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
+        """
+        super(BranchingHead, self).__init__()
+        if a_layer_num is None:
+            a_layer_num = layer_num
+        if v_layer_num is None:
+            v_layer_num = layer_num
+        self.num_branches = num_branches
+        self.action_bins_per_branch = action_bins_per_branch
+
+        layer = NoiseLinearLayer if noise else nn.Linear
+        block = noise_block if noise else fc_block
+        # value network
+
+        self.V = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                hidden_size,
+                v_layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_size, 1)
+        )
+        # action branching network
+        action_output_dim = action_bins_per_branch
+        self.branches = nn.ModuleList(
+            [
+                nn.Sequential(
+                    MLP(
+                        hidden_size,
+                        hidden_size,
+                        hidden_size,
+                        a_layer_num,
+                        layer_fn=layer,
+                        activation=activation,
+                        norm_type=norm_type
+                    ), block(hidden_size, action_output_dim)
+                ) for _ in range(self.num_branches)
+            ]
+        )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        """
+        Overview:
+            Use encoded embedding tensor to run MLP with ``BranchingHead`` and return the prediction dictionary.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keyword ``logit`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+
+        Examples:
+            >>> head = BranchingHead(64, 5, 2)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 5, 2])
+        """
+        value_out = self.V(x)
+        value_out = torch.unsqueeze(value_out, 1)
+        action_out = []
+        for b in self.branches:
+            action_out.append(b(x))
+        action_scores = torch.stack(action_out, 1)
+        '''
+            From the paper, this implementation performs better than both the naive alternative (Q = V + A) \
+            and the local maximum reduction method (Q = V + max(A)).
+        '''
+        action_scores = action_scores - torch.mean(action_scores, 2, keepdim=True)
+        logits = value_out + action_scores
+        return {'logit': logits}
 
 
 class RainbowHead(nn.Module):
@@ -1114,6 +1224,15 @@ class MultiHead(nn.Module):
             >>> torch.Size([4, 5])
         """
         return lists_to_dicts([m(x) for m in self.pred])
+
+
+def independent_normal_dist(logits: Union[List, Dict]) -> torch.distributions.Distribution:
+    if isinstance(logits, (list, tuple)):
+        return Independent(Normal(*logits), 1)
+    elif isinstance(logits, dict):
+        return Independent(Normal(logits['mu'], logits['sigma']), 1)
+    else:
+        raise TypeError("invalid logits type: {}".format(type(logits)))
 
 
 head_cls_map = {

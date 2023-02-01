@@ -1,10 +1,11 @@
+import tempfile
 import pytest
 
 from ding.data.buffer import DequeBuffer
 
 from ding.framework import Context, OnlineRLContext, OfflineRLContext
 from ding.framework.middleware.functional.data_processor import \
-    data_pusher, offpolicy_data_fetcher, offline_data_fetcher, offline_data_saver, sqil_data_pusher
+    data_pusher, offpolicy_data_fetcher, offline_data_fetcher, offline_data_saver, sqil_data_pusher, buffer_saver
 
 from ding.data.buffer.middleware import PriorityExperienceReplay
 
@@ -61,14 +62,14 @@ def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_list=True):
     assert [d['reward'] for d in ctx.train_data] == [1 for i in range(20)]
     assert [d['info'] for d in ctx.train_data] == ['xxx' for i in range(20)]
     assert [d['priority_IS'] for d in ctx.train_data] == [torch.tensor([1]) for i in range(20)]
-    assert buffer.export_data()[0].meta['priority'] == 1.0
+    assert list(buffer.storage)[0].meta['priority'] == 1.0
     # assert sorted(ctx.train_data) == [i for i in range(20)]
 
     try:
         next(func_generator)
     except StopIteration:
         pass
-    assert buffer.export_data()[0].meta['priority'] == priority
+    assert list(buffer.storage)[0].meta['priority'] == priority
 
 
 def call_offpolicy_data_fetcher_type_buffer():
@@ -186,7 +187,7 @@ def test_offline_data_saver():
 
     with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
                mock_offline_data_save_type):
-        offline_data_saver(cfg=None, data_path=data_path_, data_type='naive')(ctx)
+        offline_data_saver(data_path=data_path_, data_type='naive')(ctx)
 
     assert ctx.trajectories is None
 
@@ -200,7 +201,7 @@ def test_offline_data_saver():
 
     with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
                mock_offline_data_save_type):
-        offline_data_saver(cfg=None, data_path=data_path_, data_type='hdf5')(ctx)
+        offline_data_saver(data_path=data_path_, data_type='hdf5')(ctx)
 
     assert ctx.trajectories is None
 
@@ -224,7 +225,7 @@ def test_sqil_data_pusher():
     buffer = DequeBuffer(size=10)
     sqil_data_pusher(cfg=None, buffer_=buffer, expert=True)(ctx)
     assert buffer.count() == 5
-    assert all(t.data.reward == 1 for t in buffer.export_data())
+    assert all(t.data.reward == 1 for t in list(buffer.storage))
 
     # expert = False
     ctx = OnlineRLContext()
@@ -232,4 +233,26 @@ def test_sqil_data_pusher():
     buffer = DequeBuffer(size=10)
     sqil_data_pusher(cfg=None, buffer_=buffer, expert=False)(ctx)
     assert buffer.count() == 5
-    assert all(t.data.reward == 0 for t in buffer.export_data())
+    assert all(t.data.reward == 0 for t in list(buffer.storage))
+
+
+@pytest.mark.unittest
+def test_buffer_saver():
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_folder = os.path.join(tmpdirname, "test_buffer_saver")
+        cfg = EasyDict({"exp_name": test_folder})
+        os.makedirs(test_folder)
+        buffer_ = DequeBuffer(size=10)
+        ctx = OnlineRLContext()
+        ctx.trajectories = [i for i in range(5)]
+        ctx.env_step = 0
+        data_pusher(cfg=cfg, buffer_=buffer_)(ctx)
+        assert buffer_.count() == 5
+        buffer_saver(cfg=cfg, buffer_=buffer_, replace=False)(ctx)
+        buffer_saver(cfg=cfg, buffer_=buffer_, replace=True)(ctx)
+        buffer_1 = DequeBuffer(size=10)
+        buffer_1.load_data(os.path.join(test_folder, "replaybuffer", "data_latest.hkl"))
+        assert buffer_1.count() == 5
+        buffer_2 = DequeBuffer(size=10)
+        buffer_2.load_data(os.path.join(test_folder, "replaybuffer", "data_envstep_0.hkl"))
+        assert buffer_2.count() == 5

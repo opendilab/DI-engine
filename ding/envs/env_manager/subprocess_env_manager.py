@@ -1,5 +1,5 @@
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
-from multiprocessing import Pipe, connection, get_context, Array
+from multiprocessing import connection, get_context
 from collections import namedtuple
 from ditk import logging
 import platform
@@ -8,32 +8,18 @@ import copy
 import gym
 import traceback
 import torch
-import ctypes
 import pickle
 import cloudpickle
 import numpy as np
 import treetensor.numpy as tnp
 from easydict import EasyDict
 from types import MethodType
+from ding.data import ShmBufferContainer, ShmBuffer
 
 from ding.envs.env import BaseEnvTimestep
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY, make_key_as_identifier, \
     remove_illegal_item
 from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
-
-_NTYPE_TO_CTYPE = {
-    np.bool_: ctypes.c_bool,
-    np.uint8: ctypes.c_uint8,
-    np.uint16: ctypes.c_uint16,
-    np.uint32: ctypes.c_uint32,
-    np.uint64: ctypes.c_uint64,
-    np.int8: ctypes.c_int8,
-    np.int16: ctypes.c_int16,
-    np.int32: ctypes.c_int32,
-    np.int64: ctypes.c_int64,
-    np.float32: ctypes.c_float,
-    np.float64: ctypes.c_double,
-}
 
 
 def is_abnormal_timestep(timestep: namedtuple) -> bool:
@@ -43,110 +29,6 @@ def is_abnormal_timestep(timestep: namedtuple) -> bool:
         return timestep.info[0].get('abnormal', False) or timestep.info[1].get('abnormal', False)
     else:
         raise TypeError("invalid env timestep type: {}".format(type(timestep.info)))
-
-
-class ShmBuffer():
-    """
-    Overview:
-        Shared memory buffer to store numpy array.
-    """
-
-    def __init__(self, dtype: Union[type, np.dtype], shape: Tuple[int], copy_on_get: bool = True) -> None:
-        """
-        Overview:
-            Initialize the buffer.
-        Arguments:
-            - dtype (:obj:`Union[type, np.dtype]`): The dtype of the data to limit the size of the buffer.
-            - shape (:obj:`Tuple[int]`): The shape of the data to limit the size of the buffer.
-            - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.
-        """
-        if isinstance(dtype, np.dtype):  # it is type of gym.spaces.dtype
-            dtype = dtype.type
-        self.buffer = Array(_NTYPE_TO_CTYPE[dtype], int(np.prod(shape)))
-        self.dtype = dtype
-        self.shape = shape
-        self.copy_on_get = copy_on_get
-
-    def fill(self, src_arr: np.ndarray) -> None:
-        """
-        Overview:
-            Fill the shared memory buffer with a numpy array. (Replace the original one.)
-        Arguments:
-            - src_arr (:obj:`np.ndarray`): array to fill the buffer.
-        """
-        assert isinstance(src_arr, np.ndarray), type(src_arr)
-        # for np.array with shape (4, 84, 84) and float32 dtype, reshape is 15~20x faster than flatten
-        # for np.array with shape (4, 84, 84) and uint8 dtype, reshape is 5~7x faster than flatten
-        # so we reshape dst_arr rather than flatten src_arr
-        dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
-        np.copyto(dst_arr, src_arr)
-
-    def get(self) -> np.ndarray:
-        """
-        Overview:
-            Get the array stored in the buffer.
-        Return:
-            - data (:obj:`np.ndarray`): A copy of the data stored in the buffer.
-        """
-        data = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
-        if self.copy_on_get:
-            data = data.copy()  # must use np.copy, torch.from_numpy and torch.as_tensor still use the same memory
-        return data
-
-
-class ShmBufferContainer(object):
-    """
-    Overview:
-        Support multiple shared memory buffers. Each key-value is name-buffer.
-    """
-
-    def __init__(
-            self,
-            dtype: Union[Dict[Any, type], type, np.dtype],
-            shape: Union[Dict[Any, tuple], tuple],
-            copy_on_get: bool = True
-    ) -> None:
-        """
-        Overview:
-            Initialize the buffer container.
-        Arguments:
-            - dtype (:obj:`Union[type, np.dtype]`): The dtype of the data to limit the size of the buffer.
-            - shape (:obj:`Union[Dict[Any, tuple], tuple]`): If `Dict[Any, tuple]`, use a dict to manage \
-                multiple buffers; If `tuple`, use single buffer.
-            - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.
-        """
-        if isinstance(shape, dict):
-            self._data = {k: ShmBufferContainer(dtype[k], v, copy_on_get) for k, v in shape.items()}
-        elif isinstance(shape, (tuple, list)):
-            self._data = ShmBuffer(dtype, shape, copy_on_get)
-        else:
-            raise RuntimeError("not support shape: {}".format(shape))
-        self._shape = shape
-
-    def fill(self, src_arr: Union[Dict[Any, np.ndarray], np.ndarray]) -> None:
-        """
-        Overview:
-            Fill the one or many shared memory buffer.
-        Arguments:
-            - src_arr (:obj:`Union[Dict[Any, np.ndarray], np.ndarray]`): array to fill the buffer.
-        """
-        if isinstance(self._shape, dict):
-            for k in self._shape.keys():
-                self._data[k].fill(src_arr[k])
-        elif isinstance(self._shape, (tuple, list)):
-            self._data.fill(src_arr)
-
-    def get(self) -> Union[Dict[Any, np.ndarray], np.ndarray]:
-        """
-        Overview:
-            Get the one or many arrays stored in the buffer.
-        Return:
-            - data (:obj:`np.ndarray`): The array(s) stored in the buffer.
-        """
-        if isinstance(self._shape, dict):
-            return {k: self._data[k].get() for k in self._shape.keys()}
-        elif isinstance(self._shape, (tuple, list)):
-            return self._data.get()
 
 
 class CloudPickleWrapper:
@@ -313,7 +195,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while not any([self._env_states[i] == EnvState.RUN for i in no_done_env_idx]):
-            if sleep_count % 1000 == 0:
+            if sleep_count != 0 and sleep_count % 10000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
                 )
@@ -376,7 +258,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         sleep_count = 0
         while any([self._env_states[i] == EnvState.RESET for i in reset_env_list]):
-            if sleep_count % 1000 == 0:
+            if sleep_count != 0 and sleep_count % 10000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: not all the envs finish resetting, sleep {} times'.format(sleep_count)
                 )
@@ -397,7 +279,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     self._check_data({env_id: ret})
                     self._env_seed[env_id] = None  # seed only use once
                 except BaseException as e:
-                    logging.warning("subprocess reset set seed failed, ignore and continue...")
+                    logging.warning(
+                        "subprocess reset set seed failed, ignore and continue... \n subprocess exception traceback: \n"
+                        + traceback.format_exc()
+                    )
             self._env_states[env_id] = EnvState.RESET
             reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
@@ -439,6 +324,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 reset_fn()
                 return
             except BaseException as e:
+                logging.info("subprocess exception traceback: \n" + traceback.format_exc())
                 if self._retry_type == 'renew' or isinstance(e, pickle.UnpicklingError):
                     self._pipe_parents[env_id].close()
                     if self._subprocesses[env_id].is_alive():
@@ -616,6 +502,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 except Exception as e:
                     # when there are some errors in env, worker_fn will send the errors to env manager
                     # directly send error to another process will lose the stack trace, so we create a new Exception
+                    logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
                     c.send(
                         e.__class__(
                             '\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e)
@@ -671,6 +558,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     ret = None
                 return ret
             except BaseException as e:
+                logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
                 env.close()
                 raise e
 
@@ -704,6 +592,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 logging.debug("Sub env '{}' error when executing {}".format(str(env), cmd))
                 # when there are some errors in env, worker_fn will send the errors to env manager
                 # directly send error to another process will lose the stack trace, so we create a new Exception
+                logging.warning("subprocess exception traceback: \n" + traceback.format_exc())
                 child.send(
                     e.__class__('\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
                 )
@@ -927,14 +816,13 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while not any([self._env_states[i] == EnvState.RUN for i in no_done_env_idx]):
-            if sleep_count % 1000 == 0:
+            if sleep_count != 0 and sleep_count % 10000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
                 )
             time.sleep(0.001)
             sleep_count += 1
-        obs = [self._ready_obs[i] for i in self.ready_env]
-        return tnp.stack(obs)
+        return tnp.stack([tnp.array(self._ready_obs[i]) for i in self.ready_env])
 
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
         """
@@ -946,7 +834,10 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
                 info, env_id.
         """
-        actions = {env_id: a for env_id, a in zip(self.ready_obs_id, actions)}
+        # zip operation will lead to wrong behaviour if not split data
+        split_action = tnp.split(actions, actions.shape[0])
+        split_action = [s.squeeze(0) for s in split_action]
+        actions = {env_id: a for env_id, a in zip(self.ready_obs_id, split_action)}
         timesteps = super().step(actions)
         new_data = []
         for env_id, timestep in timesteps.items():

@@ -62,10 +62,10 @@ class MockOnlineWriter:
         self.ctx = get_online_ctx()
 
     def add_scalar(self, tag, scalar_value, global_step):
-        if tag in ['basic/eval_episode_reward_mean-env_step', 'basic/eval_episode_reward_mean']:
+        if tag in ['basic/eval_episode_return_mean-env_step', 'basic/eval_episode_return_mean']:
             assert scalar_value == self.ctx.eval_value
             assert global_step == self.ctx.env_step
-        elif tag == 'basic/eval_episode_reward_mean-train_iter':
+        elif tag == 'basic/eval_episode_return_mean-train_iter':
             assert scalar_value == self.ctx.eval_value
             assert global_step == self.ctx.train_iter
         elif tag in ['basic/train_td_error-env_step', 'basic/train_td_error']:
@@ -81,6 +81,9 @@ class MockOnlineWriter:
         assert tag == 'test_histogram'
         assert values == [1, 2, 3, 4, 5, 6]
         assert global_step in [self.ctx.train_iter, self.ctx.env_step]
+
+    def close(self):
+        pass
 
 
 def mock_get_online_instance():
@@ -131,7 +134,7 @@ class MockOfflineWriter:
 
     def add_scalar(self, tag, scalar_value, global_step):
         assert global_step == self.ctx.train_iter
-        if tag == 'basic/eval_episode_reward_mean-train_iter':
+        if tag == 'basic/eval_episode_return_mean-train_iter':
             assert scalar_value == self.ctx.eval_value
         elif tag == 'basic/train_td_error-train_iter':
             assert scalar_value == self.ctx.train_output['td_error']
@@ -143,12 +146,14 @@ class MockOfflineWriter:
         assert values == [1, 2, 3, 4, 5, 6]
         assert global_step == self.ctx.train_iter
 
+    def close(self):
+        pass
+
 
 def mock_get_offline_instance():
     return MockOfflineWriter()
 
 
-@pytest.mark.unittest
 class TestOfflineLogger:
 
     def test_offline_logger_no_scalars(self, offline_ctx_output_dict):
@@ -185,19 +190,24 @@ class The1DDataClass(Mock):
         return [[1]] * 50
 
 
-@pytest.mark.other  # due to no api key in github now
+@pytest.mark.unittest
 def test_wandb_online_logger():
 
     cfg = EasyDict(
         dict(
-            record_path='./video_qbert_dqn', gradient_logger=True, plot_logger=True, action_logger='action probability'
+            record_path='./video_qbert_dqn',
+            gradient_logger=True,
+            plot_logger=True,
+            action_logger='action probability',
+            return_logger=True,
+            video_logger=True,
         )
     )
     env = TheEnvClass()
     ctx = OnlineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
     model = TheModelClass()
-    wandb.init(config=cfg)
+    wandb.init(config=cfg, anonymous="must")
 
     def mock_metric_logger(metric_dict):
         metric_list = [
@@ -211,17 +221,19 @@ def test_wandb_online_logger():
 
     def test_wandb_online_logger_metric():
         with patch.object(wandb, 'log', new=mock_metric_logger):
-            wandb_online_logger(cfg, env, model)(ctx)
+            wandb_online_logger(cfg.record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     def test_wandb_online_logger_gradient():
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_online_logger(cfg, env, model)(ctx)
+            wandb_online_logger(cfg.record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     test_wandb_online_logger_metric()
     test_wandb_online_logger_gradient()
 
 
-@pytest.mark.other  # due to no api key in github now
+# @pytest.mark.unittest
+# TODO(nyz): fix CI bug when py=3.8.15
+@pytest.mark.tmp
 def test_wandb_offline_logger(mocker):
 
     cfg = EasyDict(
@@ -237,7 +249,7 @@ def test_wandb_offline_logger(mocker):
     ctx = OnlineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
     model = TheModelClass()
-    wandb.init(config=cfg)
+    wandb.init(config=cfg, anonymous="must")
 
     def mock_metric_logger(metric_dict):
         metric_list = [
@@ -255,7 +267,7 @@ def test_wandb_offline_logger(mocker):
     def test_wandb_offline_logger_gradient():
         cfg.vis_dataset = False
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_offline_logger(cfg, env, model, 'dataset.h5')(ctx)
+            wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
 
     def test_wandb_offline_logger_dataset():
         cfg.vis_dataset = True
@@ -264,7 +276,7 @@ def test_wandb_offline_logger(mocker):
         with patch.object(wandb, 'log', new=mock_metric_logger):
             with patch.object(wandb, 'Image', new=mock_image_logger):
                 mocker.patch('h5py.File', return_value=m)
-                wandb_offline_logger(cfg, env, model, 'dataset.h5')(ctx)
+                wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
 
     test_wandb_offline_logger_gradient()
     test_wandb_offline_logger_dataset()

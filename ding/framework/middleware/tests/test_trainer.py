@@ -1,7 +1,8 @@
 import pytest
 import random
-import torch
 import copy
+import torch
+import treetensor.torch as ttorch
 from unittest.mock import Mock, patch
 from ding.data.buffer import DequeBuffer
 from ding.framework import OnlineRLContext, task
@@ -10,6 +11,8 @@ from ding.framework.middleware.tests import MockHerRewardModel, CONFIG
 
 
 class MockPolicy(Mock):
+    _device = 'cpu'
+
     # MockPolicy class for train mode
     def forward(self, train_data, **kwargs):
         res = {
@@ -19,6 +22,8 @@ class MockPolicy(Mock):
 
 
 class MultiStepMockPolicy(Mock):
+    _device = 'cpu'
+
     # MockPolicy class for multi-step train mode
     def forward(self, train_data, **kwargs):
         res = [
@@ -34,7 +39,7 @@ class MultiStepMockPolicy(Mock):
 
 def get_mock_train_input():
     data = {'obs': torch.rand(2, 2), 'next_obs': torch.rand(2, 2), 'reward': random.random(), 'info': {}}
-    return data
+    return ttorch.as_tensor(data)
 
 
 @pytest.mark.unittest
@@ -74,7 +79,7 @@ def test_multistep_trainer():
     with patch("ding.policy.Policy", MultiStepMockPolicy):
         policy = MultiStepMockPolicy()
         for _ in range(30):
-            multistep_trainer(cfg, policy)(ctx)
+            multistep_trainer(policy, 10)(ctx)
     assert ctx.train_iter == 60
     assert ctx.train_output[0]["total_loss"] == 0.1
     assert ctx.train_output[1]["total_loss"] == 1.0

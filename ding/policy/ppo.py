@@ -92,6 +92,7 @@ class PPOPolicy(Policy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
 
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
         if self._cfg.learn.ppo_param_init:
             for n, m in self._model.named_modules():
@@ -287,6 +288,7 @@ class PPOPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
@@ -399,6 +401,7 @@ class PPOPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
@@ -494,8 +497,8 @@ class PPOPGPolicy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=64,
+            # (int) Only one of n_episode shoule be set
+            # n_episode=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # ==============================================================
@@ -508,15 +511,10 @@ class PPOPGPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.action_space == 'discrete':
-            return 'discrete_bc', ['ding.model.template.bc']
-        else:
-            return RuntimeError(
-                "PPOPGPolicy doesn't have default_model, please define your own model and pass it " +
-                "into policy, you can refer to " + "dizoo/box2d/bipedalwalker/config/bipedalwalker_ppopg_config.py"
-            )
+        return 'pg', ['ding.model.template.pg']
 
     def _init_learn(self) -> None:
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
         if self._cfg.learn.ppo_param_init:
             for n, m in self._model.named_modules():
@@ -591,17 +589,8 @@ class PPOPGPolicy(Policy):
                 return_infos.append(return_info)
         return return_infos
 
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        return {
-            'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
-
     def _init_collect(self) -> None:
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
         self._unroll_len = self._cfg.collect.unroll_len
         if self._action_space == 'continuous':
@@ -648,6 +637,7 @@ class PPOPGPolicy(Policy):
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')

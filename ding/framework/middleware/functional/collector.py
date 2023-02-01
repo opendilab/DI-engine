@@ -4,7 +4,7 @@ from functools import reduce
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
-from ding.torch_utils import to_ndarray
+from ding.torch_utils import to_ndarray, get_shape0
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
@@ -45,18 +45,18 @@ class TransitionList:
             item.clear()
 
 
-def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
+def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
     """
     Overview:
         The middleware that executes the inference process.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config.
+        - seed (:int:`int`): Random seed.
         - policy (:obj:`Policy`): The policy to be inferred.
         - env (:obj:`BaseEnvManager`): The env where the inference process is performed. \
             The env.ready_obs (:obj:`tnp.array`) will be used as model input.
     """
 
-    env.seed(cfg.seed)
+    env.seed(seed)
 
     def _inference(ctx: "OnlineRLContext"):
         """
@@ -75,7 +75,7 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
         ctx.obs = obs
         # TODO mask necessary rollout
 
-        obs = {i: obs[i] for i in range(obs.shape[0])}  # TBD
+        obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
         inference_output = policy.forward(obs, **ctx.collect_kwargs)
         ctx.action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
         ctx.inference_output = inference_output
@@ -83,12 +83,11 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 
-def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: TransitionList) -> Callable:
+def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList) -> Callable:
     """
     Overview:
         The middleware that executes the transition process in the env.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be used during transition.
         - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
                 its derivatives are supported.

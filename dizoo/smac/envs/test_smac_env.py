@@ -103,8 +103,8 @@ def main(policy, map_name="3m", two_player=False):
         env.reset()
         print('reset over')
         terminated = False
-        episode_reward_me = 0
-        episode_reward_op = 0
+        episode_return_me = 0
+        episode_return_op = 0
 
         env_info = env.info()
         print('begin new episode')
@@ -127,8 +127,8 @@ def main(policy, map_name="3m", two_player=False):
             assert reward.shape == (1, )
             print('reward', reward)
             assert isinstance(terminated, bool)
-            episode_reward_me += reward["me"] if two_player else reward
-            episode_reward_op += reward["opponent"] if two_player else 0
+            episode_return_me += reward["me"] if two_player else reward
+            episode_return_op += reward["opponent"] if two_player else 0
             terminated = terminated["me"] if two_player else terminated
 
         if two_player:
@@ -141,8 +141,8 @@ def main(policy, map_name="3m", two_player=False):
             draw += int(infos["draw"])
 
         print(
-            "Total reward in episode {} = {} (me), {} (opponent). Me win {}, Draw {}, Opponent win {}, total {}."
-            "".format(e, episode_reward_me, episode_reward_op, me_win, draw, op_win, e + 1)
+            "Total return in episode {} = {} (me), {} (opponent). Me win {}, Draw {}, Opponent win {}, total {}."
+            "".format(e, episode_return_me, episode_return_op, me_win, draw, op_win, e + 1)
         )
 
     env.close()

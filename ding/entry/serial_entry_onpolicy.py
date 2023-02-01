@@ -85,7 +85,7 @@ def serial_pipeline_onpolicy(
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            stop, eval_info = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
@@ -98,4 +98,18 @@ def serial_pipeline_onpolicy(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
+    import time
+    import pickle
+    import numpy as np
+    with open(os.path.join(cfg.exp_name, 'result.pkl'), 'wb') as f:
+        eval_value_raw = [d['eval_episode_return'] for d in eval_info]
+        final_data = {
+            'stop': stop,
+            'env_step': collector.envstep,
+            'train_iter': learner.train_iter,
+            'eval_value': np.mean(eval_value_raw),
+            'eval_value_raw': eval_value_raw,
+            'finish_time': time.ctime(),
+        }
+        pickle.dump(final_data, f)
     return policy

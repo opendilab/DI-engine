@@ -76,8 +76,8 @@ class MultiLogitsLoss(nn.Module):
         index = np.full(M, -1, dtype=np.int32)  # -1 note not find link
         lx = mat.max(axis=1)
         ly = np.zeros(M, dtype=np.float32)
-        visx = np.zeros(M, dtype=np.bool)
-        visy = np.zeros(M, dtype=np.bool)
+        visx = np.zeros(M, dtype=np.bool_)
+        visy = np.zeros(M, dtype=np.bool_)
 
         def has_augmented_path(t, binary_distance_matrix):
             # What is changed? visx, visy, distance_matrix, index

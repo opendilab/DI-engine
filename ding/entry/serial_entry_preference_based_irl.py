@@ -47,7 +47,7 @@ def serial_pipeline_preference_based_irl(
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     create_cfg.reward_model = dict(type=cfg.reward_model.type)
     env_fn = None if env_setting is None else env_setting[0]
-    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, renew_dir=False)
     cfg_bak = copy.deepcopy(cfg)
     # Create main components: env, policy
     if env_setting is None:

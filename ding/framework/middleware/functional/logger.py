@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Optional, Callable, Dict, List, Union
 import os
 from easydict import EasyDict
 from matplotlib import pyplot as plt
@@ -11,6 +11,8 @@ import torch
 import wandb
 import h5py
 import pickle
+import treetensor.numpy as tnp
+from ding.framework import task
 from ding.envs import BaseEnvManagerV2
 from ding.utils import DistributedWriter
 from ding.torch_utils import to_ndarray
@@ -18,6 +20,11 @@ from ding.utils.default_helper import one_time_warning
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
+
+
+def softmax(logit):
+    v = np.exp(logit)
+    return v / v.sum(axis=-1, keepdims=True)
 
 
 def action_prob(num, action_prob, ln):
@@ -32,28 +39,33 @@ def return_prob(num, return_prob, ln):
     return ln
 
 
-def return_distribution(reward):
-    num = len(reward)
-    max_return = max(reward)
-    min_return = min(reward)
-    hist, bins = np.histogram(reward, bins=np.linspace(min_return - 50, max_return + 50, 6))
+def return_distribution(episode_return):
+    num = len(episode_return)
+    max_return = max(episode_return)
+    min_return = min(episode_return)
+    hist, bins = np.histogram(episode_return, bins=np.linspace(min_return - 50, max_return + 50, 6))
     gap = (max_return - min_return + 100) / 5
     x_dim = ['{:.1f}'.format(min_return - 50 + gap * x) for x in range(5)]
     return hist / num, x_dim
 
 
 def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
     last_train_show_iter = -1
 
     def _logger(ctx: "OnlineRLContext"):
+        if task.finish:
+            writer.close()
         nonlocal last_train_show_iter
+
         if not np.isinf(ctx.eval_value):
             if record_train_iter:
-                writer.add_scalar('basic/eval_episode_reward_mean-env_step', ctx.eval_value, ctx.env_step)
-                writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+                writer.add_scalar('basic/eval_episode_return_mean-env_step', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
             else:
-                writer.add_scalar('basic/eval_episode_reward_mean', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean', ctx.eval_value, ctx.env_step)
         if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
             last_train_show_iter = ctx.train_iter
             if isinstance(ctx.train_output, List):
@@ -82,11 +94,15 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
 
 
 def offline_logger() -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     writer = DistributedWriter.get_instance()
 
     def _logger(ctx: "OfflineRLContext"):
+        if task.finish:
+            writer.close()
         if not np.isinf(ctx.eval_value):
-            writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+            writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
         if ctx.train_output is not None:
             output = ctx.train_output
             for k, v in output.items():
@@ -104,28 +120,54 @@ def offline_logger() -> Callable:
     return _logger
 
 
-def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module) -> Callable:
+def wandb_online_logger(
+        record_path: str,
+        cfg: Union[str, EasyDict] = 'default',
+        metric_list: Optional[List[str]] = None,
+        env: Optional[BaseEnvManagerV2] = None,
+        model: Optional[torch.nn.Module] = None,
+        anonymous: bool = False
+) -> Callable:
     '''
     Overview:
         Wandb visualizer to track the experiment.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config, a dict of following settings:
-            - record_path: string. The path to save the replay of simulation.
+        - record_path (:obj:`str`): The path to save the replay of simulation.
+        - cfg (:obj:`Union[str, EasyDict]`): Config, a dict of following settings:
             - gradient_logger: boolean. Whether to track the gradient.
             - plot_logger: boolean. Whether to track the metrics like reward and loss.
             - action_logger: `q_value` or `action probability`.
+        - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
-        - model (:obj:`nn.Module`): Model.
+        - model (:obj:`nn.Module`): Policy neural network model.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
+            The anonymous mode allows visualization of data without wandb count.
     '''
-
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
-    metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
+    if metric_list is None:
+        metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    wandb.init()
+    if anonymous:
+        wandb.init(anonymous="must")
+    else:
+        wandb.init()
+    if cfg == 'default':
+        cfg = EasyDict(
+            dict(
+                gradient_logger=False,
+                plot_logger=True,
+                video_logger=False,
+                action_logger=False,
+                return_logger=False,
+            )
+        )
     # The visualizer is called to save the replay of the simulation
     # which will be uploaded to wandb later
-    env.enable_save_replay(replay_path=cfg.record_path)
+    if env is not None:
+        env.enable_save_replay(replay_path=record_path)
     if cfg.gradient_logger:
         wandb.watch(model)
     else:
@@ -145,54 +187,63 @@ def wandb_online_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Mo
                 wandb.log({metric: metric_value})
 
         if ctx.eval_value != -np.inf:
-            wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter})
+            wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter, "env step": ctx.env_step})
 
             eval_output = ctx.eval_output['output']
-            eval_reward = ctx.eval_output['reward']
-            if 'logit' in eval_output[0]:
-                action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
+            episode_return = ctx.eval_output['episode_return']
+            episode_return = np.array(episode_return)
+            if len(episode_return.shape) == 2:
+                episode_return = episode_return.squeeze(1)
 
-            file_list = []
-            for p in os.listdir(cfg.record_path):
-                if os.path.splitext(p)[-1] == ".mp4":
-                    file_list.append(p)
-            file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(cfg.record_path, fn)))
+            if cfg.video_logger:
+                file_list = []
+                for p in os.listdir(record_path):
+                    if os.path.splitext(p)[-1] == ".mp4":
+                        file_list.append(p)
+                file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
+                video_path = os.path.join(record_path, file_list[-2])
+                wandb.log({"video": wandb.Video(video_path, format="mp4")})
 
-            video_path = os.path.join(cfg.record_path, file_list[-2])
-            action_path = os.path.join(cfg.record_path, (str(ctx.env_step) + "_action.gif"))
-            return_path = os.path.join(cfg.record_path, (str(ctx.env_step) + "_return.gif"))
+            action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
+            return_path = os.path.join(record_path, (str(ctx.env_step) + "_return.gif"))
             if cfg.action_logger in ['q_value', 'action probability']:
+                if isinstance(eval_output, tnp.ndarray):
+                    action_prob = softmax(eval_output.logit)
+                else:
+                    action_prob = [softmax(to_ndarray(v['logit'])) for v in eval_output]
                 fig, ax = plt.subplots()
                 plt.ylim([-1, 1])
-                action_dim = len(action_value[0])
+                action_dim = len(action_prob[1])
                 x_range = [str(x + 1) for x in range(action_dim)]
                 ln = ax.bar(x_range, [0 for x in range(action_dim)], color=color_list[:action_dim])
                 ani = animation.FuncAnimation(
-                    fig, action_prob, fargs=(action_value, ln), blit=True, save_count=len(action_value)
+                    fig, action_prob, fargs=(action_prob, ln), blit=True, save_count=len(action_prob)
                 )
                 ani.save(action_path, writer='pillow')
                 wandb.log({cfg.action_logger: wandb.Video(action_path, format="gif")})
                 plt.clf()
 
-            fig, ax = plt.subplots()
-            ax = plt.gca()
-            ax.set_ylim([0, 1])
-            hist, x_dim = return_distribution(eval_reward)
-            assert len(hist) == len(x_dim)
-            ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
-            ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
-            ani.save(return_path, writer='pillow')
-            wandb.log(
-                {
-                    "video": wandb.Video(video_path, format="mp4"),
-                    "return distribution": wandb.Video(return_path, format="gif")
-                }
-            )
+            if cfg.return_logger:
+                fig, ax = plt.subplots()
+                ax = plt.gca()
+                ax.set_ylim([0, 1])
+                hist, x_dim = return_distribution(episode_return)
+                assert len(hist) == len(x_dim)
+                ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
+                ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
+                ani.save(return_path, writer='pillow')
+                wandb.log({"return distribution": wandb.Video(return_path, format="gif")})
 
     return _plot
 
 
-def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.Module, datasetpath: str) -> Callable:
+def wandb_offline_logger(
+        cfg: EasyDict,
+        env: BaseEnvManagerV2,
+        model: torch.nn.Module,
+        datasetpath: str,
+        anonymous: bool = False
+) -> Callable:
     '''
     Overview:
         Wandb visualizer to track the experiment.
@@ -205,13 +256,18 @@ def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.M
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Model.
         - datasetpath (:obj:`str`): The path of offline dataset.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
+            The anonymous mode allows visualization of data without wandb count.
     '''
 
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
     metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    wandb.init()
+    if anonymous:
+        wandb.init(anonymous="must")
+    else:
+        wandb.init()
     # The visualizer is called to save the replay of the simulation
     # which will be uploaded to wandb later
     env.enable_save_replay(replay_path=cfg.record_path)
@@ -285,7 +341,7 @@ def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.M
             wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter})
 
             eval_output = ctx.eval_output['output']
-            eval_reward = ctx.eval_output['reward']
+            episode_return = ctx.eval_output['episode_return']
             if 'logit' in eval_output[0]:
                 action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
 
@@ -314,7 +370,7 @@ def wandb_offline_logger(cfg: EasyDict, env: BaseEnvManagerV2, model: torch.nn.M
             fig, ax = plt.subplots()
             ax = plt.gca()
             ax.set_ylim([0, 1])
-            hist, x_dim = return_distribution(eval_reward)
+            hist, x_dim = return_distribution(episode_return)
             assert len(hist) == len(x_dim)
             ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
             ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)

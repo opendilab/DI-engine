@@ -64,10 +64,10 @@ class MiniGridEnv(BaseEnv):
             self._observation_space.dtype = np.dtype('float32')
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
         )
 
-        self._final_eval_reward = 0
+        self._eval_episode_return = 0
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._seed = self._seed + np_seed
@@ -96,19 +96,19 @@ class MiniGridEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1,):
+        if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         # using the step method of Gymnasium env, return is (observation, reward, terminated, truncated, info)
         obs, rew, done, _, info = self._env.step(action)
         rew = float(rew)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         self._current_step += 1
         if self._current_step >= self._max_step:
             done = True
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
             info['current_step'] = self._current_step
             info['max_step'] = self._max_step
             if self._save_replay:

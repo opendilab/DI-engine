@@ -26,6 +26,6 @@ repeat
   endif
 repeat while (evaluate episodes are not enough?)
 |#FFCCCC|evaluator|
-:return eval_episode_reward;
+:return eval_episode_return;
 stop
 @enduml
