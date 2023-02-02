@@ -43,14 +43,17 @@ class ProcedureCloning(nn.Module):
         assert cnn_hidden_list[-1] == mlp_hidden_list[-1]
         layers = []
         for i in range(n_att):
-            layers.append(Attention(cnn_hidden_list[-1], att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
+            if i == 0:
+                layers.append(Attention(cnn_hidden_list[-1], att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
+            else:
+                layers.append(Attention(att_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
             layers.append(build_normalization('LN')(att_hidden))
-            for j in range(n_feedforward):
-                if j == 0:
-                    layers.append(fc_block(att_hidden, feedforward_hidden, activation=nn.ReLU()))
-                else:
-                    layers.append(fc_block(feedforward_hidden, feedforward_hidden, activation=nn.ReLU()))
-            self.layernorm2 = build_normalization('LN')(feedforward_hidden)
+        for i in range(n_feedforward):
+            if i == 0:
+                layers.append(fc_block(att_hidden, feedforward_hidden, activation=nn.ReLU()))
+            else:
+                layers.append(fc_block(feedforward_hidden, feedforward_hidden, activation=nn.ReLU()))
+                self.layernorm2 = build_normalization('LN')(feedforward_hidden)
         self.transformer = nn.Sequential(*layers)
 
         self.predict_goal = torch.nn.Linear(cnn_hidden_list[-1], cnn_hidden_list[-1])
