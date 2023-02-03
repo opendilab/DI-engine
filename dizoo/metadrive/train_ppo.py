@@ -16,13 +16,13 @@ metadrive_basic_config = dict(
     exp_name='zt_nov22_ppo1',
     env=dict(
         metadrive=dict(
-            use_render = True,
+            use_render = False,
             traffic_density=0.10,
             map = 'OSXS',
             horizon = 4000, #20000
             driving_reward = 0.15,
             speed_reward = 0.15,
-            use_lateral_reward=False,
+            use_lateral=False,
             out_of_route_done = True,
             ),
         manager=dict(
@@ -76,15 +76,15 @@ def wrapped_env(env_cfg, wrapper_cfg=None):
 
 def main(cfg):
     cfg = compile_config(
-        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
+        cfg, SyncSubprocessEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
     )
 
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    # collector_env = SyncSubprocessEnvManager(
-    #     env_fn=[partial(wrapped_env, cfg.env.metadrive) for _ in range(collector_env_num)],
-    #     cfg=cfg.env.manager,
-    # )
-    evaluator_env = BaseEnvManager(
+    collector_env = SyncSubprocessEnvManager(
+        env_fn=[partial(wrapped_env, cfg.env.metadrive) for _ in range(collector_env_num)],
+        cfg=cfg.env.manager,
+    )
+    evaluator_env = SyncSubprocessEnvManager(
         env_fn=[partial(wrapped_env, cfg.env.metadrive) for _ in range(evaluator_env_num)],
         cfg=cfg.env.manager,
     )
@@ -94,9 +94,9 @@ def main(cfg):
     policy = PPOPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter('./log/{}/'.format(cfg.exp_name))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
-    # collector = SampleSerialCollector(
-    #     cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
-    # )
+    collector = SampleSerialCollector(
+        cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
+    )
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
@@ -105,13 +105,13 @@ def main(cfg):
 
     while True:
         if evaluator.should_eval(learner.train_iter):
-            stop, rate = evaluator.eval()
+            stop, rate = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         # Sampling data from environments
-        #new_data = collector.collect(cfg.policy.collect.n_sample, train_iter=learner.train_iter)
-        #learner.train(new_data, collector.envstep)
-    #collector.close()
+        new_data = collector.collect(cfg.policy.collect.n_sample, train_iter=learner.train_iter)
+        learner.train(new_data, collector.envstep)
+    collector.close()
     evaluator.close()
     learner.close()
 
