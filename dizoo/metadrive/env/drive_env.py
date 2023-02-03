@@ -151,6 +151,7 @@ class MetaDrivePPOOriginEnv(BaseEnv):
             target_v_config.update(config["target_vehicle_configs"][DEFAULT_AGENT])
             config["target_vehicle_configs"][DEFAULT_AGENT] = target_v_config
         return config
+    
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
         actions = self._preprocess_actions(actions)
         engine_info = self._step_simulator(actions)
