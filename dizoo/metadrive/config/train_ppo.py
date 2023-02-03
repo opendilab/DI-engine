@@ -9,9 +9,8 @@ from ding.config import compile_config
 from ding.model.template import QAC, VAC
 from ding.policy import PPOPolicy
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseLearner
-from dizoo.metadrive.drive_utils import BaseDriveEnv, deep_merge_dicts
-from dizoo.metadrive.drive_env import MetaDrivePPOOriginEnv
-from dizoo.metadrive.drive_wrapper import DriveEnvWrapper
+from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
+from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
 metadrive_basic_config = dict(
     exp_name='zt_nov22_ppo1',
     env=dict(
@@ -22,7 +21,7 @@ metadrive_basic_config = dict(
             horizon = 4000, #20000
             driving_reward = 0.15,
             speed_reward = 0.15,
-            use_lateral=False,
+            use_lateral_reward=False,
             out_of_route_done = True,
             ),
         manager=dict(

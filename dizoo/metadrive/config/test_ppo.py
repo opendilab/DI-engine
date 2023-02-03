@@ -1,19 +1,18 @@
-import metadrive
-import gym
+
 from easydict import EasyDict
 from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import BaseEnvManager, SyncSubprocessEnvManager
 from ding.config import compile_config
-from ding.model.template import QAC, VAC
+from ding.model.template import  VAC
 from ding.policy import PPOPolicy
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseLearner
-from dizoo.metadrive.drive_utils import BaseDriveEnv, deep_merge_dicts
-from dizoo.metadrive.drive_env import MetaDrivePPOOriginEnv
-from dizoo.metadrive.drive_wrapper import DriveEnvWrapper
+from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
+from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
+
 metadrive_basic_config = dict(
-    exp_name='zt_nov22_ppo1',
+    exp_name='feb03_test',
     env=dict(
         metadrive=dict(
             use_render = True,
@@ -69,49 +68,28 @@ metadrive_basic_config = dict(
 )
 
 main_config = EasyDict(metadrive_basic_config)
-
 def wrapped_env(env_cfg, wrapper_cfg=None):
     return DriveEnvWrapper(MetaDrivePPOOriginEnv(env_cfg), wrapper_cfg)
-
 
 def main(cfg):
     cfg = compile_config(
         cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
     )
-
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    # collector_env = SyncSubprocessEnvManager(
-    #     env_fn=[partial(wrapped_env, cfg.env.metadrive) for _ in range(collector_env_num)],
-    #     cfg=cfg.env.manager,
-    # )
     evaluator_env = BaseEnvManager(
         env_fn=[partial(wrapped_env, cfg.env.metadrive) for _ in range(evaluator_env_num)],
         cfg=cfg.env.manager,
     )
-
-
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter('./log/{}/'.format(cfg.exp_name))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
-    # collector = SampleSerialCollector(
-    #     cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
-    # )
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
-
     learner.call_hook('before_run')
 
-    while True:
-        if evaluator.should_eval(learner.train_iter):
-            stop, rate = evaluator.eval()
-            if stop:
-                break
-        # Sampling data from environments
-        #new_data = collector.collect(cfg.policy.collect.n_sample, train_iter=learner.train_iter)
-        #learner.train(new_data, collector.envstep)
-    #collector.close()
+    stop, rate = evaluator.eval()
     evaluator.close()
     learner.close()
 

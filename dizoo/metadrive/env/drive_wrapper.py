@@ -9,7 +9,7 @@ from ding.envs.common.env_element import EnvElementInfo
 from ding.torch_utils.data_helper import to_ndarray
 import matplotlib.pyplot as plt
 from typing import NoReturn, Optional, List
-from dizoo.metadrive.drive_utils import BaseDriveEnv, deep_merge_dicts
+from dizoo.metadrive.env.drive_utils import BaseDriveEnv, deep_merge_dicts
 
 class DriveEnvWrapper(gym.Wrapper):
     """
