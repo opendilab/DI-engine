@@ -9,6 +9,39 @@ import torch
 import torch.nn as nn
 
 
+class Block(nn.Module):
+
+    def __init__(self, cnn_hidden: int, att_hidden: int, att_heads: int, drop_p: float, max_T: int, n_att: int, \
+            feedforward_hidden: int, n_feedforward: int) -> None:
+        super().__init__()
+        self.n_att = n_att
+        self.n_feedforward = n_feedforward
+        self.attention_layer = []
+
+        self.norm_layer = [nn.LayerNorm(att_hidden)] * n_att
+        self.attention_layer.append(Attention(cnn_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
+        for i in range(n_att - 1):
+            self.attention_layer.append(Attention(att_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
+
+        self.att_drop = nn.Dropout(drop_p)
+
+        self.fc_blocks = []
+        self.fc_blocks.append(fc_block(att_hidden, feedforward_hidden, activation=nn.ReLU()))
+        for i in range(n_feedforward - 1):
+            self.fc_blocks.append(fc_block(feedforward_hidden, feedforward_hidden, activation=nn.ReLU()))
+        self.norm_layer.extend([nn.LayerNorm(feedforward_hidden)] * n_feedforward)
+        self.mask = torch.tril(torch.ones((max_T, max_T), dtype=torch.bool)).view(1, 1, max_T, max_T)
+
+    def forward(self, x: torch.Tensor):
+        for i in range(self.n_att):
+            x = self.att_drop(self.attention_layer[i](x, self.mask))
+            x = self.norm_layer[i](x)
+        for i in range(self.n_feedforward):
+            x = self.fc_blocks[i](x)
+            x = self.norm_layer[i + self.n_att](x)
+        return x
+
+
 @MODEL_REGISTRY.register('pc')
 class ProcedureCloning(nn.Module):
 
@@ -28,7 +61,9 @@ class ProcedureCloning(nn.Module):
             n_att: int = 4,
             n_feedforward: int = 2,
             feedforward_hidden: int = 256,
-            drop_p: float = 0.5
+            drop_p: float = 0.5,
+            augment: bool = True,
+            max_T: int = 17
     ) -> None:
         super().__init__()
 
@@ -39,6 +74,7 @@ class ProcedureCloning(nn.Module):
         self.embed_action = FCEncoder(action_dim, mlp_hidden_list, activation=mlp_activation)
 
         self.cnn_hidden_list = cnn_hidden_list
+        self.augment = augment
 
         assert cnn_hidden_list[-1] == mlp_hidden_list[-1]
         layers = []
@@ -54,7 +90,10 @@ class ProcedureCloning(nn.Module):
             else:
                 layers.append(fc_block(feedforward_hidden, feedforward_hidden, activation=nn.ReLU()))
                 self.layernorm2 = build_normalization('LN')(feedforward_hidden)
-        self.transformer = nn.Sequential(*layers)
+
+        self.transformer = Block(
+            cnn_hidden_list[-1], att_hidden, att_heads, drop_p, max_T, n_att, feedforward_hidden, n_feedforward
+        )
 
         self.predict_goal = torch.nn.Linear(cnn_hidden_list[-1], cnn_hidden_list[-1])
         self.predict_action = torch.nn.Linear(cnn_hidden_list[-1], action_dim)
