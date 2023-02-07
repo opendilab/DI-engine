@@ -11,7 +11,7 @@ carracing_dqn_config = dict(
         env_id='CarRacing-v2',
         continuous=False,
         n_evaluator_episode=8,
-        stop_value=950,
+        stop_value=900,
         # The path to save the game replay
         # replay_path='./carracing_dqn_seed0/video',
     ),
@@ -22,7 +22,7 @@ carracing_dqn_config = dict(
         model=dict(
             obs_shape=[3, 96, 96],
             action_shape=5,
-            encoder_hidden_size_list=[128, 128, 512],
+            encoder_hidden_size_list=[64, 64, 128],
             # Whether to use dueling head.
             dueling=True,
         ),
@@ -34,7 +34,7 @@ carracing_dqn_config = dict(
         learn=dict(
             update_per_collect=10,
             batch_size=64,
-            learning_rate=0.001,
+            learning_rate=0.0001,
             # Frequency of target network update.
             target_update_freq=100,
         ),
