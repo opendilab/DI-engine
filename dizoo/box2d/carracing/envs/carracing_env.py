@@ -13,6 +13,7 @@ from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 import cv2
 
+
 @ENV_REGISTRY.register('carracing')
 class CarRacingEnv(BaseEnv):
 
@@ -24,7 +25,7 @@ class CarRacingEnv(BaseEnv):
     )
 
     @classmethod
-    def default_config(cls:type) -> EasyDict:
+    def default_config(cls: type) -> EasyDict:
         cfg = EasyDict(copy.deepcopy(cls.config))
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
@@ -46,7 +47,7 @@ class CarRacingEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make(self._cfg.env_id,continuous=self._cfg.continuous)
+            self._env = gym.make(self._cfg.env_id, continuous=self._cfg.continuous)
             if self._replay_path is not None:
                 self._env = gym.wrappers.RecordVideo(
                     self._env,
@@ -58,10 +59,13 @@ class CarRacingEnv(BaseEnv):
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             # self._observation_space = self._env.observation_space
             self._observation_space = gym.spaces.Box(
-                low = np.min(self._env.observation_space.low), high = np.max(self._env.observation_space.high),
-                shape = (self._env.observation_space.shape[2], 
-                self._env.observation_space.shape[0], self._env.observation_space.shape[1]),
-                dtype = np.float32
+                low=np.min(self._env.observation_space.low),
+                high=np.max(self._env.observation_space.high),
+                shape=(
+                    self._env.observation_space.shape[2], self._env.observation_space.shape[0],
+                    self._env.observation_space.shape[1]
+                ),
+                dtype=np.float32
             )
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
@@ -94,7 +98,7 @@ class CarRacingEnv(BaseEnv):
         self._seed = seed
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
-        
+
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
@@ -121,7 +125,6 @@ class CarRacingEnv(BaseEnv):
         obs = to_ndarray(obs)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
-
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
@@ -158,4 +161,4 @@ class CarRacingEnv(BaseEnv):
         return self._reward_space
 
     def __repr__(self) -> str:
-        return "DI-engine LunarLander Env"
+        return "DI-engine CarRacing Env"

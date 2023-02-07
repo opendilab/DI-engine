@@ -18,7 +18,6 @@ carracing_dqn_config = dict(
     policy=dict(
         # Whether to use cuda for network.
         cuda=True,
-        load_path="./carracing_seed0/ckpt/ckpt_best.pth.tar",
         model=dict(
             obs_shape=[3, 96, 96],
             action_shape=5,
@@ -69,13 +68,12 @@ carracing_dqn_create_config = dict(
         import_names=['dizoo.box2d.carracing.envs.carracing_env'],
     ),
     env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
 carracing_dqn_create_config = EasyDict(carracing_dqn_create_config)
 create_config = carracing_dqn_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c lunarlander_dqn_config.py -s 0`
+    # or you can enter `ding -m serial -c carracing_dqn_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

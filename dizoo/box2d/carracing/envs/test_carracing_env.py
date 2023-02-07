@@ -4,22 +4,25 @@ import numpy as np
 from easydict import EasyDict
 from carracing_env import CarRacingEnv
 
+
 @pytest.mark.envtest
 @pytest.mark.parametrize(
     'cfg', [
         EasyDict({
-            'env_id': 'CarRacing-v1',
+            'env_id': 'CarRacing-v2',
+            'continuous': False,
             'act_scale': False
         }),
         EasyDict({
-            'env_id': 'CarRacingContinuous-v1',
+            'env_id': 'CarRacing-v2',
+            'continuous': True,
             'act_scale': True
         })
     ]
 )
-
 class TestCarRacing:
-     def test_naive(self, cfg):
+
+    def test_naive(self, cfg):
         env = CarRacingEnv(cfg)
         env.seed(314)
         assert env._seed == 314
