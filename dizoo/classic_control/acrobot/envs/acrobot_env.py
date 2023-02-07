@@ -37,8 +37,6 @@ class AcroBotEnv(BaseEnv):
                     episode_trigger=lambda episode_id: True,
                     name_prefix='rl-video-{}'.format(id(self))
                 )
-            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
-                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
