@@ -93,12 +93,15 @@ class Maze(gym.Env):
         )
 
     def random_start(self):
+        init_x, init_y = self._x, self._y
         while True:  # Find empty grid cell.
             self._x = self.np_random.integers(self._max_x)
             self._y = self.np_random.integers(self._max_y)
             if self._map[self._x][self._y] != 'x':
                 break
-        return self.process_states(self._get_obs(), self.get_maze_map())
+        ret = copy.deepcopy(self.process_states(self._get_obs(), self.get_maze_map()))
+        self._x, self._y = init_x, init_y
+        return ret
 
     def close(self) -> None:
         if self._init_flag:
@@ -350,6 +353,7 @@ class Maze(gym.Env):
             done = True
         if done:
             info['final_eval_reward'] = reward
+            info['eval_episode_return'] = reward
         return BaseEnvTimestep(self.process_states(self._get_obs(), self.get_maze_map()), reward, done, info)
 
 

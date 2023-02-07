@@ -99,16 +99,47 @@ class PC(nn.Module):
             padding=padding_sizes,
         )
 
-        # if self._augment:
-        #     self._augment_layers = nn.Sequential([
-        #         tf.keras.layers.RandomCrop(maze_size, maze_size),
-        #         tf.keras.layers.RandomTranslation((-0.1, 0.1), (-0.1, 0.1),
-        #                                           fill_mode='constant'),
-        #         tf.keras.layers.RandomZoom((-0.1, 0.1), (-0.1, 0.1),
-        #                                    fill_mode='constant'),
-        #     ])
-
     def forward(self, x):
         x = x.permute(0, 3, 1, 2)
         x = self._encoder(x)
         return {'logit': x.permute(0, 2, 3, 1)}
+
+
+@MODEL_REGISTRY.register('pbc')
+class PBC(nn.Module):
+
+    def __init__(
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        encoder_hidden_size_list: SequenceType = [128, 128, 256, 256],
+        augment=False
+    ):
+        super().__init__()
+
+        self._augment = augment
+        num_layers = len(encoder_hidden_size_list)
+
+        kernel_sizes = (3, ) * (num_layers + 1)
+        stride_sizes = (1, ) * (num_layers + 1)
+        padding_sizes = (1, ) * (num_layers + 1)
+        encoder_hidden_size_list.append(action_shape + 1)
+
+        self._encoder = ConvEncoder(
+            obs_shape=obs_shape,
+            hidden_size_list=encoder_hidden_size_list,
+            kernel_size=kernel_sizes,
+            stride=stride_sizes,
+            padding=padding_sizes,
+        )
+        self.head = nn.Sequential(
+            nn.Flatten(),
+            nn.ReLU(),
+            nn.Linear(16*16*5, 4)
+        )
+
+    def forward(self, x):
+        x = x.permute(0, 3, 1, 2)
+        x = self._encoder(x)
+        x = self.head(x)
+        return {'logit': x}

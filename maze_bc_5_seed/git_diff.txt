@@ -1,0 +1,136 @@
+diff --git a/ding/entry/serial_entry_pc.py b/ding/entry/serial_entry_pc.py
+index d173cea2..3443a516 100644
+--- a/ding/entry/serial_entry_pc.py
++++ b/ding/entry/serial_entry_pc.py
+@@ -110,11 +110,10 @@ def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
+             bfs_output_maps = bfs_output_maps_test
+ 
+         env_observations = torch.stack([torch.from_numpy(env.random_start()) for _ in range(80)])
+-        # assert False
+-        # env_observations = torch.squeeze(env_steps.observation, axis=1)
+         for i in range(env_observations.shape[0]):
+             bfs_sequence = get_vi_sequence(env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
+             bfs_input_map = env.n_action * np.ones([env.size, env.size], dtype=np.long)
++            # Repeat the first frame.
+             for _ in range(50):
+                 bfs_input_maps.append(torch.from_numpy(copy.deepcopy(bfs_input_map)))
+                 bfs_output_maps.append(torch.from_numpy(copy.deepcopy(bfs_sequence[0])))
+@@ -195,21 +194,6 @@ def serial_pipeline_pc(
+     stop = False
+     iter_cnt = 0
+     for epoch in range(cfg.policy.learn.train_epoch):
+-        # Evaluate policy performance
+-        # loss_list = []
+-        # for _, bat in enumerate(eval_loader):
+-        #     res = policy._forward_eval(bat['obs'])
+-        #     if cont:
+-        #         loss_list.append(torch.nn.L1Loss()(res['action'], bat['action'].squeeze(-1)).item())
+-        #     else:
+-        #         res = torch.argmax(res['logit'], dim=1)
+-        #         loss_list.append(torch.sum(res == bat['action'].squeeze(-1)).item() / bat['action'].shape[0])
+-        # if cont:
+-        #     label = 'validation_loss'
+-        # else:
+-        #     label = 'validation_acc'
+-        # tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
+-
+         # train
+         criterion = torch.nn.CrossEntropyLoss()
+         for i, train_data in enumerate(dataloader):
+@@ -229,7 +213,7 @@ def serial_pipeline_pc(
+                                                             test_data['bfs_out'].long()
+             states = observations
+             bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, 5).float()
+-            shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
++            # shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
+             # is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
+             # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
+             # tmp = (tmp == 4 * shape0 * shape1).long()
+diff --git a/ding/model/template/pc.py b/ding/model/template/pc.py
+index 0ea1fdb1..50e1436d 100644
+--- a/ding/model/template/pc.py
++++ b/ding/model/template/pc.py
+@@ -99,16 +99,47 @@ class PC(nn.Module):
+             padding=padding_sizes,
+         )
+ 
+-        # if self._augment:
+-        #     self._augment_layers = nn.Sequential([
+-        #         tf.keras.layers.RandomCrop(maze_size, maze_size),
+-        #         tf.keras.layers.RandomTranslation((-0.1, 0.1), (-0.1, 0.1),
+-        #                                           fill_mode='constant'),
+-        #         tf.keras.layers.RandomZoom((-0.1, 0.1), (-0.1, 0.1),
+-        #                                    fill_mode='constant'),
+-        #     ])
+-
+     def forward(self, x):
+         x = x.permute(0, 3, 1, 2)
+         x = self._encoder(x)
+         return {'logit': x.permute(0, 2, 3, 1)}
++
++
++@MODEL_REGISTRY.register('pbc')
++class PBC(nn.Module):
++
++    def __init__(
++        self,
++        obs_shape: Union[int, SequenceType],
++        action_shape: Union[int, SequenceType],
++        encoder_hidden_size_list: SequenceType = [128, 128, 256, 256],
++        augment=False
++    ):
++        super().__init__()
++
++        self._augment = augment
++        num_layers = len(encoder_hidden_size_list)
++
++        kernel_sizes = (3, ) * (num_layers + 1)
++        stride_sizes = (1, ) * (num_layers + 1)
++        padding_sizes = (1, ) * (num_layers + 1)
++        encoder_hidden_size_list.append(action_shape + 1)
++
++        self._encoder = ConvEncoder(
++            obs_shape=obs_shape,
++            hidden_size_list=encoder_hidden_size_list,
++            kernel_size=kernel_sizes,
++            stride=stride_sizes,
++            padding=padding_sizes,
++        )
++        self.head = nn.Sequential(
++            nn.Flatten(),
++            nn.ReLU(),
++            nn.Linear(16*16*5, 4)
++        )
++
++    def forward(self, x):
++        x = x.permute(0, 3, 1, 2)
++        x = self._encoder(x)
++        x = self.head(x)
++        return {'logit': x}
+diff --git a/dizoo/maze/envs/maze_env.py b/dizoo/maze/envs/maze_env.py
+index a125505e..d1f3c05a 100644
+--- a/dizoo/maze/envs/maze_env.py
++++ b/dizoo/maze/envs/maze_env.py
+@@ -93,12 +93,15 @@ class Maze(gym.Env):
+         )
+ 
+     def random_start(self):
++        init_x, init_y = self._x, self._y
+         while True:  # Find empty grid cell.
+             self._x = self.np_random.integers(self._max_x)
+             self._y = self.np_random.integers(self._max_y)
+             if self._map[self._x][self._y] != 'x':
+                 break
+-        return self.process_states(self._get_obs(), self.get_maze_map())
++        ret = copy.deepcopy(self.process_states(self._get_obs(), self.get_maze_map()))
++        self._x, self._y = init_x, init_y
++        return ret
+ 
+     def close(self) -> None:
+         if self._init_flag:
+@@ -350,6 +353,7 @@ class Maze(gym.Env):
+             done = True
+         if done:
+             info['final_eval_reward'] = reward
++            info['eval_episode_return'] = reward
+         return BaseEnvTimestep(self.process_states(self._get_obs(), self.get_maze_map()), reward, done, info)

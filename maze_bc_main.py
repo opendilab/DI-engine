@@ -13,7 +13,6 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from ding.utils.data import NaiveRLDataset
 
 import numpy as np
 
@@ -87,60 +86,19 @@ def get_vi_sequence(env, observation):
     return np.array(vi_sequence), track_back
 
 
-def get_vi_sequence_bak(env, observation):
-    """Returns [L, W, W] optimal actions."""
-    xy = np.where(observation[Ellipsis, -1] == 1)
-    start_x, start_y = xy[0][0], xy[1][0]
-    target_location = env.target_location
-    nav_map = env.nav_map
-    current_points = [target_location]
-    chosen_actions = {target_location: 0}
-    visited_points = {target_location: True}
-    vi_sequence = []
-
-    vi_map = np.full((env.size, env.size), fill_value=env.n_action, dtype=np.int32)
-
-    found_start = False
-    while current_points and not found_start:
-        next_points = []
-        for point_x, point_y in current_points:
-            for (action, (next_point_x, next_point_y)) in [(0, (point_x - 1, point_y)), (1, (point_x, point_y - 1)),
-                                                           (2, (point_x + 1, point_y)), (3, (point_x, point_y + 1))]:
-
-                if (next_point_x, next_point_y) in visited_points:
-                    continue
-
-                if not (0 <= next_point_x < len(nav_map) and 0 <= next_point_y < len(nav_map[next_point_x])):
-                    continue
-
-                if nav_map[next_point_x][next_point_y] == 'x':
-                    continue
-
-                next_points.append((next_point_x, next_point_y))
-                visited_points[(next_point_x, next_point_y)] = True
-                chosen_actions[(next_point_x, next_point_y)] = action
-                vi_map[next_point_x, next_point_y] = action
-
-                if next_point_x == start_x and next_point_y == start_y:
-                    found_start = True
-        vi_sequence.append(vi_map.copy())
-        current_points = next_points
-    return np.array(vi_sequence)
-
-
-class PCDataset(Dataset):
+class BCDataset(Dataset):
 
     def __init__(self, all_data):
         self._data = all_data
 
     def __getitem__(self, item):
-        return {'obs': self._data[0][item], 'bfs_in': self._data[1][item], 'bfs_out': self._data[2][item]}
+        return {'obs': self._data[item][0], 'action': self._data[item][1]}
 
     def __len__(self):
-        return self._data[0].shape[0]
+        return len(self._data)
 
 
-def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
+def load_1d_datasets(train_seeds=1, test_seeds=1, batch_size=32):
     def load_env(seed):
         ccc = easydict.EasyDict({'size': 16})
         e = Maze(ccc)
@@ -149,58 +107,26 @@ def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
         return e
 
     envs = [load_env(i) for i in range(train_seeds + test_seeds)]
+    data_train = []
+    data_test = []
 
-    observations_train = []
-    observations_test = []
-    bfs_input_maps_train = []
-    bfs_input_maps_test = []
-    bfs_output_maps_train = []
-    bfs_output_maps_test = []
     for idx, env in enumerate(envs):
         if idx < train_seeds:
-            observations = observations_train
-            bfs_input_maps = bfs_input_maps_train
-            bfs_output_maps = bfs_output_maps_train
+            data = data_train
         else:
-            observations = observations_test
-            bfs_input_maps = bfs_input_maps_test
-            bfs_output_maps = bfs_output_maps_test
+            data = data_test
 
-        # env_observations = torch.stack([torch.from_numpy(env.random_start()) for _ in range(80)])
         start_obs = env.process_states(env._get_obs(), env.get_maze_map())
         _, track_back = get_vi_sequence(env, start_obs)
-        env_observations = torch.stack([
-            track_back[i][0] for i in range(len(track_back))
-        ], dim=0)
 
-        for i in range(env_observations.shape[0]):
-            bfs_sequence, _ = get_vi_sequence(env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
-            bfs_input_map = env.n_action * np.ones([env.size, env.size], dtype=np.long)
-            # Repeat the first frame.
-            # for _ in range(50):
-            #     bfs_input_maps.append(torch.from_numpy(copy.deepcopy(bfs_input_map)))
-            #     bfs_output_maps.append(torch.from_numpy(copy.deepcopy(bfs_sequence[0])))
-            #     observations.append(copy.deepcopy(env_observations[i]))
+        data += track_back
 
-            for j in range(bfs_sequence.shape[0]):
-                bfs_input_maps.append(torch.from_numpy(bfs_input_map))
-                bfs_output_maps.append(torch.from_numpy(bfs_sequence[j]))
-                observations.append(env_observations[i])
-                bfs_input_map = bfs_sequence[j]
 
-    train_data = PCDataset(
-        (
-            torch.stack(observations_train, dim=0),
-            torch.stack(bfs_input_maps_train, dim=0),
-            torch.stack(bfs_output_maps_train, dim=0),
-        )
+    train_data = BCDataset(
+        data_train
     )
-    test_data = PCDataset(
-        (
-            torch.stack(observations_test, dim=0),
-            torch.stack(bfs_input_maps_test, dim=0),
-            torch.stack(bfs_output_maps_test, dim=0),
-        )
+    test_data = BCDataset(
+        data_test
     )
 
     train_dataset = DataLoader(train_data, batch_size=batch_size, shuffle=True)
@@ -208,7 +134,7 @@ def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
     return train_dataset, test_dataset
 
 
-def serial_pipeline_pc(
+def serial_pipeline_bc(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         model: Optional[torch.nn.Module] = None,
@@ -244,7 +170,7 @@ def serial_pipeline_pc(
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    dataloader, test_dataloader = load_2d_datasets()
+    dataloader, test_dataloader = load_1d_datasets()
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -257,51 +183,36 @@ def serial_pipeline_pc(
     stop = False
     iter_cnt = 0
     for epoch in range(cfg.policy.learn.train_epoch):
-        # train
-        criterion = torch.nn.CrossEntropyLoss()
+        # Evaluate policy performance
+        loss_list = []
+        for _, bat in enumerate(test_dataloader):
+            bat['action'] = bat['action'].long()
+            res = policy._forward_eval(bat['obs'])
+            res = torch.argmax(res['logit'], dim=1)
+            loss_list.append(torch.sum(res == bat['action'].squeeze(-1)).item() / bat['action'].shape[0])
+        label = 'validation_acc'
+        tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
         for i, train_data in enumerate(dataloader):
+            if evaluator.should_eval(learner.train_iter):
+                stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
+                if stop:
+                    break
+            train_data['action'] = train_data['action'].long()
             learner.train(train_data)
             iter_cnt += 1
             if iter_cnt >= max_iter:
                 stop = True
                 break
-        if epoch % 69 == 0:
-            policy._optimizer.param_groups[0]['lr'] /= 10
         if stop:
             break
-        losses = []
-        acces = []
-        for _, test_data in enumerate(test_dataloader):
-            observations, bfs_input_maps, bfs_output_maps = test_data['obs'], test_data['bfs_in'].long(), \
-                                                            test_data['bfs_out'].long()
-            states = observations
-            bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, 5).float()
-            # shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
-            # is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
-            # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
-            # tmp = (tmp == 4 * shape0 * shape1).long()
-            # tmp = torch.nn.functional.one_hot(tmp, 2).float().unsqueeze(1).unsqueeze(1)
-            # is_init = is_init + tmp
 
-            # is_init = torch.zeros((bfs_input_maps.shape[0], shape0, shape1, 1)).to(bfs_input_maps.device).float()
-            # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
-            # tmp = (tmp == 4 * shape0 * shape1).long()
-            # tmp = tmp.float().unsqueeze(1).unsqueeze(1).unsqueeze(1)
-            # is_init = tmp + is_init
-
-            bfs_states = torch.cat([states, bfs_input_onehot, ], dim=-1).cuda()
-            logits = policy._model(bfs_states)['logit']
-            logits = logits.flatten(0, -2)
-            labels = bfs_output_maps.flatten(0, -1).cuda()
-
-            loss = criterion(logits, labels).item()
-            preds = torch.argmax(logits, dim=-1)
-            acc = torch.sum((preds == labels)) / preds.shape[0]
-
-            losses.append(loss)
-            acces.append(acc)
-        print('Test Finished! Loss: {} acc: {}'.format(sum(losses) / len(losses), sum(acces) / len(acces)))
-    stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))
     return policy, stop
+
+
+if __name__ =='__main__':
+    from dizoo.maze.config.maze_bc_config import main_config, create_config
+    from ding.model.template.pc import PBC
+    model = PBC(obs_shape=main_config.policy.model.obs_shape, action_shape=main_config.policy.model.action_shape)
+    serial_pipeline_bc([main_config, create_config], seed=0, model=model)
