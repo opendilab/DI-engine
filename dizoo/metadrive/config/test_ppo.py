@@ -10,18 +10,25 @@ from ding.policy import PPOPolicy
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseLearner
 from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
 from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
+import torch 
+
+# ckpt dir: 
+model_dir = None #'dizoo/metadrive/config/demo.pth.tar'
 
 metadrive_basic_config = dict(
-    exp_name='feb03_test',
+    exp_name='test_ppo_metadrive',
     env=dict(
         metadrive=dict(
             use_render = True,
             traffic_density=0.10,
-            map = 'OSXS',
+            map = 'XSOS',
             horizon = 4000, #20000
-            driving_reward = 0.15,
-            speed_reward = 0.15,
-            use_lateral_reward=False,
+            driving_reward = 1.0,
+            speed_reward = 0.10,
+            out_of_road_penalty = 40.0,
+            crash_vehicle_penalty = 40.0,
+            decision_repeat=20,
+            use_lateral_reward = False,
             out_of_route_done = True,
             ),
         manager=dict(
@@ -82,6 +89,8 @@ def main(cfg):
     )
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
+    if model_dir is not None:
+        policy._load_state_dict_collect(torch.load(model_dir, map_location='cpu'))
     tb_logger = SummaryWriter('./log/{}/'.format(cfg.exp_name))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(

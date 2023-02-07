@@ -12,15 +12,18 @@ from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseL
 from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
 from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
 metadrive_basic_config = dict(
-    exp_name='zt_nov22_ppo1',
+    exp_name='train_ppo_metadrive',
     env=dict(
         metadrive=dict(
             use_render = False,
             traffic_density=0.10,
-            map = 'OSXS',
+            map = 'XSOS',
             horizon = 4000, #20000
-            driving_reward = 0.15,
-            speed_reward = 0.15,
+            driving_reward = 1.0,
+            speed_reward = 0.1,
+            out_of_road_penalty = 40.0,
+            crash_vehicle_penalty = 40.0,
+            decision_repeat=20,
             use_lateral_reward=False,
             out_of_route_done = True,
             ),
@@ -57,7 +60,7 @@ metadrive_basic_config = dict(
             grad_clip_value=10,
         ),
         collect=dict(
-            n_sample=1000,
+            n_sample=3000, #1000
         ),
         eval=dict(
             evaluator=dict(

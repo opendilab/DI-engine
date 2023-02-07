@@ -31,6 +31,7 @@ METADRIVE_DEFAULT_CONFIG = dict(
     # ===== Generalization =====
     start_seed=0,
     environment_num=10,
+    decision_repeat=20,
     block_dist_config=PGBlockDistConfig,
 
     # ===== Map Config =====
@@ -373,7 +374,7 @@ class MetaDrivePPOOriginEnv(BaseEnv):
             post_stack=10,
             frame_skip=1,
             resolution=(84, 84), #resolution=(200, 200),
-            max_distance=30 # 50
+            max_distance=36 # 50
         )
         return o
 
