@@ -42,10 +42,7 @@ acrobot_dqn_config = dict(
 acrobot_dqn_config = EasyDict(acrobot_dqn_config)
 main_config = acrobot_dqn_config
 acrobot_dqn_create_config = dict(
-    env = dict(
-        type = 'acrobot',
-        import_names = ['dizoo.classic_control.acrobot.envs.acrobot_env']
-    ),
+    env=dict(type='acrobot', import_names=['dizoo.classic_control.acrobot.envs.acrobot_env']),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
     replay_buffer=dict(type='deque', import_names=['ding.data.buffer.deque_buffer_wrapper']),

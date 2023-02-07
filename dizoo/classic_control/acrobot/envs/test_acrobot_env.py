@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from dizoo.classic_control.acrobot.envs import AcroBotEnv
 
+
 @pytest.mark.envtest
 class TestAcrobotEnv:
 
@@ -32,4 +33,3 @@ class TestAcrobotEnv:
                 assert timestep.reward <= env.reward_space.high
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
-
