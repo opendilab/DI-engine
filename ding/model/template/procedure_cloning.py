@@ -9,8 +9,10 @@ from ..common import FCEncoder, ConvEncoder
 
 class Block(nn.Module):
 
-    def __init__(self, cnn_hidden: int, att_hidden: int, att_heads: int, drop_p: float, max_T: int, n_att: int, \
-            feedforward_hidden: int, n_feedforward: int) -> None:
+    def __init__(
+            self, cnn_hidden: int, att_hidden: int, att_heads: int, drop_p: float, max_T: int, n_att: int,
+            feedforward_hidden: int, n_feedforward: int
+    ) -> None:
         super().__init__()
         self.n_att = n_att
         self.n_feedforward = n_feedforward

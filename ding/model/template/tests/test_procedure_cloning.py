@@ -20,8 +20,11 @@ args = list(product(*[obs_shape, action_dim]))
 class TestProcedureCloning:
 
     def test_procedure_cloning(self, obs_shape, action_dim):
-        inputs = {'states': torch.randn(B, *obs_shape), 'goals': torch.randn(B, *obs_shape),\
-             'actions': torch.randn(B, T, action_dim)}
+        inputs = {
+            'states': torch.randn(B, *obs_shape),
+            'goals': torch.randn(B, *obs_shape),
+            'actions': torch.randn(B, T, action_dim)
+        }
         model = ProcedureCloning(obs_shape=obs_shape, action_dim=action_dim)
 
         print(model)
