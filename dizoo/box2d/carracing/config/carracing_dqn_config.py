@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 nstep = 3
 carracing_dqn_config = dict(
-    exp_name='carracing_dqn_seed0-withouconfig',
+    exp_name='carracing_dqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,

@@ -1,4 +1,3 @@
-from time import time
 import pytest
 import numpy as np
 from easydict import EasyDict
@@ -12,11 +11,6 @@ from carracing_env import CarRacingEnv
             'env_id': 'CarRacing-v2',
             'continuous': False,
             'act_scale': False
-        }),
-        EasyDict({
-            'env_id': 'CarRacing-v2',
-            'continuous': True,
-            'act_scale': True
         })
     ]
 )

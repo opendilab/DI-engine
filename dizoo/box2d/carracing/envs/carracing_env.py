@@ -39,7 +39,7 @@ class CarRacingEnv(BaseEnv):
         self._replay_path_gif = cfg.replay_path_gif
         self._save_replay_gif = cfg.save_replay_gif
         self._save_replay_count = 0
-        if 'Continuous' in self._env_id:
+        if cfg.continuous:
             self._act_scale = cfg.act_scale  # act_scale only works in continuous env
             self._action_clip = cfg.action_clip
         else:
@@ -55,12 +55,9 @@ class CarRacingEnv(BaseEnv):
                     episode_trigger=lambda episode_id: True,
                     name_prefix='rl-video-{}'.format(id(self))
                 )
-            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
-                self._env = ObsPlusPrevActRewWrapper(self._env)
-            # self._observation_space = self._env.observation_space
             self._observation_space = gym.spaces.Box(
-                low=np.min(self._env.observation_space.low),
-                high=np.max(self._env.observation_space.high),
+                low=np.min(self._env.observation_space.low.astype(np.float32) / 255),
+                high=np.max(self._env.observation_space.high.astype(np.float32) / 255),
                 shape=(
                     self._env.observation_space.shape[2], self._env.observation_space.shape[0],
                     self._env.observation_space.shape[1]
