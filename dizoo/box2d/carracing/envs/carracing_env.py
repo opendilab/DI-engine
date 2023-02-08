@@ -1,6 +1,7 @@
+from typing import Optional
 import copy
 import os
-from typing import Optional
+
 
 import gym
 import numpy as np
@@ -11,7 +12,6 @@ from ding.envs import ObsPlusPrevActRewWrapper
 from ding.envs.common import affine_transform, save_frames_as_gif
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
-import cv2
 
 
 @ENV_REGISTRY.register('carracing')
