@@ -27,17 +27,16 @@ class TestCarRacing:
         env.seed(314)
         assert env._seed == 314
         obs = env.reset()
-        assert obs.shape == (96, 96, 3)
+        assert obs.shape == (3, 96, 96)
         for i in range(10):
             random_action = env.random_action()
             timestep = env.step(random_action)
             print(timestep)
             assert isinstance(timestep.obs, np.ndarray)
             assert isinstance(timestep.done, bool)
-            assert timestep.obs.shape == (96, 96, 3)
+            assert timestep.obs.shape == (3, 96, 96)
             assert timestep.reward.shape == (1, )
             assert timestep.reward >= env.reward_space.low
             assert timestep.reward <= env.reward_space.high
-            # assert isinstance(timestep, tuple)
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
