@@ -1,12 +1,10 @@
-from typing import Optional
-from ding.utils import MODEL_REGISTRY
-from typing import Tuple
-from ding.torch_utils.network.transformer import Attention
-from ..common import FCEncoder, ConvEncoder
-from ding.torch_utils.network.nn_module import fc_block, build_normalization
-from ding.utils import SequenceType
+from typing import Optional, Tuple
 import torch
 import torch.nn as nn
+from ding.utils import MODEL_REGISTRY, SequenceType
+from ding.torch_utils.network.transformer import Attention
+from ding.torch_utils.network.nn_module import fc_block, build_normalization
+from ..common import FCEncoder, ConvEncoder
 
 
 class Block(nn.Module):
@@ -110,7 +108,6 @@ class ProcedureCloning(nn.Module):
         actions_embeddings = self.embed_action(actions)
 
         h = torch.cat((state_embeddings, goal_embeddings, actions_embeddings), dim=1)
-        print(h.shape)
         h = self.transformer(h)
         h = h.reshape(B, T + 2, self.cnn_hidden_list[-1])
 
