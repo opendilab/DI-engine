@@ -25,6 +25,7 @@
    
    cartpole_zh
    pendulum_zh
+   acrobot_zh
    bitflip_zh
    
    lunarlander_zh
