@@ -3,8 +3,7 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_rnd_onppo_seed0',
-    exp_name='minigrid_fourrooms_rnd_onppo_seed0',
+    exp_name='minigrid_doorkey8x8_rnd_onppo_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -12,11 +11,10 @@ minigrid_ppo_rnd_config = dict(
         # typical MiniGrid env id:
         # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
         # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
+        env_id='MiniGrid-DoorKey-8x8-v0',
+        # env_id='MiniGrid-AKTDT-7x7-1-v0',
         max_step=100,
-        stop_value=2,  # run fixed env_steps
-        # stop_value=12,  # run fixed env_steps for MiniGrid-AKTDT-7x7-1-v0
+        stop_value=20,  # run fixed env_steps
         # stop_value=0.96,
     ),
     reward_model=dict(
@@ -26,13 +24,13 @@ minigrid_ppo_rnd_config = dict(
         # if reach goal, the agent get reward ~1, otherwise 0,
         # We could set the intrinsic_reward_weight approximately equal to the inverse of max_episode_steps.
         # Please refer to rnd_reward_model for details.
-        intrinsic_reward_weight=0.001,  # 1/100
+        intrinsic_reward_weight=0.003,  # 1/300
         learning_rate=3e-4,
         obs_shape=2835,
         batch_size=320,
         update_per_collect=50,
         clear_buffer_per_iters=int(1e3),
-        obs_norm=True,
+        obs_norm=False,
         obs_norm_clamp_max=5,
         obs_norm_clamp_min=-5,
         extrinsic_reward_norm=True,

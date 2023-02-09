@@ -12,6 +12,7 @@ from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
 from ding.utils import RunningMeanStd
 from ding.torch_utils.data_helper import to_tensor
+import numpy as np
 
 
 def collect_states(iterator):
@@ -82,6 +83,7 @@ class RndRewardModel(BaseRewardModel):
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self._running_mean_std_rnd_reward = RunningMeanStd(epsilon=1e-4)
         self.estimate_cnt_rnd = 0
+        self.train_cnt_icm = 0
         self._running_mean_std_rnd_obs = RunningMeanStd(epsilon=1e-4)
 
     def _train(self) -> None:
@@ -97,6 +99,7 @@ class RndRewardModel(BaseRewardModel):
 
         predict_feature, target_feature = self.reward_model(train_data)
         loss = F.mse_loss(predict_feature, target_feature.detach())
+        self.tb_logger.add_scalar('rnd_reward/loss', loss, self.train_cnt_icm)
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
@@ -104,6 +107,7 @@ class RndRewardModel(BaseRewardModel):
     def train(self) -> None:
         for _ in range(self.cfg.update_per_collect):
             self._train()
+            self.train_cnt_icm += 1
 
     def estimate(self, data: list) -> List[Dict]:
         """
@@ -133,8 +137,9 @@ class RndRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', rnd_reward.max(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', rnd_reward.mean(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', rnd_reward.min(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_std', rnd_reward.std(), self.estimate_cnt_rnd)
 
-            rnd_reward = rnd_reward.to(train_data_augmented[0]['reward'].device)
+            rnd_reward = rnd_reward.to(self.device)
             rnd_reward = torch.chunk(rnd_reward, rnd_reward.shape[0], dim=0)
         """
         NOTE: Following normalization approach to extrinsic reward seems be not reasonable,
@@ -157,6 +162,11 @@ class RndRewardModel(BaseRewardModel):
             elif self.intrinsic_reward_type == 'assign':
                 item['reward'] = rnd_rew
 
+        rew = [item['reward'] for item in train_data_augmented]
+        self.tb_logger.add_scalar('rnd_reward/reward_max', np.max(rew), self.estimate_cnt_rnd)
+        self.tb_logger.add_scalar('rnd_reward/reward_mean', np.mean(rew), self.estimate_cnt_rnd)
+        self.tb_logger.add_scalar('rnd_reward/reward_min', np.min(rew), self.estimate_cnt_rnd)
+        self.tb_logger.add_scalar('rnd_reward/reward_min', np.std(rew), self.estimate_cnt_rnd)
         return train_data_augmented
 
     def collect_data(self, data: list) -> None:

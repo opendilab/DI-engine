@@ -42,7 +42,10 @@ class MiniGridEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gymnasium.make(self._env_id)  # using the Gymnasium make method
+            if self._save_replay:
+                self._env = gymnasium.make(self._env_id, render_mode="rgb_array")  # using the Gymnasium make method
+            else:
+                self._env = gymnasium.make(self._env_id)
 
             if self._env_id in ['MiniGrid-AKTDT-13x13-v0' or 'MiniGrid-AKTDT-13x13-1-v0']:
                 # customize the agent field of view size, note this must be an odd number
@@ -99,7 +102,7 @@ class MiniGridEnv(BaseEnv):
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
-            self._frames.append(self._env.render(mode='rgb_array'))
+            self._frames.append(self._env.render())
         # using the step method of Gymnasium env, return is (observation, reward, terminated, truncated, info)
         obs, rew, done, _, info = self._env.step(action)
         rew = float(rew)

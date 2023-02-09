@@ -14,6 +14,21 @@ from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from .utils import random_collect
+import numpy as np
+from ding.utils import save_file
+
+
+def save_reward_model(path, reward_model, weights_name='best'):
+    path = os.path.join(path, 'reward_model', 'ckpt')
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            pass
+    path = os.path.join(path, 'ckpt_{}.pth.tar'.format(weights_name))
+    state_dict = reward_model.reward_model.state_dict()
+    save_file(path, state_dict)
+    print('Saved reward model ckpt in {}'.format(path))
 
 
 def serial_pipeline_reward_model_offpolicy(
@@ -88,11 +103,16 @@ def serial_pipeline_reward_model_offpolicy(
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     count = 0
+    best_reward = -np.inf
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            reward_mean = np.array([r['eval_episode_return'] for r in reward]).mean()
+            if reward_mean >= best_reward:
+                save_reward_model(cfg.exp_name, reward_model, 'best')
+                best_reward = reward_mean
             if stop:
                 break
         new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
@@ -129,4 +149,5 @@ def serial_pipeline_reward_model_offpolicy(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
+    save_reward_model(cfg.exp_name, reward_model, 'last')
     return policy
