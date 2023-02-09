@@ -1,22 +1,20 @@
-import gym
-import copy
-import numpy as np
-from typing import Any, Dict, Optional
-from easydict import EasyDict
-from itertools import product
-from ding.envs.env.base_env import BaseEnvTimestep
-from ding.envs.common.env_element import EnvElementInfo
-from ding.torch_utils.data_helper import to_ndarray
-import matplotlib.pyplot as plt
 from typing import NoReturn, Optional, List
 from gym import utils
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
+from easydict import EasyDict
+from itertools import product
+import gym
+import copy
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 class AAA():
     def __init__(self) -> None:
         self.x = 0
-
-
+        
+        
 def deep_update(
     original: dict,
     new_dict: dict,
@@ -47,11 +45,9 @@ def deep_update(
     """
     whitelist = whitelist or []
     override_all_if_type_changes = override_all_if_type_changes or []
-
     for k, value in new_dict.items():
         if k not in original and not new_keys_allowed:
             raise RuntimeError("Unknown config parameter `{}`. Base config have: {}.".format(k, original.keys()))
-
         # Both original value and new one are dicts.
         if isinstance(original.get(k), dict) and isinstance(value, dict):
             # Check old type vs old one. If different, override entire value.
@@ -86,7 +82,6 @@ def deep_merge_dicts(original: dict, new_dict: dict) -> dict:
     merged = copy.deepcopy(original)
     if new_dict:  # if new_dict is neither empty dict nor None
         deep_update(merged, new_dict, True, [])
-
     return EasyDict(merged)
 
 

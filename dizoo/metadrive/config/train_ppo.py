@@ -1,9 +1,8 @@
-import metadrive
-import gym
 from easydict import EasyDict
 from functools import partial
 from tensorboardX import SummaryWriter
-
+import metadrive
+import gym
 from ding.envs import BaseEnvManager, SyncSubprocessEnvManager
 from ding.config import compile_config
 from ding.model.template import QAC, VAC
@@ -11,6 +10,8 @@ from ding.policy import PPOPolicy
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseLearner
 from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
 from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
+
+
 metadrive_basic_config = dict(
     exp_name='train_ppo_metadrive',
     env=dict(
@@ -18,7 +19,7 @@ metadrive_basic_config = dict(
             use_render = False,
             traffic_density=0.10,
             map = 'XSOS',
-            horizon = 4000, #20000
+            horizon = 4000,
             driving_reward = 1.0,
             speed_reward = 0.1,
             out_of_road_penalty = 40.0,
@@ -34,14 +35,13 @@ metadrive_basic_config = dict(
         ),
         n_evaluator_episode=16,
         stop_value=99999,
-        collector_env_num=1,
-        evaluator_env_num=1,
+        collector_env_num=8,
+        evaluator_env_num=8,
     ),
     policy=dict(
         cuda=True,
         action_space='continuous',
         model=dict(
-            #obs_shape=[5, 200, 200],
             obs_shape=[5, 84, 84],
             action_shape=2,
             action_space='continuous',
@@ -60,7 +60,7 @@ metadrive_basic_config = dict(
             grad_clip_value=10,
         ),
         collect=dict(
-            n_sample=3000, #1000
+            n_sample=3000,
         ),
         eval=dict(
             evaluator=dict(
@@ -69,18 +69,15 @@ metadrive_basic_config = dict(
         ),
     ),
 )
-
 main_config = EasyDict(metadrive_basic_config)
 
 def wrapped_env(env_cfg, wrapper_cfg=None):
     return DriveEnvWrapper(MetaDrivePPOOriginEnv(env_cfg), wrapper_cfg)
 
-
 def main(cfg):
     cfg = compile_config(
         cfg, SyncSubprocessEnvManager, PPOPolicy, BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
     )
-
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
     collector_env = SyncSubprocessEnvManager(
         env_fn=[partial(wrapped_env, cfg.env.metadrive) for _ in range(collector_env_num)],
@@ -90,8 +87,6 @@ def main(cfg):
         env_fn=[partial(wrapped_env, cfg.env.metadrive) for _ in range(evaluator_env_num)],
         cfg=cfg.env.manager,
     )
-
-
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter('./log/{}/'.format(cfg.exp_name))
@@ -102,9 +97,7 @@ def main(cfg):
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
-
     learner.call_hook('before_run')
-
     while True:
         if evaluator.should_eval(learner.train_iter):
             stop, rate = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)

@@ -1,14 +1,8 @@
-import os
 import copy
-import time
-import gym
 import numpy as np
-from gym import spaces
-from collections import defaultdict
+from ditk import logging
 from typing import Union, Dict, AnyStr, Tuple, Optional
 from gym.envs.registration import register
-import logging
-
 from metadrive.manager.traffic_manager import TrafficMode
 from metadrive.obs.top_down_obs_multi_channel import TopDownMultiChannel
 from metadrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT, REPLAY_DONE
@@ -20,7 +14,6 @@ from metadrive.component.pgblock.first_block import FirstPGBlock
 from metadrive.constants import DEFAULT_AGENT, TerminationState
 from metadrive.component.vehicle.base_vehicle import BaseVehicle
 from metadrive.utils import Config, merge_dicts, get_np_random, clip
-from metadrive.utils import Config, merge_dicts, get_np_random, concat_step_infos
 from metadrive.envs.base_env import BASE_DEFAULT_CONFIG
 from metadrive.obs.top_down_obs_multi_channel import TopDownMultiChannel
 from metadrive.component.road_network import Road
@@ -111,7 +104,6 @@ class MetaDrivePPOOriginEnv(BaseEnv):
     def __init__(self, config: dict = None):
         self.default_config_copy = Config(self.default_config(), unchangeable=True)
         super(MetaDrivePPOOriginEnv, self).__init__(config)
-
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
 
@@ -159,41 +151,8 @@ class MetaDrivePPOOriginEnv(BaseEnv):
         o, r, d, i = self._get_step_return(actions, engine_info=engine_info)
         return o, r, d, i
 
-
     def _get_observations(self):
         return {DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
-
-    def done_function(self, vehicle_id: str):
-        vehicle = self.vehicles[vehicle_id]
-        done = False
-        done_info = dict(
-            crash_vehicle=False, crash_object=False, crash_building=False, out_of_road=False, arrive_dest=False
-        )
-        if vehicle.arrive_destination:
-            done = True
-            logging.info("Episode ended! Reason: arrive_dest.")
-            done_info[TerminationState.SUCCESS] = True
-        if self._is_out_of_road(vehicle):
-            done = True
-            logging.info("Episode ended! Reason: out_of_road.")
-            done_info[TerminationState.OUT_OF_ROAD] = True
-        if vehicle.crash_vehicle:
-            done = True
-            logging.info("Episode ended! Reason: crash vehicle ")
-            done_info[TerminationState.CRASH_VEHICLE] = True
-        if vehicle.crash_object:
-            done = True
-            done_info[TerminationState.CRASH_OBJECT] = True
-            logging.info("Episode ended! Reason: crash object ")
-        if vehicle.crash_building:
-            done = True
-            done_info[TerminationState.CRASH_BUILDING] = True
-            logging.info("Episode ended! Reason: crash building ")
-        done_info[TerminationState.CRASH] = (
-            done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
-            or done_info[TerminationState.CRASH_BUILDING]
-        )
-        return done, done_info
 
     def cost_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
@@ -348,7 +307,6 @@ class MetaDrivePPOOriginEnv(BaseEnv):
         self.engine.register_manager("map_manager", MapManager())
         self.engine.register_manager("traffic_manager", TrafficManager())
 
-
     def _is_arrive_destination(self, vehicle):
         long, lat = vehicle.navigation.final_lane.local_coordinates(vehicle.position)
         flag = (vehicle.navigation.final_lane.length - 5 < long < vehicle.navigation.final_lane.length + 5) and (
@@ -358,6 +316,10 @@ class MetaDrivePPOOriginEnv(BaseEnv):
         return flag
 
     def _reset_global_seed(self, force_seed=None):
+        """
+        Current seed is set to force seed if force_seed is not None. 
+        Otherwise, current seed is randomly generated. 
+        """
         current_seed = force_seed if force_seed is not None else \
             get_np_random(self._DEBUG_RANDOM_SEED).randint(self.start_seed, self.start_seed + self.env_num)
         self.seed(current_seed)
@@ -366,17 +328,16 @@ class MetaDrivePPOOriginEnv(BaseEnv):
         return {DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
     
     def get_single_observation(self, _=None):
-        o = TopDownMultiChannel(
+        return TopDownMultiChannel(
             self.config["vehicle_config"],
             self.config["on_screen"],
             self.config["rgb_clip"],
             frame_stack=3,
             post_stack=10,
             frame_skip=1,
-            resolution=(84, 84), #resolution=(200, 200),
-            max_distance=36 # 50
+            resolution=(84, 84),
+            max_distance=36,
         )
-        return o
 
 register(
     id='metadrive-ppo-v1',

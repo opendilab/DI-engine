@@ -1,8 +1,7 @@
-
 from easydict import EasyDict
 from functools import partial
 from tensorboardX import SummaryWriter
-
+import torch 
 from ding.envs import BaseEnvManager, SyncSubprocessEnvManager
 from ding.config import compile_config
 from ding.model.template import  VAC
@@ -10,11 +9,10 @@ from ding.policy import PPOPolicy
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseLearner
 from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
 from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
-import torch 
+
 
 # ckpt dir: 
-model_dir = None #'dizoo/metadrive/config/demo.pth.tar'
-
+model_dir = None
 metadrive_basic_config = dict(
     exp_name='test_ppo_metadrive',
     env=dict(
@@ -22,7 +20,7 @@ metadrive_basic_config = dict(
             use_render = True,
             traffic_density=0.10,
             map = 'XSOS',
-            horizon = 4000, #20000
+            horizon = 4000,
             driving_reward = 1.0,
             speed_reward = 0.10,
             out_of_road_penalty = 40.0,
@@ -45,7 +43,6 @@ metadrive_basic_config = dict(
         cuda=True,
         action_space='continuous',
         model=dict(
-            #obs_shape=[5, 200, 200],
             obs_shape=[5, 84, 84],
             action_shape=2,
             action_space='continuous',
@@ -73,8 +70,8 @@ metadrive_basic_config = dict(
         ),
     ),
 )
-
 main_config = EasyDict(metadrive_basic_config)
+
 def wrapped_env(env_cfg, wrapper_cfg=None):
     return DriveEnvWrapper(MetaDrivePPOOriginEnv(env_cfg), wrapper_cfg)
 
@@ -97,7 +94,6 @@ def main(cfg):
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     learner.call_hook('before_run')
-
     stop, rate = evaluator.eval()
     evaluator.close()
     learner.close()
