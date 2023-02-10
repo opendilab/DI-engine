@@ -257,7 +257,6 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
                 eval_monitor.update_video(env.ready_imgs)
                 eval_monitor.update_output(inference_output)
             output = [v for v in inference_output.values()]
-            # action = [to_ndarray(v['action']) for v in output]  # TBD
             action = np.array([to_ndarray(v['action']) for v in output])  # TBD
             timesteps = env.step(action)
             for timestep in timesteps:

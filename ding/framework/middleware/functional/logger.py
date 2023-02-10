@@ -185,7 +185,6 @@ def wandb_online_logger(
             return
         for metric in metric_list:
             if metric in ctx.train_output[0]:
-                # metric_value = np.mean([item[metric] for item in ctx.train_output])
                 metric_value_list = []
                 for item in ctx.train_output:
                     if isinstance(item[metric], torch.Tensor):
@@ -380,7 +379,6 @@ def wandb_offline_logger(
             return
         for metric in metric_list:
             if metric in ctx.train_output[0]:
-                # metric_value = np.mean([item[metric] for item in ctx.train_output])
                 metric_value_list = []
                 for item in ctx.train_output:
                     if isinstance(item[metric], torch.Tensor):
