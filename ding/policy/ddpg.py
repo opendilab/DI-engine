@@ -242,17 +242,24 @@ class DDPGPolicy(Policy):
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
-        q_value_dict = {}
-        if self._twin_critic:
-            q_value_dict['q_value'] = q_value[0].mean()
-            q_value_dict['q_value_twin'] = q_value[1].mean()
-        else:
-            q_value_dict['q_value'] = q_value.mean()
+
         # target q value.
         with torch.no_grad():
             next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')
             next_actor_data['obs'] = next_obs
             target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
+
+        q_value_dict = {}
+        target_q_value_dict = {}
+        if self._twin_critic:
+            q_value_dict['q_value'] = q_value[0].mean()
+            q_value_dict['q_value_twin'] = q_value[1].mean()
+            target_q_value_dict['target q_value'] = target_q_value[0].mean()
+            target_q_value_dict['target q_value_twin'] = target_q_value[1].mean()
+        else:
+            q_value_dict['q_value'] = q_value.mean()
+            target_q_value_dict['target q_value'] = target_q_value[0].mean()
+        
         if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
@@ -314,6 +321,7 @@ class DDPGPolicy(Policy):
             'td_error': td_error_per_sample.abs().mean(),
             **loss_dict,
             **q_value_dict,
+            **target_q_value_dict,
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:

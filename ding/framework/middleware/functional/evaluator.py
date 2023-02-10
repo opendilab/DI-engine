@@ -257,7 +257,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
                 eval_monitor.update_video(env.ready_imgs)
                 eval_monitor.update_output(inference_output)
             output = [v for v in inference_output.values()]
-            action = [to_ndarray(v['action']) for v in output]  # TBD
+            # action = [to_ndarray(v['action']) for v in output]  # TBD
+            action = np.array([to_ndarray(v['action']) for v in output])  # TBD
             timesteps = env.step(action)
             for timestep in timesteps:
                 env_id = timestep.env_id.item()
@@ -282,7 +283,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return
-        ctx.eval_output = {'reward': episode_return}
+        ctx.last_eval_value = ctx.eval_value
+        ctx.eval_output = {'episode_return': episode_return}
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
             ctx.eval_output['episode_info'] = episode_info
@@ -374,6 +376,7 @@ def interaction_evaluator_ttorch(
         )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return_mean
+        ctx.last_eval_value = ctx.eval_value
         ctx.eval_output = {'episode_return': episode_return}
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
