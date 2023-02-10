@@ -176,7 +176,7 @@ def wandb_online_logger(
         )
 
     def _plot(ctx: "OnlineRLContext"):
-        info_for_logging={}
+        info_for_logging = {}
 
         if not cfg.plot_logger:
             one_time_warning(
@@ -196,7 +196,13 @@ def wandb_online_logger(
                 info_for_logging.update({metric: metric_value})
 
         if ctx.eval_value != -np.inf:
-            info_for_logging.update({"episode return mean": ctx.eval_value, "train iter": ctx.train_iter, "env step": ctx.env_step})
+            info_for_logging.update(
+                {
+                    "episode return mean": ctx.eval_value,
+                    "train iter": ctx.train_iter,
+                    "env step": ctx.env_step
+                }
+            )
 
             eval_output = ctx.eval_output['output']
             episode_return = ctx.eval_output['episode_return']
@@ -231,18 +237,16 @@ def wandb_online_logger(
                     )
                     ani.save(action_path, writer='pillow')
                     info_for_logging.update({"action": wandb.Video(action_path, format="gif")})
-                    
+
                 elif all(['action' in v for v in eval_output[0]]):
-                    
-                    num_trajectory=len(eval_output)
-                    for i,action_trajectory in enumerate(eval_output):
+                    for i, action_trajectory in enumerate(eval_output):
                         fig, ax = plt.subplots()
-                        fig_data=np.array([[i+1,*v['action']] for i,v in enumerate(action_trajectory)])
-                        steps=fig_data[:,0]
-                        actions=fig_data[:,1:]
+                        fig_data = np.array([[i + 1, *v['action']] for i, v in enumerate(action_trajectory)])
+                        steps = fig_data[:, 0]
+                        actions = fig_data[:, 1:]
                         plt.ylim([-1, 1])
                         for j in range(actions.shape[1]):
-                            ax.scatter(steps, actions[:,j])
+                            ax.scatter(steps, actions[:, j])
                         info_for_logging.update({"actions_of_trajectory_{}".format(i): fig})
 
             if cfg.return_logger:
@@ -255,8 +259,8 @@ def wandb_online_logger(
                 ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
                 ani.save(return_path, writer='pillow')
                 info_for_logging.update({"return distribution": wandb.Video(return_path, format="gif")})
-        
-        wandb.log(data=info_for_logging,step=ctx.env_step)
+
+        wandb.log(data=info_for_logging, step=ctx.env_step)
         plt.clf()
 
     return _plot
@@ -366,9 +370,8 @@ def wandb_offline_logger(
     if cfg.vis_dataset is True:
         _vis_dataset(datasetpath)
 
-
     def _plot(ctx: "OnlineRLContext"):
-        info_for_logging={}
+        info_for_logging = {}
 
         if not cfg.plot_logger:
             one_time_warning(
@@ -388,7 +391,13 @@ def wandb_offline_logger(
                 info_for_logging.update({metric: metric_value})
 
         if ctx.eval_value != -np.inf:
-            info_for_logging.update({"episode return mean": ctx.eval_value, "train iter": ctx.train_iter, "env step": ctx.env_step})
+            info_for_logging.update(
+                {
+                    "episode return mean": ctx.eval_value,
+                    "train iter": ctx.train_iter,
+                    "env step": ctx.env_step
+                }
+            )
 
             eval_output = ctx.eval_output['output']
             episode_return = ctx.eval_output['episode_return']
@@ -423,18 +432,16 @@ def wandb_offline_logger(
                     )
                     ani.save(action_path, writer='pillow')
                     info_for_logging.update({"action": wandb.Video(action_path, format="gif")})
-                    
+
                 elif all(['action' in v for v in eval_output[0]]):
-                    
-                    num_trajectory=len(eval_output)
-                    for i,action_trajectory in enumerate(eval_output):
+                    for i, action_trajectory in enumerate(eval_output):
                         fig, ax = plt.subplots()
-                        fig_data=np.array([[i+1,*v['action']] for i,v in enumerate(action_trajectory)])
-                        steps=fig_data[:,0]
-                        actions=fig_data[:,1:]
+                        fig_data = np.array([[i + 1, *v['action']] for i, v in enumerate(action_trajectory)])
+                        steps = fig_data[:, 0]
+                        actions = fig_data[:, 1:]
                         plt.ylim([-1, 1])
                         for j in range(actions.shape[1]):
-                            ax.scatter(steps, actions[:,j])
+                            ax.scatter(steps, actions[:, j])
                         info_for_logging.update({"actions_of_trajectory_{}".format(i): fig})
 
             if cfg.return_logger:
@@ -447,8 +454,8 @@ def wandb_offline_logger(
                 ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
                 ani.save(return_path, writer='pillow')
                 info_for_logging.update({"return distribution": wandb.Video(return_path, format="gif")})
-        
-        wandb.log(data=info_for_logging,step=ctx.env_step)
+
+        wandb.log(data=info_for_logging, step=ctx.env_step)
         plt.clf()
 
     return _plot

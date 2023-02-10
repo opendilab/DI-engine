@@ -259,7 +259,7 @@ class DDPGPolicy(Policy):
         else:
             q_value_dict['q_value'] = q_value.mean()
             target_q_value_dict['target q_value'] = target_q_value[0].mean()
-        
+
         if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
