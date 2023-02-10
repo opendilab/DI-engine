@@ -39,6 +39,6 @@ cartpole_bc_create_config = EasyDict(cartpole_bc_create_config)
 create_config = cartpole_bc_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_offppo_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    # Note: Users need to generate expert data, and save the data to ``expert_data_path``
+    from ding.entry import serial_pipeline_bc
+    serial_pipeline_bc([main_config, create_config], seed=0, data_path=expert_data_path)
