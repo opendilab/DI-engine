@@ -14,7 +14,7 @@ from .default_wrapper import get_default_wrappers
 
 class DingEnvWrapper(BaseEnv):
 
-    def __init__(self, env: gym.Env = None, cfg: dict = None) -> None:
+    def __init__(self, env: gym.Env = None, cfg: dict = None, seed_api: bool = True) -> None:
         """
         You can pass in either an env instance, or a config to create an env instance:
             - An env instance: Parameter `env` must not be `None`, but should be the instance.
@@ -23,6 +23,7 @@ class DingEnvWrapper(BaseEnv):
         """
         self._raw_env = env
         self._cfg = cfg
+        self._seed_api = seed_api  # some env may disable `env.seed` api
         if self._cfg is None:
             self._cfg = dict()
         self._cfg = EasyDict(self._cfg)
@@ -72,10 +73,12 @@ class DingEnvWrapper(BaseEnv):
             self._replay_path = None
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
-            self._env.seed(self._seed + np_seed)
+            if self._seed_api:
+                self._env.seed(self._seed + np_seed)
             self._action_space.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
-            self._env.seed(self._seed)
+            if self._seed_api:
+                self._env.seed(self._seed)
             self._action_space.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs, np.float32)
@@ -97,7 +100,6 @@ class DingEnvWrapper(BaseEnv):
 
     # override
     def step(self, action: Union[np.int64, np.ndarray]) -> BaseEnvTimestep:
-        #print('action', action)
         action = self._judge_action_type(action)
         if self._cfg.act_scale:
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
@@ -112,7 +114,9 @@ class DingEnvWrapper(BaseEnv):
         elif isinstance(action, np.int64):
             return int(action)
         elif isinstance(action, np.ndarray):
-            if action.shape == (1, ) and action.dtype == np.int64:
+            if action.shape == ():
+                action = action.item()
+            elif action.shape == (1, ) and action.dtype == np.int64:
                 action = action.item()
             return action
         elif isinstance(action, dict):
@@ -193,4 +197,4 @@ class DingEnvWrapper(BaseEnv):
         return self._reward_space
 
     def clone(self) -> BaseEnv:
-        return DingEnvWrapper(self._raw_env, self._cfg)
+        return DingEnvWrapper(self._raw_env, self._cfg, self._seed_api)

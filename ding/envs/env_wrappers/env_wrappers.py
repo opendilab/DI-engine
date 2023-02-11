@@ -1042,6 +1042,30 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
         return obs, reward, done, info
 
 
+class TransposeWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+        old_space = copy.deepcopy(env.observation_space)
+        new_shape = (old_space.shape[-1], *old_space.shape[:-1])
+        self._observation_space = gym.spaces.Box(
+            low=old_space.low.min(), high=old_space.high.max(), shape=new_shape, dtype=old_space.dtype
+        )
+
+    def _process_obs(self, obs):
+        obs = to_ndarray(obs)
+        obs = np.transpose(obs, (2, 0, 1))
+        return obs
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        return self._process_obs(obs), reward, done, info
+
+    def reset(self):
+        obs = self.env.reset()
+        return self._process_obs(obs)
+
+
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """
     Overview:

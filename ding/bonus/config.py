@@ -1,6 +1,8 @@
 from easydict import EasyDict
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
+from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
+    EvalEpisodeReturnEnv, TransposeWrapper
 from ding.policy import PPOFPolicy
 
 
@@ -41,6 +43,39 @@ def get_instance_config(env: str) -> EasyDict:
             fixed_sigma_value=0.3,
             bound_type='tanh',
         )
+    elif env == 'evogym_carrier':
+        cfg.action_space = 'continuous'
+        cfg.n_sample = 2048
+        cfg.batch_size = 256
+        cfg.epoch_per_collect = 10
+        cfg.learning_rate = 3e-3
+    elif env == 'mario':
+        cfg.n_sample = 256
+        cfg.batch_size = 64
+        cfg.epoch_per_collect = 2
+        cfg.learning_rate = 1e-3
+        cfg.model = dict(
+            encoder_hidden_size_list=[64, 64, 128],
+            critic_head_hidden_size=128,
+            actor_head_hidden_size=128,
+        )
+    elif env == 'di_sheep':
+        cfg.n_sample = 3200
+        cfg.batch_size = 320
+        cfg.epoch_per_collect = 10
+        cfg.learning_rate = 3e-4
+        cfg.adv_norm = False
+        cfg.entropy_weight = 0.001
+    elif env == 'procgen_bigfish':
+        cfg.n_sample = 16384
+        cfg.batch_size = 16384
+        cfg.epoch_per_collect = 10
+        cfg.learning_rate = 5e-4
+        cfg.model = dict(
+            encoder_hidden_size_list=[64, 128, 256],
+            critic_head_hidden_size=256,
+            actor_head_hidden_size=256,
+        )
     else:
         raise KeyError("not supported env type: {}".format(env))
     return cfg
@@ -70,6 +105,40 @@ def get_instance_env(env: str) -> BaseEnv:
     elif env == 'hybrid_moving':
         import gym_hybrid
         return DingEnvWrapper(gym.make('Moving-v0'))
+    elif env == 'evogym_carrier':
+        import evogym.envs
+        return DingEnvWrapper(gym.make('Carrier-v0'))
+    elif env == 'mario':
+        import gym_super_mario_bros
+        from nes_py.wrappers import JoypadSpace
+        return DingEnvWrapper(
+            JoypadSpace(gym_super_mario_bros.make("SuperMarioBros-1-1-v1"), [["right"], ["right", "A"]]),
+            cfg={
+                'env_wrapper': [
+                    lambda env: MaxAndSkipWrapper(env, skip=4),
+                    lambda env: WarpFrameWrapper(env, size=84),
+                    lambda env: ScaledFloatFrameWrapper(env),
+                    lambda env: FrameStackWrapper(env, n_frames=4),
+                    lambda env: EvalEpisodeReturnEnv(env),
+                ]
+            }
+        )
+    elif env == 'di_sheep':
+        from sheep_env import SheepEnv
+        return SheepEnv(level=9)
+    elif env == 'procgen_bigfish':
+        return DingEnvWrapper(
+            gym.make('procgen:procgen-bigfish-v0', start_level=0, num_levels=1),
+            cfg={
+                'env_wrapper': [
+                    lambda env: TransposeWrapper(env),
+                    lambda env: ScaledFloatFrameWrapper(env),
+                    lambda env: EvalEpisodeReturnEnv(env),
+                ]
+            },
+            seed_api=False,
+        )
+        return DingEnvWrapper(gym.make('procgen:procgen-bigfish-v0', start_level=0, num_levels=1))
     else:
         raise KeyError("not supported env type: {}".format(env))
 
