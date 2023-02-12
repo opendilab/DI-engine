@@ -1066,6 +1066,28 @@ class TransposeWrapper(gym.Wrapper):
         return self._process_obs(obs)
 
 
+class TimeLimitWrapper(gym.Wrapper):
+
+    def __init__(self, env, max_limit):
+        super().__init__(env)
+        self.max_limit = max_limit
+
+    def reset(self):
+        self.time_count = 0
+        return self.env.reset()
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self.time_count += 1
+        if self.time_count >= self.max_limit:
+            done = True
+            info['time_limit'] = True
+        else:
+            info['time_limit'] = False
+        info['time_count'] = self.time_count
+        return obs, reward, done, info
+
+
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """
     Overview:

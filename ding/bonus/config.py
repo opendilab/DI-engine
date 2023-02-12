@@ -2,7 +2,7 @@ from easydict import EasyDict
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    EvalEpisodeReturnEnv, TransposeWrapper
+    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper
 from ding.policy import PPOFPolicy
 
 
@@ -119,6 +119,7 @@ def get_instance_env(env: str) -> BaseEnv:
                     lambda env: WarpFrameWrapper(env, size=84),
                     lambda env: ScaledFloatFrameWrapper(env),
                     lambda env: FrameStackWrapper(env, n_frames=4),
+                    lambda env: TimeLimitWrapper(env, max_limit=200),
                     lambda env: EvalEpisodeReturnEnv(env),
                 ]
             }
@@ -138,7 +139,6 @@ def get_instance_env(env: str) -> BaseEnv:
             },
             seed_api=False,
         )
-        return DingEnvWrapper(gym.make('procgen:procgen-bigfish-v0', start_level=0, num_levels=1))
     else:
         raise KeyError("not supported env type: {}".format(env))
 

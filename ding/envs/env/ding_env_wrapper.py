@@ -8,6 +8,7 @@ import treetensor.numpy as tnp
 from ding.envs.common.common_function import affine_transform
 from ding.envs.env_wrappers import create_env_wrapper
 from ding.torch_utils import to_ndarray
+from ding.utils import CloudPickleWrapper
 from .base_env import BaseEnv, BaseEnvTimestep
 from .default_wrapper import get_default_wrappers
 
@@ -197,5 +198,9 @@ class DingEnvWrapper(BaseEnv):
         return self._reward_space
 
     def clone(self) -> BaseEnv:
-        raw_env = copy.deepcopy(self._raw_env)
+        try:
+            raw_env = CloudPickleWrapper(self._raw_env)
+            raw_env = copy.deepcopy(raw_env).data
+        except Exception:
+            raw_env = self._raw_env
         return DingEnvWrapper(raw_env, self._cfg, self._seed_api)

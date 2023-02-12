@@ -20,7 +20,7 @@ class PPOF:
         # common
         'lunarlander_discrete',
         'lunarlander_continuous',
-        'bipedalwalker'
+        'bipedalwalker',
         # ch2: action
         'rocket_landing',
         'drone_fly',
