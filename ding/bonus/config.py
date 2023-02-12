@@ -1,4 +1,5 @@
 from easydict import EasyDict
+import os
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
@@ -107,7 +108,19 @@ def get_instance_env(env: str) -> BaseEnv:
         return DingEnvWrapper(gym.make('Moving-v0'))
     elif env == 'evogym_carrier':
         import evogym.envs
-        return DingEnvWrapper(gym.make('Carrier-v0'))
+        from evogym import sample_robot, WorldObject
+        path = os.path.join(os.path.dirname(__file__), '../../dizoo/evogym/envs/world_data/carry_bot.json')
+        robot_object = WorldObject.from_json(path)
+        body = robot_object.get_structure()
+        return DingEnvWrapper(
+            gym.make('Carrier-v0', body=body),
+            cfg={
+                'env_wrapper': [
+                    lambda env: TimeLimitWrapper(env, max_limit=300),
+                    lambda env: EvalEpisodeReturnEnv(env),
+                ]
+            }
+        )
     elif env == 'mario':
         import gym_super_mario_bros
         from nes_py.wrappers import JoypadSpace
