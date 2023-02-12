@@ -197,4 +197,5 @@ class DingEnvWrapper(BaseEnv):
         return self._reward_space
 
     def clone(self) -> BaseEnv:
-        return DingEnvWrapper(self._raw_env, self._cfg, self._seed_api)
+        raw_env = copy.deepcopy(self._raw_env)
+        return DingEnvWrapper(raw_env, self._cfg, self._seed_api)

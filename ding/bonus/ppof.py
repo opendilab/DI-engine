@@ -17,15 +17,15 @@ from .config import get_instance_config, get_instance_env, get_hybrid_shape
 
 class PPOF:
     supported_env_list = [
-        # tutorial
+        # common
         'lunarlander_discrete',
         'lunarlander_continuous',
-        'bipedalwalker',
-        # action
+        'bipedalwalker'
+        # ch2: action
         'rocket_landing',
         'drone_fly',
         'hybrid_moving',
-        # obs
+        # ch3: obs
         'evogym_carrier',
         'mario',
         'di_sheep',
@@ -37,6 +37,7 @@ class PPOF:
             env: Union[str, BaseEnv],
             seed: int = 0,
             exp_name: str = 'default_experiment',
+            model: Optional[torch.nn.Module] = None,
             cfg: Optional[EasyDict] = None
     ) -> None:
         if isinstance(env, str):
@@ -64,9 +65,10 @@ class PPOF:
             action_shape = get_hybrid_shape(action_space)
         else:
             action_shape = action_space.shape
-        model = PPOFModel(
-            self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
-        )
+        if model is None:
+            model = PPOFModel(
+                self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
+            )
         self.policy = PPOFPolicy(self.cfg, model=model)
 
     def train(

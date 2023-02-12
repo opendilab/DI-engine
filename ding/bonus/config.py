@@ -125,7 +125,7 @@ def get_instance_env(env: str) -> BaseEnv:
         )
     elif env == 'di_sheep':
         from sheep_env import SheepEnv
-        return SheepEnv(level=9)
+        return DingEnvWrapper(SheepEnv(level=9))
     elif env == 'procgen_bigfish':
         return DingEnvWrapper(
             gym.make('procgen:procgen-bigfish-v0', start_level=0, num_levels=1),
