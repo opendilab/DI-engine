@@ -133,6 +133,7 @@ class RndRewardModel(BaseRewardModel):
             # Note: according to the min-max normalization, transform rnd reward to [0,1]
             rnd_reward = (mse - mse.min()) / (mse.max() - mse.min() + 1e-8)
 
+            # save the rnd_reward statistics into tb_logger
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', rnd_reward.max(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', rnd_reward.mean(), self.estimate_cnt_rnd)
@@ -162,11 +163,12 @@ class RndRewardModel(BaseRewardModel):
             elif self.intrinsic_reward_type == 'assign':
                 item['reward'] = rnd_rew
 
-        rew = [item['reward'] for item in train_data_augmented]
-        self.tb_logger.add_scalar('rnd_reward/reward_max', np.max(rew), self.estimate_cnt_rnd)
-        self.tb_logger.add_scalar('rnd_reward/reward_mean', np.mean(rew), self.estimate_cnt_rnd)
-        self.tb_logger.add_scalar('rnd_reward/reward_min', np.min(rew), self.estimate_cnt_rnd)
-        self.tb_logger.add_scalar('rnd_reward/reward_min', np.std(rew), self.estimate_cnt_rnd)
+        # save the augmented_reward statistics into tb_logger
+        rew = [item['reward'].cpu().numpy() for item in train_data_augmented]
+        self.tb_logger.add_scalar('augmented_reward/reward_max', np.max(rew), self.estimate_cnt_rnd)
+        self.tb_logger.add_scalar('augmented_reward/reward_mean', np.mean(rew), self.estimate_cnt_rnd)
+        self.tb_logger.add_scalar('augmented_reward/reward_min', np.min(rew), self.estimate_cnt_rnd)
+        self.tb_logger.add_scalar('augmented_reward/reward_std', np.std(rew), self.estimate_cnt_rnd)
         return train_data_augmented
 
     def collect_data(self, data: list) -> None:
