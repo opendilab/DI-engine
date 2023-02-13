@@ -9,21 +9,48 @@ import numpy as np
 from ding.envs.env.base_env import BaseEnvTimestep
 from ding.envs.common.env_element import EnvElementInfo
 from ding.torch_utils.data_helper import to_ndarray
-from dizoo.metadrive.env.drive_utils import BaseDriveEnv, deep_merge_dicts
+from ding.utils.default_helper import deep_merge_dicts
+from dizoo.metadrive.env.drive_utils import BaseDriveEnv
+
+
+def draw_multi_channels_top_down_observation(obs, show_time=0.5):
+    num_channels = obs.shape[-1]
+    assert num_channels == 5
+    channel_names = [
+        "Road and navigation", "Ego now and previous pos", "Neighbor at step t", "Neighbor at step t-1",
+        "Neighbor at step t-2"
+    ]
+    fig, axs = plt.subplots(1, num_channels, figsize=(15, 4), dpi=80)
+    count = 0
+
+    def close_event():
+        plt.close()
+
+    timer = fig.canvas.new_timer(interval=show_time * 1000)
+    timer.add_callback(close_event)
+    for i, name in enumerate(channel_names):
+        count += 1
+        ax = axs[i]
+        ax.imshow(obs[..., i], cmap="bone")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title(name)
+    fig.suptitle("Multi-channels Top-down Observation")
+    timer.start()
+    plt.show()
+    plt.close()
 
 
 class DriveEnvWrapper(gym.Wrapper):
     """
-    Environment wrapper to make ``gym.Env`` align with DI-engine definitions, so as to use utilities in DI-engine.
-    It changes ``step``, ``reset`` and ``info`` method of ``gym.Env``, while others are straightly delivered.
+    Overview:
+        Environment wrapper to make ``gym.Env`` align with DI-engine definitions, so as to use utilities in DI-engine.
+        It changes ``step``, ``reset`` and ``info`` method of ``gym.Env``, while others are straightly delivered.
 
-    :Arguments:
+    Arguments:
         - env (BaseDriveEnv): The environment to be wrapped.
         - cfg (Dict): Config dict.
-
-    :Interfaces: reset, step, info, render, seed, close
     """
-
     config = dict()
 
     def __init__(self, env: BaseDriveEnv, cfg: Dict = None, **kwargs) -> None:
@@ -36,17 +63,21 @@ class DriveEnvWrapper(gym.Wrapper):
             self._cfg = cfg
         self.env = env
         if not hasattr(self.env, 'reward_space'):
-            self.reward_space = gym.spaces.Box(low=-float('inf'), high=float('inf'), shape=(1,))
+            self.reward_space = gym.spaces.Box(low=-float('inf'), high=float('inf'), shape=(1, ))
+        if 'show_bird_view' in self._cfg and self._cfg['show_bird_view'] is True:
+            self.show_bird_view = True
+        else:
+            self.show_bird_view = False
         self.action_space = self.env.action_space
         self.env = env
 
     def reset(self, *args, **kwargs) -> Any:
         """
-        Wrapper of ``reset`` method in env. The observations are converted to ``np.ndarray`` and final reward
-        are recorded.
-
-        :Returns:
-            Any: Observations from environment
+        Overview:
+            Wrapper of ``reset`` method in env. The observations are converted to ``np.ndarray`` and final reward
+            are recorded.
+        Returns:
+            - Any: Observations from environment
         """
         obs = self.env.reset(*args, **kwargs)
         obs = to_ndarray(obs, dtype=np.float32)
@@ -54,7 +85,7 @@ class DriveEnvWrapper(gym.Wrapper):
             obs = obs.transpose((2, 0, 1))
         elif isinstance(obs, dict):
             vehicle_state = obs['vehicle_state']
-            birdview = obs['birdview'].transpose((2,0,1))
+            birdview = obs['birdview'].transpose((2, 0, 1))
             obs = {'vehicle_state': vehicle_state, 'birdview': birdview}
         self._final_eval_reward = 0.0
         self._arrive_dest = False
@@ -62,27 +93,27 @@ class DriveEnvWrapper(gym.Wrapper):
 
     def step(self, action: Any = None) -> BaseEnvTimestep:
         """
-        Wrapper of ``step`` method in env. This aims to convert the returns of ``gym.Env`` step method into
-        that of ``ding.envs.BaseEnv``, from ``(obs, reward, done, info)`` tuple to a ``BaseEnvTimestep``
-        namedtuple defined in DI-engine. It will also convert actions, observations and reward into
-        ``np.ndarray``, and check legality if action contains control signal.
-
-        :Arguments:
+        Overview:
+            Wrapper of ``step`` method in env. This aims to convert the returns of ``gym.Env`` step method into
+            that of ``ding.envs.BaseEnv``, from ``(obs, reward, done, info)`` tuple to a ``BaseEnvTimestep``
+            namedtuple defined in DI-engine. It will also convert actions, observations and reward into
+            ``np.ndarray``, and check legality if action contains control signal.
+        Arguments:
             - action (Any, optional): Actions sent to env. Defaults to None.
-
-        :Returns:
-            BaseEnvTimestep: DI-engine format of env step returns.
+        Returns:
+            - BaseEnvTimestep: DI-engine format of env step returns.
         """
         action = to_ndarray(action)
         obs, rew, done, info = self.env.step(action)
-        #draw_multi_channels_top_down_observation(obs, show_time=4.5)
+        if self.show_bird_view:
+            draw_multi_channels_top_down_observation(obs, show_time=0.5)
         self._final_eval_reward += rew
         obs = to_ndarray(obs, dtype=np.float32)
         if isinstance(obs, np.ndarray) and len(obs.shape) == 3:
             obs = obs.transpose((2, 0, 1))
         elif isinstance(obs, dict):
             vehicle_state = obs['vehicle_state']
-            birdview = obs['birdview'].transpose((2,0,1))
+            birdview = obs['birdview'].transpose((2, 0, 1))
             obs = {'vehicle_state': vehicle_state, 'birdview': birdview}
         rew = to_ndarray([rew], dtype=np.float32)
         if done:

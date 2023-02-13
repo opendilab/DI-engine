@@ -11,30 +11,29 @@ from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseL
 from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
 from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
 
-
 metadrive_basic_config = dict(
-    exp_name='train_ppo_metadrive',
+    exp_name='metadrive_onppo_seed0',
     env=dict(
         metadrive=dict(
-            use_render = False,
-            traffic_density=0.10,
-            map = 'XSOS',
-            horizon = 4000,
-            driving_reward = 1.0,
-            speed_reward = 0.1,
-            out_of_road_penalty = 40.0,
-            crash_vehicle_penalty = 40.0,
-            decision_repeat=20,
-            use_lateral_reward=False,
-            out_of_route_done = True,
-            ),
+            use_render=False,
+            traffic_density=0.10,  # Density of vehicles occupying the roads, range in [0,1]
+            map='XSOS',  # Int or string: an easy way to fill map_config
+            horizon=4000,  # Max step number
+            driving_reward=1.0,  # Reward to encourage agent to move forward.
+            speed_reward=0.1,  # Reward to encourage agent to drive at a high speed
+            use_lateral_reward=False,  # reward for lane keeping
+            out_of_road_penalty=40.0,  # Penalty to discourage driving out of road
+            crash_vehicle_penalty=40.0,  # Penalty to discourage collision
+            decision_repeat=20,  # Reciprocal of decision frequency
+            out_of_route_done=True,  # Game over if driving out of road
+        ),
         manager=dict(
             shared_memory=False,
             max_retry=2,
             context='spawn',
         ),
         n_evaluator_episode=16,
-        stop_value=99999,
+        stop_value=255,
         collector_env_num=8,
         evaluator_env_num=8,
     ),
@@ -52,27 +51,23 @@ metadrive_basic_config = dict(
             epoch_per_collect=10,
             batch_size=64,
             learning_rate=3e-4,
-            entropy_weight = 0.001,
+            entropy_weight=0.001,
             value_weight=0.5,
-            clip_ratio = 0.02,
+            clip_ratio=0.02,
             adv_norm=False,
             value_norm=True,
             grad_clip_value=10,
         ),
-        collect=dict(
-            n_sample=3000,
-        ),
-        eval=dict(
-            evaluator=dict(
-                eval_freq=1000,
-            ),
-        ),
+        collect=dict(n_sample=3000, ),
+        eval=dict(evaluator=dict(eval_freq=1000, ), ),
     ),
 )
 main_config = EasyDict(metadrive_basic_config)
 
+
 def wrapped_env(env_cfg, wrapper_cfg=None):
     return DriveEnvWrapper(MetaDrivePPOOriginEnv(env_cfg), wrapper_cfg)
+
 
 def main(cfg):
     cfg = compile_config(
@@ -106,6 +101,7 @@ def main(cfg):
         # Sampling data from environments
         new_data = collector.collect(cfg.policy.collect.n_sample, train_iter=learner.train_iter)
         learner.train(new_data, collector.envstep)
+    learner.call_hook('after_run')
     collector.close()
     evaluator.close()
     learner.close()

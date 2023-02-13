@@ -8,13 +8,15 @@ import gym
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
+from ding.utils.default_helper import deep_merge_dicts
 
 
 class AAA():
+
     def __init__(self) -> None:
         self.x = 0
-        
-        
+
+
 def deep_update(
     original: dict,
     new_dict: dict,
@@ -67,37 +69,8 @@ def deep_update(
             original[k] = value
     return original
 
-def deep_merge_dicts(original: dict, new_dict: dict) -> dict:
-    """
-    Overview:
-        merge two dict using deep_update
-    Arguments:
-        - original (:obj:`dict`): Dict 1.
-        - new_dict (:obj:`dict`): Dict 2.
-    Returns:
-        - (:obj:`dict`): A new dict that is d1 and d2 deeply merged.
-    """
-    original = original or {}
-    new_dict = new_dict or {}
-    merged = copy.deepcopy(original)
-    if new_dict:  # if new_dict is neither empty dict nor None
-        deep_update(merged, new_dict, True, [])
-    return EasyDict(merged)
-
 
 class BaseDriveEnv(gym.Env, utils.EzPickle):
-    """
-    Base class for environments. It is inherited from `gym.Env` and uses the same interfaces.
-    All Drive Env class is supposed to inherit from this class.
-
-    Note:
-        To run Reinforcement Learning on DI-engine platform, the environment should be wrapped with `DingEnvWrapper`.
-
-    :Arguments:
-        - cfg (Dict): Config Dict.
-
-    :Interfaces: reset, step, close, seed
-    """
     config = dict()
 
     @abstractmethod

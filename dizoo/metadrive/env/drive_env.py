@@ -19,7 +19,6 @@ from metadrive.obs.top_down_obs_multi_channel import TopDownMultiChannel
 from metadrive.component.road_network import Road
 from metadrive.component.algorithm.blocks_prob_dist import PGBlockDistConfig
 
-
 METADRIVE_DEFAULT_CONFIG = dict(
     # ===== Generalization =====
     start_seed=0,
@@ -89,10 +88,12 @@ METADRIVE_DEFAULT_CONFIG = dict(
     # ===== Termination Scheme =====
     out_of_route_done=False,
     on_screen=False,
+    show_bird_view=False,
 )
 
 
 class MetaDrivePPOOriginEnv(BaseEnv):
+
     @classmethod
     def default_config(cls) -> "Config":
         config = super(MetaDrivePPOOriginEnv, cls).default_config()
@@ -144,7 +145,7 @@ class MetaDrivePPOOriginEnv(BaseEnv):
             target_v_config.update(config["target_vehicle_configs"][DEFAULT_AGENT])
             config["target_vehicle_configs"][DEFAULT_AGENT] = target_v_config
         return config
-    
+
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
         actions = self._preprocess_actions(actions)
         engine_info = self._step_simulator(actions)
@@ -326,7 +327,7 @@ class MetaDrivePPOOriginEnv(BaseEnv):
 
     def _get_observations(self):
         return {DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
-    
+
     def get_single_observation(self, _=None):
         return TopDownMultiChannel(
             self.config["vehicle_config"],
@@ -338,8 +339,3 @@ class MetaDrivePPOOriginEnv(BaseEnv):
             resolution=(84, 84),
             max_distance=36,
         )
-
-register(
-    id='metadrive-ppo-v1',
-    entry_point='core.envs.md_traj_env:MetaDrivePPOOriginEnv',
-)
