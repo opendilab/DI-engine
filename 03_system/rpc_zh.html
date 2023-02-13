@@ -1,0 +1,866 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>高性能RPC框架 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="最佳实践" href="../04_best_practice/index_zh.html" />
+  <link rel="prev" title="分布式" href="distributed_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">系统设计</a> &gt;</li>
+        
+      <li>高性能RPC框架</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/03_system/rpc_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="rpc">
+<h1>高性能RPC框架<a class="headerlink" href="#rpc" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<section id="id1">
+<h2>简介<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>DI-engine 集成了 <a class="reference external" href="https://pytorch.org/docs/stable/rpc.html">torch.distributed.rpc</a>  模块， torchrpc 专注于高性能 P2P 的 RPC 通信，其可以自动选择最佳的通信策略（ NVLINK ，共享内存， RDMA 或是 TCP ），并且支持 <a class="reference external" href="https://docs.nvidia.com/cuda/gpudirect-rdma/">GPU direct RDMA</a> 技术。
+如果您的集群配备有 InfiniBand/RoCE 网络，则非常建议您使用 torchrpc 作为 DI-engine 的消息队列通信实现；即使没有， torchrpc 实现的多线程 TCP-RPC 通信性能也要优于过去 DI-engine 基于 NNG 的消息队列实现。</p>
+<a class="reference internal image-reference" href="../_images/rpc.png"><img alt="../_images/rpc.png" class="align-center" src="../_images/rpc.png" style="width: 600px;" /></a>
+<section id="nccl">
+<h3>为什么不是NCCL<a class="headerlink" href="#nccl" title="Permalink to this headline">¶</a></h3>
+<p>NCCL 作为广泛使用的高性能集合通信库，其专注于诸如 AllReduce 等集合通信范式，但却不擅长进行任意消息类型的高性能P2P通信，而 torchrpc 填补了这一空白。
+下表给出了其和 NCCL 的一些对比：</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>对比</p></th>
+<th class="head"><p>NCCL</p></th>
+<th class="head"><p>torchrpc</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>支持GPU数据的RDMA-P2P</p></td>
+<td><p>True</p></td>
+<td><p>True</p></td>
+</tr>
+<tr class="row-odd"><td><p>支持CPU数据的RDMA-P2P</p></td>
+<td><p>False</p></td>
+<td><p>True</p></td>
+</tr>
+<tr class="row-even"><td><p>支持传输的对象类型</p></td>
+<td><p>只支持tensor</p></td>
+<td><p>任意python对象</p></td>
+</tr>
+<tr class="row-odd"><td><p>适用场景</p></td>
+<td><p>集合通讯</p></td>
+<td><p>点对点通信</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id2">
+<h3>性能测试<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>测试环境：配备有 A100-80GB GPU 和 200G 的 Infiniband 网卡的K8S集群</p>
+<section id="p2p">
+<h4>跨节点 P2P 测试<a class="headerlink" href="#p2p" title="Permalink to this headline">¶</a></h4>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>test
+case(unit:ms)</p></th>
+<th class="head"><p>20
+.00
+KB</p></th>
+<th class="head"><p>1
+.25
+MB</p></th>
+<th class="head"><p>10
+.00
+MB</p></th>
+<th class="head"><p>40
+.00
+M</p></th>
+<th class="head"><p>64
+0.00
+M</p></th>
+<th class="head"><p>1.
+25GB</p></th>
+<th class="head"><p>2.50
+GB</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>nng-TCP</p></td>
+<td><p>5.7
+353</p></td>
+<td><p>9.6
+782</p></td>
+<td><p>3
+0.5
+187</p></td>
+<td><p>17
+2.9
+719</p></td>
+<td><p>3
+450.
+7418</p></td>
+<td><p>7
+083.
+6372</p></td>
+<td><p>14072
+.1213</p></td>
+</tr>
+<tr class="row-odd"><td><p>nccl-TCP</p></td>
+<td><p>0.0
+826</p></td>
+<td><p>1.
+321</p></td>
+<td><p>3
+1.7
+813</p></td>
+<td><p>12
+8.0
+672</p></td>
+<td><p>125
+9.72</p></td>
+<td><p>2
+477.
+2957</p></td>
+<td><p>5157
+.7578</p></td>
+</tr>
+<tr class="row-even"><td><p>nccl-IB</p></td>
+<td><p>0.0
+928</p></td>
+<td><p>0.5
+618</p></td>
+<td><p>2.1
+134</p></td>
+<td><p>7.1
+768</p></td>
+<td><p>120
+.131</p></td>
+<td><p>260.
+2628</p></td>
+<td><p>518
+.8091</p></td>
+</tr>
+<tr class="row-odd"><td><p>nccl-GDR
+(PXN&lt;-&gt;PXN)</p></td>
+<td><p>0.5
+541</p></td>
+<td><p>45.
+601</p></td>
+<td><p>9.3
+636</p></td>
+<td><p>1
+9.3
+071</p></td>
+<td><p>10
+8.11</p></td>
+<td><p>280.
+0556</p></td>
+<td><p>527
+.9732</p></td>
+</tr>
+<tr class="row-even"><td><p>torchrpc-TCP</p></td>
+<td><p>5.6
+691</p></td>
+<td><p>5.4
+707</p></td>
+<td><p>1
+4.0
+155</p></td>
+<td><p>3
+9.4
+443</p></td>
+<td><p>580
+.333</p></td>
+<td><p>1
+154.
+0793</p></td>
+<td><p>2297
+.3776</p></td>
+</tr>
+<tr class="row-odd"><td><p>torchrpc-IB</p></td>
+<td><p>2
+1.3
+884</p></td>
+<td><p>4.4
+093</p></td>
+<td><p>5.9
+105</p></td>
+<td><p>2
+2.3
+012</p></td>
+<td><p>130
+.249</p></td>
+<td><p>236.
+8084</p></td>
+<td><p>477
+.2389</p></td>
+</tr>
+<tr class="row-even"><td><p>torchrpc-GDR
+(PXN&lt;-&gt;PXN)</p></td>
+<td><p>2
+0.5
+018</p></td>
+<td><p>2
+3.2
+081</p></td>
+<td><p>1
+5.6
+427</p></td>
+<td><p>7.
+535
+7*</p></td>
+<td><p>48.
+7812</p></td>
+<td><p>77.
+2657</p></td>
+<td><p>143
+.4112</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id3">
+<h4>节点内 P2P 测试<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 10%" />
+<col style="width: 11%" />
+<col style="width: 10%" />
+<col style="width: 11%" />
+<col style="width: 10%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>test
+case(unit:ms)</p></th>
+<th class="head"><p>1.25
+KB</p></th>
+<th class="head"><p>20.00
+KB</p></th>
+<th class="head"><p>1.25
+MB</p></th>
+<th class="head"><p>10.00
+MB</p></th>
+<th class="head"><p>4
+0.00
+M</p></th>
+<th class="head"><p>6
+40.00
+M</p></th>
+<th class="head"><p>1
+.25GB</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>shm</p></td>
+<td><p>0.
+3605</p></td>
+<td><p>0.352</p></td>
+<td><p>0.
+9924</p></td>
+<td><p>7
+.1229</p></td>
+<td><p>47.
+9575</p></td>
+<td><p>798
+.8635</p></td>
+<td><p>154
+8.782</p></td>
+</tr>
+<tr class="row-odd"><td><p>nccl-nvlink</p></td>
+<td><p>0.
+1969</p></td>
+<td><p>0
+.1104</p></td>
+<td><p>0.
+2162</p></td>
+<td><p>0
+.3285</p></td>
+<td><p>0.
+4532</p></td>
+<td><p>3
+.3166</p></td>
+<td><p>5
+.3828</p></td>
+</tr>
+<tr class="row-even"><td><p>cud
+a-shared-tensor</p></td>
+<td><p>0.
+5307</p></td>
+<td><p>0.578</p></td>
+<td><p>0.
+9643</p></td>
+<td><p>0
+.5908</p></td>
+<td><p>1.
+2449</p></td>
+<td><p>5
+.3707</p></td>
+<td><p>9.686</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="atari">
+<h4>Atari 训练任务测试<a class="headerlink" href="#atari" title="Permalink to this headline">¶</a></h4>
+<p>测试代码： dizoo/atari/example/atari_dqn_dist_rdma.py</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>memory: “32Gi”</p></li>
+<li><p>cpu:  16</p></li>
+<li><p>gpu: A100</p></li>
+</ul>
+</div></blockquote>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 49%" />
+<col style="width: 51%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>test case(unit:s)</p></th>
+<th class="head"><p>100 epoch avg time</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TCP-nng</p></td>
+<td><p>127.64</p></td>
+</tr>
+<tr class="row-odd"><td><p>torchrpc-CP</p></td>
+<td><p>29.3906</p></td>
+</tr>
+<tr class="row-even"><td><p>torchrpc-IB</p></td>
+<td><p>28.7763</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+<section id="id4">
+<h2>使用<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>cli-ditask 引入了新的命令行参数：</p>
+<ul>
+<li><p>–mq_type ：引入了 cuda 和 torchrpc:cpu 选项：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>cuda ：使用 torchrpc ，需要设置 device_map ，如果集群配置了 GPU direct RDMA 则可以自动使用。</p></li>
+<li><p>torchrpc:cpu ：使用 torchrpc ，但不设置 device_map 。 GPU数据会被拷贝到内存进行通信。</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>–init-method ：init_rpc的初始化入口（如果选择 torchrpc 作为后端则为必填项），同 <a class="reference external" href="https://pytorch.org/docs/stable/rpc.html#torch.distributed.rpc.init_rpc">torch.distributed.init_process_group</a> 中的 init-method 参数。</p></li>
+<li><p>–local-cuda-devices ：设置当前进程可用GPU设备（可选，只有在 mq_type 为 cuda 有效，默认为所有可见设备），用逗号分隔的 int 列表。</p></li>
+<li><p>–cuda-device-map ：用于设置 torchrpc 的 <a class="reference external" href="https://pytorch.org/tutorials/recipes/cuda_rpc.html">device_map</a>，（可选，只有在 mq_type 为 cuda 有效，默认会映射全部可用 GPU ，使得各 GPU 之间可以 P2P ），格式如下：</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Format:
+&lt;Peer<span class="w"> </span>Node<span class="w"> </span>ID&gt;_&lt;Local<span class="w"> </span>GPU<span class="w"> </span>Local<span class="w"> </span>Rank&gt;_&lt;Peer<span class="w"> </span>GPU<span class="w"> </span>Local<span class="w"> </span>Rank&gt;,<span class="o">[</span>...<span class="o">]</span>
+example:
+--cuda-device-map<span class="o">=</span>1_0_1,2_0_2,0_0_0
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>一个具体的例子：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">INIT_METHOD</span><span class="o">=</span><span class="s2">&quot;tcp://XX.XX.XX.XX:12345&quot;</span>
+
+<span class="c1"># learner 位于节点 0 ，使用 GPU0 ，并建立和节点1的GPU0间的P2P映射</span>
+ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--main<span class="w"> </span>atari_dqn_dist_rdma.main<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--parallel-workers<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--labels<span class="w"> </span>learner<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--mq-type<span class="w"> </span>torchrpc:cuda<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--init-method<span class="o">=</span><span class="si">${</span><span class="nv">INIT_METHOD</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cuda-device-map<span class="w"> </span>1_0_0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--node-ids<span class="w"> </span><span class="m">0</span>
+
+<span class="c1"># collector 位于节点 1 ，使用 GPU0 ，并建立和节点0的GPU0间的P2P映射</span>
+ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--main<span class="w"> </span>atari_dqn_dist_rdma.main<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--parallel-workers<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--labels<span class="w"> </span>collector<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--mq-type<span class="w"> </span>torchrpc<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--init-method<span class="o">=</span><span class="si">${</span><span class="nv">INIT_METHOD</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--global_rank<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--attach-to<span class="w"> </span>0_0_0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--node-ids<span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h2>注意事项<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>如果您在K8S或其他容器集群环境下使用 DI-engine ，请使用 opendilab 提供的镜像，或参照此处的 <a class="reference external" href="https://github.com/SolenoidWGT/DI-engine/blob/p2p-rpc-dockerfile/docker/Dockerfile.rpc">Dockerfile</a> 。否则 torchrpc 可能无法正常工作。</p>
+<section id="ib">
+<h3>多IB设备<a class="headerlink" href="#ib" title="Permalink to this headline">¶</a></h3>
+<p>如果您的集群环境有多张 HCA 设备，torchrpc 可能不会正常工作，这一问题是由 torchrpc 底层的 <a class="reference external" href="https://github.com/pytorch/tensorpipe">tensorpip</a> 代码缺陷导致的，我们在 opendilab 的镜像中修复了这一问题。如果您无法使用我们的镜像，请保证您机器上的 HCA 的端口都处于可用状态。</p>
+</section>
+<section id="id6">
+<h3>容器环境<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>torchrpc 无法判断自己是否处于容器环境，我们的opendilab的镜像增加了容器环境的判断功能，避免 torchrpc 在容器环境下进行 GPU 设备映射导致的初始化错误。</p>
+</section>
+<section id="fork">
+<h3>和fork()混合使用<a class="headerlink" href="#fork" title="Permalink to this headline">¶</a></h3>
+<p>torchrpc 没有考虑到进程混合使用 RDMA 和 fork 的情况。如果在使用 RDMA 时没有进行相应的初始化措施，使用 fork 会出现严重问题， <a class="reference external" href="https://www.rdmamojo.com/2012/05/24/ibv_fork_init/">请参考</a>。
+因此，如果您在 IB/RoCE 网络环境下使用 torchrpc，并需要配合 fork 混合使用，请指定环境变量 <cite>IBV_FORK_SAFE=1</cite> 和 <cite>RDMAV_FORK_SAFE=1</cite>。</p>
+</section>
+<section id="id8">
+<h3>反馈<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>因为目前 tensorpipe 不会有活跃的开发计划， 如果您遇到和 torchrpc 有关的问题或 bug ， 您可以在 DI-engine 社区中提 issue 。
+同时我们正在积极和 tensorpipe 社区沟通并跟踪上述问题的修复情况，如果有任何修复我们会第一时间进行更新。</p>
+</section>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../04_best_practice/index_zh.html" class="btn btn-neutral float-right" title="最佳实践" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="distributed_zh.html" class="btn btn-neutral" title="分布式" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">高性能RPC框架</a><ul>
+<li><a class="reference internal" href="#id1">简介</a><ul>
+<li><a class="reference internal" href="#nccl">为什么不是NCCL</a></li>
+<li><a class="reference internal" href="#id2">性能测试</a><ul>
+<li><a class="reference internal" href="#p2p">跨节点 P2P 测试</a></li>
+<li><a class="reference internal" href="#id3">节点内 P2P 测试</a></li>
+<li><a class="reference internal" href="#atari">Atari 训练任务测试</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">使用</a></li>
+<li><a class="reference internal" href="#id5">注意事项</a><ul>
+<li><a class="reference internal" href="#ib">多IB设备</a></li>
+<li><a class="reference internal" href="#id6">容器环境</a></li>
+<li><a class="reference internal" href="#fork">和fork()混合使用</a></li>
+<li><a class="reference internal" href="#id8">反馈</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

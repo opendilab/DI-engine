@@ -6,3 +6,5 @@
 
    middleware_zh
    distributed_zh
+   rpc_zh
+
