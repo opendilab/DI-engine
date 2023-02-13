@@ -303,7 +303,6 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">cloudpickle</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">treetensor.numpy</span> <span class="k">as</span> <span class="nn">tnp</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -312,7 +311,7 @@
 
 <span class="kn">from</span> <span class="nn">ding.envs.env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PropagatingThread</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">make_key_as_identifier</span><span class="p">,</span> \
-    <span class="n">remove_illegal_item</span>
+    <span class="n">remove_illegal_item</span><span class="p">,</span> <span class="n">CloudPickleWrapper</span>
 <span class="kn">from</span> <span class="nn">.base_env_manager</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">EnvState</span><span class="p">,</span> <span class="n">timeout_wrapper</span>
 
 
@@ -323,25 +322,6 @@
         <span class="k">return</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abnormal&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abnormal&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid env timestep type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">)))</span>
-
-
-<span class="k">class</span> <span class="nc">CloudPickleWrapper</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
-
-    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cloudpickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>  <span class="c1"># pickle is faster</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cloudpickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AsyncSubprocessEnvManager"><a class="viewcode-back" href="../../../../05_api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;async_subprocess&#39;</span><span class="p">)</span>

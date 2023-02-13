@@ -292,7 +292,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.model.common.encoder</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
 <span class="kn">import</span> <span class="nn">operator</span>
 <span class="kn">import</span> <span class="nn">math</span>
@@ -464,8 +464,11 @@
 
 
 <div class="viewcode-block" id="StructEncoder"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.StructEncoder">[docs]</a><span class="k">class</span> <span class="nc">StructEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="c1"># TODO(nyz)</span>
-    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="StructEncoder.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.StructEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">StructEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># TODO concrete implementation</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">IMPALACnnResidualBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
