@@ -9,7 +9,6 @@ import gym
 import traceback
 import torch
 import pickle
-import cloudpickle
 import numpy as np
 import treetensor.numpy as tnp
 from easydict import EasyDict
@@ -18,7 +17,7 @@ from ding.data import ShmBufferContainer, ShmBuffer
 
 from ding.envs.env import BaseEnvTimestep
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY, make_key_as_identifier, \
-    remove_illegal_item
+    remove_illegal_item, CloudPickleWrapper
 from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
 
 
@@ -29,25 +28,6 @@ def is_abnormal_timestep(timestep: namedtuple) -> bool:
         return timestep.info[0].get('abnormal', False) or timestep.info[1].get('abnormal', False)
     else:
         raise TypeError("invalid env timestep type: {}".format(type(timestep.info)))
-
-
-class CloudPickleWrapper:
-    """
-    Overview:
-        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
-    """
-
-    def __init__(self, data: Any) -> None:
-        self.data = data
-
-    def __getstate__(self) -> bytes:
-        return cloudpickle.dumps(self.data)
-
-    def __setstate__(self, data: bytes) -> None:
-        if isinstance(data, (tuple, list, np.ndarray)):  # pickle is faster
-            self.data = pickle.loads(data)
-        else:
-            self.data = cloudpickle.loads(data)
 
 
 @ENV_MANAGER_REGISTRY.register('async_subprocess')
