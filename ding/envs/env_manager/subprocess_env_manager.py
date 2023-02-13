@@ -804,19 +804,22 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             sleep_count += 1
         return tnp.stack([tnp.array(self._ready_obs[i]) for i in self.ready_env])
 
-    def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
+    def step(self, actions: Union[List[tnp.ndarray], tnp.ndarray]) -> List[tnp.ndarray]:
         """
         Overview:
             Execute env step according to input actions. And reset an env if done.
         Arguments:
-            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy
+            - actions (:obj:`Union[List[tnp.ndarray], tnp.ndarray]`): actions came from outer caller like policy.
         Returns:
             - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
                 info, env_id.
         """
-        # zip operation will lead to wrong behaviour if not split data
-        split_action = tnp.split(actions, actions.shape[0])
-        split_action = [s.squeeze(0) for s in split_action]
+        if isinstance(actions, tnp.ndarray):
+            # zip operation will lead to wrong behaviour if not split data
+            split_action = tnp.split(actions, actions.shape[0])
+            split_action = [s.squeeze(0) for s in split_action]
+        else:
+            split_action = actions
         actions = {env_id: a for env_id, a in zip(self.ready_obs_id, split_action)}
         timesteps = super().step(actions)
         new_data = []

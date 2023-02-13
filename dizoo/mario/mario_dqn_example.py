@@ -4,7 +4,7 @@ from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    EvalEpisodeReturnEnv
+    EvalEpisodeReturnEnv, TimeLimitWrapper
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
@@ -26,6 +26,7 @@ def wrapped_mario_env():
                 lambda env: WarpFrameWrapper(env, size=84),
                 lambda env: ScaledFloatFrameWrapper(env),
                 lambda env: FrameStackWrapper(env, n_frames=4),
+                lambda env: TimeLimitWrapper(env, max_limit=400),
                 lambda env: EvalEpisodeReturnEnv(env),
             ]
         }
@@ -57,7 +58,7 @@ def main():
         task.use(nstep_reward_enhancer(cfg))
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(cfg, policy, train_freq=1000))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
         task.run()
 
 

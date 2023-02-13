@@ -47,7 +47,7 @@ def main():
             task.use(gae_estimator(cfg, policy.collect_mode))
             task.use(multistep_trainer(cfg, policy.learn_mode))
             if rank == 0:
-                task.use(CkptSaver(cfg, policy, train_freq=1000))
+                task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
             task.use(ddp_termination_checker(max_env_step=int(1e7), rank=rank))
             task.run()
 
