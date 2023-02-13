@@ -136,11 +136,15 @@ def rolloutor(
             # torchrpc currently uses "cuda:0" as the transmission device by default,
             # so all data on the cpu side is copied to "cuda:0" here. In fact this
             # copy is unnecessary, because torchrpc can support both cpu side and gpu
-            # side data to communicate using RDMA, but mixing the two transfer types
-            # will cause a bug, see issue:
-            # Because we have copied the large payload "obs" and "next_obs" from the
-            # collector's subprocess to "cuda:0" in advance, the copy operation here
-            # will not have too much overhead.
+            # side data to communicate using RDMA.
+            # But we met a bug in unittest, see: https://github.com/pytorch/pytorch/issues/57136
+            # We adopted some strategies to avoid bug.
+            # 1. Try not to mix cpu and gpu arg in one rpc.
+            #   Because we have copied the large payload "obs" and "next_obs" from the
+            #   collector's subprocess to "cuda:0" in advance, the copy operation here
+            #   will not have too much overhead.
+            # 2. Don't make tensor size too small when using gpu direct RDMA.
+
             if use_cuda_shared_memory:
                 transition = to_device(transition, "cuda:0")
             transitions.append(timestep.env_id, transition)
@@ -149,6 +153,5 @@ def rolloutor(
                 env_episode_id[timestep.env_id] = current_id
                 current_id += 1
                 ctx.env_episode += 1
-        # TODO log
 
     return _rollout

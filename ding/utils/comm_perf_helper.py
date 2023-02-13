@@ -4,7 +4,7 @@ import time
 from concurrent import futures
 from ditk import logging
 from typing import List, Optional, Tuple, Dict, Any
-from ding.utils import EasyTimer
+from ding.utils import EasyTimer, byte_beauty_print
 
 # Data size for some tests
 UNIT_1_B = 1
@@ -124,22 +124,3 @@ def dtype_2_byte(dtype: torch.dtype) -> int:
 
 def tensor_size_beauty_print(length: int, dtype: torch.dtype) -> tuple:
     return byte_beauty_print(length * dtype_2_byte(dtype))
-
-
-def byte_beauty_print(nbytes: int) -> tuple:
-    """
-    Overview:
-        Output the bytes in a human-readable format.
-    Arguments:
-        - nbytes (int): number of bytes.
-
-    Returns:
-        tuple: tuple of formatted bytes and units.
-    """
-    unit_dict = [("GB", 1024 * 1024 * 1024), ("MB", 1024 * 1024), ("KB", 1024), ("B", 1)]
-
-    for item in unit_dict:
-        if nbytes // item[1] > 0:
-            return nbytes / item[1], item[0]
-
-    return nbytes, "B"

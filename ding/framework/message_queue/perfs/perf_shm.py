@@ -3,8 +3,9 @@ from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
 from ditk import logging
 from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType
 from ding.envs.env_manager.subprocess_env_manager import ShmBufferContainer, ShmBuffer
-from ding.utils.comm_perf_helper import tensor_size_beauty_print, byte_beauty_print, \
+from ding.utils.comm_perf_helper import tensor_size_beauty_print, \
     dtype_2_byte, TENSOR_SIZE_LIST, print_timer_result_csv
+from ding.utils import byte_beauty_print
 
 import torch
 import numpy as np
@@ -37,7 +38,7 @@ def cuda_shm_callback(payload: RecvPayload, buffers: Any):
     assert tensor.device == torch.device('cuda:1')
 
 
-class Recvier:
+class Receiver:
 
     def step(self, idx: int, __start_time):
         return {"idx": idx, "start_time": __start_time}
@@ -56,7 +57,7 @@ class ShmSupervisor(Supervisor):
             _shm_callback = shm_callback
         else:
             _shm_callback = cuda_shm_callback
-        self.register(Recvier, shm_buffer=self.buffers, shm_callback=_shm_callback)
+        self.register(Receiver, shm_buffer=self.buffers, shm_callback=_shm_callback)
         super().start_link()
 
     def _send_recv_callback(self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None):

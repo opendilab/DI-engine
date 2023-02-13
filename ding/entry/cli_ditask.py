@@ -58,10 +58,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option("--platform-spec", type=str, help="Platform specific configure.")
 @click.option("--platform", type=str, help="Platform type: slurm, k8s.")
 @click.option(
-    "--mq-type",
-    type=str,
-    default="nng",
-    help="Class type of message queue, i.e. nng, redis, torchrpc:cuda, torchrpc:cpu."
+    "--mq-type", type=str, default="nng", help="Class type of message queue, i.e. nng, redis, cuda, torchrpc:cpu."
 )
 @click.option("--redis-host", type=str, help="Redis host.")
 @click.option("--redis-port", type=int, help="Redis port.")
@@ -173,10 +170,10 @@ def _cli_ditask(
         node_ids = node_ids.split(",")
         node_ids = list(map(lambda i: int(i), node_ids))
     use_cuda = False
-    if mq_type == "torchrpc:cuda" or mq_type == "torchrpc:cpu":
-        mq_type, use_cuda = mq_type.split(":")
-        if use_cuda == "cuda":
-            use_cuda = True
+    if mq_type == "cuda":
+        mq_type, use_cuda = "torchrpc", True
+    if mq_type == "torchrpc:cpu":
+        mq_type, use_cuda = "torchrpc", False
     if local_cuda_devices:
         local_cuda_devices = local_cuda_devices.split(",")
         local_cuda_devices = list(map(lambda s: s.strip(), local_cuda_devices))

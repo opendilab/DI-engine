@@ -150,3 +150,22 @@ def pretty_print(result: dict, direct_print: bool = True) -> str:
     if direct_print:
         print(string)
     return string
+
+
+def byte_beauty_print(nbytes: int) -> tuple:
+    """
+    Overview:
+        Output the bytes in a human-readable format.
+    Arguments:
+        - nbytes (int): number of bytes.
+
+    Returns:
+        tuple: tuple of formatted bytes and units.
+    """
+    unit_dict = [("GB", 1024 ** 3), ("MB", 1024 ** 2), ("KB", 1024), ("B", 1)]
+
+    for item in unit_dict:
+        if nbytes // item[1] > 0:
+            return nbytes / item[1], item[0]
+
+    return nbytes, "B"

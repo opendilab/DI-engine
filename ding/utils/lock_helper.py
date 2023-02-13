@@ -143,7 +143,7 @@ def synchronized(func):
     Overview:
         thread lock decorator.
     Arguments:
-        - func ([type]): A function that needs to be protected by a lock.
+        - func ([Callable]): A function that needs to be protected by a lock.
     """
     func.__lock__ = threading.Lock()
 

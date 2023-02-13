@@ -118,6 +118,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if not self._auto_reset:
             assert not self._reset_inplace, "reset_inplace is unavailable when auto_reset=False."
 
+        if self._cfg.cuda_shared_memory and not self._cuda_shared_memory:
+            logging.warning(
+                "Option 'cuda_shared_memory' is true but 'shared_memory' is False, 'cuda_shared_memory'"
+                " will not be used."
+            )
+
     def _create_state(self) -> None:
         r"""
         Overview:

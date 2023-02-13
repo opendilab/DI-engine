@@ -12,8 +12,9 @@ from ditk import logging
 
 from ding.utils.data.structure.lifo_deque import LifoDeque
 from ding.framework.message_queue.torch_rpc import DeviceMap, TORCHRPCMQ, RPCEvent
-from ding.utils.comm_perf_helper import tensor_size_beauty_print, byte_beauty_print, \
+from ding.utils.comm_perf_helper import tensor_size_beauty_print, \
     dtype_2_byte, DO_PERF, time_perf_avg, time_perf_once, print_timer_result_csv
+from ding.utils import byte_beauty_print
 
 LENGTH = 5
 REPEAT = 2

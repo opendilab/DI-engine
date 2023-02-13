@@ -158,9 +158,7 @@ class ShmBufferCuda(ShmBufferBase):
         self.copy_on_get = copy_on_get
         self.shape = shape
         self.device = device
-        # We don't want the buffer to be involved in the computational graph
-        with torch.no_grad():
-            self.buffer = torch.zeros(reduce(lambda x, y: x * y, shape), dtype=ttype, device=self.device)
+        self.buffer = torch.zeros(reduce(lambda x, y: x * y, shape), dtype=ttype, device=self.device)
 
     def fill(self, src_arr: Union[np.ndarray, torch.Tensor]) -> None:
         if self.ctype is np.ndarray:

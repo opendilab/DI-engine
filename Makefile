@@ -17,14 +17,12 @@ WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
-TIMEOUT_LIMIT ?= 300
 
 docs:
 	$(MAKE) -C ${DING_DIR}/docs html
 
 unittest:
 	pytest ${TEST_DIR} \
-		--timeout=${TIMEOUT_LIMIT}   \
 		--cov-report=xml \
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
@@ -39,7 +37,6 @@ algotest:
 
 cudatest:
 	pytest ${TEST_DIR} \
-		--timeout=${TIMEOUT_LIMIT}  \
 		-sv -m cudatest
 
 envpooltest:
