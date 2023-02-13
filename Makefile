@@ -10,7 +10,7 @@ FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
 PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR}/entry/tests/test_serial_entry.py ${DING_DIR}/entry/tests/test_serial_entry_onpolicy.py)
 
 # Workers command
-WORKERS         ?= 2
+WORKERS         ?= 1
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 
 # Duration command
