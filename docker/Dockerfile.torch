@@ -1,0 +1,147 @@
+# syntax = docker/dockerfile:experimental
+#
+# NOTE: To build this you will need a docker version > 18.06 with
+#       experimental enabled and DOCKER_BUILDKIT=1
+#
+#       If you do not use buildkit you are not going to have a good time
+#
+#       For reference:
+#           https://docs.docker.com/develop/develop-images/build_enhancements/
+ARG BASE_IMAGE=ubuntu:18.04
+ARG PYTHON_VERSION=3.7.12
+ARG https_proxy=http://proxy.sensetime.com:3128
+ARG http_proxy=http://proxy.sensetime.com:3128
+
+FROM ${BASE_IMAGE} as dev-base
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    ccache \
+    cmake \
+    curl \
+    git \
+    libjpeg-dev \
+    libpng-dev && \
+    rm -rf /var/lib/apt/lists/*
+RUN /usr/sbin/update-ccache-symlinks
+RUN mkdir /opt/ccache && ccache --set-config=cache_dir=/opt/ccache
+ENV PATH /opt/conda/bin:$PATH
+
+FROM dev-base as conda
+ARG https_proxy=http://proxy.sensetime.com:3128
+ARG http_proxy=http://proxy.sensetime.com:3128
+ARG PYTHON_VERSION=3.7.12
+# Automatically set by buildx
+ARG TARGETPLATFORM
+# translating Docker's TARGETPLATFORM into miniconda arches
+RUN case ${TARGETPLATFORM} in \
+    "linux/arm64")  MINICONDA_ARCH=aarch64  ;; \
+    *)              MINICONDA_ARCH=x86_64   ;; \
+    esac && \
+    curl -fsSL -v -o ~/miniconda.sh -O  "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-${MINICONDA_ARCH}.sh"
+COPY requirements.txt .
+RUN chmod +x ~/miniconda.sh && \
+    ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh && \
+    /opt/conda/bin/conda install -y python=${PYTHON_VERSION} cmake conda-build pyyaml numpy ipython && \
+    /opt/conda/bin/python -mpip install -r requirements.txt && \
+    /opt/conda/bin/conda clean -ya
+
+FROM dev-base as submodule-update
+ARG https_proxy=http://proxy.sensetime.com:3128
+ARG http_proxy=http://proxy.sensetime.com:3128
+WORKDIR /opt/pytorch
+COPY . .
+
+RUN git submodule update --init --recursive --jobs 0 && \
+    cd third_party/tensorpipe && \
+    git remote set-url origin https://github.com/SolenoidWGT/tensorpipe.git && \
+    git pull origin k8s-env && \
+    git checkout k8s-env
+
+FROM conda as build
+ARG https_proxy=http://proxy.sensetime.com:3128
+ARG http_proxy=http://proxy.sensetime.com:3128
+WORKDIR /opt/pytorch
+COPY --from=conda /opt/conda /opt/conda
+COPY --from=submodule-update /opt/pytorch /opt/pytorch
+
+# we only build for 1080TI and A100
+RUN --mount=type=cache,target=/opt/ccache \
+    TORCH_CUDA_ARCH_LIST="6.1 8.0" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" \
+    CMAKE_PREFIX_PATH="$(dirname $(which conda))/../" \
+    python setup.py install
+
+
+FROM build as dev
+ARG https_proxy=http://proxy.sensetime.com:3128
+ARG http_proxy=http://proxy.sensetime.com:3128
+ARG OS_NAME=ubuntu18.04
+ARG MOFED_VER=5.1-0.6.6.0
+
+ENV LANG        en_US.UTF-8
+ENV LANGUAGE    en_US:UTF-8
+ENV LC_ALL      en_US.UTF-8
+
+# Should override the already installed version from the official-image stage
+COPY --from=build /opt/conda /opt/conda
+# COPY --from=build /opt/pytorch /opt/pytorch
+
+# Install IB driver and ibvlib
+RUN apt-get update && \
+    apt-get -y install apt-utils && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+    build-essential tcsh tcl tk \
+    cmake make git curl vim wget ca-certificates \
+    iputils-ping net-tools ethtool \
+    perl lsb-release python-libxml2 \
+    iproute2 pciutils libnl-route-3-200 \
+    kmod libnuma1 lsof openssh-server \
+    swig libelf1 automake libglib2.0-0 \
+    autoconf graphviz chrpath flex libnl-3-200 m4 \
+    debhelper autotools-dev gfortran libltdl-dev gdb && \
+    rm -rf /rm -rf /var/lib/apt/lists/*
+
+# we remove --without-neohost-backend --without-neohost-sdk and add --skip-unsupported-devices-check to avoid error
+RUN /opt/conda/bin/conda create -n python2 python=2.7 && \
+    alias python=/opt/conda/envs/python2/bin/python && \
+    cd ~ && \
+    wget https://content.mellanox.com/ofed/MLNX_OFED-${MOFED_VER}/MLNX_OFED_LINUX-${MOFED_VER}-${OS_NAME}-x86_64.tgz && \
+    tar -xvf MLNX_OFED_LINUX-${MOFED_VER}-${OS_NAME}-x86_64.tgz && \
+    MLNX_OFED_LINUX-${MOFED_VER}-${OS_NAME}-x86_64/mlnxofedinstall --user-space-only --without-fw-update --without-neohost-backend --without-neohost-sdk --skip-unsupported-devices-check -q && \
+    cd .. && \
+    rm -rf ${MOFED_DIR} && \
+    rm -rf *.tgz && \
+    /opt/conda/bin/conda remove -n python2 --all && \
+    /opt/conda/bin/conda clean -ya
+
+RUN apt update \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils -y \
+    && apt clean \
+    && rm -rf /var/cache/apt/* \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
+
+RUN git clone https://github.com/SolenoidWGT/DI-engine.git && \
+    cd DI-engine/ && \
+    git pull origin rdma-dev && \
+    git checkout rdma-dev && \
+    sed -i "/torch/d" setup.py
+
+WORKDIR /opt/pytorch/DI-engine
+
+RUN /opt/conda/bin/python -m pip install --upgrade pip \
+    && /opt/conda/bin/python -m pip install --ignore-installed 'PyYAML<6.0' \
+    && /opt/conda/bin/python -m pip install --no-cache-dir .[fast,test]
+
+RUN git clone https://github.com/opendilab/DI-treetensor.git && \
+    cd DI-treetensor && \
+    sed -i '/torch/d' requirements.txt && \
+    /opt/conda/bin/python setup.py install && \
+    cd .. && rm -r ./DI-treetensor
+
+RUN /opt/conda/bin/python -m pip install --no-cache-dir .[common_env] \
+    && /opt/conda/bin/pip install autorom \
+    && AutoROM --accept-license
+
+RUN /opt/conda/bin/pip install -e . -i https://pkg.sensetime.com/repository/pypi-proxy/simple/ --trusted-host pkg.sensetime.com --user
