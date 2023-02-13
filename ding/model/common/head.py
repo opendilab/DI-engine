@@ -1170,6 +1170,18 @@ class ReparameterizationHead(nn.Module):
         return {'mu': mu, 'sigma': sigma}
 
 
+class AttentionPolicyHead(nn.Module):
+
+    def __init__(self) -> None:
+        super(AttentionPolicyHead, self).__init__()
+
+    def forward(self, key: torch.Tensor, query: torch.Tensor) -> torch.Tensor:
+        if len(query.shape) == 2 and len(key.shape) == 3:
+            query = query.unsqueeze(1)
+        logit = (key * query).sum(-1)
+        return logit
+
+
 class MultiHead(nn.Module):
     """
         Overview:
@@ -1244,6 +1256,7 @@ head_cls_map = {
     'rainbow': RainbowHead,
     'qrdqn': QRDQNHead,
     'quantile': QuantileHead,
+    'attention_policy': AttentionPolicyHead,
     # continuous
     'regression': RegressionHead,
     'reparameterization': ReparameterizationHead,

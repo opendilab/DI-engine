@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Union, List
 from functools import reduce
 import operator
 import math
@@ -170,8 +170,11 @@ class FCEncoder(nn.Module):
 
 
 class StructEncoder(nn.Module):
-    # TODO(nyz)
-    pass
+
+    def __init__(self, obs_shape: Dict[str, Union[int, List[int]]]) -> None:
+        super(StructEncoder, self).__init__()
+        # TODO concrete implementation
+        raise NotImplementedError
 
 
 class IMPALACnnResidualBlock(nn.Module):
