@@ -84,7 +84,7 @@ DI-engine 集成了大部分强化学习策略，使用它们只需要选择相�
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))  # 采集环境数据
         task.use(data_pusher(cfg, buffer_))  # 将数据保存到 buffer
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))  # 训练模型
-        task.use(CkptSaver(cfg, policy, train_freq=100))  # 保存模型
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))  # 保存模型
         task.run()  # 在评估流程中，如果发现模型表现已经超过了收敛值，这里将提前结束
 
 运行代码

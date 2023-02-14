@@ -117,7 +117,7 @@ With the various middleware provided by DI-engine, we can easily build the entir
         task.use(nstep_reward_enhancer(cfg))  # Prepare nstep reward for training
         task.use(data_pusher(cfg, buffer_))  # Push data to buffer
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))  # Train the model
-        task.use(CkptSaver(cfg, policy, train_freq=100))  # Save the model
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))  # Save the model
         # In the evaluation process, if the model is found to have exceeded the convergence value, it will end early here
         task.run()
 

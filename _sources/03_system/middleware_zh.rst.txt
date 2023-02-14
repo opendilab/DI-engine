@@ -25,7 +25,7 @@
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run(max_step=100000)
 
 熟悉了中间件的使用之后，您会发现原来强化学习的几大流派 —— Onpolicy, Offpolicy, Offline 等等居然在流程上会有这么多可复用部分，
@@ -38,7 +38,7 @@
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(gae_estimator(cfg, policy.collect_mode))
         task.use(multistep_trainer(cfg, policy.learn_mode))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run(max_step=100000)
 
 上下文对象（Context）

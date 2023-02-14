@@ -158,8 +158,8 @@ DI-engine designed the environment manager env_manager to do this, we can do thi
 .. note::
     When evaluating multiple environments in parallel, the environment manager of DI-engine will also count the average, maximum and minimum rewards, as well as other indicators related to some algorithms.
 
-Training Stronger Agents from Zero
---------------
+Training Stronger Agents from Scratch
+---------------------------------------
 
 Run the following code using DI-engine to get the agent model in the above test.
 Try generating an agent model yourself, maybe it will be stronger:
@@ -208,7 +208,7 @@ Try generating an agent model yourself, maybe it will be stronger:
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
             task.use(online_logger(train_show_freq=10))
-            task.use(CkptSaver(cfg, policy, train_freq=100))
+            task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
             task.run()
 
     if __name__ == "__main__":

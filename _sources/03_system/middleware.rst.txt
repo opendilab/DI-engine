@@ -31,7 +31,7 @@ complete the entire interaction strategy of the agent.
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run(max_step=100000)
 
 Once you are familiar with the middleware, you will see that the major schools of reinforcement learning -- \
@@ -45,7 +45,7 @@ With a few simple selection, you can transform the interaction flow of an offpol
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(gae_estimator(cfg, policy.collect_mode))
         task.use(multistep_trainer(cfg, policy.learn_mode))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run(max_step=100000)
 
 Context

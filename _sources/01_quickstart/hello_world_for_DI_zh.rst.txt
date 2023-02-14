@@ -211,7 +211,7 @@ DI-engine 设计了环境管理器 env_manager 来做到这一点，我们可以
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
             task.use(online_logger(train_show_freq=10))
-            task.use(CkptSaver(cfg, policy, train_freq=100))
+            task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
             task.run()
 
     if __name__ == "__main__":

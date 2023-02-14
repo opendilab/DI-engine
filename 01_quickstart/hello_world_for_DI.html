@@ -441,8 +441,8 @@ DI-engine designed the environment manager env_manager to do this, we can do thi
 <p>When evaluating multiple environments in parallel, the environment manager of DI-engine will also count the average, maximum and minimum rewards, as well as other indicators related to some algorithms.</p>
 </div>
 </section>
-<section id="training-stronger-agents-from-zero">
-<h2>Training Stronger Agents from Zero<a class="headerlink" href="#training-stronger-agents-from-zero" title="Permalink to this headline">¶</a></h2>
+<section id="training-stronger-agents-from-scratch">
+<h2>Training Stronger Agents from Scratch<a class="headerlink" href="#training-stronger-agents-from-scratch" title="Permalink to this headline">¶</a></h2>
 <p>Run the following code using DI-engine to get the agent model in the above test.
 Try generating an agent model yourself, maybe it will be stronger:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -486,7 +486,7 @@ Try generating an agent model yourself, maybe it will be stronger:</p>
         <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>
         <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>
         <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">online_logger</span><span class="p">(</span><span class="n">train_show_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
-        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">CkptSaver</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">train_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">CkptSaver</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">train_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
         <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
@@ -553,7 +553,7 @@ Please continue to read this document, <a class="reference external" href="../01
 <li><a class="reference internal" href="#">Hello World for DI</a><ul>
 <li><a class="reference internal" href="#let-the-agent-run">Let the Agent Run</a></li>
 <li><a class="reference internal" href="#to-better-evaluate-agents">To Better Evaluate Agents</a></li>
-<li><a class="reference internal" href="#training-stronger-agents-from-zero">Training Stronger Agents from Zero</a></li>
+<li><a class="reference internal" href="#training-stronger-agents-from-scratch">Training Stronger Agents from Scratch</a></li>
 </ul>
 </li>
 </ul>
