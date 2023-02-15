@@ -1,0 +1,543 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Wandb &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+      <li>Wandb</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/wandb_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="wandb">
+<h1>Wandb<a class="headerlink" href="#wandb" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Wandb (Weights &amp; Bias) 是一种机器学习可视化工具，可用于机器学习实验的可视化和跟踪。相比于 tensorboard 等可视化方法，wandb 的使用更为简便，且能够实时上传到在线平台。wandb 还提供了协作式 report 平台，便于整理可视化结果。 wandb的官方文档在 <a class="reference external" href="https://docs.wandb.ai/">wandb</a> 中。DI-engine内置了基于 wandb 的中间件<code class="docutils literal notranslate"><span class="pre">wandb_online_logger</span></code>和<code class="docutils literal notranslate"><span class="pre">__wandb_offline_logger__</span></code>。</p>
+<a class="reference internal image-reference" href="../_images/wandb_cover.png"><img alt="../_images/wandb_cover.png" class="align-center" src="../_images/wandb_cover.png" style="width: 668.4px; height: 319.2px;" /></a>
+</section>
+<section id="id2">
+<h2>使用方法<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h3>wandb 登录<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p>交互式 shell 登录 wandb</p>
+<blockquote>
+<div><p>在 <a class="reference external" href="https://wandb.ai/authorize/">wandb authorize</a> 注册后，将 key 输入交互式shell：</p>
+<a class="reference internal image-reference" href="../_images/wandb_login.png"><img alt="../_images/wandb_login.png" class="align-center" src="../_images/wandb_login.png" style="width: 573.0px; height: 105.0px;" /></a>
+</div></blockquote>
+</li>
+<li><p>非交互式登录 wandb</p>
+<blockquote>
+<div><p>需要将 username 和 key 存储到 <code class="docutils literal notranslate"><span class="pre">/root/.netrc</span></code>。wandb 会自动读取登录信息，并将可视化数据上传到用户对应的账号中。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>machine<span class="w"> </span>api.wandb.ai
+login<span class="w"> </span>&lt;username&gt;
+password<span class="w"> </span>&lt;key&gt;
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</section>
+<section id="id4">
+<h3>wandb 初始化<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>中间件默认初始化为 <code class="docutils literal notranslate"><span class="pre">wandb.init()</span></code>，如果需要设置项目名，执行名及config，需要在模型创建前执行：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">wandb</span><span class="o">.</span><span class="n">init</span><span class="p">(</span>
+    <span class="c1"># Set the project where this run will be logged</span>
+    <span class="n">project</span><span class="o">=</span><span class="s1">&#39;QbertNoFrameskip-v4&#39;</span><span class="p">,</span>
+    <span class="c1"># We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)</span>
+    <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;dqn&quot;</span><span class="p">,</span>
+    <span class="c1"># Track hyperparameters and run metadata</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">cfg</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>wandb 中间件调用方法<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>将如下代码添加至task执行过程中：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># wandb_online_logger</span>
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">wandb_online_logger</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">,</span> <span class="n">model</span><span class="p">))</span>
+<span class="c1"># wandb_offline_logger</span>
+<span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">wandb_offline_logger</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">data_path</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="di-engine-wandb">
+<h2>DI-engine 内置 wandb 中间件支持功能<a class="headerlink" href="#di-engine-wandb" title="Permalink to this headline">¶</a></h2>
+<section id="metric">
+<h3>metric 可视化<a class="headerlink" href="#metric" title="Permalink to this headline">¶</a></h3>
+<p>wandb 中间件内置了常见 metric 的可视化，包含 <code class="docutils literal notranslate"><span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">loss</span></code>, <code class="docutils literal notranslate"><span class="pre">lr</span></code>, <code class="docutils literal notranslate"><span class="pre">entropy</span></code>。当 config 中的 <code class="docutils literal notranslate"><span class="pre">plot_logger=True</span></code>时，中间件会自动从 eval 输出中选择对应字段的数据可视化：</p>
+<a class="reference internal image-reference" href="../_images/wandb_metric.png"><img alt="../_images/wandb_metric.png" class="align-center" src="../_images/wandb_metric.png" style="width: 880.8px; height: 383.4px;" /></a>
+<p>折线图的横纵轴，平滑度等可以登录 wandb ， 在 dashboards 中设置。</p>
+</section>
+<section id="gradient">
+<h3>gradient 可视化<a class="headerlink" href="#gradient" title="Permalink to this headline">¶</a></h3>
+<p>wandb 中间件会自动保存 model 中 gradient 的分布：</p>
+<a class="reference internal image-reference" href="../_images/wandb_gradient.png"><img alt="../_images/wandb_gradient.png" class="align-center" src="../_images/wandb_gradient.png" style="width: 639.6px; height: 284.4px;" /></a>
+</section>
+<section id="replay">
+<h3>replay 可视化<a class="headerlink" href="#replay" title="Permalink to this headline">¶</a></h3>
+<p>wandb 中间件会自动保存每个 batch 中 reward 最高、中等和最低的三个 trajectory 的 replay</p>
+</section>
+<section id="q-value-action-probability">
+<h3>q value &amp; action probability 可视化<a class="headerlink" href="#q-value-action-probability" title="Permalink to this headline">¶</a></h3>
+<p>当 config 中 <code class="docutils literal notranslate"><span class="pre">action_logger='q</span> <span class="pre">value'</span></code>时，中间件会将 reward 最高、中等和最低的三个 trajectory 中，每一帧各个 action 对应的 q value 可视化。当 config 中 <code class="docutils literal notranslate"><span class="pre">action_logger='action</span> <span class="pre">probability'</span></code>时，中间件会将 action 对应的 probability 可视化：</p>
+<a class="reference internal image-reference" href="../_images/wandb_action.gif"><img alt="../_images/wandb_action.gif" class="align-center" src="../_images/wandb_action.gif" style="width: 384.0px; height: 288.0px;" /></a>
+<p>return distribution 可视化</p>
+<p>wandb 中间件默认可视化 evaluate 时的 return distribution：</p>
+<a class="reference internal image-reference" href="../_images/wandb_return.gif"><img alt="../_images/wandb_return.gif" class="align-center" src="../_images/wandb_return.gif" style="width: 384.0px; height: 288.0px;" /></a>
+<p>数据集可视化</p>
+<p>仅 wandb_offline_logger 支持数据集可视化。当 config 中 <code class="docutils literal notranslate"><span class="pre">vis_dataset=True</span></code>时，中间件会读取 <code class="docutils literal notranslate"><span class="pre">record_path</span></code>路径下的数据集，进行 t-SNE 降维可视化：</p>
+<a class="reference internal image-reference" href="../_images/wandb_dataset.png"><img alt="../_images/wandb_dataset.png" class="align-center" src="../_images/wandb_dataset.png" style="width: 348.0px; height: 294.0px;" /></a>
+</section>
+</section>
+<section id="wandb-config">
+<h2>wandb 中间件 config 示例<a class="headerlink" href="#wandb-config" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">wandb_online_logger</span></code></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">record_path</span> <span class="o">=</span> <span class="s1">&#39;./video_qbert_dqn&#39;</span>
+        <span class="n">gradient_logger</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">plot_logger</span><span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">action_logger</span> <span class="o">=</span> <span class="s1">&#39;action probability&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><code class="docutils literal notranslate"><span class="pre">wandb_offline_logger</span></code></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">record_path</span> <span class="o">=</span> <span class="s1">&#39;./video_pendulum_cql&#39;</span><span class="p">,</span>
+        <span class="n">gradient_logger</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">plot_logger</span><span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">action_logger</span> <span class="o">=</span> <span class="s1">&#39;action probability&#39;</span><span class="p">,</span>
+        <span class="n">vis_dataset</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Wandb</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">使用方法</a><ul>
+<li><a class="reference internal" href="#id3">wandb 登录</a></li>
+<li><a class="reference internal" href="#id4">wandb 初始化</a></li>
+<li><a class="reference internal" href="#id5">wandb 中间件调用方法</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-engine-wandb">DI-engine 内置 wandb 中间件支持功能</a><ul>
+<li><a class="reference internal" href="#metric">metric 可视化</a></li>
+<li><a class="reference internal" href="#gradient">gradient 可视化</a></li>
+<li><a class="reference internal" href="#replay">replay 可视化</a></li>
+<li><a class="reference internal" href="#q-value-action-probability">q value &amp; action probability 可视化</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wandb-config">wandb 中间件 config 示例</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>
