@@ -1,0 +1,760 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Metadrive &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="代码规范" href="../20_spec/index_zh.html" />
+  <link rel="prev" title="Evogym" href="Evogym_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习环境示例</a> &gt;</li>
+        
+      <li>Metadrive</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/metadrive_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="metadrive">
+<h1>Metadrive<a class="headerlink" href="#metadrive" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://metadrive-simulator.readthedocs.io/en/latest/index.html">MetaDrive</a> 是一个高效的组合式 (Compositional) 的驾驶模拟器，驾驶的目标是控制一辆（或者多辆）汽车安全且按时地从起点开到终点。它具有以下特性:</p>
+<ul class="simple">
+<li><p>组合式: 它支持生成具有各种道路地图和交通设置的（理论上可以无限的）场景，可用于 RL 泛化性的研究。</p></li>
+<li><p>轻量化：易于安装和运行。它在标准 PC 上可以运行高达每秒300帧 (up to 300 FPS)。</p></li>
+<li><p>高逼真：精确的物理模拟和多种类型的输入，包括激光雷达、RGB 图像、自上而下的语义地图和第一人称视角图像。用户可以自行选择强化学习中的 observation 的种类。</p></li>
+</ul>
+<p>以下主要以观测输入 (observation) 是自上而下语义地图的情况展开介绍。</p>
+<img alt="../_images/metadrive.gif" class="align-center" src="../_images/metadrive.gif" />
+</section>
+<section id="id3">
+<h2>安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<section id="id4">
+<h3>安装方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>用户可以选择通过 pip 一键安装, 或者源码安装。</p>
+<p>注：如果用户没有 root 权限，请在 install 的命令后面加上 <code class="docutils literal notranslate"><span class="pre">--user</span></code>。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Directly</span>
+pip<span class="w"> </span>install<span class="w"> </span>metadrive-simulator
+
+<span class="c1"># Install from source code</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/metadriverse/metadrive.git
+<span class="nb">cd</span><span class="w"> </span>metadrive
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>安装完成后，可以通过在 Python 命令行中运行如下命令验证是否安装成功：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">metadrive</span> <span class="kn">import</span> <span class="n">MetaDriveEnv</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">MetadriveEnv</span><span class="p">()</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># 输出 (259,)</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h3>镜像<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>DI-engine 的镜像包含 DI-engine 框架本身，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code> 获取，
+或访问<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker hub</a>获取更多镜像。 MetaDrive 目前没有对应的镜像。</p>
+</section>
+</section>
+<section id="id7">
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>具体细节，可以参考 MetaDrive 的代码实现 <a class="reference external" href="https://github.com/metadriverse/metadrive/blob/main/metadrive/envs/metadrive_env.py">MetaDrive</a> 。</p>
+<section id="id9">
+<h3>观察空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>车辆的观察空间为259维的 numpy 数组，数据类型为 float32，obs shape 为 (259,)。观察空间包含以下3部分内容：</p>
+<ul class="simple">
+<li><p>ego_state ： 即当前状态，例如航向，转向，速度和到边界的相对距离。</p></li>
+<li><p>navigation ： 即导航信息，引导车辆驶向目的地的检查点 (checkpoints)。</p></li>
+<li><p>surrounding ： 即周围的信息，由激光雷达生成，通常使用240个激光扫描半径50米的临近区域。</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>动作空间<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>MetaDrive 环境的动作空间是2维的连续动作，其有效范围为 [-1, 1]。 通过这样的设计，每个智能体的动作空间都被固定为 gym.spaces.Box(low=-1.0, high=1.0, shape=(2, ))。</p>
+<ul class="simple">
+<li><p>第一个维度代表转向角 (steering)。当动作取1或者-1时分别代表方向盘向左或者向右转到最大转向角度，取0的时候代表方向盘朝向正前方。</p></li>
+<li><p>第二个维度代表加速或者刹车。当范围在 (0,1) 区间时候代表加速，范围在 (-1,0) 代表刹车；取0的时候代表不采取任何动作。</p></li>
+<li><p>同时，它也提供了 一个名为 extra_action_dim (int) 的配置，例如，如果我们设置 config[“extra_action_dim”] = 1，那么每个智能体的动作空间将变为 Box(-1.0, 1.0, shape=(3, ))。 这允许用户编写引入更多输入操作维度的环境包装器。</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>奖励空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>MetaDrive 中默认的奖励函数包含了一个密集的（驾驶过程中的）奖励和一个稀疏的终局奖励。</p>
+<ul class="simple">
+<li><p>密集奖励: 反映了在每一个 step 下，车辆在 Frenet 坐标中朝向目的地的纵向运动的程度。</p></li>
+<li><p>终端奖励: 只有在车辆成功到达目的地的时候得到。具体细节在下面 termination_reward里描述。</p></li>
+</ul>
+<p>事实上， MetaDrive 提供了一个复杂的奖励函数，我们可以从 config dict 里面自定义他们的奖励函数，完整的奖励函数由以下四个部分构成：</p>
+<ul class="simple">
+<li><p>驾驶奖励 (driving_reward)： 在t-1到t时刻，在当前车道线开出的纵向距离，它是一个密集奖励。</p></li>
+<li><p>速度奖励 (speed_reward)： 当前时刻的速度，速度越大，则奖励越大，它也是一个密集奖励。</p></li>
+<li><p>横向比例 (use_lateral_reward)： 它提供 [0, 1] 范围内的乘数，指示自我车辆是否远离当前车道的中心，与驾驶奖励配合使用．如果为True，则驾驶奖励的大小不仅取决于纵向路程，还取决于横向坐标与车道线正中间的距离。</p></li>
+<li><p>终止奖励 (terminaltion_reward)： 在 episode结束时候，其他密集奖励将被禁用，并根据车辆的状态返回一个奖励。具体的情况可以分为：</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>到达终点：　车辆获得一个成功完成目标的奖励 (success_reward)；</p></li>
+<li><p>开出道路：　车辆获得一个对应的惩罚 (out_of_road_penalty)；</p></li>
+<li><p>撞到他车：　车辆获得一个对应的惩罚 (crash_vehicle_penalty)；</p></li>
+<li><p>撞到障碍：　车辆获得一个对应的惩罚 (crash_object_penalty)。</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id12">
+<h3>其他<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>如果出现以下情况，则判定 episode 结束：</p>
+<ul class="simple">
+<li><p>车辆成功到达终点；</p></li>
+<li><p>撞到其他车辆或者障碍物；</p></li>
+<li><p>开出道路以外。</p></li>
+</ul>
+<p>随机性：</p>
+<ul class="simple">
+<li><p>初始时刻的随机性：车辆会随机初始化到一条道路的某一条车道线上。</p></li>
+<li><p>道路的随机性：根据随机种子的不同，车道线的数目，道路不同模块的拼接，以及终点的选择都会有所变化。</p></li>
+</ul>
+</section>
+</section>
+<section id="rl">
+<h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<section id="id13">
+<h3>观察空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>区别于原始版本里面，观测空间被描述为一个259维度的向量，在DI-engine里，
+汽车的观察空间被定义为俯视图，大小为 5x84x84，其中5代表了通道数，后两个维度(84x84)代表了每个通道的图片的大小。
+五个通道的语义为：</p>
+<ul class="simple">
+<li><p>道路信息和导航信息 (Road and Navigation)；</p></li>
+<li><p>自身位置和自身历史位置 (Ego now and previous pos)；</p></li>
+<li><p>周围车辆在 t 时刻的俯视图 (Neigbor at step t)；</p></li>
+<li><p>周围车辆在t-1时刻的俯视图 (Neigbor at step t-1)；</p></li>
+<li><p>周围车辆在t-2时刻的俯视图 (Neigbor at step t-2)。</p></li>
+</ul>
+<dl>
+<dt>以下图的驾驶场景为例，红色车辆为我们控制的 agent ,它正在执行左转操作，与两辆相邻的蓝色车辆发生交互。</dt><dd><img alt="../_images/metadrive_figure.png" class="align-center" src="../_images/metadrive_figure.png" />
+</dd>
+<dt>在当前场景下，车辆的 observation 可以由以下五张图片来表征。</dt><dd><img alt="../_images/metadrive_bird_view.png" class="align-center" src="../_images/metadrive_bird_view.png" />
+</dd>
+</dl>
+</section>
+<section id="id14">
+<h3>动作空间<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>无变化</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>奖励空间<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>无变化</p></li>
+</ul>
+</section>
+<section id="id16">
+<h3>其他<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在 MetaDrive 中为整个 episode 的奖励累加和。</p></li>
+</ul>
+</section>
+</section>
+<section id="id17">
+<h2>其他<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<section id="id18">
+<h3>惰性初始化<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<p>为了便于支持环境向量化等并行操作，具体的环境实例一般采用惰性初始化的方法，即在环境的<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，
+而在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
+</section>
+<section id="id19">
+<h3>随机种子<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>可以使用 _reset_global_seed的方法设定环境的随机种子，如果不手动设定，则环境会随机采样出随机种子设定环境。</p></li>
+</ul>
+</section>
+<section id="id20">
+<h3>训练和测试环境的区别<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的。</p></li>
+<li><p>测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
+</ul>
+</section>
+</section>
+<section id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>各个算法在该环境上的训练配置文件在目录 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/metadrive/config/">github
+link</a>
+里，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">metadrive_onppo_config.py</span></code>，使用如下的 demo 即可运行：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">import</span> <span class="nn">metadrive</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">SyncSubprocessEnvManager</span>
+<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span> <span class="nn">ding.model.template</span> <span class="kn">import</span> <span class="n">QAC</span><span class="p">,</span> <span class="n">VAC</span>
+<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">PPOPolicy</span>
+<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BaseLearner</span>
+<span class="kn">from</span> <span class="nn">dizoo.metadrive.env.drive_env</span> <span class="kn">import</span> <span class="n">MetaDrivePPOOriginEnv</span>
+<span class="kn">from</span> <span class="nn">dizoo.metadrive.env.drive_wrapper</span> <span class="kn">import</span> <span class="n">DriveEnvWrapper</span>
+
+<span class="n">metadrive_basic_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;metadrive_onppo_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">metadrive</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">use_render</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">traffic_density</span><span class="o">=</span><span class="mf">0.10</span><span class="p">,</span>
+            <span class="nb">map</span><span class="o">=</span><span class="s1">&#39;XSOS&#39;</span><span class="p">,</span>
+            <span class="n">horizon</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span>
+            <span class="n">driving_reward</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">speed_reward</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">use_lateral_reward</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">out_of_road_penalty</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span>
+            <span class="n">crash_vehicle_penalty</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span>
+            <span class="n">decision_repeat</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">out_of_route_done</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">shared_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">max_retry</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">context</span><span class="o">=</span><span class="s1">&#39;spawn&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">],</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>
+            <span class="n">bound_type</span><span class="o">=</span><span class="s1">&#39;tanh&#39;</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">value_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">grad_clip_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">metadrive_basic_config</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">wrapped_env</span><span class="p">(</span><span class="n">env_cfg</span><span class="p">,</span> <span class="n">wrapper_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">DriveEnvWrapper</span><span class="p">(</span><span class="n">MetaDrivePPOOriginEnv</span><span class="p">(</span><span class="n">env_cfg</span><span class="p">),</span> <span class="n">wrapper_cfg</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span> <span class="n">SyncSubprocessEnvManager</span><span class="p">,</span> <span class="n">PPOPolicy</span><span class="p">,</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span>
+    <span class="p">)</span>
+    <span class="n">collector_env_num</span><span class="p">,</span> <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span>
+    <span class="n">collector_env</span> <span class="o">=</span> <span class="n">SyncSubprocessEnvManager</span><span class="p">(</span>
+        <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">partial</span><span class="p">(</span><span class="n">wrapped_env</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">metadrive</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)],</span>
+        <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">SyncSubprocessEnvManager</span><span class="p">(</span>
+        <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">partial</span><span class="p">(</span><span class="n">wrapped_env</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">metadrive</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span>
+        <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">policy</span> <span class="o">=</span> <span class="n">PPOPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">tb_logger</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="s1">&#39;./log/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">))</span>
+    <span class="n">learner</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+    <span class="n">collector</span> <span class="o">=</span> <span class="n">SampleSerialCollector</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span><span class="p">,</span> <span class="n">collector_env</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
+    <span class="p">)</span>
+    <span class="n">evaluator</span> <span class="o">=</span> <span class="n">InteractionSerialEvaluator</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
+    <span class="p">)</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">call_hook</span><span class="p">(</span><span class="s1">&#39;before_run&#39;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">should_eval</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">):</span>
+            <span class="n">stop</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">,</span> <span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">stop</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c1"># Sampling data from environments</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">collect</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">n_sample</span><span class="p">,</span> <span class="n">train_iter</span><span class="o">=</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">)</span>
+        <span class="n">learner</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">new_data</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">call_hook</span><span class="p">(</span><span class="s1">&#39;after_run&#39;</span><span class="p">)</span>
+    <span class="n">collector</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">evaluator</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">learner</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">main_config</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id21">
+<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>MetaDrive（测试局的平均 episode return 大于等于250视为算法收敛到近似最优值）。</p>
+<ul class="simple">
+<li><p>MetaDrive + PPO</p></li>
+</ul>
+<img alt="../_images/metadrive_train1.png" class="align-center" src="../_images/metadrive_train1.png" />
+</li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../20_spec/index_zh.html" class="btn btn-neutral float-right" title="代码规范" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="Evogym_zh.html" class="btn btn-neutral" title="Evogym" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Metadrive</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id3">安装</a><ul>
+<li><a class="reference internal" href="#id4">安装方法</a></li>
+<li><a class="reference internal" href="#id5">验证安装</a></li>
+<li><a class="reference internal" href="#id6">镜像</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id7">变换前的空间（原始环境）</a><ul>
+<li><a class="reference internal" href="#id9">观察空间</a></li>
+<li><a class="reference internal" href="#id10">动作空间</a></li>
+<li><a class="reference internal" href="#id11">奖励空间</a></li>
+<li><a class="reference internal" href="#id12">其他</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rl">变换后的空间（RL 环境）</a><ul>
+<li><a class="reference internal" href="#id13">观察空间</a></li>
+<li><a class="reference internal" href="#id14">动作空间</a></li>
+<li><a class="reference internal" href="#id15">奖励空间</a></li>
+<li><a class="reference internal" href="#id16">其他</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id17">其他</a><ul>
+<li><a class="reference internal" href="#id18">惰性初始化</a></li>
+<li><a class="reference internal" href="#id19">随机种子</a></li>
+<li><a class="reference internal" href="#id20">训练和测试环境的区别</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+<li><a class="reference internal" href="#id21">基准算法性能</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>
