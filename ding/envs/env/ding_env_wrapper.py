@@ -199,8 +199,10 @@ class DingEnvWrapper(BaseEnv):
 
     def clone(self) -> BaseEnv:
         try:
+            spec = copy.deepcopy(self._raw_env.spec)
             raw_env = CloudPickleWrapper(self._raw_env)
             raw_env = copy.deepcopy(raw_env).data
+            raw_env.__setattr__('spec', spec)
         except Exception:
             raw_env = self._raw_env
         return DingEnvWrapper(raw_env, self._cfg, self._seed_api)
