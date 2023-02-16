@@ -49,14 +49,16 @@ def single_env_forward_wrapper(forward_fn):
     return _forward
 
 
-def single_env_forward_wrapper_ttorch(forward_fn):
+def single_env_forward_wrapper_ttorch(forward_fn, cuda=True):
 
     def _forward(obs):
         # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
         obs = ttorch.as_tensor(obs).unsqueeze(0)
+        if cuda and torch.cuda.is_available():
+            obs = obs.cuda()
         action = forward_fn(obs).action
         # squeeze means delete batch dim, i.e. (1, A) -> (A, )
-        action = action.squeeze(0).numpy()
+        action = action.squeeze(0).cpu().numpy()
         return action
 
     return _forward
