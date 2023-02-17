@@ -118,7 +118,7 @@ setup(
         'common_env': [
             'ale-py',  # >=0.7.5',  # atari
             'autorom',
-            'gym[all]>=0.25.0'
+            'gym[all]>=0.25.0',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],
