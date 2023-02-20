@@ -68,8 +68,8 @@ If it is necessary to convert an environment in gym format to DI-engine environm
 In particular, the Env Wrappers in the list are wrapped outside the environment in order. In the example above, the Env Wrapper wraps a layer of MaxAndSkipWrapper and then a layer of ScaledFloatFrameWrapper, while the Env Wrapper serves to add functionality but does not change the original functionality.
 
 
-How to customise an Env Wrapper （Example）
------------------------------------------
+How to customise an Env Wrapper (Example)
+-------------------------------------------
 Taking ObsNormEnv wrapper as an example. In order to normalise the observed state，we only need to change two methods in the original environment class:step method and reset method, The rest of the method remains the same.
 Note that in some cases, as the normalised bounds of the observed state change, info is needed to be modified accordingly.Please also note that the essence of the ObsNormEnv wrapper is to add additional functionality to the original environment, which is what the wrapper is all about. \
 

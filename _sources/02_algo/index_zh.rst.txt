@@ -6,7 +6,6 @@
     :maxdepth: 3
 
     model_based_rl_zh
-    model_free_rl_zh
     imitation_learning_zh
     exploration_rl_zh
     multi_agent_cooperation_rl_zh

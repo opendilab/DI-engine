@@ -2,16 +2,17 @@
 =====================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    ding_env_zh
    custom_model_zh
    env_wrapper_zh
    model_wrapper_zh
-   multi_discrete_zh
    random_seed_zh
-   registry_zh
    rnn_zh
-   training_generated_folders_zh
    buffer_zh
    marl_zh
+   multi_discrete_zh
+   training_generated_folders_zh
+   registry_zh
+   wandb_zh

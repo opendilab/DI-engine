@@ -25,14 +25,13 @@ Quick Facts
 5. Network is trained with special loss function made up of four parts: one-step loss, n-step loss, expert large margin classification loss and L2 regularization.
 
 
-
 Key Equations or Key Graphs
 ---------------------------
 The DQfD overall loss used to update the network is a combination of all four losses.
 
 Overall Loss:  :math:`J(Q) = J_{DQ}(Q) + \lambda_1 J_n(Q) + \lambda_2J_E(Q) + \lambda_3 J_{L2}(Q)`
 
-- one-step loss:  :math:`J_{DQ}(Q) = (R(s,a) + \gamma Q(s_{t+1}, a_{t+1}^{max}; \theta ^') - Q(s,a;\theta))^2`, where :math:`a_{t+1}^{max} = argmax_a Q(s_{t+1},a;\theta)`.  
+- one-step loss:  :math:`J_{DQ}(Q) = (R(s,a) + \gamma Q(s_{t+1}, a_{t+1}^{max}; \theta^{'}) - Q(s,a;\theta))^2`, where :math:`a_{t+1}^{max} = argmax_a Q(s_{t+1},a;\theta)`.  
 
 - n-step loss:  :math:`J_n(Q) = r_t + \gamma r_{t+1} + ... + \gamma^{n-1} r_{t+n-1} + max_a \gamma^n Q(s_{t+n},a)`.
 
@@ -91,20 +90,20 @@ Benchmark
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 | environment         |best mean reward |              evaluation results                     |       config link        |     comparison       |
 +=====================+=================+=====================================================+==========================+======================+
-|Pong                 |       20        |                                                     |`config_link_p <https://  |     Tianshou(20)     |
-|(PongNoFrameskip-v4) |                 |                                                     |github.com/opendilab/     |        Sb3(20)       |
+|Pong                 |       20        |                                                     |`config_link_p <https://  |                      |
+|(PongNoFrameskip-v4) |                 |                                                     |github.com/opendilab/     |                      |
 |                     |                 |                                                     |DI-engine/blob/main/dizoo/|                      |
 |                     |                 |.. image:: images/benchmark/dqfd_pong.png            |atari/config/serial/pong/p|                      |
 |                     |                 |                                                     |ong_dqfd_config.py>`_     |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|Qbert                |      2356       |                                                     |`config_link_q <https://  |    Tianshou(7307)    |
-|(QbertNoFrameskip-v4)|                 |                                                     |github.com/opendilab/     |       Sb3(9496)      |
+|Qbert                |      4976       |                                                     |`config_link_q <https://  |                      |
+|(QbertNoFrameskip-v4)|                 |                                                     |github.com/opendilab/     |                      |
 |                     |                 |                                                     |DI-engine/blob/main/dizoo/|                      |
 |                     |                 |.. image:: images/benchmark/dqfd_qbert.png           |atari/config/serial/qbert/|                      |
 |                     |                 |                                                     |qbert_dqfd_config.py>`_   |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|SpaceInvaders        |      1371       |                                                     |`config_link_s <https://  |    Tianshou(812.2)   |
-|(SpaceInvadersNoFrame|                 |                                                     |github.com/opendilab/     |        Sb3(622)      |
+|SpaceInvaders        |      1969       |                                                     |`config_link_s <https://  |                      |
+|(SpaceInvadersNoFrame|                 |                                                     |github.com/opendilab/     |                      |
 |skip-v4)             |                 |                                                     |DI-engine/blob/main/dizoo/|                      |
 |                     |                 |.. image:: images/benchmark/dqfd_spaceinvaders.png   |atari/config/serial/spacei|                      |
 |                     |                 |                                                     |nvaders/spaceinvaders_dqfd|                      |

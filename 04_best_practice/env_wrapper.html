@@ -348,7 +348,7 @@ For instance：When we are training agents, we usually need to change the defini
 <p>In particular, the Env Wrappers in the list are wrapped outside the environment in order. In the example above, the Env Wrapper wraps a layer of MaxAndSkipWrapper and then a layer of ScaledFloatFrameWrapper, while the Env Wrapper serves to add functionality but does not change the original functionality.</p>
 </section>
 <section id="how-to-customise-an-env-wrapper-example">
-<h1>How to customise an Env Wrapper （Example）<a class="headerlink" href="#how-to-customise-an-env-wrapper-example" title="Permalink to this headline">¶</a></h1>
+<h1>How to customise an Env Wrapper (Example)<a class="headerlink" href="#how-to-customise-an-env-wrapper-example" title="Permalink to this headline">¶</a></h1>
 <p>Taking ObsNormEnv wrapper as an example. In order to normalise the observed state，we only need to change two methods in the original environment class:step method and reset method, The rest of the method remains the same.
 Note that in some cases, as the normalised bounds of the observed state change, info is needed to be modified accordingly.Please also note that the essence of the ObsNormEnv wrapper is to add additional functionality to the original environment, which is what the wrapper is all about. </p>
 <p>In addition, since the distribution of the sampled data is highly correlated with the strategy, i.e., the distribution of the samples can vary significantly from strategy to strategy, we use running means and standard deviations to normalize the observed states, rather than fixed means and standard deviations.</p>
@@ -437,7 +437,7 @@ Note that in some cases, as the normalised bounds of the observed state change, 
 </ul>
 </li>
 <li><a class="reference internal" href="#how-to-use-env-wrapper">How to use Env Wrapper</a></li>
-<li><a class="reference internal" href="#how-to-customise-an-env-wrapper-example">How to customise an Env Wrapper （Example）</a></li>
+<li><a class="reference internal" href="#how-to-customise-an-env-wrapper-example">How to customise an Env Wrapper (Example)</a></li>
 </ul>
 
             </div>

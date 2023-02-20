@@ -322,7 +322,7 @@ The ratio of both types of data in each mini-batch is automatically controlled b
 <p>The DQfD overall loss used to update the network is a combination of all four losses.</p>
 <p>Overall Loss:  <span class="math notranslate nohighlight">\(J(Q) = J_{DQ}(Q) + \lambda_1 J_n(Q) + \lambda_2J_E(Q) + \lambda_3 J_{L2}(Q)\)</span></p>
 <ul class="simple">
-<li><p>one-step loss:  <span class="math notranslate nohighlight">\(J_{DQ}(Q) = (R(s,a) + \gamma Q(s_{t+1}, a_{t+1}^{max}; \theta ^') - Q(s,a;\theta))^2\)</span>, where <span class="math notranslate nohighlight">\(a_{t+1}^{max} = argmax_a Q(s_{t+1},a;\theta)\)</span>.</p></li>
+<li><p>one-step loss:  <span class="math notranslate nohighlight">\(J_{DQ}(Q) = (R(s,a) + \gamma Q(s_{t+1}, a_{t+1}^{max}; \theta^{'}) - Q(s,a;\theta))^2\)</span>, where <span class="math notranslate nohighlight">\(a_{t+1}^{max} = argmax_a Q(s_{t+1},a;\theta)\)</span>.</p></li>
 <li><p>n-step loss:  <span class="math notranslate nohighlight">\(J_n(Q) = r_t + \gamma r_{t+1} + ... + \gamma^{n-1} r_{t+n-1} + max_a \gamma^n Q(s_{t+n},a)\)</span>.</p></li>
 <li><p>large margin classiﬁcation loss: <span class="math notranslate nohighlight">\(J_E(Q) = max_{a \in A}[Q(s,a) + L(a_E,a)] - Q(s,a_E)\)</span>, <span class="math notranslate nohighlight">\(L(a_E,a)\)</span> is a margin function that is 0 when <span class="math notranslate nohighlight">\(a = a_E\)</span> and positive otherwise. This loss forces the values of the other actions to be at least a margin lower than the value of the demonstrator’s action.</p></li>
 <li><p>L2 regularization loss: <span class="math notranslate nohighlight">\(J_{L2}(Q)\)</span> help prevent from over-ﬁtting.</p></li>
@@ -766,36 +766,24 @@ The ratio of both types of data in each mini-batch is automatically controlled b
 <td><img alt="../_images/dqfd_pong.png" src="../_images/dqfd_pong.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqfd_config.py">config_link_p</a></p></td>
-<td><dl class="simple">
-<dt>Tianshou(20)</dt><dd><p>Sb3(20)</p>
-</dd>
-</dl>
-</td>
+<td></td>
 </tr>
 <tr class="row-odd"><td><p>Qbert
 (QbertNoFrameskip-v4)</p></td>
-<td><p>2356</p></td>
+<td><p>4976</p></td>
 <td><img alt="../_images/dqfd_qbert.png" src="../_images/dqfd_qbert.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_dqfd_config.py">config_link_q</a></p></td>
-<td><dl class="simple">
-<dt>Tianshou(7307)</dt><dd><p>Sb3(9496)</p>
-</dd>
-</dl>
-</td>
+<td></td>
 </tr>
 <tr class="row-even"><td><p>SpaceInvaders
 (SpaceInvadersNoFrame
 skip-v4)</p></td>
-<td><p>1371</p></td>
+<td><p>1969</p></td>
 <td><img alt="../_images/dqfd_spaceinvaders.png" src="../_images/dqfd_spaceinvaders.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqfd_config.py">config_link_s</a></p></td>
-<td><dl class="simple">
-<dt>Tianshou(812.2)</dt><dd><p>Sb3(622)</p>
-</dd>
-</dl>
-</td>
+<td></td>
 </tr>
 </tbody>
 </table>

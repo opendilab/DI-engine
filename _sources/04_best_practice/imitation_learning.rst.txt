@@ -1,5 +1,5 @@
 How to construct a data pipeline for Imitation Learning / Offline Training
-==============================================================
+===========================================================================
 
 Overview
 ~~~~~~~~~~~~~~
@@ -20,7 +20,7 @@ For better illustrating this pipeline, we take two examples: `Behavioral Cloning
 Next, we will introduce details about how to implement the pipeline of these two algorithms.
 
 ``Train an expert policy``
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this step, we will train an expert policy, which has no difference with standard RL process. For example, to perform PPO on cartpole, we can use:
 
@@ -37,7 +37,7 @@ In this step, we will train an expert policy, which has no difference with stand
       expert_policy = serial_pipeline(config, seed=0)
 
 ``Generate data``
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 In this step, the expert policy will generate demonstration data.
 
@@ -82,7 +82,7 @@ In our implementation, the process above is included in one function. The method
       trex_collecting_data(args=args)
 
 ``Imitation Learning / Offline Training``
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Finally in this step, we will use the generated demonstration data for Imitation Learning / Offline Training. For BC, we can use:
 
@@ -124,7 +124,7 @@ For BC, this process contains cloning the expert behavior and evaluation for the
          with torch.no_grad():
              sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res, mode='batch')
 
-         for item, rew in zip(train_data_augmented, sum_rewards):  # TODO optimise this loop as well ?
+         for item, rew in zip(train_data_augmented, sum_rewards):
              item['reward'] = rew
 
          return train_data_augmented

@@ -35,6 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Random Seed" href="random_seed.html" />
+  <link rel="prev" title="Buffer User Guide" href="buffer.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -203,12 +205,12 @@
         
         
         <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -263,6 +265,8 @@
         </a> &gt;
       </li>
 
+        
+          <li><a href="index.html">Best Practice</a> &gt;</li>
         
       <li>How to construct a data pipeline for Imitation Learning / Offline Training</li>
     
@@ -401,7 +405,7 @@
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
         <span class="n">sum_rewards</span><span class="p">,</span> <span class="n">sum_abs_rewards</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">cum_return</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;batch&#39;</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">rew</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">train_data_augmented</span><span class="p">,</span> <span class="n">sum_rewards</span><span class="p">):</span>  <span class="c1"># TODO optimise this loop as well ?</span>
+    <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">rew</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">train_data_augmented</span><span class="p">,</span> <span class="n">sum_rewards</span><span class="p">):</span>
         <span class="n">item</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rew</span>
 
     <span class="k">return</span> <span class="n">train_data_augmented</span>
@@ -416,6 +420,18 @@
               
             </div>
             <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="random_seed.html" class="btn btn-neutral float-right" title="Random Seed" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="buffer.html" class="btn btn-neutral" title="Buffer User Guide" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
   
 
   <hr>

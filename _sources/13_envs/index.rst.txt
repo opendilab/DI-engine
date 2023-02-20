@@ -38,7 +38,6 @@ Environments:
    gfootball
    overcooked
    bsuite
-   multiagent_particle
    pettingzoo
    pybullet
    dmc2gym
