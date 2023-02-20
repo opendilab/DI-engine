@@ -11,3 +11,5 @@ register(id='MiniGrid-AKTDT-13x13-1-v0', entry_point='dizoo.minigrid.envs:AppleK
 register(id='MiniGrid-AKTDT-19x19-v0', entry_point='dizoo.minigrid.envs:AppleKeyToDoorTreasure_19x19')
 
 register(id='MiniGrid-AKTDT-19x19-3-v0', entry_point='dizoo.minigrid.envs:AppleKeyToDoorTreasure_19x19_3')
+
+register(id='MiniGrid-NoisyTV-v0', entry_point='dizoo.minigrid.envs:NoisyTVEnv')
