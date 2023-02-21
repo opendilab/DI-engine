@@ -34,7 +34,7 @@ class PPOF:
         # atari
         'qbert',
         'kangaroo',
-        'bowling'
+        'bowling',
     ]
 
     def __init__(
@@ -72,11 +72,8 @@ class PPOF:
             action_shape = action_space.shape
         if model is None:
             model = PPOFModel(
-                action_space=self.cfg.action_space, **self.cfg.model
+                self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
             )
-            # model = PPOFModel(
-            #     self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
-            # )
         self.policy = PPOFPolicy(self.cfg, model=model)
 
     def train(

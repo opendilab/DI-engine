@@ -83,8 +83,6 @@ def get_instance_config(env: str) -> EasyDict:
         cfg.epoch_per_collect = 10
         cfg.learning_rate = 0.0001
         cfg.model = dict(
-            obs_shape=[4, 84, 84],
-            action_shape=6,
             encoder_hidden_size_list=[32, 64, 64, 128],
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
@@ -96,8 +94,6 @@ def get_instance_config(env: str) -> EasyDict:
         cfg.epoch_per_collect = 10
         cfg.learning_rate = 0.0001
         cfg.model = dict(
-            obs_shape=[4, 84, 84],
-            action_shape=18,
             encoder_hidden_size_list=[32, 64, 64, 128],
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
@@ -109,8 +105,6 @@ def get_instance_config(env: str) -> EasyDict:
         cfg.epoch_per_collect = 10
         cfg.learning_rate = 0.0001
         cfg.model = dict(
-            obs_shape=[4, 84, 84],
-            action_shape=6,
             encoder_hidden_size_list=[32, 64, 64, 128],
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
