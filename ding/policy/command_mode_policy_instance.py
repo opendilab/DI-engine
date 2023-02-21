@@ -103,7 +103,7 @@ class BDQCommandModePolicy(BDQPolicy, EpsCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('mdqn_command')
-class DQNCommandModePolicy(MDQNPolicy, EpsCommandModePolicy):
+class MDQNCommandModePolicy(MDQNPolicy, EpsCommandModePolicy):
     pass
 
 
