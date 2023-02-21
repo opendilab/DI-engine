@@ -1,6 +1,7 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
 from .common_utils import single_env_forward_wrapper, single_env_forward_wrapper_ttorch
 from .dqn import DQNSTDIMPolicy, DQNPolicy
+from .mdqn import MDQNPolicy
 from .iqn import IQNPolicy
 from .fqf import FQFPolicy
 from .qrdqn import QRDQNPolicy

@@ -46,6 +46,7 @@ from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 from .madqn import MADQNPolicy
 from .bdq import BDQPolicy
+from .mdqn import MDQNPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -98,6 +99,11 @@ class DummyCommandModePolicy(CommandModePolicy):
 
 @POLICY_REGISTRY.register('bdq_command')
 class BDQCommandModePolicy(BDQPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('mdqn_command')
+class DQNCommandModePolicy(MDQNPolicy, EpsCommandModePolicy):
     pass
 
 

@@ -29,14 +29,58 @@ def q_1step_td_error(
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
     q, next_q, act, next_act, reward, done, weight = data
+    print(q.shape)
+    assert len(act.shape) == 1, act.shape
+    print(reward.shape)
+    assert len(reward.shape) == 1, reward.shape
+    batch_range = torch.arange(act.shape[0])
+    if weight is None:
+        weight = torch.ones_like(reward)
+    q_s_a = q[batch_range, act]
+    print(q_s_a.shape)
+    v_s = q[batch_range].max(1)[0].unsqueeze(-1)
+    print(v_s.shape)
+    target_q_s_a = next_q[batch_range, next_act]
+    target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
+    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
+
+
+m_q_1step_td_data = namedtuple(
+    'm_q_1step_td_data', ['q', 'target_q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight']
+)
+
+
+def m_q_1step_td_error(
+        data: namedtuple,
+        gamma: float,
+        tau: float,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
+) -> torch.Tensor:
+    q, target_q, next_q, act, next_act, reward, done, weight = data
+    alpha = 0.9
+    lo = -1
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
     batch_range = torch.arange(act.shape[0])
     if weight is None:
         weight = torch.ones_like(reward)
     q_s_a = q[batch_range, act]
-    target_q_s_a = next_q[batch_range, next_act]
-    target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
+    # calculate muchausen addon
+    target_v_s = target_q[batch_range].max(1)[0].unsqueeze(-1)
+    logsum = torch.logsumexp((target_q - target_v_s) / tau, 1).unsqueeze(-1)
+    log_pi = target_q - target_v_s - tau * logsum
+    act_get = act.unsqueeze(-1)
+    munchausen_addon = log_pi.gather(1, act_get)
+    muchausen_reward = (reward + alpha * torch.clamp(munchausen_addon, min=lo, max=0))
+
+    target_v_s_next = next_q[batch_range].max(1)[0].unsqueeze(-1)
+    logsum_next = torch.logsumexp((next_q - target_v_s_next) / tau, 1).unsqueeze(-1)
+    tau_log_pi_next = next_q - target_v_s_next - tau * logsum_next
+    pi_target = F.softmax(next_q / tau)
+    target_q_s_a = (gamma * (pi_target * (next_q - tau_log_pi_next) * (1 - done.unsqueeze(-1))).sum(1)).unsqueeze(-1)
+
+    target_q_s_a = muchausen_reward + target_q_s_a
+
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
