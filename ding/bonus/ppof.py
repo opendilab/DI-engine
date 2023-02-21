@@ -184,7 +184,13 @@ class PPOF:
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode))
             task.run(max_step=1)
 
-    def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False, caller: str = 'collector') -> BaseEnvManagerV2:
+    def _setup_env_manager(
+            self,
+            env_num: int,
+            context: Optional[str] = None,
+            debug: bool = False,
+            caller: str = 'collector'
+    ) -> BaseEnvManagerV2:
         if debug:
             env_cls = BaseEnvManagerV2
             manager_cfg = env_cls.default_config()
