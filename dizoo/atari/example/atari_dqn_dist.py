@@ -42,7 +42,7 @@ def main():
             task.use(nstep_reward_enhancer(cfg))
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-            task.use(CkptSaver(cfg, policy, train_freq=1000))
+            task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
 
         elif 'evaluator' in task.router.labels:
             logging.info("Evaluator running on node {}".format(task.router.node_id))
@@ -54,7 +54,7 @@ def main():
             task.use(context_exchanger(recv_keys=["train_iter", "env_step"], skip_n_iter=1))
             task.use(model_exchanger(model, is_learner=False))
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
-            task.use(CkptSaver(cfg, policy, save_finish=False))
+            task.use(CkptSaver(policy, cfg.exp_name, save_finish=False))
             task.use(online_logger(record_train_iter=True))
 
         elif 'collector' in task.router.labels:

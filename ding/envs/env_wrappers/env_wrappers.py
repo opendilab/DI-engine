@@ -1042,6 +1042,52 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
         return obs, reward, done, info
 
 
+class TransposeWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+        old_space = copy.deepcopy(env.observation_space)
+        new_shape = (old_space.shape[-1], *old_space.shape[:-1])
+        self._observation_space = gym.spaces.Box(
+            low=old_space.low.min(), high=old_space.high.max(), shape=new_shape, dtype=old_space.dtype
+        )
+
+    def _process_obs(self, obs):
+        obs = to_ndarray(obs)
+        obs = np.transpose(obs, (2, 0, 1))
+        return obs
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        return self._process_obs(obs), reward, done, info
+
+    def reset(self):
+        obs = self.env.reset()
+        return self._process_obs(obs)
+
+
+class TimeLimitWrapper(gym.Wrapper):
+
+    def __init__(self, env, max_limit):
+        super().__init__(env)
+        self.max_limit = max_limit
+
+    def reset(self):
+        self.time_count = 0
+        return self.env.reset()
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self.time_count += 1
+        if self.time_count >= self.max_limit:
+            done = True
+            info['time_limit'] = True
+        else:
+            info['time_limit'] = False
+        info['time_count'] = self.time_count
+        return obs, reward, done, info
+
+
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """
     Overview:

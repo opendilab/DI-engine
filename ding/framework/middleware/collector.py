@@ -121,6 +121,7 @@ class PPOFStepCollector:
             timesteps = self.env.step(action)
             ctx.env_step += len(timesteps)
 
+            obs = obs.cpu()
             for i, timestep in enumerate(timesteps):
                 transition = self.policy.process_transition(obs[i], inference_output[i], timestep)
                 transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])

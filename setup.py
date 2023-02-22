@@ -79,7 +79,7 @@ setup(
         'pynng',
         'redis',
         'pettingzoo==1.12.0',
-        'DI-treetensor>=0.4.0',
+        'DI-treetensor>=0.3.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'wandb',
@@ -118,7 +118,7 @@ setup(
         'common_env': [
             'ale-py',  # >=0.7.5',  # atari
             'autorom',
-            'gym[all]>=0.25.0'
+            'gym[all]>=0.25.0',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],

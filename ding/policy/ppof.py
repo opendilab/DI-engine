@@ -141,6 +141,8 @@ class PPOFPolicy:
     def forward(self, data: ttorch.Tensor) -> Dict[str, Any]:
         return_infos = []
         self._model.train()
+        bs = self._cfg.batch_size
+        data = data[:self._cfg.n_sample // bs * bs]  # rounding
 
         # outer training loop
         for epoch in range(self._cfg.epoch_per_collect):
@@ -234,9 +236,17 @@ class PPOFPolicy:
                 if self._action_space == 'continuous':
                     return_info.update(
                         {
-                            'act': batch.action.float().mean().item(),
+                            'action': batch.action.float().mean().item(),
                             'mu_mean': output.logit.mu.mean().item(),
                             'sigma_mean': output.logit.sigma.mean().item(),
+                        }
+                    )
+                elif self._action_space == 'hybrid':
+                    return_info.update(
+                        {
+                            'action': batch.action.action_args.float().mean().item(),
+                            'mu_mean': output.logit.action_args.mu.mean().item(),
+                            'sigma_mean': output.logit.action_args.sigma.mean().item(),
                         }
                     )
                 return_infos.append(return_info)
@@ -296,8 +306,8 @@ class PPOFPolicy:
             'value_max',
             'value_mean',
         ]
-        if self._action_space == 'continuous':
-            variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']
+        if self._action_space in ['action', 'mu_mean', 'sigma_mean']:
+            variables += ['mu_mean', 'sigma_mean', 'action']
         return variables
 
     def reset(self, env_id_list: Optional[List[int]] = None) -> None:
