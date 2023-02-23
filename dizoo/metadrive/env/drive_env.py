@@ -1,21 +1,19 @@
 import copy
+import gym
 import numpy as np
 from ditk import logging
 from typing import Union, Dict, AnyStr, Tuple, Optional
 from gym.envs.registration import register
 from metadrive.manager.traffic_manager import TrafficMode
 from metadrive.obs.top_down_obs_multi_channel import TopDownMultiChannel
-from metadrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT, REPLAY_DONE
+from metadrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT, REPLAY_DONE, TerminationState
 from metadrive.envs.base_env import BaseEnv
 from metadrive.component.map.base_map import BaseMap
 from metadrive.component.map.pg_map import parse_map_config, MapGenerateMethod
-from metadrive.manager.traffic_manager import TrafficMode
 from metadrive.component.pgblock.first_block import FirstPGBlock
-from metadrive.constants import DEFAULT_AGENT, TerminationState
 from metadrive.component.vehicle.base_vehicle import BaseVehicle
 from metadrive.utils import Config, merge_dicts, get_np_random, clip
 from metadrive.envs.base_env import BASE_DEFAULT_CONFIG
-from metadrive.obs.top_down_obs_multi_channel import TopDownMultiChannel
 from metadrive.component.road_network import Road
 from metadrive.component.algorithm.blocks_prob_dist import PGBlockDistConfig
 
@@ -103,10 +101,34 @@ class MetaDrivePPOOriginEnv(BaseEnv):
         return config
 
     def __init__(self, config: dict = None):
+        self.raw_cfg = config
         self.default_config_copy = Config(self.default_config(), unchangeable=True)
-        super(MetaDrivePPOOriginEnv, self).__init__(config)
-        self.start_seed = self.config["start_seed"]
-        self.env_num = self.config["environment_num"]
+        self.init_flag = False
+
+    @property
+    def observation_space(self):
+        return gym.spaces.Box(0, 1, shape=(84, 84, 5), dtype=np.float32)
+
+    @property
+    def action_space(self):
+        return gym.spaces.Box(-1, 1, shape=(2, ), dtype=np.float32)
+
+    @property
+    def reward_space(self):
+        return gym.spaces.Box(-100, 100, shape=(1, ), dtype=np.float32)
+
+    def seed(self, seed, dynamic_seed=False):
+        # TODO implement dynamic_seed mechanism
+        super().seed(seed)
+
+    def reset(self):
+        if not self.init_flag:
+            super(MetaDrivePPOOriginEnv, self).__init__(self.raw_cfg)
+            self.start_seed = self.config["start_seed"]
+            self.env_num = self.config["environment_num"]
+            self.init_flag = True
+        obs = super().reset()
+        return obs
 
     def _merge_extra_config(self, config: Union[dict, "Config"]) -> "Config":
         config = self.default_config().update(config, allow_add_new_key=False)
@@ -151,9 +173,6 @@ class MetaDrivePPOOriginEnv(BaseEnv):
         engine_info = self._step_simulator(actions)
         o, r, d, i = self._get_step_return(actions, engine_info=engine_info)
         return o, r, d, i
-
-    def _get_observations(self):
-        return {DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
 
     def cost_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
@@ -318,8 +337,8 @@ class MetaDrivePPOOriginEnv(BaseEnv):
 
     def _reset_global_seed(self, force_seed=None):
         """
-        Current seed is set to force seed if force_seed is not None. 
-        Otherwise, current seed is randomly generated. 
+        Current seed is set to force seed if force_seed is not None.
+        Otherwise, current seed is randomly generated.
         """
         current_seed = force_seed if force_seed is not None else \
             get_np_random(self._DEBUG_RANDOM_SEED).randint(self.start_seed, self.start_seed + self.env_num)
@@ -339,3 +358,7 @@ class MetaDrivePPOOriginEnv(BaseEnv):
             resolution=(84, 84),
             max_distance=36,
         )
+
+    def clone(self):
+        cfg = copy.deepcopy(self.raw_cfg)
+        return MetaDrivePPOOriginEnv(cfg)

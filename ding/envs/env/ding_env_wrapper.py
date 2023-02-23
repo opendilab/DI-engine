@@ -35,7 +35,6 @@ class DingEnvWrapper(BaseEnv):
         if 'env_id' not in self._cfg:
             self._cfg.env_id = None
         if env is not None:
-            self._init_flag = True
             self._env = env
             self._wrap_env()
             self._observation_space = self._env.observation_space
@@ -44,6 +43,7 @@ class DingEnvWrapper(BaseEnv):
             self._reward_space = gym.spaces.Box(
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
+            self._init_flag = True
         else:
             assert 'env_id' in self._cfg
             self._init_flag = False

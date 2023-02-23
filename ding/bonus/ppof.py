@@ -21,6 +21,7 @@ class PPOF:
         'lunarlander_discrete',
         'lunarlander_continuous',
         'bipedalwalker',
+        'acrobot',
         # ch2: action
         'rocket_landing',
         'drone_fly',
@@ -30,6 +31,9 @@ class PPOF:
         'mario',
         'di_sheep',
         'procgen_bigfish',
+        # ch4: reward
+        'minigrid_fourroom',
+        'metadrive',
     ]
 
     def __init__(
