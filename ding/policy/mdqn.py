@@ -221,10 +221,6 @@ class MDQNPolicy(Policy):
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
-        data_1 = q_1step_td_data(
-            q_value, target_q_value, data['action'], target_q_action, data['reward'].squeeze(0), data['done'],
-            data['weight']
-        )
         data_m = m_q_1step_td_data(
             q_value, target_q_value_current, target_q_value, data['action'], target_q_action, data['reward'].squeeze(0),
             data['done'], data['weight']
@@ -232,7 +228,7 @@ class MDQNPolicy(Policy):
         value_gamma = data.get('value_gamma')
         #loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
         #loss = q_1step_td_error(data_1,self._gamma)
-        loss = m_q_1step_td_error(data_m, self._gamma, 0.03)
+        loss, action_gap = m_q_1step_td_error(data_m, self._gamma, 0.03)
         # ====================
         # Q-learning update
         # ====================
@@ -251,12 +247,13 @@ class MDQNPolicy(Policy):
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
             'target_q_value': target_q_value.mean().item(),
+            'action_gap': action_gap.item(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
 
     def _monitor_vars_learn(self) -> List[str]:
-        return ['cur_lr', 'total_loss', 'q_value']
+        return ['cur_lr', 'total_loss', 'q_value', 'action_gap']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
