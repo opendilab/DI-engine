@@ -6,18 +6,6 @@ from minigrid.core.world_object import WorldObj
 import random
 
 
-class NoisyTile(WorldObj):
-
-    def __init__(self, color='red'):
-        super(NoisyTile, self).__init__('ball', color)
-
-    def can_pickup(self):
-        return False
-
-    def render(self, img):
-        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
-
-
 class NoisyTVEnv(MiniGridEnv):
     """
     ### Description
@@ -69,12 +57,17 @@ class NoisyTVEnv(MiniGridEnv):
 
     """
 
-    def __init__(self, agent_pos=None, goal_pos=None, noisy_tile_num=2, **kwargs):
+    def __init__(self, agent_pos=None, goal_pos=None, noisy_tile_num=4, **kwargs):
         self._agent_default_pos = agent_pos
         self._goal_default_pos = goal_pos
-        self._noisy_tile_num = noisy_tile_num
-
         self.size = 19
+        self._noisy_tile_num = noisy_tile_num
+        self._noisy_tile_pos = []
+        for i in range(self._noisy_tile_num):
+            pos2 = (self._rand_int(1, self.size - 1), self._rand_int(1, self.size - 1))
+            while pos2 in self._noisy_tile_pos:
+                pos2 = (self._rand_int(1, self.size - 1), self._rand_int(1, self.size - 1))
+            self._noisy_tile_pos.append(pos2)
         mission_space = MissionSpace(mission_func=lambda: "reach the goal")
 
         super().__init__(mission_space=mission_space, width=self.size, height=self.size, max_steps=100, **kwargs)
@@ -83,7 +76,19 @@ class NoisyTVEnv(MiniGridEnv):
         """
         Compute the reward to be given upon reach a noisy tile
         """
-        return random.gauss(0, 0.1)
+        return self._rand_float(0.05, 0.1)
+
+    def _add_noise(self, obs):
+        """
+        Add noise to obs['image']
+        """
+        image = obs['image'].astype(float)
+        for pos in self._noisy_tile_pos:
+            if self.in_view(pos[0], pos[1]):  # if noisy tile is in the view of agent, the view of agent is 7*7.
+                relative_pos = self.relative_coords(pos[0], pos[1])
+                image[relative_pos][1] += 0.5
+                obs['image'] = image
+        return obs
 
     def _gen_grid(self, width, height):
         # Create the grid
@@ -120,13 +125,6 @@ class NoisyTVEnv(MiniGridEnv):
                     pos = (self._rand_int(xL + 1, xR), yB)
                     self.grid.set(*pos, None)
 
-        pos2_dummy_list = []  # to avoid overlap of noisy tile
-        for i in range(self._noisy_tile_num):
-            pos2 = (self._rand_int(1, room_w), self._rand_int(1, room_h))
-            while pos2 in pos2_dummy_list:
-                pos2 = (self._rand_int(1, room_w), self._rand_int(1, room_h))
-            self.put_obj(NoisyTile('red'), *pos2)
-            pos2_dummy_list.append(pos2)
         # Randomize the player start position and orientation
         if self._agent_default_pos is not None:
             self.agent_pos = self._agent_default_pos
@@ -175,10 +173,9 @@ class NoisyTVEnv(MiniGridEnv):
                 reward = self._reward()
             if fwd_cell is not None and fwd_cell.type == "lava":
                 terminated = True
-            if fwd_cell is not None and fwd_cell.type == "ball":
+            # if agent reach noisy tile, return noisy reward.
+            if self.agent_pos in self._noisy_tile_pos:
                 reward = self._reward_noise()
-                self.grid.set(*fwd_pos, None)
-                self.agent_pos = fwd_pos
 
         # Pick up an object
         elif action == self.actions.pickup:
@@ -214,5 +211,6 @@ class NoisyTVEnv(MiniGridEnv):
             self.render()
 
         obs = self.gen_obs()
+        obs = self._add_noise(obs)
 
         return obs, reward, terminated, truncated, {}
