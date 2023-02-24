@@ -84,6 +84,8 @@ class MDQNPolicy(Policy):
         # (float) Discount factor(gamma) for returns
         discount_factor=0.97,
         # (int) The number of step for calculating target q_value
+        entropy_tau=0.03,
+        m_alpha=0.9,
         nstep=1,
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -155,6 +157,8 @@ class MDQNPolicy(Policy):
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
+        self._entropy_tau = self._cfg.entropy_tau
+        self._m_alpha = self._cfg.m_alpha
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
@@ -222,13 +226,13 @@ class MDQNPolicy(Policy):
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         data_m = m_q_1step_td_data(
-            q_value, target_q_value_current, target_q_value, data['action'], target_q_action, data['reward'].squeeze(0),
-            data['done'], data['weight']
+            q_value, target_q_value_current, target_q_value, data['action'], data['reward'].squeeze(0), data['done'],
+            data['weight']
         )
-        value_gamma = data.get('value_gamma')
+        # value_gamma = data.get('value_gamma')
         #loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
         #loss = q_1step_td_error(data_1,self._gamma)
-        loss, action_gap = m_q_1step_td_error(data_m, self._gamma, 0.03)
+        loss, action_gap = m_q_1step_td_error(data_m, self._gamma, self._entropy_tau, self._m_alpha)
         # ====================
         # Q-learning update
         # ====================
