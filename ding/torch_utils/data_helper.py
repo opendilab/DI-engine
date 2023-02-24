@@ -254,9 +254,9 @@ def to_list(item: Any) -> list:
 
 
 def tensor_to_list(item):
-    r"""
+    """
     Overview:
-        Transform `torch.Tensor` to `list`, keep other data types unchanged
+        Transform `torch.Tensor` to `list`, keep other data types unchanged.
     Arguments:
         - item (:obj:`Any`): the item to be transformed
     Returns:
@@ -278,6 +278,31 @@ def tensor_to_list(item):
         return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
+
+
+def to_item(data):
+    """
+    Overview:
+        Transform data into python native scalar (i.e. data item), keep other data types unchanged.
+    Arguments:
+        - data (:obj:`Any`): The data that needs to be transformed.
+    Returns:
+        - data (:obj:`Any`): Transformed data.
+    """
+    if data is None:
+        return data
+    elif isinstance(data, bool) or isinstance(data, str):
+        return data
+    elif np.isscalar(data):
+        return data
+    elif isinstance(data, np.ndarray) or isinstance(data, torch.Tensor) or isinstance(data, ttorch.Tensor):
+        return data.item()
+    elif isinstance(data, list) or isinstance(data, tuple):
+        return [to_item(d) for d in data]
+    elif isinstance(data, dict):
+        return {k: to_item(v) for k, v in data.items()}
+    else:
+        raise TypeError("not support data type: {}".format(data))
 
 
 def same_shape(data: list) -> bool:
