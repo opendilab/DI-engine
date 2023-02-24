@@ -251,18 +251,13 @@ class DDPGPolicy(Policy):
 
         q_value_dict = {}
         target_q_value_dict = {}
-        if self._twin_critic:
-            q_value_dict['q_value'] = q_value[0].mean()
-            q_value_dict['q_value_twin'] = q_value[1].mean()
-            target_q_value_dict['target q_value'] = target_q_value[0].mean()
-            target_q_value_dict['target q_value_twin'] = target_q_value[1].mean()
-        else:
-            q_value_dict['q_value'] = q_value.mean()
-            target_q_value_dict['target q_value'] = target_q_value[0].mean()
 
         if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
+            q_value_dict['q_value'] = q_value[0].mean()
+            q_value_dict['q_value_twin'] = q_value[1].mean()
+            target_q_value_dict['target q_value'] = target_q_value.mean()
             # critic network1
             td_data = v_1step_td_data(q_value[0], target_q_value, reward, data['done'], data['weight'])
             critic_loss, td_error_per_sample1 = v_1step_td_error(td_data, self._gamma)
@@ -274,6 +269,8 @@ class DDPGPolicy(Policy):
             td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
         else:
             # DDPG: single critic network
+            q_value_dict['q_value'] = q_value.mean()
+            target_q_value_dict['target q_value'] = target_q_value.mean()
             td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
             critic_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
             loss_dict['critic_loss'] = critic_loss
