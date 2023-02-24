@@ -35,25 +35,22 @@ def q_1step_td_error(
     if weight is None:
         weight = torch.ones_like(reward)
     q_s_a = q[batch_range, act]
-    v_s = q[batch_range].max(1)[0].unsqueeze(-1)
     target_q_s_a = next_q[batch_range, next_act]
     target_q_s_a = gamma * (1 - done) * target_q_s_a + reward
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
-m_q_1step_td_data = namedtuple(
-    'm_q_1step_td_data', ['q', 'target_q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight']
-)
+m_q_1step_td_data = namedtuple('m_q_1step_td_data', ['q', 'target_q', 'next_q', 'act', 'reward', 'done', 'weight'])
 
 
 def m_q_1step_td_error(
         data: namedtuple,
         gamma: float,
         tau: float,
+        alpha: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
-    q, target_q, next_q, act, next_act, reward, done, weight = data
-    alpha = 0.9
+    q, target_q, next_q, act, reward, done, weight = data
     lo = -1
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
