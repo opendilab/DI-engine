@@ -232,7 +232,7 @@ class MDQNPolicy(Policy):
         # value_gamma = data.get('value_gamma')
         #loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
         #loss = q_1step_td_error(data_1,self._gamma)
-        loss, action_gap = m_q_1step_td_error(data_m, self._gamma, self._entropy_tau, self._m_alpha)
+        loss, action_gap, clipfrac = m_q_1step_td_error(data_m, self._gamma, self._entropy_tau, self._m_alpha)
         # ====================
         # Q-learning update
         # ====================
@@ -252,12 +252,13 @@ class MDQNPolicy(Policy):
             'q_value': q_value.mean().item(),
             'target_q_value': target_q_value.mean().item(),
             'action_gap': action_gap.item(),
+            'clip_frac': clipfrac,
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
 
     def _monitor_vars_learn(self) -> List[str]:
-        return ['cur_lr', 'total_loss', 'q_value', 'action_gap']
+        return ['cur_lr', 'total_loss', 'q_value', 'action_gap', 'clip_frac']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """

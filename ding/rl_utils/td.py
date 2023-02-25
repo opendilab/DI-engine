@@ -68,6 +68,8 @@ def m_q_1step_td_error(
     act_get = act.unsqueeze(-1)
     # same to the last second tau_log_pi_a
     munchausen_addon = log_pi.gather(1, act_get)
+    clipped = munchausen_addon.gt(1) | munchausen_addon.lt(lo)
+    clipfrac = torch.as_tensor(clipped).float().mean().item()
     muchausen_term = alpha * torch.clamp(munchausen_addon, min=lo, max=1)
 
     # replay_next_log_policy
@@ -80,7 +82,7 @@ def m_q_1step_td_error(
 
     target_q_s_a = reward + muchausen_term + target_q_s_a
 
-    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean(), action_gap
+    return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean(), action_gap, clipfrac
 
 
 q_v_1step_td_data = namedtuple('q_v_1step_td_data', ['q', 'v', 'act', 'reward', 'done', 'weight'])
