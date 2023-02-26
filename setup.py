@@ -84,7 +84,7 @@ setup(
         'hbutils>=0.5.0',
         'wandb',
         'matplotlib',
-        'MarkupSafe==2.0.1',  # compatibility
+        'MarkupSafe>=2.1.1',  # compatibility
         'h5py',
         'scikit-learn',
         'hickle',
