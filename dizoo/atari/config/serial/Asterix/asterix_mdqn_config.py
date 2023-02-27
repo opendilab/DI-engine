@@ -7,7 +7,7 @@ asterix_mdqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=10000,
+        stop_value=20000,
         env_id='Asterix-v0',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
@@ -19,15 +19,17 @@ asterix_mdqn_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=9,
-            encoder_hidden_size_list=[128, 128, 512],
+            encoder_hidden_size_list=[32, 32, 64, 512],
         ),
         nstep=1,
         discount_factor=0.99,
+        entropy_tau=0.03,
+        m_alpha=0.9,
         learn=dict(
-            update_per_collect=10,
+            update_per_collect=4,
             batch_size=32,
-            learning_rate=0.0001,
-            target_update_freq=500,
+            learning_rate=0.00005,
+            target_update_freq=8,
             learner=dict(train_iterations=int(3e7), hook=dict(save_ckpt_after_iter=1000000, ))
         ),
         collect=dict(n_sample=100, ),
@@ -35,9 +37,9 @@ asterix_mdqn_config = dict(
         other=dict(
             eps=dict(
                 type='exp',
-                start=1.,
-                end=0.05,
-                decay=1000000,
+                start=0.01,
+                end=0.001,
+                decay=250000,
             ),
             replay_buffer=dict(replay_buffer_size=400000, ),
         ),
