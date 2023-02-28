@@ -52,18 +52,7 @@ class TD3:
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
-
-        action_space = self.env.action_space
-        if isinstance(action_space, gym.spaces.Discrete):
-            action_shape = action_space.n
-        elif isinstance(action_space, gym.spaces.Tuple):
-            action_shape = get_hybrid_shape(action_space)
-        else:
-            action_shape = action_space.shape
         model = QAC(**self.cfg.policy.model)
-        # model = QAC(
-        #     self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
-        # )
         self.buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg, model=model)
 
