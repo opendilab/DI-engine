@@ -83,7 +83,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
     elif algorithm == 'TD3':
         cfg = TD3Policy.default_config()
         if env == 'hopper':
-            cfg.exp_name='hopper_td3_wandb_seed0',
+            cfg.exp_name='hopper_td3',
             cfg.seed=0,
             cfg.env=dict(
                 env_id='Hopper-v3',
@@ -105,7 +105,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     critic_head_hidden_size=256,
                     action_space='regression',
                 ),
-                logger=dict(record_path='./video_hopper_td3',
+                logger=dict(record_path='./hopper_td3/video',
                             gradient_logger=True,
                             video_logger=True,
                             plot_logger=True, 
@@ -221,13 +221,6 @@ def get_instance_env(env: str) -> BaseEnv:
             env_wrapper='mujoco_default',
         )
         return DingEnvWrapper(cfg=cfg)
-
-        # from dizoo.mujoco.envs import MujocoEnv
-        # cfg = EasyDict({
-        #     'env_id': 'Hopper-v3',
-        #     **MujocoEnv.config
-        # })
-        # return MujocoEnv(cfg)
     else:
         raise KeyError("not supported env type: {}".format(env))
 
