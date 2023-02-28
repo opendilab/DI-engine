@@ -306,7 +306,8 @@ def interaction_evaluator_ttorch(
         n_evaluator_episode: Optional[int] = None,
         stop_value: float = np.inf,
         eval_freq: int = 1000,
-        render: bool = False
+        render: bool = False,
+        replay_video_path: str = None,
 ) -> Callable:
     """
     Overview:
@@ -322,6 +323,9 @@ def interaction_evaluator_ttorch(
     env.seed(seed, dynamic_seed=False)
     if n_evaluator_episode is None:
         n_evaluator_episode = env.env_num
+
+    if replay_video_path:
+        env.enable_save_replay(replay_path=replay_video_path)
 
     def _evaluate(ctx: "OnlineRLContext"):
         """
@@ -354,7 +358,7 @@ def interaction_evaluator_ttorch(
             inference_output = inference_output.cpu()
             if render:
                 eval_monitor.update_video(env.ready_imgs)
-                eval_monitor.update_output(inference_output)
+                # eval_monitor.update_output(inference_output)
             action = inference_output.action.numpy()
             timesteps = env.step(action)
             for timestep in timesteps:

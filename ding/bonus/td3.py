@@ -5,45 +5,35 @@ import os
 import gym
 import torch
 from ding.framework import task, OnlineRLContext
-from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
-    wandb_online_logger, offline_data_saver, termination_checker, ppof_adv_estimator
+from ding.framework.middleware import interaction_evaluator_ttorch, CkptSaver, multistep_trainer, \
+    wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
+        OffPolicyLearner, final_ctx_saver
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
-from ding.policy import PPOFPolicy, single_env_forward_wrapper_ttorch
+from ding.policy import TD3Policy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
 from ding.config import save_config_py
-from .model import PPOFModel
-from .config import get_instance_config, get_instance_env, get_hybrid_shape
+from ding.model import QAC
+from ding.data import DequeBuffer
+from ding.bonus.config import get_instance_config, get_instance_env, get_hybrid_shape
 
 class TrainingReturn:
     wandb_url:str
 
-class PPOF:
+class TD3:
     supported_env_list = [
-        # common
-        'lunarlander_discrete',
-        'lunarlander_continuous',
-        'bipedalwalker',
-        # ch2: action
-        'rocket_landing',
-        'drone_fly',
-        'hybrid_moving',
-        # ch3: obs
-        'evogym_carrier',
-        'mario',
-        'di_sheep',
-        'procgen_bigfish',
+        'hopper',
     ]
+    algorithm='TD3'
 
     def __init__(
             self,
             env: Union[str, BaseEnv],
             seed: int = 0,
             exp_name: str = 'default_experiment',
-            model: Optional[torch.nn.Module] = None,
             cfg: Optional[EasyDict] = None
     ) -> None:
         if isinstance(env, str):
-            assert env in PPOF.supported_env_list, "Please use supported envs: {}".format(PPOF.supported_env_list)
+            assert env in TD3.supported_env_list, "Please use supported envs: {}".format(TD3.supported_env_list)
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
@@ -70,11 +60,12 @@ class PPOF:
             action_shape = get_hybrid_shape(action_space)
         else:
             action_shape = action_space.shape
-        if model is None:
-            model = PPOFModel(
-                self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
-            )
-        self.policy = PPOFPolicy(self.cfg, model=model)
+        model = QAC(**self.cfg.policy.model)
+        # model = QAC(
+        #     self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
+        # )
+        self.buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
+        self.policy = TD3Policy(self.cfg, model=model)
 
     def load_policy(self,policy_state_dict, config):
         self.policy.load_state_dict(policy_state_dict)
@@ -90,7 +81,7 @@ class PPOF:
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
             debug: bool = False
-    ) -> TrainingReturn:
+    ) -> dict:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         logging.debug(self.policy._model)
@@ -99,17 +90,25 @@ class PPOF:
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
         wandb_url_return=[]
 
+        self.cfg.policy.logger.record_path = './' + self.cfg.exp_name + '/video'
+        evaluator_env.enable_save_replay(replay_path=self.cfg.policy.logger.record_path)
+
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
-            task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
-            task.use(ppof_adv_estimator(self.policy))
+            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env,render=True))
+            task.use(
+                StepCollector(self.cfg, self.policy.collect_mode, collector_env, random_collect_size=self.cfg.policy.random_collect_size)
+            )
+            task.use(data_pusher(self.cfg, self.buffer_))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
-            task.use(CkptSaver(self.policy, save_dir=self.exp_name, train_freq=n_iter_save_ckpt))
+            task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
+            task.use(CkptSaver(policy=self.policy,save_dir=os.path.join(self.cfg["exp_name"],"model"), train_freq=n_iter_save_ckpt))
             task.use(wandb_online_logger(self.exp_name, metric_list=self.policy.monitor_vars(), anonymous=True, project_name=self.exp_name, wandb_url_return=wandb_url_return))
             task.use(termination_checker(max_env_step=step))
+            task.use(final_ctx_saver(name=self.cfg["exp_name"]))
             task.run()
-        
-        return TrainingReturn(wandb_url=wandb_url_return[0])
+
+        return_dict={"wandb_url":wandb_url_return[0]}
+        return return_dict
 
     def deploy(self, ckpt_path: str = None, enable_save_replay: bool = False, debug: bool = False) -> None:
         if debug:
@@ -136,7 +135,7 @@ class PPOF:
             step += 1
             if done:
                 break
-        logging.info(f'PPOF deploy is finished, final episode return with {step} steps is: {return_}')
+        logging.info(f'TD3 deploy is finished, final episode return with {step} steps is: {return_}')
 
     def collect_data(
             self,
@@ -163,11 +162,13 @@ class PPOF:
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
-            task.use(PPOFStepCollector(self.seed, self.policy, env, n_sample))
+            task.use(
+                StepCollector(self.cfg, self.policy.collect_mode, env, random_collect_size=self.cfg.policy.random_collect_size)
+            )
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
         logging.info(
-            f'PPOF collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
+            f'TD3 collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
         )
 
     def batch_evaluate(
@@ -176,9 +177,7 @@ class PPOF:
             ckpt_path: Optional[str] = None,
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
-            debug: bool = False,
-            render: bool = False,
-            replay_video_path: str = None,
+            debug: bool = False
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -191,16 +190,7 @@ class PPOF:
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode, render=render, replay_video_path=replay_video_path))
-            # task.use(wandb_online_logger(record_path='./video',
-            #     cfg=EasyDict(dict(
-            #             gradient_logger=False,
-            #             video_logger=True,
-            #             plot_logger=False, 
-            #             action_logger=False,
-            #             return_logger=False
-            #             )), 
-            #             env=env))
+            task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode))
             task.run(max_step=1)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:

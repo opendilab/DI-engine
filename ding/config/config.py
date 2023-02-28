@@ -144,7 +144,7 @@ def save_config_yaml(config_: dict, path: str) -> NoReturn:
         yaml.safe_dump(json.loads(config_string), f)
 
 
-def save_config_py(config_: dict, path: str) -> NoReturn:
+def save_config_py(config_: dict, path: str): #  -> NoReturn:
     """
     Overview:
         save configuration to python file

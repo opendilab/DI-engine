@@ -126,7 +126,9 @@ def wandb_online_logger(
         metric_list: Optional[List[str]] = None,
         env: Optional[BaseEnvManagerV2] = None,
         model: Optional[torch.nn.Module] = None,
-        anonymous: bool = False
+        anonymous: bool = False,
+        project_name:str = 'default-project',
+        wandb_url_return: List = [],
 ) -> Callable:
     '''
     Overview:
@@ -151,9 +153,11 @@ def wandb_online_logger(
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
     if anonymous:
-        wandb.init(anonymous="must")
+        wandb.init(project=project_name,reinit=True,anonymous="must")
+        wandb_url_return.append(wandb.run.get_project_url())
     else:
-        wandb.init()
+        wandb.init(project=project_name,reinit=True)
+        wandb_url_return.append(wandb.run.get_project_url())
     if cfg == 'default':
         cfg = EasyDict(
             dict(
@@ -178,21 +182,21 @@ def wandb_online_logger(
     def _plot(ctx: "OnlineRLContext"):
         info_for_logging = {}
 
-        if not cfg.plot_logger:
+        if cfg.plot_logger:
+            for metric in metric_list:
+                if metric in ctx.train_output[0]:
+                    metric_value_list = []
+                    for item in ctx.train_output:
+                        if isinstance(item[metric], torch.Tensor):
+                            metric_value_list.append(item[metric].cpu().detach().numpy())
+                        else:
+                            metric_value_list.append(item[metric])
+                    metric_value = np.mean(metric_value_list)
+                    info_for_logging.update({metric: metric_value})
+        else:
             one_time_warning(
                 "If you want to use wandb to visualize the result, please set plot_logger = True in the config."
             )
-            return
-        for metric in metric_list:
-            if metric in ctx.train_output[0]:
-                metric_value_list = []
-                for item in ctx.train_output:
-                    if isinstance(item[metric], torch.Tensor):
-                        metric_value_list.append(item[metric].cpu().detach().numpy())
-                    else:
-                        metric_value_list.append(item[metric])
-                metric_value = np.mean(metric_value_list)
-                info_for_logging.update({metric: metric_value})
 
         if ctx.eval_value != -np.inf:
             info_for_logging.update(

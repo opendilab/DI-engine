@@ -62,7 +62,10 @@ class PPOFPolicy:
             self._model = self.default_model()
         else:
             self._model = model
-        if self._cfg.cuda and torch.cuda.is_available():
+        if hasattr(self._cfg,"cuda") and self._cfg.cuda and torch.cuda.is_available():
+            self._device = 'cuda'
+            self._model.cuda()
+        elif not hasattr(self._cfg,"cuda") and torch.cuda.is_available():
             self._device = 'cuda'
             self._model.cuda()
         else:
