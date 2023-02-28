@@ -1,3 +1,4 @@
+from typing import List
 from ding.utils import POLICY_REGISTRY
 from .ddpg import DDPGPolicy
 
@@ -153,3 +154,15 @@ class TD3Policy(DDPGPolicy):
             ),
         ),
     )
+
+    def monitor_vars(self) -> List[str]:
+        variables = [
+            "q_value", 
+            "target q_value", 
+            "loss", 
+            "lr", 
+            "entropy", 
+            "target_q_value", 
+            "td_error"
+        ]
+        return variables
