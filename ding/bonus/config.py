@@ -200,6 +200,12 @@ def get_instance_env(env: str) -> BaseEnv:
             },
             seed_api=False,
         )
+    elif env== 'hopper':
+        from dizoo.mujoco.envs import MujocoEnv
+        cfg = EasyDict({
+            'env_id': 'Hopper-v3',
+        })
+        return MujocoEnv(cfg)
     else:
         raise KeyError("not supported env type: {}".format(env))
 
