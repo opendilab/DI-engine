@@ -53,7 +53,7 @@ class TD3:
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         model = QAC(**self.cfg.policy.model)
-        self.buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
+        self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg, model=model)
 
     def load_policy(self,policy_state_dict, config):
