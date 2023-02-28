@@ -83,7 +83,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
     elif algorithm == 'TD3':
         cfg = TD3Policy.default_config()
         if env == 'hopper':
-            cfg=dict(
+            cfg.update(dict(
                 exp_name='hopper_td3',
                 seed=0,
                 env=dict(
@@ -136,7 +136,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                     other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
                 )
-            )
+            ))
         else:
             raise KeyError("not supported env type: {}".format(env))
     else:
