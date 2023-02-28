@@ -98,8 +98,7 @@ class TD3:
             task.use(final_ctx_saver(name=self.cfg["exp_name"]))
             task.run()
 
-        return_dict={"wandb_url":wandb_url_return[0]}
-        return return_dict
+        return TrainingReturn(wandb_url_return[0])
 
     def deploy(self, ckpt_path: str = None, enable_save_replay: bool = False, debug: bool = False) -> None:
         if debug:
