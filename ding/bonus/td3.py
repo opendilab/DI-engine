@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
@@ -16,6 +17,7 @@ from ding.model import QAC
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env, get_hybrid_shape
 
+@dataclass
 class TrainingReturn:
     wandb_url:str
 
