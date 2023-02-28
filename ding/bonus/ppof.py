@@ -192,15 +192,6 @@ class PPOF:
         # main execution task
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode, render=render, replay_video_path=replay_video_path))
-            # task.use(wandb_online_logger(record_path='./video',
-            #     cfg=EasyDict(dict(
-            #             gradient_logger=False,
-            #             video_logger=True,
-            #             plot_logger=False, 
-            #             action_logger=False,
-            #             return_logger=False
-            #             )), 
-            #             env=env))
             task.run(max_step=1)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
