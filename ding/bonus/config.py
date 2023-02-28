@@ -83,45 +83,58 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
     elif algorithm == 'TD3':
         cfg = TD3Policy.default_config()
         if env == 'hopper':
-            cfg.action_space = 'continuous'
-            cfg.random_collect_size=25000,
-            cfg.model=dict(
-                obs_shape=11,
-                action_shape=3,
-                twin_critic=True,
-                actor_head_hidden_size=256,
-                critic_head_hidden_size=256,
-                action_space='regression',
-            )
-            cfg.logger=dict(record_path='./video_hopper_td3',
-                        gradient_logger=True,
-                        video_logger=True,
-                        plot_logger=True, 
-                        action_logger=True,
-                        return_logger=False
-                        )
-            cfg.learn=dict(
-                update_per_collect=1,
-                batch_size=256,
-                learning_rate_actor=1e-3,
-                learning_rate_critic=1e-3,
-                ignore_done=False,
-                target_theta=0.005,
-                discount_factor=0.99,
-                actor_update_freq=2,
-                noise=True,
-                noise_sigma=0.2,
-                noise_range=dict(
-                    min=-0.5,
-                    max=0.5,
+            cfg.exp_name='hopper_td3_wandb_seed0',
+            cfg.seed=0,
+            cfg.env=dict(
+                env_id='Hopper-v3',
+                norm_obs=dict(use_norm=False, ),
+                norm_reward=dict(use_norm=False, ),
+                collector_env_num=8,
+                evaluator_env_num=8,
+                n_evaluator_episode=8,
+                stop_value=6000,
+            ),
+            cfg.policy=dict(
+                cuda=True,
+                random_collect_size=25000,
+                model=dict(
+                    obs_shape=11,
+                    action_shape=3,
+                    twin_critic=True,
+                    actor_head_hidden_size=256,
+                    critic_head_hidden_size=256,
+                    action_space='regression',
                 ),
+                logger=dict(record_path='./video_hopper_td3',
+                            gradient_logger=True,
+                            video_logger=True,
+                            plot_logger=True, 
+                            action_logger=True,
+                            return_logger=False
+                            ),
+                learn=dict(
+                    update_per_collect=1,
+                    batch_size=256,
+                    learning_rate_actor=1e-3,
+                    learning_rate_critic=1e-3,
+                    ignore_done=False,
+                    target_theta=0.005,
+                    discount_factor=0.99,
+                    actor_update_freq=2,
+                    noise=True,
+                    noise_sigma=0.2,
+                    noise_range=dict(
+                        min=-0.5,
+                        max=0.5,
+                    ),
+                ),
+                collect=dict(
+                    n_sample=1,
+                    unroll_len=1,
+                    noise_sigma=0.1,
+                ),
+                other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
             )
-            cfg.collect=dict(
-                n_sample=1,
-                unroll_len=1,
-                noise_sigma=0.1,
-            )
-            cfg.other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), )
         else:
             raise KeyError("not supported env type: {}".format(env))
     else:
