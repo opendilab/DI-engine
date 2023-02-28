@@ -37,7 +37,7 @@ class TD3:
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                self.cfg = get_instance_config(env)
+                self.cfg = get_instance_config(env, algorithm='td3')
             else:
                 self.cfg = cfg
         elif isinstance(env, BaseEnv):
