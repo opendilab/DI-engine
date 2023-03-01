@@ -36,11 +36,11 @@ Updated on 2023.02.17 DI-engine-v0.4.6
 
 
 ## Introduction to DI-engine
-[DI-engine doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
+[Documentation](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/) | [Tutorials](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/index.html) | [Task & Middleware](https://di-engine-docs.readthedocs.io/en/latest/03_system/index.html) | [TreeTensor](#general-data-container-treetensor) | [Roadmap](https://github.com/opendilab/DI-engine/issues/548)
 
 **DI-engine** is a generalized decision intelligence engine for PyTorch and JAX. 
 
-It provide **python-first** and **asynchronous-native** task and middleware abstractions, and modularly integrates several most important decision-making concepts: Env, Policy and Model. Based on the above mechanisms, DI-engine supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** with superior performance, high effciency, well-organized [documentation](https://di-engine-docs.readthedocs.io/en/latest/12_policies/index.html) and [unittest](https://github.com/opendilab/DI-engine/actions):
+It provide **python-first** and **asynchronous-native** task and middleware abstractions, and modularly integrates several most important decision-making concepts: Env, Policy and Model. Based on the above mechanisms, DI-engine supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** with superior performance, high effciency, well-organized [documentation](https://di-engine-docs.readthedocs.io/en/latest/) and [unittest](https://github.com/opendilab/DI-engine/actions):
 
 - Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2, IMPALA
 - Multi-agent RL algorithms like QMIX, MAPPO, ACE
@@ -107,6 +107,7 @@ Have fun with exploration and exploitation.
 - [Feature](#feature)
   - [&#8627; Algorithm Versatility](#algorithm-versatility)
   - [&#8627; Environment Versatility](#environment-versatility)
+  - [&#8627; General Data Container: TreeTensor](#general-data-container-treetensor)
 - [Feedback and Contribution](#feedback-and-contribution)
 - [Supporters](#supporters)
   - [&#8627; Stargazers](#-stargazers)
@@ -310,6 +311,51 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse reward type
 </details>
 
+
+## General Data Container: TreeTensor
+
+DI-engine utilizes [TreeTensor](https://github.com/opendilab/DI-treetensor) as the basic data container in various components, which is ease of use and consistent across different code modules such as environment definition, data processing and DRL optimization. Here are some concrete code examples:
+<details close>
+<summary>(Click for Details)</summary>
+TreeTensor can easily extend all the operations of `torch.Tensor` to nested data:
+
+```python
+import treetensor.torch as ttorch
+# create random tensor
+data = ttorch.randn({'a': (3, 2), 'b': {'c': (3, )}})
+# clone+detach tensor
+data_clone = data.clone().detach()
+# access tree structure like attribute
+a = data.a
+c = data.b.c
+# stack/cat/split
+stacked_data = ttorch.stack([data, data_clone], 0)
+cat_data = ttorch.cat([data, data_clone], 0)
+data, data_clone = ttorch.split(stacked_data, 1)
+# reshape
+data = data.unsqueeze(-1)
+data = data.squeeze(-1)
+flatten_data = data.view(-1)
+# indexing
+data_0 = data[0]
+data_1to2 = data[1:2]
+# execute math calculations
+data = ttorch.sin(data)
+data.b.c = ttorch.cos(data.b.c)
+# backward
+data.requires_grad_(True)
+loss = data.arctan().mean()
+loss.backward()
+# print shape
+print(data.shape)
+# result
+# <Size 0x7fbd3346ddc0>
+# ├── 'a' --> torch.Size([1, 3, 2])
+# └── 'b' --> <Size 0x7fbd3346dd00>
+#     └── 'c' --> torch.Size([1, 3])
+```
+
+</details>
 
 ## Feedback and Contribution
 
