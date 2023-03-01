@@ -36,7 +36,7 @@ Updated on 2023.02.17 DI-engine-v0.4.6
 
 
 ## Introduction to DI-engine
-[Documentation](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/) | [Tutorials](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/index.html) | [Task & Middleware](https://di-engine-docs.readthedocs.io/en/latest/03_system/index.html) | [TreeTensor](#general-data-container-treetensor) | [Roadmap](https://github.com/opendilab/DI-engine/issues/548)
+[Documentation](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/) | [Tutorials](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/index.html) | [Feature](#feature) | [Task & Middleware](https://di-engine-docs.readthedocs.io/en/latest/03_system/index.html) | [TreeTensor](#general-data-container-treetensor) | [Roadmap](https://github.com/opendilab/DI-engine/issues/548)
 
 **DI-engine** is a generalized decision intelligence engine for PyTorch and JAX. 
 
@@ -165,6 +165,10 @@ ding -m serial -e cartpole -p dqn -s 0
 
 ## Feature
 ### Algorithm Versatility
+
+<details open>
+<summary>(Click to Collapse)</summary>
+
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) &nbsp;discrete means discrete action space, which is only label in normal DRL algorithms (1-18)
 
 ![continuous](https://img.shields.io/badge/-continous-green) &nbsp;means continuous action space, which is only label in normal DRL algorithms (1-18)
@@ -189,10 +193,6 @@ ding -m serial -e cartpole -p dqn -s 0
 P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 
-
-
-<details open>
-<summary>(Click to Collapse)</summary>
 
 |  No.  |                          Algorithm                           |                            Label                             |                        Doc and Implementation                        |                        Runnable Demo                         |
 | :--: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
@@ -312,50 +312,109 @@ P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse re
 </details>
 
 
-## General Data Container: TreeTensor
+### General Data Container: TreeTensor
 
 DI-engine utilizes [TreeTensor](https://github.com/opendilab/DI-treetensor) as the basic data container in various components, which is ease of use and consistent across different code modules such as environment definition, data processing and DRL optimization. Here are some concrete code examples:
-<details close>
-<summary>(Click for Details)</summary>
-TreeTensor can easily extend all the operations of `torch.Tensor` to nested data:
 
-```python
-import treetensor.torch as ttorch
-# create random tensor
-data = ttorch.randn({'a': (3, 2), 'b': {'c': (3, )}})
-# clone+detach tensor
-data_clone = data.clone().detach()
-# access tree structure like attribute
-a = data.a
-c = data.b.c
-# stack/cat/split
-stacked_data = ttorch.stack([data, data_clone], 0)
-cat_data = ttorch.cat([data, data_clone], 0)
-data, data_clone = ttorch.split(stacked_data, 1)
-# reshape
-data = data.unsqueeze(-1)
-data = data.squeeze(-1)
-flatten_data = data.view(-1)
-# indexing
-data_0 = data[0]
-data_1to2 = data[1:2]
-# execute math calculations
-data = ttorch.sin(data)
-data.b.c = ttorch.cos(data.b.c)
-# backward
-data.requires_grad_(True)
-loss = data.arctan().mean()
-loss.backward()
-# print shape
-print(data.shape)
-# result
-# <Size 0x7fbd3346ddc0>
-# ├── 'a' --> torch.Size([1, 3, 2])
-# └── 'b' --> <Size 0x7fbd3346dd00>
-#     └── 'c' --> torch.Size([1, 3])
-```
+- TreeTensor can easily extend all the operations of `torch.Tensor` to nested data:
+  <details close>
+  <summary>(Click for Details)</summary>
 
-</details>
+    ```python
+    import treetensor.torch as ttorch
+
+
+    # create random tensor
+    data = ttorch.randn({'a': (3, 2), 'b': {'c': (3, )}})
+    # clone+detach tensor
+    data_clone = data.clone().detach()
+    # access tree structure like attribute
+    a = data.a
+    c = data.b.c
+    # stack/cat/split
+    stacked_data = ttorch.stack([data, data_clone], 0)
+    cat_data = ttorch.cat([data, data_clone], 0)
+    data, data_clone = ttorch.split(stacked_data, 1)
+    # reshape
+    data = data.unsqueeze(-1)
+    data = data.squeeze(-1)
+    flatten_data = data.view(-1)
+    # indexing
+    data_0 = data[0]
+    data_1to2 = data[1:2]
+    # execute math calculations
+    data = ttorch.sin(data)
+    data.b.c = ttorch.cos(data.b.c)
+    # backward
+    data.requires_grad_(True)
+    loss = data.arctan().mean()
+    loss.backward()
+    # print shape
+    print(data.shape)
+    # result
+    # <Size 0x7fbd3346ddc0>
+    # ├── 'a' --> torch.Size([1, 3, 2])
+    # └── 'b' --> <Size 0x7fbd3346dd00>
+    #     └── 'c' --> torch.Size([1, 3])
+    ```
+
+  </details>
+
+- TreeTensor can make it simple yet effective to implement classic deep reinforcement learning pipeline
+  <details close>
+  <summary>(Click for Details)</summary>
+
+    ```diff
+    import torch
+    import treetensor.torch as ttorch
+
+    B = 4
+
+
+    def get_item():
+        return {
+            'obs': {
+                'scalar': torch.randn(12),
+                'image': torch.randn(3, 32, 32),
+            },
+            'action': torch.randint(0, 10, size=(1,)),
+            'reward': torch.rand(1),
+            'done': False,
+        }
+
+
+    data = [get_item() for _ in range(B)]
+
+
+    # execute `stack` op
+    - def stack(data, dim):
+    -     elem = data[0]
+    -     if isinstance(elem, torch.Tensor):
+    -         return torch.stack(data, dim)
+    -     elif isinstance(elem, dict):
+    -         return {k: stack([item[k] for item in data], dim) for k in elem.keys()}
+    -     elif isinstance(elem, bool):
+    -         return torch.BoolTensor(data)
+    -     else:
+    -         raise TypeError("not support elem type: {}".format(type(elem)))
+    - stacked_data = stack(data, dim=0)
+    + data = [ttorch.tensor(d) for d in data]
+    + stacked_data = ttorch.stack(data, dim=0)
+
+    # validate
+    - assert stacked_data['obs']['image'].shape == (B, 3, 32, 32)
+    - assert stacked_data['action'].shape == (B, 1)
+    - assert stacked_data['reward'].shape == (B, 1)
+    - assert stacked_data['done'].shape == (B,)
+    - assert stacked_data['done'].dtype == torch.bool
+    + assert stacked_data.obs.image.shape == (B, 3, 32, 32)
+    + assert stacked_data.action.shape == (B, 1)
+    + assert stacked_data.reward.shape == (B, 1)
+    + assert stacked_data.done.shape == (B,)
+    + assert stacked_data.done.dtype == torch.bool
+    ```
+
+  </details>
 
 ## Feedback and Contribution
 
