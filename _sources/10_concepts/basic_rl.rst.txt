@@ -92,7 +92,7 @@ Return and reward
 
 **Cumulative Reward** is the sum of the decaying returns from moment t onwards in an MDP.
 
-:math:`G_t = R_{t+1}+\gamma * R_{t+2}+{\gamma}^2 * R_{t+3}+ ...`
+:math:`G_t = R_{t}+\gamma * R_{t+1}+{\gamma}^2 * R_{t+2}+ ...`
 
 :math:`\gamma` The discount factor reflects the ratio between the value of future rewards and that at the present moment. A value close to 0 indicates a tendency towards a 'myopic' assessment and a value close to 1 indicates a more forward-looking interest and confidence in the future. The introduction of the discount factor is not only easy to express mathematically, but also avoids falling into an infinite loop and reduces the uncertainty of future benefits.
 
@@ -128,15 +128,15 @@ We can further obtain the relationship between the optimal state value function 
 **Bellman Equations**，The Bellman's equation is the basis of reinforcement learning. The Bellman equation represents the value of the current state in relation to the value of the next state, and the current reward.
 We can express the state value function and the action value function as:
 
-:math:`V_{\pi}(s) = E_{\pi}[R_{t+1}+\gamma * v_{\pi}(s_{t+1})|s_t=s]`
+:math:`V_{\pi}(s) = E_{\pi}[R_{t}+\gamma * v_{\pi}(s_{t+1})|s_t=s]`
 
-:math:`Q_{\pi}(s, a) = E_{\pi}[R_{t+1}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]`
+:math:`Q_{\pi}(s, a) = E_{\pi}[R_{t}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]`
 
 **Bellman Optimality Equations**，
 
-:math:`V*(s)=E[R_{t+1} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]`
+:math:`V*(s)=E[R_{t} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]`
 
-:math:`Q*(s, a) = E_{\pi}[R_{t+1}+\gamma * max_{a'}Q(s_{t+1},a')|s_t=s, a_t=a]`
+:math:`Q*(s, a) = E_{\pi}[R_{t}+\gamma * max_{a'}Q(s_{t+1},a')|s_t=s, a_t=a]`
 
 Value based reinforcement learning approach includes two steps：policy evaluation and policy improvement. Reinforcement learning first estimate the value function based on the policy，then, improves the policy according to the value function. When the value function reaches the optima, the policy is considered as the optimal policy. This optimal policy is a greedy policy.
 
@@ -178,7 +178,7 @@ Once the modeling of the environment has been completed, there are also two path
 
 The definition of a model can be expressed mathematically as a tuple of state transfer distributions and reward functions. 
 
-:math:`M=(P,R), s_{t+1}~P(s_{t+1}|s_t, a_t), r_{t+1}~R(r_{t+1}|s_t, a_t)`
+:math:`M=(P,R), s_{t+1}\simP(s_{t+1}|s_t, a_t), r_{t}\simR(r_{t}|s_t, a_t)`
 
 The learning of a model can be extended to different algorithms depending on the model construction.
 

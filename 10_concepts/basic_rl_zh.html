@@ -357,21 +357,21 @@ observable)，当智能体只能接收部分环境信息<span class="math notran
 observable) 的，对应的决策过程即称为部分可观测马尔可夫决策过程 (Partially
 Observable Markov Decision Processes，POMDP)，
 部分可观测马尔可夫决策过程是马尔可夫决策过程的一种泛化。部分可观测马尔可夫决策过程依然具有马尔可夫性质，但是假设智能体无法感知环境的状态，只能知道部分观测值。通常用一个七元组描述
-<span class="math notranslate nohighlight">\((S, \Omega, O, A, P, R, \gamma)\)</span>，其中O为观测空间，<span class="math notranslate nohighlight">\(\Omega(o|s,a)\)</span>为观测概率函数，其他与MDP的定义类似。</p>
+<span class="math notranslate nohighlight">\((S, \Omega, O, A, P, R, \gamma)\)</span>，其中O为观测空间，<span class="math notranslate nohighlight">\(\Omega(o|s,a)\)</span>为观测概率函数，其他与 MDP 的定义类似。</p>
 </section>
 <section id="action-spaces">
 <h2>动作空间/Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this headline">¶</a></h2>
 <p>不同的环境对应的动作空间一般是不同的。一般将环境中所有有效动作<span class="math notranslate nohighlight">\(a\)</span>
 的集合称之为动作空间 (Action Space)。其中，动作空间又分为离散 (discrete)
 动作空间与连续 (continuous) 动作空间。</p>
-<p>例如在Atari游戏与SMAC星际游戏中为离散的动作空间，只可以从有限数量的动作中进行选择，而 MuJoCo 等一些机器人连续控制任务中为连续动作空间，动作空间一般为实值向量区间。</p>
+<p>例如在 Atari 游戏与 SMAC 星际游戏中为离散的动作空间，只可以从有限数量的动作中进行选择，而 MuJoCo 等一些机器人连续控制任务中为连续动作空间，动作空间一般为实值向量区间。</p>
 </section>
 <section id="reward-and-return">
 <h2>奖励与回报/Reward and Return<a class="headerlink" href="#reward-and-return" title="Permalink to this headline">¶</a></h2>
 <p><strong>奖励 (reward)</strong> 是智能体所处的环境给强化学习方法的一个学习信号
 (signal)，当环境发生变化时，奖励函数也会发生变化。奖励函数由当前的状态与智能体的动作决定，表示为<span class="math notranslate nohighlight">\(r_t = R(s_t, a_t)\)</span>。</p>
-<p><strong>回报(Return)</strong>,
-又称为累积折扣奖励，定义为在一个马尔可夫决策过程中从<span class="math notranslate nohighlight">\(t\)</span>时刻开始往后所有奖励的加权和：<span class="math notranslate nohighlight">\(G_t = \sum_{k=0}^{\infty} \gamma^{k} r_{t+k+1}\)</span>。其中<span class="math notranslate nohighlight">\(\gamma\)</span>
+<p><strong>回报 (Return)</strong>,
+又称为累积折扣奖励，定义为在一个马尔可夫决策过程中从<span class="math notranslate nohighlight">\(t\)</span>时刻开始往后所有奖励的加权和：<span class="math notranslate nohighlight">\(G_t = \sum_{k=0}^{\infty} \gamma^{k} r_{t+k}\)</span>。其中<span class="math notranslate nohighlight">\(\gamma\)</span>
 表示折扣因子（衰减因子）体现的是未来的奖励在当前时刻的相对重要性，如果接近0，则表明趋向于只评估当前时刻的奖励，接近于1时表明同时考虑长期的奖励。一般情况下，<span class="math notranslate nohighlight">\(\gamma \in [0,1)\)</span>。在很多现实任务对应环境中的奖励函数可能是稀疏的，即并不是每一个状态下环境都会给予奖励，只有在一段轨迹过后才会给出一个奖励。因此在强化学习中，对奖励函数的设计与学习也是一个重要的方向，对强化学习方法的效果有很大的影响。</p>
 </section>
 <section id="policy">
@@ -400,23 +400,23 @@ Observable Markov Decision Processes，POMDP)，
 <p>最优的状态价值函数与最优的行为价值函数的关系：<span class="math notranslate nohighlight">\(V^*(s)=max_a Q^*(s, a)\)</span></p>
 <p><strong>贝尔曼方程 (Bellman
 Equations)</strong>是强化学习方法的基础，描述的是当前时刻状态的值（动作值）与下一时刻状态的值（动作值）之间的递推关系。</p>
-<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi,P}[r_{t+1}+\gamma * V_{\pi}(s_{t+1})|S_t=s]\)</span></p>
-<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi,P}[r_{t+1}+\gamma * Q_\pi(s_{t+1},a_{t+1})|S_t=s, A_t=a]\)</span></p>
+<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi,P}[r_{t}+\gamma * V_{\pi}(s_{t+1})|S_t=s]\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi,P}[r_{t}+\gamma * Q_\pi(s_{t+1},a_{t+1})|S_t=s, A_t=a]\)</span></p>
 <p>进一步如果将期望展开，可以写成下面的形式：</p>
 <div class="line-block">
 <div class="line"><span class="math notranslate nohighlight">\(v_{\pi}(s)=\sum_{a \in A} \pi(a \mid s)\left(R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} v_{\pi}\left(s^{\prime}\right)\right)\)</span></div>
 <div class="line"><span class="math notranslate nohighlight">\(q_{\pi}(s, a)=R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} \sum_{a^{\prime} \in A} \pi\left(a^{\prime} \mid s^{\prime}\right) q_{\pi}\left(s^{\prime}, a^{\prime}\right)\)</span></div>
 </div>
-<p>其中<span class="math notranslate nohighlight">\(R_{s}^{a}=\mathbb{E}\left[R_{t+1} \mid S_{t}=s, A_{t}=a\right]\)</span>,
+<p>其中<span class="math notranslate nohighlight">\(R_{s}^{a}=\mathbb{E}\left[R_{t} \mid S_{t}=s, A_{t}=a\right]\)</span>,
 <span class="math notranslate nohighlight">\(P_{s s^{\prime}}^{a}=\mathbb{P}\left[S_{t+1}=s^{\prime} \mid S_{t}=s, A_{t}=a\right]\)</span></p>
-<p><strong>贝尔曼最优方程(Bellman Optimality
+<p><strong>贝尔曼最优方程 (Bellman Optimality
 Equations)</strong>，描述的是当前时刻状态的最优值（最优动作值）与下一时刻状态的最优值（最优动作值）之间的递推关系。</p>
-<p><span class="math notranslate nohighlight">\(V^*(s)=max_a( E[r_{t+1} + \gamma * V^*(s_{t+1})|s_t=s])\)</span></p>
-<p><span class="math notranslate nohighlight">\(Q^*(s, a) = E[r_{t+1}+\gamma * max_{a'}Q^*(s_{t+1},a')|s_t=s, a_t=a]\)</span></p>
+<p><span class="math notranslate nohighlight">\(V^*(s)=max_a( E[r_{t} + \gamma * V^*(s_{t+1})|s_t=s])\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q^*(s, a) = E[r_{t}+\gamma * max_{a'}Q^*(s_{t+1},a')|s_t=s, a_t=a]\)</span></p>
 <p>进一步如果将期望展开，可以写成下面的形式：</p>
 <p><span class="math notranslate nohighlight">\(v_{*}(s)=\max _{a} R_{s}^{a}+\gamma \sum_{s^{\prime} \in \mathcal{S}} P_{s s^{\prime}}^{a} v_{*}\left(s^{\prime}\right)\)</span></p>
 <p><span class="math notranslate nohighlight">\(q^{*}(s, a)=R_{s}^{a}+\gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}}^{a} \max _{a^{\prime}} q^{*}\left(s^{\prime}, a^{\prime}\right)\)</span></p>
-<p>同样的，其中<span class="math notranslate nohighlight">\(R_{s}^{a}=\mathbb{E}\left[R_{t+1} \mid S_{t}=s, A_{t}=a\right]\)</span>,
+<p>同样的，其中<span class="math notranslate nohighlight">\(R_{s}^{a}=\mathbb{E}\left[R_{t} \mid S_{t}=s, A_{t}=a\right]\)</span>,
 <span class="math notranslate nohighlight">\(P_{s s^{\prime}}^{a}=\mathbb{P}\left[S_{t+1}=s^{\prime} \mid S_{t}=s, A_{t}=a\right]\)</span>。</p>
 <p>对于模型已知 (即知道状态转移概率函数和奖励函数)
 的系统，值函数可以利用动态规划的方法得到；对于模型未知的系统，可以利用蒙特卡洛的方法或者时间差分的方法得到。</p>
@@ -437,7 +437,7 @@ subproblem）两个性质的问题。而给定MDP和策略<span class="math notr
 </ul>
 </li>
 <li><p><strong>蒙特卡洛 (Monte Carlo,
-MC)</strong>方法是指我们可以采样大量的轨迹，计算所有轨迹的真实回报<span class="math notranslate nohighlight">\(G_{t}=r_{t+1}+\gamma r_{t+2}+\gamma^{2} r_{t+3}+\ldots\)</span>，然后计算平均值作为Q值的估计。即使用经验平均回报（empirical
+MC)</strong>方法是指我们可以采样大量的轨迹，计算所有轨迹的真实回报<span class="math notranslate nohighlight">\(G_{t}=r_{t}+\gamma r_{t+1}+\gamma^{2} r_{t+2}+\ldots\)</span>，然后计算平均值作为Q值的估计。即使用经验平均回报（empirical
 mean return）的方法来估计期望值。</p>
 <ul>
 <li><p>它不需要马尔可夫决策过程的状态转移函数和奖励函数，也不需要像动态规划那样用自举的方法，只能用在有终止状态的马尔可夫决策过程中。</p></li>
@@ -446,9 +446,9 @@ mean return）的方法来估计期望值。</p>
 <li><p><strong>时序差分 (Temporal Difference,
 TD)</strong>方法时序差分是介于蒙特卡洛和动态规划之间的方法，它是免模型的，不需要马尔可夫决策过程的状态转移函数和奖励函数。可以从不完整的回合中学习，并且结合了自举的思想。最简单的算法是一步时序差分（one-step
 TD) 即 TD(0)。每往前走一步，就做一步自举，用得到的估计回报（estimated
-return）<span class="math notranslate nohighlight">\(r_t+1 + \gamma V (s_{t+1})\)</span> 来更新上一时刻的值
+return）<span class="math notranslate nohighlight">\(r_t + \gamma V (s_{t+1})\)</span> 来更新上一时刻的值
 <span class="math notranslate nohighlight">\(V (s_t)\)</span>：
-<span class="math notranslate nohighlight">\(V (s_{t})\leftarrow V (s_{t}) + \alpha (r_{t+1} + \gamma V (s_{t+1})- V (s_{t}))\)</span></p></li>
+<span class="math notranslate nohighlight">\(V (s_{t})\leftarrow V (s_{t}) + \alpha (r_{t} + \gamma V (s_{t+1})- V (s_{t}))\)</span></p></li>
 <li><p>这几种学习值函数的方法的比较如下图所示。</p></li>
 </ul>
 <p>对于表格型的强化学习方法，我们通过迭代更新值函数的表格即可完成对值函数的估计。而很多情况下，如状态空间或动作空间不为离散空间时，值函数无法用一张表格来表示。此时，我们需要利用函数逼近的方法对值函数进行表示。</p>
@@ -460,7 +460,7 @@ return）<span class="math notranslate nohighlight">\(r_t+1 + \gamma V (s_{t+1})
 <p>下面首先阐述策略梯度定理：</p>
 <p>令 <span class="math notranslate nohighlight">\(\tau\)</span> 表示一条轨迹，初始状态分布为
 <span class="math notranslate nohighlight">\(\mu\)</span>，如果动作是按照策略<span class="math notranslate nohighlight">\(\pi\)</span>选择的，那么轨迹
-<span class="math notranslate nohighlight">\(\tau\)</span>的概率分布为：:math:` {Pr}_{mu}^{pi}(tau)=muleft(s_{0}right) pileft(a_{0} mid s_{0}right) Pleft(s_{1} mid s_{0}, a_{0}right) pileft(a_{1} mid s_{1}right) cdots`</p>
+<span class="math notranslate nohighlight">\(\tau\)</span>的概率分布为：<span class="math notranslate nohighlight">\({Pr}_{\mu}^{\pi}(\tau)=\mu\left(s_{0}\right) \pi\left(a_{0} \mid s_{0}\right) P\left(s_{1} \mid s_{0}, a_{0}\right) \pi\left(a_{1} \mid s_{1}\right) \cdots\)</span></p>
 <p>这条轨迹的累计折扣奖励为：<span class="math notranslate nohighlight">\(R(\tau):=\sum_{t=0}^{\infty} \gamma^{t} r\left(s_{t}, a_{t}\right)\)</span></p>
 <p>策略<span class="math notranslate nohighlight">\(\pi_\theta\)</span>期望最大化的目标为：<span class="math notranslate nohighlight">\(V^{\pi_{\theta}}(\mu)=\mathbb{E}_{\tau \sim  {Pr}_{\mu}^{\pi_{\theta}}[R(\tau)]}\)</span></p>
 <p>3种形式的策略梯度公式为：</p>
@@ -503,8 +503,8 @@ DDPG, TD3, SAC 等具体算法文档。</p>
 model) 和如何利用学习好的模型来学习值函数或策略。通过学习环境模型，可以帮助我们提高强化学习方法的样本效率
 (sample efficiency)。</p>
 <p>环境模型可以定义为状态转移分布和奖励函数组成的元组：
-<span class="math notranslate nohighlight">\(M=(P,R), 其中P(s_{t+1}|s_t, a_t)表示状态转移函数, R(r_{t+1}|s_t, a_t)\)</span>表示奖励函数。</p>
-<p>根据模型学习方法和使用方法的不同，可以有各种各样的 model-based RL算法。</p>
+<span class="math notranslate nohighlight">\(M=(P,R), 其中P(s_{t+1}|s_t, a_t)表示状态转移函数, R(r_{t}|s_t, a_t)\)</span>表示奖励函数。</p>
+<p>根据模型学习方法和使用方法的不同，可以有各种各样的 model-based RL 算法。</p>
 <p>在学习好环境模型后，主要有两种使用方法，一种是通过学到的模型生成一些仿真轨迹，在这些仿真轨迹上学习最优值函数进而得到最优策略；另一种是在学到的模型上直接优化策略。</p>
 </section>
 <section id="q-a">
@@ -523,8 +523,8 @@ model) 和如何利用学习好的模型来学习值函数或策略。通过学�
 </li>
 </ul>
 <ol class="arabic simple" start="2">
-<li><p>什么是exploration and
-exploitation？我们通常使用哪些方法平衡exploration and exploitation？</p></li>
+<li><p>什么是 exploration and
+exploitation？我们通常使用哪些方法平衡 exploration and exploitation？</p></li>
 </ol>
 <ul class="simple">
 <li><p>Exploration 指的是RL中的智能体需要不断的去探索环境的不同状态动作空间,
@@ -566,12 +566,12 @@ training？</p></li>
 <ul class="simple">
 <li><p>Online training 指的是用于 RL 训练的数据是智能体与环境交互实时产生的。
 Offline training 即是训练时智能体不与环境进行交互，而是直接在给定的固定数据集上进行训练，
-比如 behavior cloning 就是经典的 Offline training算 法。
-我们通常在固定数据集上采样一个batch用于RL训练，因此 offline
-RL 又称为Batch RL。具体参考我们的 offline RL 文档 []。</p></li>
+比如 behavior cloning 就是经典的 Offline training 算 法。
+我们通常在固定数据集上采样一个 batch 用于 RL 训练，因此 offline
+RL 又称为 Batch RL。具体参考我们的 offline RL 文档 []。</p></li>
 </ul>
 <ol class="arabic simple" start="7">
-<li><p>为什么要使用replay buffer？experience replay作用在哪里？</p></li>
+<li><p>为什么要使用 replay buffer？ experience replay 作用在哪里？</p></li>
 </ol>
 <ul class="simple">
 <li><p>智能体与环境交互后产生的数据往往是具有很强的时序相关信息的，由于随机梯度下降通常要求训练的数据符合 i.i.d. 假设，因此将智能体与环境交互后产生的数据直接用于 RL 训练往往存在稳定性问题。</p></li>
@@ -584,7 +584,7 @@ efficiency)。</p></li>
 <li><p>强化学习目前的应用场景有哪些？</p></li>
 </ol>
 <ul class="simple">
-<li><p>强化学习已经在游戏领域（Atari游戏，星际争霸，王者荣耀，象棋，围棋等）取得了比肩人类甚至超越人类的成就。在现实应用中，强化学习在互联网推荐，搜索方面有丰富的应用场景。除此之外，强化学习也被应用于自动驾驶，机器人控制等控制系统中。在医疗，生物，量化交易等领域，强化学习可以用于处理更多复杂的决策问题。</p></li>
+<li><p>强化学习已经在游戏领域（Atari 游戏，星际争霸，王者荣耀，象棋，围棋等）取得了比肩人类甚至超越人类的成就。在现实应用中，强化学习在互联网推荐，搜索方面有丰富的应用场景。除此之外，强化学习也被应用于自动驾驶，机器人控制等控制系统中。在医疗，生物，量化交易等领域，强化学习可以用于处理更多复杂的决策问题。</p></li>
 </ul>
 </section>
 <section id="id2">

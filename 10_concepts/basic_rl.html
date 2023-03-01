@@ -374,7 +374,7 @@ This case can be easily illustrated in a simple MDP environment.</p>
 <h2>Return and reward<a class="headerlink" href="#return-and-reward" title="Permalink to this headline">¶</a></h2>
 <p><strong>Reward</strong> is a learning signal assigned to an agent by its surrounding environment. When the environment changes，the reward function also changes. The reward function is determined by the current state and the action taken by the agent，and can be written as <span class="math notranslate nohighlight">\(r_t = R(s_t, a_t)\)</span></p>
 <p><strong>Cumulative Reward</strong> is the sum of the decaying returns from moment t onwards in an MDP.</p>
-<p><span class="math notranslate nohighlight">\(G_t = R_{t+1}+\gamma * R_{t+2}+{\gamma}^2 * R_{t+3}+ ...\)</span></p>
+<p><span class="math notranslate nohighlight">\(G_t = R_{t}+\gamma * R_{t+1}+{\gamma}^2 * R_{t+2}+ ...\)</span></p>
 <p><span class="math notranslate nohighlight">\(\gamma\)</span> The discount factor reflects the ratio between the value of future rewards and that at the present moment. A value close to 0 indicates a tendency towards a ‘myopic’ assessment and a value close to 1 indicates a more forward-looking interest and confidence in the future. The introduction of the discount factor is not only easy to express mathematically, but also avoids falling into an infinite loop and reduces the uncertainty of future benefits.</p>
 <p>Other difficulties in dealing with reward functions may exist in different environments, such as sparse rewards where the environment does not give feedback in every state and only acquires rewards after a period of trajectory has elapsed. Therefore, the design and processing of reward functions in reinforcement learning are important directions that have a significant impact on the effectiveness of reinforcement learning.</p>
 </section>
@@ -394,11 +394,11 @@ This case can be easily illustrated in a simple MDP environment.</p>
 <p><span class="math notranslate nohighlight">\(V*(s)=max_a Q*(s, a)\)</span></p>
 <p><strong>Bellman Equations</strong>，The Bellman’s equation is the basis of reinforcement learning. The Bellman equation represents the value of the current state in relation to the value of the next state, and the current reward.
 We can express the state value function and the action value function as:</p>
-<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi}[R_{t+1}+\gamma * v_{\pi}(s_{t+1})|s_t=s]\)</span></p>
-<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi}[R_{t+1}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]\)</span></p>
+<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi}[R_{t}+\gamma * v_{\pi}(s_{t+1})|s_t=s]\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi}[R_{t}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]\)</span></p>
 <p><strong>Bellman Optimality Equations</strong>，</p>
-<p><span class="math notranslate nohighlight">\(V*(s)=E[R_{t+1} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]\)</span></p>
-<p><span class="math notranslate nohighlight">\(Q*(s, a) = E_{\pi}[R_{t+1}+\gamma * max_{a'}Q(s_{t+1},a')|s_t=s, a_t=a]\)</span></p>
+<p><span class="math notranslate nohighlight">\(V*(s)=E[R_{t} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q*(s, a) = E_{\pi}[R_{t}+\gamma * max_{a'}Q(s_{t+1},a')|s_t=s, a_t=a]\)</span></p>
 <p>Value based reinforcement learning approach includes two steps：policy evaluation and policy improvement. Reinforcement learning first estimate the value function based on the policy，then, improves the policy according to the value function. When the value function reaches the optima, the policy is considered as the optimal policy. This optimal policy is a greedy policy.</p>
 <p>For systems where the model is known, the value function can be obtained using DPs; For systems where the model is unknown, it can be obtained using MC or TD.</p>
 <p>For a grid reinforcement learning environment，the estimation of the value function is obtained by iteratively updating the table of value functions. In many cases，say, state space and action space are not discrete，the value function cannot be represented by a table. In this situation, we need to take advantage of function approximation to approximate the value function.</p>
@@ -424,7 +424,7 @@ RL</a></p>
 <p>Of the above model-free approaches, the value-based approach learns the value function (MC or TD) before updating the policy, while the policy-based approach updates the policy directly. The model-based approach focuses on the environment dynamics, where a model of the environment is learned through sampling, and then the value function/ policy is optimized based on the learned environment model.</p>
 <p>Once the modeling of the environment has been completed, there are also two paths in the model-based approach: one is to generate some simulation trajectories from the learned model and estimate the value function from the simulation trajectories to optimise the strategy; the other is to optimize the policy directly from the learned model, which is the route the model-based approach is usually taking. Learning a model of the environment first can help us to solve the problem of sample efficiency in reinforcement learning methods.</p>
 <p>The definition of a model can be expressed mathematically as a tuple of state transfer distributions and reward functions.</p>
-<p><span class="math notranslate nohighlight">\(M=(P,R), s_{t+1}~P(s_{t+1}|s_t, a_t), r_{t+1}~R(r_{t+1}|s_t, a_t)\)</span></p>
+<p><span class="math notranslate nohighlight">\(M=(P,R), s_{t+1}\simP(s_{t+1}|s_t, a_t), r_{t}\simR(r_{t}|s_t, a_t)\)</span></p>
 <p>The learning of a model can be extended to different algorithms depending on the model construction.</p>
 <p>Model-based policy optimization: A classical approach is to first sample a large amount of data by some strategy, then learn a model to minimize the error, apply the learned model to planning to obtain new data, and repeat the above steps. It is by doing planning on top of the learned model that model-based improves the efficiency of the entire iteration of the reinforcement learning algorithm.</p>
 </section>
