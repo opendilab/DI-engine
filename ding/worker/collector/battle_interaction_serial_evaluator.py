@@ -9,7 +9,7 @@ import torch
 from ding.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts, dicts_to_lists, \
     SERIAL_EVALUATOR_REGISTRY
 from ding.envs import BaseEnvManager
-from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
+from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list, to_item
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 
 
@@ -272,4 +272,5 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                 "Current episode_return: {} is greater than stop_value: {}".format(episode_return, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
+        return_info = to_item(return_info)
         return stop_flag, return_info

@@ -38,22 +38,24 @@ Updated on 2023.02.17 DI-engine-v0.4.6
 ## Introduction to DI-engine
 [DI-engine doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
 
-**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** ([link](https://di-engine-docs.readthedocs.io/en/latest/12_policies/index.html)):
+**DI-engine** is a generalized decision intelligence engine for PyTorch and JAX. 
+
+It provide **python-first** and **asynchronous-native** task and middleware abstractions, and modularly integrates several most important decision-making concepts: Env, Policy and Model. Based on the above mechanisms, DI-engine supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** with superior performance, high effciency, well-organized [documentation](https://di-engine-docs.readthedocs.io/en/latest/12_policies/index.html) and [unittest](https://github.com/opendilab/DI-engine/actions):
 
 - Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2, IMPALA
 - Multi-agent RL algorithms like QMIX, MAPPO, ACE
-- Imitation learning algorithms (BC/IRL/GAIL) , such as GAIL, SQIL, Guided Cost Learning, Implicit Behavioral Cloning
-- Exploration algorithms like HER, RND, ICM, NGU
+- Imitation learning algorithms (BC/IRL/GAIL) , such as GAIL, SQIL, Guided Cost Learning, Implicit BC
 - Offline RL algorithms: CQL, TD3BC, Decision Transformer
 - Model-based RL algorithms: SVG, MVE, STEVE / MBPO, DDPPO
+- Exploration algorithms like HER, RND, ICM, NGU
 
-**DI-engine** aims to **standardize different Decision Intelligence enviroments and applications**. Various training pipelines and customized decision AI applications are also supported.
+**DI-engine** aims to **standardize different Decision Intelligence enviroments and applications**, supporting both academic research and prototype applications. Various training pipelines and customized decision AI applications are also supported:
 
 <details open>
 <summary>(Click to Collapse)</summary>
 
 - Traditional academic environments
-  - [DI-zoo](https://github.com/opendilab/DI-engine#environment-versatility)
+  - [DI-zoo](https://github.com/opendilab/DI-engine#environment-versatility): various decision intelligence demonstrations and benchmark environments with DI-engine.
 - Tutorial courses
   - [PPOxFamily](https://github.com/opendilab/PPOxFamily): PPO x Family DRL Tutorial Course
 - Real world decision AI applications
@@ -67,14 +69,12 @@ Updated on 2023.02.17 DI-engine-v0.4.6
 - Research paper
   - [InterFuser](https://github.com/opendilab/InterFuser): [CoRL 2022] Safety-Enhanced Autonomous Driving Using Interpretable Sensor Fusion Transformer
   - [ACE](https://github.com/opendilab/ACE): [AAAI 2023] ACE: Cooperative Multi-agent Q-learning with Bidirectional Action-Dependency
-- General nested data lib
-  - [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
-  - [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
 - Docs and Tutorials
-  - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
+  - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs): Tutorials, best practice and the API reference.
   - [awesome-model-based-RL](https://github.com/opendilab/awesome-model-based-RL): A curated list of awesome Model-Based RL resources
   - [awesome-exploration-RL](https://github.com/opendilab/awesome-exploration-rl): A curated list of awesome exploration RL resources
   - [awesome-decision-transformer](https://github.com/opendilab/awesome-decision-transformer): A curated list of Decision Transformer resources
+  - [awesome-RLHF](https://github.com/opendilab/awesome-RLHF): A curated list of reinforcement learning with human feedback resources
   - [awesome-multi-modal-reinforcement-learning](https://github.com/opendilab/awesome-multi-modal-reinforcement-learning): A curated list of Multi-Modal Reinforcement Learning resources
   - [awesome-AI-based-protein-design](https://github.com/opendilab/awesome-AI-based-protein-design): a collection of research papers for AI-based protein design
   - [awesome-diffusion-model-in-rl](https://github.com/opendilab/awesome-diffusion-model-in-rl): A curated list of Diffusion Model in RL resources
@@ -82,12 +82,15 @@ Updated on 2023.02.17 DI-engine-v0.4.6
   - [awesome-driving-behavior-prediction](https://github.com/opendilab/awesome-driving-behavior-prediction): A collection of research papers for Driving Behavior Prediction
 </details>
 
+On the low-level end, DI-engine comes with a set of highly re-usable modules, including [RL optimization functions](https://github.com/opendilab/DI-engine/tree/main/ding/rl_utils), [PyTorch utilities](https://github.com/opendilab/DI-engine/tree/main/ding/torch_utils) and [auxiliary tools](https://github.com/opendilab/DI-engine/tree/main/ding/utils).
 
-**DI-engine** also has some **system optimization and design** for efficient and robust large-scale RL training:
+BTW, **DI-engine** also has some special **system optimization and design** for efficient and robust large-scale RL training:
 
 <details close>
 <summary>(Click for Details)</summary>
 
+- [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
+- [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
 - [DI-orchestrator](https://github.com/opendilab/DI-orchestrator): RL Kubernetes Custom Resource and Operator Lib
 - [DI-hpc](https://github.com/opendilab/DI-hpc): RL HPC OP Lib
 - [DI-store](https://github.com/opendilab/DI-store): RL Object Store
