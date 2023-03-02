@@ -12,7 +12,7 @@ from ding.framework.middleware import interaction_evaluator_ttorch, CkptSaver, m
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import TD3Policy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
-from ding.config import save_config_py
+from ding.config import save_config_py, compile_config
 from ding.model import QAC
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env, get_hybrid_shape
@@ -39,24 +39,23 @@ class TD3:
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                self.cfg = get_instance_config(env, algorithm=TD3.algorithm)
-            else:
-                self.cfg = cfg
+                cfg = get_instance_config(env, algorithm=TD3.algorithm)
+            self.cfg = compile_config(cfg, policy=TD3Policy)
         elif isinstance(env, BaseEnv):
-            self.cfg = cfg
+            self.cfg = compile_config(cfg, policy=TD3Policy)
             raise NotImplementedError
         else:
             raise TypeError("not support env type: {}, only strings and instances of `BaseEnv` now".format(type(env)))
         logging.getLogger().setLevel(logging.INFO)
         self.seed = seed
-        set_pkg_seed(self.seed)
+        set_pkg_seed(self.seed, use_cuda=self.cfg.policy.cuda)
         self.exp_name = exp_name
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         model = QAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
-        self.policy = TD3Policy(self.cfg, model=model)
+        self.policy = TD3Policy(self.cfg.policy, model=model)
 
     def load_policy(self,policy_state_dict, config):
         self.policy.load_state_dict(policy_state_dict)
