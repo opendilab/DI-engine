@@ -605,6 +605,6 @@ def test_fn_m_q_1step_td_error():
     assert q.grad is None
     loss.backward()
     assert isinstance(q.grad, torch.Tensor)
-    assert clip_frac <= 1
+    assert clip_frac.mean().item() <= 1
     assert action_gap.item() > 0
     assert td_error_per_sample.shape == (batch_size, )
