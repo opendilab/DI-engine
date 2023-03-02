@@ -2,7 +2,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
-from .dqn import DQNPolicy, DQNSTDIMPolicy
+from .dqn import DQNPolicy, DQNSTDIMPolicy, MDQNPolicy
 from .c51 import C51Policy
 from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
@@ -46,7 +46,6 @@ from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 from .madqn import MADQNPolicy
 from .bdq import BDQPolicy
-from .mdqn import MDQNPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):

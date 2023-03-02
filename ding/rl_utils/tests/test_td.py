@@ -593,13 +593,13 @@ def test_fn_m_q_1step_td_error():
     batch_size = 128
     action_dim = 9
     q = torch.randn(batch_size, action_dim).requires_grad_(True)
-    target_q_current = torch.randn(batch_size, action_dim).requires_grad_(True)
+    target_q_current = torch.randn(batch_size, action_dim).requires_grad_(False)
     target_q_next = torch.randn(batch_size, action_dim).requires_grad_(True)
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     reward = torch.randn(batch_size)
     data = m_q_1step_td_data(q, target_q_current, target_q_next, action, reward, done, None)
-    loss, action_gap, clip_frac = m_q_1step_td_error(data, 0.99, 0.03, 0.6)
+    loss, td_error_per_sample, action_gap, clip_frac = m_q_1step_td_error(data, 0.99, 0.03, 0.6)
 
     assert loss.shape == ()
     assert q.grad is None
@@ -607,3 +607,4 @@ def test_fn_m_q_1step_td_error():
     assert isinstance(q.grad, torch.Tensor)
     assert clip_frac <= 1
     assert action_gap.item() > 0
+    assert td_error_per_sample.shape == (batch_size, )
