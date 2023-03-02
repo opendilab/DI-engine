@@ -395,7 +395,6 @@ class DQNPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
 
-
 @POLICY_REGISTRY.register('dqn_stdim')
 class DQNSTDIMPolicy(DQNPolicy):
     """
