@@ -4,7 +4,7 @@ from easydict import EasyDict
 asterix_mdqn_config = dict(
     exp_name='asterix_mdqn_seed0',
     env=dict(
-        collector_env_num=8,
+        collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20000,
@@ -26,13 +26,13 @@ asterix_mdqn_config = dict(
         entropy_tau=0.03,
         m_alpha=0.9,
         learn=dict(
-            update_per_collect=4,
+            update_per_collect=1,
             batch_size=32,
             learning_rate=0.00005,
-            target_update_freq=8,
-            learner=dict(train_iterations=int(3e7), hook=dict(save_ckpt_after_iter=1000000, ))
+            target_update_freq=2000,
+            learner=dict(hook=dict(save_ckpt_after_iter=1000000, ))
         ),
-        collect=dict(n_sample=100, ),
+        collect=dict(n_sample=4, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -51,8 +51,6 @@ asterix_mdqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
-        reset_timeout=8,
-        step_timeout=5,
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='mdqn'),
