@@ -173,7 +173,6 @@ class PPOF:
     def batch_evaluate(
             self,
             env_num: int = 4,
-            ckpt_path: Optional[str] = None,
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False,
@@ -184,10 +183,6 @@ class PPOF:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug)
-        if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
-        state_dict = torch.load(ckpt_path, map_location='cpu')
-        self.policy.load_state_dict(state_dict)
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):

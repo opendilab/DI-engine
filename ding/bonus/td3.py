@@ -61,7 +61,7 @@ class TD3:
         set_pkg_seed(self.seed, use_cuda=self.cfg.policy.cuda)
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
-        save_config_py(self.cfg.policy, os.path.join(self.exp_name, 'policy_config.py'))
+        save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         model = QAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg.policy, model=model)
@@ -172,23 +172,26 @@ class TD3:
     def batch_evaluate(
             self,
             env_num: int = 4,
-            ckpt_path: Optional[str] = None,
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
-            debug: bool = False
+            debug: bool = False,
+            render: bool = False,
+            replay_video_path: str = None,
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug)
-        if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
-        state_dict = torch.load(ckpt_path, map_location='cpu')
-        self.policy.load_state_dict(state_dict)
+
+        if replay_video_path is not None:
+            env.enable_save_replay(replay_path=replay_video_path)
+
+        evaluate_cfg=self.cfg
+        evaluate_cfg.env.n_evaluator_episode=n_evaluator_episode
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode))
+            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, env, render=render))
             task.run(max_step=1)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
