@@ -31,7 +31,7 @@ class TD3:
             self,
             env: Union[str, BaseEnv],
             seed: int = 0,
-            exp_name: str = 'default_experiment',
+            exp_name: str = None,
             cfg: Optional[EasyDict] = None
     ) -> None:
         if isinstance(env, str):
@@ -40,6 +40,14 @@ class TD3:
             if cfg is None:
                 # 'It should be default env tuned config'
                 cfg = get_instance_config(env, algorithm=TD3.algorithm)
+            if exp_name is not None:
+                self.exp_name = exp_name
+                self.cfg.exp_name = exp_name
+            elif self.cfg.exp_name is not None:
+                self.exp_name = self.cfg.exp_name
+            else:
+                self.exp_name = 'default_experiment'
+                self.cfg.exp_name = exp_name
             self.cfg = compile_config(cfg, policy=TD3Policy)
         elif isinstance(env, BaseEnv):
             self.cfg = compile_config(cfg, policy=TD3Policy)
@@ -49,10 +57,9 @@ class TD3:
         logging.getLogger().setLevel(logging.INFO)
         self.seed = seed
         set_pkg_seed(self.seed, use_cuda=self.cfg.policy.cuda)
-        self.exp_name = exp_name
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
-        save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
+        save_config_py(self.cfg.policy, os.path.join(self.exp_name, 'policy_config.py'))
         model = QAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg.policy, model=model)
