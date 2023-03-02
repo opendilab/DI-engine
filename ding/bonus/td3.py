@@ -40,14 +40,16 @@ class TD3:
             if cfg is None:
                 # 'It should be default env tuned config'
                 cfg = get_instance_config(env, algorithm=TD3.algorithm)
+            elif not isinstance(cfg,EasyDict):
+                cfg=EasyDict(cfg)
             if exp_name is not None:
                 self.exp_name = exp_name
-                self.cfg.exp_name = exp_name
-            elif self.cfg.exp_name is not None:
-                self.exp_name = self.cfg.exp_name
+                cfg.exp_name = exp_name
+            elif cfg.exp_name is not None:
+                self.exp_name = cfg.exp_name
             else:
                 self.exp_name = 'default_experiment'
-                self.cfg.exp_name = exp_name
+                cfg.exp_name = self.exp_name
             self.cfg = compile_config(cfg, policy=TD3Policy)
         elif isinstance(env, BaseEnv):
             self.cfg = compile_config(cfg, policy=TD3Policy)
@@ -87,7 +89,7 @@ class TD3:
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
         wandb_url_return=[]
 
-        self.cfg.policy.logger.record_path = './' + self.cfg.exp_name + '/video'
+        self.cfg.policy.logger.record_path = os.path.join(self.exp_name,'video')
         evaluator_env.enable_save_replay(replay_path=self.cfg.policy.logger.record_path)
 
         with task.start(ctx=OnlineRLContext()):
@@ -99,7 +101,7 @@ class TD3:
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
             task.use(CkptSaver(policy=self.policy,save_dir=os.path.join(self.cfg["exp_name"],"model"), train_freq=n_iter_save_ckpt))
-            task.use(wandb_online_logger(self.exp_name, metric_list=self.policy.monitor_vars(), anonymous=True, project_name=self.exp_name, wandb_url_return=wandb_url_return))
+            task.use(wandb_online_logger(record_path=self.cfg.policy.logger.record_path, cfg=self.cfg.policy.logger, metric_list=self.policy.monitor_vars(), model=self.policy._model, anonymous=True, project_name=self.exp_name, wandb_url_return=wandb_url_return))
             task.use(termination_checker(max_env_step=step))
             task.use(final_ctx_saver(name=self.cfg["exp_name"]))
             task.run()

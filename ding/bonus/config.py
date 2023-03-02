@@ -106,7 +106,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         critic_head_hidden_size=256,
                         action_space='regression',
                     ),
-                    logger=dict(record_path='./hopper_td3/video',
+                    logger=dict(
                                 gradient_logger=True,
                                 video_logger=True,
                                 plot_logger=True, 
