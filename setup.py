@@ -78,7 +78,7 @@ setup(
         'mpire>=2.3.5',
         'pynng',
         'redis',
-        'pettingzoo==1.12.0',
+        'pettingzoo',
         'DI-treetensor>=0.3.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
