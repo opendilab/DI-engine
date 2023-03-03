@@ -64,10 +64,10 @@ class MDQNPolicy(DQNPolicy):
                                                                                                  | the exploration rate
                                                                                                  | decay from start
                                                                                                  | value to end value
-                                                                                                 | during decay length.       
+                                                                                                 | during decay length.
         20 | ``entropy_tau``    float    0.003          | the ration of entropy in TD loss
-        21 | ``alpha``          float    0.9            | the ration of Munchausen term to the 
-                                                        | TD loss  
+        21 | ``alpha``          float    0.9            | the ration of Munchausen term to the
+                                                        | TD loss
         == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
