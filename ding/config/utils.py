@@ -1,4 +1,4 @@
-from typing import Optional, List, NoReturn
+from typing import Optional, List
 import copy
 from easydict import EasyDict
 
@@ -240,7 +240,7 @@ def parallel_transform_k8s(
     return cfg
 
 
-def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py') -> NoReturn:
+def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py') -> None:
     """
     Overview:
         save formatted configuration to python file that can be read by serial_pipeline directly.

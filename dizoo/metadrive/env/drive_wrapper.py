@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional
 from easydict import EasyDict
-from itertools import product
-from typing import NoReturn, Optional, List
+from typing import Optional
 import matplotlib.pyplot as plt
 import gym
 import copy
