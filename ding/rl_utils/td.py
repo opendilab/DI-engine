@@ -61,15 +61,13 @@ def m_q_1step_td_error(
     # calculate muchausen addon
     # replay_log_policy
     target_v_s = target_q[batch_range].max(1)[0].unsqueeze(-1)
-    top2_q_s = target_q[batch_range].topk(2, dim=1, largest=True, sorted=True)[0]
-    action_gap = (top2_q_s[:, 0] - top2_q_s[:, 1]).mean()
+
     logsum = torch.logsumexp((target_q - target_v_s) / tau, 1).unsqueeze(-1)
     log_pi = target_q - target_v_s - tau * logsum
     act_get = act.unsqueeze(-1)
     # same to the last second tau_log_pi_a
     munchausen_addon = log_pi.gather(1, act_get)
-    clipped = munchausen_addon.gt(1) | munchausen_addon.lt(lo)
-    clipfrac = torch.as_tensor(clipped).float()
+
     muchausen_term = alpha * torch.clamp(munchausen_addon, min=lo, max=1)
 
     # replay_next_log_policy
@@ -82,6 +80,15 @@ def m_q_1step_td_error(
 
     target_q_s_a = reward.unsqueeze(-1) + muchausen_term + target_q_s_a
     td_error_per_sample = criterion(q_s_a.unsqueeze(-1), target_q_s_a.detach()).squeeze(-1)
+
+    # calculate action_gap and clipfrac
+    with torch.no_grad():
+        top2_q_s = target_q[batch_range].topk(2, dim=1, largest=True, sorted=True)[0]
+        action_gap = (top2_q_s[:, 0] - top2_q_s[:, 1]).mean()
+
+        clipped = munchausen_addon.gt(1) | munchausen_addon.lt(lo)
+        clipfrac = torch.as_tensor(clipped).float()
+
     return (td_error_per_sample * weight).mean(), td_error_per_sample, action_gap, clipfrac
 
 

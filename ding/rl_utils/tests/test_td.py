@@ -594,7 +594,7 @@ def test_fn_m_q_1step_td_error():
     action_dim = 9
     q = torch.randn(batch_size, action_dim).requires_grad_(True)
     target_q_current = torch.randn(batch_size, action_dim).requires_grad_(False)
-    target_q_next = torch.randn(batch_size, action_dim).requires_grad_(True)
+    target_q_next = torch.randn(batch_size, action_dim).requires_grad_(False)
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     reward = torch.randn(batch_size)

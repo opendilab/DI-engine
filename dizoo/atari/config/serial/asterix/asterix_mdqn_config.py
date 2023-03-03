@@ -11,7 +11,7 @@ asterix_mdqn_config = dict(
         env_id='Asterix-v0',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
-        manager=dict(shared_memory=False, ),
+        manager=dict(shared_memory=True, ),
     ),
     policy=dict(
         cuda=True,
@@ -61,4 +61,4 @@ create_config = asterix_mdqn_create_config
 if __name__ == '__main__':
     # or you can enter ding -m serial -c spaceinvaders_dqn_config.py -s 0
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7))
