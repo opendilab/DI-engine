@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
@@ -14,6 +15,7 @@ from ding.config import save_config_py
 from .model import PPOFModel
 from .config import get_instance_config, get_instance_env, get_hybrid_shape
 
+@dataclass
 class TrainingReturn:
     wandb_url:str
 
@@ -47,7 +49,7 @@ class PPOF:
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                self.cfg = get_instance_config(env)
+                self.cfg = get_instance_config(env,algorithm="PPO")
             else:
                 self.cfg = cfg
         elif isinstance(env, BaseEnv):
