@@ -51,6 +51,8 @@ class TD3:
                 self.exp_name = 'default_experiment'
                 cfg.exp_name = self.exp_name
             self.cfg = compile_config(cfg, policy=TD3Policy)
+            if self.cfg.exp_name!=self.exp_name:
+                self.exp_name=self.cfg.exp_name
         elif isinstance(env, BaseEnv):
             self.cfg = compile_config(cfg, policy=TD3Policy)
             raise NotImplementedError

@@ -479,6 +479,18 @@ class BaseEnvManagerV2(BaseEnvManager):
             obs = [tnp.array(o) for o in obs]
         return tnp.stack(obs)
 
+    @property
+    def ready_imgs(self, render_mode: Optional[str] = 'rgb_array') -> Dict[int, Any]:
+        """
+        Overview:
+            Get the next ready renderd frame and corresponding env id.
+        Return:
+            - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.
+        """
+        from ding.utils import render
+        assert render_mode in ['rgb_array', 'depth_array']
+        return {i: render(self._envs[i], render_mode) for i in range(self.ready_obs.shape[0])}
+
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
         """
         Overview:
