@@ -151,6 +151,9 @@ class ICMRewardModel(BaseRewardModel):
         update_per_collect=100,
         # (float) the importance weight of the forward and reverse loss
         reverse_scale=1,
+        intrinsic_reward_weight=0.003,  # 1/300
+        extrinsic_reward_norm=True,
+        extrinsic_reward_norm_max=1,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -171,8 +174,12 @@ class ICMRewardModel(BaseRewardModel):
         self.ce = nn.CrossEntropyLoss(reduction="mean")
         self.forward_mse = nn.MSELoss(reduction='none')
         self.reverse_scale = config.reverse_scale
+        self.res = nn.Softmax(dim=-1)
+        self.estimate_cnt_icm = 0
+        self.train_cnt_icm = 0
 
     def _train(self) -> None:
+        self.train_cnt_icm += 1
         train_data_list = [i for i in range(0, len(self.train_states))]
         train_data_index = random.sample(train_data_list, self.cfg.batch_size)
         data_states: list = [self.train_states[i] for i in train_data_index]
@@ -187,6 +194,13 @@ class ICMRewardModel(BaseRewardModel):
         )
         inverse_loss = self.ce(pred_action_logit, data_actions.long())
         forward_loss = self.forward_mse(pred_next_state_feature, real_next_state_feature.detach()).mean()
+        self.tb_logger.add_scalar('icm_reward/forward_loss', forward_loss, self.train_cnt_icm)
+        self.tb_logger.add_scalar('icm_reward/inverse_loss', inverse_loss, self.train_cnt_icm)
+        action = torch.argmax(self.res(pred_action_logit), -1)
+        accuracy = torch.sum(action == data_actions.squeeze(-1)).item() / data_actions.shape[0]
+        self.tb_logger.add_scalar('icm_reward/action_accuracy', accuracy, self.train_cnt_icm)
+        loss = self.reverse_scale * inverse_loss + forward_loss
+        self.tb_logger.add_scalar('icm_reward/total_loss', loss, self.train_cnt_icm)
         loss = self.reverse_scale * inverse_loss + forward_loss
         self.opt.zero_grad()
         loss.backward()
@@ -195,7 +209,6 @@ class ICMRewardModel(BaseRewardModel):
     def train(self) -> None:
         for _ in range(self.cfg.update_per_collect):
             self._train()
-        self.clear_data()
 
     def estimate(self, data: list) -> List[Dict]:
         # NOTE: deepcopy reward part of data is very important,
@@ -207,17 +220,32 @@ class ICMRewardModel(BaseRewardModel):
         actions = torch.cat(actions).to(self.device)
         with torch.no_grad():
             real_next_state_feature, pred_next_state_feature, _ = self.reward_model(states, next_states, actions)
-            reward = self.forward_mse(real_next_state_feature, pred_next_state_feature).mean(dim=1)
-            reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
-            reward = reward.to(train_data_augmented[0]['reward'].device)
-            reward = torch.chunk(reward, reward.shape[0], dim=0)
-        for item, rew in zip(train_data_augmented, reward):
+            raw_icm_reward = self.forward_mse(real_next_state_feature, pred_next_state_feature).mean(dim=1)
+            self.estimate_cnt_icm += 1
+            self.tb_logger.add_scalar('icm_reward/raw_icm_reward_max', raw_icm_reward.max(), self.estimate_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/raw_icm_reward_mean', raw_icm_reward.mean(), self.estimate_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/raw_icm_reward_min', raw_icm_reward.min(), self.estimate_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/raw_icm_reward_std', raw_icm_reward.std(), self.estimate_cnt_icm)
+            icm_reward = (raw_icm_reward - raw_icm_reward.min()) / (raw_icm_reward.max() - raw_icm_reward.min() + 1e-8)
+            self.tb_logger.add_scalar('icm_reward/icm_reward_max', icm_reward.max(), self.estimate_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/icm_reward_mean', icm_reward.mean(), self.estimate_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/icm_reward_min', icm_reward.min(), self.estimate_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/icm_reward_std', icm_reward.std(), self.estimate_cnt_icm)
+            icm_reward = (raw_icm_reward - raw_icm_reward.min()) / (raw_icm_reward.max() - raw_icm_reward.min() + 1e-8)
+            icm_reward = icm_reward.to(self.device)
+        for item, icm_rew in zip(train_data_augmented, icm_reward):
             if self.intrinsic_reward_type == 'add':
-                item['reward'] += rew
+                if self.cfg.extrinsic_reward_norm:
+                    item['reward'] = item[
+                        'reward'] / self.cfg.extrinsic_reward_norm_max + icm_rew * self.cfg.intrinsic_reward_weight
+                else:
+                    item['reward'] = item['reward'] + icm_rew * self.cfg.intrinsic_reward_weight
             elif self.intrinsic_reward_type == 'new':
-                item['intrinsic_reward'] = rew
+                item['intrinsic_reward'] = icm_rew
+                if self.cfg.extrinsic_reward_norm:
+                    item['reward'] = item['reward'] / self.cfg.extrinsic_reward_norm_max
             elif self.intrinsic_reward_type == 'assign':
-                item['reward'] = rew
+                item['reward'] = icm_rew
 
         return train_data_augmented
 
