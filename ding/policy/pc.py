@@ -1,25 +1,24 @@
 import math
+from typing import List, Dict, Any, Tuple
+from collections import namedtuple
+
 import torch
 import torch.nn as nn
 from torch.optim import Adam, SGD, AdamW
 from torch.optim.lr_scheduler import LambdaLR
-import logging
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
 from easydict import EasyDict
+
 from ding.policy import Policy
 from ding.model import model_wrap
-from ding.torch_utils import to_device, to_list
+from ding.torch_utils import to_device
 from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from ding.rl_utils import get_nstep_return_data, get_train_sample
 from ding.utils import POLICY_REGISTRY
-from ding.torch_utils.loss.cross_entropy_loss import LabelSmoothCELoss
 
 
 @POLICY_REGISTRY.register('pc_mcts')
 class ProcedureCloningPolicyMCTS(Policy):
-
     config = dict(
         type='pc_mcts',
         cuda=True,
@@ -56,10 +55,7 @@ class ProcedureCloningPolicyMCTS(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.continuous:
-            return 'continuous_bc', ['ding.model.template.bc']
-        else:
-            return 'discrete_bc', ['ding.model.template.bc']
+        return 'pc_mcts', ['ding.model.template.procedure_cloning']
 
     def _init_learn(self):
         assert self._cfg.learn.optimizer in ['SGD', 'Adam']
@@ -104,10 +100,11 @@ class ProcedureCloningPolicyMCTS(Policy):
             data = to_device(data, self._device)
         self._learn_model.train()
         with self._timer:
-            obs, hidden_states, action = data['obs'], data['hidden_states'], data['actions']
-            pred_hidden_states, pred_action, target_hidden_states = self._learn_model.forward(obs, hidden_states)
-            # When we use bco, action is predicted by idm, gradient is not expected.
-            loss = self._hidden_state_loss(pred_hidden_states, target_hidden_states)\
+            obs, hidden_states, action = data['obs'], data['hidden_states'], data['action']
+            obs = obs.permute(0, 3, 1, 2).float()
+            hidden_states = torch.stack(hidden_states, dim=1).float()
+            pred_hidden_states, pred_action, target_hidden_states = self._learn_model.forward(obs / 255., hidden_states)
+            loss = self._hidden_state_loss(pred_hidden_states, target_hidden_states) \
                    + self._action_loss(pred_action, action)
         forward_time = self._timer.value
 
@@ -141,17 +138,24 @@ class ProcedureCloningPolicyMCTS(Policy):
 
     def _forward_eval(self, data):
         data_id = list(data.keys())
-        data = default_collate(list(data.values()))
+        values = list(data.values())
+        data = [{'obs': v['observation']} for v in values]
+        data = default_collate(data)
 
         if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward_eval(data['obs'])
+            output = self._eval_model.forward_eval(data['obs'].permute(0, 3, 1, 2) / 255.)
+            output = torch.argmax(output, dim=-1)
             if self._cuda:
                 output = to_device(output, 'cpu')
             output = {'action': output}
-        return {i: d for i, d in zip(data_id, output)}
+        output = default_decollate(output)
+        # TODO why this bug?
+        output = [{'action': o['action'].item()} for o in output]
+        res = {i: d for i, d in zip(data_id, output)}
+        return res
 
     def _init_collect(self) -> None:
         pass

@@ -29,7 +29,7 @@ class MCTSPCDataset(Dataset):
         """
         return {
             'obs': self.observations[idx],
-            'hidden_states': list(reversed(self.hidden_states[idx+1: idx+self.seq_len+1])),
+            'hidden_states': list(reversed(self.hidden_states[idx + 1: idx + self.seq_len + 1])),
             'action': self.actions[idx]
         }
 
@@ -37,10 +37,14 @@ class MCTSPCDataset(Dataset):
         return self.length
 
 
-def load_mcts_datasets(path, batch_size=32):
+def load_mcts_datasets(path, seq_len, batch_size=32):
     with open(path, 'rb') as f:
         dic = pickle.load(f)
-    return DataLoader(MCTSPCDataset(dic), shuffle=True, batch_size=batch_size)
+    tot_len = len(dic['obs'])
+    train_dic = {k: v[:-tot_len // 10] for k, v in dic.items()}
+    test_dic = {k: v[-tot_len // 10:] for k, v in dic.items()}
+    return DataLoader(MCTSPCDataset(train_dic, seq_len=seq_len), shuffle=True, batch_size=batch_size), \
+           DataLoader(MCTSPCDataset(test_dic, seq_len=seq_len), shuffle=True, batch_size=batch_size)
 
 
 def serial_pipeline_pc_mcts(
@@ -79,7 +83,7 @@ def serial_pipeline_pc_mcts(
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    dataloader, test_dataloader = load_mcts_datasets(cfg.policy.expert_data_path)
+    dataloader, test_dataloader = load_mcts_datasets(cfg.policy.expert_data_path, seq_len=cfg.policy.seq_len)
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -107,11 +111,11 @@ def serial_pipeline_pc_mcts(
         losses = []
         acces = []
         for _, test_data in enumerate(test_dataloader):
-            logits = policy._model.forward_eval(test_data)
+            logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
 
-            loss = criterion(logits, test_data['action']).item()
+            loss = criterion(logits, test_data['action'].cuda()).item()
             preds = torch.argmax(logits, dim=-1)
-            acc = torch.sum((preds == test_data['action'])) / preds.shape[0]
+            acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
 
             losses.append(loss)
             acces.append(acc)

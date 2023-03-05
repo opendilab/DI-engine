@@ -19,18 +19,25 @@ class Block(nn.Module):
         self.attention_layer = []
 
         self.norm_layer = [nn.LayerNorm(att_hidden)] * n_att
+
         self.attention_layer.append(Attention(cnn_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
         for i in range(n_att - 1):
             self.attention_layer.append(Attention(att_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
-
+        self.attention_layer = nn.ModuleList(self.attention_layer)
         self.att_drop = nn.Dropout(drop_p)
 
         self.fc_blocks = []
         self.fc_blocks.append(fc_block(att_hidden, feedforward_hidden, activation=nn.ReLU()))
         for i in range(n_feedforward - 1):
             self.fc_blocks.append(fc_block(feedforward_hidden, feedforward_hidden, activation=nn.ReLU()))
+        self.fc_blocks = nn.ModuleList(self.fc_blocks)
+
         self.norm_layer.extend([nn.LayerNorm(feedforward_hidden)] * n_feedforward)
-        self.mask = torch.tril(torch.ones((max_T, max_T), dtype=torch.bool)).view(1, 1, max_T, max_T)
+        self.norm_layer = nn.ModuleList(self.norm_layer)
+
+        self.mask = nn.Parameter(
+            torch.tril(torch.ones((max_T, max_T), dtype=torch.bool)).view(1, 1, max_T, max_T), requires_grad=False
+        )
 
     def forward(self, x: torch.Tensor):
         for i in range(self.n_att):
@@ -42,8 +49,8 @@ class Block(nn.Module):
         return x
 
 
-@MODEL_REGISTRY.register('pc')
-class ProcedureCloning(nn.Module):
+@MODEL_REGISTRY.register('pc_mcts')
+class ProcedureCloningMCTS(nn.Module):
 
     def __init__(
             self,
@@ -73,7 +80,6 @@ class ProcedureCloning(nn.Module):
         max_T = seq_len + 1
 
         #Conv Encoder
-        print(cnn_padding)
         self.embed_state = ConvEncoder(
             obs_shape, cnn_hidden_list, cnn_activation, cnn_kernel_size, cnn_stride, cnn_padding
         )
@@ -142,7 +148,7 @@ class ProcedureCloning(nn.Module):
     def forward_eval(self, states: torch.Tensor) -> torch.Tensor:
         batch_size = states.shape[0]
         hidden_states = torch.zeros(batch_size, self.seq_len, *self.hidden_shape, dtype=states.dtype).to(states.device)
-        embedding_mask = torch.zeros(1, self.seq_len, 1)
+        embedding_mask = torch.zeros(1, self.seq_len, 1).to(states.device)
 
         state_embeddings, hidden_state_embeddings = self._compute_embeddings(states, hidden_states)
 

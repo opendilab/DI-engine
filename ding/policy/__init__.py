@@ -44,6 +44,7 @@ from .pdqn import PDQNPolicy
 
 from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
+from .pc import ProcedureCloningPolicyMCTS
 
 # new-type policy
 from .ppof import PPOFPolicy

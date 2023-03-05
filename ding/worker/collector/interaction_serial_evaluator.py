@@ -245,7 +245,10 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                                 if self._cfg.figure_path is not None:
                                     self._env.enable_save_figure(env_id, self._cfg.figure_path)
                             self._policy.reset([env_id])
-                            reward = t.info['eval_episode_return']
+                            if 'final_eval_reward' in t.info.keys():
+                                reward = t.info['final_eval_reward']
+                            else:
+                                reward = t.info['eval_episode_return']
                             if 'episode_info' in t.info:
                                 eval_monitor.update_info(env_id, t.info['episode_info'])
                             eval_monitor.update_reward(env_id, reward)

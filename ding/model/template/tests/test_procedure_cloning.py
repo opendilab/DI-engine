@@ -1,11 +1,7 @@
 import torch
 import pytest
-import numpy as np
-from itertools import product
 
-from ding.model.template import ProcedureCloning
-from ding.torch_utils import is_differentiable
-from ding.utils import squeeze
+from ding.model.template import ProcedureCloningMCTS
 
 B = 4
 T = 15
@@ -22,8 +18,8 @@ def test_procedure_cloning():
         'hidden_states': torch.randn(B, T, *hidden_shape),
         'actions': torch.randn(B, action_dim)
     }
-    model = ProcedureCloning(obs_shape=obs_shape, hidden_shape=hidden_shape,
-                             seq_len=T, action_dim=action_dim)
+    model = ProcedureCloningMCTS(obs_shape=obs_shape, hidden_shape=hidden_shape,
+                                 seq_len=T, action_dim=action_dim)
 
     print(model)
 
