@@ -1,27 +1,39 @@
 from typing import List, Optional, Union, Dict
+from easydict import EasyDict
 import gym
 import copy
 import numpy as np
+import treetensor.numpy as tnp
 
 from ding.envs.common.common_function import affine_transform
 from ding.envs.env_wrappers import create_env_wrapper
 from ding.torch_utils import to_ndarray
+from ding.utils import CloudPickleWrapper
 from .base_env import BaseEnv, BaseEnvTimestep
 from .default_wrapper import get_default_wrappers
 
 
 class DingEnvWrapper(BaseEnv):
 
-    def __init__(self, env: gym.Env = None, cfg: dict = None) -> None:
-        '''
+    def __init__(self, env: gym.Env = None, cfg: dict = None, seed_api: bool = True) -> None:
+        """
         You can pass in either an env instance, or a config to create an env instance:
             - An env instance: Parameter `env` must not be `None`, but should be the instance.
                                Do not support subprocess env manager; Thus usually used in simple env.
             - A config to create an env instance: Parameter `cfg` dict must contain `env_id`.
-        '''
+        """
+        self._raw_env = env
         self._cfg = cfg
+        self._seed_api = seed_api  # some env may disable `env.seed` api
         if self._cfg is None:
             self._cfg = dict()
+        self._cfg = EasyDict(self._cfg)
+        if 'act_scale' not in self._cfg:
+            self._cfg.act_scale = False
+        if 'env_wrapper' not in self._cfg:
+            self._cfg.env_wrapper = 'default'
+        if 'env_id' not in self._cfg:
+            self._cfg.env_id = None
         if env is not None:
             self._init_flag = True
             self._env = env
@@ -62,10 +74,12 @@ class DingEnvWrapper(BaseEnv):
             self._replay_path = None
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
-            self._env.seed(self._seed + np_seed)
+            if self._seed_api:
+                self._env.seed(self._seed + np_seed)
             self._action_space.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
-            self._env.seed(self._seed)
+            if self._seed_api:
+                self._env.seed(self._seed)
             self._action_space.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs, np.float32)
@@ -88,7 +102,7 @@ class DingEnvWrapper(BaseEnv):
     # override
     def step(self, action: Union[np.int64, np.ndarray]) -> BaseEnvTimestep:
         action = self._judge_action_type(action)
-        if self._cfg.get('act_scale', False):
+        if self._cfg.act_scale:
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
         obs = to_ndarray(obs, np.float32)
@@ -98,14 +112,20 @@ class DingEnvWrapper(BaseEnv):
     def _judge_action_type(self, action: Union[np.ndarray, dict]) -> Union[np.ndarray, dict]:
         if isinstance(action, int):
             return action
-        if isinstance(action, np.ndarray):
-            if action.shape == (1, ) and action.dtype == np.int64:
+        elif isinstance(action, np.int64):
+            return int(action)
+        elif isinstance(action, np.ndarray):
+            if action.shape == ():
+                action = action.item()
+            elif action.shape == (1, ) and action.dtype == np.int64:
                 action = action.item()
             return action
         elif isinstance(action, dict):
             for k, v in action.items():
                 action[k] = self._judge_action_type(v)
             return action
+        elif isinstance(action, tnp.ndarray):
+            return self._judge_action_type(action.json())
         else:
             raise TypeError(
                 '`action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
@@ -131,9 +151,9 @@ class DingEnvWrapper(BaseEnv):
 
     def _wrap_env(self) -> None:
         # wrapper_cfgs: Union[str, List]
-        wrapper_cfgs = self._cfg.get('env_wrapper', 'default')
+        wrapper_cfgs = self._cfg.env_wrapper
         if isinstance(wrapper_cfgs, str):
-            wrapper_cfgs = get_default_wrappers(wrapper_cfgs, self._cfg.get('env_id', None))
+            wrapper_cfgs = get_default_wrappers(wrapper_cfgs, self._cfg.env_id)
         # self._wrapper_cfgs: List[Union[Callable, Dict]]
         self._wrapper_cfgs = wrapper_cfgs
         for wrapper in self._wrapper_cfgs:
@@ -176,3 +196,13 @@ class DingEnvWrapper(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
+
+    def clone(self) -> BaseEnv:
+        try:
+            spec = copy.deepcopy(self._raw_env.spec)
+            raw_env = CloudPickleWrapper(self._raw_env)
+            raw_env = copy.deepcopy(raw_env).data
+            raw_env.__setattr__('spec', spec)
+        except Exception:
+            raw_env = self._raw_env
+        return DingEnvWrapper(raw_env, self._cfg, self._seed_api)

@@ -190,6 +190,8 @@ class PDQN(nn.Module):
             logit = torch.diagonal(logit, dim1=-2, dim2=-1)  # (B, K)
         else:  # pdqn
             # size (B, encoded_state_shape + action_args_shape)
+            if len(action_args.shape) == 1:  # (B, ) -> (B, 1)
+                action_args = action_args.unsqueeze(1)
             state_action_cat = torch.cat((dis_x, action_args), dim=-1)
             logit = self.actor_head[0](state_action_cat)['logit']  # size (B, K) where K is action_type_shape
 

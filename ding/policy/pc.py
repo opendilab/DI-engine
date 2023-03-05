@@ -1,75 +1,26 @@
 import math
+from typing import List, Dict, Any, Tuple
+from collections import namedtuple
+
 import torch
 import torch.nn as nn
-import copy
 from torch.optim import Adam, SGD, AdamW
 from torch.optim.lr_scheduler import LambdaLR
-import logging
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
 from easydict import EasyDict
+
 from ding.policy import Policy
 from ding.model import model_wrap
-from ding.torch_utils import to_device, to_list
+from ding.torch_utils import to_device
 from ding.utils import EasyTimer
-from ding.utils.data import default_collate, default_decollate
 from ding.rl_utils import get_nstep_return_data, get_train_sample
 from ding.utils import POLICY_REGISTRY
-from ding.torch_utils.loss.cross_entropy_loss import LabelSmoothCELoss
 
 
-def print_obs(obs):
-    print('Wall')
-    print(obs[0, :, :, 0])
-    print('Goal')
-    print(obs[0, :, :, 1])
-    print('Obs')
-    print(obs[0, :, :, 2])
-
-
-def get_vi_sequence(target, observation, nav_map):
-    """Returns [L, W, W] optimal actions."""
-    start_x, start_y = observation
-    target_location = target
-    current_points = [target_location]
-    chosen_actions = {target_location: 0}
-    visited_points = {target_location: True}
-    vi_sequence = []
-    nav_map = nav_map.squeeze(0)
-    vi_map = 4 * torch.ones_like(nav_map)
-
-    found_start = False
-    while current_points and not found_start:
-        next_points = []
-        for point_x, point_y in current_points:
-            for (action, (next_point_x, next_point_y)) in [(0, (point_x - 1, point_y)), (1, (point_x, point_y - 1)),
-                                                           (2, (point_x + 1, point_y)), (3, (point_x, point_y + 1))]:
-                if (next_point_x, next_point_y) in visited_points:
-                    continue
-
-                if not (0 <= next_point_x < len(nav_map) and 0 <= next_point_y < len(nav_map[next_point_x])):
-                    continue
-
-                if nav_map[next_point_x][next_point_y] != 0:
-                    continue
-                next_points.append((next_point_x, next_point_y))
-                visited_points[(next_point_x, next_point_y)] = True
-                chosen_actions[(next_point_x, next_point_y)] = action
-                vi_map[next_point_x, next_point_y] = action
-                
-                if next_point_x == start_x and next_point_y == start_y:
-                    found_start = True
-        vi_sequence.append(copy.deepcopy(vi_map))
-        current_points = next_points
-
-    return vi_sequence
-
-
-@POLICY_REGISTRY.register('pc')
-class ProcedureCloningPolicy(Policy):
+@POLICY_REGISTRY.register('pc_bfs')
+class ProcedureCloningBFSPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'pc', ['ding.model.template.pc']
+        return 'pc_bfs', ['ding.model.template.pc']
 
     config = dict(
         type='pc',
@@ -90,9 +41,6 @@ class ProcedureCloningPolicy(Policy):
             optimizer='SGD',
             momentum=0.9,
             weight_decay=1e-4,
-            ce_label_smooth=False,
-            show_accuracy=False,
-            tanh_mask=False,  # if actions always converge to 1 or -1, use this.
         ),
         collect=dict(
             unroll_len=1,
@@ -155,8 +103,6 @@ class ProcedureCloningPolicy(Policy):
         ).long()
         loc = torch.reshape(loc, [observations.shape[0], self._maze_size, self._maze_size])
         states = torch.cat([maze_maps, loc], dim=-1).long()
-        # if self._augment and training:
-        #     states = self._augment_layers(states)
         return states
 
     def _forward_learn(self, data):
@@ -168,56 +114,18 @@ class ProcedureCloningPolicy(Policy):
                                                         collated_data['bfs_out'].long()
         states = observations
         bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).float()
-        
-        shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
-        # is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
 
-        # for ii in range(bfs_input_maps.shape[0]):
-        #     if torch.sum(bfs_input_maps[ii]) == 4 * 16 * 16:
-        #         is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
-        #         print(bfs_input_maps[ii])
-        #         tmp = torch.sum(bfs_input_maps, dim=(1, 2))
-        #         print(tmp[ii])
-        #         tmp = (tmp == self._num_actions * shape0 * shape1).long()
-        #         print(tmp[ii])
-        #         tmp = torch.nn.functional.one_hot(tmp, 2).float().unsqueeze(1).unsqueeze(1)
-        #         print(tmp[ii])
-        #         is_init = is_init + tmp
-        #         print(is_init[ii,..., -1])
-        #         print(is_init[ii-1, ...,-1])
-        #         if torch.sum(is_init[ii,..., -1]).item() != 16*16:
-        #             assert False
-        #         if torch.sum(is_init[ii,..., -2]).item() != 0:
-        #             assert False
-
-        # is_init = torch.zeros((bfs_input_maps.shape[0], shape0, shape1, 1)).to(bfs_input_maps.device).float()
-        # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
-        # tmp = (tmp == self._num_actions * shape0 * shape1).long()
-        # tmp = tmp.float().unsqueeze(1).unsqueeze(1).unsqueeze(1)
-        # is_init = tmp + is_init
-
-
-        bfs_states = torch.cat([states, bfs_input_onehot, ], dim=-1)
-
+        bfs_states = torch.cat([
+            states,
+            bfs_input_onehot,
+        ], dim=-1)
         logits = self._model(bfs_states)['logit']
-        # print('##############################')
-        # print(torch.argmax(logits[0], dim=-1))
-        # print(bfs_output_maps[0])
-        # print('##############################')
-        my_preds = torch.argmax(logits, dim=-1)
-        # for ii in range(bfs_input_maps.shape[0]):
-        #     if torch.sum(bfs_input_maps[ii]) != 4 * 16 * 16:
-        #         print('####################################################')
-        #         print(my_preds[ii])
-        #         print(bfs_states[0, ..., -2])
-        #         print(bfs_states[0,...,-1])
         logits = logits.flatten(0, -2)
         labels = bfs_output_maps.flatten(0, -1)
 
         loss = self._loss(logits, labels)
         preds = torch.argmax(logits, dim=-1)
         acc = torch.sum((preds == labels)) / preds.shape[0]
-        non_4_ratio = 1 - (torch.sum((preds == 4)) / preds.shape[0])
 
         self._optimizer.zero_grad()
         loss.backward()
@@ -226,15 +134,10 @@ class ProcedureCloningPolicy(Policy):
 
         cur_lr = [param_group['lr'] for param_group in self._optimizer.param_groups]
         cur_lr = sum(cur_lr) / len(cur_lr)
-        return {
-            'cur_lr': cur_lr,
-            'total_loss': pred_loss,
-            'acc': acc,
-            'non_4_ratio': non_4_ratio
-        }
+        return {'cur_lr': cur_lr, 'total_loss': pred_loss, 'acc': acc}
 
     def _monitor_vars_learn(self):
-        return ['cur_lr', 'total_loss', 'acc', 'non_4_ratio']
+        return ['cur_lr', 'total_loss', 'acc']
 
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='base')
@@ -255,39 +158,22 @@ class ProcedureCloningPolicy(Policy):
             xy = torch.where(states[:, :, :, -1] == 1)
             observation = (xy[1][0].item(), xy[2][0].item())
 
-            wall = copy.deepcopy(states[:, :, :, 0])
-
-            xy = torch.where(states[:, :, :, -2] == 1)
-            goal = (xy[1][0].item(), xy[2][0].item())
-
             i = 0
-            # seq = get_vi_sequence(goal, observation, wall)
-            # print(seq[0])
-            # print(seq[1])
-            # print(seq[0])
-            # assert False
-            # bfs_input_maps = seq[0].unsqueeze(0).long()
             while bfs_input_maps[0, observation[0], observation[1]].item() == self._num_actions and i < max_len:
-                print(bfs_input_maps)
                 bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).long()
-                
-                # shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
-                # is_init = torch.zeros((bfs_input_maps.shape[0], shape0, shape1, 1)).to(bfs_input_maps.device).float()
-                # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
-                # tmp = (tmp == self._num_actions * shape0 * shape1).long()
-                # tmp = tmp.float().unsqueeze(1).unsqueeze(1).unsqueeze(1)
-                # is_init = tmp + is_init
-                bfs_states = torch.cat([states, bfs_input_onehot, ], dim=-1)
+
+                bfs_states = torch.cat([
+                    states,
+                    bfs_input_onehot,
+                ], dim=-1)
                 logits = self._model(bfs_states)['logit']
                 bfs_input_maps = torch.argmax(logits, dim=-1)
                 i += 1
-            print(i)
             output[ii] = bfs_input_maps[0, observation[0], observation[1]]
             if self._cuda:
                 output[ii] = {'action': to_device(output[ii], 'cpu'), 'info': {}}
             if output[ii]['action'].item() == self._num_actions:
                 output[ii]['action'] = torch.randint(low=0, high=self._num_actions, size=[1])[0]
-        # assert False
         return output
 
     def _init_collect(self) -> None:

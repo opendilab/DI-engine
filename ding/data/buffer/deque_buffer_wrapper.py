@@ -53,7 +53,6 @@ class DequeBufferWrapper(object):
             self.buffer.use(
                 PriorityExperienceReplay(
                     self.buffer,
-                    self.cfg.replay_buffer_size,
                     IS_weight=self.cfg.priority_IS_weight,
                     priority_power_factor=self.cfg.priority_power_factor,
                     IS_weight_power_factor=self.cfg.IS_weight_power_factor,

@@ -1,34 +1,23 @@
 from typing import Union, Optional, Tuple
 import os
-import copy
+from functools import partial
+from copy import deepcopy
+
 import easydict
 import torch
-from functools import partial
 from tensorboardX import SummaryWriter
-from copy import deepcopy
 from torch.utils.data import DataLoader, Dataset
+import numpy as np
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from ding.utils.data import NaiveRLDataset
-
-import numpy as np
-
 from dizoo.maze.envs.maze_env import Maze
 
 
-def print_obs(obs):
-    print('Wall')
-    print(obs[:, :, 0])
-    print('Goal')
-    print(obs[:, :, 1])
-    print('Obs')
-    print(obs[:, :, 2])
-
-
+# BFS algorithm
 def get_vi_sequence(env, observation):
     """Returns [L, W, W] optimal actions."""
     xy = np.where(observation[Ellipsis, -1] == 1)
@@ -72,9 +61,7 @@ def get_vi_sequence(env, observation):
         cur_x, cur_y = start_x, start_y
         while cur_x != target_location[0] or cur_y != target_location[1]:
             act = vi_sequence[-1][cur_x, cur_y]
-            track_back.append((
-                torch.FloatTensor(env.process_states([cur_x, cur_y], env.get_maze_map())),
-                act))
+            track_back.append((torch.FloatTensor(env.process_states([cur_x, cur_y], env.get_maze_map())), act))
             if act == 0:
                 cur_x += 1
             elif act == 1:
@@ -85,47 +72,6 @@ def get_vi_sequence(env, observation):
                 cur_y -= 1
 
     return np.array(vi_sequence), track_back
-
-
-def get_vi_sequence_bak(env, observation):
-    """Returns [L, W, W] optimal actions."""
-    xy = np.where(observation[Ellipsis, -1] == 1)
-    start_x, start_y = xy[0][0], xy[1][0]
-    target_location = env.target_location
-    nav_map = env.nav_map
-    current_points = [target_location]
-    chosen_actions = {target_location: 0}
-    visited_points = {target_location: True}
-    vi_sequence = []
-
-    vi_map = np.full((env.size, env.size), fill_value=env.n_action, dtype=np.int32)
-
-    found_start = False
-    while current_points and not found_start:
-        next_points = []
-        for point_x, point_y in current_points:
-            for (action, (next_point_x, next_point_y)) in [(0, (point_x - 1, point_y)), (1, (point_x, point_y - 1)),
-                                                           (2, (point_x + 1, point_y)), (3, (point_x, point_y + 1))]:
-
-                if (next_point_x, next_point_y) in visited_points:
-                    continue
-
-                if not (0 <= next_point_x < len(nav_map) and 0 <= next_point_y < len(nav_map[next_point_x])):
-                    continue
-
-                if nav_map[next_point_x][next_point_y] == 'x':
-                    continue
-
-                next_points.append((next_point_x, next_point_y))
-                visited_points[(next_point_x, next_point_y)] = True
-                chosen_actions[(next_point_x, next_point_y)] = action
-                vi_map[next_point_x, next_point_y] = action
-
-                if next_point_x == start_x and next_point_y == start_y:
-                    found_start = True
-        vi_sequence.append(vi_map.copy())
-        current_points = next_points
-    return np.array(vi_sequence)
 
 
 class PCDataset(Dataset):
@@ -140,7 +86,8 @@ class PCDataset(Dataset):
         return self._data[0].shape[0]
 
 
-def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
+def load_bfs_datasets(train_seeds=1, test_seeds=5, batch_size=32):
+
     def load_env(seed):
         ccc = easydict.EasyDict({'size': 16})
         e = Maze(ccc)
@@ -166,21 +113,13 @@ def load_2d_datasets(train_seeds=5, test_seeds=1, batch_size=32):
             bfs_input_maps = bfs_input_maps_test
             bfs_output_maps = bfs_output_maps_test
 
-        # env_observations = torch.stack([torch.from_numpy(env.random_start()) for _ in range(80)])
         start_obs = env.process_states(env._get_obs(), env.get_maze_map())
         _, track_back = get_vi_sequence(env, start_obs)
-        env_observations = torch.stack([
-            track_back[i][0] for i in range(len(track_back))
-        ], dim=0)
+        env_observations = torch.stack([track_back[i][0] for i in range(len(track_back))], dim=0)
 
         for i in range(env_observations.shape[0]):
             bfs_sequence, _ = get_vi_sequence(env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
             bfs_input_map = env.n_action * np.ones([env.size, env.size], dtype=np.long)
-            # Repeat the first frame.
-            # for _ in range(50):
-            #     bfs_input_maps.append(torch.from_numpy(copy.deepcopy(bfs_input_map)))
-            #     bfs_output_maps.append(torch.from_numpy(copy.deepcopy(bfs_sequence[0])))
-            #     observations.append(copy.deepcopy(env_observations[i]))
 
             for j in range(bfs_sequence.shape[0]):
                 bfs_input_maps.append(torch.from_numpy(bfs_input_map))
@@ -216,7 +155,7 @@ def serial_pipeline_pc(
 ) -> Union['Policy', bool]:  # noqa
     r"""
     Overview:
-        Serial pipeline entry of imitation learning.
+        Serial pipeline entry of procedure cloning using BFS as expert policy.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -226,7 +165,7 @@ def serial_pipeline_pc(
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
-        - convergence (:obj:`bool`): whether il training is converged
+        - convergence (:obj:`bool`): whether the training is converged
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
@@ -244,7 +183,7 @@ def serial_pipeline_pc(
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    dataloader, test_dataloader = load_2d_datasets()
+    dataloader, test_dataloader = load_bfs_datasets()
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -271,25 +210,17 @@ def serial_pipeline_pc(
             break
         losses = []
         acces = []
+        # Evaluation
         for _, test_data in enumerate(test_dataloader):
             observations, bfs_input_maps, bfs_output_maps = test_data['obs'], test_data['bfs_in'].long(), \
                                                             test_data['bfs_out'].long()
             states = observations
             bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, 5).float()
-            # shape0, shape1 = bfs_input_maps.shape[1], bfs_input_maps.shape[2]
-            # is_init = torch.zeros([bfs_input_maps.shape[0], shape0, shape1, 2]).float().to(bfs_input_maps.device)
-            # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
-            # tmp = (tmp == 4 * shape0 * shape1).long()
-            # tmp = torch.nn.functional.one_hot(tmp, 2).float().unsqueeze(1).unsqueeze(1)
-            # is_init = is_init + tmp
 
-            # is_init = torch.zeros((bfs_input_maps.shape[0], shape0, shape1, 1)).to(bfs_input_maps.device).float()
-            # tmp = torch.sum(bfs_input_maps, dim=(1, 2))
-            # tmp = (tmp == 4 * shape0 * shape1).long()
-            # tmp = tmp.float().unsqueeze(1).unsqueeze(1).unsqueeze(1)
-            # is_init = tmp + is_init
-
-            bfs_states = torch.cat([states, bfs_input_onehot, ], dim=-1).cuda()
+            bfs_states = torch.cat([
+                states,
+                bfs_input_onehot,
+            ], dim=-1).cuda()
             logits = policy._model(bfs_states)['logit']
             logits = logits.flatten(0, -2)
             labels = bfs_output_maps.flatten(0, -1).cuda()

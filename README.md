@@ -32,60 +32,65 @@
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
-Updated on 2022.12.13 DI-engine-v0.4.5
+Updated on 2023.02.17 DI-engine-v0.4.6
 
 
 ## Introduction to DI-engine
-[DI-engine doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
+[Documentation](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/) | [Tutorials](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/index.html) | [Feature](#feature) | [Task & Middleware](https://di-engine-docs.readthedocs.io/en/latest/03_system/index.html) | [TreeTensor](#general-data-container-treetensor) | [Roadmap](https://github.com/opendilab/DI-engine/issues/548)
 
-**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** ([link](https://di-engine-docs.readthedocs.io/en/latest/12_policies/index.html)):
+**DI-engine** is a generalized decision intelligence engine for PyTorch and JAX. 
+
+It provides **python-first** and **asynchronous-native** task and middleware abstractions, and modularly integrates several of the most important decision-making concepts: Env, Policy and Model. Based on the above mechanisms, DI-engine supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** with superior performance, high efficiency, well-organized [documentation](https://di-engine-docs.readthedocs.io/en/latest/) and [unittest](https://github.com/opendilab/DI-engine/actions):
 
 - Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2, IMPALA
 - Multi-agent RL algorithms like QMIX, MAPPO, ACE
-- Imitation learning algorithms (BC/IRL/GAIL) , such as GAIL, SQIL, Guided Cost Learning, Implicit Behavioral Cloning
-- Exploration algorithms like HER, RND, ICM, NGU
+- Imitation learning algorithms (BC/IRL/GAIL) , such as GAIL, SQIL, Guided Cost Learning, Implicit BC
 - Offline RL algorithms: CQL, TD3BC, Decision Transformer
 - Model-based RL algorithms: SVG, MVE, STEVE / MBPO, DDPPO
+- Exploration algorithms like HER, RND, ICM, NGU
 
-**DI-engine** aims to **standardize different Decision Intelligence enviroments and applications**. Various training pipelines and customized decision AI applications are also supported.
+**DI-engine** aims to **standardize different Decision Intelligence environments and applications**, supporting both academic research and prototype applications. Various training pipelines and customized decision AI applications are also supported:
 
 <details open>
 <summary>(Click to Collapse)</summary>
 
 - Traditional academic environments
-  - [DI-zoo](https://github.com/opendilab/DI-engine#environment-versatility)
+  - [DI-zoo](https://github.com/opendilab/DI-engine#environment-versatility): various decision intelligence demonstrations and benchmark environments with DI-engine.
 - Tutorial courses
   - [PPOxFamily](https://github.com/opendilab/PPOxFamily): PPO x Family DRL Tutorial Course
 - Real world decision AI applications
   - [DI-star](https://github.com/opendilab/DI-star): Decision AI in StarCraftII
   - [DI-drive](https://github.com/opendilab/DI-drive): Auto-driving platform
-  - [GoBigger](https://github.com/opendilab/GoBigger): Multi-Agent Decision Intelligence Environment
+  - [GoBigger](https://github.com/opendilab/GoBigger): [ICLR 2023] Multi-Agent Decision Intelligence Environment
   - [DI-sheep](https://github.com/opendilab/DI-sheep): Decision AI in 3 Tiles Game
   - [DI-smartcross](https://github.com/opendilab/DI-smartcross): Decision AI in Traffic Light Control
   - [DI-bioseq](https://github.com/opendilab/DI-bioseq): Decision AI in Biological Sequence Prediction and Searching
   - [DI-1024](https://github.com/opendilab/DI-1024): Deep Reinforcement Learning + 1024 Game
 - Research paper
   - [InterFuser](https://github.com/opendilab/InterFuser): [CoRL 2022] Safety-Enhanced Autonomous Driving Using Interpretable Sensor Fusion Transformer
-  - [ACE](https://github.com/opendilab/ACE): ACE: Cooperative Multi-agent Q-learning with Bidirectional Action-Dependency
-- General nested data lib
-  - [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
-  - [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
+  - [ACE](https://github.com/opendilab/ACE): [AAAI 2023] ACE: Cooperative Multi-agent Q-learning with Bidirectional Action-Dependency
 - Docs and Tutorials
-  - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
+  - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs): Tutorials, best practice and the API reference.
   - [awesome-model-based-RL](https://github.com/opendilab/awesome-model-based-RL): A curated list of awesome Model-Based RL resources
   - [awesome-exploration-RL](https://github.com/opendilab/awesome-exploration-rl): A curated list of awesome exploration RL resources
   - [awesome-decision-transformer](https://github.com/opendilab/awesome-decision-transformer): A curated list of Decision Transformer resources
+  - [awesome-RLHF](https://github.com/opendilab/awesome-RLHF): A curated list of reinforcement learning with human feedback resources
   - [awesome-multi-modal-reinforcement-learning](https://github.com/opendilab/awesome-multi-modal-reinforcement-learning): A curated list of Multi-Modal Reinforcement Learning resources
   - [awesome-AI-based-protein-design](https://github.com/opendilab/awesome-AI-based-protein-design): a collection of research papers for AI-based protein design
   - [awesome-diffusion-model-in-rl](https://github.com/opendilab/awesome-diffusion-model-in-rl): A curated list of Diffusion Model in RL resources
+  - [awesome-end-to-end-autonomous-driving](https://github.com/opendilab/awesome-end-to-end-autonomous-driving): A curated list of awesome End-to-End Autonomous Driving resources
+  - [awesome-driving-behavior-prediction](https://github.com/opendilab/awesome-driving-behavior-prediction): A collection of research papers for Driving Behavior Prediction
 </details>
 
+On the low-level end, DI-engine comes with a set of highly re-usable modules, including [RL optimization functions](https://github.com/opendilab/DI-engine/tree/main/ding/rl_utils), [PyTorch utilities](https://github.com/opendilab/DI-engine/tree/main/ding/torch_utils) and [auxiliary tools](https://github.com/opendilab/DI-engine/tree/main/ding/utils).
 
-**DI-engine** also has some **system optimization and design** for efficient and robust large-scale RL training:
+BTW, **DI-engine** also has some special **system optimization and design** for efficient and robust large-scale RL training:
 
 <details close>
 <summary>(Click for Details)</summary>
 
+- [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
+- [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
 - [DI-orchestrator](https://github.com/opendilab/DI-orchestrator): RL Kubernetes Custom Resource and Operator Lib
 - [DI-hpc](https://github.com/opendilab/DI-hpc): RL HPC OP Lib
 - [DI-store](https://github.com/opendilab/DI-store): RL Object Store
@@ -102,6 +107,7 @@ Have fun with exploration and exploitation.
 - [Feature](#feature)
   - [&#8627; Algorithm Versatility](#algorithm-versatility)
   - [&#8627; Environment Versatility](#environment-versatility)
+  - [&#8627; General Data Container: TreeTensor](#general-data-container-treetensor)
 - [Feedback and Contribution](#feedback-and-contribution)
 - [Supporters](#supporters)
   - [&#8627; Stargazers](#-stargazers)
@@ -159,6 +165,10 @@ ding -m serial -e cartpole -p dqn -s 0
 
 ## Feature
 ### Algorithm Versatility
+
+<details open>
+<summary>(Click to Collapse)</summary>
+
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) &nbsp;discrete means discrete action space, which is only label in normal DRL algorithms (1-18)
 
 ![continuous](https://img.shields.io/badge/-continous-green) &nbsp;means continuous action space, which is only label in normal DRL algorithms (1-18)
@@ -183,10 +193,6 @@ ding -m serial -e cartpole -p dqn -s 0
 P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 
-
-
-<details open>
-<summary>(Click to Collapse)</summary>
 
 |  No.  |                          Algorithm                           |                            Label                             |                        Doc and Implementation                        |                        Runnable Demo                         |
 | :--: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
@@ -240,6 +246,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  48  |         [ST-DIM](https://arxiv.org/pdf/1906.08226.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/loss/contrastive_loss](https://github.com/opendilab/DI-engine/blob/main/ding/torch_utils/loss/contrastive_loss.py) |        ding -m serial -c cartpole_dqn_stdim_config.py -s 0       |
 |  49  |         [PLR](https://arxiv.org/pdf/2010.03934.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [PLR doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/plr.html)<br>[data/level_replay/level_sampler](https://github.com/opendilab/DI-engine/blob/main/ding/data/level_replay/level_sampler.py) |        python3 -u bigfish_plr_config.py -s 0       |
 |  50  |         [PCGrad](https://arxiv.org/pdf/2001.06782.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/optimizer_helper/PCGrad](https://github.com/opendilab/DI-engine/blob/main/ding/data/torch_utils/optimizer_helper.py) |        python3 -u multi_mnist_pcgrad_main.py -s 0       |
+|  51  |         [BDQ](https://arxiv.org/pdf/1711.08946.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [policy/bdq](https://github.com/opendilab/DI-engine/blob/main/ding/policy/dqn.py) |        python3 -u hopper_bdq_config.py       |
 </details>
 
 
@@ -249,7 +256,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 |  No  |                Environment               |                 Label               |         Visualization            |                   Code and Doc Links                   |
 | :--: | :--------------------------------------: | :---------------------------------: | :--------------------------------:|:---------------------------------------------------------: |
-|  1   |       [atari](https://github.com/openai/gym/tree/master/gym/envs/atari)    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/atari/atari.gif)     |        [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/envs) <br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/atari.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/atari_zh.html)        |
+|  1   |       [Atari](https://github.com/openai/gym/tree/master/gym/envs/atari)    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/atari/atari.gif)     |        [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/envs) <br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/atari.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/atari_zh.html)        |
 |  2   |       [box2d/bipedalwalker](https://github.com/openai/gym/tree/master/gym/envs/box2d)    | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/box2d/bipedalwalker/original.gif)        | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/bipedalwalker/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/bipedalwalker.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/bipedalwalker_zh.html) |
 |  3   |       [box2d/lunarlander](https://github.com/openai/gym/tree/master/gym/envs/box2d)      | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/box2d/lunarlander/lunarlander.gif)   |  [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/lunarlander/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/lunarlander.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/lunarlander_zh.html)  |
 |  4   |       [classic_control/cartpole](https://github.com/openai/gym/tree/master/gym/envs/classic_control)       | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/classic_control/cartpole/cartpole.gif)    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/classic_control/cartpole/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/cartpole.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/cartpole_zh.html) |
@@ -257,7 +264,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  6   |       [competitive_rl](https://github.com/cuhkrlcourse/competitive-rl)       | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![selfplay](https://img.shields.io/badge/-selfplay-blue) | ![original](./dizoo/competitive_rl/competitive_rl.gif)   |  [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo.classic_control)<br>[环境指南](https://di-engine-docs.readthedocs.io/en/latest/13_envs/competitive_rl_zh.html)  |
 |  7   |       [gfootball](https://github.com/google-research/football)                        | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![sparse](https://img.shields.io/badge/-sparse%20reward-orange)![selfplay](https://img.shields.io/badge/-selfplay-blue) | ![original](./dizoo/gfootball/gfootball.gif)      | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo.gfootball/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/gfootball.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/en/latest/13_envs/gfootball_zh.html) |
 |  8   |       [minigrid](https://github.com/maximecb/gym-minigrid)                         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![sparse](https://img.shields.io/badge/-sparse%20reward-orange) | ![original](./dizoo/minigrid/minigrid.gif)         | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/minigrid.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/en/latest/13_envs/minigrid_zh.html) |
-|  9   |       [mujoco](https://github.com/openai/gym/tree/master/gym/envs/mujoco)       |  ![continuous](https://img.shields.io/badge/-continous-green)  | ![original](./dizoo/mujoco/mujoco.gif)                    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/majoco/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/mujoco.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/en/latest/13_envs/mujoco_zh.html) |
+|  9   |       [MuJoCo](https://github.com/openai/gym/tree/master/gym/envs/mujoco)       |  ![continuous](https://img.shields.io/badge/-continous-green)  | ![original](./dizoo/mujoco/mujoco.gif)                    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/majoco/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/mujoco.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/en/latest/13_envs/mujoco_zh.html) |
 |  10  |       [PettingZoo](https://github.com/Farama-Foundation/PettingZoo)         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![continuous](https://img.shields.io/badge/-continous-green) ![marl](https://img.shields.io/badge/-MARL-yellow)  | ![original](./dizoo/petting_zoo/petting_zoo_mpe_simple_spread.gif)     |  [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/pettingzoo.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/pettingzoo_zh.html)  |
 |  11  |       [overcooked](https://github.com/HumanCompatibleAI/overcooked-demo)     | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![marl](https://img.shields.io/badge/-MARL-yellow)  | ![original](./dizoo/overcooked/overcooked.gif)       |   [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/overcooded/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/overcooked.html)   |
 |  12  |       [procgen](https://github.com/openai/procgen)                          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/procgen/coinrun.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/procgen)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/procgen.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/procgen_zh.html) |
@@ -279,8 +286,11 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  28  |[mario](https://github.com/Kautenja/gym-super-mario-bros) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/mario/mario.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/mario) <br> [env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/gym_super_mario_bros.html) <br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gym_super_mario_bros_zh.html) |
 |  29  |[dmc2gym](https://github.com/denisyarats/dmc2gym) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/dmc2gym/dmc2gym_cheetah.png) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/dmc2gym)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/dmc2gym.html)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/dmc2gym_zh.html) |
 |  30  |[evogym](https://github.com/EvolutionGym/evogym) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/evogym/evogym.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/evogym/envs) <br> [env tutorial](https://di-engine-docs.readthedocs.io/en/latest/13_envs/evogym.html) <br>环境指南 |
-|  31  |[gym-pybullet-drones](https://github.com/utiasDSL/gym-pybullet-drones) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/gym-pybullet-drones/gym-pybullet-drones.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_pybullet_drones/envs)<br>环境指南 |
+|  31  |[gym-pybullet-drones](https://github.com/utiasDSL/gym-pybullet-drones) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/gym_pybullet_drones/gym_pybullet_drones.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_pybullet_drones/envs)<br>环境指南 |
 |  32  |[beergame](https://github.com/OptMLGroup/DeepBeerInventory-RL) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/beergame/beergame.png) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/beergame/envs)<br>环境指南 |
+|  33  |[classic_control/acrobot](https://github.com/openai/gym/tree/master/gym/envs/classic_control) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/classic_control/acrobot/acrobot.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/classic_control/acrobot/envs)<br>环境指南 |
+|  34  |[box2d/car_racing](https://github.com/openai/gym/blob/master/gym/envs/box2d/car_racing.py) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) <br> ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/box2d/carracing/car_racing.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/carracing/envs)<br>环境指南 |
+|  35  |[metadrive](https://github.com/metadriverse/metadrive) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/metadrive/metadrive_env.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/metadrive/env)<br>环境指南 |
 
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space
 
@@ -302,6 +312,111 @@ P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse re
 </details>
 
 
+### General Data Container: TreeTensor
+
+DI-engine utilizes [TreeTensor](https://github.com/opendilab/DI-treetensor) as the basic data container in various components, which is ease of use and consistent across different code modules such as environment definition, data processing and DRL optimization. Here are some concrete code examples:
+
+- TreeTensor can easily extend all the operations of `torch.Tensor` to nested data:
+  <details close>
+  <summary>(Click for Details)</summary>
+
+    ```python
+    import treetensor.torch as ttorch
+
+
+    # create random tensor
+    data = ttorch.randn({'a': (3, 2), 'b': {'c': (3, )}})
+    # clone+detach tensor
+    data_clone = data.clone().detach()
+    # access tree structure like attribute
+    a = data.a
+    c = data.b.c
+    # stack/cat/split
+    stacked_data = ttorch.stack([data, data_clone], 0)
+    cat_data = ttorch.cat([data, data_clone], 0)
+    data, data_clone = ttorch.split(stacked_data, 1)
+    # reshape
+    data = data.unsqueeze(-1)
+    data = data.squeeze(-1)
+    flatten_data = data.view(-1)
+    # indexing
+    data_0 = data[0]
+    data_1to2 = data[1:2]
+    # execute math calculations
+    data = data.sin()
+    data.b.c.cos_().clamp_(-1, 1)
+    data += data ** 2
+    # backward
+    data.requires_grad_(True)
+    loss = data.arctan().mean()
+    loss.backward()
+    # print shape
+    print(data.shape)
+    # result
+    # <Size 0x7fbd3346ddc0>
+    # ├── 'a' --> torch.Size([1, 3, 2])
+    # └── 'b' --> <Size 0x7fbd3346dd00>
+    #     └── 'c' --> torch.Size([1, 3])
+    ```
+
+  </details>
+
+- TreeTensor can make it simple yet effective to implement classic deep reinforcement learning pipeline
+  <details close>
+  <summary>(Click for Details)</summary>
+
+    ```diff
+    import torch
+    import treetensor.torch as ttorch
+
+    B = 4
+
+
+    def get_item():
+        return {
+            'obs': {
+                'scalar': torch.randn(12),
+                'image': torch.randn(3, 32, 32),
+            },
+            'action': torch.randint(0, 10, size=(1,)),
+            'reward': torch.rand(1),
+            'done': False,
+        }
+
+
+    data = [get_item() for _ in range(B)]
+
+
+    # execute `stack` op
+    - def stack(data, dim):
+    -     elem = data[0]
+    -     if isinstance(elem, torch.Tensor):
+    -         return torch.stack(data, dim)
+    -     elif isinstance(elem, dict):
+    -         return {k: stack([item[k] for item in data], dim) for k in elem.keys()}
+    -     elif isinstance(elem, bool):
+    -         return torch.BoolTensor(data)
+    -     else:
+    -         raise TypeError("not support elem type: {}".format(type(elem)))
+    - stacked_data = stack(data, dim=0)
+    + data = [ttorch.tensor(d) for d in data]
+    + stacked_data = ttorch.stack(data, dim=0)
+
+    # validate
+    - assert stacked_data['obs']['image'].shape == (B, 3, 32, 32)
+    - assert stacked_data['action'].shape == (B, 1)
+    - assert stacked_data['reward'].shape == (B, 1)
+    - assert stacked_data['done'].shape == (B,)
+    - assert stacked_data['done'].dtype == torch.bool
+    + assert stacked_data.obs.image.shape == (B, 3, 32, 32)
+    + assert stacked_data.action.shape == (B, 1)
+    + assert stacked_data.reward.shape == (B, 1)
+    + assert stacked_data.done.shape == (B,)
+    + assert stacked_data.done.dtype == torch.bool
+    ```
+
+  </details>
+
 ## Feedback and Contribution
 
 - [File an issue](https://github.com/opendilab/DI-engine/issues/new/choose) on Github
@@ -311,7 +426,7 @@ P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse re
   
   ![WeChat](https://github.com/opendilab/DI-engine/blob/main/assets/wechat.png)
 - Contact our email (opendilab@pjlab.org.cn)
-- Contributes to our future plan [Roadmap](https://github.com/opendilab/DI-engine/projects)
+- Contributes to our future plan [Roadmap](https://github.com/opendilab/DI-engine/issues/548)
 
 We appreciate all the feedbacks and contributions to improve DI-engine, both algorithms and system designs. And `CONTRIBUTING.md` offers some necessary information.
 

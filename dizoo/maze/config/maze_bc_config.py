@@ -3,7 +3,7 @@ from easydict import EasyDict
 maze_size = 16
 num_actions = 4
 maze_pc_config = dict(
-    exp_name="maze_bc_1_seed",
+    exp_name="maze_bc_seed0",
     env=dict(
         collector_env_num=1,
         evaluator_env_num=5,
@@ -21,7 +21,12 @@ maze_pc_config = dict(
         model=dict(
             obs_shape=[3, maze_size, maze_size],
             action_shape=num_actions,
-            encoder_hidden_size_list=[128, 256, 512, 1024, ],
+            encoder_hidden_size_list=[
+                128,
+                256,
+                512,
+                1024,
+            ],
         ),
         learn=dict(
             # update_per_collect=4,
@@ -29,14 +34,8 @@ maze_pc_config = dict(
             learning_rate=0.005,
             train_epoch=5000,
             optimizer='SGD',
-            # value_weight=0.5,
-            # entropy_weight=0.001,
-            # clip_ratio=0.2,
-            # adv_norm=False,
         ),
-        eval=dict(
-            evaluator=dict(n_episode=5, stop_value=10000)
-        ),
+        eval=dict(evaluator=dict(n_episode=5, stop_value=10000)),
         collect=dict(),
     ),
 )
@@ -52,8 +51,3 @@ maze_pc_create_config = dict(
 )
 maze_pc_create_config = EasyDict(maze_pc_create_config)
 create_config = maze_pc_create_config
-
-# if __name__ == "__main__":
-    # or you can enter `ding -m serial -c minigrid_offppo_config.py -s 0`
-    # from ding.entry import serial_pipeline
-    # serial_pipeline([main_config, create_config], seed=0)

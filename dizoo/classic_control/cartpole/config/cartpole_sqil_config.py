@@ -24,7 +24,7 @@ cartpole_sqil_config = dict(
             # Users should add their own model path here. Model path should lead to a model.
             # Absolute path is recommended.
             # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-            model_path='model_path_placeholder'
+            model_path='cartpole_dqn_seed0/ckpt/eval.pth.tar'
         ),
         # note: this is the times after which you learns to evaluate
         eval=dict(evaluator=dict(eval_freq=50, )),

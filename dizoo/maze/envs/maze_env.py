@@ -1,30 +1,24 @@
-"""Env with random maze layouts."""
-
-import gym
-import numpy as np
-
-from gym import spaces
-from gym.utils import seeding
-import copy
-
 from typing import List
 
+import copy
+import numpy as np
+import gym
+from gym import spaces
+from gym.utils import seeding
+
 from ding.envs import BaseEnvTimestep
-from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 
 
 @ENV_REGISTRY.register('maze')
 class Maze(gym.Env):
-    """A subclass of Navigation with randomly generated maze layout.
-
-  The ASCII representation of the mazes include the following objects:
-
-  - `<SPACE>`: empty
-  - `x`: wall
-  - `S`: the start location (optional)
-  - `T`: the target location.
-  """
+    """
+        Environment with random maze layouts. The ASCII representation of the mazes include the following objects:
+      - `<SPACE>`: empty
+      - `x`: wall
+      - `S`: the start location (optional)
+      - `T`: the target location.
+      """
     KEY_EMPTY = 0
     KEY_WALL = 1
     KEY_TARGET = 2
@@ -36,7 +30,10 @@ class Maze(gym.Env):
         KEY_START: 'S',
     }
 
-    def __init__(self, cfg,):
+    def __init__(
+        self,
+        cfg,
+    ):
         self._size = cfg.size
         self._init_flag = False
         self._random_start = True
@@ -54,9 +51,12 @@ class Maze(gym.Env):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def active_init(self, tabular_obs=False,
-                    reward_fn=lambda x, y, tx, ty: 1 if (x == tx and y == ty) else 0,
-                    done_fn=lambda x, y, tx, ty: x == tx and y == ty):
+    def active_init(
+        self,
+        tabular_obs=False,
+        reward_fn=lambda x, y, tx, ty: 1 if (x == tx and y == ty) else 0,
+        done_fn=lambda x, y, tx, ty: x == tx and y == ty
+    ):
         self._maze = self.generate_maze(self.size, self._seed, 'tunnel')
         self._num_maze_keys = len(Maze.ASCII_MAP.keys())
         nav_map = self.maze_to_ascii(self._maze)
@@ -88,9 +88,7 @@ class Maze(gym.Env):
             self.observation_space = spaces.Box(low=0.0, high=np.inf, shape=(16, 16, 3))
 
         self.action_space = spaces.Discrete(self._n_action)
-        self.reward_space = spaces.Box(
-            low=0, high=1, shape=(1, ), dtype=np.float32
-        )
+        self.reward_space = spaces.Box(low=0, high=1, shape=(1, ), dtype=np.float32)
 
     def random_start(self):
         init_x, init_y = self._x, self._y
@@ -119,8 +117,7 @@ class Maze(gym.Env):
     def process_states(self, observations, maze_maps):
         """Returns [B, W, W, 3] binary values. Channels are (wall; goal; obs)"""
         loc = np.eye(self._size * self._size, dtype=np.long)[observations[0] * self._size + observations[1]]
-        loc = np.reshape(
-            loc, [self._size, self._size])
+        loc = np.reshape(loc, [self._size, self._size])
         maze_maps = maze_maps.astype(np.long)
 
         states = np.concatenate([maze_maps, loc[Ellipsis, None]], axis=-1, dtype=np.long)
@@ -170,13 +167,9 @@ class Maze(gym.Env):
             loc = self.sample_location(maze, rng)
             maze[loc] = Maze.KEY_WALL
 
-    def sample_wall(self,
-                    maze,
-                    rng,
-                    shortcut_prob=0.1,
-                    inner_wall_thickness=1,
-                    outer_wall_thickness=1,
-                    corridor_thickness=2):
+    def sample_wall(
+        self, maze, rng, shortcut_prob=0.1, inner_wall_thickness=1, outer_wall_thickness=1, corridor_thickness=2
+    ):
         room = maze
 
         # step 1: fill everything as wall
@@ -190,11 +183,9 @@ class Maze(gym.Env):
 
         def get_loc_type(y, x):
             # remember there is a outside wall of 1 pixel surrounding the room
-            if (y < outer_wall_thickness or
-                    y + corridor_thickness - 1 >= room.shape[0] - outer_wall_thickness):
+            if (y < outer_wall_thickness or y + corridor_thickness - 1 >= room.shape[0] - outer_wall_thickness):
                 return 'invalid'
-            if (x < outer_wall_thickness or
-                    x + corridor_thickness - 1 >= room.shape[1] - outer_wall_thickness):
+            if (x < outer_wall_thickness or x + corridor_thickness - 1 >= room.shape[1] - outer_wall_thickness):
                 return 'invalid'
             # already visited
             if room[y, x] == Maze.KEY_EMPTY:
@@ -204,11 +195,9 @@ class Maze(gym.Env):
         def connect_pixel(y, x, ny, nx):
             pixel = Maze.KEY_EMPTY
             if ny == y:
-                room[y:y + corridor_thickness,
-                min(x, nx):max(x, nx) + corridor_thickness] = pixel
+                room[y:y + corridor_thickness, min(x, nx):max(x, nx) + corridor_thickness] = pixel
             else:
-                room[min(y, ny):max(y, ny) + corridor_thickness,
-                x:x + corridor_thickness] = pixel
+                room[min(y, ny):max(y, ny) + corridor_thickness, x:x + corridor_thickness] = pixel
 
         def carve_passage_from(y, x):
             room[y, x] = Maze.KEY_EMPTY
@@ -368,11 +357,8 @@ def get_value_map(env):
     while current_points:
         next_points = []
         for point_x, point_y in current_points:
-            for (action, (next_point_x,
-                          next_point_y)) in [(0, (point_x - 1, point_y)),
-                                             (1, (point_x, point_y - 1)),
-                                             (2, (point_x + 1, point_y)),
-                                             (3, (point_x, point_y + 1))]:
+            for (action, (next_point_x, next_point_y)) in [(0, (point_x - 1, point_y)), (1, (point_x, point_y - 1)),
+                                                           (2, (point_x + 1, point_y)), (3, (point_x, point_y + 1))]:
 
                 if (next_point_x, next_point_y) in visited_points:
                     continue

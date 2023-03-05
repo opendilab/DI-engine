@@ -28,7 +28,7 @@ def main():
         policy.collect_mode.load_state_dict(state_dict)
 
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
-        task.use(offline_data_saver(cfg, cfg.policy.collect.save_path, data_type='hdf5'))
+        task.use(offline_data_saver(cfg.policy.collect.save_path, data_type='hdf5'))
         task.run(max_step=1)
 
 

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-cartpole_offppo_config = dict(
-    exp_name='cartpole_offppo_seed0',
+cartpole_ppo_offpolicy_config = dict(
+    exp_name='cartpole_ppo_offpolicy_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -37,9 +37,9 @@ cartpole_offppo_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
-cartpole_offppo_config = EasyDict(cartpole_offppo_config)
-main_config = cartpole_offppo_config
-cartpole_offppo_create_config = dict(
+cartpole_ppo_offpolicy_config = EasyDict(cartpole_ppo_offpolicy_config)
+main_config = cartpole_ppo_offpolicy_config
+cartpole_ppo_offpolicy_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -47,10 +47,10 @@ cartpole_offppo_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
 )
-cartpole_offppo_create_config = EasyDict(cartpole_offppo_create_config)
-create_config = cartpole_offppo_create_config
+cartpole_ppo_offpolicy_create_config = EasyDict(cartpole_ppo_offpolicy_create_config)
+create_config = cartpole_ppo_offpolicy_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_offppo_config.py -s 0`
+    # or you can enter `ding -m serial -c cartpole_ppo_offpolicy_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

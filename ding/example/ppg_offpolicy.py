@@ -1,7 +1,7 @@
 import gym
 from ditk import logging
 from ding.model import PPG
-from ding.policy import PPGPolicy
+from ding.policy import PPGOffPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.data.buffer.middleware import use_time_check, sample_range_view
@@ -11,7 +11,7 @@ from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
     CkptSaver, gae_estimator
 from ding.utils import set_pkg_seed
-from dizoo.classic_control.cartpole.config.cartpole_ppg_config import main_config, create_config
+from dizoo.classic_control.cartpole.config.cartpole_ppg_offpolicy_config import main_config, create_config
 
 
 def main():
@@ -39,13 +39,13 @@ def main():
         value_buffer = buffer_.view()
         value_buffer.use(use_time_check(value_buffer, max_use=buffer_cfg.value.max_use))
         value_buffer.use(sample_range_view(value_buffer, start=-buffer_cfg.value.replay_buffer_size))
-        policy = PPGPolicy(cfg.policy, model=model)
+        policy = PPGOffPolicy(cfg.policy, model=model)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(gae_estimator(cfg, policy.collect_mode, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, {'policy': policy_buffer, 'value': value_buffer}))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run()
 
 
