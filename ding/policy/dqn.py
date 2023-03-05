@@ -4,8 +4,7 @@ import copy
 import torch
 
 from ding.torch_utils import Adam, to_device, ContrastiveLoss
-from ding.rl_utils import q_nstep_td_data, m_q_1step_td_data,\
-    m_q_1step_td_error, q_nstep_td_error, get_nstep_return_data, get_train_sample
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, get_nstep_return_data, get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
