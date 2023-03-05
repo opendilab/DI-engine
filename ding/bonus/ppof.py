@@ -32,9 +32,9 @@ class PPOF:
         'di_sheep',
         'procgen_bigfish',
         # atari
-        'qbert',
-        'kangaroo',
-        'bowling',
+        'atari_qbert',
+        'atari_kangaroo',
+        'atari_bowling',
     ]
 
     def __init__(
@@ -90,7 +90,7 @@ class PPOF:
             logging.getLogger().setLevel(logging.DEBUG)
         logging.debug(self.policy._model)
         # define env and policy
-        collector_env = self._setup_env_manager(collector_env_num, context, debug)
+        collector_env = self._setup_env_manager(collector_env_num, context, debug, 'collector')
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
@@ -191,6 +191,7 @@ class PPOF:
             debug: bool = False,
             caller: str = 'collector'
     ) -> BaseEnvManagerV2:
+        assert caller in ['evaluator', 'collector']
         if debug:
             env_cls = BaseEnvManagerV2
             manager_cfg = env_cls.default_config()
