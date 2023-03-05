@@ -22,7 +22,7 @@ def serial_pipeline(
         model: Optional[torch.nn.Module] = None,
         max_train_iter: Optional[int] = int(1e10),
         max_env_step: Optional[int] = int(1e10),
-        is_dynamic_seed: Optional[bool] = True,
+        is_dynamic_seed: Optional[bool] = None,
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -54,7 +54,10 @@ def serial_pipeline(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    collector_env.seed(cfg.seed, dynamic_seed=is_dynamic_seed)
+    if is_dynamic_seed is None:
+        collector_env.seed(cfg.seed)
+    else:
+        collector_env.seed(cfg.seed, dynamic_seed=is_dynamic_seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
