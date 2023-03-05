@@ -1,6 +1,8 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
+
 import torch
 import torch.nn as nn
+
 from ding.utils import MODEL_REGISTRY, SequenceType
 from ding.torch_utils.network.transformer import Attention
 from ding.torch_utils.network.nn_module import fc_block, build_normalization
@@ -42,8 +44,8 @@ class Block(nn.Module):
         return x
 
 
-@MODEL_REGISTRY.register('pc')
-class ProcedureCloning(nn.Module):
+@MODEL_REGISTRY.register('pc_mcts')
+class ProcedureCloningMCTS(nn.Module):
 
     def __init__(
             self,
@@ -53,7 +55,7 @@ class ProcedureCloning(nn.Module):
             cnn_activation: Optional[nn.Module] = nn.ReLU(),
             cnn_kernel_size: SequenceType = [3, 3, 3, 3, 3],
             cnn_stride: SequenceType = [1, 1, 1, 1, 1],
-            cnn_padding: Optional[SequenceType] = ['same', 'same', 'same', 'same', 'same'],
+            cnn_padding: Optional[SequenceType] = [1, 1, 1, 1, 1],
             mlp_hidden_list: SequenceType = [256, 256],
             mlp_activation: Optional[nn.Module] = nn.ReLU(),
             att_heads: int = 8,
@@ -117,3 +119,95 @@ class ProcedureCloning(nn.Module):
         action_preds = self.predict_action(h[:, 1:, :])
 
         return goal_preds, action_preds
+
+
+class BFSConvEncoder(nn.Module):
+    """
+    Overview: The ``BFSConvolution Encoder`` used to encode raw 2-dim observations. And output a feature map with the
+    same height and width as input. Interfaces: ``__init__``, ``forward``.
+    """
+
+    def __init__(
+        self,
+        obs_shape: SequenceType,
+        hidden_size_list: SequenceType = [32, 64, 64, 128],
+        activation: Optional[nn.Module] = nn.ReLU(),
+        kernel_size: SequenceType = [8, 4, 3],
+        stride: SequenceType = [4, 2, 1],
+        padding: Optional[SequenceType] = None,
+    ) -> None:
+        """
+        Overview:
+            Init the ``BFSConvolution Encoder`` according to the provided arguments.
+        Arguments:
+            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, plus one or more ``input size``.
+            - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent conv layers \
+                and the final dense layer.
+            - activation (:obj:`nn.Module`): Type of activation to use in the conv ``layers`` and ``ResBlock``. \
+                Default is ``nn.ReLU()``.
+            - kernel_size (:obj:`SequenceType`): Sequence of ``kernel_size`` of subsequent conv layers.
+            - stride (:obj:`SequenceType`): Sequence of ``stride`` of subsequent conv layers.
+            - padding (:obj:`SequenceType`): Padding added to all four sides of the input for each conv layer. \
+                See ``nn.Conv2d`` for more details. Default is ``None``.
+        """
+        super(BFSConvEncoder, self).__init__()
+        self.obs_shape = obs_shape
+        self.act = activation
+        self.hidden_size_list = hidden_size_list
+        if padding is None:
+            padding = [0 for _ in range(len(kernel_size))]
+
+        layers = []
+        input_size = obs_shape[0]  # in_channel
+        for i in range(len(kernel_size)):
+            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i], padding[i]))
+            layers.append(self.act)
+            input_size = hidden_size_list[i]
+        layers = layers[:-1]
+        self.main = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+            Return output tensor of the env observation.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Env raw observation.
+        Returns:
+            - outputs (:obj:`torch.Tensor`): Output embedding tensor.
+        Shapes:
+            - outputs: :math:`(B, N, H, W)`, where ``N = hidden_size_list[-1]``.
+        """
+        x = self.main(x)
+        return x
+
+
+@MODEL_REGISTRY.register('pc_bfs')
+class ProcedureCloningBFS(nn.Module):
+
+    def __init__(
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        encoder_hidden_size_list: SequenceType = [128, 128, 256, 256],
+    ):
+        super().__init__()
+        num_layers = len(encoder_hidden_size_list)
+
+        kernel_sizes = (3, ) * (num_layers + 1)
+        stride_sizes = (1, ) * (num_layers + 1)
+        padding_sizes = (1, ) * (num_layers + 1)
+        # The output channel equals to action_shape + 1
+        encoder_hidden_size_list.append(action_shape + 1)
+
+        self._encoder = BFSConvEncoder(
+            obs_shape=obs_shape,
+            hidden_size_list=encoder_hidden_size_list,
+            kernel_size=kernel_sizes,
+            stride=stride_sizes,
+            padding=padding_sizes,
+        )
+
+    def forward(self, x):
+        x = x.permute(0, 3, 1, 2)
+        x = self._encoder(x)
+        return {'logit': x.permute(0, 2, 3, 1)}
