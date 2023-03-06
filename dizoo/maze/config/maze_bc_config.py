@@ -25,6 +25,7 @@ maze_pc_config = dict(
                 512,
                 1024,
             ],
+            strides=[1, 1, 1, 1]
         ),
         learn=dict(
             # update_per_collect=4,

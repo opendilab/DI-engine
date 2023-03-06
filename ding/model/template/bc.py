@@ -21,7 +21,8 @@ class DiscreteBC(nn.Module):
             head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            strides: Optional[list] = None,
     ) -> None:
         """
         Overview:
@@ -49,7 +50,12 @@ class DiscreteBC(nn.Module):
             self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
         # Conv Encoder
         elif len(obs_shape) == 3:
-            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            if not strides:
+                self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation,
+                                           norm_type=norm_type)
+            else:
+                self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation,
+                                           norm_type=norm_type, stride=strides)
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own BC".format(obs_shape)

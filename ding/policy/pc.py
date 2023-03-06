@@ -20,7 +20,7 @@ from ding.utils import POLICY_REGISTRY
 class ProcedureCloningBFSPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'pc_bfs', ['ding.model.template.pc']
+        return 'pc_bfs', ['ding.model.template.procedure_cloning']
 
     config = dict(
         type='pc',
@@ -52,7 +52,7 @@ class ProcedureCloningBFSPolicy(Policy):
             ),
         ),
         eval=dict(),
-        other=dict(replay_buffer=dict(replay_buffer_size=10000, )),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000, stop_value=1000,)),
     )
 
     def _init_learn(self):
