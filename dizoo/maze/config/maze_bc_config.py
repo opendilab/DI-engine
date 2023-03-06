@@ -7,9 +7,11 @@ maze_pc_config = dict(
     env=dict(
         collector_env_num=1,
         evaluator_env_num=5,
+        n_evaluator_episode=5,
         env_id='Maze',
         size=maze_size,
         wall_type='tunnel',
+        stop_value=1
     ),
     policy=dict(
         cuda=True,
@@ -50,3 +52,5 @@ maze_pc_create_config = dict(
 )
 maze_pc_create_config = EasyDict(maze_pc_create_config)
 create_config = maze_pc_create_config
+
+# You can run `dizoo/maze/entry/maze_bc_main.py` to run this config.
