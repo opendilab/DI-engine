@@ -165,8 +165,11 @@ def get_instance_env(env: str) -> BaseEnv:
         )
     elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling']:
         from dizoo.atari.envs.atari_env import AtariEnv
-        atari_env_list = {'atari_qbert': 'QbertNoFrameskip-v4', 'atari_kangaroo': 'KangarooNoFrameskip-v4',
-                          'atari_bowling': 'BowlingNoFrameskip-v4'}
+        atari_env_list = {
+            'atari_qbert': 'QbertNoFrameskip-v4',
+            'atari_kangaroo': 'KangarooNoFrameskip-v4',
+            'atari_bowling': 'BowlingNoFrameskip-v4'
+        }
         cfg = EasyDict({
             'env_id': atari_env_list[env],
             'env_wrapper': 'atari_default',
