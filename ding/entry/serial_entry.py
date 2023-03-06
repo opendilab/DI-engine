@@ -37,6 +37,7 @@ def serial_pipeline(
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
         - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
+        - is_dynamic_seed(:obj:`Optional[bool]`): set dynamic seed for collector.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
