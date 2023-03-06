@@ -7,7 +7,7 @@ on:
 jobs:
   docker_base:
     runs-on: ubuntu-latest
-    # if: "contains(github.event.head_commit.message, 'enable docker')"
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
         platform: [linux/amd64]
@@ -80,7 +80,7 @@ jobs:
 
   docker_doc:
     runs-on: ubuntu-latest
-    # if: "contains(github.event.head_commit.message, 'enable docker')"
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
         platform: [linux/amd64]
@@ -144,7 +144,7 @@ jobs:
   docker_atari:
     runs-on: ubuntu-latest
     needs: docker_base
-    # if: "contains(github.event.head_commit.message, 'enable docker')"
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
         platform: [linux/amd64]
@@ -203,7 +203,7 @@ jobs:
   docker_mujoco:
     runs-on: ubuntu-latest
     needs: docker_base
-    # if: "contains(github.event.head_commit.message, 'enable docker')"
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
         platform: [linux/amd64]

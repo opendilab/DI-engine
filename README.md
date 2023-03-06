@@ -40,7 +40,7 @@ Updated on 2023.02.17 DI-engine-v0.4.6
 
 **DI-engine** is a generalized decision intelligence engine for PyTorch and JAX. 
 
-It provide **python-first** and **asynchronous-native** task and middleware abstractions, and modularly integrates several most important decision-making concepts: Env, Policy and Model. Based on the above mechanisms, DI-engine supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** with superior performance, high effciency, well-organized [documentation](https://di-engine-docs.readthedocs.io/en/latest/) and [unittest](https://github.com/opendilab/DI-engine/actions):
+It provides **python-first** and **asynchronous-native** task and middleware abstractions, and modularly integrates several of the most important decision-making concepts: Env, Policy and Model. Based on the above mechanisms, DI-engine supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/10_concepts/index.html) algorithms** with superior performance, high efficiency, well-organized [documentation](https://di-engine-docs.readthedocs.io/en/latest/) and [unittest](https://github.com/opendilab/DI-engine/actions):
 
 - Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2, IMPALA
 - Multi-agent RL algorithms like QMIX, MAPPO, ACE
@@ -49,7 +49,7 @@ It provide **python-first** and **asynchronous-native** task and middleware abst
 - Model-based RL algorithms: SVG, MVE, STEVE / MBPO, DDPPO
 - Exploration algorithms like HER, RND, ICM, NGU
 
-**DI-engine** aims to **standardize different Decision Intelligence enviroments and applications**, supporting both academic research and prototype applications. Various training pipelines and customized decision AI applications are also supported:
+**DI-engine** aims to **standardize different Decision Intelligence environments and applications**, supporting both academic research and prototype applications. Various training pipelines and customized decision AI applications are also supported:
 
 <details open>
 <summary>(Click to Collapse)</summary>
@@ -343,8 +343,9 @@ DI-engine utilizes [TreeTensor](https://github.com/opendilab/DI-treetensor) as t
     data_0 = data[0]
     data_1to2 = data[1:2]
     # execute math calculations
-    data = ttorch.sin(data)
-    data.b.c = ttorch.cos(data.b.c)
+    data = data.sin()
+    data.b.c.cos_().clamp_(-1, 1)
+    data += data ** 2
     # backward
     data.requires_grad_(True)
     loss = data.arctan().mean()
