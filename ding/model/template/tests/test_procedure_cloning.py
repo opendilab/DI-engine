@@ -18,8 +18,7 @@ def test_procedure_cloning():
         'hidden_states': torch.randn(B, T, *hidden_shape),
         'actions': torch.randn(B, action_dim)
     }
-    model = ProcedureCloningMCTS(obs_shape=obs_shape, hidden_shape=hidden_shape,
-                                 seq_len=T, action_dim=action_dim)
+    model = ProcedureCloningMCTS(obs_shape=obs_shape, hidden_shape=hidden_shape, seq_len=T, action_dim=action_dim)
 
     print(model)
 

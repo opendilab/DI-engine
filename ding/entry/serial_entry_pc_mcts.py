@@ -29,7 +29,7 @@ class MCTSPCDataset(Dataset):
         """
         return {
             'obs': self.observations[idx],
-            'hidden_states': list(reversed(self.hidden_states[idx + 1: idx + self.seq_len + 1])),
+            'hidden_states': list(reversed(self.hidden_states[idx + 1:idx + self.seq_len + 1])),
             'action': self.actions[idx]
         }
 
