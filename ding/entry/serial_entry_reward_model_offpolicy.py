@@ -1,5 +1,6 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
+import numpy as np
 import torch
 from ditk import logging
 from functools import partial
@@ -14,21 +15,6 @@ from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from .utils import random_collect
-import numpy as np
-from ding.utils import save_file
-
-
-def save_reward_model(path, reward_model, weights_name='best'):
-    path = os.path.join(path, 'reward_model', 'ckpt')
-    if not os.path.exists(path):
-        try:
-            os.makedirs(path)
-        except FileExistsError:
-            pass
-    path = os.path.join(path, 'ckpt_{}.pth.tar'.format(weights_name))
-    state_dict = reward_model.reward_model.state_dict()
-    save_file(path, state_dict)
-    print('Saved reward model ckpt in {}'.format(path))
 
 
 def serial_pipeline_reward_model_offpolicy(
@@ -111,7 +97,7 @@ def serial_pipeline_reward_model_offpolicy(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             reward_mean = np.array([r['eval_episode_return'] for r in reward]).mean()
             if reward_mean >= best_reward:
-                save_reward_model(cfg.exp_name, reward_model, 'best')
+                reward_model.save(path=cfg.exp_name, name='best')
                 best_reward = reward_mean
             if stop:
                 break
@@ -149,5 +135,5 @@ def serial_pipeline_reward_model_offpolicy(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
-    save_reward_model(cfg.exp_name, reward_model, 'last')
+    reward_model.save(path=cfg.exp_name, name='last')
     return policy

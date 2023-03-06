@@ -176,3 +176,9 @@ class RndRewardModel(BaseRewardModel):
 
     def clear_data(self) -> None:
         self.train_obs.clear()
+
+    def state_dict(self) -> Dict:
+        return self.reward_model.state_dict()
+
+    def load_state_dict(self, _state_dict: Dict) -> None:
+        self.reward_model.load_state_dict(_state_dict)
