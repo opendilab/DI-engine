@@ -33,7 +33,7 @@ maze_pc_config = dict(
             train_epoch=100,
             optimizer='Adam',
         ),
-        eval=dict(evaluator=dict(n_episode=5, stop_value=10000)),
+        eval=dict(evaluator=dict(n_episode=5)),
         collect=dict(),
     ),
 )

@@ -5,7 +5,6 @@ import torch
 
 from ding.model.template import ProcedureCloningMCTS, ProcedureCloningBFS
 
-
 B = 4
 T = 15
 obs_shape = [(64, 64, 3)]
