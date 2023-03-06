@@ -26,6 +26,7 @@ class PdeilRewardModel(BaseRewardModel):
         # expert_data_path='expert_data.pkl',
         discrete_action=False,
         alpha=0.5,
+        clear_buffer_per_iters=1,
     )
 
     def __init__(self, cfg: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa

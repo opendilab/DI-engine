@@ -46,6 +46,7 @@ class PwilRewardModel(BaseRewardModel):
         beta=5,
         # s_size=4,
         # a_size=2,
+        clear_buffer_per_iters=1,
     )
 
     def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa

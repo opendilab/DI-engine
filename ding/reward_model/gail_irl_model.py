@@ -142,6 +142,7 @@ class GailRewardModel(BaseRewardModel):
         target_new_data_count=64,
         hidden_size=128,
         collect_count=100000,
+        clear_buffer_per_iters=1,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa

@@ -154,6 +154,7 @@ class ICMRewardModel(BaseRewardModel):
         intrinsic_reward_weight=0.003,  # 1/300
         extrinsic_reward_norm=True,
         extrinsic_reward_norm_max=1,
+        clear_buffer_per_iters=100,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -261,3 +262,9 @@ class ICMRewardModel(BaseRewardModel):
         self.train_states.clear()
         self.train_next_states.clear()
         self.train_actions.clear()
+
+    def state_dict(self) -> Dict:
+        return self.reward_model.state_dict()
+
+    def load_state_dict(self, _state_dict: Dict) -> None:
+        self.reward_model.load_state_dict(_state_dict)
