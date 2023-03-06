@@ -469,7 +469,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">train_obs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">collect_states</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">train_obs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_obs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">_state_dict</span><span class="p">)</span></div>
 </pre></div>
 
               </article>

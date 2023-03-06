@@ -293,10 +293,13 @@
                 
   <h1>Source code for ding.reward_model.base_reward_model</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">REWARD_MODEL_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">REWARD_MODEL_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">save_file</span>
 
 
 <div class="viewcode-block" id="BaseRewardModel"><a class="viewcode-back" href="../../../05_api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel">[docs]</a><span class="k">class</span> <span class="nc">BaseRewardModel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -382,7 +385,29 @@
             <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;reward&#39;</span> <span class="k">else</span> <span class="n">v</span>
              <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sample</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">train_data</span>
         <span class="p">]</span>
-        <span class="k">return</span> <span class="n">train_data_reward_deepcopy</span></div>
+        <span class="k">return</span> <span class="n">train_data_reward_deepcopy</span>
+
+    <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="c1"># this method should be overrided by subclass.</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_state_dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># this method should be overrided by subclass.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;best&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;reward_model&#39;</span><span class="p">,</span> <span class="s1">&#39;ckpt&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;ckpt_</span><span class="si">{}</span><span class="s1">.pth.tar&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+        <span class="n">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved reward model ckpt in </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span></div>
 
 
 <span class="k">def</span> <span class="nf">create_reward_model</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseRewardModel</span><span class="p">:</span>  <span class="c1"># noqa</span>
