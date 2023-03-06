@@ -10,8 +10,6 @@ maze_pc_config = dict(
         env_id='Maze',
         size=maze_size,
         wall_type='tunnel',
-        # max_step=300,
-        # stop_value=0.96,
     ),
     policy=dict(
         cuda=True,

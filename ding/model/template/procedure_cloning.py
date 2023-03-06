@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Dict
 
 import torch
 import torch.nn as nn
@@ -177,8 +177,7 @@ class BFSConvEncoder(nn.Module):
         Shapes:
             - outputs: :math:`(B, N, H, W)`, where ``N = hidden_size_list[-1]``.
         """
-        x = self.main(x)
-        return x
+        return self.main(x)
 
 
 @MODEL_REGISTRY.register('pc_bfs')
@@ -207,7 +206,7 @@ class ProcedureCloningBFS(nn.Module):
             padding=padding_sizes,
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> Dict:
         x = x.permute(0, 3, 1, 2)
         x = self._encoder(x)
         return {'logit': x.permute(0, 2, 3, 1)}

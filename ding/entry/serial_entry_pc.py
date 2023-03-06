@@ -161,8 +161,8 @@ def serial_pipeline_pc(
             ``str`` type means config file path. \
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
-        - data_path (:obj:`str`): Path of training data.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+        - max_iter (:obj:`Optional[int]`): Max iteration for executing PC training.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
         - convergence (:obj:`bool`): whether the training is converged

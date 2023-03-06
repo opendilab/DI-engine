@@ -177,24 +177,9 @@ class ProcedureCloningBFSPolicy(Policy):
         return output
 
     def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample
-        """
-        self._collect_model = model_wrap(self._model, wrapper_name='base')
-        self._collect_model.reset()
+        raise NotImplementedError
 
     def _forward_collect(self, data: Dict[int, Any], **kwargs) -> Dict[int, Any]:
-        r"""
-        Overview:
-            Forward function for collect mode with eps_greedy
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - data (:obj:`dict`): The collected data
-        """
         raise NotImplementedError
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
