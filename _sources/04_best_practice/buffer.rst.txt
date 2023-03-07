@@ -109,9 +109,7 @@ In this way, modifications to the copy contents do not affect the original data 
 
 **Group Sampling**
 
-  In some specific environments or algorithms, users may wish to collect, store, and process samples by entire episodes.
-For example, in chess, Go, or card games where players are only rewarded at the end of the game, algorithms solving such tasks often want to process the entire game, and some algorithms like Hindsight Experience Replay (HER) need to sample complete episodes and process them in episodic units.
-In this case, the user can use group sampling to achieve this goal.
+  In some specific environments or algorithms, users may wish to collect, store, and process samples by entire episodes.For example, in chess, Go, or card games where players are only rewarded at the end of the game, algorithms solving such tasks often want to process the entire game, and some algorithms like Hindsight Experience Replay (HER) need to sample complete episodes and process them in episodic units. In this case, the user can use group sampling to achieve this goal.
 
 - **Custom Implementation via Atomic Operations**
 
@@ -132,7 +130,7 @@ In this case, the user can use group sampling to achieve this goal.
 - **Implementation through Middleware**
 
   In DI-engine, we also provide an integral group sampling operation by the data_pusher middleware. Take the R2D2 algorithm, where episodes of samples are passed in sequences through the LSTM network, for example.
- In data collection, each env instance corresponds to a unique decision track, so the env_id is recommended to use as the key to distinguish different episodes.
+  In data collection, each env instance corresponds to a unique decision track, so the env_id is recommended to use as the key to distinguish different episodes.
   The code for R2D2 using group sampling lies below, the full version can be found at \ `./ding/example/r2d2.py <https://github.com/opendilab/DI-engine/blob/main/ding/example/r2d2.py>`_：
 
   .. code-block:: python

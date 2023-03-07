@@ -380,10 +380,8 @@ In this way, modifications to the copy contents do not affect the original data 
 </div>
 <p><strong>Group Sampling</strong></p>
 <blockquote>
-<div><p>In some specific environments or algorithms, users may wish to collect, store, and process samples by entire episodes.</p>
+<div><p>In some specific environments or algorithms, users may wish to collect, store, and process samples by entire episodes.For example, in chess, Go, or card games where players are only rewarded at the end of the game, algorithms solving such tasks often want to process the entire game, and some algorithms like Hindsight Experience Replay (HER) need to sample complete episodes and process them in episodic units. In this case, the user can use group sampling to achieve this goal.</p>
 </div></blockquote>
-<p>For example, in chess, Go, or card games where players are only rewarded at the end of the game, algorithms solving such tasks often want to process the entire game, and some algorithms like Hindsight Experience Replay (HER) need to sample complete episodes and process them in episodic units.
-In this case, the user can use group sampling to achieve this goal.</p>
 <ul>
 <li><p><strong>Custom Implementation via Atomic Operations</strong></p>
 <p>The aforementioned demand can be implemented by some atomic operations to achieve customization and more flexibility. For example, when storing samples, you can add “episode” information to the meta to specify the episode to which the sample belongs, and when sampling, you can set groupby=”episode” to enable group sampling with the episode keyword. <strong>Sampling in groups can seriously increase the sampling time</strong>.</p>
@@ -400,21 +398,17 @@ In this case, the user can use group sampling to achieve this goal.</p>
 </div>
 </li>
 <li><p><strong>Implementation through Middleware</strong></p>
-<p>In DI-engine, we also provide an integral group sampling operation by the data_pusher middleware. Take the R2D2 algorithm, where episodes of samples are passed in sequences through the LSTM network, for example.</p>
-</li>
-</ul>
-<blockquote>
-<div><dl>
-<dt>In data collection, each env instance corresponds to a unique decision track, so the env_id is recommended to use as the key to distinguish different episodes.</dt><dd><p>The code for R2D2 using group sampling lies below, the full version can be found at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/r2d2.py">./ding/example/r2d2.py</a>：</p>
+<p>In DI-engine, we also provide an integral group sampling operation by the data_pusher middleware. Take the R2D2 algorithm, where episodes of samples are passed in sequences through the LSTM network, for example.
+In data collection, each env instance corresponds to a unique decision track, so the env_id is recommended to use as the key to distinguish different episodes.
+The code for R2D2 using group sampling lies below, the full version can be found at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/r2d2.py">./ding/example/r2d2.py</a>：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
 <span class="c1"># Here &#39;env&#39; is used as the keyword for grouping, so that samples with the same env_id will be classified into the same group when sampling.</span>
 <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">group_by_env</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</div></blockquote>
+</li>
+</ul>
 <p><strong>(Available Options)</strong>
 On top of group sampling, you can also use <strong>group_sample middleware</strong> to implement post-processing of samples, such as: choosing whether to disrupt data within the same group, and setting the maximum length of each group of data.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">group_sample</span>

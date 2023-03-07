@@ -14,4 +14,4 @@ ISerialEvaluator
 VectorEvalMonitor
 ~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.worker.collector.base_serial_evaluator.VectorEvalMonitor
-    :members: __init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode, get_episode_info
+    :members: __init__, is_finished, update_info, update_reward, get_episode_return, get_latest_reward, get_current_episode, get_episode_info

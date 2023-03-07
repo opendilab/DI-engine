@@ -63,8 +63,7 @@ Specification of naming
 Main Specification
 ~~~~~~~~~~~~~~~~~~~~
 
--  For env_manager field in create_config, except for some simple environments such as cartpole, pendulum, bitflip
-we set it as base, for other environments, we seet env_manager as subprocess：
+-  For env_manager field in create_config, except for some simple environments such as cartpole, pendulum, bitflip, we set it as base, for other environments, we seet env_manager as subprocess：
 
    .. code:: python
 
@@ -72,8 +71,7 @@ we set it as base, for other environments, we seet env_manager as subprocess：
 
 -  Ensure evaluator_env_num：n_evaluator_episode = 1:1 （expect smac environment）
 
--  manager field shoudl generally not be included in the env field of main_config
-(shared_memory defaults to True when the manager field is not included)：
+-  manager field shoudl generally not be included in the env field of main_config (shared_memory defaults to True when the manager field is not included)：
 
    -  smac environment is an exception,due to the state dimension problem,smac needs to set shared_memory=Fasle.
 
@@ -128,11 +126,9 @@ we set it as base, for other environments, we seet env_manager as subprocess：
              from ding.entry import serial_pipeline
              serial_pipeline([main_config, create_config], seed=0)
 
-      -  Remember this line from ding.entry import serial_pipeline should not as the head of the file,
-but put it below if ___name___ == "___main___"::
+      -  Remember this line from ding.entry import serial_pipeline should not as the head of the file, but put it below if ___name___ == "___main___"
 
-   -  If the algorithm use different serial_pipeline_X,
-      you need to add corresponding starting command ``serial_X``\ in \ https://github.com/opendilab/DI-engine/blob/5d2beed4a8a07fb70599d910c6d53cf5157b133b/ding/entry/cli.py#L189\ .
+   -  If the algorithm use different serial_pipeline_X, you need to add corresponding starting command ``serial_X``\ in CLI.
 
 -  seed is set in the entry function, do not include seed in config.
 

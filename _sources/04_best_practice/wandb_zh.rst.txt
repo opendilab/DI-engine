@@ -12,10 +12,10 @@ Wandb (Weights & Bias) 是一种机器学习可视化工具，可用于机器学
 
 
 使用方法
-=======
+==========
 
 wandb 登录
---------
+-------------
 
 1. 交互式 shell 登录 wandb
 
@@ -37,7 +37,7 @@ wandb 登录
 
 
 wandb 初始化
---------
+--------------
 
 中间件默认初始化为 \ ``wandb.init()``\ ，如果需要设置项目名，执行名及config，需要在模型创建前执行：
 
@@ -53,7 +53,7 @@ wandb 初始化
         )
 
 wandb 中间件调用方法
---------
+----------------------
 
 将如下代码添加至task执行过程中：
 
@@ -66,10 +66,10 @@ wandb 中间件调用方法
 
 
 DI-engine 内置 wandb 中间件支持功能
-=======
+=====================================
 
 metric 可视化
---------
+--------------
 
 wandb 中间件内置了常见 metric 的可视化，包含 \ ``q_value``\ , \ ``target q_value``\ , \ ``loss``\ , \ ``lr``\ , \ ``entropy``\ 。当 config 中的 \ ``plot_logger=True``\ 时，中间件会自动从 eval 输出中选择对应字段的数据可视化：
 
@@ -80,7 +80,7 @@ wandb 中间件内置了常见 metric 的可视化，包含 \ ``q_value``\ , \ `
 折线图的横纵轴，平滑度等可以登录 wandb ， 在 dashboards 中设置。
 
 gradient 可视化
---------
+-----------------
 
 wandb 中间件会自动保存 model 中 gradient 的分布：
 
@@ -89,12 +89,12 @@ wandb 中间件会自动保存 model 中 gradient 的分布：
       :scale: 60%
       
 replay 可视化
---------
+---------------
 
 wandb 中间件会自动保存每个 batch 中 reward 最高、中等和最低的三个 trajectory 的 replay
 
 q value & action probability 可视化
---------
+-------------------------------------
 
 当 config 中 \ ``action_logger='q value'``\ 时，中间件会将 reward 最高、中等和最低的三个 trajectory 中，每一帧各个 action 对应的 q value 可视化。当 config 中 \ ``action_logger='action probability'``\ 时，中间件会将 action 对应的 probability 可视化：
 
@@ -120,7 +120,7 @@ wandb 中间件默认可视化 evaluate 时的 return distribution：
       
 
 wandb 中间件 config 示例
-=======================
+==========================
 
 1. \ ``wandb_online_logger``\
 

@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Metadrive &mdash; DI-engine 0.1.0 documentation</title>
+  <title>Metadrive 中文文档 &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -268,7 +268,7 @@
         
           <li><a href="index_zh.html">强化学习环境示例</a> &gt;</li>
         
-      <li>Metadrive</li>
+      <li>Metadrive 中文文档</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -299,22 +299,21 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="metadrive">
-<h1>Metadrive<a class="headerlink" href="#metadrive" title="Permalink to this headline">¶</a></h1>
+<h1>Metadrive 中文文档<a class="headerlink" href="#metadrive" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="https://metadrive-simulator.readthedocs.io/en/latest/index.html">MetaDrive</a> 是一个高效的组合式 (Compositional) 的驾驶模拟器，驾驶的目标是控制一辆（或者多辆）汽车安全且按时地从起点开到终点。它具有以下特性:</p>
+<p><a class="reference external" href="https://metadrive-simulator.readthedocs.io/en/latest/index.html">MetaDrive Env</a> 是一个高效的组合式 (Compositional) 的驾驶模拟器，驾驶的目标是控制一辆（或者多辆）汽车安全且按时地从起点开到终点。它具有以下特性:</p>
 <ul class="simple">
 <li><p>组合式: 它支持生成具有各种道路地图和交通设置的（理论上可以无限的）场景，可用于 RL 泛化性的研究。</p></li>
 <li><p>轻量化：易于安装和运行。它在标准 PC 上可以运行高达每秒300帧 (up to 300 FPS)。</p></li>
-<li><p>高逼真：精确的物理模拟和多种类型的输入，包括激光雷达、RGB 图像、自上而下的语义地图和第一人称视角图像。用户可以自行选择强化学习中的 observation 的种类。</p></li>
+<li><p>高逼真：精确的物理模拟和多种类型的输入，包括激光雷达、RGB 图像、自上而下的语义地图和第一人称视角图像。用户可以自行选择强化学习中的 observation 的种类。以下主要以观测输入 (observation) 是自上而下语义地图的情况展开介绍。</p></li>
 </ul>
-<p>以下主要以观测输入 (observation) 是自上而下语义地图的情况展开介绍。</p>
 <img alt="../_images/metadrive.gif" class="align-center" src="../_images/metadrive.gif" />
 </section>
+<section id="id2">
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <section id="id3">
-<h2>安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<section id="id4">
-<h3>安装方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>用户可以选择通过 pip 一键安装, 或者源码安装。</p>
 <p>注：如果用户没有 root 权限，请在 install 的命令后面加上 <code class="docutils literal notranslate"><span class="pre">--user</span></code>。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Directly</span>
@@ -327,8 +326,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
-<section id="id5">
-<h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<section id="id4">
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，可以通过在 Python 命令行中运行如下命令验证是否安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">metadrive</span> <span class="kn">import</span> <span class="n">MetaDriveEnv</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">MetadriveEnv</span><span class="p">()</span>
@@ -337,17 +336,17 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
-<section id="id6">
-<h3>镜像<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<section id="id5">
+<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine 的镜像包含 DI-engine 框架本身，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code> 获取，
 或访问<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker hub</a>获取更多镜像。 MetaDrive 目前没有对应的镜像。</p>
 </section>
 </section>
-<section id="id7">
-<h2>变换前的空间（原始环境）<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<section id="id6">
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <p>具体细节，可以参考 MetaDrive 的代码实现 <a class="reference external" href="https://github.com/metadriverse/metadrive/blob/main/metadrive/envs/metadrive_env.py">MetaDrive</a> 。</p>
-<section id="id9">
-<h3>观察空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<section id="id8">
+<h3>观察空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <p>车辆的观察空间为259维的 numpy 数组，数据类型为 float32，obs shape 为 (259,)。观察空间包含以下3部分内容：</p>
 <ul class="simple">
 <li><p>ego_state ： 即当前状态，例如航向，转向，速度和到边界的相对距离。</p></li>
@@ -355,8 +354,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><p>surrounding ： 即周围的信息，由激光雷达生成，通常使用240个激光扫描半径50米的临近区域。</p></li>
 </ul>
 </section>
-<section id="id10">
-<h3>动作空间<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<section id="id9">
+<h3>动作空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>MetaDrive 环境的动作空间是2维的连续动作，其有效范围为 [-1, 1]。 通过这样的设计，每个智能体的动作空间都被固定为 gym.spaces.Box(low=-1.0, high=1.0, shape=(2, ))。</p>
 <ul class="simple">
 <li><p>第一个维度代表转向角 (steering)。当动作取1或者-1时分别代表方向盘向左或者向右转到最大转向角度，取0的时候代表方向盘朝向正前方。</p></li>
@@ -364,8 +363,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><p>同时，它也提供了 一个名为 extra_action_dim (int) 的配置，例如，如果我们设置 config[“extra_action_dim”] = 1，那么每个智能体的动作空间将变为 Box(-1.0, 1.0, shape=(3, ))。 这允许用户编写引入更多输入操作维度的环境包装器。</p></li>
 </ul>
 </section>
-<section id="id11">
-<h3>奖励空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<section id="id10">
+<h3>奖励空间<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <p>MetaDrive 中默认的奖励函数包含了一个密集的（驾驶过程中的）奖励和一个稀疏的终局奖励。</p>
 <ul class="simple">
 <li><p>密集奖励: 反映了在每一个 step 下，车辆在 Frenet 坐标中朝向目的地的纵向运动的程度。</p></li>
@@ -387,8 +386,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </div></blockquote>
 </section>
-<section id="id12">
-<h3>其他<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<section id="id11">
+<h3>其他<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <p>如果出现以下情况，则判定 episode 结束：</p>
 <ul class="simple">
 <li><p>车辆成功到达终点；</p></li>
@@ -404,8 +403,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="rl">
 <h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<section id="id13">
-<h3>观察空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<section id="id12">
+<h3>观察空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <p>区别于原始版本里面，观测空间被描述为一个259维度的向量，在DI-engine里，
 汽车的观察空间被定义为俯视图，大小为 5x84x84，其中5代表了通道数，后两个维度(84x84)代表了每个通道的图片的大小。
 五个通道的语义为：</p>
@@ -423,40 +422,40 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </dd>
 </dl>
 </section>
+<section id="id13">
+<h3>动作空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>无变化</p></li>
+</ul>
+</section>
 <section id="id14">
-<h3>动作空间<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>无变化</p></li>
 </ul>
 </section>
 <section id="id15">
-<h3>奖励空间<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>无变化</p></li>
-</ul>
-</section>
-<section id="id16">
-<h3>其他<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在 MetaDrive 中为整个 episode 的奖励累加和。</p></li>
 </ul>
 </section>
 </section>
+<section id="id16">
+<h2>其他<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
 <section id="id17">
-<h2>其他<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
-<section id="id18">
-<h3>惰性初始化<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，具体的环境实例一般采用惰性初始化的方法，即在环境的<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，
 而在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
 </section>
-<section id="id19">
-<h3>随机种子<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<section id="id18">
+<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>可以使用 _reset_global_seed的方法设定环境的随机种子，如果不手动设定，则环境会随机采样出随机种子设定环境。</p></li>
 </ul>
 </section>
-<section id="id20">
-<h3>训练和测试环境的区别<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<section id="id19">
+<h3>训练和测试环境的区别<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的。</p></li>
 <li><p>测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
@@ -582,8 +581,8 @@ link</a>
 </pre></div>
 </div>
 </section>
-<section id="id21">
-<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<section id="id20">
+<h2>基准算法性能<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>MetaDrive（测试局的平均 episode return 大于等于250视为算法收敛到近似最优值）。</p>
 <ul class="simple">
@@ -638,36 +637,36 @@ link</a>
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Metadrive</a><ul>
+<li><a class="reference internal" href="#">Metadrive 中文文档</a><ul>
 <li><a class="reference internal" href="#id1">概述</a></li>
-<li><a class="reference internal" href="#id3">安装</a><ul>
-<li><a class="reference internal" href="#id4">安装方法</a></li>
-<li><a class="reference internal" href="#id5">验证安装</a></li>
-<li><a class="reference internal" href="#id6">镜像</a></li>
+<li><a class="reference internal" href="#id2">安装</a><ul>
+<li><a class="reference internal" href="#id3">安装方法</a></li>
+<li><a class="reference internal" href="#id4">验证安装</a></li>
+<li><a class="reference internal" href="#id5">镜像</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id7">变换前的空间（原始环境）</a><ul>
-<li><a class="reference internal" href="#id9">观察空间</a></li>
-<li><a class="reference internal" href="#id10">动作空间</a></li>
-<li><a class="reference internal" href="#id11">奖励空间</a></li>
-<li><a class="reference internal" href="#id12">其他</a></li>
+<li><a class="reference internal" href="#id6">变换前的空间（原始环境）</a><ul>
+<li><a class="reference internal" href="#id8">观察空间</a></li>
+<li><a class="reference internal" href="#id9">动作空间</a></li>
+<li><a class="reference internal" href="#id10">奖励空间</a></li>
+<li><a class="reference internal" href="#id11">其他</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#rl">变换后的空间（RL 环境）</a><ul>
-<li><a class="reference internal" href="#id13">观察空间</a></li>
-<li><a class="reference internal" href="#id14">动作空间</a></li>
-<li><a class="reference internal" href="#id15">奖励空间</a></li>
-<li><a class="reference internal" href="#id16">其他</a></li>
+<li><a class="reference internal" href="#id12">观察空间</a></li>
+<li><a class="reference internal" href="#id13">动作空间</a></li>
+<li><a class="reference internal" href="#id14">奖励空间</a></li>
+<li><a class="reference internal" href="#id15">其他</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id17">其他</a><ul>
-<li><a class="reference internal" href="#id18">惰性初始化</a></li>
-<li><a class="reference internal" href="#id19">随机种子</a></li>
-<li><a class="reference internal" href="#id20">训练和测试环境的区别</a></li>
+<li><a class="reference internal" href="#id16">其他</a><ul>
+<li><a class="reference internal" href="#id17">惰性初始化</a></li>
+<li><a class="reference internal" href="#id18">随机种子</a></li>
+<li><a class="reference internal" href="#id19">训练和测试环境的区别</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
-<li><a class="reference internal" href="#id21">基准算法性能</a></li>
+<li><a class="reference internal" href="#id20">基准算法性能</a></li>
 </ul>
 </li>
 </ul>

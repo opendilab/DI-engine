@@ -358,27 +358,19 @@ For algorithms like ICM, the full algorithm is the module proposed in the paper 
 </section>
 <section id="main-specification">
 <h3>Main Specification<a class="headerlink" href="#main-specification" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>For env_manager field in create_config, except for some simple environments such as cartpole, pendulum, bitflip</p></li>
-</ul>
-<p>we set it as base, for other environments, we seet env_manager as subprocess：</p>
-<blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+<ul>
+<li><p>For env_manager field in create_config, except for some simple environments such as cartpole, pendulum, bitflip, we set it as base, for other environments, we seet env_manager as subprocess：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
 </pre></div>
 </div>
-</div></blockquote>
-<ul class="simple">
+</li>
 <li><p>Ensure evaluator_env_num：n_evaluator_episode = 1:1 （expect smac environment）</p></li>
-<li><p>manager field shoudl generally not be included in the env field of main_config</p></li>
-</ul>
-<p>(shared_memory defaults to True when the manager field is not included)：</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>manager field shoudl generally not be included in the env field of main_config (shared_memory defaults to True when the manager field is not included)：</p>
+<ul class="simple">
 <li><p>smac environment is an exception,due to the state dimension problem,smac needs to set shared_memory=Fasle.</p></li>
 <li><p>In environments other than the SMAC environment, if an error is reported due to the state dimension problem, you can include manager field and set shared_memory=False.</p></li>
 </ul>
-</div></blockquote>
-<ul>
+</li>
 <li><p>If you want to turn on/off shared memory, please control it in env.manager filed</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="o">...</span><span class="p">,</span>
@@ -425,18 +417,12 @@ learning algorithm needs to introduce expert config, see the example of sqil for
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Remember this line from ding.entry import serial_pipeline should not as the head of the file,</p></li>
+<li><p>Remember this line from ding.entry import serial_pipeline should not as the head of the file, but put it below if ___name___ == “___main___”</p></li>
 </ul>
 </li>
+<li><p>If the algorithm use different serial_pipeline_X, you need to add corresponding starting command <code class="docutils literal notranslate"><span class="pre">serial_X</span></code>in CLI.</p></li>
 </ul>
 </li>
-</ul>
-<p>but put it below if ___name___ == “___main___”:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>-  If the algorithm use different serial_pipeline_X,
-   you need to add corresponding starting command ``serial_X``\ in \ https://github.com/opendilab/DI-engine/blob/5d2beed4a8a07fb70599d910c6d53cf5157b133b/ding/entry/cli.py#L189\ .
-</pre></div>
-</div>
-<ul>
 <li><p>seed is set in the entry function, do not include seed in config.</p></li>
 <li><p>If the hyperparameters in the algorithm have a certain reasonable range, please write a comment on the corresponding hyperparameters of the algorithm config. For instance the alpha value of sqil：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>  <span class="c1"># alpha: 0.08-0.12</span>

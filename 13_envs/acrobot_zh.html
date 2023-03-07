@@ -358,22 +358,78 @@ assert<span class="w"> </span>env.action_space<span class="w"> </span><span clas
 </section>
 <section id="id8">
 <h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<p>目标是让自由端以尽可能少的步数达到指定的目标高度，因此所有未达到目标的步数都会产生 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 的奖励。 达到目标高度会导致终止，奖励为 <code class="docutils literal notranslate"><span class="pre">0</span></code>。</p>
+<p>目标是让自由端以尽可能少的步数达到指定的目标高度，因此所有未达到目标的步数都会产生 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 的奖励。 达到目标高度会导致终止，奖励为 <code class="docutils literal notranslate"><span class="pre">0</span></code> 。</p>
 </section>
 <section id="id9">
 <h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>Acrobot 环境每个 episode 的终止条件是遇到以下任何一种情况：</p>
 <ul class="simple">
 <li><p>自由端达到目标高度，构造形式是 <span class="math notranslate nohighlight">\(-cos(\theta_1) - cos(\theta_1 + \theta_2) &gt; 1.0\)</span>。</p></li>
-<li><p>达到 episode 的最大 step，默认为 <code class="docutils literal notranslate"><span class="pre">500</span></code>。</p></li>
+<li><p>达到 episode 的最大 step，默认为 <code class="docutils literal notranslate"><span class="pre">500</span></code> 。</p></li>
 </ul>
 </section>
 </section>
 <section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
-<p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/acrobot/config">github
-link</a>
+<p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/acrobot/config">github link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">acrobot_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">acrobot_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;acrobot_dqn_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=-</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;Acrobot-v1&#39;</span><span class="p">,</span>
+        <span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;acrobot_dqn_seed0/video&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
+            <span class="n">dueling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="p">)),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mi">250000</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">acrobot_dqn_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">acrobot_dqn_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">acrobot_dqn_config</span>
+<span class="n">acrobot_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;acrobot&#39;</span><span class="p">,</span> <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.classic_control.acrobot.envs.acrobot_env&#39;</span><span class="p">]),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">),</span>
+    <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;deque&#39;</span><span class="p">,</span> <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ding.data.buffer.deque_buffer_wrapper&#39;</span><span class="p">]),</span>
+<span class="p">)</span>
+<span class="n">acrobot_dqn_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">acrobot_dqn_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">acrobot_dqn_create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="id10">
 <h2>基准算法性能<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>

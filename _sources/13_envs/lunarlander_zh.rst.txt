@@ -4,7 +4,7 @@ LunarLander
 概述
 =======
 
-`LunarLander <https://www.gymlibrary.dev/environments/box2d/lunar_lander>`_ ，即月球着陆器，该环境模拟了一个经典的火箭弹道优化问题。
+`LunarLander Env <https://www.gymlibrary.dev/environments/box2d/lunar_lander>`_ ，即月球着陆器，该环境模拟了一个经典的火箭弹道优化问题。
 游戏的目标是通过控制一个着陆器的油门使其飞行并登陆到指定的地点: 着陆台(landing pad)。
 该环境具有离散动作空间和连续动作空间两个版本，除了动作空间不同其他基本类似，以下主要以离散动作空间版本为例展开介绍。
 

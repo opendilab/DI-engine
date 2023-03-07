@@ -1,15 +1,14 @@
-Metadrive
-~~~~~~~~~~~~
+Metadrive 中文文档
+~~~~~~~~~~~~~~~~~~
 
 概述
 =======
 
-`MetaDrive <https://metadrive-simulator.readthedocs.io/en/latest/index.html>`_ 是一个高效的组合式 (Compositional) 的驾驶模拟器，驾驶的目标是控制一辆（或者多辆）汽车安全且按时地从起点开到终点。它具有以下特性:
+`MetaDrive Env <https://metadrive-simulator.readthedocs.io/en/latest/index.html>`_ 是一个高效的组合式 (Compositional) 的驾驶模拟器，驾驶的目标是控制一辆（或者多辆）汽车安全且按时地从起点开到终点。它具有以下特性:
 
 - 组合式: 它支持生成具有各种道路地图和交通设置的（理论上可以无限的）场景，可用于 RL 泛化性的研究。
 - 轻量化：易于安装和运行。它在标准 PC 上可以运行高达每秒300帧 (up to 300 FPS)。
-- 高逼真：精确的物理模拟和多种类型的输入，包括激光雷达、RGB 图像、自上而下的语义地图和第一人称视角图像。用户可以自行选择强化学习中的 observation 的种类。
-以下主要以观测输入 (observation) 是自上而下语义地图的情况展开介绍。
+- 高逼真：精确的物理模拟和多种类型的输入，包括激光雷达、RGB 图像、自上而下的语义地图和第一人称视角图像。用户可以自行选择强化学习中的 observation 的种类。以下主要以观测输入 (observation) 是自上而下语义地图的情况展开介绍。
 
 
 .. image:: ./images/metadrive.gif
