@@ -51,7 +51,7 @@ def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
     Overview:
         The middleware that executes the inference process.
     Arguments:
-        - seed (:int:`int`): Random seed.
+        - seed (:obj:`int`): Random seed.
         - policy (:obj:`Policy`): The policy to be inferred.
         - env (:obj:`BaseEnvManager`): The env where the inference process is performed. \
             The env.ready_obs (:obj:`tnp.array`) will be used as model input.
