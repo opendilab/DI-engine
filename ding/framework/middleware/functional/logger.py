@@ -127,7 +127,7 @@ def wandb_online_logger(
         env: Optional[BaseEnvManagerV2] = None,
         model: Optional[torch.nn.Module] = None,
         anonymous: bool = False,
-        project_name:str = 'default-project',
+        project_name: str = 'default-project',
         wandb_url_return: List = [],
 ) -> Callable:
     '''
@@ -153,10 +153,10 @@ def wandb_online_logger(
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
     if anonymous:
-        wandb.init(project=project_name,reinit=True,anonymous="must")
+        wandb.init(project=project_name, reinit=True, anonymous="must")
         wandb_url_return.append(wandb.run.get_project_url())
     else:
-        wandb.init(project=project_name,reinit=True)
+        wandb.init(project=project_name, reinit=True)
         wandb_url_return.append(wandb.run.get_project_url())
     if cfg == 'default':
         cfg = EasyDict(

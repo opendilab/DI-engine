@@ -15,9 +15,11 @@ from ding.config import save_config_py
 from .model import PPOFModel
 from .config import get_instance_config, get_instance_env, get_hybrid_shape
 
+
 @dataclass
 class TrainingReturn:
-    wandb_url:str
+    wandb_url: str
+
 
 class PPOF:
     supported_env_list = [
@@ -49,7 +51,7 @@ class PPOF:
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                self.cfg = get_instance_config(env,algorithm="PPO")
+                self.cfg = get_instance_config(env, algorithm="PPO")
             else:
                 self.cfg = cfg
         elif isinstance(env, BaseEnv):
@@ -78,10 +80,9 @@ class PPOF:
             )
         self.policy = PPOFPolicy(self.cfg, model=model)
 
-    def load_policy(self,policy_state_dict, config):
+    def load_policy(self, policy_state_dict, config):
         self.policy.load_state_dict(policy_state_dict)
         self.policy._cfg = config
-
 
     def train(
             self,
@@ -99,7 +100,7 @@ class PPOF:
         # define env and policy
         collector_env = self._setup_env_manager(collector_env_num, context, debug)
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
-        wandb_url_return=[]
+        wandb_url_return = []
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
@@ -107,10 +108,18 @@ class PPOF:
             task.use(ppof_adv_estimator(self.policy))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
             task.use(CkptSaver(self.policy, save_dir=self.exp_name, train_freq=n_iter_save_ckpt))
-            task.use(wandb_online_logger(self.exp_name, metric_list=self.policy.monitor_vars(), anonymous=True, project_name=self.exp_name, wandb_url_return=wandb_url_return))
+            task.use(
+                wandb_online_logger(
+                    self.exp_name,
+                    metric_list=self.policy.monitor_vars(),
+                    anonymous=True,
+                    project_name=self.exp_name,
+                    wandb_url_return=wandb_url_return
+                )
+            )
             task.use(termination_checker(max_env_step=step))
             task.run()
-        
+
         return TrainingReturn(wandb_url=wandb_url_return[0])
 
     def deploy(self, ckpt_path: str = None, enable_save_replay: bool = False, debug: bool = False) -> None:
@@ -188,7 +197,16 @@ class PPOF:
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode, render=render, replay_video_path=replay_video_path))
+            task.use(
+                interaction_evaluator_ttorch(
+                    self.seed,
+                    self.policy,
+                    env,
+                    n_evaluator_episode,
+                    render=render,
+                    replay_video_path=replay_video_path
+                )
+            )
             task.run(max_step=1)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:

@@ -17,15 +17,17 @@ from ding.model import QAC
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env, get_hybrid_shape
 
+
 @dataclass
 class TrainingReturn:
-    wandb_url:str
+    wandb_url: str
+
 
 class TD3:
     supported_env_list = [
         'hopper',
     ]
-    algorithm='TD3'
+    algorithm = 'TD3'
 
     def __init__(
             self,
@@ -40,8 +42,8 @@ class TD3:
             if cfg is None:
                 # 'It should be default env tuned config'
                 cfg = get_instance_config(env, algorithm=TD3.algorithm)
-            elif not isinstance(cfg,EasyDict):
-                cfg=EasyDict(cfg)
+            elif not isinstance(cfg, EasyDict):
+                cfg = EasyDict(cfg)
             if exp_name is not None:
                 self.exp_name = exp_name
                 cfg.exp_name = exp_name
@@ -51,8 +53,8 @@ class TD3:
                 self.exp_name = 'default_experiment'
                 cfg.exp_name = self.exp_name
             self.cfg = compile_config(cfg, policy=TD3Policy)
-            if self.cfg.exp_name!=self.exp_name:
-                self.exp_name=self.cfg.exp_name
+            if self.cfg.exp_name != self.exp_name:
+                self.exp_name = self.cfg.exp_name
         elif isinstance(env, BaseEnv):
             self.cfg = compile_config(cfg, policy=TD3Policy)
             raise NotImplementedError
@@ -68,10 +70,9 @@ class TD3:
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg.policy, model=model)
 
-    def load_policy(self,policy_state_dict, config):
+    def load_policy(self, policy_state_dict, config):
         self.policy.load_state_dict(policy_state_dict)
         self.policy._cfg = config
-
 
     def train(
             self,
@@ -89,21 +90,42 @@ class TD3:
         # define env and policy
         collector_env = self._setup_env_manager(collector_env_num, context, debug)
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
-        wandb_url_return=[]
+        wandb_url_return = []
 
-        self.cfg.policy.logger.record_path = os.path.join(self.exp_name,'video')
+        self.cfg.policy.logger.record_path = os.path.join(self.exp_name, 'video')
         evaluator_env.enable_save_replay(replay_path=self.cfg.policy.logger.record_path)
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env,render=True))
+            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env, render=True))
             task.use(
-                StepCollector(self.cfg, self.policy.collect_mode, collector_env, random_collect_size=self.cfg.policy.random_collect_size)
+                StepCollector(
+                    self.cfg,
+                    self.policy.collect_mode,
+                    collector_env,
+                    random_collect_size=self.cfg.policy.random_collect_size
+                )
             )
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
-            task.use(CkptSaver(policy=self.policy,save_dir=os.path.join(self.cfg["exp_name"],"model"), train_freq=n_iter_save_ckpt))
-            task.use(wandb_online_logger(record_path=self.cfg.policy.logger.record_path, cfg=self.cfg.policy.logger, metric_list=self.policy.monitor_vars(), model=self.policy._model, anonymous=True, project_name=self.exp_name, wandb_url_return=wandb_url_return))
+            task.use(
+                CkptSaver(
+                    policy=self.policy,
+                    save_dir=os.path.join(self.cfg["exp_name"], "model"),
+                    train_freq=n_iter_save_ckpt
+                )
+            )
+            task.use(
+                wandb_online_logger(
+                    record_path=self.cfg.policy.logger.record_path,
+                    cfg=self.cfg.policy.logger,
+                    metric_list=self.policy.monitor_vars(),
+                    model=self.policy._model,
+                    anonymous=True,
+                    project_name=self.exp_name,
+                    wandb_url_return=wandb_url_return
+                )
+            )
             task.use(termination_checker(max_env_step=step))
             task.use(final_ctx_saver(name=self.cfg["exp_name"]))
             task.run()
@@ -163,7 +185,9 @@ class TD3:
         # main execution task
         with task.start(ctx=OnlineRLContext()):
             task.use(
-                StepCollector(self.cfg, self.policy.collect_mode, env, random_collect_size=self.cfg.policy.random_collect_size)
+                StepCollector(
+                    self.cfg, self.policy.collect_mode, env, random_collect_size=self.cfg.policy.random_collect_size
+                )
             )
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
@@ -188,8 +212,8 @@ class TD3:
         if replay_video_path is not None:
             env.enable_save_replay(replay_path=replay_video_path)
 
-        evaluate_cfg=self.cfg
-        evaluate_cfg.env.n_evaluator_episode=n_evaluator_episode
+        evaluate_cfg = self.cfg
+        evaluate_cfg.env.n_evaluator_episode = n_evaluator_episode
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):

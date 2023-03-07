@@ -187,8 +187,8 @@ class DingEnvWrapper(BaseEnv):
 
     @property
     def observation_space(self) -> gym.spaces.Space:
-        if self._observation_space.dtype==np.float64:
-            self._observation_space.dtype=np.float32
+        if self._observation_space.dtype == np.float64:
+            self._observation_space.dtype = np.float32
         return self._observation_space
 
     @property
