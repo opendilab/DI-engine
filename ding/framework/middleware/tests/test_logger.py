@@ -209,12 +209,13 @@ def test_wandb_online_logger():
     model = TheModelClass()
     wandb.init(config=cfg, anonymous="must")
 
-    def mock_metric_logger(metric_dict):
+    def mock_metric_logger(metric_dict, step):
         metric_list = [
             "q_value", "target q_value", "loss", "lr", "entropy", "reward", "q value", "video", "q value distribution",
-            "train iter"
+            "train iter", "episode return mean", "env step", "action", "actions_of_trajectory_0",
+            "actions_of_trajectory_1", "actions_of_trajectory_2", "actions_of_trajectory_3", "return distribution",
         ]
-        assert set(metric_dict.keys()) < set(metric_list)
+        assert set(metric_dict.keys()) <= set(metric_list)
 
     def mock_gradient_logger(input_model):
         assert input_model == model
