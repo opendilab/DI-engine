@@ -8,7 +8,7 @@ import torch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
-        OffPolicyLearner, final_ctx_saver
+    OffPolicyLearner, final_ctx_saver
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import TD3Policy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
