@@ -76,7 +76,7 @@ def test_mdqn():
     config[0].policy.learn.update_per_collect = 1
     config[0].exp_name = 'cartpole_mdqn_unittest'
     try:
-        serial_pipeline(config, seed=0, max_train_iter=1, is_dynamic_seed=False)
+        serial_pipeline(config, seed=0, max_train_iter=1, dynamic_seed=False)
     except Exception:
         assert False, "pipeline fail"
     finally:

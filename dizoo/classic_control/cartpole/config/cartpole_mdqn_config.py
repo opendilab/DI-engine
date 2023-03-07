@@ -55,4 +55,4 @@ create_config = cartpole_mdqn_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c cartpole_mdqn_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0, is_dynamic_seed=False)
+    serial_pipeline((main_config, create_config), seed=0, dynamic_seed=False)

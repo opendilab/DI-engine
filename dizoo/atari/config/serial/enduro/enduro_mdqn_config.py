@@ -60,4 +60,4 @@ create_config = enduro_mdqn_create_config
 if __name__ == '__main__':
     # or you can enter ding -m serial -c enduro_mdqn_config.py -s 0
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7), is_dynamic_seed=False)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7), dynamic_seed=False)

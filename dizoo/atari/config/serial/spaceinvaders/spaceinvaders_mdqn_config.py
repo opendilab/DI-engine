@@ -11,7 +11,6 @@ spaceinvaders_mdqn_config = dict(
         env_id='SpaceInvaders-v0',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
-        manager=dict(shared_memory=True, ),
     ),
     policy=dict(
         cuda=True,
@@ -61,4 +60,4 @@ create_config = spaceinvaders_mdqn_create_config
 if __name__ == '__main__':
     # or you can enter ding -m serial -c spaceinvaders_mdqn_config.py -s 0
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(3e7), is_dynamic_seed=False)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(3e7), dynamic_seed=False)

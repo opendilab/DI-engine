@@ -141,6 +141,7 @@ class MDQNPolicy(DQNPolicy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
+        # set eps in order to consistent with the original paper implementation
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, eps=0.0003125)
 
         self._gamma = self._cfg.discount_factor
