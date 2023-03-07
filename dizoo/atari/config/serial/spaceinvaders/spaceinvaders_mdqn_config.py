@@ -1,14 +1,14 @@
 from copy import deepcopy
 from easydict import EasyDict
 
-asterix_mdqn_config = dict(
-    exp_name='asterix_mdqn_seed0',
+spaceinvaders_mdqn_config = dict(
+    exp_name='spaceinvaders_mdqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=20000,
-        env_id='Asterix-v0',
+        stop_value=10000,
+        env_id='SpaceInvaders-v0',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
         manager=dict(shared_memory=True, ),
@@ -18,7 +18,7 @@ asterix_mdqn_config = dict(
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
-            action_shape=9,
+            action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
         nstep=1,
@@ -45,9 +45,9 @@ asterix_mdqn_config = dict(
         ),
     ),
 )
-asterix_mdqn_config = EasyDict(asterix_mdqn_config)
-main_config = asterix_mdqn_config
-asterix_mdqn_create_config = dict(
+spaceinvaders_mdqn_config = EasyDict(spaceinvaders_mdqn_config)
+main_config = spaceinvaders_mdqn_config
+spaceinvaders_mdqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -55,10 +55,10 @@ asterix_mdqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='mdqn'),
 )
-asterix_mdqn_create_config = EasyDict(asterix_mdqn_create_config)
-create_config = asterix_mdqn_create_config
+spaceinvaders_mdqn_create_config = EasyDict(spaceinvaders_mdqn_create_config)
+create_config = spaceinvaders_mdqn_create_config
 
 if __name__ == '__main__':
-    # or you can enter ding -m serial -c asterix_mdqn_config.py -s 0
+    # or you can enter ding -m serial -c spaceinvaders_mdqn_config.py -s 0
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7), is_dynamic_seed=False)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(3e7), is_dynamic_seed=False)
