@@ -105,7 +105,7 @@ class PPOF:
         # define env and policy
         collector_env = self._setup_env_manager(collector_env_num, context, debug, 'collector')
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
-        wandb_url_return=[]
+        wandb_url_return = []
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
             task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
