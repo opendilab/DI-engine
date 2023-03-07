@@ -127,7 +127,7 @@ def serial_pipeline_gail(
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            reward_mean = np.array([r['final_eval_reward'] for r in reward]).mean()
+            reward_mean = np.array([r['eval_episode_return'] for r in reward]).mean()
             if reward_mean >= best_reward:
                 save_reward_model(cfg.exp_name, reward_model, 'best')
                 best_reward = reward_mean

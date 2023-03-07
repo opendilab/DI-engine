@@ -5,11 +5,13 @@ import copy
 import os
 import time
 import gym
+import gymnasium
+
 import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
-from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
-from gym_minigrid.window import Window
+from minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper
+from .minigrid_wrapper import ViewSizeWrapper
 from ding.envs import ObsPlusPrevActRewWrapper
 
 from ding.envs import BaseEnv, BaseEnvTimestep
@@ -36,12 +38,15 @@ class MiniGridEnv(BaseEnv):
         self._env_id = cfg.env_id
         self._flat_obs = cfg.flat_obs
         self._save_replay = False
-        # self._max_step = MINIGRID_INFO_DICT[self._env_id].max_step
         self._max_step = cfg.max_step
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make(self._env_id)
+            if self._save_replay:
+                self._env = gymnasium.make(self._env_id, render_mode="rgb_array")  # using the Gymnasium make method
+            else:
+                self._env = gymnasium.make(self._env_id)
+
             if self._env_id in ['MiniGrid-AKTDT-13x13-v0' or 'MiniGrid-AKTDT-13x13-1-v0']:
                 # customize the agent field of view size, note this must be an odd number
                 # This also related to the observation space, see gym_minigrid.wrappers for more details
@@ -65,13 +70,16 @@ class MiniGridEnv(BaseEnv):
         self._reward_space = gym.spaces.Box(
             low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
         )
+
+        self._eval_episode_return = 0
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
-            self._env.seed(self._seed + np_seed)
+            self._seed = self._seed + np_seed
+            obs, _ = self._env.reset(seed=self._seed)  # using the reset method of Gymnasium env
         elif hasattr(self, '_seed'):
-            self._env.seed(self._seed)
-        self._final_eval_reward = 0
-        obs = self._env.reset()
+            obs, _ = self._env.reset(seed=self._seed)
+        else:
+            obs, _ = self._env.reset()
         obs = to_ndarray(obs)
         self._current_step = 0
         if self._save_replay:
@@ -94,15 +102,16 @@ class MiniGridEnv(BaseEnv):
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
-            self._frames.append(self._env.render(mode='rgb_array'))
-        obs, rew, done, info = self._env.step(action)
+            self._frames.append(self._env.render())
+        # using the step method of Gymnasium env, return is (observation, reward, terminated, truncated, info)
+        obs, rew, done, _, info = self._env.step(action)
         rew = float(rew)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         self._current_step += 1
         if self._current_step >= self._max_step:
             done = True
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
             info['current_step'] = self._current_step
             info['max_step'] = self._max_step
             if self._save_replay:

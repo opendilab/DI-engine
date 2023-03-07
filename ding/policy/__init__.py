@@ -1,4 +1,5 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
+from .common_utils import single_env_forward_wrapper, single_env_forward_wrapper_ttorch
 from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .iqn import IQNPolicy
 from .fqf import FQFPolicy
@@ -9,8 +10,9 @@ from .ddpg import DDPGPolicy
 from .d4pg import D4PGPolicy
 from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
-
 from .td3_bc import TD3BCPolicy
+
+from .pg import PGPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy, PPOPGPolicy, PPOOffPolicy
 from .sac import SACPolicy, SACDiscretePolicy, SQILSACPolicy
@@ -21,6 +23,7 @@ from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
 from .ppg import PPGPolicy, PPGOffPolicy
 from .sqn import SQNPolicy
+from .bdq import BDQPolicy
 
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
@@ -41,3 +44,6 @@ from .pdqn import PDQNPolicy
 
 from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
+
+# new-type policy
+from .ppof import PPOFPolicy

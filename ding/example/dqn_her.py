@@ -38,7 +38,7 @@ def main():
         task.use(EpisodeCollector(cfg, policy.collect_mode, collector_env))
         task.use(data_pusher(cfg, buffer_))
         task.use(HERLearner(cfg, policy.learn_mode, buffer_, her_reward_model))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run()
 
 

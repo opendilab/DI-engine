@@ -88,6 +88,8 @@ class DDPGPolicy(Policy):
         action_space='continuous',  # ['continuous', 'hybrid']
         # (bool) Whether use batch normalization for reward
         reward_batch_norm=False,
+        # (bool) Whether to enable multi-agent training setting
+        multi_agent=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
@@ -151,6 +153,12 @@ class DDPGPolicy(Policy):
             ),
         ),
     )
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        if self._cfg.multi_agent:
+            return 'maqac_continuous', ['ding.model.template.maqac']
+        else:
+            return 'qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
         r"""
@@ -430,9 +438,6 @@ class DDPGPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

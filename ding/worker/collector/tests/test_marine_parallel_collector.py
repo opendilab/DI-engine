@@ -48,7 +48,7 @@ class FakeCompetitiveRlEnv(BaseEnv):
         done = False if self._step_times < 20 else True
         info = {}
         if done:
-            info['final_eval_reward'] = np.array([21.]) if self._is_evaluator else np.array([5., -5.])
+            info['eval_episode_return'] = np.array([21.]) if self._is_evaluator else np.array([5., -5.])
         self._step_times += 1
         return BaseEnvTimestep(obs, rew, done, info)
 

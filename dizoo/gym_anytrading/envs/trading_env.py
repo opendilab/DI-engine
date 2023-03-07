@@ -11,7 +11,6 @@ import gym
 import copy
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
@@ -186,20 +185,21 @@ class TradingEnv(BaseEnv):
             if self._env_id[-1] == 'e' and self.cnt % self.plot_freq == 0:
                 self.render()
             info['max_possible_profit'] = np.log(self.max_possible_profit())
-            info['final_eval_reward'] = self._total_reward
+            info['eval_episode_return'] = self._total_reward
 
-        step_reward = to_ndarray([step_reward]).astype(np.float32) 
+        step_reward = to_ndarray([step_reward]).astype(np.float32)
         return BaseEnvTimestep(observation, step_reward, self._done, info)
 
     def _get_observation(self) -> np.ndarray:
         obs = to_ndarray(self.signal_features[(self._current_tick - self.window_size + 1):self._current_tick + 1]
                          ).reshape(-1).astype(np.float32)
 
-        obs = np.hstack([obs, to_ndarray([self._position.value]),\
-             to_ndarray([(self._current_tick - self._last_trade_tick)/self._cfg.eps_length])]).astype(np.float32)
+        tick = (self._current_tick - self._last_trade_tick) / self._cfg.eps_length
+        obs = np.hstack([obs, to_ndarray([self._position.value]), to_ndarray([tick])]).astype(np.float32)
         return obs
 
     def render(self) -> None:
+        import matplotlib.pyplot as plt
         plt.clf()
         plt.xlabel('trading days')
         plt.ylabel('profit')
@@ -231,6 +231,7 @@ class TradingEnv(BaseEnv):
         plt.savefig(self.save_path + str(self._env_id) + '-price.png')
 
     def close(self):
+        import matplotlib.pyplot as plt
         plt.close()
 
     # override

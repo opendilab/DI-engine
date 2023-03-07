@@ -1,9 +1,7 @@
 from collections import defaultdict
 import pytest
 import time
-import os
 from ding.framework import Parallel
-from ding.utils.design_helper import SingletonMetaclass
 
 
 def parallel_main():
@@ -28,8 +26,8 @@ def parallel_main():
 
 @pytest.mark.unittest
 def test_parallel_run():
-    Parallel.runner(n_parallel_workers=2)(parallel_main)
-    Parallel.runner(n_parallel_workers=2, protocol="tcp")(parallel_main)
+    Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(parallel_main)
+    Parallel.runner(n_parallel_workers=2, protocol="tcp", startup_interval=0.1)(parallel_main)
 
 
 def uncaught_exception_main():
@@ -45,7 +43,7 @@ def uncaught_exception_main():
 def test_uncaught_exception():
     # Make one process crash, then the parent process will also crash and output the stack of the wrong process.
     with pytest.raises(Exception) as exc_info:
-        Parallel.runner(n_parallel_workers=2, topology="mesh")(uncaught_exception_main)
+        Parallel.runner(n_parallel_workers=2, topology="mesh", startup_interval=0.1)(uncaught_exception_main)
     e = exc_info._excinfo[1]
     assert "uncaught exception" in str(e)
 
@@ -54,6 +52,7 @@ def disconnected_main():
     router = Parallel()
 
     if router.node_id == 0:
+        time.sleep(0.1)
         # Receive two messages then exit
         greets = []
         router.on("greeting", lambda: greets.append("."))
@@ -75,7 +74,7 @@ def disconnected_main():
 def test_disconnected():
     # Make one process exit normally and the rest will still run, even if the network request
     # is not received by other processes.
-    Parallel.runner(n_parallel_workers=2, topology="mesh")(disconnected_main)
+    Parallel.runner(n_parallel_workers=2, topology="mesh", startup_interval=0.1)(disconnected_main)
 
 
 class AutoRecover:
@@ -145,9 +144,13 @@ class AutoRecover:
 @pytest.mark.unittest
 def test_auto_recover():
     # With max_retries=1
-    Parallel.runner(n_parallel_workers=3, topology="mesh", auto_recover=True, max_retries=1)(AutoRecover.main)
+    Parallel.runner(
+        n_parallel_workers=3, topology="mesh", auto_recover=True, max_retries=1, startup_interval=0.1
+    )(AutoRecover.main)
     # With max_retries=0
     with pytest.raises(Exception) as exc_info:
-        Parallel.runner(n_parallel_workers=3, topology="mesh", auto_recover=True, max_retries=0)(AutoRecover.main)
+        Parallel.runner(
+            n_parallel_workers=3, topology="mesh", auto_recover=True, max_retries=0, startup_interval=0.1
+        )(AutoRecover.main)
     e = exc_info._excinfo[1]
     assert "P1 Error" in str(e)

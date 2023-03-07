@@ -56,9 +56,9 @@ class GfootballEnv(BaseEnv):
             self._env.seed(self._seed)
         self._launch_env_flag = True
         if self.is_evaluator:
-            self._final_eval_reward = [0, 0]
+            self._eval_episode_return = [0, 0]
         else:
-            self._final_eval_reward = [0, 0]
+            self._eval_episode_return = [0, 0]
 
     def reset(self) -> np.ndarray:
         if not self._launch_env_flag:
@@ -96,22 +96,22 @@ class GfootballEnv(BaseEnv):
             obs = to_ndarray(self._encoder.encode(raw_obs))
             rew = [rew, rew]
             obs = [obs, obs]
-            self._final_eval_reward[0] += raw_rew
-            self._final_eval_reward[1] += raw_rew
+            self._eval_episode_return[0] += raw_rew
+            self._eval_episode_return[1] += raw_rew
         else:
             rew = GfootballEnv.calc_reward(raw_rew[0], self._prev_obs, raw_obs[0])
             rew_oppo = GfootballEnv.calc_reward(raw_rew[1], self._prev_obs, raw_obs[1])
             rew = [rew, rew_oppo]
             obs = [to_ndarray(self._encoder.encode(raw_obs[0])), to_ndarray(self._encoder.encode(raw_obs[1]))]
-            self._final_eval_reward[0] += raw_rew[0]
-            self._final_eval_reward[1] += raw_rew[1]
+            self._eval_episode_return[0] += raw_rew[0]
+            self._eval_episode_return[1] += raw_rew[1]
 
         if done:
             if self.is_evaluator:
-                info['final_eval_reward'] = self._final_eval_reward
+                info['eval_episode_return'] = self._eval_episode_return
             else:
-                info[0]['final_eval_reward'] = self._final_eval_reward[0]
-                info[1]['final_eval_reward'] = self._final_eval_reward[1]
+                info[0]['eval_episode_return'] = self._eval_episode_return[0]
+                info[1]['eval_episode_return'] = self._eval_episode_return[1]
 
         return BaseEnvTimestep(obs, rew, done, info)
 

@@ -7,7 +7,6 @@ cartpole_trex_dqn_config = dict(
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
-        replay_path='cartpole_dqn/video',
     ),
     reward_model=dict(
         type='trex',
@@ -20,12 +19,9 @@ cartpole_trex_dqn_config = dict(
         update_per_collect=1,
         num_trajs=6,
         num_snippets=6000,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./cartpole.params',
-        data_path='abs data path',
+        expert_model_path='cartpole_dqn_seed0',  # expert model experiment directory path
     ),
     policy=dict(
-        load_path='',
         cuda=False,
         model=dict(
             obs_shape=4,
@@ -36,6 +32,7 @@ cartpole_trex_dqn_config = dict(
         nstep=1,
         discount_factor=0.97,
         learn=dict(
+            update_per_collect=5,
             batch_size=64,
             learning_rate=0.001,
         ),

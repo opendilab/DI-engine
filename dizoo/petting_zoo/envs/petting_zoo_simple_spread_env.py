@@ -1,5 +1,5 @@
 from typing import Any, List, Union, Optional, Dict
-import gym
+import gymnasium as gym
 import numpy as np
 import pettingzoo
 from functools import reduce
@@ -8,6 +8,9 @@ from ding.envs import BaseEnv, BaseEnvTimestep, FrameStackWrapper
 from ding.torch_utils import to_ndarray, to_list
 from ding.envs.common.common_function import affine_transform
 from ding.utils import ENV_REGISTRY, import_module
+from pettingzoo.utils.conversions import parallel_wrapper_fn
+from pettingzoo.mpe._mpe_utils.simple_env import SimpleEnv, make_env
+from pettingzoo.mpe.simple_spread.simple_spread import Scenario
 
 
 @ENV_REGISTRY.register('petting_zoo')
@@ -32,10 +35,10 @@ class PettingZooEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            # In order to align with the simple spread in Multiagent Particle Env (MPE), 
-            # instead of adopting the pettingzoo interface directly, 
+            # In order to align with the simple spread in Multiagent Particle Env (MPE),
+            # instead of adopting the pettingzoo interface directly,
             # we have redefined the way rewards are calculated
-            
+
             # import_module(['pettingzoo.{}.{}'.format(self._env_family, self._env_id)])
             # self._env = pettingzoo.__dict__[self._env_family].__dict__[self._env_id].parallel_env(
             #     N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
@@ -52,13 +55,14 @@ class PettingZooEnv(BaseEnv):
         # if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
         #     np_seed = 100 * np.random.randint(1, 1000)
         #     self._env.seed(self._seed + np_seed)
-        if hasattr(self, '_seed'):
-            self._env.seed(self._seed)
         if self._replay_path is not None:
             self._env = gym.wrappers.Monitor(
                 self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
             )
-        obs = self._env.reset()
+        if hasattr(self, '_seed'):
+            obs = self._env.reset(seed=self._seed)
+        else:
+            obs = self._env.reset()
         if not self._init_flag:
             self._agents = self._env.agents
 
@@ -69,7 +73,7 @@ class PettingZooEnv(BaseEnv):
             elif isinstance(single_agent_obs_space, gym.spaces.Discrete):
                 self._action_dim = (single_agent_obs_space.n, )
             else:
-                raise Exception('Only support `Box` or `Discrte` obs space for single agent.')
+                raise Exception('Only support `Box` or `Discrete` obs space for single agent.')
 
             # only for env 'simple_spread_v2', n_agent = 5
             # now only for the case that each agent in the team have the same obs structure and corresponding shape.
@@ -141,8 +145,8 @@ class PettingZooEnv(BaseEnv):
                 }
             )
             self._init_flag = True
-        # self._final_eval_reward = {agent: 0. for agent in self._agents}
-        self._final_eval_reward = 0.
+        # self._eval_episode_return = {agent: 0. for agent in self._agents}
+        self._eval_episode_return = 0.
         self._step_count = 0
         obs_n = self._process_obs(obs)
         return obs_n
@@ -173,7 +177,7 @@ class PettingZooEnv(BaseEnv):
                     action[agent], min_val=self.action_space[agent].low, max_val=self.action_space[agent].high
                 )
 
-        obs, rew, done, info = self._env.step(action)
+        obs, rew, done, trunc, info = self._env.step(action)
         obs_n = self._process_obs(obs)
         rew_n = np.array([sum([rew[agent] for agent in self._agents])])
         # collide_sum = 0
@@ -182,7 +186,7 @@ class PettingZooEnv(BaseEnv):
         # collide_penalty = self._cfg.get('collide_penal', self._num_agent)
         # rew_n += collide_sum * (1.0 - collide_penalty)
         # rew_n = rew_n / (self._cfg.get('max_cycles', 25) * self._num_agent)
-        self._final_eval_reward += rew_n.item()
+        self._eval_episode_return += rew_n.item()
 
         # occupied_landmarks = info['n'][0][3]
         # if self._step_count >= self._max_step or occupied_landmarks >= self._n_agent \
@@ -193,9 +197,9 @@ class PettingZooEnv(BaseEnv):
         done_n = reduce(lambda x, y: x and y, done.values()) or self._step_count >= self._max_cycles
 
         # for agent in self._agents:
-        #     self._final_eval_reward[agent] += rew[agent]
+        #     self._eval_episode_return[agent] += rew[agent]
         if done_n:  # or reduce(lambda x, y: x and y, done.values())
-            info['final_eval_reward'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         # for agent in rew:
         #     rew[agent] = to_ndarray([rew[agent]])
         return BaseEnvTimestep(obs_n, rew_n, done_n, info)
@@ -308,18 +312,13 @@ class PettingZooEnv(BaseEnv):
         return self._reward_space
 
 
-from pettingzoo.utils.conversions import parallel_wrapper_fn
-from pettingzoo.mpe._mpe_utils.simple_env import SimpleEnv, make_env
-from pettingzoo.mpe.scenarios.simple_spread import Scenario
-
-
 class simple_spread_raw_env(SimpleEnv):
 
     def __init__(self, N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False):
         assert 0. <= local_ratio <= 1., "local_ratio is a proportion. Must be between 0 and 1."
         scenario = Scenario()
         world = scenario.make_world(N)
-        super().__init__(scenario, world, max_cycles, continuous_actions, local_ratio)
+        super().__init__(scenario, world, max_cycles, continuous_actions=continuous_actions, local_ratio=local_ratio)
         self.metadata['name'] = "simple_spread_v2"
 
     def _execute_world_step(self):

@@ -1,13 +1,15 @@
-from typing import Any, Union, List, Optional
 import copy
-import numpy as np
-from easydict import EasyDict
+import os
+from typing import Union, List, Optional
+
 import gym
+import numpy as np
 import torch
+from easydict import EasyDict
 
 from ding.envs import BaseEnv, BaseEnvTimestep
-from ding.envs.common.common_function import affine_transform
-from ding.torch_utils import to_ndarray, to_list
+from ding.envs.common import save_frames_as_gif
+from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 from .mujoco_wrappers import wrap_mujoco
 
@@ -22,16 +24,41 @@ class MujocoEnv(BaseEnv):
         return cfg
 
     config = dict(
-        use_act_scale=False,
+        action_clip=False,
         delay_reward_step=0,
+        replay_path=None,
+        save_replay_gif=False,
+        replay_path_gif=None,
+        action_bins_per_branch=None,
     )
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._use_act_scale = cfg.use_act_scale
+        self._action_clip = cfg.action_clip
         self._delay_reward_step = cfg.delay_reward_step
         self._init_flag = False
         self._replay_path = None
+        self._replay_path_gif = cfg.replay_path_gif
+        self._save_replay_gif = cfg.save_replay_gif
+        self._action_bins_per_branch = cfg.action_bins_per_branch
+
+    def map_action(self, action: Union[np.ndarray, list]) -> Union[np.ndarray, list]:
+        """
+        Overview:
+            Map the discretized action index to the action in the original action space.
+        Arguments:
+            - action (:obj:`np.ndarray or list`): The discretized action index. \
+                The value ranges is {0, 1, ..., self._action_bins_per_branch - 1}.
+        Returns:
+            - outputs (:obj:`list`): The action in the original action space. \
+                The value ranges is [-1, 1].
+        Examples:
+            >>> inputs = [2, 0, 4]
+            >>> self._action_bins_per_branch = 5
+            >>> outputs = map_action(inputs)
+            >>> assert isinstance(outputs, list) and outputs == [0.0, -1.0, 1.0]
+        """
+        return [2 * x / (self._action_bins_per_branch - 1) - 1 for x in action]
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -58,6 +85,8 @@ class MujocoEnv(BaseEnv):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
+        self._eval_episode_return = 0.
+
         return obs
 
     def close(self) -> None:
@@ -71,11 +100,24 @@ class MujocoEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
+        if self._action_bins_per_branch:
+            action = self.map_action(action)
         action = to_ndarray(action)
-        if self._use_act_scale:
-            action_range = {'min': self.action_space.low[0], 'max': self.action_space.high[0], 'dtype': np.float32}
-            action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
+        if self._save_replay_gif:
+            self._frames.append(self._env.render(mode='rgb_array'))
+        if self._action_clip:
+            action = np.clip(action, -1, 1)
         obs, rew, done, info = self._env.step(action)
+        self._eval_episode_return += rew
+        if done:
+            if self._save_replay_gif:
+                path = os.path.join(
+                    self._replay_path_gif, '{}_episode_{}.gif'.format(self._cfg.env_id, self._save_replay_count)
+                )
+                save_frames_as_gif(self._frames, path)
+                self._save_replay_count += 1
+            info['eval_episode_return'] = self._eval_episode_return
+
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)
         return BaseEnvTimestep(obs, rew, done, info)

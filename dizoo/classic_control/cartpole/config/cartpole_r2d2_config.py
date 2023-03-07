@@ -48,7 +48,7 @@ cartpole_r2d2_config = dict(
             traj_len_inf=True,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=20)),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=30)),
         other=dict(
             eps=dict(
                 type='exp',

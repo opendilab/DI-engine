@@ -1,3 +1,101 @@
+2023.02.16(v0.4.6)
+- env: add metadrive env and related ppo config (#574)
+- env: add acrobot env and related dqn config (#577)
+- env: add carracing in box2d (#575)
+- env: add new gym hybrid viz (#563)
+- env: update cartpole IL config (#578)
+- algo: add BDQ algorithm (#558)
+- algo: add procedure cloning model (#573)
+- feature: add simplified PPOF (PPO × Family) interface (#567) (#568) (#581) (#582)
+- fix: to_device and prev_state bug when using ttorch (#571)
+- fix: py38 and numpy unittest bugs (#565)
+- fix: typo in contrastive_loss.py (#572)
+- fix: dizoo envs pkg installation bugs
+- fix: multi_trainer middleware unittest bug
+- style: add evogym docker (#580)
+- style: fix metaworld docker bug
+- style: fix setuptools high version incompatibility bug
+- style: extend treetensor lowest version
+
+2022.12.13(v0.4.5)
+- env: add beergame supply chain optimization env (#512)
+- env: add env gym_pybullet_drones (#526)
+- env: rename eval reward to episode return (#536)
+- algo: add policy gradient algo implementation (#544)
+- algo: add MADDPG algo implementation (#550)
+- algo: add IMPALA continuous algo implementation (#551)
+- algo: add MADQN algo implementation (#540)
+- feature: add new task IMPALA-type distributed training scheme (#321)
+- feature: add load and save method for replaybuffer (#542)
+- feature: add more DingEnvWrapper example (#525)
+- feature: add evaluator more info viz support (#538)
+- feature: add trackback log for subprocess env manager (#534)
+- fix: halfcheetah td3 config file (#537)
+- fix: mujoco action_clip args compatibility bug (#535)
+- fix: atari a2c config entry bug
+- fix: drex unittest compatibility bug
+- style: add Roadmap issue of DI-engine (#548)
+- style: update related project link and new env doc
+
+2022.10.31(v0.4.4)
+- env: add modified gym-hybrid including moving, sliding and hardmove (#505) (#519)
+- env: add evogym support (#495) (#527)
+- env: add save_replay_gif option (#506)
+- env: adapt minigrid_env and related config to latest MiniGrid v2.0.0 (#500)
+- algo: add pcgrad optimizer (#489)
+- algo: add some features in MLP and ResBlock (#511)
+- algo: delete mcts related modules (#518)
+- feature: add wandb middleware and demo (#488) (#523) (#528)
+- feature: add new properties in Context (#499)
+- feature: add single env policy wrapper for policy deployment
+- feature: add custom model demo and doc
+- fix: build logger args and unittests (#522)
+- fix: total_loss calculation in PDQN (#504)
+- fix: save gif function bug
+- fix: level sample unittest bug
+- style: update contact email address (#503)
+- style: polish env log and resblock name
+- style: add details button in readme
+
+2022.09.23(v0.4.3)
+- env: add rule-based gomoku expert (#465)
+- algo: fix a2c policy batch size bug (#481)
+- algo: enable activation option in collaq attention and mixer
+- algo: minor fix about IBC (#477)
+- feature: add IGM support (#486)
+- feature: add tb logger middleware and demo
+- fix: the type conversion in ding_env_wrapper (#483)
+- fix: di-orchestrator version bug in unittest (#479)
+- fix: data collection errors caused by shallow copies (#475)
+- fix: gym==0.26.0 seed args bug
+- style: add readme tutorial link(environment & algorithm) (#490) (#493)
+- style: adjust location of the default_model method in policy (#453)
+
+2022.09.08(v0.4.2)
+- env: add rocket env (#449)
+- env: updated pettingzoo env and improved related performance (#457)
+- env: add mario env demo (#443)
+- env: add MAPPO multi-agent config (#464)
+- env: add mountain car (discrete action) environment (#452)
+- env: fix multi-agent mujoco gym comaptibility bug
+- env: fix gfootball env save_replay variable init bug
+- algo: add IBC (Implicit Behaviour Cloning) algorithm (#401)
+- algo: add BCO (Behaviour Cloning from Observation) algorithm (#270)
+- algo: add continuous PPOPG algorithm (#414)
+- algo: add PER in CollaQ (#472)
+- algo: add activation option in QMIX and CollaQ
+- feature: update ctx to dataclass (#467)
+- fix: base_env FinalMeta bug about gym 0.25.0-0.25.1
+- fix: config inplace modification bug
+- fix: ding cli no argument problem
+- fix: import errors after running setup.py (jinja2, markupsafe)
+- fix: conda py3.6 and cross platform build bug
+- style: add project state and datetime in log dir (#455)
+- style: polish notes for q-learning model (#427)
+- style: revision to mujoco dockerfile and validation (#474)
+- style: add dockerfile for cityflow env
+- style: polish default output log format
+
 2022.08.12(v0.4.1)
 - env: add gym trading env (#424)
 - env: add board games env (tictactoe, gomuku, chess) (#356)

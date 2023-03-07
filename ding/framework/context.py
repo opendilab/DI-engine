@@ -1,5 +1,6 @@
 import numpy as np
 import dataclasses
+import treetensor.torch as ttorch
 from typing import Union, Dict, List
 
 
@@ -10,6 +11,7 @@ class Context:
         Context is an object that pass contextual data between middlewares, whose life cycle
         is only one training iteration. It is a dict that reflect itself, so you can set
         any properties as you wish.
+        Note that the initial value of the property must be equal to False.
     """
     _kept_keys: set = dataclasses.field(default_factory=set)
     total_step: int = 0
@@ -49,14 +51,21 @@ class OnlineRLContext(Context):
     env_episode: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None
+    train_output: Union[Dict, List[Dict]] = None
     # collect
     collect_kwargs: Dict = dataclasses.field(default_factory=dict)
+    obs: ttorch.Tensor = None
+    action: List = None
+    inference_output: Dict[int, Dict] = None
     trajectories: List = None
     episodes: List = None
     trajectory_end_idx: List = dataclasses.field(default_factory=list)
+    action: Dict = None
+    inference_output: Dict = None
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
+    eval_output: List = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,
@@ -73,9 +82,11 @@ class OfflineRLContext(Context):
     train_epoch: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None
+    train_output: Union[Dict, List[Dict]] = None
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
+    eval_output: List = dataclasses.field(default_factory=dict)
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,

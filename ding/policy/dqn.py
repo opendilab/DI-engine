@@ -128,6 +128,19 @@ class DQNPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
+        """
+        return 'dqn', ['ding.model.template.q_learning']
+
     def _init_learn(self) -> None:
         """
         Overview:
@@ -144,12 +157,22 @@ class DQNPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
-        )
+        if 'target_update_freq' in self._cfg.learn:
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='assign',
+                update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            )
+        elif 'target_theta' in self._cfg.learn:
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='momentum',
+                update_kwargs={'theta': self._cfg.learn.target_theta}
+            )
+        else:
+            raise RuntimeError("DQN needs target network, please either indicate target_update_freq or target_theta")
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
@@ -190,7 +213,7 @@ class DQNPolicy(Policy):
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
-            # Max q value action (main model)
+            # Max q value action (main model), i.e. Double DQN
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
@@ -216,6 +239,7 @@ class DQNPolicy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
+            'target_q_value': target_q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
@@ -369,19 +393,6 @@ class DQNPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
-        """
-        return 'dqn', ['ding.model.template.q_learning']
 
 
 @POLICY_REGISTRY.register('dqn_stdim')

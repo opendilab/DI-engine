@@ -99,6 +99,9 @@ class ATOCPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'atoc', ['ding.model.template.atoc']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -360,9 +363,6 @@ class ATOCPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'atoc', ['ding.model.template.atoc']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

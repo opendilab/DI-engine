@@ -7,7 +7,9 @@ minigrid_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        # minigrid env id: 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'
+        # typical MiniGrid env id:
+        # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
+        # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
         env_id='MiniGrid-Empty-8x8-v0',
         max_step=300,
         stop_value=0.96,
@@ -17,7 +19,7 @@ minigrid_ppo_config = dict(
         recompute_adv=True,
         action_space='discrete',
         model=dict(
-            obs_shape=2739,
+            obs_shape=2835,
             action_shape=7,
             action_space='discrete',
             encoder_hidden_size_list=[256, 128, 64, 64],

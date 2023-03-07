@@ -174,7 +174,7 @@ class SoloCommander(BaseCommander):
             eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value:
                 self._logger.info(
-                    "[DI-engine parallel pipeline] current eval_reward: {} is greater than the stop_value: {}".
+                    "[DI-engine parallel pipeline] current episode_return: {} is greater than the stop_value: {}".
                     format(finished_task['reward_mean'], eval_stop_value) + ", so the total training program is over."
                 )
                 self._end_flag = True

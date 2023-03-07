@@ -9,8 +9,8 @@ from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_d
 from dizoo.classic_control.cartpole.config.cartpole_dqn_stdim_config import cartpole_dqn_stdim_config, \
     cartpole_dqn_stdim_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config, \
-    cartpole_offppo_create_config
+from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, \
+    cartpole_ppo_offpolicy_create_config
 from dizoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
@@ -37,6 +37,7 @@ from dizoo.petting_zoo.config import ptz_simple_spread_qmix_config, ptz_simple_s
 from dizoo.petting_zoo.config import ptz_simple_spread_qtran_config, ptz_simple_spread_qtran_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_vdn_config, ptz_simple_spread_vdn_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_wqmix_config, ptz_simple_spread_wqmix_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_madqn_config, ptz_simple_spread_madqn_create_config  # noqa
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
@@ -50,6 +51,7 @@ from dizoo.classic_control.pendulum.config.pendulum_ibc_config import pendulum_i
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_config, gym_hybrid_mpdqn_create_config
+from dizoo.classic_control.pendulum.config.pendulum_bdq_config import pendulum_bdq_config, pendulum_bdq_create_config  # noqa
 
 
 @pytest.mark.platformtest
@@ -64,6 +66,20 @@ def test_dqn():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf cartpole_dqn_unittest')
+
+
+@pytest.mark.platformtest
+@pytest.mark.unittest
+def test_bdq():
+    config = [deepcopy(pendulum_bdq_config), deepcopy(pendulum_bdq_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'pendulum_bdq_unittest'
+    try:
+        serial_pipeline(config, seed=0, max_train_iter=1)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf pendulum_bdq_unittest')
 
 
 @pytest.mark.platformtest
@@ -193,7 +209,7 @@ def test_qrdqn():
 @pytest.mark.platformtest
 @pytest.mark.unittest
 def test_ppo():
-    config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].exp_name = 'ppo_offpolicy_unittest'
     try:
@@ -205,7 +221,7 @@ def test_ppo():
 @pytest.mark.platformtest
 @pytest.mark.unittest
 def test_ppo_nstep_return():
-    config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.nstep_return = True
     try:
@@ -370,6 +386,20 @@ def test_wqmix():
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.collect.n_sample = 100
+    try:
+        serial_pipeline(config, seed=0, max_train_iter=1)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf log ckpt*')
+
+
+@pytest.mark.platformtest
+@pytest.mark.unittest
+def test_madqn():
+    config = [deepcopy(ptz_simple_spread_madqn_config), deepcopy(ptz_simple_spread_madqn_create_config)]
+    config[0].policy.cuda = False
+    config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:

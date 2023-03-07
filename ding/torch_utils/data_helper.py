@@ -8,6 +8,7 @@ from queue import Queue
 
 import numpy as np
 import torch
+import treetensor.torch as ttorch
 
 
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
@@ -29,6 +30,15 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     """
     if isinstance(item, torch.nn.Module):
         return item.to(device)
+    elif isinstance(item, ttorch.Tensor):
+        if 'prev_state' in item:
+            prev_state = to_device(item.prev_state, device)
+            del item.prev_state
+            item = item.to(device)
+            item.prev_state = prev_state
+            return item
+        else:
+            return item.to(device)
     elif isinstance(item, torch.Tensor):
         return item.to(device)
     elif isinstance(item, Sequence):
@@ -49,6 +59,8 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     elif isinstance(item, np.ndarray) or isinstance(item, np.bool_):
         return item
     elif item is None or isinstance(item, str):
+        return item
+    elif isinstance(item, torch.distributions.Distribution):  # for compatibility
         return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
@@ -242,9 +254,9 @@ def to_list(item: Any) -> list:
 
 
 def tensor_to_list(item):
-    r"""
+    """
     Overview:
-        Transform `torch.Tensor` to `list`, keep other data types unchanged
+        Transform `torch.Tensor` to `list`, keep other data types unchanged.
     Arguments:
         - item (:obj:`Any`): the item to be transformed
     Returns:
@@ -266,6 +278,31 @@ def tensor_to_list(item):
         return item
     else:
         raise TypeError("not support item type: {}".format(type(item)))
+
+
+def to_item(data):
+    """
+    Overview:
+        Transform data into python native scalar (i.e. data item), keep other data types unchanged.
+    Arguments:
+        - data (:obj:`Any`): The data that needs to be transformed.
+    Returns:
+        - data (:obj:`Any`): Transformed data.
+    """
+    if data is None:
+        return data
+    elif isinstance(data, bool) or isinstance(data, str):
+        return data
+    elif np.isscalar(data):
+        return data
+    elif isinstance(data, np.ndarray) or isinstance(data, torch.Tensor) or isinstance(data, ttorch.Tensor):
+        return data.item()
+    elif isinstance(data, list) or isinstance(data, tuple):
+        return [to_item(d) for d in data]
+    elif isinstance(data, dict):
+        return {k: to_item(v) for k, v in data.items()}
+    else:
+        raise TypeError("not support data type: {}".format(data))
 
 
 def same_shape(data: list) -> bool:
@@ -388,6 +425,17 @@ def unsqueeze(data: Any, dim: int = 0) -> Any:
         raise TypeError("not support type in unsqueeze: {}".format(type(data)))
 
 
+def squeeze(data: Any, dim: int = 0) -> Any:
+    if isinstance(data, torch.Tensor):
+        return data.squeeze(dim)
+    elif isinstance(data, Sequence):
+        return [squeeze(d) for d in data]
+    elif isinstance(data, dict):
+        return {k: squeeze(v, 0) for k, v in data.items()}
+    else:
+        raise TypeError("not support type in squeeze: {}".format(type(data)))
+
+
 def get_null_data(template: Any, num: int) -> List[Any]:
     ret = []
     for _ in range(num):
@@ -397,3 +445,20 @@ def get_null_data(template: Any, num: int) -> List[Any]:
         data['reward'].zero_()
         ret.append(data)
     return ret
+
+
+def get_shape0(data):
+    if isinstance(data, torch.Tensor):
+        return data.shape[0]
+    elif isinstance(data, ttorch.Tensor):
+
+        def fn(t):
+            item = list(t.values())[0]
+            if np.isscalar(item[0]):
+                return item[0]
+            else:
+                return fn(item)
+
+        return fn(data.shape)
+    else:
+        raise TypeError("not support type: {}".format(data))

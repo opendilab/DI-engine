@@ -74,7 +74,7 @@ def check_step(env: BaseEnv) -> None:
         for ndarray, space, name in zip([obs, rew], [env.observation_space, env.reward_space], ['obs', 'rew']):
             check_array_space(ndarray, space, name)
         if done:
-            assert 'final_eval_reward' in info, "info dict should have 'final_eval_reward' key."
+            assert 'eval_episode_return' in info, "info dict should have 'eval_episode_return' key."
             done_times += 1
             _ = env.reset()
         if done_times == 3:
@@ -163,7 +163,7 @@ def demonstrate_correct_procedure(env_fn: Callable) -> None:
         action = env.random_action()
         obs, rew, done, info = env.step(action)
         if done:
-            assert 'final_eval_reward' in info
+            assert 'eval_episode_return' in info
             done_times += 1
             obs = env.reset()
             # Seed will not change unless `seed` method is called again.

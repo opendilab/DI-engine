@@ -218,7 +218,7 @@ class MarineParallelCollector(BaseParallelCollector):
                 self._policy_output_pool.reset(env_id)
                 for p in self._policy:
                     p.reset([env_id])
-                reward = t[0].info['final_eval_reward']
+                reward = t[0].info['eval_episode_return']
                 # Only left player's reward will be recorded.
                 left_reward = reward[0]
                 if isinstance(left_reward, torch.Tensor):

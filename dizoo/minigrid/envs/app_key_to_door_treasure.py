@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from gym_minigrid.minigrid import *
-from gym_minigrid.minigrid import WorldObj
+from minigrid.minigrid_env import *
+from minigrid.utils.rendering import *
+from minigrid.core.world_object import WorldObj
 
 
 class Ball(WorldObj):
@@ -27,7 +28,8 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
         self._agent_default_pos = agent_pos
         self._goal_default_pos = goal_pos
         self.apple = apple
-        super().__init__(grid_size=grid_size, max_steps=100)
+        mission_space = MissionSpace(mission_func=lambda: "Reach the goal")
+        super().__init__(mission_space=mission_space, grid_size=grid_size, max_steps=100)
 
     def _gen_grid(
         self, width, height
@@ -58,7 +60,7 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
                 if i + 1 < 2:
                     if j + 1 < 2:
                         self.grid.vert_wall(xR, yT, room_h)
-                        #pos = (xR, self._rand_int(yT + 1, yB))
+                        # pos = (xR, self._rand_int(yT + 1, yB))
                     else:
                         self.grid.vert_wall(xR, yT, room_h)
                         pos = (xR, self._rand_int(yT + 1, yB))
@@ -183,8 +185,8 @@ class AppleKeyToDoorTreasure(MiniGridEnv):
             done = True
 
         obs = self.gen_obs()
-
-        return obs, reward, done, {}
+        # return is (observation, reward, terminated, truncated, info)
+        return obs, reward, done, done, {}
 
 
 class AppleKeyToDoorTreasure_13x13(AppleKeyToDoorTreasure):

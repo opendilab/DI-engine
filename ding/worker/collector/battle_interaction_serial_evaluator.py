@@ -9,8 +9,8 @@ import torch
 from ding.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts, dicts_to_lists, \
     SERIAL_EVALUATOR_REGISTRY
 from ding.envs import BaseEnvManager
-from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-from .base_serial_evaluator import ISerialEvaluator
+from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list, to_item
+from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 
 
 @SERIAL_EVALUATOR_REGISTRY.register('battle_interaction')
@@ -132,7 +132,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             self.reset_env(_env)
         if _policy is not None:
             self.reset_policy(_policy)
-        self._max_eval_reward = float("-inf")
+        self._max_episode_return = float("-inf")
         self._last_eval_iter = 0
         self._end_flag = False
 
@@ -219,7 +219,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                         for p in self._policy:
                             p.reset([env_id])
                         # policy0 is regarded as main policy default
-                        reward = t.info[0]['final_eval_reward']
+                        reward = t.info[0]['eval_episode_return']
                         if 'episode_info' in t.info[0]:
                             eval_monitor.update_info(env_id, t.info[0]['episode_info'])
                         eval_monitor.update_reward(env_id, reward)
@@ -232,7 +232,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                         )
                     envstep_count += 1
         duration = self._timer.value
-        episode_reward = eval_monitor.get_episode_reward()
+        episode_return = eval_monitor.get_episode_return()
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
@@ -242,11 +242,11 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             'evaluate_time': duration,
             'avg_envstep_per_sec': envstep_count / duration,
             'avg_time_per_episode': n_episode / duration,
-            'reward_mean': np.mean(episode_reward),
-            'reward_std': np.std(episode_reward),
-            'reward_max': np.max(episode_reward),
-            'reward_min': np.min(episode_reward),
-            # 'each_reward': episode_reward,
+            'reward_mean': np.mean(episode_return),
+            'reward_std': np.std(episode_return),
+            'reward_max': np.max(episode_return),
+            'reward_min': np.min(episode_return),
+            # 'each_reward': episode_return,
         }
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
@@ -260,120 +260,17 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                 continue
             self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
-        eval_reward = np.mean(episode_reward)
-        if eval_reward > self._max_eval_reward:
+        episode_return = np.mean(episode_return)
+        if episode_return > self._max_episode_return:
             if save_ckpt_fn:
                 save_ckpt_fn('ckpt_best.pth.tar')
-            self._max_eval_reward = eval_reward
-        stop_flag = eval_reward >= self._stop_value and train_iter > 0
+            self._max_episode_return = episode_return
+        stop_flag = episode_return >= self._stop_value and train_iter > 0
         if stop_flag:
             self._logger.info(
                 "[DI-engine serial pipeline] " +
-                "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
+                "Current episode_return: {} is greater than stop_value: {}".format(episode_return, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
+        return_info = to_item(return_info)
         return stop_flag, return_info
-
-
-class VectorEvalMonitor(object):
-    """
-    Overview:
-        In some cases,  different environment in evaluator may collect different length episode. For example, \
-            suppose we want to collect 12 episodes in evaluator but only have 5 environments, if we didn’t do \
-            any thing, it is likely that we will get more short episodes than long episodes. As a result, \
-            our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.
-    Interfaces:
-        __init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,\
-            get_episode_info
-    """
-
-    def __init__(self, env_num: int, n_episode: int) -> None:
-        """
-        Overview:
-            Init method. According to the number of episodes and the number of environments, determine how many \
-                episodes need to be opened for each environment, and initialize the reward, info and other \
-                information
-        Arguments:
-            - env_num (:obj:`int`): the number of episodes need to be open
-            - n_episode (:obj:`int`): the number of environments
-        """
-        assert n_episode >= env_num, "n_episode < env_num, please decrease the number of eval env"
-        self._env_num = env_num
-        self._n_episode = n_episode
-        each_env_episode = [n_episode // env_num for _ in range(env_num)]
-        for i in range(n_episode % env_num):
-            each_env_episode[i] += 1
-        self._reward = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
-        self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
-
-    def is_finished(self) -> bool:
-        """
-        Overview:
-            Determine whether the evaluator has completed the work.
-        Return:
-            - result: (:obj:`bool`): whether the evaluator has completed the work
-        """
-        return all([len(v) == v.maxlen for v in self._reward.values()])
-
-    def update_info(self, env_id: int, info: Any) -> None:
-        """
-        Overview:
-            Update the information of the environment indicated by env_id.
-        Arguments:
-            - env_id: (:obj:`int`): the id of the environment we need to update information
-            - info: (:obj:`Any`): the information we need to update
-        """
-        info = tensor_to_list(info)
-        self._info[env_id].append(info)
-
-    def update_reward(self, env_id: int, reward: Any) -> None:
-        """
-        Overview:
-            Update the reward indicated by env_id.
-        Arguments:
-            - env_id: (:obj:`int`): the id of the environment we need to update the reward
-            - reward: (:obj:`Any`): the reward we need to update
-        """
-        if isinstance(reward, torch.Tensor):
-            reward = reward.item()
-        self._reward[env_id].append(reward)
-
-    def get_episode_reward(self) -> list:
-        """
-        Overview:
-            Get the total reward of one episode.
-        """
-        return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
-
-    def get_latest_reward(self, env_id: int) -> int:
-        """
-        Overview:
-            Get the latest reward of a certain environment.
-        Arguments:
-            - env_id: (:obj:`int`): the id of the environment we need to get reward.
-        """
-        return self._reward[env_id][-1]
-
-    def get_current_episode(self) -> int:
-        """
-        Overview:
-            Get the current episode. We can know which episode our evaluator is executing now.
-        """
-        return sum([len(v) for v in self._reward.values()])
-
-    def get_episode_info(self) -> dict:
-        """
-        Overview:
-            Get all episode information, such as total reward of one episode.
-        """
-        if len(self._info[0]) == 0:
-            return None
-        else:
-            total_info = sum([list(v) for v in self._info.values()], [])
-            total_info = lists_to_dicts(total_info)
-            new_dict = {}
-            for k in total_info.keys():
-                if np.isscalar(total_info[k][0]):
-                    new_dict[k + '_mean'] = np.mean(total_info[k])
-            total_info.update(new_dict)
-            return total_info

@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Tuple
 import torch
 
 from ding.model import model_wrap
-from ding.rl_utils import vtrace_data, vtrace_error, get_train_sample
+from ding.rl_utils import vtrace_data, vtrace_error_discrete_action, vtrace_error_continuous_action, get_train_sample
 from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -48,6 +48,8 @@ class IMPALAPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (str) Which kind of action space used in IMPALAPolicy, ['discrete', 'continuous']
+        action_space='discrete',
         # (int) the trajectory length to calculate v-trace target
         unroll_len=32,
         # (bool) Whether to need policy data in process transition
@@ -88,12 +90,17 @@ class IMPALAPolicy(Policy):
         ), ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'vac', ['ding.model.template.vac']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
             Initialize the optimizer, algorithm config and main model.
         """
+        assert self._cfg.action_space in ["continuous", "discrete"]
+        self._action_space = self._cfg.action_space
         # Optimizer
         grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
         clip_value = self._cfg.learn.get("clip_value", None)
@@ -162,10 +169,21 @@ class IMPALAPolicy(Policy):
         else:
             data['weight'] = data.get('weight', None)
         data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1)*B,env_obs_shape
-        data['logit'] = torch.cat(
-            data['logit'], dim=0
-        ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        if self._action_space == 'continuous':
+            data['logit']['mu'] = torch.cat(
+                data['logit']['mu'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+            data['logit']['sigma'] = torch.cat(
+                data['logit']['sigma'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+            data['action'] = torch.cat(
+                data['action'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+        elif self._action_space == 'discrete':
+            data['logit'] = torch.cat(
+                data['logit'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+            data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
         data['weight'] = torch.cat(
@@ -201,7 +219,11 @@ class IMPALAPolicy(Policy):
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
         g, l, r, c, rg = self._gamma, self._lambda, self._rho_clip_ratio, self._c_clip_ratio, self._rho_pg_clip_ratio
-        vtrace_loss = vtrace_error(data, g, l, r, c, rg)
+        if self._action_space == 'continuous':
+            vtrace_loss = vtrace_error_continuous_action(data, g, l, r, c, rg)
+        elif self._action_space == 'discrete':
+            vtrace_loss = vtrace_error_discrete_action(data, g, l, r, c, rg)
+
         wv, we = self._value_weight, self._entropy_weight
         total_loss = vtrace_loss.policy_loss + wv * vtrace_loss.value_loss - we * vtrace_loss.entropy_loss
         # ====================
@@ -241,10 +263,18 @@ class IMPALAPolicy(Policy):
             - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
             - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
-                                               self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+        if self._action_space == 'continuous':
+            target_logit = {}
+            target_logit['mu'] = output['logit']['mu'].reshape(self._unroll_len + 1, -1,
+                                                               self._action_shape)[:-1
+                                                                                   ]  # shape (T+1),B,env_action_shape
+            target_logit['sigma'] = output['logit']['sigma'].reshape(self._unroll_len + 1, -1, self._action_shape
+                                                                     )[:-1]  # shape (T+1),B,env_action_shape
+        elif self._action_space == 'discrete':
+            target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
+                                                   self._action_shape)[:-1]  # shape (T+1),B,env_action_shape
         behaviour_logit = data['logit']  # shape T,B
-        actions = data['action']  # shape T,B
+        actions = data['action']  # shape T,B for discrete # shape T,B,env_action_shape for continuous
         values = output['value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
         rewards = data['reward']  # shape T,B
         weights_ = 1 - data['done']  # shape T,B
@@ -286,7 +316,13 @@ class IMPALAPolicy(Policy):
             Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model.
             Use multinomial_sample to choose action.
         """
-        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        assert self._cfg.action_space in ["continuous", "discrete"]
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
+        elif self._action_space == 'discrete':
+            self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Dict[str, Any]]:
@@ -361,7 +397,13 @@ class IMPALAPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model,
             and use argmax_sample to choose action.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        assert self._cfg.action_space in ["continuous", "discrete"]
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
+        elif self._action_space == 'discrete':
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+
         self._eval_model.reset()
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
@@ -391,9 +433,6 @@ class IMPALAPolicy(Policy):
         output = default_decollate(output)
         output = {i: d for i, d in zip(data_id, output)}
         return output
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

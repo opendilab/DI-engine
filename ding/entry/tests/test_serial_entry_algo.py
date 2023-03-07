@@ -5,13 +5,13 @@ import torch
 import subprocess
 from copy import deepcopy
 
-from ding.utils import K8sLauncher, OrchestratorLauncher
 from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data, serial_pipeline_onpolicy
 from ding.entry.serial_entry_sqil import serial_pipeline_sqil
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
 from dizoo.classic_control.cartpole.config.cartpole_sqil_config import cartpole_sqil_config, cartpole_sqil_create_config
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
+from dizoo.classic_control.cartpole.config.cartpole_pg_config import cartpole_pg_config, cartpole_pg_create_config
 from dizoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
 from dizoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
@@ -169,6 +169,17 @@ def test_r2d2():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("11. r2d2\n")
+
+
+@pytest.mark.algotest
+def test_pg():
+    config = [deepcopy(cartpole_pg_config), deepcopy(cartpole_pg_create_config)]
+    try:
+        serial_pipeline_onpolicy(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("12. pg\n")
 
 
 # @pytest.mark.algotest
@@ -394,7 +405,7 @@ def test_wqmix():
         f.write("28. wqmix\n")
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_td3_bc():
     # train expert
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
@@ -430,6 +441,7 @@ def test_td3_bc():
 # @pytest.mark.algotest
 def test_running_on_orchestrator():
     from kubernetes import config, client, dynamic
+    from ding.utils import K8sLauncher, OrchestratorLauncher
     cluster_name = 'test-k8s-launcher'
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')
     # create cluster

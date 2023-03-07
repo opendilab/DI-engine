@@ -24,8 +24,6 @@ def test_serial_pipeline_trex_onpolicy():
     exp_name = 'test_serial_pipeline_trex_onpolicy_collect'
     config = [deepcopy(cartpole_trex_ppo_onpolicy_config), deepcopy(cartpole_trex_ppo_onpolicy_create_config)]
     config[0].exp_name = exp_name
-    config[0].reward_model.data_path = exp_name
-    config[0].reward_model.reward_model_path = exp_name + '/cartpole.params'
     config[0].reward_model.expert_model_path = 'test_serial_pipeline_trex_onpolicy_expert'
     config[0].reward_model.checkpoint_max = 100
     config[0].reward_model.checkpoint_step = 100

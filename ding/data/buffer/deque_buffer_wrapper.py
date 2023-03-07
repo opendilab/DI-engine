@@ -1,7 +1,9 @@
+import os
 from typing import Optional
 import copy
 from easydict import EasyDict
 import numpy as np
+import hickle
 
 from ding.data.buffer import DequeBuffer
 from ding.data.buffer.middleware import use_time_check, PriorityExperienceReplay
@@ -51,7 +53,6 @@ class DequeBufferWrapper(object):
             self.buffer.use(
                 PriorityExperienceReplay(
                     self.buffer,
-                    self.cfg.replay_buffer_size,
                     IS_weight=self.cfg.priority_IS_weight,
                     priority_power_factor=self.cfg.priority_power_factor,
                     IS_weight_power_factor=self.cfg.IS_weight_power_factor,
@@ -112,3 +113,9 @@ class DequeBufferWrapper(object):
 
     def count(self) -> int:
         return self.buffer.count()
+
+    def save_data(self, file_name):
+        self.buffer.save_data(file_name)
+
+    def load_data(self, file_name: str):
+        self.buffer.load_data(file_name)

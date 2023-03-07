@@ -1,6 +1,7 @@
 from typing import Optional, Any, List
 from collections import namedtuple
 from easydict import EasyDict
+import copy
 import numpy as np
 import torch
 
@@ -46,7 +47,7 @@ class SampleSerialCollector(ISerialCollector):
         self._exp_name = exp_name
         self._instance_name = instance_name
         self._collect_print_freq = cfg.collect_print_freq
-        self._deepcopy_obs = cfg.deepcopy_obs
+        self._deepcopy_obs = cfg.deepcopy_obs  # avoid shallow copy, e.g., ovelap of s_t and s_t+1
         self._transform_obs = cfg.transform_obs
         self._cfg = cfg
         self._timer = EasyTimer()
@@ -134,7 +135,10 @@ class SampleSerialCollector(ISerialCollector):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
         maxlen = self._traj_len if self._traj_len != INF else None
-        self._traj_buffer = {env_id: TrajBuffer(maxlen=maxlen) for env_id in range(self._env_num)}
+        self._traj_buffer = {
+            env_id: TrajBuffer(maxlen=maxlen, deepcopy=self._deepcopy_obs)
+            for env_id in range(self._env_num)
+        }
         self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
 
         self._episode_info = []
@@ -298,7 +302,7 @@ class SampleSerialCollector(ISerialCollector):
                 # If env is done, record episode info and reset
                 if timestep.done:
                     self._total_episode_count += 1
-                    reward = timestep.info['final_eval_reward']
+                    reward = timestep.info['eval_episode_return']
                     info = {
                         'reward': reward,
                         'time': self._env_info[env_id]['time'],
@@ -335,7 +339,7 @@ class SampleSerialCollector(ISerialCollector):
             envstep_count = sum([d['step'] for d in self._episode_info])
             train_sample_count = sum([d['train_sample'] for d in self._episode_info])
             duration = sum([d['time'] for d in self._episode_info])
-            episode_reward = [d['reward'] for d in self._episode_info]
+            episode_return = [d['reward'] for d in self._episode_info]
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -347,15 +351,15 @@ class SampleSerialCollector(ISerialCollector):
                 'avg_train_sample_per_sec': train_sample_count / duration,
                 'avg_episode_per_sec': episode_count / duration,
                 'collect_time': duration,
-                'reward_mean': np.mean(episode_reward),
-                'reward_std': np.std(episode_reward),
-                'reward_max': np.max(episode_reward),
-                'reward_min': np.min(episode_reward),
+                'reward_mean': np.mean(episode_return),
+                'reward_std': np.std(episode_return),
+                'reward_max': np.max(episode_return),
+                'reward_min': np.min(episode_return),
                 'total_envstep_count': self._total_envstep_count,
                 'total_train_sample_count': self._total_train_sample_count,
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
-                # 'each_reward': episode_reward,
+                # 'each_reward': episode_return,
             }
             self._episode_info.clear()
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))

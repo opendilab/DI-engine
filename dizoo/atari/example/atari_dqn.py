@@ -41,8 +41,8 @@ def main():
         task.use(nstep_reward_enhancer(cfg))
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(cfg, policy, train_freq=1000))
-        task.use(termination_checker(max_train_iter=int(1e7)))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
+        task.use(termination_checker(max_env_step=int(1e7)))
         task.run()
 
 

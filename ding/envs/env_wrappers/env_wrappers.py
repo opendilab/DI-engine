@@ -294,8 +294,8 @@ class DelayRewardWrapper(gym.Wrapper):
         return obs, reward, done, info
 
 
-@ENV_WRAPPER_REGISTRY.register('final_eval_reward')
-class FinalEvalRewardEnv(gym.Wrapper):
+@ENV_WRAPPER_REGISTRY.register('eval_episode_return')
+class EvalEpisodeReturnEnv(gym.Wrapper):
     """
     Overview:
         Accumulate rewards at every timestep, and return at the end of the episode in `info`.
@@ -315,14 +315,14 @@ class FinalEvalRewardEnv(gym.Wrapper):
         super().__init__(env)
 
     def reset(self):
-        self._final_eval_reward = 0.
+        self._eval_episode_return = 0.
         return self.env.reset()
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
-        self._final_eval_reward += reward
+        self._eval_episode_return += reward
         if done:
-            info['final_eval_reward'] = to_ndarray([self._final_eval_reward], dtype=np.float32)
+            info['eval_episode_return'] = to_ndarray([self._eval_episode_return], dtype=np.float32)
         return obs, reward, done, info
 
 
@@ -1039,6 +1039,52 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
         obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
         self.prev_action = action
         self.prev_reward_extrinsic = reward
+        return obs, reward, done, info
+
+
+class TransposeWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+        old_space = copy.deepcopy(env.observation_space)
+        new_shape = (old_space.shape[-1], *old_space.shape[:-1])
+        self._observation_space = gym.spaces.Box(
+            low=old_space.low.min(), high=old_space.high.max(), shape=new_shape, dtype=old_space.dtype
+        )
+
+    def _process_obs(self, obs):
+        obs = to_ndarray(obs)
+        obs = np.transpose(obs, (2, 0, 1))
+        return obs
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        return self._process_obs(obs), reward, done, info
+
+    def reset(self):
+        obs = self.env.reset()
+        return self._process_obs(obs)
+
+
+class TimeLimitWrapper(gym.Wrapper):
+
+    def __init__(self, env, max_limit):
+        super().__init__(env)
+        self.max_limit = max_limit
+
+    def reset(self):
+        self.time_count = 0
+        return self.env.reset()
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self.time_count += 1
+        if self.time_count >= self.max_limit:
+            done = True
+            info['time_limit'] = True
+        else:
+            info['time_limit'] = False
+        info['time_count'] = self.time_count
         return obs, reward, done, info
 
 

@@ -1,7 +1,6 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
-from tqdm import tqdm
 from functools import partial
 from tensorboardX import SummaryWriter
 from copy import deepcopy
@@ -97,10 +96,10 @@ def serial_pipeline_offline(
     learner.call_hook('before_run')
     stop = False
 
-    for epoch in tqdm(range(cfg.policy.learn.train_epoch)):
+    for epoch in range(cfg.policy.learn.train_epoch):
         if get_world_size() > 1:
             dataloader.sampler.set_epoch(epoch)
-        for train_data in tqdm(dataloader):
+        for train_data in dataloader:
             learner.train(train_data)
 
         # Evaluate policy at most once per epoch.

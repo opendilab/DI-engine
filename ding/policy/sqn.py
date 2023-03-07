@@ -64,6 +64,9 @@ class SQNPolicy(Policy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'sqn', ['ding.model.template.sqn']
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -344,9 +347,6 @@ class SQNPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'sqn', ['ding.model.template.sqn']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

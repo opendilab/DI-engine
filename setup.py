@@ -50,50 +50,50 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
-        'numpy>=1.18.0',
-        'requests>=2.25.1',
-        'six',
-        'gym>=0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'setuptools<=66.1.1',
+        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
-        'pyyaml<6.0',
+        'numpy>=1.18.0',
+        'pandas',
+        'tensorboardX>=2.2',
+        'requests>=2.25.1',
+        'pyyaml',
         'easydict==1.9',
-        'protobuf<=3.20.1',
-        'tensorboardX>=2.1,<=2.2',
-        'matplotlib',  # pypy incompatible
-        'seaborn',
+        'protobuf',
         'yapf==0.29.0',
-        'responses~=0.12.1',
-        'MarkupSafe==2.0.1',
-        'jinja2<3.1.0',
         'flask~=1.1.2',
+        'tqdm',
         'lz4',
         'scipy',
         'cloudpickle',
         'tabulate',
-        'sortedcontainers',
-        'click==7.1.2',
-        'URLObject~=2.4.3',
+        'click>=7.0.0',
+        'URLObject>=2.4.0',
         'urllib3>=1.26.5',
+        'responses~=0.12.1',
         'readerwriterlock',
         'enum_tools',
         'trueskill',
         'h5py',
         'mpire>=2.3.5',
         'pynng',
-        'pettingzoo==1.12.0',
-        'pyglet>=1.4.0',
         'redis',
-        'DI-treetensor>=0.4.0',
+        'pettingzoo',
+        'DI-treetensor>=0.3.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
-        'moviepy',
-        'tqdm',
+        'wandb',
+        'matplotlib',
+        'MarkupSafe==2.0.1',  # compatibility
+        'h5py',
+        'scikit-learn',
+        'hickle',
     ],
     extras_require={
         'test': [
             'gym[box2d]>=0.25.0',
             'opencv-python',  # pypy incompatible
-            'coverage>=5',
+            'coverage>=5,<=7.0.1',
             'mock>=4.0.3',
             'pytest~=7.0.1',  # required by gym>=0.25.0
             'pytest-cov~=3.0.0',
@@ -105,6 +105,7 @@ setup(
         'style': [
             'yapf==0.29.0',
             'flake8<=3.9.2',
+            'importlib-metadata<5.0.0',  # compatibility
         ],
         'fast': [
             'numpy-stl',
@@ -117,7 +118,7 @@ setup(
         'common_env': [
             'ale-py',  # >=0.7.5',  # atari
             'autorom',
-            'gym[all]>=0.25.0'
+            'gym[all]>=0.25.0',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],
@@ -132,7 +133,7 @@ setup(
             'bsuite',
         ],
         'minigrid_env': [
-            'gym-minigrid',
+            'minigrid>=2.0.0',
         ],
         # 'd4rl_env': [
         #     'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',

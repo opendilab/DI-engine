@@ -5,7 +5,7 @@ import torch
 import torch.distributed as dist
 
 from ding.envs import BaseEnvManager
-from ding.torch_utils import to_tensor, to_ndarray
+from ding.torch_utils import to_tensor, to_ndarray, to_item
 from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
 from ding.utils import get_world_size, get_rank
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
@@ -130,7 +130,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             self.reset_env(_env)
         if _policy is not None:
             self.reset_policy(_policy)
-        self._max_eval_reward = float("-inf")
+        self._max_episode_return = float("-inf")
         self._last_eval_iter = -1
         self._end_flag = False
         self._last_render_iter = -1
@@ -241,20 +241,23 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             continue
                         if t.done:
                             # Env reset is done by env_manager automatically.
+                            if 'figure_path' in self._cfg:
+                                if self._cfg.figure_path is not None:
+                                    self._env.enable_save_figure(env_id, self._cfg.figure_path)
                             self._policy.reset([env_id])
-                            reward = t.info['final_eval_reward']
+                            reward = t.info['eval_episode_return']
                             if 'episode_info' in t.info:
                                 eval_monitor.update_info(env_id, t.info['episode_info'])
                             eval_monitor.update_reward(env_id, reward)
                             return_info.append(t.info)
                             self._logger.info(
-                                "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
+                                "[EVALUATOR]env {} finish episode, final reward: {:.4f}, current episode: {}".format(
                                     env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
                                 )
                             )
                         envstep_count += 1
             duration = self._timer.value
-            episode_reward = eval_monitor.get_episode_reward()
+            episode_return = eval_monitor.get_episode_return()
             info = {
                 'train_iter': train_iter,
                 'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
@@ -264,11 +267,11 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 'evaluate_time': duration,
                 'avg_envstep_per_sec': envstep_count / duration,
                 'avg_time_per_episode': n_episode / duration,
-                'reward_mean': np.mean(episode_reward),
-                'reward_std': np.std(episode_reward),
-                'reward_max': np.max(episode_reward),
-                'reward_min': np.min(episode_reward),
-                # 'each_reward': episode_reward,
+                'reward_mean': np.mean(episode_return),
+                'reward_std': np.std(episode_return),
+                'reward_max': np.max(episode_return),
+                'reward_min': np.min(episode_return),
+                # 'each_reward': episode_return,
             }
             episode_info = eval_monitor.get_episode_info()
             if episode_info is not None:
@@ -290,17 +293,16 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 from ding.utils import fps
                 self._tb_logger.add_video(video_title, videos, render_iter, fps(self._env))
 
-            eval_reward = np.mean(episode_reward)
-            if eval_reward > self._max_eval_reward:
+            episode_return = np.mean(episode_return)
+            if episode_return > self._max_episode_return:
                 if save_ckpt_fn:
                     save_ckpt_fn('ckpt_best.pth.tar')
-                self._max_eval_reward = eval_reward
-            stop_flag = eval_reward >= self._stop_value and train_iter > 0
+                self._max_episode_return = episode_return
+            stop_flag = episode_return >= self._stop_value and train_iter > 0
             if stop_flag:
                 self._logger.info(
-                    "[DI-engine serial pipeline] " +
-                    "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
-                    ", so your RL agent is converged, you can refer to " +
+                    "[DI-engine serial pipeline] " + "Current episode_return: {:.4f} is greater than stop_value: {}".
+                    format(episode_return, self._stop_value) + ", so your RL agent is converged, you can refer to " +
                     "'log/evaluator/evaluator_logger.txt' for details."
                 )
 
@@ -309,4 +311,5 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             dist.broadcast_object_list(objects, src=0)
             stop_flag, return_info = objects
 
+        return_info = to_item(return_info)
         return stop_flag, return_info
