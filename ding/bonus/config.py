@@ -78,6 +78,17 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                 critic_head_hidden_size=256,
                 actor_head_hidden_size=256,
             )
+        elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling']:
+            cfg.n_sample = 1024
+            cfg.batch_size = 128
+            cfg.epoch_per_collect = 10
+            cfg.learning_rate = 0.0001
+            cfg.model = dict(
+                encoder_hidden_size_list=[32, 64, 64, 128],
+                actor_head_hidden_size=128,
+                critic_head_hidden_size=128,
+                critic_head_layer_num=2,
+            )
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':
@@ -218,13 +229,27 @@ def get_instance_env(env: str) -> BaseEnv:
             seed_api=False,
         )
     elif env == 'hopper':
-
         from dizoo.mujoco.envs import MujocoEnv
         cfg = EasyDict(
             env_id='Hopper-v3',
             env_wrapper='mujoco_default',
         )
         return DingEnvWrapper(cfg=cfg)
+    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling']:
+        from dizoo.atari.envs.atari_env import AtariEnv
+        atari_env_list = {
+            'atari_qbert': 'QbertNoFrameskip-v4',
+            'atari_kangaroo': 'KangarooNoFrameskip-v4',
+            'atari_bowling': 'BowlingNoFrameskip-v4'
+        }
+        cfg = EasyDict({
+            'env_id': atari_env_list[env],
+            'env_wrapper': 'atari_default',
+        })
+        ding_env_atari = DingEnvWrapper(gym.make(atari_env_list[env]), cfg=cfg)
+        ding_env_atari.enable_save_replay(env + '_log/')
+        obs = ding_env_atari.reset()
+        return ding_env_atari
     else:
         raise KeyError("not supported env type: {}".format(env))
 
