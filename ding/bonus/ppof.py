@@ -1,6 +1,7 @@
 from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
+from functools import partial
 import os
 import gym
 import torch
@@ -30,6 +31,10 @@ class PPOF:
         'mario',
         'di_sheep',
         'procgen_bigfish',
+        # atari
+        'atari_qbert',
+        'atari_kangaroo',
+        'atari_bowling',
     ]
 
     def __init__(
@@ -85,8 +90,8 @@ class PPOF:
             logging.getLogger().setLevel(logging.DEBUG)
         logging.debug(self.policy._model)
         # define env and policy
-        collector_env = self._setup_env_manager(collector_env_num, context, debug)
-        evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
+        collector_env = self._setup_env_manager(collector_env_num, context, debug, 'collector')
+        evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
@@ -168,7 +173,7 @@ class PPOF:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
-        env = self._setup_env_manager(env_num, context, debug)
+        env = self._setup_env_manager(env_num, context, debug, 'evaluator')
         if ckpt_path is None:
             ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
         state_dict = torch.load(ckpt_path, map_location='cpu')
@@ -179,7 +184,14 @@ class PPOF:
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, env, n_evaluator_episode))
             task.run(max_step=1)
 
-    def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
+    def _setup_env_manager(
+            self,
+            env_num: int,
+            context: Optional[str] = None,
+            debug: bool = False,
+            caller: str = 'collector'
+    ) -> BaseEnvManagerV2:
+        assert caller in ['evaluator', 'collector']
         if debug:
             env_cls = BaseEnvManagerV2
             manager_cfg = env_cls.default_config()
@@ -188,4 +200,4 @@ class PPOF:
             manager_cfg = env_cls.default_config()
             if context is not None:
                 manager_cfg.context = context
-        return env_cls([self.env.clone for _ in range(env_num)], manager_cfg)
+        return env_cls([partial(self.env.clone, caller) for _ in range(env_num)], manager_cfg)
