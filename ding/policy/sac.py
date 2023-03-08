@@ -38,12 +38,10 @@ class SACDiscretePolicy(Policy):
            6  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for
               | ``collect_size``                               | training samples in replay      | SAC, 25000 for DDPG/
               |                                                | buffer when training starts.    | TD3.
-           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
-              | ``_rate_q``                                    | network.                        | model.value_network
-              |                                                |                                 | is True.
-           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when
-              | ``_rate_policy``                               | network.                        | model.value_network
-              |                                                |                                 | is True.
+           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3
+              | ``_rate_q``                                    | network.                        |
+           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3
+              | ``_rate_policy``                               | network.                        |
            9  | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
               |                                                | coefficient.                    | zation for auto
               |                                                |                                 | `\alpha`, when
@@ -236,7 +234,7 @@ class SACDiscretePolicy(Policy):
         dist_entropy = dist.entropy()
         entropy = dist_entropy.mean()
 
-        # 2. predict target value depend self._value_network.
+        # 2. predict target value
 
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
@@ -437,12 +435,10 @@ class SACPolicy(Policy):
            6  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for
               | ``collect_size``                               | training samples in replay      | SAC, 25000 for DDPG/
               |                                                | buffer when training starts.    | TD3.
-           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
-              | ``_rate_q``                                    | network.                        | model.value_network
-              |                                                |                                 | is True.
-           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when
-              | ``_rate_policy``                               | network.                        | model.value_network
-              |                                                |                                 | is True.
+           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3
+              | ``_rate_q``                                    | network.                        |
+           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3
+              | ``_rate_policy``                               | network.                        |
            9  | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
               |                                                | coefficient.                    | zation for auto
               |                                                |                                 | `\alpha`, when
@@ -564,12 +560,6 @@ class SACPolicy(Policy):
         self._model.actor[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
         self._model.actor[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
 
-        # Optimizers
-        if self._value_network:
-            self._optimizer_value = Adam(
-                self._model.value_critic.parameters(),
-                lr=self._cfg.learn.learning_rate_value,
-            )
         self._optimizer_q = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_q,
@@ -824,17 +814,17 @@ class SACPolicy(Policy):
     def _monitor_vars_learn(self) -> List[str]:
         twin_critic = ['twin_critic_loss'] if self._twin_critic else []
         alpha_loss = ['alpha_loss'] if self._auto_alpha else []
-        value_loss = ['value_loss'] if self._value_network else []
         return [
-                   'alpha_loss',
-                   'policy_loss',
-                   'critic_loss',
-                   'cur_lr_q',
-                   'cur_lr_p',
-                   'target_q_value',
-                   'alpha',
-                   'td_error',
-               ] + twin_critic + alpha_loss + value_loss
+            'value_loss'
+            'alpha_loss',
+            'policy_loss',
+            'critic_loss',
+            'cur_lr_q',
+            'cur_lr_p',
+            'target_q_value',
+            'alpha',
+            'td_error',
+        ] + twin_critic + alpha_loss
 
 
 @POLICY_REGISTRY.register('sqil_sac')
@@ -852,12 +842,6 @@ class SQILSACPolicy(SACPolicy):
         self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
         self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
 
-        # Optimizers
-        if self._value_network:
-            self._optimizer_value = Adam(
-                self._model.value_critic.parameters(),
-                lr=self._cfg.learn.learning_rate_value,
-            )
         self._optimizer_q = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_q,
@@ -1110,22 +1094,22 @@ class SQILSACPolicy(SACPolicy):
     def _monitor_vars_learn(self) -> List[str]:
         twin_critic = ['twin_critic_loss'] if self._twin_critic else []
         alpha_loss = ['alpha_loss'] if self._auto_alpha else []
-        value_loss = ['value_loss'] if self._value_network else []
         cos_similarity = ['cos_similarity'] if self._monitor_cos else []
         entropy = ['entropy'] if self._monitor_entropy else []
         return [
-                   'alpha_loss',
-                   'policy_loss',
-                   'critic_loss',
-                   'cur_lr_q',
-                   'cur_lr_p',
-                   'target_q_value',
-                   'alpha',
-                   'td_error',
-                   'agent_td_error',
-                   'expert_td_error',
-                   'mu',
-                   'sigma',
-                   'q_value0',
-                   'q_value1',
-               ] + twin_critic + alpha_loss + value_loss + cos_similarity + entropy
+            'value_loss'
+            'alpha_loss',
+            'policy_loss',
+            'critic_loss',
+            'cur_lr_q',
+            'cur_lr_p',
+            'target_q_value',
+            'alpha',
+            'td_error',
+            'agent_td_error',
+            'expert_td_error',
+            'mu',
+            'sigma',
+            'q_value0',
+            'q_value1',
+        ] + twin_critic + alpha_loss + cos_similarity + entropy
