@@ -6,13 +6,11 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam, SGD, AdamW
 from torch.optim.lr_scheduler import LambdaLR
-from easydict import EasyDict
 
 from ding.policy import Policy
 from ding.model import model_wrap
 from ding.torch_utils import to_device
 from ding.utils import EasyTimer
-from ding.rl_utils import get_nstep_return_data, get_train_sample
 from ding.utils import POLICY_REGISTRY
 
 
@@ -52,7 +50,7 @@ class ProcedureCloningBFSPolicy(Policy):
             ),
         ),
         eval=dict(),
-        other=dict(replay_buffer=dict(replay_buffer_size=10000, stop_value=1000,)),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000)),
     )
 
     def _init_learn(self):
@@ -183,42 +181,7 @@ class ProcedureCloningBFSPolicy(Policy):
         raise NotImplementedError
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
-        Overview:
-            Generate dict type transition data from inputs.
-        Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
-        Returns:
-            - transition (:obj:`dict`): Dict type transition data.
-        """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
-        return EasyDict(transition)
+        raise NotImplementedError
 
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Overview:
-            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
-            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \
-            or some continuous transitions(DRQN).
-        Arguments:
-            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
-                format as the return value of ``self._process_transition`` method.
-        Returns:
-            - samples (:obj:`dict`): The list of training samples.
-
-        .. note::
-            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
-            And the user can customize the this data processing procecure by overriding this two methods and collector \
-            itself.
-        """
-        data = get_nstep_return_data(data, 1, 1)
-        return get_train_sample(data, self._unroll_len)
+        raise NotImplementedError
