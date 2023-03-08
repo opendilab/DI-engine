@@ -19,4 +19,5 @@ from .cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config
 from .cartpole_trex_dqn_config import cartpole_trex_dqn_config, cartpole_trex_dqn_create_config
 from .cartpole_trex_offppo_config import cartpole_trex_offppo_config, cartpole_trex_offppo_create_config
 from .cartpole_trex_onppo_config import cartpole_trex_ppo_onpolicy_config, cartpole_trex_ppo_onpolicy_create_config
+from .cartpole_mdqn_config import cartpole_mdqn_config, cartpole_mdqn_create_config
 # from .cartpole_ppo_default_loader import cartpole_ppo_default_loader

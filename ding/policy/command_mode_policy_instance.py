@@ -3,6 +3,7 @@ from ding.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
 from .dqn import DQNPolicy, DQNSTDIMPolicy
+from .mdqn import MDQNPolicy
 from .c51 import C51Policy
 from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
@@ -98,6 +99,11 @@ class DummyCommandModePolicy(CommandModePolicy):
 
 @POLICY_REGISTRY.register('bdq_command')
 class BDQCommandModePolicy(BDQPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('mdqn_command')
+class MDQNCommandModePolicy(MDQNPolicy, EpsCommandModePolicy):
     pass
 
 
