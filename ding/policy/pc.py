@@ -108,8 +108,8 @@ class ProcedureCloningBFSPolicy(Policy):
             collated_data = to_device(data, self._device)
         else:
             collated_data = data
-        observations, bfs_input_maps, bfs_output_maps = collated_data['obs'], collated_data['bfs_in'].long(), \
-                                                        collated_data['bfs_out'].long()
+        observations = collated_data['obs'],
+        bfs_input_maps, bfs_output_maps = collated_data['bfs_in'].long(), collated_data['bfs_out'].long()
         states = observations
         bfs_input_onehot = torch.nn.functional.one_hot(bfs_input_maps, self._num_actions + 1).float()
 

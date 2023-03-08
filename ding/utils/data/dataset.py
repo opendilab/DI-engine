@@ -9,7 +9,6 @@ from copy import deepcopy
 from torch.utils.data import Dataset
 from dataclasses import dataclass
 
-from dizoo.maze.envs import Maze
 from easydict import EasyDict
 from ding.utils.bfs_helper import get_vi_sequence
 
@@ -440,6 +439,7 @@ class PCDataset(Dataset):
 
 
 def load_bfs_datasets(train_seeds=1, test_seeds=5):
+    from dizoo.maze.envs import Maze
 
     def load_env(seed):
         ccc = easydict.EasyDict({'size': 16})
