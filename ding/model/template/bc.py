@@ -13,16 +13,16 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
 class DiscreteBC(nn.Module):
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType],
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            dueling: bool = True,
-            head_hidden_size: Optional[int] = None,
-            head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            strides: Optional[list] = None,
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        dueling: bool = True,
+        head_hidden_size: Optional[int] = None,
+        head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        strides: Optional[list] = None,
     ) -> None:
         """
         Overview:
@@ -51,11 +51,13 @@ class DiscreteBC(nn.Module):
         # Conv Encoder
         elif len(obs_shape) == 3:
             if not strides:
-                self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation,
-                                           norm_type=norm_type)
+                self.encoder = ConvEncoder(
+                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                )
             else:
-                self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation,
-                                           norm_type=norm_type, stride=strides)
+                self.encoder = ConvEncoder(
+                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type, stride=strides
+                )
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own BC".format(obs_shape)

@@ -1,13 +1,17 @@
 from typing import List, Dict, Tuple
 import pickle
+
+import easydict
 import torch
 import numpy as np
 from ditk import logging
 from copy import deepcopy
+from torch.utils.data import Dataset
 from dataclasses import dataclass
 
+from dizoo.maze.envs import Maze
 from easydict import EasyDict
-from torch.utils.data import Dataset
+from ding.utils.bfs_helper import get_vi_sequence
 
 from ding.utils import DATASET_REGISTRY, import_module
 from ding.rl_utils import discount_cumsum
@@ -421,6 +425,77 @@ class D4RLTrajectoryDataset(Dataset):
             )
 
         return timesteps, states, actions, returns_to_go, traj_mask
+
+
+class PCDataset(Dataset):
+
+    def __init__(self, all_data):
+        self._data = all_data
+
+    def __getitem__(self, item):
+        return {'obs': self._data[0][item], 'bfs_in': self._data[1][item], 'bfs_out': self._data[2][item]}
+
+    def __len__(self):
+        return self._data[0].shape[0]
+
+
+def load_bfs_datasets(train_seeds=1, test_seeds=5):
+
+    def load_env(seed):
+        ccc = easydict.EasyDict({'size': 16})
+        e = Maze(ccc)
+        e.seed(seed)
+        e.reset()
+        return e
+
+    envs = [load_env(i) for i in range(train_seeds + test_seeds)]
+
+    observations_train = []
+    observations_test = []
+    bfs_input_maps_train = []
+    bfs_input_maps_test = []
+    bfs_output_maps_train = []
+    bfs_output_maps_test = []
+    for idx, env in enumerate(envs):
+        if idx < train_seeds:
+            observations = observations_train
+            bfs_input_maps = bfs_input_maps_train
+            bfs_output_maps = bfs_output_maps_train
+        else:
+            observations = observations_test
+            bfs_input_maps = bfs_input_maps_test
+            bfs_output_maps = bfs_output_maps_test
+
+        start_obs = env.process_states(env._get_obs(), env.get_maze_map())
+        _, track_back = get_vi_sequence(env, start_obs)
+        env_observations = torch.stack([track_back[i][0] for i in range(len(track_back))], dim=0)
+
+        for i in range(env_observations.shape[0]):
+            bfs_sequence, _ = get_vi_sequence(env, env_observations[i].numpy().astype(np.int32))  # [L, W, W]
+            bfs_input_map = env.n_action * np.ones([env.size, env.size], dtype=np.long)
+
+            for j in range(bfs_sequence.shape[0]):
+                bfs_input_maps.append(torch.from_numpy(bfs_input_map))
+                bfs_output_maps.append(torch.from_numpy(bfs_sequence[j]))
+                observations.append(env_observations[i])
+                bfs_input_map = bfs_sequence[j]
+
+    train_data = PCDataset(
+        (
+            torch.stack(observations_train, dim=0),
+            torch.stack(bfs_input_maps_train, dim=0),
+            torch.stack(bfs_output_maps_train, dim=0),
+        )
+    )
+    test_data = PCDataset(
+        (
+            torch.stack(observations_test, dim=0),
+            torch.stack(bfs_input_maps_test, dim=0),
+            torch.stack(bfs_output_maps_test, dim=0),
+        )
+    )
+
+    return train_data, test_data
 
 
 @DATASET_REGISTRY.register('bco')

@@ -4,6 +4,7 @@ maze_size = 16
 num_actions = 4
 maze_pc_config = dict(
     exp_name="maze_pc_seed0",
+    train_seeds=5,
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -11,7 +12,7 @@ maze_pc_config = dict(
         env_id='Maze',
         size=maze_size,
         wall_type='tunnel',
-        stop_value=1
+        stop_value=1,
     ),
     policy=dict(
         cuda=True,
@@ -29,8 +30,7 @@ maze_pc_config = dict(
             ],
         ),
         learn=dict(
-            # update_per_collect=4,
-            batch_size=256,
+            batch_size=32,
             learning_rate=0.0005,
             train_epoch=100,
             optimizer='Adam',
